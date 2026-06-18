@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          answer_preview: string | null
+          created_at: string
+          id: string
+          question: string
+          sources: Json | null
+          thread_id: string | null
+          user_id: string
+        }
+        Insert: {
+          answer_preview?: string | null
+          created_at?: string
+          id?: string
+          question: string
+          sources?: Json | null
+          thread_id?: string | null
+          user_id: string
+        }
+        Update: {
+          answer_preview?: string | null
+          created_at?: string
+          id?: string
+          question?: string
+          sources?: Json | null
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      document_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          id: string
+          token_count: number | null
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          document_id: string
+          embedding?: string | null
+          id?: string
+          token_count?: number | null
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string | null
+          id?: string
+          token_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faqs: {
         Row: {
           answer_de: string
@@ -50,28 +136,43 @@ export type Database = {
       knowledge_documents: {
         Row: {
           category: string
+          chunk_count: number
           content_text: string
           created_at: string
+          doc_code: string | null
+          error: string | null
           file_path: string | null
+          file_type: string | null
           id: string
+          status: string
           title: string
           uploaded_by: string | null
         }
         Insert: {
           category?: string
+          chunk_count?: number
           content_text?: string
           created_at?: string
+          doc_code?: string | null
+          error?: string | null
           file_path?: string | null
+          file_type?: string | null
           id?: string
+          status?: string
           title: string
           uploaded_by?: string | null
         }
         Update: {
           category?: string
+          chunk_count?: number
           content_text?: string
           created_at?: string
+          doc_code?: string | null
+          error?: string | null
           file_path?: string | null
+          file_type?: string | null
           id?: string
+          status?: string
           title?: string
           uploaded_by?: string | null
         }
@@ -84,6 +185,7 @@ export type Database = {
           id: string
           parts: Json | null
           role: Database["public"]["Enums"]["message_role"]
+          sources: Json | null
           thread_id: string
           user_id: string
         }
@@ -93,6 +195,7 @@ export type Database = {
           id?: string
           parts?: Json | null
           role: Database["public"]["Enums"]["message_role"]
+          sources?: Json | null
           thread_id: string
           user_id: string
         }
@@ -102,6 +205,7 @@ export type Database = {
           id?: string
           parts?: Json | null
           role?: Database["public"]["Enums"]["message_role"]
+          sources?: Json | null
           thread_id?: string
           user_id?: string
         }
@@ -119,28 +223,54 @@ export type Database = {
         Row: {
           created_at: string
           department: string | null
+          department_id: string | null
+          first_name: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           language_pref: string
+          last_name: string | null
+          phone: string | null
+          position: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           department?: string | null
+          department_id?: string | null
+          first_name?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean
           language_pref?: string
+          last_name?: string | null
+          phone?: string | null
+          position?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           department?: string | null
+          department_id?: string | null
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           language_pref?: string
+          last_name?: string | null
+          phone?: string | null
+          position?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       threads: {
         Row: {
@@ -199,9 +329,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      match_document_chunks: {
+        Args: {
+          match_count?: number
+          min_similarity?: number
+          query_embedding: string
+        }
+        Returns: {
+          chunk_id: string
+          chunk_index: number
+          content: string
+          doc_category: string
+          doc_code: string
+          doc_title: string
+          document_id: string
+          similarity: number
+        }[]
+      }
     }
     Enums: {
-      app_role: "admin" | "employee"
+      app_role: "admin" | "employee" | "manager" | "team_leader"
       message_role: "user" | "assistant" | "system"
     }
     CompositeTypes: {
@@ -330,7 +477,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "employee"],
+      app_role: ["admin", "employee", "manager", "team_leader"],
       message_role: ["user", "assistant", "system"],
     },
   },

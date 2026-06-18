@@ -1,0 +1,15 @@
+{
+  "name": "LogiAI — Logistics Knowledge Assistant",
+  "short_name": "LogiAI",
+  "description": "AI knowledge assistant for logistics and warehouse operations. Instant answers from your company's SOPs, manuals and FAQs.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1a2b4a",
+  "orientation": "any",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
