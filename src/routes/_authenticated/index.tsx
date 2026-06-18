@@ -83,14 +83,15 @@ function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
         {kpis.map((k) => (
-          <Card key={k.label} className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-md bg-primary/10 grid place-items-center text-primary">
-                <k.icon className="h-4 w-4" />
-              </div>
+          <Card key={k.label} className="relative overflow-hidden p-5 hover:shadow-md transition-shadow border-border/60">
+            <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary to-primary/40" />
+            <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-2xl font-semibold tracking-tight font-mono">{k.value}</div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground truncate">{k.label}</div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium truncate">{k.label}</div>
+                <div className="text-3xl font-semibold tracking-tight mt-1 tabular-nums">{k.value}</div>
+              </div>
+              <div className="h-10 w-10 rounded-lg bg-primary/10 grid place-items-center text-primary shrink-0">
+                <k.icon className="h-5 w-5" />
               </div>
             </div>
           </Card>
