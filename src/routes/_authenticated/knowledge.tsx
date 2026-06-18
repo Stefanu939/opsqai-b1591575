@@ -18,6 +18,16 @@ import { processDocument, deleteKnowledgeDocument, reprocessDocument } from "@/l
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/knowledge")({
+  head: () => ({
+    meta: [
+      { title: "Knowledge Base — LogiAssist" },
+      { name: "description", content: "Browse and manage your company's SOPs, manuals and procedures indexed for the LogiAssist AI." },
+      { property: "og:title", content: "Knowledge Base — LogiAssist" },
+      { property: "og:description", content: "Browse and manage your company's SOPs, manuals and procedures indexed for the LogiAssist AI." },
+      { property: "og:url", content: "https://logiassist.lovable.app/knowledge" },
+    ],
+    links: [{ rel: "canonical", href: "https://logiassist.lovable.app/knowledge" }],
+  }),
   component: KnowledgePage,
 });
 
