@@ -1,7 +1,7 @@
 {
-  "name": "LogiAI — Logistics Knowledge Assistant",
-  "short_name": "LogiAI",
-  "description": "AI knowledge assistant for logistics and warehouse operations. Instant answers from your company's SOPs, manuals and FAQs.",
+  "name": "OPSQAI — Logistics Knowledge Assistant",
+  "short_name": "OPSQAI",
+  "description": "Operational Knowledge Intelligence — instant access to company knowledge. Instant answers from your company's SOPs, manuals and FAQs.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

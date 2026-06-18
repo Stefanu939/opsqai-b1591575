@@ -20,13 +20,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/knowledge")({
   head: () => ({
     meta: [
-      { title: "Knowledge Base — LogiAssist" },
-      { name: "description", content: "Browse and manage your company's SOPs, manuals and procedures indexed for the LogiAssist AI." },
-      { property: "og:title", content: "Knowledge Base — LogiAssist" },
-      { property: "og:description", content: "Browse and manage your company's SOPs, manuals and procedures indexed for the LogiAssist AI." },
-      { property: "og:url", content: "https://logiassist.lovable.app/knowledge" },
+      { title: "Knowledge Base — OPSQAI" },
+      { name: "description", content: "Browse and manage your company's SOPs, manuals and procedures indexed for the OPSQAI AI." },
+      { property: "og:title", content: "Knowledge Base — OPSQAI" },
+      { property: "og:description", content: "Browse and manage your company's SOPs, manuals and procedures indexed for the OPSQAI AI." },
+      { property: "og:url", content: "https://opsqai.lovable.app/knowledge" },
     ],
-    links: [{ rel: "canonical", href: "https://logiassist.lovable.app/knowledge" }],
+    links: [{ rel: "canonical", href: "https://opsqai.lovable.app/knowledge" }],
   }),
   component: KnowledgePage,
 });

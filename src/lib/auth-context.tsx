@@ -19,7 +19,7 @@ interface AuthState {
 }
 
 const Ctx = createContext<AuthState | null>(null);
-const ACTIVE_KEY = "logiai.active_company";
+const ACTIVE_KEY = "opsqai.active_company";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
