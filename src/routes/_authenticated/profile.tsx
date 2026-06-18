@@ -86,11 +86,12 @@ function ProfilePage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{t("language")}</Label>
-              <Select value={form.language_pref} onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" })}>
+              <Select value={form.language_pref} onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" | "ro" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="de">Deutsch</SelectItem>
                   <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="de">Deutsch</SelectItem>
+                  <SelectItem value="ro">Română</SelectItem>
                 </SelectContent>
               </Select>
             </div>
