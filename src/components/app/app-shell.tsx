@@ -13,7 +13,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/opsqai-mark.png";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName, activeCompanyId, setActiveCompanyId } = useAuth();
@@ -65,7 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div className="flex h-full flex-col text-sidebar-foreground" style={{ background: "var(--gradient-sidebar)" }}>
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <img src={logo} alt="" width={32} height={32} className="brightness-0 invert" />
+        <img src={logo} alt="" width={32} height={32} className="drop-shadow-[0_0_8px_rgba(139,124,246,0.5)]" />
         <div className="min-w-0">
           <div className="font-semibold tracking-tight truncate">{t("appName")}</div>
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60 truncate">
@@ -177,7 +177,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar text-sidebar-foreground px-4 h-14 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="" width={24} height={24} className="brightness-0 invert" />
+          <img src={logo} alt="" width={24} height={24} />
           <span className="font-semibold tracking-tight text-sm">{t("appName")}</span>
         </div>
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
