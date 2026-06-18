@@ -56,7 +56,7 @@ function ChatIndex() {
                   <div className="text-xs text-muted-foreground font-mono">{new Date(th.updated_at).toLocaleString()}</div>
                 </div>
               </Link>
-              <button onClick={() => onDelete(th.id)} className="p-2 text-muted-foreground hover:text-destructive rounded">
+              <button onClick={() => onDelete(th.id)} aria-label={`Delete conversation ${th.title}`} className="p-2 text-muted-foreground hover:text-destructive rounded">
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
