@@ -49,7 +49,7 @@ const CATEGORIES = ["SOP", "Manual", "Procedure", "Safety", "Transport", "Wareho
 
 function KnowledgePage() {
   const { t } = useT();
-  const { isAdmin } = useAuth();
+  const { isAdmin, companyId, activeCompanyId, isPlatformAdmin } = useAuth();
   const [docs, setDocs] = useState<Doc[]>([]);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
