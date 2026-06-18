@@ -227,6 +227,7 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
                         </div>
                       )}
                       <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">{s.excerpt}</p>
+                      <div className="mt-2"><CopyButton text={s.excerpt} label={T("copy") || "Copy"} /></div>
                     </div>
                   ))}
                 </div>
