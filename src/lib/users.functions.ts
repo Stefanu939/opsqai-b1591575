@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
@@ -145,7 +146,10 @@ export const inviteUser = createServerFn({ method: "POST" })
     if (!targetCompany) throw new Error("Target company required");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const origin = getRequestHeader("origin") || getRequestHeader("referer") || "";
+    const redirectTo = origin ? `${origin.replace(/\/$/, "")}/accept-invite` : undefined;
     const { data: inv, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
+      redirectTo,
       data: {
         company_id: targetCompany,
         role: data.role,
