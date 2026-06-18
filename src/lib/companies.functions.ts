@@ -142,3 +142,65 @@ export const platformStats = createServerFn({ method: "POST" })
       total_questions: audit.count ?? 0,
     };
   });
+
+// ============= Platform Super Admin management =============
+
+export const listPlatformAdmins = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roleRows, error } = await supabaseAdmin
+      .from("user_roles").select("user_id, created_at").eq("role", "platform_admin");
+    if (error) throw new Error(error.message);
+    if (!roleRows?.length) return [];
+    const ids = roleRows.map((r) => r.user_id);
+    const [{ data: profiles }, usersResp] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, full_name, first_name, last_name").in("id", ids),
+      supabaseAdmin.auth.admin.listUsers({ perPage: 1000 }),
+    ]);
+    const emailById = new Map(usersResp.data.users.map((u) => [u.id, u.email ?? ""]));
+    const lastById = new Map(usersResp.data.users.map((u) => [u.id, u.last_sign_in_at ?? null]));
+    const pById = new Map((profiles ?? []).map((p) => [p.id, p]));
+    return roleRows.map((r) => {
+      const p = pById.get(r.user_id);
+      return {
+        id: r.user_id,
+        email: emailById.get(r.user_id) ?? "",
+        full_name: p?.full_name ?? null,
+        last_sign_in_at: lastById.get(r.user_id) ?? null,
+        granted_at: r.created_at,
+      };
+    });
+  });
+
+export const promotePlatformAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ email: z.string().email() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: usersResp } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    const target = usersResp.users.find((u) => (u.email ?? "").toLowerCase() === data.email.toLowerCase());
+    if (!target) throw new Error("User not found. Ask them to sign up first.");
+    const { error } = await supabaseAdmin.from("user_roles")
+      .upsert({ user_id: target.id, role: "platform_admin", company_id: null }, { onConflict: "user_id,role" });
+    if (error) throw new Error(error.message);
+    return { ok: true, user_id: target.id };
+  });
+
+export const demotePlatformAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    if (data.user_id === context.userId) throw new Error("You cannot demote yourself");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count } = await supabaseAdmin
+      .from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "platform_admin");
+    if ((count ?? 0) <= 1) throw new Error("At least one Platform Super Admin must remain");
+    const { error } = await supabaseAdmin.from("user_roles")
+      .delete().eq("user_id", data.user_id).eq("role", "platform_admin");
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

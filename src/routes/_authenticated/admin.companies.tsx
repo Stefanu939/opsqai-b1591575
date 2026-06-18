@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Building2, Users, FileText, MessageSquare, Power, Trash2 } from "lucide-react";
+import { Plus, Building2, Users, FileText, MessageSquare, Power, Trash2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/companies")({
@@ -19,7 +19,8 @@ export const Route = createFileRoute("/_authenticated/admin/companies")({
 });
 
 function CompaniesPage() {
-  const { isPlatformAdmin } = useAuth();
+  const { isPlatformAdmin, setActiveCompanyId } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const list = useServerFn(listCompanies);
   const stats = useServerFn(platformStats);
@@ -105,6 +106,9 @@ function CompaniesPage() {
                 <td className="px-4 py-3">{c.faq_count}</td>
                 <td className="px-4 py-3">{c.max_users}</td>
                 <td className="px-4 py-3 text-right space-x-1">
+                  <Button size="sm" variant="ghost" onClick={() => { setActiveCompanyId(c.id); toast.success(`Opened ${c.name} workspace`); navigate({ to: "/admin/users" }); }}>
+                    <LogIn className="h-4 w-4 mr-1" />Open
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => updateMut.mutate({ id: c.id, name: c.name, active: !c.active, subscription_status: c.active ? "suspended" : "active" })}>
                     {c.active ? "Suspend" : "Activate"}
                   </Button>
