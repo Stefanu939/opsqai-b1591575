@@ -254,3 +254,32 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
     </div>
   );
 }
+
+function ThinkingDots({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <span className="flex gap-1">
+        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" />
+      </span>
+      <span className="italic">{label}</span>
+    </div>
+  );
+}
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try { await navigator.clipboard.writeText(text); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* noop */ }
+      }}
+      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {done ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {done ? "✓" : label}
+    </button>
+  );
+}
