@@ -5,26 +5,48 @@ import { z } from "zod";
 const ROLES = ["admin", "manager", "team_leader", "employee"] as const;
 const RoleEnum = z.enum(ROLES);
 
-async function requireAdmin(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
-  if (!data) throw new Error("Forbidden");
+async function getActorRoles(supabase: any, userId: string) {
+  const { data } = await supabase.from("user_roles").select("role, company_id").eq("user_id", userId);
+  const roles: string[] = (data ?? []).map((r: any) => r.role);
+  return {
+    roles,
+    isPlatformAdmin: roles.includes("platform_admin"),
+    isCompanyAdmin: roles.includes("admin"),
+  };
+}
+
+async function getActorCompany(supabase: any, userId: string): Promise<string | null> {
+  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  return data?.company_id ?? null;
+}
+
+async function requireAdminOrPlatform(supabase: any, userId: string) {
+  const { isPlatformAdmin, isCompanyAdmin } = await getActorRoles(supabase, userId);
+  if (!isPlatformAdmin && !isCompanyAdmin) throw new Error("Forbidden");
+  return { isPlatformAdmin, isCompanyAdmin };
 }
 
 export const listUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await requireAdmin(context.supabase, context.userId);
+  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
+    const actorCompany = await getActorCompany(context.supabase, context.userId);
+    const scope = isPlatformAdmin ? (data.company_id ?? null) : actorCompany;
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: profiles, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("profiles")
-      .select("id, full_name, first_name, last_name, position, phone, department_id, language_pref, is_active, created_at")
+      .select("id, full_name, first_name, last_name, position, phone, department_id, language_pref, is_active, created_at, company_id")
       .order("created_at", { ascending: false });
+    if (scope) q = q.eq("company_id", scope);
+    const { data: profiles, error } = await q;
     if (error) throw new Error(error.message);
 
-    const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
-    const { data: usersResp } = await supabaseAdmin.auth.admin.listUsers({ perPage: 200 });
+    const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role, company_id");
+    const { data: usersResp } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
     const { data: depts } = await supabaseAdmin.from("departments").select("id, name");
+    const { data: companies } = await supabaseAdmin.from("companies").select("id, name");
 
     const emailById = new Map(usersResp.users.map((u) => [u.id, u.email ?? ""]));
     const lastSignInById = new Map(usersResp.users.map((u) => [u.id, u.last_sign_in_at ?? null]));
@@ -35,6 +57,7 @@ export const listUsers = createServerFn({ method: "POST" })
       rolesByUser.set(r.user_id, list);
     }
     const deptById = new Map((depts ?? []).map((d) => [d.id, d.name]));
+    const compById = new Map((companies ?? []).map((c) => [c.id, c.name]));
 
     return (profiles ?? []).map((p) => ({
       id: p.id,
@@ -46,6 +69,8 @@ export const listUsers = createServerFn({ method: "POST" })
       phone: p.phone,
       department_id: p.department_id,
       department_name: p.department_id ? deptById.get(p.department_id) ?? null : null,
+      company_id: p.company_id,
+      company_name: p.company_id ? compById.get(p.company_id) ?? null : null,
       language_pref: p.language_pref,
       is_active: p.is_active,
       last_sign_in_at: lastSignInById.get(p.id) ?? null,
@@ -65,16 +90,25 @@ export const createUser = createServerFn({ method: "POST" })
     phone: z.string().optional(),
     department_id: z.string().uuid().optional().nullable(),
     role: RoleEnum,
+    company_id: z.string().uuid().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context.supabase, context.userId);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
+    const actorCompany = await getActorCompany(context.supabase, context.userId);
+    const targetCompany = isPlatformAdmin ? (data.company_id ?? actorCompany) : actorCompany;
+    if (!targetCompany) throw new Error("Target company required");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
       email_confirm: true,
-      user_metadata: { first_name: data.first_name, last_name: data.last_name,
-        full_name: [data.first_name, data.last_name].filter(Boolean).join(" ") || data.email.split("@")[0] },
+      user_metadata: {
+        first_name: data.first_name, last_name: data.last_name,
+        full_name: [data.first_name, data.last_name].filter(Boolean).join(" ") || data.email.split("@")[0],
+        company_id: targetCompany,
+        role: data.role,
+      },
     });
     if (error || !created.user) throw new Error(error?.message || "Create failed");
 
@@ -84,13 +118,13 @@ export const createUser = createServerFn({ method: "POST" })
       position: data.position ?? null,
       phone: data.phone ?? null,
       department_id: data.department_id ?? null,
+      company_id: targetCompany,
     }).eq("id", created.user.id);
 
-    // Replace default 'employee' with requested role
-    if (data.role !== "employee") {
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", created.user.id);
-      await supabaseAdmin.from("user_roles").insert({ user_id: created.user.id, role: data.role });
-    }
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", created.user.id);
+    await supabaseAdmin.from("user_roles").insert({
+      user_id: created.user.id, role: data.role, company_id: targetCompany,
+    });
     return { ok: true, id: created.user.id };
   });
 
@@ -100,19 +134,28 @@ export const inviteUser = createServerFn({ method: "POST" })
     email: z.string().email(),
     role: RoleEnum,
     department_id: z.string().uuid().optional().nullable(),
+    company_id: z.string().uuid().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context.supabase, context.userId);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
+    const actorCompany = await getActorCompany(context.supabase, context.userId);
+    const targetCompany = isPlatformAdmin ? (data.company_id ?? actorCompany) : actorCompany;
+    if (!targetCompany) throw new Error("Target company required");
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inv, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email);
+    const { data: inv, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
+      data: { company_id: targetCompany, role: data.role },
+    });
     if (error || !inv.user) throw new Error(error?.message || "Invite failed");
+
     await supabaseAdmin.from("profiles").update({
       department_id: data.department_id ?? null,
+      company_id: targetCompany,
     }).eq("id", inv.user.id);
-    if (data.role !== "employee") {
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", inv.user.id);
-      await supabaseAdmin.from("user_roles").insert({ user_id: inv.user.id, role: data.role });
-    }
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", inv.user.id);
+    await supabaseAdmin.from("user_roles").insert({
+      user_id: inv.user.id, role: data.role, company_id: targetCompany,
+    });
     return { ok: true };
   });
 
@@ -129,8 +172,18 @@ export const updateUser = createServerFn({ method: "POST" })
     roles: z.array(RoleEnum).optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context.supabase, context.userId);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
+    const actorCompany = await getActorCompany(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Verify target user is in the same company (unless platform admin)
+    if (!isPlatformAdmin) {
+      const { data: target } = await supabaseAdmin.from("profiles").select("company_id").eq("id", data.user_id).maybeSingle();
+      if (target?.company_id !== actorCompany) throw new Error("Forbidden: cross-company edit");
+    }
+    const { data: target } = await supabaseAdmin.from("profiles").select("company_id").eq("id", data.user_id).maybeSingle();
+    const targetCompany = target?.company_id;
+
     const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
     await supabaseAdmin.from("profiles").update({
       first_name: data.first_name ?? null,
@@ -143,17 +196,16 @@ export const updateUser = createServerFn({ method: "POST" })
     }).eq("id", data.user_id);
 
     if (data.is_active === false) {
-      // Disable sign-in by setting a ban duration (Auth admin)
       await supabaseAdmin.auth.admin.updateUserById(data.user_id, { ban_duration: "876000h" });
     } else if (data.is_active === true) {
       await supabaseAdmin.auth.admin.updateUserById(data.user_id, { ban_duration: "none" });
     }
 
-    if (data.roles) {
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
+    if (data.roles && targetCompany) {
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).neq("role", "platform_admin");
       if (data.roles.length > 0) {
         await supabaseAdmin.from("user_roles").insert(
-          data.roles.map((r) => ({ user_id: data.user_id, role: r })),
+          data.roles.map((r) => ({ user_id: data.user_id, role: r, company_id: targetCompany })),
         );
       }
     }
@@ -164,9 +216,14 @@ export const deleteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { user_id: string }) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context.supabase, context.userId);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     if (data.user_id === context.userId) throw new Error("Cannot delete yourself");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (!isPlatformAdmin) {
+      const actorCompany = await getActorCompany(context.supabase, context.userId);
+      const { data: target } = await supabaseAdmin.from("profiles").select("company_id").eq("id", data.user_id).maybeSingle();
+      if (target?.company_id !== actorCompany) throw new Error("Forbidden");
+    }
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.user_id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -179,8 +236,13 @@ export const resetUserPassword = createServerFn({ method: "POST" })
     new_password: z.string().min(8),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context.supabase, context.userId);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (!isPlatformAdmin) {
+      const actorCompany = await getActorCompany(context.supabase, context.userId);
+      const { data: target } = await supabaseAdmin.from("profiles").select("company_id").eq("id", data.user_id).maybeSingle();
+      if (target?.company_id !== actorCompany) throw new Error("Forbidden");
+    }
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, { password: data.new_password });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -202,7 +264,7 @@ export const updateMyProfile = createServerFn({ method: "POST" })
     position: z.string().optional().nullable(),
     phone: z.string().optional().nullable(),
     department_id: z.string().uuid().optional().nullable(),
-    language_pref: z.enum(["de", "en"]).optional(),
+    language_pref: z.enum(["de", "en", "ro"]).optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const full = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;

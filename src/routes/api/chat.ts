@@ -5,28 +5,23 @@ import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { embedOne } from "@/lib/embeddings.server";
 import type { Database } from "@/integrations/supabase/types";
 
-const SYSTEM_PROMPT = (lang: "de" | "en", context: string) => `You are LogiAI, an AI knowledge assistant for a logistics and warehouse operations company.
+const SYSTEM_PROMPT = (context: string) => `You are LogiAI, an AI knowledge assistant for a logistics and warehouse operations company.
 
 STRICT RULES — non-negotiable:
 1. Answer ONLY from the "COMPANY KNOWLEDGE" provided below. The Knowledge Base (SOPs, manuals, procedures) and FAQs are the SINGLE SOURCE OF TRUTH.
 2. NEVER use general LLM knowledge to answer about company procedures, processes, safety, or operations.
 3. NEVER invent procedures, role names, time limits, escalation paths, or document codes.
-4. If the answer is not present in COMPANY KNOWLEDGE, respond exactly:
-   ${lang === "de"
-     ? '"Die angeforderte Information ist nicht in der aktuellen Firmen-Wissensdatenbank oder in den FAQs verfügbar."'
-     : '"The requested information is not available in the current company Knowledge Base or FAQs."'}
-   Then suggest the user contact a supervisor.
+4. If the answer is not present in COMPANY KNOWLEDGE, say so plainly in the user's language and suggest contacting a supervisor.
 5. Reason carefully: if a SOP says ">60 min triggers X", and the user asks about 75 min, you MUST apply the rule (75 > 60).
-6. Always cite your sources at the end in this exact format:
-
-${lang === "de" ? "Quellen:" : "Sources:"}
-- [DOC-CODE or Document Title] — short section reference
-- [FAQ: question summary]
-
-Respond in ${lang === "de" ? "German" : "English"} unless the user clearly writes in another language; then mirror their language.
+6. Always cite your sources at the end:
+   - For English answers, label the section "Sources:"
+   - For German answers, "Quellen:"
+   - For Romanian answers, "Surse:"
+   - List "[DOC-CODE or Document Title] — short section reference" or "[FAQ: question summary]"
+7. LANGUAGE: Detect the language the user wrote in (English, German, or Romanian) and ALWAYS answer in that exact same language, regardless of the language of the source documents. Source documents may be in any language — understand them and translate the relevant facts into the user's language. Keep document codes and proper nouns unchanged.
 
 COMPANY KNOWLEDGE:
-${context || (lang === "de" ? "(Keine passenden Dokumente gefunden.)" : "(No matching documents found.)")}`;
+${context || "(No matching company documents or FAQs were found for this question.)"}`;
 
 interface SourceItem {
   type: "document" | "faq";
@@ -64,32 +59,39 @@ export const Route = createFileRoute("/api/chat")({
         const body = (await request.json()) as {
           messages?: UIMessage[];
           threadId?: string;
-          language?: "de" | "en";
         };
         const messages = body.messages ?? [];
         const threadId = body.threadId;
-        const language: "de" | "en" = body.language === "en" ? "en" : "de";
         if (!threadId) return new Response("threadId required", { status: 400 });
 
         const { data: thread } = await supabase
-          .from("threads").select("id, title").eq("id", threadId).eq("user_id", userId).maybeSingle();
+          .from("threads")
+          .select("id, title, company_id")
+          .eq("id", threadId)
+          .eq("user_id", userId)
+          .maybeSingle();
         if (!thread) return new Response("Thread not found", { status: 404 });
+        const companyId = thread.company_id;
 
         const lastUser = [...messages].reverse().find((m) => m.role === "user");
         const query = lastUser?.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim() ?? "";
 
-        // === RAG: Semantic retrieval ===
+        // === RAG: Semantic retrieval (scoped to this company) ===
         const sources: SourceItem[] = [];
         let contextBlock = "";
 
         if (query) {
           try {
             const qVec = await embedOne(query);
-            const { data: matches } = await supabase.rpc("match_document_chunks", {
-              query_embedding: `[${qVec.join(",")}]` as unknown as string,
-              match_count: 6,
-              min_similarity: 0.3,
-            });
+            const { data: matches } = await supabase.rpc(
+              "match_document_chunks_for_company" as never,
+              {
+                query_embedding: `[${qVec.join(",")}]`,
+                match_count: 6,
+                min_similarity: 0.3,
+                _company_id: companyId,
+              } as never,
+            ) as { data: Array<{ chunk_id: string; doc_title: string; doc_code: string | null; content: string; similarity: number }> | null };
             for (const m of matches ?? []) {
               sources.push({
                 type: "document",
@@ -104,9 +106,11 @@ export const Route = createFileRoute("/api/chat")({
             console.error("embed/match failed", e);
           }
 
-          // FAQ keyword fallback (small dataset, no need to embed)
+          // FAQ keyword fallback — company-scoped via RLS
           const { data: faqs } = await supabase
-            .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category").limit(100);
+            .from("faqs")
+            .select("id,question_de,question_en,answer_de,answer_en,category")
+            .limit(200);
           const lq = query.toLowerCase();
           const words = lq.split(/\s+/).filter((w) => w.length > 3);
           const scored = (faqs ?? [])
@@ -122,17 +126,16 @@ export const Route = createFileRoute("/api/chat")({
             sources.push({
               type: "faq",
               id: f.id,
-              title: language === "de" ? f.question_de : f.question_en,
-              excerpt: language === "de" ? f.answer_de : f.answer_en,
+              title: `${f.question_en} / ${f.question_de}`,
+              excerpt: `EN: ${f.answer_en}\nDE: ${f.answer_de}`,
             });
           }
 
-          // Build context block
           const docBlocks = sources.filter((s) => s.type === "document").map((s, i) =>
             `[Doc ${i + 1}] ${s.code ? s.code + " — " : ""}${s.title}\n${s.excerpt}`,
           );
           const faqBlocks = sources.filter((s) => s.type === "faq").map((s, i) =>
-            `[FAQ ${i + 1}] ${s.title}\nA: ${s.excerpt}`,
+            `[FAQ ${i + 1}] ${s.title}\n${s.excerpt}`,
           );
           contextBlock = [...docBlocks, ...faqBlocks].join("\n\n---\n\n");
         }
@@ -140,7 +143,7 @@ export const Route = createFileRoute("/api/chat")({
         const gateway = createLovableAiGatewayProvider(apiKey);
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
-          system: SYSTEM_PROMPT(language, contextBlock),
+          system: SYSTEM_PROMPT(contextBlock),
           messages: await convertToModelMessages(messages),
         });
 
@@ -161,6 +164,7 @@ export const Route = createFileRoute("/api/chat")({
               const toInsert = newMessages.map((m) => ({
                 thread_id: threadId,
                 user_id: userId,
+                company_id: companyId,
                 role: m.role as "user" | "assistant" | "system",
                 content: m.parts.map((p) => (p.type === "text" ? p.text : "")).join("").slice(0, 100000),
                 parts: m.parts as never,
@@ -176,6 +180,7 @@ export const Route = createFileRoute("/api/chat")({
                 const a = lastAsstMsg?.parts.map((p) => (p.type === "text" ? p.text : "")).join("") ?? "";
                 await supabase.from("audit_log").insert({
                   user_id: userId,
+                  company_id: companyId,
                   thread_id: threadId,
                   question: q.slice(0, 2000),
                   answer_preview: a.slice(0, 500),
@@ -183,7 +188,7 @@ export const Route = createFileRoute("/api/chat")({
                 });
               }
 
-              if (thread.title === "New conversation" || thread.title === "Neue Unterhaltung") {
+              if (thread.title === "New conversation" || thread.title === "Neue Unterhaltung" || thread.title === "Conversație nouă") {
                 const firstUserText = finalMessages.find((m) => m.role === "user")
                   ?.parts.map((p) => (p.type === "text" ? p.text : "")).join("").slice(0, 80);
                 if (firstUserText) {

@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
-  Languages, BarChart3, ScrollText, UserCircle, ChevronDown,
+  Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";

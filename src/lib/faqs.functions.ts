@@ -29,9 +29,12 @@ export const upsertFaq = createServerFn({ method: "POST" })
     } else {
       // Admins and team leaders can create new FAQs
       if (!isAdmin && !isTeamLeader) throw new Error("Forbidden");
+      const { data: profile } = await context.supabase
+        .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      if (!profile?.company_id) throw new Error("No company assigned");
       const { id: _ignore, ...insert } = data;
       void _ignore;
-      const { error } = await context.supabase.from("faqs").insert(insert);
+      const { error } = await context.supabase.from("faqs").insert({ ...insert, company_id: profile.company_id });
       if (error) throw new Error(error.message);
     }
     return { ok: true };
