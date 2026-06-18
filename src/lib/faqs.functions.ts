@@ -16,17 +16,19 @@ export const upsertFaq = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => FaqInput.parse(d))
   .handler(async ({ data, context }) => {
     const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!roles) throw new Error("Forbidden");
+      .from("user_roles").select("role").eq("user_id", context.userId);
+    const list = (roles ?? []).map((r) => r.role);
+    const isAdmin = list.includes("admin");
+    const isTeamLeader = list.includes("team_leader");
 
     if (data.id) {
+      // Only admins can edit existing FAQs
+      if (!isAdmin) throw new Error("Forbidden");
       const { error } = await context.supabase.from("faqs").update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
+      // Admins and team leaders can create new FAQs
+      if (!isAdmin && !isTeamLeader) throw new Error("Forbidden");
       const { id: _ignore, ...insert } = data;
       void _ignore;
       const { error } = await context.supabase.from("faqs").insert(insert);

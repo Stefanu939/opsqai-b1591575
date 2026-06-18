@@ -45,12 +45,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LogiAssist — AI Assistant for Logistics & Warehouse" },
-      { name: "description", content: "Bilingual AI assistant for warehouse and logistics teams. Answers about Wareneingang, Warenausgang, CMR, loading, transport planning and safety." },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: "LogiAI — AI Knowledge Assistant for Logistics & Warehouse" },
+      { name: "description", content: "Bilingual AI assistant that answers warehouse and logistics questions directly from your company's SOPs, manuals and FAQs. Wareneingang, Warenausgang, CMR, loading, transport, safety." },
+      { name: "theme-color", content: "#1a2b4a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "LogiAI" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icons/icon-512.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/icons/icon-512.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" },

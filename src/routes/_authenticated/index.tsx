@@ -36,7 +36,7 @@ function Dashboard() {
         supabase.from("threads").select("id", { count: "exact", head: true }).gte("created_at", today.toISOString()),
         supabase.from("knowledge_documents").select("id", { count: "exact", head: true }),
         supabase.from("faqs").select("id", { count: "exact", head: true }),
-        isAdmin ? supabase.from("profiles").select("id", { count: "exact", head: true }) : Promise.resolve({ count: 0 } as { count: number | null }),
+        (isAdmin ? supabase.from("profiles").select("id", { count: "exact", head: true }) : Promise.resolve({ count: 0 } as { count: number | null })) as Promise<{ count: number | null }>,
         supabase.from("threads").select("id,title,updated_at").order("updated_at", { ascending: false }).limit(5),
       ]);
       setStats({
