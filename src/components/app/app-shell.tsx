@@ -14,7 +14,7 @@ import {
 import logo from "@/assets/logo.png";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { isAdmin, isManager, signOut, user } = useAuth();
+  const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName } = useAuth();
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -31,6 +31,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     ...(isAdmin ? [{ to: "/admin/users", label: t("users"), icon: Users }] : []),
     ...(canAdmin ? [{ to: "/admin/audit", label: t("auditLog"), icon: ScrollText }] : []),
   ];
+  const platformNav = isPlatformAdmin
+    ? [{ to: "/admin/companies", label: "Companies", icon: Building2 }]
+    : [];
+
+  const cycleLang = () => {
+    const order: Array<"de" | "en" | "ro"> = ["en", "de", "ro"];
+    const idx = order.indexOf(lang);
+    setLang(order[(idx + 1) % order.length]);
+  };
+  const nextLangLabel = (() => {
+    const order: Array<"de" | "en" | "ro"> = ["en", "de", "ro"];
+    return order[(order.indexOf(lang) + 1) % order.length].toUpperCase();
+  })();
 
   const handleSignOut = async () => {
     await signOut();
