@@ -26,6 +26,34 @@ function detectGreeting(q: string): boolean {
   return GREETING_PATTERNS.some((re) => re.test(trimmed));
 }
 
+const FOLLOWUP_PATTERNS = [
+  /\b(elaborate|explain|explain (it|that|more)|tell me more|more detail|more details|give (me )?more details|expand|clarify|summari[sz]e|tl;?dr|in short|shorter|translate|in (english|german|romanian|deutsch|englisch|rom[âa]n[ăa]|german[ăa]|englez[ăa])|rephrase|simpler|simplify|continue|go on|and\??|why\??|how\??|what about|details?\??)\b/i,
+  /\b(erkl[äa]re|erl[äa]utere|mehr details?|ausf[üu]hrlicher|zusammenfassen|[üu]bersetze|fortfahren|weiter|warum\??|wie\??)\b/i,
+  /\b(elaboreaz[ăa]|explic[ăa]|mai multe detalii|detalia[zț]i|rezum[ăa]|traduce[țt]i|continu[ăa]|de ce\??|cum\??)\b/i,
+];
+
+function detectFollowup(q: string): boolean {
+  const trimmed = q.trim();
+  if (trimmed.length === 0 || trimmed.length > 160) return false;
+  return FOLLOWUP_PATTERNS.some((re) => re.test(trimmed));
+}
+
+const FOLLOWUP_PROMPT = (context: string) => `You are OPSQAI, an AI knowledge assistant for a logistics and warehouse operations company.
+
+The user is asking a FOLLOW-UP question about the previous answer (e.g. elaborate, explain, summarize, translate, more details). Do NOT search for new information. Re-use the conversation so far AND the previously retrieved sources below to answer.
+
+ABSOLUTE RULES:
+1. Use ONLY information from the prior conversation and the "PREVIOUSLY RETRIEVED SOURCES" block below. No outside knowledge.
+2. Detect the user's language (English, German, or Romanian) and answer in that language. If they asked to translate, translate the prior answer into the requested language.
+3. If the requested information is genuinely not present in either the conversation context or the sources below, reply with exactly:
+   - English: "${REFUSAL.en}"
+   - German: "${REFUSAL.de}"
+   - Romanian: "${REFUSAL.ro}"
+4. When you do answer, end with a "Sources:" / "Quellen:" / "Surse:" block reusing the same sources you relied on, in the same format as before.
+
+PREVIOUSLY RETRIEVED SOURCES:
+${context || "(No previously retrieved sources are available.)"}`;
+
 const GREETING_PROMPT = (lang: string) => `You are OPSQAI, a professional company knowledge assistant for logistics and warehouse operations.
 
 The user has greeted you or asked a conversational question. Respond naturally, briefly (1–3 sentences), and professionally in their language (English, German, or Romanian — detect from the user message). Introduce yourself as their company knowledge assistant that can help find SOPs, procedures, FAQs and company information. Do NOT include any "Sources:" block. Do NOT make up company facts.
@@ -111,11 +139,35 @@ export const Route = createFileRoute("/api/chat")({
         const query = lastUser?.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim() ?? "";
 
         const isGreeting = detectGreeting(query);
+        const hasPriorAssistant = messages.some((m) => m.role === "assistant");
+        const isFollowup = !isGreeting && hasPriorAssistant && detectFollowup(query);
         const sources: SourceItem[] = [];
         let contextBlock = "";
-        let mode: "greeting" | "kb" | "gap" = isGreeting ? "greeting" : "kb";
+        let mode: "greeting" | "kb" | "gap" | "followup" =
+          isGreeting ? "greeting" : isFollowup ? "followup" : "kb";
 
-        if (!isGreeting && query) {
+        if (isFollowup) {
+          // Reuse sources from the previous assistant message in this thread — no new KB search.
+          const { data: prior } = await supabase
+            .from("messages")
+            .select("role, sources, created_at")
+            .eq("thread_id", threadId)
+            .eq("role", "assistant")
+            .order("created_at", { ascending: false })
+            .limit(1);
+          const priorSources = (prior?.[0]?.sources ?? null) as SourceItem[] | null;
+          if (Array.isArray(priorSources) && priorSources.length > 0) {
+            for (const s of priorSources) sources.push(s);
+            const docBlocks = sources.filter((s) => s.type === "document").map((s, i) =>
+              `[Doc ${i + 1}] ${s.code ? s.code + " — " : ""}${s.title}\n${s.excerpt}`,
+            );
+            const faqBlocks = sources.filter((s) => s.type === "faq").map((s, i) =>
+              `[FAQ ${i + 1}] ${s.title}\n${s.excerpt}`,
+            );
+            contextBlock = [...docBlocks, ...faqBlocks].join("\n\n---\n\n");
+          }
+          // No sources but still a follow-up: let the model lean on conversation context only.
+        } else if (!isGreeting && query) {
           try {
             const qVec = await embedOne(query);
             const { data: matches } = await supabase.rpc(
@@ -178,7 +230,9 @@ export const Route = createFileRoute("/api/chat")({
         const gateway = createLovableAiGatewayProvider(apiKey);
         const systemPrompt = isGreeting
           ? GREETING_PROMPT(langHint)
-          : SYSTEM_PROMPT(contextBlock, sources.length > 0);
+          : isFollowup
+            ? FOLLOWUP_PROMPT(contextBlock)
+            : SYSTEM_PROMPT(contextBlock, sources.length > 0);
 
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
