@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/opsqai-mark.png";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -84,7 +84,7 @@ function AuthPage() {
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
           <img src={logo} alt="OPSQAI" width={32} height={32} />
-          <span className="font-semibold tracking-tight">OPSQAI</span>
+          <span className="font-semibold tracking-tight text-lg">OPSQAI</span>
         </div>
         <button onClick={() => setLang(lang === "de" ? "en" : "de")} className="text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground">
           {lang.toUpperCase()} / {lang === "de" ? "EN" : "DE"}
@@ -93,8 +93,10 @@ function AuthPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold tracking-tight">OPSQAI — Sign in</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("tagline")}</p>
+            <img src={logo} alt="" width={64} height={64} className="mx-auto mb-4 drop-shadow-[0_0_20px_rgba(139,124,246,0.4)]" />
+            <h1 className="text-2xl font-semibold tracking-tight">OPSQAI</h1>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground/70 mt-1">Operational Knowledge Intelligence</p>
+            <p className="text-sm text-muted-foreground mt-2">{t("tagline")}</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
