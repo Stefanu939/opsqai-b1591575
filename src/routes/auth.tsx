@@ -14,13 +14,13 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — LogiAssist" },
-      { name: "description", content: "Sign in to LogiAssist to access your company's logistics AI assistant, SOPs and knowledge base." },
-      { property: "og:title", content: "Sign in — LogiAssist" },
-      { property: "og:description", content: "Sign in to LogiAssist to access your company's logistics AI assistant, SOPs and knowledge base." },
-      { property: "og:url", content: "https://logiassist.lovable.app/auth" },
+      { title: "Sign in — OPSQAI" },
+      { name: "description", content: "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base." },
+      { property: "og:title", content: "Sign in — OPSQAI" },
+      { property: "og:description", content: "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base." },
+      { property: "og:url", content: "https://opsqai.lovable.app/auth" },
     ],
-    links: [{ rel: "canonical", href: "https://logiassist.lovable.app/auth" }],
+    links: [{ rel: "canonical", href: "https://opsqai.lovable.app/auth" }],
   }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
@@ -83,8 +83,8 @@ function AuthPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="LogiAssist" width={32} height={32} />
-          <span className="font-semibold tracking-tight">LogiAssist</span>
+          <img src={logo} alt="OPSQAI" width={32} height={32} />
+          <span className="font-semibold tracking-tight">OPSQAI</span>
         </div>
         <button onClick={() => setLang(lang === "de" ? "en" : "de")} className="text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground">
           {lang.toUpperCase()} / {lang === "de" ? "EN" : "DE"}
@@ -93,7 +93,7 @@ function AuthPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold tracking-tight">LogiAssist — Sign in</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">OPSQAI — Sign in</h1>
             <p className="text-sm text-muted-foreground mt-1">{t("tagline")}</p>
           </div>
 
