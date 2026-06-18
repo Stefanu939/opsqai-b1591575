@@ -139,11 +139,35 @@ export const Route = createFileRoute("/api/chat")({
         const query = lastUser?.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim() ?? "";
 
         const isGreeting = detectGreeting(query);
+        const hasPriorAssistant = messages.some((m) => m.role === "assistant");
+        const isFollowup = !isGreeting && hasPriorAssistant && detectFollowup(query);
         const sources: SourceItem[] = [];
         let contextBlock = "";
-        let mode: "greeting" | "kb" | "gap" = isGreeting ? "greeting" : "kb";
+        let mode: "greeting" | "kb" | "gap" | "followup" =
+          isGreeting ? "greeting" : isFollowup ? "followup" : "kb";
 
-        if (!isGreeting && query) {
+        if (isFollowup) {
+          // Reuse sources from the previous assistant message in this thread — no new KB search.
+          const { data: prior } = await supabase
+            .from("messages")
+            .select("role, sources, created_at")
+            .eq("thread_id", threadId)
+            .eq("role", "assistant")
+            .order("created_at", { ascending: false })
+            .limit(1);
+          const priorSources = (prior?.[0]?.sources ?? null) as SourceItem[] | null;
+          if (Array.isArray(priorSources) && priorSources.length > 0) {
+            for (const s of priorSources) sources.push(s);
+            const docBlocks = sources.filter((s) => s.type === "document").map((s, i) =>
+              `[Doc ${i + 1}] ${s.code ? s.code + " — " : ""}${s.title}\n${s.excerpt}`,
+            );
+            const faqBlocks = sources.filter((s) => s.type === "faq").map((s, i) =>
+              `[FAQ ${i + 1}] ${s.title}\n${s.excerpt}`,
+            );
+            contextBlock = [...docBlocks, ...faqBlocks].join("\n\n---\n\n");
+          }
+          // No sources but still a follow-up: let the model lean on conversation context only.
+        } else if (!isGreeting && query) {
           try {
             const qVec = await embedOne(query);
             const { data: matches } = await supabase.rpc(
@@ -206,7 +230,9 @@ export const Route = createFileRoute("/api/chat")({
         const gateway = createLovableAiGatewayProvider(apiKey);
         const systemPrompt = isGreeting
           ? GREETING_PROMPT(langHint)
-          : SYSTEM_PROMPT(contextBlock, sources.length > 0);
+          : isFollowup
+            ? FOLLOWUP_PROMPT(contextBlock)
+            : SYSTEM_PROMPT(contextBlock, sources.length > 0);
 
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
