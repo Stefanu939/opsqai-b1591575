@@ -62,8 +62,8 @@ function AcceptInvitePage() {
         .select("company_id, companies:company_id(name)")
         .eq("id", uid)
         .maybeSingle();
-      // @ts-expect-error joined relation typing
-      setCompany(prof?.companies?.name ?? null);
+      const joined = (prof as { companies?: { name?: string } | null } | null)?.companies;
+      setCompany(joined?.name ?? null);
     };
     init();
     return () => { cancelled = true; };
