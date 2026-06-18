@@ -90,10 +90,10 @@ function AuthPage() {
           {lang.toUpperCase()} / {lang === "de" ? "EN" : "DE"}
         </button>
       </div>
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
+      <main className="flex-1 flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold tracking-tight">{t("appName")}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">LogiAssist — Sign in</h1>
             <p className="text-sm text-muted-foreground mt-1">{t("tagline")}</p>
           </div>
 
