@@ -218,6 +218,10 @@ const dict = {
     sources: "Sources",
     viewSources: "View sources",
     relevance: "Relevance",
+    copy: "Copy",
+    section: "Section",
+    confidence: "Confidence",
+    excerpt: "Excerpt",
   },
 } as const;
 
