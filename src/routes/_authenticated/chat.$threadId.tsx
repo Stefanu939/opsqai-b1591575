@@ -10,7 +10,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useT } from "@/i18n";
-import { Send, FileText, BookOpenCheck, ScrollText } from "lucide-react";
+import { Send, FileText, BookOpenCheck, ScrollText, Copy, Check } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
@@ -141,14 +141,19 @@ function ChatInner({
               );
             }
             return (
-              <div key={m.id} className="flex gap-3">
+              <div key={m.id} className="flex gap-3 group">
                 <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
                   <img src={logo} alt="" width={20} height={20} />
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
-                    {text ? <ReactMarkdown>{text}</ReactMarkdown> : <span className="text-muted-foreground italic">{T("thinking")}</span>}
+                    {text ? <ReactMarkdown>{text}</ReactMarkdown> : <ThinkingDots label={T("thinking")} />}
                   </div>
+                  {text && (
+                    <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <CopyButton text={text} label={T("copy") || "Copy"} />
+                    </div>
+                  )}
                   {sources.length > 0 && <SourcesPanel sources={sources} T={T} />}
                 </div>
               </div>
@@ -159,7 +164,7 @@ function ChatInner({
               <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
                 <img src={logo} alt="" width={20} height={20} />
               </div>
-              <div className="flex-1 text-sm text-muted-foreground italic pt-2">{T("searching")}</div>
+              <div className="flex-1 pt-2"><ThinkingDots label={T("searching")} /></div>
             </div>
           )}
         </div>
@@ -222,6 +227,7 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
                         </div>
                       )}
                       <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">{s.excerpt}</p>
+                      <div className="mt-2"><CopyButton text={s.excerpt} label={T("copy") || "Copy"} /></div>
                     </div>
                   ))}
                 </div>
@@ -246,5 +252,34 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
         </SheetContent>
       </Sheet>
     </div>
+  );
+}
+
+function ThinkingDots({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <span className="flex gap-1">
+        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" />
+      </span>
+      <span className="italic">{label}</span>
+    </div>
+  );
+}
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try { await navigator.clipboard.writeText(text); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* noop */ }
+      }}
+      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {done ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {done ? "✓" : label}
+    </button>
   );
 }
