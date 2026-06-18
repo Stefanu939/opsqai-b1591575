@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listUsers, createUser, inviteUser, updateUser, deleteUser, resetUserPassword, listDepartments,
 } from "@/lib/users.functions";
+import { listCompanies } from "@/lib/companies.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,17 +26,22 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 
 type Role = "admin" | "manager" | "team_leader" | "employee";
 const ROLES: Role[] = ["admin", "manager", "team_leader", "employee"];
+const ROLE_LABEL: Record<Role, string> = {
+  admin: "Company Admin", manager: "Manager", team_leader: "Team Leader", employee: "Employee",
+};
 
 interface U {
   id: string; email: string; full_name: string | null;
   first_name: string | null; last_name: string | null;
   position: string | null; phone: string | null;
   department_id: string | null; department_name: string | null;
+  company_id: string | null; company_name: string | null;
   language_pref: string | null; is_active: boolean;
   last_sign_in_at: string | null; created_at: string;
   roles: string[];
 }
 interface Dept { id: string; name: string }
+interface Company { id: string; name: string }
 
 function AdminUsers() {
   const { t } = useT();
@@ -43,10 +49,12 @@ function AdminUsers() {
   const canManage = isAdmin || isPlatformAdmin;
   const [users, setUsers] = useState<U[]>([]);
   const [depts, setDepts] = useState<Dept[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const fetchUsers = useServerFn(listUsers);
   const fetchDepts = useServerFn(listDepartments);
+  const fetchCompanies = useServerFn(listCompanies);
   const create = useServerFn(createUser);
   const invite = useServerFn(inviteUser);
   const update = useServerFn(updateUser);
@@ -57,8 +65,12 @@ function AdminUsers() {
     setLoading(true);
     try {
       const payload = isPlatformAdmin && activeCompanyId ? { company_id: activeCompanyId } : {};
-      const [u, d] = await Promise.all([fetchUsers({ data: payload } as never), fetchDepts()]);
-      setUsers(u as U[]); setDepts(d as Dept[]);
+      const tasks: Promise<unknown>[] = [fetchUsers({ data: payload } as never), fetchDepts()];
+      if (isPlatformAdmin) tasks.push(fetchCompanies());
+      const results = await Promise.all(tasks);
+      setUsers(results[0] as U[]);
+      setDepts(results[1] as Dept[]);
+      if (isPlatformAdmin) setCompanies((results[2] as Company[]) ?? []);
     } catch (e) { toast.error(String(e)); } finally { setLoading(false); }
   };
   useEffect(() => { if (canManage) load(); else setLoading(false); }, [canManage, activeCompanyId]);
