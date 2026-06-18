@@ -11,6 +11,28 @@ const REFUSAL = {
   ro: "Informația solicitată nu este disponibilă în Baza de Cunoștințe sau FAQ-urile companiei.",
 } as const;
 
+const GREETING_PATTERNS = [
+  /^(hi|hello|hey|hiya|yo|howdy|good\s*(morning|afternoon|evening|day)|thanks|thank\s+you|thx|ty|cheers|bye|goodbye|see\s+ya)\b/i,
+  /^(hallo|hi|hey|guten\s*(morgen|tag|abend)|servus|moin|danke|tsch[üu]ss|auf\s+wiedersehen)\b/i,
+  /^(salut|bun[ăa]|bun[ăa]\s+(ziua|dimineața|seara)|noroc|mul[țt]umesc|mersi|pa|la\s+revedere)\b/i,
+  /^(who\s+are\s+you|what\s+are\s+you|what\s+can\s+you\s+do|how\s+are\s+you)\b/i,
+  /^(wer\s+bist\s+du|was\s+kannst\s+du|wie\s+geht'?s)\b/i,
+  /^(cine\s+e[șs]ti|ce\s+po[țt]i\s+face|ce\s+faci)\b/i,
+];
+
+function detectGreeting(q: string): boolean {
+  const trimmed = q.trim();
+  if (trimmed.length === 0 || trimmed.length > 80) return false;
+  return GREETING_PATTERNS.some((re) => re.test(trimmed));
+}
+
+const GREETING_PROMPT = (lang: string) => `You are LogiAI, a professional company knowledge assistant for logistics and warehouse operations.
+
+The user has greeted you or asked a conversational question. Respond naturally, briefly (1–3 sentences), and professionally in their language (English, German, or Romanian — detect from the user message). Introduce yourself as their company knowledge assistant that can help find SOPs, procedures, FAQs and company information. Do NOT include any "Sources:" block. Do NOT make up company facts.
+
+User's interface language hint: ${lang}.`;
+
+
 const SYSTEM_PROMPT = (context: string, hasSources: boolean) => `You are LogiAI, an AI knowledge assistant for a logistics and warehouse operations company.
 
 ABSOLUTE RULES — non-negotiable, never break:
@@ -69,9 +91,11 @@ export const Route = createFileRoute("/api/chat")({
         const body = (await request.json()) as {
           messages?: UIMessage[];
           threadId?: string;
+          language?: string;
         };
         const messages = body.messages ?? [];
         const threadId = body.threadId;
+        const langHint = body.language ?? "en";
         if (!threadId) return new Response("threadId required", { status: 400 });
 
         const { data: thread } = await supabase
@@ -86,11 +110,12 @@ export const Route = createFileRoute("/api/chat")({
         const lastUser = [...messages].reverse().find((m) => m.role === "user");
         const query = lastUser?.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim() ?? "";
 
-        // === RAG: Semantic retrieval (scoped to this company) ===
+        const isGreeting = detectGreeting(query);
         const sources: SourceItem[] = [];
         let contextBlock = "";
+        let mode: "greeting" | "kb" | "gap" = isGreeting ? "greeting" : "kb";
 
-        if (query) {
+        if (!isGreeting && query) {
           try {
             const qVec = await embedOne(query);
             const { data: matches } = await supabase.rpc(
@@ -116,7 +141,6 @@ export const Route = createFileRoute("/api/chat")({
             console.error("embed/match failed", e);
           }
 
-          // FAQ keyword fallback — company-scoped via RLS
           const { data: faqs } = await supabase
             .from("faqs")
             .select("id,question_de,question_en,answer_de,answer_en,category")
@@ -148,20 +172,27 @@ export const Route = createFileRoute("/api/chat")({
             `[FAQ ${i + 1}] ${s.title}\n${s.excerpt}`,
           );
           contextBlock = [...docBlocks, ...faqBlocks].join("\n\n---\n\n");
+          if (sources.length === 0) mode = "gap";
         }
 
         const gateway = createLovableAiGatewayProvider(apiKey);
+        const systemPrompt = isGreeting
+          ? GREETING_PROMPT(langHint)
+          : SYSTEM_PROMPT(contextBlock, sources.length > 0);
+
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
-          system: SYSTEM_PROMPT(contextBlock, sources.length > 0),
+          system: systemPrompt,
           messages: await convertToModelMessages(messages),
         });
+
+        const canCreateRequest = mode === "gap";
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
           messageMetadata: ({ part }) => {
             if (part.type === "start") {
-              return { sources };
+              return { sources, mode, canCreateRequest, question: query };
             }
             return undefined;
           },

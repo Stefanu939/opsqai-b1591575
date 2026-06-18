@@ -10,10 +10,12 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useT } from "@/i18n";
-import { Send, FileText, BookOpenCheck, ScrollText, Copy, Check } from "lucide-react";
+import { Send, FileText, BookOpenCheck, ScrollText, Copy, Check, AlertCircle, Inbox } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
+import { useServerFn } from "@tanstack/react-start";
+import { createInternalRequest } from "@/lib/internal-requests.functions";
 
 interface SourceItem {
   type: "document" | "faq";
@@ -24,7 +26,12 @@ interface SourceItem {
   similarity?: number;
 }
 
-interface MessageMeta { sources?: SourceItem[] }
+interface MessageMeta {
+  sources?: SourceItem[];
+  mode?: "greeting" | "kb" | "gap";
+  canCreateRequest?: boolean;
+  question?: string;
+}
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   validateSearch: (s: Record<string, unknown>) => z.object({ q: z.string().optional() }).parse(s),
@@ -155,6 +162,9 @@ function ChatInner({
                     </div>
                   )}
                   {sources.length > 0 && <SourcesPanel sources={sources} T={T} />}
+                  {meta?.canCreateRequest && text && (
+                    <CreateRequestCTA threadId={threadId} question={meta.question ?? ""} T={T} />
+                  )}
                 </div>
               </div>
             );
@@ -283,3 +293,49 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     </button>
   );
 }
+
+function CreateRequestCTA({ threadId, question, T }: { threadId: string; question: string; T: (k: string) => string }) {
+  const create = useServerFn(createInternalRequest);
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const onClick = async () => {
+    if (!question.trim()) return;
+    setState("sending");
+    try {
+      await create({ data: { question, thread_id: threadId } });
+      setState("sent");
+    } catch (e) {
+      console.error(e);
+      setState("error");
+    }
+  };
+  return (
+    <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-50/40 dark:bg-amber-950/20 p-4">
+      <div className="flex items-start gap-3">
+        <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium text-foreground">{T("kbGapTitle")}</div>
+          <p className="text-xs text-muted-foreground mt-0.5">{T("kbGapBody")}</p>
+          {state === "sent" ? (
+            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+              <Check className="h-3.5 w-3.5" /> {T("requestSent")}
+            </div>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              variant="default"
+              className="mt-3 h-8"
+              onClick={onClick}
+              disabled={state === "sending"}
+            >
+              <Inbox className="h-3.5 w-3.5 mr-1.5" />
+              {state === "sending" ? T("sending") : T("createInternalRequest")}
+            </Button>
+          )}
+          {state === "error" && <div className="text-xs text-destructive mt-2">{T("errorOccurred")}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+

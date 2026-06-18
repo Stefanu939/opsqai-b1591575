@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
-  Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck,
+  Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
@@ -33,6 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/chat", label: t("chat"), icon: MessageSquare },
     { to: "/knowledge", label: t("knowledge"), icon: BookOpen },
     { to: "/faq", label: t("faq"), icon: HelpCircle },
+    { to: "/requests", label: t("internalRequests"), icon: Inbox },
   ];
   const adminNav = [
     ...(canAdmin ? [{ to: "/admin/dashboard", label: t("adminDashboard"), icon: BarChart3 }] : []),
