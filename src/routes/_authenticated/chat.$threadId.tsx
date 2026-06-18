@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { useT } from "@/i18n";
 import { Send, FileText, BookOpenCheck, ScrollText, Copy, Check, AlertCircle, Inbox } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/opsqai-mark.png";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
 import { useServerFn } from "@tanstack/react-start";
