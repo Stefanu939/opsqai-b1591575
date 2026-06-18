@@ -5,7 +5,7 @@ export type Lang = "de" | "en" | "ro";
 const dict = {
   de: {
     appName: "OPSQAI",
-    tagline: "KI-Wissensassistent für Logistik",
+    tagline: "Sofortiger Zugriff auf Unternehmenswissen.",
     dashboard: "Dashboard",
     chat: "Chat",
     newChat: "Neue Unterhaltung",
@@ -143,7 +143,7 @@ const dict = {
   },
   en: {
     appName: "OPSQAI",
-    tagline: "Operational Knowledge Intelligence",
+    tagline: "Instant access to company knowledge.",
     dashboard: "Dashboard",
     chat: "Chat",
     newChat: "New conversation",
