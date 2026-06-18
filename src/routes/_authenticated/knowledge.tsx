@@ -186,10 +186,10 @@ function KnowledgePage() {
               </div>
               {isAdmin && (
                 <div className="flex gap-1 shrink-0">
-                  <button onClick={() => onReprocess(d.id)} title="Re-index" className="p-2 text-muted-foreground hover:text-primary">
+                  <button onClick={() => onReprocess(d.id)} aria-label={`Re-index document ${d.title}`} title="Re-index" className="p-2 text-muted-foreground hover:text-primary">
                     <RefreshCw className="h-4 w-4" />
                   </button>
-                  <button onClick={() => onDelete(d.id)} className="p-2 text-muted-foreground hover:text-destructive">
+                  <button onClick={() => onDelete(d.id)} aria-label={`Delete document ${d.title}`} className="p-2 text-muted-foreground hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
