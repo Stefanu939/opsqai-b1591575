@@ -39,7 +39,8 @@ interface Dept { id: string; name: string }
 
 function AdminUsers() {
   const { t } = useT();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isPlatformAdmin, activeCompanyId } = useAuth();
+  const canManage = isAdmin || isPlatformAdmin;
   const [users, setUsers] = useState<U[]>([]);
   const [depts, setDepts] = useState<Dept[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,13 +56,14 @@ function AdminUsers() {
   const load = async () => {
     setLoading(true);
     try {
-      const [u, d] = await Promise.all([fetchUsers({ data: {} } as never), fetchDepts()]);
+      const payload = isPlatformAdmin && activeCompanyId ? { company_id: activeCompanyId } : {};
+      const [u, d] = await Promise.all([fetchUsers({ data: payload } as never), fetchDepts()]);
       setUsers(u as U[]); setDepts(d as Dept[]);
     } catch (e) { toast.error(String(e)); } finally { setLoading(false); }
   };
-  useEffect(() => { if (isAdmin) load(); else setLoading(false); }, [isAdmin]);
+  useEffect(() => { if (canManage) load(); else setLoading(false); }, [canManage, activeCompanyId]);
 
-  if (!isAdmin) return <div className="p-8 text-sm text-muted-foreground">Admin only.</div>;
+  if (!canManage) return <div className="p-8 text-sm text-muted-foreground">Admin only.</div>;
 
   const filtered = users.filter((u) => {
     const s = search.toLowerCase();
