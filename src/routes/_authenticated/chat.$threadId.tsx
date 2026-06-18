@@ -141,14 +141,19 @@ function ChatInner({
               );
             }
             return (
-              <div key={m.id} className="flex gap-3">
+              <div key={m.id} className="flex gap-3 group">
                 <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
                   <img src={logo} alt="" width={20} height={20} />
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
-                    {text ? <ReactMarkdown>{text}</ReactMarkdown> : <span className="text-muted-foreground italic">{T("thinking")}</span>}
+                    {text ? <ReactMarkdown>{text}</ReactMarkdown> : <ThinkingDots label={T("thinking")} />}
                   </div>
+                  {text && (
+                    <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <CopyButton text={text} label={T("copy") || "Copy"} />
+                    </div>
+                  )}
                   {sources.length > 0 && <SourcesPanel sources={sources} T={T} />}
                 </div>
               </div>
@@ -159,7 +164,7 @@ function ChatInner({
               <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
                 <img src={logo} alt="" width={20} height={20} />
               </div>
-              <div className="flex-1 text-sm text-muted-foreground italic pt-2">{T("searching")}</div>
+              <div className="flex-1 pt-2"><ThinkingDots label={T("searching")} /></div>
             </div>
           )}
         </div>
