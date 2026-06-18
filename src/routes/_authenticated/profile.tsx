@@ -26,7 +26,7 @@ function ProfilePage() {
   const [depts, setDepts] = useState<Dept[]>([]);
   const [form, setForm] = useState({
     first_name: "", last_name: "", position: "", phone: "",
-    department_id: "", language_pref: "de" as "de" | "en",
+    department_id: "", language_pref: "en" as "de" | "en" | "ro",
   });
   const [busy, setBusy] = useState(false);
 
