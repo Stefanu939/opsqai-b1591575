@@ -32,10 +32,8 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -49,22 +47,8 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { full_name: fullName },
-          },
-        });
-        if (error) throw error;
-        toast.success(lang === "de" ? "Konto erstellt. Du kannst dich jetzt anmelden." : "Account created. You can sign in now.");
-        setMode("signin");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("errorOccurred"));
     } finally {
@@ -78,6 +62,12 @@ function AuthPage() {
     if (r.error) toast.error(r.error.message);
     setBusy(false);
   };
+
+  const contactAdmin = lang === "de"
+    ? "Wenden Sie sich an Ihren Unternehmensadministrator für den Zugang."
+    : lang === "ro"
+    ? "Contactați administratorul companiei pentru acces."
+    : "Contact your company administrator for access.";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -100,22 +90,16 @@ function AuthPage() {
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            {mode === "signup" && (
-              <div className="space-y-2">
-                <Label htmlFor="name">{t("fullName")}</Label>
-                <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-              </div>
-            )}
             <div className="space-y-2">
               <Label htmlFor="email">{t("email")}</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">{t("password")}</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete={mode === "signup" ? "new-password" : "current-password"} minLength={6} />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" minLength={6} />
             </div>
             <Button type="submit" disabled={busy} className="w-full">
-              {mode === "signin" ? t("signIn") : t("signUp")}
+              {t("signIn")}
             </Button>
           </form>
 
@@ -130,24 +114,15 @@ function AuthPage() {
             {t("continueWithGoogle")}
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            {mode === "signin" ? (
-              <>
-                {lang === "de" ? "Noch kein Konto?" : "Don't have an account?"}{" "}
-                <button type="button" onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">{t("signUp")}</button>
-              </>
-            ) : (
-              <>
-                {lang === "de" ? "Schon registriert?" : "Already registered?"}{" "}
-                <button type="button" onClick={() => setMode("signin")} className="text-primary font-medium hover:underline">{t("signIn")}</button>
-              </>
-            )}
-          </p>
-          <p className="mt-6 text-center text-xs text-muted-foreground">
+          <div className="mt-6 rounded-md border border-border bg-muted/40 px-4 py-3 text-center text-xs text-muted-foreground">
+            {contactAdmin}
+          </div>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
             <Link to="/" className="hover:underline">← {lang === "de" ? "Zurück" : "Back"}</Link>
           </p>
         </Card>
       </main>
+
     </div>
   );
 }
