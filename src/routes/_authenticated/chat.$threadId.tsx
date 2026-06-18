@@ -10,7 +10,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useT } from "@/i18n";
-import { Send, FileText, BookOpenCheck, ScrollText } from "lucide-react";
+import { Send, FileText, BookOpenCheck, ScrollText, Copy, Check } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
