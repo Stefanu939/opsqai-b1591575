@@ -113,7 +113,8 @@ function AdminUsers() {
                   </div>
                   <div className="text-xs text-muted-foreground font-mono truncate">{u.email}</div>
                   <div className="text-xs text-muted-foreground mt-0.5 flex gap-2 flex-wrap">
-                    {u.position && <span>{u.position}</span>}
+                    {u.company_name && <span className="font-medium text-foreground/70">{u.company_name}</span>}
+                    {u.position && <span>· {u.position}</span>}
                     {u.department_name && <span>· {u.department_name}</span>}
                     {u.phone && <span>· {u.phone}</span>}
                   </div>
