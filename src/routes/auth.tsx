@@ -65,8 +65,6 @@ function AuthPage() {
 
   const contactAdmin = lang === "de"
     ? "Wenden Sie sich an Ihren Unternehmensadministrator für den Zugang."
-    : lang === "ro"
-    ? "Contactați administratorul companiei pentru acces."
     : "Contact your company administrator for access.";
 
   return (
