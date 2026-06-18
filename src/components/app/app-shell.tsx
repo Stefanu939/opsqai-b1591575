@@ -72,6 +72,21 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </div>
+      {isPlatformAdmin && companies.length > 0 && (
+        <div className="px-3 py-3 border-b border-sidebar-border">
+          <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50 mb-1.5">Viewing workspace</div>
+          <Select
+            value={activeCompanyId ?? "__all__"}
+            onValueChange={(v) => setActiveCompanyId(v === "__all__" ? null : v)}
+          >
+            <SelectTrigger className="h-8 bg-sidebar-accent/40 border-sidebar-border text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All companies (global)</SelectItem>
+              {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {nav.map((item) => (
           <Link
