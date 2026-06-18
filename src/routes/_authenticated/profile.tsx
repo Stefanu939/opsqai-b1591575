@@ -37,7 +37,7 @@ function ProfilePage() {
       if (data) setForm({
         first_name: data.first_name ?? "", last_name: data.last_name ?? "",
         position: data.position ?? "", phone: data.phone ?? "",
-        department_id: data.department_id ?? "", language_pref: (data.language_pref as "de" | "en") ?? "de",
+        department_id: data.department_id ?? "", language_pref: (data.language_pref as "de" | "en" | "ro") ?? "en",
       });
     });
   }, [user, fetchDepts]);
