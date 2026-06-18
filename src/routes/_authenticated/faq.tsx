@@ -16,6 +16,16 @@ import { upsertFaq, deleteFaq } from "@/lib/faqs.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/faq")({
+  head: () => ({
+    meta: [
+      { title: "FAQs — LogiAssist" },
+      { name: "description", content: "Frequently asked logistics and warehouse questions answered for your team in LogiAssist." },
+      { property: "og:title", content: "FAQs — LogiAssist" },
+      { property: "og:description", content: "Frequently asked logistics and warehouse questions answered for your team in LogiAssist." },
+      { property: "og:url", content: "https://logiassist.lovable.app/faq" },
+    ],
+    links: [{ rel: "canonical", href: "https://logiassist.lovable.app/faq" }],
+  }),
   component: FaqPage,
 });
 
