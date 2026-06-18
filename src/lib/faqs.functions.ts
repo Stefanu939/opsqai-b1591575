@@ -19,16 +19,17 @@ export const upsertFaq = createServerFn({ method: "POST" })
       .from("user_roles").select("role").eq("user_id", context.userId);
     const list = (roles ?? []).map((r) => r.role);
     const isAdmin = list.includes("admin");
+    const isManager = list.includes("manager");
     const isTeamLeader = list.includes("team_leader");
+    const canWrite = isAdmin || isManager || isTeamLeader;
 
     if (data.id) {
-      // Only admins can edit existing FAQs
-      if (!isAdmin) throw new Error("Forbidden");
+      // Admins, managers, and team leaders can edit existing FAQs
+      if (!canWrite) throw new Error("Forbidden");
       const { error } = await context.supabase.from("faqs").update(data).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      // Admins and team leaders can create new FAQs
-      if (!isAdmin && !isTeamLeader) throw new Error("Forbidden");
+      if (!canWrite) throw new Error("Forbidden");
       const { data: profile } = await context.supabase
         .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
       if (!profile?.company_id) throw new Error("No company assigned");

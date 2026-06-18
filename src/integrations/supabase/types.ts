@@ -209,6 +209,99 @@ export type Database = {
           },
         ]
       }
+      internal_requests: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          company_id: string
+          context: string | null
+          created_at: string
+          department_id: string | null
+          id: string
+          priority: string
+          promoted_to_faq_id: string | null
+          promoted_to_kb_id: string | null
+          question: string
+          status: string
+          thread_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          company_id: string
+          context?: string | null
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          priority?: string
+          promoted_to_faq_id?: string | null
+          promoted_to_kb_id?: string | null
+          question: string
+          status?: string
+          thread_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          company_id?: string
+          context?: string | null
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          priority?: string
+          promoted_to_faq_id?: string | null
+          promoted_to_kb_id?: string | null
+          question?: string
+          status?: string
+          thread_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_requests_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_requests_promoted_to_faq_id_fkey"
+            columns: ["promoted_to_faq_id"]
+            isOneToOne: false
+            referencedRelation: "faqs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_requests_promoted_to_kb_id_fkey"
+            columns: ["promoted_to_kb_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_requests_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_documents: {
         Row: {
           category: string
