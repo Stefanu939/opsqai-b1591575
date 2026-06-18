@@ -145,7 +145,7 @@ function AuthPage() {
             <Link to="/" className="hover:underline">← {lang === "de" ? "Zurück" : "Back"}</Link>
           </p>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }
