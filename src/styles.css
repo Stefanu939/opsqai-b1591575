@@ -86,6 +86,14 @@
   --sidebar-accent-foreground: oklch(0.95 0.01 250);
   --sidebar-border: oklch(0.28 0.04 250);
   --sidebar-ring: oklch(0.78 0.16 75);
+
+  /* Premium SaaS depth */
+  --shadow-xs: 0 1px 2px 0 oklch(0.18 0.03 250 / 0.04);
+  --shadow-sm: 0 1px 3px 0 oklch(0.18 0.03 250 / 0.06), 0 1px 2px -1px oklch(0.18 0.03 250 / 0.04);
+  --shadow-md: 0 4px 12px -2px oklch(0.18 0.03 250 / 0.08), 0 2px 4px -2px oklch(0.18 0.03 250 / 0.04);
+  --shadow-lg: 0 12px 32px -8px oklch(0.18 0.03 250 / 0.12), 0 4px 8px -4px oklch(0.18 0.03 250 / 0.06);
+  --gradient-sidebar: linear-gradient(180deg, oklch(0.20 0.04 250) 0%, oklch(0.16 0.03 250) 100%);
+  --gradient-surface: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.985 0.003 250) 100%);
 }
 
 .dark {
@@ -107,6 +115,7 @@
   --border: oklch(0.28 0.04 250);
   --input: oklch(0.28 0.04 250);
   --ring: oklch(0.78 0.16 75);
+  --gradient-surface: linear-gradient(180deg, oklch(0.18 0.03 250) 0%, oklch(0.16 0.03 250) 100%);
 }
 
 @layer base {

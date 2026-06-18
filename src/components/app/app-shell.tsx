@@ -62,7 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+    <div className="flex h-full flex-col text-sidebar-foreground" style={{ background: "var(--gradient-sidebar)" }}>
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
         <img src={logo} alt="" width={32} height={32} className="brightness-0 invert" />
         <div className="min-w-0">
