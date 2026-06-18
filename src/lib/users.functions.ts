@@ -135,6 +135,8 @@ export const inviteUser = createServerFn({ method: "POST" })
     role: RoleEnum,
     department_id: z.string().uuid().optional().nullable(),
     company_id: z.string().uuid().optional(),
+    first_name: z.string().optional(),
+    last_name: z.string().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
@@ -144,11 +146,20 @@ export const inviteUser = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
-      data: { company_id: targetCompany, role: data.role },
+      data: {
+        company_id: targetCompany,
+        role: data.role,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        full_name: [data.first_name, data.last_name].filter(Boolean).join(" ") || undefined,
+      },
     });
     if (error || !inv.user) throw new Error(error?.message || "Invite failed");
 
     await supabaseAdmin.from("profiles").update({
+      first_name: data.first_name ?? null,
+      last_name: data.last_name ?? null,
+      full_name: [data.first_name, data.last_name].filter(Boolean).join(" ") || null,
       department_id: data.department_id ?? null,
       company_id: targetCompany,
     }).eq("id", inv.user.id);
