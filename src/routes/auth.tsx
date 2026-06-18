@@ -12,6 +12,16 @@ import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Sign in — LogiAssist" },
+      { name: "description", content: "Sign in to LogiAssist to access your company's logistics AI assistant, SOPs and knowledge base." },
+      { property: "og:title", content: "Sign in — LogiAssist" },
+      { property: "og:description", content: "Sign in to LogiAssist to access your company's logistics AI assistant, SOPs and knowledge base." },
+      { property: "og:url", content: "https://logiassist.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://logiassist.lovable.app/auth" }],
+  }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/" });
@@ -80,10 +90,10 @@ function AuthPage() {
           {lang.toUpperCase()} / {lang === "de" ? "EN" : "DE"}
         </button>
       </div>
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
+      <main className="flex-1 flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold tracking-tight">{t("appName")}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">LogiAssist — Sign in</h1>
             <p className="text-sm text-muted-foreground mt-1">{t("tagline")}</p>
           </div>
 
@@ -135,7 +145,7 @@ function AuthPage() {
             <Link to="/" className="hover:underline">← {lang === "de" ? "Zurück" : "Back"}</Link>
           </p>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

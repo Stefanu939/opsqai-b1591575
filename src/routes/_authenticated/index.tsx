@@ -77,7 +77,7 @@ function Dashboard() {
   return (
     <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
       <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{t("welcome")}</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Operations Dashboard</h1>
         <p className="text-muted-foreground mt-1">{t("askAnything")}</p>
       </header>
 
