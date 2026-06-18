@@ -1,0 +1,144 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
+
+async function requirePlatformAdmin(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from("user_roles").select("role").eq("user_id", userId).eq("role", "platform_admin").maybeSingle();
+  if (!data) throw new Error("Forbidden: platform admin required");
+}
+
+const CompanyInput = z.object({
+  name: z.string().min(1),
+  subscription_status: z.enum(["active", "suspended", "trial", "cancelled"]).optional(),
+  subscription_plan: z.enum(["free", "starter", "pro", "enterprise"]).optional(),
+  max_users: z.number().int().positive().optional(),
+  active: z.boolean().optional(),
+});
+
+export const listCompanies = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: companies, error } = await supabaseAdmin
+      .from("companies")
+      .select("id, name, subscription_status, subscription_plan, max_users, active, created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    // Aggregate counts
+    const { data: profileCounts } = await supabaseAdmin.from("profiles").select("company_id");
+    const { data: docCounts } = await supabaseAdmin.from("knowledge_documents").select("company_id");
+    const { data: faqCounts } = await supabaseAdmin.from("faqs").select("company_id");
+
+    const tally = (rows: Array<{ company_id: string }> | null) => {
+      const m = new Map<string, number>();
+      for (const r of rows ?? []) m.set(r.company_id, (m.get(r.company_id) ?? 0) + 1);
+      return m;
+    };
+    const usersBy = tally(profileCounts);
+    const docsBy = tally(docCounts);
+    const faqsBy = tally(faqCounts);
+
+    return (companies ?? []).map((c) => ({
+      ...c,
+      user_count: usersBy.get(c.id) ?? 0,
+      document_count: docsBy.get(c.id) ?? 0,
+      faq_count: faqsBy.get(c.id) ?? 0,
+    }));
+  });
+
+export const createCompany = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => CompanyInput.extend({
+    admin_email: z.string().email(),
+    admin_password: z.string().min(8),
+    admin_first_name: z.string().optional(),
+    admin_last_name: z.string().optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: company, error } = await supabaseAdmin
+      .from("companies")
+      .insert({
+        name: data.name,
+        subscription_status: data.subscription_status ?? "active",
+        subscription_plan: data.subscription_plan ?? "free",
+        max_users: data.max_users ?? 10,
+        active: data.active ?? true,
+      })
+      .select("id")
+      .single();
+    if (error || !company) throw new Error(error?.message || "Company create failed");
+
+    const { data: created, error: uerr } = await supabaseAdmin.auth.admin.createUser({
+      email: data.admin_email,
+      password: data.admin_password,
+      email_confirm: true,
+      user_metadata: {
+        first_name: data.admin_first_name,
+        last_name: data.admin_last_name,
+        full_name: [data.admin_first_name, data.admin_last_name].filter(Boolean).join(" ") || data.admin_email.split("@")[0],
+        company_id: company.id,
+        role: "admin",
+      },
+    });
+    if (uerr || !created.user) throw new Error(uerr?.message || "Admin user create failed");
+
+    // The trigger places this user in the right company; ensure 'admin' role bound to this company:
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", created.user.id);
+    await supabaseAdmin.from("user_roles").insert({
+      user_id: created.user.id, role: "admin", company_id: company.id,
+    });
+    await supabaseAdmin.from("profiles").update({ company_id: company.id }).eq("id", created.user.id);
+
+    return { ok: true, company_id: company.id, admin_user_id: created.user.id };
+  });
+
+export const updateCompany = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => CompanyInput.extend({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { id, ...patch } = data;
+    const { error } = await supabaseAdmin.from("companies").update(patch).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteCompany = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    if (data.id === "00000000-0000-0000-0000-000000000001") throw new Error("Cannot delete Default Company");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("companies").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const platformStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [companies, profiles, docs, audit] = await Promise.all([
+      supabaseAdmin.from("companies").select("id, active", { count: "exact" }),
+      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("knowledge_documents").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("audit_log").select("id", { count: "exact", head: true }),
+    ]);
+    const total = companies.data?.length ?? 0;
+    const active = (companies.data ?? []).filter((c) => c.active).length;
+    return {
+      total_companies: total,
+      active_companies: active,
+      total_users: profiles.count ?? 0,
+      total_documents: docs.count ?? 0,
+      total_questions: audit.count ?? 0,
+    };
+  });

@@ -6,9 +6,12 @@ export const createThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { title?: string }) => z.object({ title: z.string().optional() }).parse(d))
   .handler(async ({ data, context }) => {
+    const { data: profile } = await context.supabase
+      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!profile?.company_id) throw new Error("No company assigned");
     const { data: row, error } = await context.supabase
       .from("threads")
-      .insert({ user_id: context.userId, title: data.title ?? "New conversation" })
+      .insert({ user_id: context.userId, company_id: profile.company_id, title: data.title ?? "New conversation" })
       .select("id,title,created_at,updated_at")
       .single();
     if (error) throw new Error(error.message);

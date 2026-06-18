@@ -55,7 +55,7 @@ function AdminUsers() {
   const load = async () => {
     setLoading(true);
     try {
-      const [u, d] = await Promise.all([fetchUsers(), fetchDepts()]);
+      const [u, d] = await Promise.all([fetchUsers({ data: {} } as never), fetchDepts()]);
       setUsers(u as U[]); setDepts(d as Dept[]);
     } catch (e) { toast.error(String(e)); } finally { setLoading(false); }
   };

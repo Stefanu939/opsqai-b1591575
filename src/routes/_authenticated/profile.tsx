@@ -26,7 +26,7 @@ function ProfilePage() {
   const [depts, setDepts] = useState<Dept[]>([]);
   const [form, setForm] = useState({
     first_name: "", last_name: "", position: "", phone: "",
-    department_id: "", language_pref: "de" as "de" | "en",
+    department_id: "", language_pref: "en" as "de" | "en" | "ro",
   });
   const [busy, setBusy] = useState(false);
 
@@ -37,7 +37,7 @@ function ProfilePage() {
       if (data) setForm({
         first_name: data.first_name ?? "", last_name: data.last_name ?? "",
         position: data.position ?? "", phone: data.phone ?? "",
-        department_id: data.department_id ?? "", language_pref: (data.language_pref as "de" | "en") ?? "de",
+        department_id: data.department_id ?? "", language_pref: (data.language_pref as "de" | "en" | "ro") ?? "en",
       });
     });
   }, [user, fetchDepts]);
@@ -86,11 +86,12 @@ function ProfilePage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{t("language")}</Label>
-              <Select value={form.language_pref} onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" })}>
+              <Select value={form.language_pref} onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" | "ro" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="de">Deutsch</SelectItem>
                   <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="de">Deutsch</SelectItem>
+                  <SelectItem value="ro">Română</SelectItem>
                 </SelectContent>
               </Select>
             </div>

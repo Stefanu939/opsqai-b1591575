@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Lang = "de" | "en";
+export type Lang = "de" | "en" | "ro";
 
 const dict = {
   de: {
@@ -228,11 +228,15 @@ interface LangCtx {
 const Ctx = createContext<LangCtx | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("de");
+  const [lang, setLangState] = useState<Lang>("en");
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("lang") : null;
-    if (stored === "de" || stored === "en") setLangState(stored);
+    if (stored === "de" || stored === "en" || stored === "ro") setLangState(stored);
+    else if (typeof navigator !== "undefined") {
+      const nav = navigator.language.slice(0, 2).toLowerCase();
+      if (nav === "de" || nav === "ro") setLangState(nav);
+    }
   }, []);
 
   const setLang = (l: Lang) => {
@@ -240,7 +244,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") localStorage.setItem("lang", l);
   };
 
-  const t = (k: DictKey) => dict[lang][k] ?? k;
+  // Romanian UI falls back to English strings (per project decision)
+  const t = (k: DictKey) => {
+    const table = lang === "ro" ? dict.en : dict[lang as "en" | "de"];
+    return table[k] ?? k;
+  };
 
   return <Ctx.Provider value={{ lang, setLang, t }}>{children}</Ctx.Provider>;
 }

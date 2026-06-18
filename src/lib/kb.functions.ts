@@ -27,6 +27,10 @@ export const processDocument = createServerFn({ method: "POST" })
     const allowed = (roles ?? []).some((r) => r.role === "admin");
     if (!allowed) throw new Error("Forbidden");
 
+    const { data: profile } = await context.supabase
+      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!profile?.company_id) throw new Error("No company assigned");
+
     // Insert document in 'processing' state
     const { data: doc, error: insErr } = await context.supabase
       .from("knowledge_documents")
@@ -39,8 +43,9 @@ export const processDocument = createServerFn({ method: "POST" })
         content_text: "",
         status: "processing",
         uploaded_by: context.userId,
+        company_id: profile.company_id,
       })
-      .select("id")
+      .select("id, company_id")
       .single();
     if (insErr || !doc) throw new Error(insErr?.message || "Insert failed");
 
@@ -73,6 +78,7 @@ export const processDocument = createServerFn({ method: "POST" })
       // Insert chunks
       const rows = chunks.map((content, idx) => ({
         document_id: doc.id,
+        company_id: doc.company_id,
         chunk_index: idx,
         content,
         token_count: Math.ceil(content.length / 4),
@@ -119,7 +125,7 @@ export const reprocessDocument = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: doc } = await supabaseAdmin
-      .from("knowledge_documents").select("file_path, file_type, title").eq("id", data.id).maybeSingle();
+      .from("knowledge_documents").select("file_path, file_type, title, company_id").eq("id", data.id).maybeSingle();
     if (!doc || !doc.file_path) throw new Error("Document or file not found");
 
     await supabaseAdmin.from("document_chunks").delete().eq("document_id", data.id);
@@ -139,6 +145,7 @@ export const reprocessDocument = createServerFn({ method: "POST" })
       }
       const rows = chunks.map((content, idx) => ({
         document_id: data.id,
+        company_id: doc.company_id,
         chunk_index: idx,
         content,
         token_count: Math.ceil(content.length / 4),
