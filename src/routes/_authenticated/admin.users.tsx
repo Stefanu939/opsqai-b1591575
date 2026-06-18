@@ -143,17 +143,24 @@ function AdminUsers() {
   );
 }
 
-function CreateDialog({ depts, onDone, create }: { depts: Dept[]; onDone: () => void; create: (a: { data: any }) => Promise<any> }) {
+function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; create: (a: { data: any }) => Promise<any> }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", first_name: "", last_name: "", position: "", phone: "", department_id: "", role: "employee" as Role });
+  const empty = { email: "", password: "", first_name: "", last_name: "", position: "", phone: "", department_id: "", role: "employee" as Role, company_id: "" };
+  const [form, setForm] = useState(empty);
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true);
+    e.preventDefault();
+    if (isPlatformAdmin && !form.company_id) { toast.error("Select a company"); return; }
+    setBusy(true);
     try {
-      await create({ data: { ...form, department_id: form.department_id || null } });
+      await create({ data: {
+        ...form,
+        department_id: form.department_id || null,
+        company_id: form.company_id || undefined,
+      } });
       toast.success("User created"); setOpen(false); onDone();
-      setForm({ email: "", password: "", first_name: "", last_name: "", position: "", phone: "", department_id: "", role: "employee" });
+      setForm(empty);
     } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
   };
   return (
@@ -163,22 +170,30 @@ function CreateDialog({ depts, onDone, create }: { depts: Dept[]; onDone: () => 
         <DialogHeader><DialogTitle>{t("createUser")}</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t("firstName")}><Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></Field>
-            <Field label={t("lastName")}><Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></Field>
-            <Field label={t("email")}><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
-            <Field label={t("password")}><Input type="password" required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
+            <Field label={`${t("firstName")} *`}><Input required value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></Field>
+            <Field label={`${t("lastName")} *`}><Input required value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></Field>
+            <Field label={`${t("email")} *`}><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+            <Field label={`${t("password")} *`}><Input type="password" required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
+            {isPlatformAdmin && (
+              <Field label="Company *">
+                <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select company" /></SelectTrigger>
+                  <SelectContent>{companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </Field>
+            )}
+            <Field label="Role *">
+              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Role })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}</SelectContent>
+              </Select>
+            </Field>
             <Field label={t("position")}><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></Field>
             <Field label={t("phone")}><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
             <Field label={t("department")}>
               <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-            <Field label={t("role")}>
-              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Role })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{r.replace("_", " ")}</SelectItem>)}</SelectContent>
               </Select>
             </Field>
           </div>
@@ -189,15 +204,25 @@ function CreateDialog({ depts, onDone, create }: { depts: Dept[]; onDone: () => 
   );
 }
 
-function InviteDialog({ depts, onDone, invite }: { depts: Dept[]; onDone: () => void; invite: (a: { data: any }) => Promise<any> }) {
+function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; invite: (a: { data: any }) => Promise<any> }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState(""); const [role, setRole] = useState<Role>("employee"); const [dept, setDept] = useState("");
+  const [email, setEmail] = useState("");
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
+  const [role, setRole] = useState<Role>("employee");
+  const [dept, setDept] = useState("");
+  const [companyId, setCompanyId] = useState("");
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true);
-    try { await invite({ data: { email, role, department_id: dept || null } }); toast.success(t("invitationSent")); setOpen(false); onDone(); setEmail(""); }
-    catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+    e.preventDefault();
+    if (isPlatformAdmin && !companyId) { toast.error("Select a company"); return; }
+    setBusy(true);
+    try {
+      await invite({ data: { email, role, department_id: dept || null, company_id: companyId || undefined, first_name: first || undefined, last_name: last || undefined } });
+      toast.success(t("invitationSent")); setOpen(false); onDone();
+      setEmail(""); setFirst(""); setLast(""); setCompanyId(""); setDept(""); setRole("employee");
+    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -205,14 +230,26 @@ function InviteDialog({ depts, onDone, invite }: { depts: Dept[]; onDone: () => 
       <DialogContent>
         <DialogHeader><DialogTitle>{t("inviteByEmail")}</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <Field label={t("email")}><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t("firstName")}><Input value={first} onChange={(e) => setFirst(e.target.value)} /></Field>
+            <Field label={t("lastName")}><Input value={last} onChange={(e) => setLast(e.target.value)} /></Field>
+          </div>
+          <Field label={`${t("email")} *`}><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+          {isPlatformAdmin && (
+            <Field label="Company *">
+              <Select value={companyId} onValueChange={setCompanyId}>
+                <SelectTrigger><SelectValue placeholder="Select company" /></SelectTrigger>
+                <SelectContent>{companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </Field>
+          )}
+          <Field label="Role *">
+            <Select value={role} onValueChange={(v) => setRole(v as Role)}><SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}</SelectContent></Select>
+          </Field>
           <Field label={t("department")}>
             <Select value={dept} onValueChange={setDept}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
               <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select>
-          </Field>
-          <Field label={t("role")}>
-            <Select value={role} onValueChange={(v) => setRole(v as Role)}><SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{r.replace("_", " ")}</SelectItem>)}</SelectContent></Select>
           </Field>
           <DialogFooter><Button disabled={busy} type="submit">{t("sendInvite")}</Button></DialogFooter>
         </form>
