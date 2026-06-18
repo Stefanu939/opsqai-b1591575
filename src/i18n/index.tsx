@@ -108,6 +108,10 @@ const dict = {
     sources: "Quellen",
     viewSources: "Quellen anzeigen",
     relevance: "Relevanz",
+    copy: "Kopieren",
+    section: "Abschnitt",
+    confidence: "Konfidenz",
+    excerpt: "Auszug",
   },
   en: {
     appName: "LogiAI",
