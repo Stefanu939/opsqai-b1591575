@@ -1,0 +1,7 @@
+# LogiAssist
+
+> LogiAssist is a multi-tenant AI knowledge assistant for logistics companies — it answers operational questions from SOPs, manuals, and FAQs while enforcing strict company isolation.
+
+## Pages
+
+- [Sign in](/auth): Sign in or request access to your company workspace.
