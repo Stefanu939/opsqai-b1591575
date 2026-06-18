@@ -8,6 +8,8 @@ interface AuthState {
   roles: string[];
   companyId: string | null;
   companyName: string | null;
+  activeCompanyId: string | null;
+  setActiveCompanyId: (id: string | null) => void;
   isAdmin: boolean;
   isManager: boolean;
   isTeamLeader: boolean;
@@ -17,13 +19,25 @@ interface AuthState {
 }
 
 const Ctx = createContext<AuthState | null>(null);
+const ACTIVE_KEY = "logiai.active_company";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
+  const [activeCompanyId, setActiveCompanyIdState] = useState<string | null>(
+    typeof window !== "undefined" ? localStorage.getItem(ACTIVE_KEY) : null,
+  );
   const [loading, setLoading] = useState(true);
+
+  const setActiveCompanyId = (id: string | null) => {
+    setActiveCompanyIdState(id);
+    if (typeof window !== "undefined") {
+      if (id) localStorage.setItem(ACTIVE_KEY, id);
+      else localStorage.removeItem(ACTIVE_KEY);
+    }
+  };
 
   const loadProfile = (uid: string) => {
     supabase.from("user_roles").select("role").eq("user_id", uid).then(({ data }) => {
@@ -46,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       if (s?.user) setTimeout(() => loadProfile(s.user.id), 0);
-      else { setRoles([]); setCompanyId(null); setCompanyName(null); }
+      else { setRoles([]); setCompanyId(null); setCompanyName(null); setActiveCompanyId(null); }
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -62,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={{
       session, user: session?.user ?? null, roles,
       companyId, companyName,
+      activeCompanyId, setActiveCompanyId,
       isAdmin: roles.includes("admin"),
       isManager: roles.includes("manager"),
       isTeamLeader: roles.includes("team_leader"),
