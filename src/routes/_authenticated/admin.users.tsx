@@ -92,8 +92,8 @@ function AdminUsers() {
           <p className="text-sm text-muted-foreground mt-1">{t("usersDesc")}</p>
         </div>
         <div className="flex gap-2">
-          <InviteDialog depts={depts} onDone={load} invite={invite} />
-          <CreateDialog depts={depts} onDone={load} create={create} />
+          <InviteDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} invite={invite} />
+          <CreateDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} create={create} />
         </div>
       </div>
 
