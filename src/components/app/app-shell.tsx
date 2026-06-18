@@ -1,24 +1,32 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
-  Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2,
+  Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logo from "@/assets/logo.png";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName } = useAuth();
+  const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName, activeCompanyId, setActiveCompanyId } = useAuth();
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const canAdmin = isAdmin || isManager;
+  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
+  const canAdmin = isAdmin || isManager || isPlatformAdmin;
+
+  useEffect(() => {
+    if (!isPlatformAdmin) return;
+    supabase.from("companies").select("id, name").order("name").then(({ data }) => setCompanies(data ?? []));
+  }, [isPlatformAdmin]);
 
   const nav = [
     { to: "/", label: t("dashboard"), icon: LayoutDashboard, exact: true },
@@ -28,11 +36,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   ];
   const adminNav = [
     ...(canAdmin ? [{ to: "/admin/dashboard", label: t("adminDashboard"), icon: BarChart3 }] : []),
-    ...(isAdmin ? [{ to: "/admin/users", label: t("users"), icon: Users }] : []),
+    ...((isAdmin || isPlatformAdmin) ? [{ to: "/admin/users", label: t("users"), icon: Users }] : []),
     ...(canAdmin ? [{ to: "/admin/audit", label: t("auditLog"), icon: ScrollText }] : []),
   ];
   const platformNav = isPlatformAdmin
-    ? [{ to: "/admin/companies", label: "Companies", icon: Building2 }]
+    ? [
+        { to: "/admin/companies", label: "Companies", icon: Building2 },
+        { to: "/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
+      ]
     : [];
 
   const cycleLang = () => {
