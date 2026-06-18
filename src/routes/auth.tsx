@@ -12,6 +12,16 @@ import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Sign in — LogiAssist" },
+      { name: "description", content: "Sign in to LogiAssist to access your company's logistics AI assistant, SOPs and knowledge base." },
+      { property: "og:title", content: "Sign in — LogiAssist" },
+      { property: "og:description", content: "Sign in to LogiAssist to access your company's logistics AI assistant, SOPs and knowledge base." },
+      { property: "og:url", content: "https://logiassist.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://logiassist.lovable.app/auth" }],
+  }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/" });
