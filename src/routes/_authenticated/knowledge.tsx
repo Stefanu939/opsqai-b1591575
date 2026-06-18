@@ -49,7 +49,7 @@ const CATEGORIES = ["SOP", "Manual", "Procedure", "Safety", "Transport", "Wareho
 
 function KnowledgePage() {
   const { t } = useT();
-  const { isAdmin } = useAuth();
+  const { isAdmin, companyId, activeCompanyId, isPlatformAdmin } = useAuth();
   const [docs, setDocs] = useState<Doc[]>([]);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -76,7 +76,9 @@ function KnowledgePage() {
     setBusy(true);
     try {
       const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `${Date.now()}-${safe}`;
+      const scopeId = (isPlatformAdmin ? activeCompanyId : companyId) ?? companyId;
+      if (!scopeId) { toast.error("No company context"); setBusy(false); return; }
+      const path = `${scopeId}/${Date.now()}-${safe}`;
       const { error: upErr } = await supabase.storage.from("knowledge-docs").upload(path, file);
       if (upErr) throw upErr;
       await process({ data: {
