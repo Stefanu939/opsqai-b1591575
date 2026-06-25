@@ -72,20 +72,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => { await supabase.auth.signOut(); };
 
+  const isPlatformAdmin = roles.includes("platform_admin");
   return (
     <Ctx.Provider value={{
       session, user: session?.user ?? null, roles,
       companyId, companyName,
       activeCompanyId, setActiveCompanyId,
-      isAdmin: roles.includes("admin"),
-      isManager: roles.includes("manager"),
-      isTeamLeader: roles.includes("team_leader"),
-      isPlatformAdmin: roles.includes("platform_admin"),
+      // Platform admins implicitly have admin/manager/team_leader capabilities everywhere.
+      isAdmin: roles.includes("admin") || isPlatformAdmin,
+      isManager: roles.includes("manager") || isPlatformAdmin,
+      isTeamLeader: roles.includes("team_leader") || isPlatformAdmin,
+      isPlatformAdmin,
       loading, signOut,
     }}>
       {children}
     </Ctx.Provider>
   );
+
 }
 
 export function useAuth() {
