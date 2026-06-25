@@ -28,6 +28,7 @@ import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsib
 import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
 import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
 import { Route as TrustEncryptionRouteImport } from './routes/trust.encryption'
+import { Route as TrustDataRetentionRouteImport } from './routes/trust.data-retention'
 import { Route as TrustAuditLogsRouteImport } from './routes/trust.audit-logs'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
@@ -144,6 +145,11 @@ const TrustGdprRoute = TrustGdprRouteImport.update({
 const TrustEncryptionRoute = TrustEncryptionRouteImport.update({
   id: '/encryption',
   path: '/encryption',
+  getParentRoute: () => TrustRoute,
+} as any)
+const TrustDataRetentionRoute = TrustDataRetentionRouteImport.update({
+  id: '/data-retention',
+  path: '/data-retention',
   getParentRoute: () => TrustRoute,
 } as any)
 const TrustAuditLogsRoute = TrustAuditLogsRouteImport.update({
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
+  '/trust/data-retention': typeof TrustDataRetentionRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
+  '/trust/data-retention': typeof TrustDataRetentionRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
@@ -369,6 +377,7 @@ export interface FileRoutesById {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
+  '/trust/data-retention': typeof TrustDataRetentionRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/audit-logs'
+    | '/trust/data-retention'
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
@@ -453,6 +463,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/audit-logs'
+    | '/trust/data-retention'
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
@@ -495,6 +506,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/audit-logs'
+    | '/trust/data-retention'
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
@@ -665,6 +677,13 @@ declare module '@tanstack/react-router' {
       path: '/encryption'
       fullPath: '/trust/encryption'
       preLoaderRoute: typeof TrustEncryptionRouteImport
+      parentRoute: typeof TrustRoute
+    }
+    '/trust/data-retention': {
+      id: '/trust/data-retention'
+      path: '/data-retention'
+      fullPath: '/trust/data-retention'
+      preLoaderRoute: typeof TrustDataRetentionRouteImport
       parentRoute: typeof TrustRoute
     }
     '/trust/audit-logs': {
@@ -884,6 +903,7 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
 
 interface TrustRouteChildren {
   TrustAuditLogsRoute: typeof TrustAuditLogsRoute
+  TrustDataRetentionRoute: typeof TrustDataRetentionRoute
   TrustEncryptionRoute: typeof TrustEncryptionRoute
   TrustGdprRoute: typeof TrustGdprRoute
   TrustMultiTenantIsolationRoute: typeof TrustMultiTenantIsolationRoute
@@ -893,6 +913,7 @@ interface TrustRouteChildren {
 
 const TrustRouteChildren: TrustRouteChildren = {
   TrustAuditLogsRoute: TrustAuditLogsRoute,
+  TrustDataRetentionRoute: TrustDataRetentionRoute,
   TrustEncryptionRoute: TrustEncryptionRoute,
   TrustGdprRoute: TrustGdprRoute,
   TrustMultiTenantIsolationRoute: TrustMultiTenantIsolationRoute,
