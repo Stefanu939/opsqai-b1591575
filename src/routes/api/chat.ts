@@ -162,6 +162,8 @@ export const Route = createFileRoute("/api/chat")({
         let mode: "greeting" | "kb" | "gap" | "followup" =
           isGreeting ? "greeting" : isFollowup ? "followup" : "kb";
         let confidence = 0;
+        let topSimilarity = 0;
+        let queryEmbedding: number[] | null = null;
 
         if (isFollowup) {
           const { data: prior } = await supabase
