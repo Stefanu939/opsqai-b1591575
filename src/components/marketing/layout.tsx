@@ -45,7 +45,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
           </nav>
           <div className="hidden md:flex items-center gap-2">
             {signedIn ? (
-              <Button asChild size="sm"><Link to="/dashboard">Open app</Link></Button>
+              <Button asChild size="sm"><Link to="/app">Open app</Link></Button>
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm"><Link to="/auth">Sign in</Link></Button>
@@ -67,7 +67,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
               ))}
               <div className="pt-3 mt-2 border-t border-border/60 flex gap-2">
                 {signedIn ? (
-                  <Button asChild size="sm" className="flex-1"><Link to="/dashboard">Open app</Link></Button>
+                  <Button asChild size="sm" className="flex-1"><Link to="/app">Open app</Link></Button>
                 ) : (
                   <>
                     <Button asChild variant="outline" size="sm" className="flex-1"><Link to="/auth">Sign in</Link></Button>

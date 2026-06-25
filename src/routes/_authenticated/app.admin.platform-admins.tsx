@@ -22,7 +22,7 @@ function PlatformAdminsPage() {
   const demote = useServerFn(demotePlatformAdmin);
   const [email, setEmail] = useState("");
 
-  if (!isPlatformAdmin) throw redirect({ to: "/dashboard" });
+  if (!isPlatformAdmin) throw redirect({ to: "/app" });
 
   const { data: admins } = useQuery({
     queryKey: ["platform-admins"],

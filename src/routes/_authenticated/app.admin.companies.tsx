@@ -56,7 +56,7 @@ function CompaniesPage() {
   });
 
   if (!isPlatformAdmin) {
-    throw redirect({ to: "/dashboard" });
+    throw redirect({ to: "/app" });
   }
 
   return (
