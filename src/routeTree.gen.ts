@@ -44,6 +44,7 @@ import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
@@ -233,74 +234,79 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
-  id: '/app/',
-  path: '/app/',
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppRequestsRoute =
   AuthenticatedAppRequestsRouteImport.update({
-    id: '/app/requests',
-    path: '/app/requests',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/requests',
+    path: '/requests',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
-  id: '/app/profile',
-  path: '/app/profile',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppKnowledgeRoute =
   AuthenticatedAppKnowledgeRouteImport.update({
-    id: '/app/knowledge',
-    path: '/app/knowledge',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/knowledge',
+    path: '/knowledge',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
-  id: '/app/faq',
-  path: '/app/faq',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
-    id: '/app/chat/',
-    path: '/app/chat/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/chat/',
+    path: '/chat/',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppChatThreadIdRoute =
   AuthenticatedAppChatThreadIdRouteImport.update({
-    id: '/app/chat/$threadId',
-    path: '/app/chat/$threadId',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/chat/$threadId',
+    path: '/chat/$threadId',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminUsersRoute =
   AuthenticatedAppAdminUsersRouteImport.update({
-    id: '/app/admin/users',
-    path: '/app/admin/users',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/admin/users',
+    path: '/admin/users',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminPlatformAdminsRoute =
   AuthenticatedAppAdminPlatformAdminsRouteImport.update({
-    id: '/app/admin/platform-admins',
-    path: '/app/admin/platform-admins',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/admin/platform-admins',
+    path: '/admin/platform-admins',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminDashboardRoute =
   AuthenticatedAppAdminDashboardRouteImport.update({
-    id: '/app/admin/dashboard',
-    path: '/app/admin/dashboard',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/admin/dashboard',
+    path: '/admin/dashboard',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminCompaniesRoute =
   AuthenticatedAppAdminCompaniesRouteImport.update({
-    id: '/app/admin/companies',
-    path: '/app/admin/companies',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/admin/companies',
+    path: '/admin/companies',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminAuditRoute =
   AuthenticatedAppAdminAuditRouteImport.update({
-    id: '/app/admin/audit',
-    path: '/app/admin/audit',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/admin/audit',
+    path: '/admin/audit',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -319,6 +325,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
+  '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -417,6 +424,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -467,6 +475,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/solutions'
     | '/trust'
+    | '/app'
     | '/api/chat'
     | '/api/demo-chat'
     | '/legal/cookies'
@@ -564,6 +573,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/solutions'
     | '/trust'
+    | '/_authenticated/app'
     | '/api/chat'
     | '/api/demo-chat'
     | '/legal/cookies'
@@ -865,94 +875,101 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app/': {
       id: '/_authenticated/app/'
-      path: '/app'
+      path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/requests': {
       id: '/_authenticated/app/requests'
-      path: '/app/requests'
+      path: '/requests'
       fullPath: '/app/requests'
       preLoaderRoute: typeof AuthenticatedAppRequestsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/profile': {
       id: '/_authenticated/app/profile'
-      path: '/app/profile'
+      path: '/profile'
       fullPath: '/app/profile'
       preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/knowledge': {
       id: '/_authenticated/app/knowledge'
-      path: '/app/knowledge'
+      path: '/knowledge'
       fullPath: '/app/knowledge'
       preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/faq': {
       id: '/_authenticated/app/faq'
-      path: '/app/faq'
+      path: '/faq'
       fullPath: '/app/faq'
       preLoaderRoute: typeof AuthenticatedAppFaqRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
-      path: '/app/chat'
+      path: '/chat'
       fullPath: '/app/chat/'
       preLoaderRoute: typeof AuthenticatedAppChatIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/chat/$threadId': {
       id: '/_authenticated/app/chat/$threadId'
-      path: '/app/chat/$threadId'
+      path: '/chat/$threadId'
       fullPath: '/app/chat/$threadId'
       preLoaderRoute: typeof AuthenticatedAppChatThreadIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/users': {
       id: '/_authenticated/app/admin/users'
-      path: '/app/admin/users'
+      path: '/admin/users'
       fullPath: '/app/admin/users'
       preLoaderRoute: typeof AuthenticatedAppAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/platform-admins': {
       id: '/_authenticated/app/admin/platform-admins'
-      path: '/app/admin/platform-admins'
+      path: '/admin/platform-admins'
       fullPath: '/app/admin/platform-admins'
       preLoaderRoute: typeof AuthenticatedAppAdminPlatformAdminsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/dashboard': {
       id: '/_authenticated/app/admin/dashboard'
-      path: '/app/admin/dashboard'
+      path: '/admin/dashboard'
       fullPath: '/app/admin/dashboard'
       preLoaderRoute: typeof AuthenticatedAppAdminDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/companies': {
       id: '/_authenticated/app/admin/companies'
-      path: '/app/admin/companies'
+      path: '/admin/companies'
       fullPath: '/app/admin/companies'
       preLoaderRoute: typeof AuthenticatedAppAdminCompaniesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/audit': {
       id: '/_authenticated/app/admin/audit'
-      path: '/app/admin/audit'
+      path: '/admin/audit'
       fullPath: '/app/admin/audit'
       preLoaderRoute: typeof AuthenticatedAppAdminAuditRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
+interface AuthenticatedAppRouteChildren {
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
@@ -967,7 +984,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
@@ -981,6 +998,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
+}
+
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
