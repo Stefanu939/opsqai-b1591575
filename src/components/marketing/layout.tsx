@@ -61,14 +61,14 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
           </button>
         </div>
         {open && (
-          <div className="md:hidden border-t border-border/60 bg-background">
+          <div className="lg:hidden border-t border-border/60 bg-background">
             <div className="mx-auto max-w-6xl px-4 py-3 flex flex-col">
               {NAV.map((i) => (
                 <Link key={i.to} to={i.to} onClick={() => setOpen(false)} className="py-2 text-sm">
                   {i.label}
                 </Link>
               ))}
-              <div className="pt-3 mt-2 border-t border-border/60 flex gap-2">
+              <div className="pt-3 mt-2 border-t border-border/60 flex gap-2 sm:hidden">
                 {signedIn ? (
                   <Button asChild size="sm" className="flex-1"><Link to="/app">Open app</Link></Button>
                 ) : (
