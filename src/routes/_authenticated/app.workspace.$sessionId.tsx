@@ -33,12 +33,12 @@ export const Route = createFileRoute("/_authenticated/app/workspace/$sessionId")
 });
 
 interface WSFile { id: string; file_name: string; mime: string | null; size_bytes: number | null; status: string; expires_at: string | null; created_at: string }
-interface WSArtifact { id: string; kind: "pptx" | "xlsx" | "docx" | "pdf"; file_name: string; storage_path: string; expires_at: string | null; created_at: string }
+interface WSArtifact { id: string; kind: "pptx" | "xlsx" | "docx" | "pdf" | "csv" | "txt"; file_name: string; storage_path: string; expires_at: string | null; created_at: string }
 interface WSSession { id: string; title: string; company_id: string; user_id: string }
 
 function iconFor(kind: string) {
   if (kind === "pptx") return Presentation;
-  if (kind === "xlsx") return FileSpreadsheet;
+  if (kind === "xlsx" || kind === "csv") return FileSpreadsheet;
   if (kind === "pdf") return FileType2;
   return FileText;
 }
