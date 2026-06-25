@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [isPlatformAdmin]);
 
   const nav = [
-    { to: "/", label: t("dashboard"), icon: LayoutDashboard, exact: true },
+    { to: "/dashboard", label: t("dashboard"), icon: LayoutDashboard, exact: true },
     { to: "/chat", label: t("chat"), icon: MessageSquare },
     { to: "/knowledge", label: t("knowledge"), icon: BookOpen },
     { to: "/faq", label: t("faq"), icon: HelpCircle },

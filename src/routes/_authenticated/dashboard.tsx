@@ -9,7 +9,7 @@ import { MessageSquare, BookOpen, HelpCircle, Users, Package, Truck, FileText, S
 import { createThread } from "@/lib/threads.functions";
 import { useServerFn } from "@tanstack/react-start";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
