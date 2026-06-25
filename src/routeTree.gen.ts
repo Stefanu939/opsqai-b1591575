@@ -54,6 +54,7 @@ import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
@@ -294,6 +295,12 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAppWorkspaceSessionIdRoute =
+  AuthenticatedAppWorkspaceSessionIdRouteImport.update({
+    id: '/workspace/$sessionId',
+    path: '/workspace/$sessionId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppChatThreadIdRoute =
   AuthenticatedAppChatThreadIdRouteImport.update({
     id: '/chat/$threadId',
@@ -393,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
@@ -446,6 +454,7 @@ export interface FileRoutesByTo {
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
@@ -502,6 +511,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
@@ -558,6 +568,7 @@ export interface FileRouteTypes {
     | '/app/admin/platform-admins'
     | '/app/admin/users'
     | '/app/chat/$threadId'
+    | '/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
     | '/app/chat/'
     | '/app/workspace/'
@@ -611,6 +622,7 @@ export interface FileRouteTypes {
     | '/app/admin/platform-admins'
     | '/app/admin/users'
     | '/app/chat/$threadId'
+    | '/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
     | '/app/chat'
     | '/app/workspace'
@@ -666,6 +678,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/platform-admins'
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/chat/$threadId'
+    | '/_authenticated/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/workspace/'
@@ -1011,6 +1024,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app/workspace/$sessionId': {
+      id: '/_authenticated/app/workspace/$sessionId'
+      path: '/workspace/$sessionId'
+      fullPath: '/app/workspace/$sessionId'
+      preLoaderRoute: typeof AuthenticatedAppWorkspaceSessionIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/chat/$threadId': {
       id: '/_authenticated/app/chat/$threadId'
       path: '/chat/$threadId'
@@ -1084,6 +1104,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
+  AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
   AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
 }
@@ -1104,6 +1125,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAdminPlatformAdminsRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
+  AuthenticatedAppWorkspaceSessionIdRoute:
+    AuthenticatedAppWorkspaceSessionIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
   AuthenticatedAppWorkspaceIndexRoute: AuthenticatedAppWorkspaceIndexRoute,
 }

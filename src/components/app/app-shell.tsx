@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart,
+  AlertTriangle, LineChart, Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
@@ -33,6 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav = [
     { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true },
     { to: "/app/chat", label: t("chat"), icon: MessageSquare },
+    ...(canAdmin ? [{ to: "/app/workspace", label: t("workspace"), icon: Sparkles }] : []),
     { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen },
     { to: "/app/faq", label: t("faq"), icon: HelpCircle },
     { to: "/app/requests", label: t("internalRequests"), icon: Inbox },
