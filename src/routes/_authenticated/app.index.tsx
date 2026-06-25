@@ -76,22 +76,27 @@ function Dashboard() {
   ];
 
   return (
-    <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Operations Dashboard</h1>
-        <p className="text-muted-foreground mt-1">{t("askAnything")}</p>
+    <div className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Operations</p>
+          <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight">Good day — here's your overview</h1>
+          <p className="text-muted-foreground mt-1 text-sm">{t("askAnything")}</p>
+        </div>
+        <Button onClick={() => startChat()} className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
+          <MessageSquare className="h-4 w-4 mr-2" />{t("newChat")}
+        </Button>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
         {kpis.map((k) => (
-          <Card key={k.label} className="relative overflow-hidden p-5 hover:shadow-md transition-shadow border-border/60">
-            <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary to-primary/40" />
+          <Card key={k.label} className="card-enterprise hover-lift p-5 border-0">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium truncate">{k.label}</div>
-                <div className="text-3xl font-semibold tracking-tight mt-1 tabular-nums">{k.value}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate">{k.label}</div>
+                <div className="text-3xl font-semibold tracking-tight mt-1.5 tabular-nums">{k.value}</div>
               </div>
-              <div className="h-10 w-10 rounded-lg bg-primary/10 grid place-items-center text-primary shrink-0">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 grid place-items-center text-primary shrink-0">
                 <k.icon className="h-5 w-5" />
               </div>
             </div>
@@ -102,15 +107,17 @@ function Dashboard() {
       <CriticalSopBanner />
 
       <section className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">{t("quickStart")}</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">{t("quickStart")}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickPrompts.map((p) => (
             <button
               key={p.label}
               onClick={() => startChat(lang === "de" ? `Erzähl mir mehr über ${p.label}` : `Tell me more about ${p.label}`)}
-              className="group text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-sm transition-all"
+              className="group text-left rounded-xl border border-border bg-card/60 p-4 hover-lift"
             >
-              <p.icon className="h-5 w-5 text-primary mb-3" />
+              <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary mb-3 group-hover:bg-primary/15 transition-colors">
+                <p.icon className="h-4 w-4" />
+              </div>
               <div className="text-sm font-medium leading-tight">{p.label}</div>
             </button>
           ))}
@@ -119,15 +126,15 @@ function Dashboard() {
 
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("recentChats")}</h2>
-          <Button size="sm" onClick={() => startChat()}>{t("newChat")}</Button>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("recentChats")}</h2>
+          <Link to="/app/chat" className="text-xs text-primary hover:underline">View all</Link>
         </div>
         {threads.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">{t("noThreads")}</Card>
+          <Card className="card-enterprise border-0 p-8 text-center text-sm text-muted-foreground">{t("noThreads")}</Card>
         ) : (
-          <Card className="divide-y divide-border">
+          <Card className="card-enterprise border-0 divide-y divide-border">
             {threads.map((th) => (
-              <Link key={th.id} to="/app/chat/$threadId" params={{ threadId: th.id }} className="flex items-center justify-between p-4 hover:bg-muted transition-colors">
+              <Link key={th.id} to="/app/chat/$threadId" params={{ threadId: th.id }} className="flex items-center justify-between p-4 hover:bg-muted/40 transition-colors first:rounded-t-xl last:rounded-b-xl">
                 <div className="min-w-0">
                   <div className="text-sm font-medium truncate">{th.title}</div>
                   <div className="text-xs text-muted-foreground font-mono mt-0.5">{new Date(th.updated_at).toLocaleString()}</div>
