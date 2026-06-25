@@ -162,6 +162,8 @@ export const Route = createFileRoute("/api/chat")({
         let mode: "greeting" | "kb" | "gap" | "followup" =
           isGreeting ? "greeting" : isFollowup ? "followup" : "kb";
         let confidence = 0;
+        let topSimilarity = 0;
+        let queryEmbedding: number[] | null = null;
 
         if (isFollowup) {
           const { data: prior } = await supabase
@@ -178,6 +180,7 @@ export const Route = createFileRoute("/api/chat")({
         } else if (!isGreeting && query) {
           try {
             const qVec = await embedOne(query);
+            queryEmbedding = qVec;
             const { data: matches, error: matchErr } = await supabase.rpc(
               "match_document_chunks_for_company" as never,
               { query_embedding: `[${qVec.join(",")}]`, match_count: 8, min_similarity: 0.15, _company_id: companyId } as never,
@@ -236,6 +239,7 @@ export const Route = createFileRoute("/api/chat")({
             if (sims.length) {
               const top = sims.slice(0, 3);
               confidence = top.reduce((a, b) => a + b, 0) / top.length;
+              topSimilarity = sims[0] ?? 0;
             }
           } catch (e) {
             console.error("[chat:retrieval] embed/match failed", e);
@@ -303,11 +307,23 @@ export const Route = createFileRoute("/api/chat")({
           }
         }
 
+        // Determine whether this turn should be tracked as a knowledge gap.
+        // Triggers: refusal mode, low aggregated confidence, or weak top match.
+        const LOW_CONF_THRESHOLD = 0.7;
+        const WEAK_TOP_MATCH = 0.45;
+        const isKnowledgeGap =
+          mode === "gap" ||
+          (mode === "kb" && (confidence > 0 ? confidence < LOW_CONF_THRESHOLD : true)) ||
+          (mode === "kb" && sources.length > 0 && topSimilarity < WEAK_TOP_MATCH);
+
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
           messageMetadata: ({ part }) => {
             if (part.type === "start") {
-              return { sources, mode, canCreateRequest, question: query, confidence, minConfidence, escalation };
+              return {
+                sources, mode, canCreateRequest, question: query, confidence, minConfidence, escalation,
+                isKnowledgeGap,
+              };
             }
             return undefined;
           },
@@ -327,7 +343,14 @@ export const Route = createFileRoute("/api/chat")({
                 sources: m.role === "assistant" ? (sources as unknown as never) : null,
                 confidence: m.role === "assistant" ? confidence : null,
               }));
-              if (toInsert.length) await supabase.from("messages").insert(toInsert as never);
+              let insertedAssistantId: string | null = null;
+              if (toInsert.length) {
+                const { data: insertedRows } = await supabase
+                  .from("messages").insert(toInsert as never).select("id, role");
+                const asst = (insertedRows as Array<{ id: string; role: string }> | null)
+                  ?.filter((r) => r.role === "assistant").slice(-1)[0];
+                insertedAssistantId = asst?.id ?? null;
+              }
 
               const lastUserMsg = newMessages.find((m) => m.role === "user");
               const lastAsstMsg = newMessages.find((m) => m.role === "assistant");
@@ -340,25 +363,56 @@ export const Route = createFileRoute("/api/chat")({
                   sources: sources as unknown as never,
                 });
 
-                // Knowledge gap upsert + notifications when refusal/low-confidence
-                if (mode === "gap" && q.trim().length > 4) {
-                  const norm = normalizeQuestion(q);
-                  if (norm) {
-                    const { data: existingGap } = await supabase
-                      .from("knowledge_gaps")
-                      .select("id, occurrences")
-                      .eq("company_id", companyId)
-                      .eq("question_normalized", norm)
-                      .maybeSingle();
-                    if (existingGap) {
-                      await supabase.from("knowledge_gaps")
-                        .update({ occurrences: (existingGap as { occurrences: number }).occurrences + 1, last_seen: new Date().toISOString() })
-                        .eq("id", (existingGap as { id: string }).id);
-                    } else {
-                      await supabase.from("knowledge_gaps").insert({
-                        company_id: companyId, question_normalized: norm, question_sample: q.slice(0, 500),
-                      } as never);
-                      // Notify admins+managers
+                // -------- Knowledge Gap lifecycle --------
+                if (isKnowledgeGap && q.trim().length > 4) {
+                  const norm = normalizeQuestion(q) || q.toLowerCase().slice(0, 500);
+                  const embedLiteral = queryEmbedding ? `[${queryEmbedding.join(",")}]` : null;
+                  let gapId: string | null = null;
+                  try {
+                    const { data: matched } = await supabase.rpc(
+                      "match_knowledge_gap" as never,
+                      {
+                        _company_id: companyId,
+                        _question: q.slice(0, 500),
+                        _question_normalized: norm,
+                        _embedding: embedLiteral,
+                        _threshold: 0.82,
+                      } as never,
+                    ) as { data: string | null };
+                    gapId = matched ?? null;
+                  } catch (e) { console.error("[chat:gap] match_knowledge_gap failed", e); }
+
+                  if (gapId) {
+                    await supabase.from("knowledge_gaps")
+                      .update({
+                        occurrences: undefined as never, // bump via rpc-less increment below
+                        last_seen: new Date().toISOString(),
+                      } as never)
+                      .eq("id", gapId);
+                    // increment occurrences
+                    const { data: cur } = await supabase
+                      .from("knowledge_gaps").select("occurrences").eq("id", gapId).maybeSingle();
+                    const occ = ((cur as { occurrences: number } | null)?.occurrences ?? 1) + 1;
+                    await supabase.from("knowledge_gaps")
+                      .update({ occurrences: occ, status: "open" } as never)
+                      .eq("id", gapId)
+                      .in("status", ["open", "in_progress"]);
+                  } else {
+                    const { data: ins } = await supabase.from("knowledge_gaps").insert({
+                      company_id: companyId,
+                      question_normalized: norm,
+                      question_sample: q.slice(0, 500),
+                      department_id: userDeptId ?? null,
+                      created_by: userId,
+                      confidence: confidence || null,
+                      source_thread_id: threadId,
+                      source_message_id: insertedAssistantId,
+                      embedding: embedLiteral,
+                      status: "open",
+                    } as never).select("id").maybeSingle();
+                    gapId = (ins as { id: string } | null)?.id ?? null;
+
+                    if (gapId) {
                       const { data: targets } = await supabase
                         .from("user_roles").select("user_id, role")
                         .eq("company_id", companyId).in("role", ["admin", "manager"]);
@@ -368,16 +422,16 @@ export const Route = createFileRoute("/api/chat")({
                           company_id: companyId, user_id: uid, kind: "new_gap" as const,
                           title: "New knowledge gap detected",
                           body: q.slice(0, 200),
-                          link: "/app/admin/knowledge-gaps",
-                          payload: { question: q.slice(0, 500) } as never,
+                          link: `/app/admin/knowledge-gaps?gap=${gapId}`,
+                          payload: { question: q.slice(0, 500), gap_id: gapId, confidence } as never,
                         })) as never);
                       }
                     }
                   }
                 }
 
-                // Low confidence notification (separate from gap)
-                if (confidence > 0 && confidence < minConfidence) {
+                // Low confidence notification (separate from gap, for audit review)
+                if (mode !== "gap" && confidence > 0 && confidence < minConfidence) {
                   const { data: targets } = await supabase
                     .from("user_roles").select("user_id")
                     .eq("company_id", companyId).in("role", ["admin", "manager"]);
@@ -387,12 +441,13 @@ export const Route = createFileRoute("/api/chat")({
                       company_id: companyId, user_id: uid, kind: "low_confidence" as const,
                       title: "Low-confidence answer",
                       body: `"${q.slice(0, 160)}" (confidence ${(confidence * 100).toFixed(0)}%)`,
-                      link: "/app/admin/audit",
+                      link: `/app/admin/knowledge-gaps`,
                       payload: { confidence, question: q.slice(0, 500) } as never,
                     })) as never);
                   }
                 }
               }
+
 
               if (thread.title === "New conversation" || thread.title === "Neue Unterhaltung" || thread.title === "Conversație nouă") {
                 const firstUserText = finalMessages.find((m) => m.role === "user")

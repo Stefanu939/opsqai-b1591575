@@ -53,6 +53,7 @@ interface MessageMeta {
   confidence?: number;
   minConfidence?: number;
   escalation?: Escalation | null;
+  isKnowledgeGap?: boolean;
 }
 
 type ConfBucket = "high" | "medium" | "low";
@@ -243,6 +244,15 @@ function ChatInner({
                   )}
                   {meta?.canCreateRequest && text && (
                     <CreateRequestCTA threadId={threadId} question={meta.question ?? ""} T={T} />
+                  )}
+                  {meta?.isKnowledgeGap && meta.mode !== "gap" && text && (
+                    <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                      <span aria-hidden>⚠</span>
+                      <span>
+                        This question has been flagged as a <strong>knowledge gap</strong>.
+                        Our administrators have been notified and can improve the Knowledge Base.
+                      </span>
+                    </div>
                   )}
                   {text && isPersisted && <FeedbackBar messageId={m.id} />}
                 </div>
