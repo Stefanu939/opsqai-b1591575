@@ -8,6 +8,7 @@ import { generatePptx } from "@/lib/generators/pptx.server";
 import { generateXlsx } from "@/lib/generators/xlsx.server";
 import { generateDocx } from "@/lib/generators/docx.server";
 import { generatePdf } from "@/lib/generators/pdf.server";
+import { generateCsv, generateTxt } from "@/lib/generators/text.server";
 import type { Database } from "@/integrations/supabase/types";
 
 const BUCKET = "workspace-temp";
