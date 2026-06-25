@@ -8,11 +8,14 @@ import logo from "@/assets/opsqai-mark.png";
 const NAV = [
   { to: "/product", label: "Product" },
   { to: "/features", label: "Features" },
+  { to: "/solutions", label: "Solutions" },
+  { to: "/industries", label: "Industries" },
   { to: "/pricing", label: "Pricing" },
   { to: "/trust", label: "Trust" },
   { to: "/demo", label: "Demo" },
   { to: "/contact", label: "Contact" },
 ] as const;
+
 
 export function MarketingLayout({ children }: { children: ReactNode }) {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
