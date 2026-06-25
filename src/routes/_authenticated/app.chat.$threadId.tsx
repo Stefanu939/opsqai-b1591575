@@ -188,17 +188,22 @@ function ChatInner({
             </div>
           )}
           {messages.map((m) => {
-            const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const rawText = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
             const meta = m.metadata as MessageMeta | undefined;
             const sources = meta?.sources ?? [];
             if (m.role === "user") {
               return (
                 <div key={m.id} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">{text}</div>
+                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">{rawText}</div>
                 </div>
               );
             }
+            const text = stripSourcesBlock(rawText);
             const isPersisted = initialIds.has(m.id);
+            const docs = sources.filter((s) => s.type === "document");
+            const primary = docs.find((d) => d.primary) ?? docs[0];
+            const answerBucket = bucketConfidence(meta?.confidence);
+            const showMeta = text && sources.length > 0 && meta?.mode !== "gap";
             return (
               <div key={m.id} className="flex gap-3 group">
                 <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
@@ -208,17 +213,31 @@ function ChatInner({
                   <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
                     {text ? <ReactMarkdown>{text}</ReactMarkdown> : <ThinkingDots label={T("thinking")} />}
                   </div>
+                  {showMeta && (
+                    <div className="mt-3 flex flex-col gap-1.5 text-xs">
+                      {primary && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <FileText className="h-3.5 w-3.5 shrink-0" />
+                          <span className="opacity-70">Source:</span>
+                          <span className="font-medium text-foreground truncate">
+                            {primary.code ? `${primary.code} — ${primary.title}` : primary.title}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5">
+                        <span className="opacity-70 text-muted-foreground">Confidence:</span>
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(answerBucket)}`}>
+                          {confLabel(answerBucket)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   {text && (
                     <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                       <CopyButton text={text} label={T("copy") || "Copy"} />
-                      {typeof meta?.confidence === "number" && meta.confidence > 0 && (
-                        <span className="text-[10px] text-muted-foreground font-mono">
-                          AI confidence {(meta.confidence * 100).toFixed(0)}%
-                        </span>
-                      )}
                     </div>
                   )}
-                  {sources.length > 0 && <SourcesPanel sources={sources} T={T} />}
+                  {sources.length > 0 && <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />}
                   {meta?.escalation && meta.escalation.department && (
                     <EscalationCard escalation={meta.escalation} />
                   )}
