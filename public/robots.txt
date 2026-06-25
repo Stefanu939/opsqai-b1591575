@@ -6,4 +6,4 @@ Disallow: /accept-invite
 Disallow: /reset-password
 Disallow: /forgot-password
 
-Sitemap: https://opsqai.eu/sitemap.xml
+Sitemap: https://opsqai.de/sitemap.xml

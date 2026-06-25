@@ -50,13 +50,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "OPSQAI — AI Knowledge Platform for Logistics & Supply Chain" },
       { name: "description", content: "OPSQAI turns your SOPs, manuals and FAQs into instant, grounded answers for every warehouse and operations team. Multilingual, auditable, GDPR-ready." },
       { property: "og:site_name", content: "OPSQAI" },
-      { property: "og:title", content: "OPSQAI — AI Knowledge Platform for Logistics" },
-      { property: "og:description", content: "Instant access to company knowledge across every warehouse, shift and language." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://opsqai.eu/" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "OPSQAI — AI Knowledge Platform for Logistics" },
-      { name: "twitter:description", content: "Instant access to company knowledge across every warehouse, shift and language." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -73,8 +68,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "Organization", name: "OPSQAI", url: "https://opsqai.eu/", description: "Enterprise AI knowledge management, operational intelligence and compliance for logistics & supply chain." },
-            { "@type": "WebSite", name: "OPSQAI", url: "https://opsqai.eu/" },
+            { "@type": "Organization", name: "OPSQAI", url: "https://opsqai.de/", description: "Enterprise AI knowledge management, operational intelligence and compliance for logistics & supply chain." },
+            { "@type": "WebSite", name: "OPSQAI", url: "https://opsqai.de/" },
           ],
         }),
       },
