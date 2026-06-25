@@ -55,6 +55,34 @@ interface MessageMeta {
   escalation?: Escalation | null;
 }
 
+type ConfBucket = "high" | "medium" | "low";
+function bucketConfidence(n: number | undefined | null): ConfBucket {
+  const v = typeof n === "number" ? n : 0;
+  if (v >= 0.5) return "high";
+  if (v >= 0.3) return "medium";
+  return "low";
+}
+function confLabel(b: ConfBucket): string {
+  return b === "high" ? "High" : b === "medium" ? "Medium" : "Low";
+}
+function confClasses(b: ConfBucket): string {
+  if (b === "high") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+  if (b === "medium") return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+  return "bg-muted text-muted-foreground border-border";
+}
+// Show a relevance % that rewards a clear primary match while staying truthful for supporting ones.
+function displayRelevance(sim: number | undefined, isPrimary: boolean): number {
+  const s = typeof sim === "number" ? sim : 0;
+  if (isPrimary && s >= 0.3) return Math.min(100, Math.round(50 + s * 80));
+  return Math.max(0, Math.min(100, Math.round(s * 100)));
+}
+// Strip any "Sources:" / "Quellen:" / "Surse:" trailing block the LLM emits — UI renders sources separately.
+function stripSourcesBlock(text: string): string {
+  if (!text) return text;
+  const re = /\n+\s*(?:\*\*|__)?\s*(?:Sources|Quellen|Surse)\s*:?\s*(?:\*\*|__)?[\s\S]*$/i;
+  return text.replace(re, "").trimEnd();
+}
+
 export const Route = createFileRoute("/_authenticated/app/chat/$threadId")({
   validateSearch: (s: Record<string, unknown>) => z.object({ q: z.string().optional() }).parse(s),
   component: ChatThread,
@@ -160,17 +188,22 @@ function ChatInner({
             </div>
           )}
           {messages.map((m) => {
-            const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const rawText = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
             const meta = m.metadata as MessageMeta | undefined;
             const sources = meta?.sources ?? [];
             if (m.role === "user") {
               return (
                 <div key={m.id} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">{text}</div>
+                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">{rawText}</div>
                 </div>
               );
             }
+            const text = stripSourcesBlock(rawText);
             const isPersisted = initialIds.has(m.id);
+            const docs = sources.filter((s) => s.type === "document");
+            const primary = docs.find((d) => d.primary) ?? docs[0];
+            const answerBucket = bucketConfidence(meta?.confidence);
+            const showMeta = text && sources.length > 0 && meta?.mode !== "gap";
             return (
               <div key={m.id} className="flex gap-3 group">
                 <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
@@ -180,17 +213,31 @@ function ChatInner({
                   <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
                     {text ? <ReactMarkdown>{text}</ReactMarkdown> : <ThinkingDots label={T("thinking")} />}
                   </div>
+                  {showMeta && (
+                    <div className="mt-3 flex flex-col gap-1.5 text-xs">
+                      {primary && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <FileText className="h-3.5 w-3.5 shrink-0" />
+                          <span className="opacity-70">Source:</span>
+                          <span className="font-medium text-foreground truncate">
+                            {primary.code ? `${primary.code} — ${primary.title}` : primary.title}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5">
+                        <span className="opacity-70 text-muted-foreground">Confidence:</span>
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(answerBucket)}`}>
+                          {confLabel(answerBucket)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   {text && (
                     <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                       <CopyButton text={text} label={T("copy") || "Copy"} />
-                      {typeof meta?.confidence === "number" && meta.confidence > 0 && (
-                        <span className="text-[10px] text-muted-foreground font-mono">
-                          AI confidence {(meta.confidence * 100).toFixed(0)}%
-                        </span>
-                      )}
                     </div>
                   )}
-                  {sources.length > 0 && <SourcesPanel sources={sources} T={T} />}
+                  {sources.length > 0 && <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />}
                   {meta?.escalation && meta.escalation.department && (
                     <EscalationCard escalation={meta.escalation} />
                   )}
@@ -235,11 +282,19 @@ function ChatInner({
   );
 }
 
-function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) => string }) {
+function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; answerBucket: ConfBucket; T: (k: string) => string }) {
   const docs = sources.filter((s) => s.type === "document");
   const faqs = sources.filter((s) => s.type === "faq");
   const primary = docs.find((d) => d.primary) ?? docs[0];
-  const supporting = docs.filter((d) => d !== primary);
+  const primarySim = typeof primary?.similarity === "number" ? primary.similarity : 0;
+  // Drop supporting docs that are noticeably less relevant than the primary match.
+  const supporting = docs
+    .filter((d) => d !== primary)
+    .filter((d) => {
+      const s = typeof d.similarity === "number" ? d.similarity : 0;
+      if (primarySim >= 0.4) return s >= primarySim - 0.1 && s >= 0.3;
+      return s >= 0.25;
+    });
 
   const openDoc = async (documentId?: string) => {
     if (!documentId) return;
@@ -251,33 +306,56 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
     if (signed?.signedUrl) window.open(signed.signedUrl, "_blank");
   };
 
-  const DocCard = ({ s, badge }: { s: SourceItem; badge?: string }) => (
-    <div className="rounded-md border border-border p-3 bg-muted/30">
-      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-        {badge && <Badge className="text-[10px]">{badge}</Badge>}
-        {s.code && <Badge variant="outline" className="font-mono text-[10px]">{s.code}</Badge>}
-        {s.version && <Badge variant="secondary" className="text-[10px]">v{s.version}</Badge>}
-        <div className="text-sm font-medium truncate">{s.title}</div>
-      </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground font-mono mb-2">
-        {s.section && <div><span className="opacity-60">Section:</span> {s.section}</div>}
-        {s.page && <div><span className="opacity-60">Page:</span> {s.page}</div>}
-        {s.department && <div><span className="opacity-60">Dept:</span> {s.department}</div>}
-        {s.last_updated && <div><span className="opacity-60">Updated:</span> {new Date(s.last_updated).toLocaleDateString()}</div>}
-        {typeof s.similarity === "number" && <div><span className="opacity-60">Relevance:</span> {(s.similarity * 100).toFixed(0)}%</div>}
-        {s.confidence && <div><span className="opacity-60">Confidence:</span> {s.confidence}</div>}
-      </div>
-      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">{s.excerpt}</p>
-      <div className="mt-2 flex items-center gap-3">
-        <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
-        {s.document_id && (
-          <button onClick={() => openDoc(s.document_id)} className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline">
-            <ExternalLink className="h-3 w-3" /> Open document
-          </button>
+  const DocCard = ({ s, isPrimary }: { s: SourceItem; isPrimary?: boolean }) => {
+    const bucket: ConfBucket = isPrimary ? answerBucket : bucketConfidence(s.similarity);
+    const rel = displayRelevance(s.similarity, !!isPrimary);
+    return (
+      <div className={`rounded-md border p-3 ${isPrimary ? "border-primary/40 bg-primary/5" : "border-border bg-muted/30"}`}>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          {isPrimary && <Badge className="text-[10px]">Primary</Badge>}
+          {s.code && <Badge variant="outline" className="font-mono text-[10px]">{s.code}</Badge>}
+          {s.version && <Badge variant="secondary" className="text-[10px]">v{s.version}</Badge>}
+          <div className="text-sm font-medium truncate">{s.title}</div>
+        </div>
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] mb-2">
+          {s.version && <><dt className="text-muted-foreground">Version</dt><dd className="font-medium">v{s.version}</dd></>}
+          {s.department && <><dt className="text-muted-foreground">Department</dt><dd className="font-medium truncate">{s.department}</dd></>}
+          {s.last_updated && <><dt className="text-muted-foreground">Last updated</dt><dd className="font-medium">{new Date(s.last_updated).toLocaleDateString()}</dd></>}
+          {s.section && <><dt className="text-muted-foreground">Matched section</dt><dd className="font-medium truncate">{s.section}</dd></>}
+          {s.page && <><dt className="text-muted-foreground">Page</dt><dd className="font-medium">{s.page}</dd></>}
+          <dt className="text-muted-foreground">Confidence</dt>
+          <dd>
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(bucket)}`}>
+              {confLabel(bucket)}
+            </span>
+          </dd>
+          {typeof s.similarity === "number" && (
+            <>
+              <dt className="text-muted-foreground">Relevance</dt>
+              <dd className="font-medium">{rel}%</dd>
+            </>
+          )}
+        </dl>
+        {s.excerpt && (
+          <details className="mt-2 group/excerpt">
+            <summary className="cursor-pointer text-[11px] font-medium text-primary hover:underline list-none inline-flex items-center gap-1">
+              <ScrollText className="h-3 w-3" /> Matched excerpt
+            </summary>
+            <p className="mt-1.5 text-xs text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 pl-2 line-clamp-6">{s.excerpt}</p>
+          </details>
         )}
+        <div className="mt-2 flex items-center gap-3">
+          <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
+          {s.document_id && (
+            <button onClick={() => openDoc(s.document_id)} className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline">
+              <ExternalLink className="h-3 w-3" /> Open document
+            </button>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
 
   return (
     <div className="mt-3">
@@ -298,7 +376,7 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
                   <FileText className="h-3.5 w-3.5" /> Primary source
                 </h3>
-                <DocCard s={primary} badge="Primary" />
+                <DocCard s={primary} isPrimary />
               </div>
             )}
             {supporting.length > 0 && (
