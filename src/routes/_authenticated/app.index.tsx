@@ -141,3 +141,40 @@ function Dashboard() {
     </div>
   );
 }
+
+function CriticalSopBanner() {
+  const list = useServerFn(listPendingCriticalSops);
+  const ack = useServerFn(acknowledgeSop);
+  const [pending, setPending] = useState<Array<{ id: string; title: string; doc_code: string | null; version: number }>>([]);
+  const load = async () => { try { const { pending } = await list(); setPending(pending); } catch { /* noop */ } };
+  useEffect(() => { load(); }, []);
+  const onAck = async (id: string, version: number) => {
+    try { await ack({ data: { document_id: id, version } }); load(); } catch (e) { console.error(e); }
+  };
+  if (pending.length === 0) return null;
+  return (
+    <Card className="mb-6 border-amber-500/40 bg-amber-50/40 dark:bg-amber-950/20 p-4">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold">Critical SOPs awaiting acknowledgement</div>
+          <p className="text-xs text-muted-foreground mt-0.5">Please confirm you've read each procedure below.</p>
+          <ul className="mt-3 space-y-2">
+            {pending.map((d) => (
+              <li key={d.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2">
+                <div className="min-w-0 text-sm truncate">
+                  {d.doc_code && <span className="font-mono text-[10px] text-muted-foreground mr-2">{d.doc_code}</span>}
+                  {d.title} <span className="text-[10px] text-muted-foreground">v{d.version}</span>
+                </div>
+                <Button size="sm" variant="outline" className="h-7" onClick={() => onAck(d.id, d.version)}>
+                  <Check className="h-3 w-3 mr-1" /> Acknowledge
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
