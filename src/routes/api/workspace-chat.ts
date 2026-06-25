@@ -195,14 +195,13 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   notes: z.string().max(2000).optional(),
                 })).min(1).max(40),
               }),
-              execute: async (input) => {
-                const bytes = await generatePptx(input);
-                return await saveArtifact(
-                  "pptx", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "pptx", input,
                   input.file_name ?? input.title,
                   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                );
-              },
+                  generatePptx,
+                ),
             }),
             generate_xlsx: tool({
               description: "Generate a downloadable Excel (.xlsx) workbook. Provide one or more sheets with headers and rows.",
@@ -215,14 +214,13 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   rows: z.array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).max(40)).max(2000),
                 })).min(1).max(12),
               }),
-              execute: async (input) => {
-                const bytes = await generateXlsx(input);
-                return await saveArtifact(
-                  "xlsx", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "xlsx", input,
                   input.file_name ?? input.title ?? "workbook",
                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                );
-              },
+                  generateXlsx,
+                ),
             }),
             generate_docx: tool({
               description: "Generate a downloadable Word (.docx) document with headings, paragraphs, bullet lists, numbered lists, and tables.",
@@ -241,14 +239,13 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   }),
                 ])).min(1).max(200),
               }),
-              execute: async (input) => {
-                const bytes = await generateDocx(input);
-                return await saveArtifact(
-                  "docx", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "docx", input,
                   input.file_name ?? input.title,
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                );
-              },
+                  generateDocx,
+                ),
             }),
             generate_pdf: tool({
               description: "Generate a downloadable PDF report. Provide a title, optional subtitle, and sections (heading + paragraphs).",
@@ -261,17 +258,47 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   paragraphs: z.array(z.string().max(4000)).max(40),
                 })).min(1).max(80),
               }),
-              execute: async (input) => {
-                const bytes = await generatePdf(input);
-                return await saveArtifact(
-                  "pdf", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "pdf", input,
                   input.file_name ?? input.title,
                   "application/pdf",
-                );
-              },
+                  generatePdf,
+                ),
+            }),
+            generate_csv: tool({
+              description: "Generate a downloadable CSV file. Provide optional headers and a 2D rows array. Use this for tabular data exports.",
+              inputSchema: z.object({
+                file_name: z.string().max(80).optional(),
+                headers: z.array(z.string().max(120)).max(40).optional(),
+                rows: z.array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).max(40)).min(1).max(5000),
+                delimiter: z.enum([",", ";", "\t"]).optional(),
+              }),
+              execute: async (input) =>
+                runGenerator(
+                  "csv", input,
+                  input.file_name ?? "export",
+                  "text/csv; charset=utf-8",
+                  (i) => generateCsv(i),
+                ),
+            }),
+            generate_txt: tool({
+              description: "Generate a downloadable plain-text (.txt) file. Pass the full text content.",
+              inputSchema: z.object({
+                file_name: z.string().max(80).optional(),
+                content: z.string().min(1).max(200_000),
+              }),
+              execute: async (input) =>
+                runGenerator(
+                  "txt", input,
+                  input.file_name ?? "note",
+                  "text/plain; charset=utf-8",
+                  (i) => generateTxt(i),
+                ),
             }),
           },
         });
+
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
