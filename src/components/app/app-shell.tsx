@@ -16,6 +16,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logo from "@/assets/opsqai-mark.png";
 import { NotificationsBell } from "@/components/app/notifications-bell";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName, activeCompanyId, setActiveCompanyId } = useAuth();
@@ -84,6 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {companyName ?? t("tagline")}
           </div>
         </div>
+        <ThemeToggle className="h-8 w-8" />
         <NotificationsBell />
       </div>
       {isPlatformAdmin && companies.length > 0 && (
@@ -201,6 +203,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="font-semibold tracking-tight text-sm">{t("appName")}</span>
         </div>
         <div className="flex items-center gap-1">
+          <ThemeToggle className="h-8 w-8" />
           <NotificationsBell />
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>

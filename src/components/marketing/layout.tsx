@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { Menu, X, Linkedin, Mail, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/opsqai-mark.png";
 
@@ -94,6 +95,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <ThemeToggle />
             {signedIn ? (
               <Button asChild size="sm"><Link to="/app">Open app</Link></Button>
             ) : (
