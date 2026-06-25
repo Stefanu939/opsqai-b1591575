@@ -26,12 +26,15 @@ function AdminDashboard() {
   const { t } = useT();
   const { isAdmin, isManager, isPlatformAdmin } = useAuth();
   const fetchStats = useServerFn(getAdminStats);
+  const fetchGapStats = useServerFn(getKnowledgeGapStats);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [gapStats, setGapStats] = useState<Awaited<ReturnType<typeof getKnowledgeGapStats>> | null>(null);
 
   useEffect(() => {
     if (!isAdmin && !isManager && !isPlatformAdmin) return;
     fetchStats().then((s) => setStats(s as Stats)).catch(() => {});
-  }, [isAdmin, isManager, isPlatformAdmin, fetchStats]);
+    fetchGapStats().then(setGapStats).catch(() => {});
+  }, [isAdmin, isManager, isPlatformAdmin, fetchStats, fetchGapStats]);
 
   if (!isAdmin && !isManager && !isPlatformAdmin) return <div className="p-8 text-sm text-muted-foreground">Admin only.</div>;
   if (!stats) return <div className="p-8 text-sm text-muted-foreground">…</div>;
