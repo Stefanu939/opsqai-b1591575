@@ -282,7 +282,7 @@ function ChatInner({
   );
 }
 
-function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) => string }) {
+function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; answerBucket: ConfBucket; T: (k: string) => string }) {
   const docs = sources.filter((s) => s.type === "document");
   const faqs = sources.filter((s) => s.type === "faq");
   const primary = docs.find((d) => d.primary) ?? docs[0];
@@ -298,33 +298,56 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
     if (signed?.signedUrl) window.open(signed.signedUrl, "_blank");
   };
 
-  const DocCard = ({ s, badge }: { s: SourceItem; badge?: string }) => (
-    <div className="rounded-md border border-border p-3 bg-muted/30">
-      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-        {badge && <Badge className="text-[10px]">{badge}</Badge>}
-        {s.code && <Badge variant="outline" className="font-mono text-[10px]">{s.code}</Badge>}
-        {s.version && <Badge variant="secondary" className="text-[10px]">v{s.version}</Badge>}
-        <div className="text-sm font-medium truncate">{s.title}</div>
-      </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground font-mono mb-2">
-        {s.section && <div><span className="opacity-60">Section:</span> {s.section}</div>}
-        {s.page && <div><span className="opacity-60">Page:</span> {s.page}</div>}
-        {s.department && <div><span className="opacity-60">Dept:</span> {s.department}</div>}
-        {s.last_updated && <div><span className="opacity-60">Updated:</span> {new Date(s.last_updated).toLocaleDateString()}</div>}
-        {typeof s.similarity === "number" && <div><span className="opacity-60">Relevance:</span> {(s.similarity * 100).toFixed(0)}%</div>}
-        {s.confidence && <div><span className="opacity-60">Confidence:</span> {s.confidence}</div>}
-      </div>
-      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">{s.excerpt}</p>
-      <div className="mt-2 flex items-center gap-3">
-        <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
-        {s.document_id && (
-          <button onClick={() => openDoc(s.document_id)} className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline">
-            <ExternalLink className="h-3 w-3" /> Open document
-          </button>
+  const DocCard = ({ s, isPrimary }: { s: SourceItem; isPrimary?: boolean }) => {
+    const bucket: ConfBucket = isPrimary ? answerBucket : bucketConfidence(s.similarity);
+    const rel = displayRelevance(s.similarity, !!isPrimary);
+    return (
+      <div className={`rounded-md border p-3 ${isPrimary ? "border-primary/40 bg-primary/5" : "border-border bg-muted/30"}`}>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          {isPrimary && <Badge className="text-[10px]">Primary</Badge>}
+          {s.code && <Badge variant="outline" className="font-mono text-[10px]">{s.code}</Badge>}
+          {s.version && <Badge variant="secondary" className="text-[10px]">v{s.version}</Badge>}
+          <div className="text-sm font-medium truncate">{s.title}</div>
+        </div>
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] mb-2">
+          {s.version && <><dt className="text-muted-foreground">Version</dt><dd className="font-medium">v{s.version}</dd></>}
+          {s.department && <><dt className="text-muted-foreground">Department</dt><dd className="font-medium truncate">{s.department}</dd></>}
+          {s.last_updated && <><dt className="text-muted-foreground">Last updated</dt><dd className="font-medium">{new Date(s.last_updated).toLocaleDateString()}</dd></>}
+          {s.section && <><dt className="text-muted-foreground">Matched section</dt><dd className="font-medium truncate">{s.section}</dd></>}
+          {s.page && <><dt className="text-muted-foreground">Page</dt><dd className="font-medium">{s.page}</dd></>}
+          <dt className="text-muted-foreground">Confidence</dt>
+          <dd>
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(bucket)}`}>
+              {confLabel(bucket)}
+            </span>
+          </dd>
+          {typeof s.similarity === "number" && (
+            <>
+              <dt className="text-muted-foreground">Relevance</dt>
+              <dd className="font-medium">{rel}%</dd>
+            </>
+          )}
+        </dl>
+        {s.excerpt && (
+          <details className="mt-2 group/excerpt">
+            <summary className="cursor-pointer text-[11px] font-medium text-primary hover:underline list-none inline-flex items-center gap-1">
+              <ScrollText className="h-3 w-3" /> Matched excerpt
+            </summary>
+            <p className="mt-1.5 text-xs text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 pl-2 line-clamp-6">{s.excerpt}</p>
+          </details>
         )}
+        <div className="mt-2 flex items-center gap-3">
+          <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
+          {s.document_id && (
+            <button onClick={() => openDoc(s.document_id)} className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline">
+              <ExternalLink className="h-3 w-3" /> Open document
+            </button>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
 
   return (
     <div className="mt-3">
