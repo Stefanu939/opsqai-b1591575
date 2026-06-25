@@ -67,13 +67,20 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   };
 
+  const linkCls =
+    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
+
+  const ActiveIndicator = () => (
+    <span aria-hidden className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-sidebar-primary opacity-0 group-data-[status=active]:opacity-100 shadow-[0_0_12px_var(--color-sidebar-primary)]" />
+  );
+
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div className="flex h-full flex-col text-sidebar-foreground" style={{ background: "var(--gradient-sidebar)" }}>
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <img src={logo} alt="" width={32} height={32} className="drop-shadow-[0_0_8px_rgba(139,124,246,0.5)]" />
+        <img src={logo} alt="" width={32} height={32} className="drop-shadow-[0_0_10px_oklch(0.82_0.14_200/0.55)]" />
         <div className="min-w-0 flex-1">
           <div className="font-semibold tracking-tight truncate">{t("appName")}</div>
-          <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60 truncate">
+          <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/55 truncate">
             {companyName ?? t("tagline")}
           </div>
         </div>
@@ -94,22 +101,24 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Select>
         </div>
       )}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">Workspace</div>
         {nav.map((item) => (
           <Link
             key={item.to}
             to={item.to}
             onClick={onNavigate}
             activeOptions={{ exact: item.exact }}
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground data-[status=active]:border-l-2 data-[status=active]:border-sidebar-primary"
+            className={linkCls}
           >
-            <item.icon className="h-4 w-4 shrink-0" />
+            <ActiveIndicator />
+            <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
             <span className="truncate">{item.label}</span>
           </Link>
         ))}
         {adminNav.length > 0 && (
           <>
-            <div className="pt-4 pb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+            <div className="pt-5 pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
               {t("admin")}
             </div>
             {adminNav.map((item) => (
@@ -117,9 +126,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 key={item.to}
                 to={item.to}
                 onClick={onNavigate}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground data-[status=active]:border-l-2 data-[status=active]:border-sidebar-primary"
+                className={linkCls}
               >
-                <item.icon className="h-4 w-4 shrink-0" />
+                <ActiveIndicator />
+                <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
                 <span className="truncate">{item.label}</span>
               </Link>
             ))}
@@ -127,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
         {platformNav.length > 0 && (
           <>
-            <div className="pt-4 pb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+            <div className="pt-5 pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
               Platform
             </div>
             {platformNav.map((item) => (
@@ -135,9 +145,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 key={item.to}
                 to={item.to}
                 onClick={onNavigate}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground data-[status=active]:border-l-2 data-[status=active]:border-sidebar-primary"
+                className={linkCls}
               >
-                <item.icon className="h-4 w-4 shrink-0" />
+                <ActiveIndicator />
+                <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
                 <span className="truncate">{item.label}</span>
               </Link>
             ))}
@@ -147,17 +158,20 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="border-t border-sidebar-border p-3 space-y-1">
         <button
           onClick={cycleLang}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent"
+          aria-label={`Switch language to ${nextLangLabel}`}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/75 hover:bg-sidebar-accent transition-colors"
         >
-          <Languages className="h-4 w-4" />
+          <Languages className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
           <span className="font-mono text-xs">{lang.toUpperCase()} → {nextLangLabel}</span>
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
-              <UserCircle className="h-4 w-4 shrink-0" />
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/85 hover:bg-sidebar-accent transition-colors">
+              <span className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-sidebar-primary/40 to-sidebar-primary/10 border border-sidebar-primary/30 grid place-items-center text-sidebar-primary text-[11px] font-semibold uppercase">
+                {user?.email?.slice(0, 2) ?? "OP"}
+              </span>
               <span className="truncate flex-1 text-left">{user?.email}</span>
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className="h-3 w-3 text-sidebar-foreground/50" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -190,7 +204,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NotificationsBell />
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+              <Button variant="ghost" size="icon" aria-label="Open menu" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                 {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </SheetTrigger>
