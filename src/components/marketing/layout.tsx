@@ -101,10 +101,13 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
             <ul className="space-y-1.5 text-muted-foreground">
               <li><Link to="/product" className="hover:text-foreground">Overview</Link></li>
               <li><Link to="/features" className="hover:text-foreground">Features</Link></li>
+              <li><Link to="/solutions" className="hover:text-foreground">Solutions</Link></li>
+              <li><Link to="/industries" className="hover:text-foreground">Industries</Link></li>
               <li><Link to="/pricing" className="hover:text-foreground">Pricing</Link></li>
               <li><Link to="/demo" className="hover:text-foreground">Live demo</Link></li>
             </ul>
           </div>
+
           <div>
             <div className="font-medium mb-2">Company</div>
             <ul className="space-y-1.5 text-muted-foreground">
