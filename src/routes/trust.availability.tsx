@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/availability")({
     { title: "Availability — OPSQAI Trust Center" },
     { name: "description", content: "OPSQAI's availability target, the architectural choices that support it and how degradations are communicated." },
     { property: "og:title", content: "Availability — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/availability" },
+      { property: "og:description", content: "OPSQAI's availability target, the architectural choices that support it and how degradations are communicated." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/availability" }],
+  }),
   component: () => (
     <TrustTopic
       title="Availability"

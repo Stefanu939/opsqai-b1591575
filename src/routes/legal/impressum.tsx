@@ -1,14 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/impressum")({
-  head: () => ({ meta: [{ title: "Impressum — OPSQAI" }, { name: "description", content: "Legal notice and contact information for OPSQAI." }] }),
+  head: () => ({ meta: [{ title: "Impressum — OPSQAI" }, { name: "description", content: "Legal notice and contact information for OPSQAI." }
+      { property: "og:url", content: "https://opsqai.de/legal/impressum" },
+      { property: "og:description", content: "Legal notice and contact information for OPSQAI." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/legal/impressum" }],
+  }),
   component: () => (
     <>
       <h1>Impressum</h1>
       <p>Information in accordance with § 5 TMG.</p>
 
       <h2>Operator</h2>
-      <p>OPSQAI<br />Contact: notify@opsqai.de<br />Web: https://opsqai.eu</p>
+      <p>OPSQAI<br />Contact: notify@opsqai.de<br />Web: https://opsqai.de</p>
 
       <h2>Responsible for content</h2>
       <p>The operator named above, in accordance with § 55 (2) RStV.</p>

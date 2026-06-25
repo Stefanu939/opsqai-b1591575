@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/encryption")({
     { title: "Encryption — OPSQAI Trust Center" },
     { name: "description", content: "OPSQAI encrypts data in transit with TLS 1.2+ and at rest on managed cloud storage." },
     { property: "og:title", content: "Encryption — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/encryption" },
+      { property: "og:description", content: "OPSQAI encrypts data in transit with TLS 1.2+ and at rest on managed cloud storage." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/encryption" }],
+  }),
   component: () => (
     <TrustTopic
       title="Encryption"
@@ -14,7 +18,7 @@ export const Route = createFileRoute("/trust/encryption")({
     >
       <h2>In transit</h2>
       <ul>
-        <li>All public traffic to <code>opsqai.eu</code>, <code>opsqai.de</code> and the application origin is served over <strong>TLS 1.2+</strong> with modern cipher suites.</li>
+        <li>All public traffic to <code>opsqai.de</code>, <code>opsqai.de</code> and the application origin is served over <strong>TLS 1.2+</strong> with modern cipher suites.</li>
         <li>HTTP requests are redirected to HTTPS; HSTS is enabled on production.</li>
         <li>Database and storage calls between the application and the managed backend use TLS within the cloud provider's network.</li>
       </ul>

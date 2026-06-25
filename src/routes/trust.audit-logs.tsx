@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/audit-logs")({
     { title: "Audit Logs — OPSQAI Trust Center" },
     { name: "description", content: "OPSQAI records questions, sources, document changes, role changes and admin actions in a per-tenant audit log." },
     { property: "og:title", content: "Audit Logs — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/audit-logs" },
+      { property: "og:description", content: "OPSQAI records questions, sources, document changes, role changes and admin actions in a per-tenant audit log." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/audit-logs" }],
+  }),
   component: () => (
     <TrustTopic
       title="Audit Logs"

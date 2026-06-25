@@ -14,7 +14,10 @@ export const Route = createFileRoute("/contact")({
       { title: "Contact — OPSQAI" },
       { name: "description", content: "Book a demo, request a quote or get in touch with the OPSQAI team." },
       { property: "og:title", content: "Contact — OPSQAI" },
+      { property: "og:url", content: "https://opsqai.de/contact" },
+      { property: "og:description", content: "Book a demo, request a quote or get in touch with the OPSQAI team." },
     ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/contact" }],
   }),
   component: ContactPage,
 });

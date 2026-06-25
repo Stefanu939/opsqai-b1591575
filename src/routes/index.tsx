@@ -11,9 +11,9 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "OPSQAI turns your SOPs, manuals and FAQs into instant, grounded answers for every warehouse and operations team. Multilingual, auditable, GDPR-ready." },
       { property: "og:title", content: "OPSQAI — AI Knowledge Platform for Logistics" },
       { property: "og:description", content: "Instant access to company knowledge across every warehouse, shift and language." },
-      { property: "og:url", content: "https://opsqai.eu/" },
+      { property: "og:url", content: "https://opsqai.de/" },
     ],
-    links: [{ rel: "canonical", href: "https://opsqai.eu/" }],
+    links: [{ rel: "canonical", href: "https://opsqai.de/" }],
   }),
   component: Home,
 });

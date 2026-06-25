@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/gdpr")({
     { title: "GDPR — OPSQAI Trust Center" },
     { name: "description", content: "How OPSQAI complies with EU GDPR: lawful basis, data subject rights, EU hosting, DPA and subprocessors." },
     { property: "og:title", content: "GDPR — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/gdpr" },
+      { property: "og:description", content: "How OPSQAI complies with EU GDPR: lawful basis, data subject rights, EU hosting, DPA and subprocessors." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/gdpr" }],
+  }),
   component: () => (
     <TrustTopic
       title="GDPR"

@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/privacy")({
-  head: () => ({ meta: [{ title: "Privacy Policy — OPSQAI" }, { name: "description", content: "How OPSQAI collects, uses and protects personal data." }] }),
+  head: () => ({ meta: [{ title: "Privacy Policy — OPSQAI" }, { name: "description", content: "How OPSQAI collects, uses and protects personal data." }
+      { property: "og:url", content: "https://opsqai.de/legal/privacy" },
+      { property: "og:description", content: "How OPSQAI collects, uses and protects personal data." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/legal/privacy" }],
+  }),
   component: () => (
     <>
       <h1>Privacy Policy</h1>
-      <p>Last updated: {new Date().getFullYear()}. This Privacy Policy explains how OPSQAI processes personal data when you use opsqai.eu (the marketing site) and the OPSQAI application.</p>
+      <p>Last updated: {new Date().getFullYear()}. This Privacy Policy explains how OPSQAI processes personal data when you use opsqai.de (the marketing site) and the OPSQAI application.</p>
 
       <h2>Who we are</h2>
       <p>OPSQAI provides an AI knowledge management platform for logistics and supply chain operations. Contact: notify@opsqai.de.</p>

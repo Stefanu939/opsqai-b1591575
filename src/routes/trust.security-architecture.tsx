@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/security-architecture")({
     { title: "Security Architecture — OPSQAI Trust Center" },
     { name: "description", content: "How OPSQAI is built: edge runtime, managed Postgres with RLS, segregated AI gateway, no service-role keys in the browser." },
     { property: "og:title", content: "Security Architecture — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/security-architecture" },
+      { property: "og:description", content: "How OPSQAI is built: edge runtime, managed Postgres with RLS, segregated AI gateway, no service-role keys in the browser." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/security-architecture" }],
+  }),
   component: () => (
     <TrustTopic
       title="Security Architecture"

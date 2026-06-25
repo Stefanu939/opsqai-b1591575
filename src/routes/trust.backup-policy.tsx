@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/backup-policy")({
     { title: "Backup Policy — OPSQAI Trust Center" },
     { name: "description", content: "OPSQAI relies on managed automated backups with point-in-time recovery and tests restoration regularly." },
     { property: "og:title", content: "Backup Policy — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/backup-policy" },
+      { property: "og:description", content: "OPSQAI relies on managed automated backups with point-in-time recovery and tests restoration regularly." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/backup-policy" }],
+  }),
   component: () => (
     <TrustTopic
       title="Backup Policy"

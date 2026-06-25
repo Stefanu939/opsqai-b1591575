@@ -10,7 +10,9 @@ export const Route = createFileRoute("/trust")({
       { name: "description", content: "How OPSQAI protects customer data: multi-tenant isolation, encryption, audit logs, GDPR, responsible AI and incident response." },
       { property: "og:title", content: "Trust Center — OPSQAI" },
       { property: "og:description", content: "Security, privacy and compliance posture for OPSQAI." },
+      { property: "og:url", content: "https://opsqai.de/trust" },
     ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust" }],
   }),
   component: TrustPage,
 });

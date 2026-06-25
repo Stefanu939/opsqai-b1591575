@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/multi-tenant-isolation")({
     { title: "Multi-Tenant Isolation — OPSQAI Trust Center" },
     { name: "description", content: "Every record in OPSQAI is scoped by company_id and enforced with PostgreSQL row-level security." },
     { property: "og:title", content: "Multi-Tenant Isolation — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/multi-tenant-isolation" },
+      { property: "og:description", content: "Every record in OPSQAI is scoped by company_id and enforced with PostgreSQL row-level security." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/multi-tenant-isolation" }],
+  }),
   component: () => (
     <TrustTopic
       title="Multi-Tenant Isolation"

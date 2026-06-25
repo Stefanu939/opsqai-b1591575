@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/iso-27001-roadmap")({
     { title: "ISO 27001 Roadmap — OPSQAI Trust Center" },
     { name: "description", content: "OPSQAI's roadmap toward ISO/IEC 27001 alignment: current controls, gap items and target timeline." },
     { property: "og:title", content: "ISO 27001 Roadmap — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/iso-27001-roadmap" },
+      { property: "og:description", content: "OPSQAI's roadmap toward ISO/IEC 27001 alignment: current controls, gap items and target timeline." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/iso-27001-roadmap" }],
+  }),
   component: () => (
     <TrustTopic
       title="ISO 27001 Roadmap"
