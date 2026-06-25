@@ -106,7 +106,7 @@ function CompaniesPage() {
                 <td className="px-4 py-3">{c.faq_count}</td>
                 <td className="px-4 py-3">{c.max_users}</td>
                 <td className="px-4 py-3 text-right space-x-1">
-                  <Button size="sm" variant="ghost" onClick={() => { setActiveCompanyId(c.id); toast.success(`Opened ${c.name} workspace`); navigate({ to: "/admin/users" }); }}>
+                  <Button size="sm" variant="ghost" onClick={() => { setActiveCompanyId(c.id); toast.success(`Opened ${c.name} workspace`); navigate({ to: "/app/admin/users" }); }}>
                     <LogIn className="h-4 w-4 mr-1" />Open
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => updateMut.mutate({ id: c.id, name: c.name, active: !c.active, subscription_status: c.active ? "suspended" : "active" })}>

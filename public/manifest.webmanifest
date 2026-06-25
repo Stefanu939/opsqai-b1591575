@@ -2,7 +2,7 @@
   "name": "OPSQAI — Logistics Knowledge Assistant",
   "short_name": "OPSQAI",
   "description": "Operational Knowledge Intelligence — instant access to company knowledge from your SOPs, manuals and FAQs.",
-  "start_url": "/dashboard",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",
