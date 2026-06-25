@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminStats } from "@/lib/admin-stats.functions";
+import { getKnowledgeGapStats } from "@/lib/knowledge-gaps.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
-import { Users, UserCheck, BookOpen, HelpCircle, MessageSquare, TrendingUp, Building2 } from "lucide-react";
+import { Users, UserCheck, BookOpen, HelpCircle, MessageSquare, TrendingUp, Building2, AlertTriangle, CheckCircle2, Gauge } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/admin/dashboard")({
   component: AdminDashboard,
