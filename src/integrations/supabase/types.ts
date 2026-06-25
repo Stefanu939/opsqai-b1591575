@@ -517,7 +517,11 @@ export type Database = {
         Row: {
           assignee_id: string | null
           company_id: string
+          confidence: number | null
           created_at: string
+          created_by: string | null
+          department_id: string | null
+          embedding: string | null
           first_seen: string
           id: string
           last_seen: string
@@ -525,15 +529,22 @@ export type Database = {
           question_normalized: string
           question_sample: string
           resolution: string | null
+          resolution_date: string | null
           resolved_document_id: string | null
           resolved_faq_id: string | null
+          source_message_id: string | null
+          source_thread_id: string | null
           status: string
           updated_at: string
         }
         Insert: {
           assignee_id?: string | null
           company_id: string
+          confidence?: number | null
           created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          embedding?: string | null
           first_seen?: string
           id?: string
           last_seen?: string
@@ -541,15 +552,22 @@ export type Database = {
           question_normalized: string
           question_sample: string
           resolution?: string | null
+          resolution_date?: string | null
           resolved_document_id?: string | null
           resolved_faq_id?: string | null
+          source_message_id?: string | null
+          source_thread_id?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           assignee_id?: string | null
           company_id?: string
+          confidence?: number | null
           created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          embedding?: string | null
           first_seen?: string
           id?: string
           last_seen?: string
@@ -557,8 +575,11 @@ export type Database = {
           question_normalized?: string
           question_sample?: string
           resolution?: string | null
+          resolution_date?: string | null
           resolved_document_id?: string | null
           resolved_faq_id?: string | null
+          source_message_id?: string | null
+          source_thread_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -568,6 +589,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_gaps_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -582,6 +610,20 @@ export type Database = {
             columns: ["resolved_faq_id"]
             isOneToOne: false
             referencedRelation: "faqs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_gaps_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_gaps_source_thread_id_fkey"
+            columns: ["source_thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
             referencedColumns: ["id"]
           },
         ]
@@ -1187,6 +1229,16 @@ export type Database = {
           similarity: number
         }[]
       }
+      match_knowledge_gap: {
+        Args: {
+          _company_id: string
+          _embedding: string
+          _question: string
+          _question_normalized: string
+          _threshold?: number
+        }
+        Returns: string
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -1204,6 +1256,8 @@ export type Database = {
           read_ct: number
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       workspace_cleanup_expired: {
         Args: never
         Returns: {
