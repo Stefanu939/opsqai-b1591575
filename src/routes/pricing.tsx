@@ -10,7 +10,10 @@ export const Route = createFileRoute("/pricing")({
       { title: "Pricing — OPSQAI" },
       { name: "description", content: "OPSQAI pricing for logistics teams. Starter, Business and Enterprise plans. Talk to sales for a tailored quote." },
       { property: "og:title", content: "Pricing — OPSQAI" },
+      { property: "og:url", content: "https://opsqai.de/pricing" },
+      { property: "og:description", content: "OPSQAI pricing for logistics teams. Starter, Business and Enterprise plans. Talk to sales for a tailored quote." },
     ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/pricing" }],
   }),
   component: PricingPage,
 });

@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/responsible-ai")({
     { title: "Responsible AI — OPSQAI Trust Center" },
     { name: "description", content: "OPSQAI answers strictly from retrieved customer documents, refuses when there is no source, and does not train foundation models on customer data." },
     { property: "og:title", content: "Responsible AI — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/responsible-ai" },
+      { property: "og:description", content: "OPSQAI answers strictly from retrieved customer documents, refuses when there is no source, and does not train foundation models on customer data." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/responsible-ai" }],
+  }),
   component: () => (
     <TrustTopic
       title="Responsible AI"

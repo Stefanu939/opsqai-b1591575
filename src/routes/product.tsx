@@ -10,7 +10,9 @@ export const Route = createFileRoute("/product")({
       { name: "description", content: "How OPSQAI works: ingestion, retrieval, grounded generation, multi-tenant isolation and the operations-grade UX warehouse teams actually adopt." },
       { property: "og:title", content: "Product — OPSQAI" },
       { property: "og:description", content: "How OPSQAI works end-to-end for logistics operators." },
+      { property: "og:url", content: "https://opsqai.de/product" },
     ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/product" }],
   }),
   component: ProductPage,
 });

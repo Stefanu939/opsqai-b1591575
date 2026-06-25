@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/incident-response")({
     { title: "Incident Response — OPSQAI Trust Center" },
     { name: "description", content: "How OPSQAI detects, triages, contains and communicates security incidents to affected customers." },
     { property: "og:title", content: "Incident Response — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/incident-response" },
+      { property: "og:description", content: "How OPSQAI detects, triages, contains and communicates security incidents to affected customers." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/incident-response" }],
+  }),
   component: () => (
     <TrustTopic
       title="Incident Response"

@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/terms")({
-  head: () => ({ meta: [{ title: "Terms of Service — OPSQAI" }, { name: "description", content: "Terms governing the use of opsqai.eu and the OPSQAI application." }] }),
+  head: () => ({ meta: [{ title: "Terms of Service — OPSQAI" }, { name: "description", content: "Terms governing the use of opsqai.de and the OPSQAI application." },
+      { property: "og:url", content: "https://opsqai.de/legal/terms" },
+      { property: "og:description", content: "Terms governing the use of opsqai.de and the OPSQAI application." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/legal/terms" }],
+  }),
   component: () => (
     <>
       <h1>Terms of Service</h1>
-      <p>These Terms govern your use of the OPSQAI marketing site (opsqai.eu) and the OPSQAI application. By using OPSQAI you agree to these Terms.</p>
+      <p>These Terms govern your use of the OPSQAI marketing site (opsqai.de) and the OPSQAI application. By using OPSQAI you agree to these Terms.</p>
 
       <h2>Accounts</h2>
       <p>OPSQAI is provided to companies under a written agreement. End-user accounts are provisioned by your company administrator and are personal to the assigned user.</p>

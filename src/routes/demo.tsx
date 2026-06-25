@@ -12,7 +12,10 @@ export const Route = createFileRoute("/demo")({
       { title: "Live demo — OPSQAI" },
       { name: "description", content: "Try OPSQAI on a small public demo knowledge base of sample logistics SOPs. No signup required." },
       { property: "og:title", content: "Live demo — OPSQAI" },
+      { property: "og:url", content: "https://opsqai.de/demo" },
+      { property: "og:description", content: "Try OPSQAI on a small public demo knowledge base of sample logistics SOPs. No signup required." },
     ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/demo" }],
   }),
   component: DemoPage,
 });

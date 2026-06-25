@@ -11,7 +11,9 @@ export const Route = createFileRoute("/solutions")({
       { name: "description", content: "OPSQAI solutions for warehouse operations: SOP assistant, onboarding, compliance, knowledge gap capture, shift handover and audit readiness." },
       { property: "og:title", content: "Solutions — OPSQAI" },
       { property: "og:description", content: "Concrete ways teams use OPSQAI on the warehouse floor." },
+      { property: "og:url", content: "https://opsqai.de/solutions" },
     ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/solutions" }],
   }),
   component: SolutionsPage,
 });

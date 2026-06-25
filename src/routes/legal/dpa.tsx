@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/dpa")({
-  head: () => ({ meta: [{ title: "Data Processing Agreement — OPSQAI" }, { name: "description", content: "Summary of the OPSQAI Data Processing Agreement (DPA)." }] }),
+  head: () => ({ meta: [{ title: "Data Processing Agreement — OPSQAI" }, { name: "description", content: "Summary of the OPSQAI Data Processing Agreement (DPA)." },
+      { property: "og:url", content: "https://opsqai.de/legal/dpa" },
+      { property: "og:description", content: "Summary of the OPSQAI Data Processing Agreement (DPA)." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/legal/dpa" }],
+  }),
   component: () => (
     <>
       <h1>Data Processing Agreement</h1>

@@ -11,7 +11,9 @@ export const Route = createFileRoute("/industries")({
       { name: "description", content: "OPSQAI for 3PL, e-commerce fulfilment, manufacturing logistics, pharma cold chain, retail DCs and air-cargo handlers." },
       { property: "og:title", content: "Industries — OPSQAI" },
       { property: "og:description", content: "Where OPSQAI fits in the supply chain." },
+      { property: "og:url", content: "https://opsqai.de/industries" },
     ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/industries" }],
   }),
   component: IndustriesPage,
 });

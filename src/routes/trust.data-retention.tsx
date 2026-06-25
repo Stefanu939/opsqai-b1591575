@@ -6,7 +6,11 @@ export const Route = createFileRoute("/trust/data-retention")({
     { title: "Data Retention — OPSQAI Trust Center" },
     { name: "description", content: "How long OPSQAI retains tenant data, audit logs and backups, and how deletion works on termination." },
     { property: "og:title", content: "Data Retention — OPSQAI Trust Center" },
-  ]}),
+      { property: "og:url", content: "https://opsqai.de/trust/data-retention" },
+      { property: "og:description", content: "How long OPSQAI retains tenant data, audit logs and backups, and how deletion works on termination." },
+    ],
+    links: [{ rel: "canonical", href: "https://opsqai.de/trust/data-retention" }],
+  }),
   component: () => (
     <TrustTopic
       title="Data Retention"
