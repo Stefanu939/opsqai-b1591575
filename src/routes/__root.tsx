@@ -45,22 +45,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LogiAssist — AI Knowledge Assistant for Logistics" },
-      { name: "description", content: "Multi-tenant AI assistant that answers logistics and warehouse questions from your own SOPs, manuals and FAQs." },
-      { property: "og:site_name", content: "LogiAssist" },
-      { property: "og:title", content: "LogiAssist — AI Knowledge Assistant for Logistics" },
-      { property: "og:description", content: "Multi-tenant AI assistant that answers logistics and warehouse questions from your own SOPs, manuals and FAQs." },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#1a2b4a" },
+      { title: "OPSQAI — AI Knowledge Platform for Logistics & Supply Chain" },
+      { name: "description", content: "OPSQAI turns your SOPs, manuals and FAQs into instant, grounded answers for every warehouse and operations team. Multilingual, auditable, GDPR-ready." },
+      { property: "og:site_name", content: "OPSQAI" },
+      { property: "og:title", content: "OPSQAI — AI Knowledge Platform for Logistics" },
+      { property: "og:description", content: "Instant access to company knowledge across every warehouse, shift and language." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://logiassist.lovable.app/" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/LhAIvEnazkNkW3Gp33cYQQy94CM2/social-images/social-1781794672823-OpsQAI_Iconic_Intelligence_Mark.webp" },
+      { property: "og:url", content: "https://opsqai.eu/" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "LogiAssist — AI Knowledge Assistant for Logistics" },
-      { name: "twitter:description", content: "Multi-tenant AI assistant that answers logistics and warehouse questions from your own SOPs, manuals and FAQs." },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/LhAIvEnazkNkW3Gp33cYQQy94CM2/social-images/social-1781794672823-OpsQAI_Iconic_Intelligence_Mark.webp" },
+      { name: "twitter:title", content: "OPSQAI — AI Knowledge Platform for Logistics" },
+      { name: "twitter:description", content: "Instant access to company knowledge across every warehouse, shift and language." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icons/icon-512.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/icons/icon-512.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" },
@@ -71,17 +73,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@graph": [
-            {
-              "@type": "Organization",
-              name: "LogiAssist",
-              url: "https://logiassist.lovable.app/",
-              description: "AI knowledge assistant for logistics and warehouse operations.",
-            },
-            {
-              "@type": "WebSite",
-              name: "LogiAssist",
-              url: "https://logiassist.lovable.app/",
-            },
+            { "@type": "Organization", name: "OPSQAI", url: "https://opsqai.eu/", description: "Enterprise AI knowledge management, operational intelligence and compliance for logistics & supply chain." },
+            { "@type": "WebSite", name: "OPSQAI", url: "https://opsqai.eu/" },
           ],
         }),
       },
@@ -112,6 +105,7 @@ function RootComponent() {
         if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
       }
     });
+    import("@/lib/register-sw").then((m) => m.registerServiceWorker()).catch(() => {});
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
   return (
