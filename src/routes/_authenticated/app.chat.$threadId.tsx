@@ -286,7 +286,15 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
   const docs = sources.filter((s) => s.type === "document");
   const faqs = sources.filter((s) => s.type === "faq");
   const primary = docs.find((d) => d.primary) ?? docs[0];
-  const supporting = docs.filter((d) => d !== primary);
+  const primarySim = typeof primary?.similarity === "number" ? primary.similarity : 0;
+  // Drop supporting docs that are noticeably less relevant than the primary match.
+  const supporting = docs
+    .filter((d) => d !== primary)
+    .filter((d) => {
+      const s = typeof d.similarity === "number" ? d.similarity : 0;
+      if (primarySim >= 0.4) return s >= primarySim - 0.1 && s >= 0.3;
+      return s >= 0.25;
+    });
 
   const openDoc = async (documentId?: string) => {
     if (!documentId) return;
