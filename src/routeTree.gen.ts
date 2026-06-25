@@ -30,6 +30,7 @@ import { Route as TrustIncidentResponseRouteImport } from './routes/trust.incide
 import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
 import { Route as TrustEncryptionRouteImport } from './routes/trust.encryption'
 import { Route as TrustDataRetentionRouteImport } from './routes/trust.data-retention'
+import { Route as TrustBackupPolicyRouteImport } from './routes/trust.backup-policy'
 import { Route as TrustAuditLogsRouteImport } from './routes/trust.audit-logs'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
@@ -156,6 +157,11 @@ const TrustEncryptionRoute = TrustEncryptionRouteImport.update({
 const TrustDataRetentionRoute = TrustDataRetentionRouteImport.update({
   id: '/data-retention',
   path: '/data-retention',
+  getParentRoute: () => TrustRoute,
+} as any)
+const TrustBackupPolicyRoute = TrustBackupPolicyRouteImport.update({
+  id: '/backup-policy',
+  path: '/backup-policy',
   getParentRoute: () => TrustRoute,
 } as any)
 const TrustAuditLogsRoute = TrustAuditLogsRouteImport.update({
@@ -297,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
+  '/trust/backup-policy': typeof TrustBackupPolicyRoute
   '/trust/data-retention': typeof TrustDataRetentionRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
+  '/trust/backup-policy': typeof TrustBackupPolicyRoute
   '/trust/data-retention': typeof TrustDataRetentionRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
+  '/trust/backup-policy': typeof TrustBackupPolicyRoute
   '/trust/data-retention': typeof TrustDataRetentionRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
@@ -430,6 +439,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/audit-logs'
+    | '/trust/backup-policy'
     | '/trust/data-retention'
     | '/trust/encryption'
     | '/trust/gdpr'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/audit-logs'
+    | '/trust/backup-policy'
     | '/trust/data-retention'
     | '/trust/encryption'
     | '/trust/gdpr'
@@ -517,6 +528,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/audit-logs'
+    | '/trust/backup-policy'
     | '/trust/data-retention'
     | '/trust/encryption'
     | '/trust/gdpr'
@@ -703,6 +715,13 @@ declare module '@tanstack/react-router' {
       path: '/data-retention'
       fullPath: '/trust/data-retention'
       preLoaderRoute: typeof TrustDataRetentionRouteImport
+      parentRoute: typeof TrustRoute
+    }
+    '/trust/backup-policy': {
+      id: '/trust/backup-policy'
+      path: '/backup-policy'
+      fullPath: '/trust/backup-policy'
+      preLoaderRoute: typeof TrustBackupPolicyRouteImport
       parentRoute: typeof TrustRoute
     }
     '/trust/audit-logs': {
@@ -922,6 +941,7 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
 
 interface TrustRouteChildren {
   TrustAuditLogsRoute: typeof TrustAuditLogsRoute
+  TrustBackupPolicyRoute: typeof TrustBackupPolicyRoute
   TrustDataRetentionRoute: typeof TrustDataRetentionRoute
   TrustEncryptionRoute: typeof TrustEncryptionRoute
   TrustGdprRoute: typeof TrustGdprRoute
@@ -933,6 +953,7 @@ interface TrustRouteChildren {
 
 const TrustRouteChildren: TrustRouteChildren = {
   TrustAuditLogsRoute: TrustAuditLogsRoute,
+  TrustBackupPolicyRoute: TrustBackupPolicyRoute,
   TrustDataRetentionRoute: TrustDataRetentionRoute,
   TrustEncryptionRoute: TrustEncryptionRoute,
   TrustGdprRoute: TrustGdprRoute,
