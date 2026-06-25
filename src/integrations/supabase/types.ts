@@ -66,6 +66,7 @@ export type Database = {
           subscription_plan: string
           subscription_status: string
           updated_at: string
+          workspace_retention: string
         }
         Insert: {
           active?: boolean
@@ -77,6 +78,7 @@ export type Database = {
           subscription_plan?: string
           subscription_status?: string
           updated_at?: string
+          workspace_retention?: string
         }
         Update: {
           active?: boolean
@@ -88,6 +90,7 @@ export type Database = {
           subscription_plan?: string
           subscription_status?: string
           updated_at?: string
+          workspace_retention?: string
         }
         Relationships: []
       }
@@ -928,6 +931,203 @@ export type Database = {
           },
         ]
       }
+      workspace_artifacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          expires_at: string | null
+          file_name: string
+          id: string
+          kind: string
+          session_id: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          expires_at?: string | null
+          file_name: string
+          id?: string
+          kind: string
+          session_id: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          expires_at?: string | null
+          file_name?: string
+          id?: string
+          kind?: string
+          session_id?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_artifacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_artifacts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_files: {
+        Row: {
+          company_id: string
+          created_at: string
+          expires_at: string | null
+          extracted_text: string | null
+          file_name: string
+          id: string
+          mime: string | null
+          session_id: string
+          size_bytes: number | null
+          status: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          expires_at?: string | null
+          extracted_text?: string | null
+          file_name: string
+          id?: string
+          mime?: string | null
+          session_id: string
+          size_bytes?: number | null
+          status?: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          expires_at?: string | null
+          extracted_text?: string | null
+          file_name?: string
+          id?: string
+          mime?: string | null
+          session_id?: string
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_files_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_files_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_messages: {
+        Row: {
+          attachments: Json | null
+          company_id: string
+          content: string
+          created_at: string
+          id: string
+          parts: Json | null
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          company_id: string
+          content?: string
+          created_at?: string
+          id?: string
+          parts?: Json | null
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          company_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          parts?: Json | null
+          role?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_sessions: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1002,6 +1202,13 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      workspace_cleanup_expired: {
+        Args: never
+        Returns: {
+          artifacts_deleted: number
+          files_deleted: number
         }[]
       }
     }
