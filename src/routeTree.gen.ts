@@ -20,8 +20,16 @@ import { Route as DemoRouteImport } from './routes/demo'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
+import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
+import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
+import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
+import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
+import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
+import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -91,6 +99,11 @@ const AcceptInviteRoute = AcceptInviteRouteImport.update({
   path: '/accept-invite',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRouteRoute = LegalRouteRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -98,6 +111,41 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+const LegalResponsibleAiRoute = LegalResponsibleAiRouteImport.update({
+  id: '/responsible-ai',
+  path: '/responsible-ai',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+const LegalImpressumRoute = LegalImpressumRouteImport.update({
+  id: '/impressum',
+  path: '/impressum',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+const LegalDpaRoute = LegalDpaRouteImport.update({
+  id: '/dpa',
+  path: '/dpa',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+const LegalCookiesRoute = LegalCookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+const ApiDemoChatRoute = ApiDemoChatRouteImport.update({
+  id: '/api/demo-chat',
+  path: '/api/demo-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -172,6 +220,7 @@ const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -189,6 +238,13 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/demo-chat': typeof ApiDemoChatRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/dpa': typeof LegalDpaRoute
+  '/legal/impressum': typeof LegalImpressumRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/responsible-ai': typeof LegalResponsibleAiRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -199,6 +255,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -216,6 +273,13 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/demo-chat': typeof ApiDemoChatRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/dpa': typeof LegalDpaRoute
+  '/legal/impressum': typeof LegalImpressumRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/responsible-ai': typeof LegalResponsibleAiRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -228,6 +292,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -245,6 +310,13 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/demo-chat': typeof ApiDemoChatRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/dpa': typeof LegalDpaRoute
+  '/legal/impressum': typeof LegalImpressumRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/responsible-ai': typeof LegalResponsibleAiRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/companies': typeof AuthenticatedAdminCompaniesRoute
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -257,6 +329,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/legal'
     | '/accept-invite'
     | '/auth'
     | '/contact'
@@ -274,6 +347,13 @@ export interface FileRouteTypes {
     | '/profile'
     | '/requests'
     | '/api/chat'
+    | '/api/demo-chat'
+    | '/legal/cookies'
+    | '/legal/dpa'
+    | '/legal/impressum'
+    | '/legal/privacy'
+    | '/legal/responsible-ai'
+    | '/legal/terms'
     | '/admin/audit'
     | '/admin/companies'
     | '/admin/dashboard'
@@ -284,6 +364,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/legal'
     | '/accept-invite'
     | '/auth'
     | '/contact'
@@ -301,6 +382,13 @@ export interface FileRouteTypes {
     | '/profile'
     | '/requests'
     | '/api/chat'
+    | '/api/demo-chat'
+    | '/legal/cookies'
+    | '/legal/dpa'
+    | '/legal/impressum'
+    | '/legal/privacy'
+    | '/legal/responsible-ai'
+    | '/legal/terms'
     | '/admin/audit'
     | '/admin/companies'
     | '/admin/dashboard'
@@ -312,6 +400,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/legal'
     | '/accept-invite'
     | '/auth'
     | '/contact'
@@ -329,6 +418,13 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/requests'
     | '/api/chat'
+    | '/api/demo-chat'
+    | '/legal/cookies'
+    | '/legal/dpa'
+    | '/legal/impressum'
+    | '/legal/privacy'
+    | '/legal/responsible-ai'
+    | '/legal/terms'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/companies'
     | '/_authenticated/admin/dashboard'
@@ -341,6 +437,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  LegalRouteRoute: typeof LegalRouteRouteWithChildren
   AcceptInviteRoute: typeof AcceptInviteRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
@@ -353,6 +450,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TrustRoute: typeof TrustRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiDemoChatRoute: typeof ApiDemoChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -434,6 +532,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcceptInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -446,6 +551,55 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof LegalRouteRoute
+    }
+    '/legal/responsible-ai': {
+      id: '/legal/responsible-ai'
+      path: '/responsible-ai'
+      fullPath: '/legal/responsible-ai'
+      preLoaderRoute: typeof LegalResponsibleAiRouteImport
+      parentRoute: typeof LegalRouteRoute
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof LegalRouteRoute
+    }
+    '/legal/impressum': {
+      id: '/legal/impressum'
+      path: '/impressum'
+      fullPath: '/legal/impressum'
+      preLoaderRoute: typeof LegalImpressumRouteImport
+      parentRoute: typeof LegalRouteRoute
+    }
+    '/legal/dpa': {
+      id: '/legal/dpa'
+      path: '/dpa'
+      fullPath: '/legal/dpa'
+      preLoaderRoute: typeof LegalDpaRouteImport
+      parentRoute: typeof LegalRouteRoute
+    }
+    '/legal/cookies': {
+      id: '/legal/cookies'
+      path: '/cookies'
+      fullPath: '/legal/cookies'
+      preLoaderRoute: typeof LegalCookiesRouteImport
+      parentRoute: typeof LegalRouteRoute
+    }
+    '/api/demo-chat': {
+      id: '/api/demo-chat'
+      path: '/api/demo-chat'
+      fullPath: '/api/demo-chat'
+      preLoaderRoute: typeof ApiDemoChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -575,9 +729,32 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface LegalRouteRouteChildren {
+  LegalCookiesRoute: typeof LegalCookiesRoute
+  LegalDpaRoute: typeof LegalDpaRoute
+  LegalImpressumRoute: typeof LegalImpressumRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalResponsibleAiRoute: typeof LegalResponsibleAiRoute
+  LegalTermsRoute: typeof LegalTermsRoute
+}
+
+const LegalRouteRouteChildren: LegalRouteRouteChildren = {
+  LegalCookiesRoute: LegalCookiesRoute,
+  LegalDpaRoute: LegalDpaRoute,
+  LegalImpressumRoute: LegalImpressumRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalResponsibleAiRoute: LegalResponsibleAiRoute,
+  LegalTermsRoute: LegalTermsRoute,
+}
+
+const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
+  LegalRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  LegalRouteRoute: LegalRouteRouteWithChildren,
   AcceptInviteRoute: AcceptInviteRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
@@ -590,6 +767,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TrustRoute: TrustRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiDemoChatRoute: ApiDemoChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
