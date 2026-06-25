@@ -178,12 +178,20 @@ export const Route = createFileRoute("/api/chat")({
         } else if (!isGreeting && query) {
           try {
             const qVec = await embedOne(query);
-            const { data: matches } = await supabase.rpc(
+            const { data: matches, error: matchErr } = await supabase.rpc(
               "match_document_chunks_for_company" as never,
-              { query_embedding: `[${qVec.join(",")}]`, match_count: 6, min_similarity: 0.3, _company_id: companyId } as never,
-            ) as { data: Array<{ chunk_id: string; document_id: string; doc_title: string; doc_code: string | null; content: string; similarity: number; chunk_index: number }> | null };
+              { query_embedding: `[${qVec.join(",")}]`, match_count: 8, min_similarity: 0.15, _company_id: companyId } as never,
+            ) as { data: Array<{ chunk_id: string; document_id: string; doc_title: string; doc_code: string | null; content: string; similarity: number; chunk_index: number }> | null; error: unknown };
+            const matchList = matches ?? [];
+            console.log("[chat:retrieval]", {
+              company_id: companyId,
+              query: query.slice(0, 120),
+              chunk_count: matchList.length,
+              top_similarities: matchList.slice(0, 5).map((m) => Number(m.similarity?.toFixed(3))),
+              match_error: matchErr ?? null,
+            });
 
-            const docIds = Array.from(new Set((matches ?? []).map((m) => m.document_id)));
+            const docIds = Array.from(new Set(matchList.map((m) => m.document_id)));
             const docMeta: Record<string, { version: number; section: string | null; page: number | null; department_id: string | null; updated_at: string; department_name?: string | null }> = {};
             if (docIds.length) {
               const { data: docs } = await supabase
@@ -202,12 +210,12 @@ export const Route = createFileRoute("/api/chat")({
               }
             }
 
-            const sims = (matches ?? []).map((m) => m.similarity);
-            for (let i = 0; i < (matches ?? []).length; i++) {
-              const m = (matches ?? [])[i];
+            const sims = matchList.map((m) => m.similarity);
+            for (let i = 0; i < matchList.length; i++) {
+              const m = matchList[i];
               const meta = docMeta[m.document_id];
               const sim = m.similarity;
-              const conf: "high" | "medium" | "low" = sim >= 0.7 ? "high" : sim >= 0.5 ? "medium" : "low";
+              const conf: "high" | "medium" | "low" = sim >= 0.6 ? "high" : sim >= 0.4 ? "medium" : "low";
               sources.push({
                 type: "document",
                 id: m.chunk_id,
@@ -230,7 +238,7 @@ export const Route = createFileRoute("/api/chat")({
               confidence = top.reduce((a, b) => a + b, 0) / top.length;
             }
           } catch (e) {
-            console.error("embed/match failed", e);
+            console.error("[chat:retrieval] embed/match failed", e);
           }
 
           const { data: faqs } = await supabase
