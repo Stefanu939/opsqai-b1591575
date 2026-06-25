@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/privacy")({
-  head: () => ({ meta: [{ title: "Privacy Policy — OPSQAI" }, { name: "description", content: "How OPSQAI collects, uses and protects personal data." }
+  head: () => ({ meta: [{ title: "Privacy Policy — OPSQAI" }, { name: "description", content: "How OPSQAI collects, uses and protects personal data." },
       { property: "og:url", content: "https://opsqai.de/legal/privacy" },
       { property: "og:description", content: "How OPSQAI collects, uses and protects personal data." },
     ],

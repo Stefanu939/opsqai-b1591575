@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/cookies")({
-  head: () => ({ meta: [{ title: "Cookie Policy — OPSQAI" }, { name: "description", content: "Cookies used on opsqai.de and inside the OPSQAI application." }
+  head: () => ({ meta: [{ title: "Cookie Policy — OPSQAI" }, { name: "description", content: "Cookies used on opsqai.de and inside the OPSQAI application." },
       { property: "og:url", content: "https://opsqai.de/legal/cookies" },
       { property: "og:description", content: "Cookies used on opsqai.de and inside the OPSQAI application." },
     ],

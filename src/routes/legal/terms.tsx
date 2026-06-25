@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/terms")({
-  head: () => ({ meta: [{ title: "Terms of Service — OPSQAI" }, { name: "description", content: "Terms governing the use of opsqai.de and the OPSQAI application." }
+  head: () => ({ meta: [{ title: "Terms of Service — OPSQAI" }, { name: "description", content: "Terms governing the use of opsqai.de and the OPSQAI application." },
       { property: "og:url", content: "https://opsqai.de/legal/terms" },
       { property: "og:description", content: "Terms governing the use of opsqai.de and the OPSQAI application." },
     ],

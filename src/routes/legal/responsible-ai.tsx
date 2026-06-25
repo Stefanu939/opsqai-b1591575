@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/responsible-ai")({
-  head: () => ({ meta: [{ title: "Responsible AI — OPSQAI" }, { name: "description", content: "How OPSQAI builds and operates AI features responsibly." }
+  head: () => ({ meta: [{ title: "Responsible AI — OPSQAI" }, { name: "description", content: "How OPSQAI builds and operates AI features responsibly." },
       { property: "og:url", content: "https://opsqai.de/legal/responsible-ai" },
       { property: "og:description", content: "How OPSQAI builds and operates AI features responsibly." },
     ],

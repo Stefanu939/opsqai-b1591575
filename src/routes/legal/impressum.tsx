@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/legal/impressum")({
-  head: () => ({ meta: [{ title: "Impressum — OPSQAI" }, { name: "description", content: "Legal notice and contact information for OPSQAI." }
+  head: () => ({ meta: [{ title: "Impressum — OPSQAI" }, { name: "description", content: "Legal notice and contact information for OPSQAI." },
       { property: "og:url", content: "https://opsqai.de/legal/impressum" },
       { property: "og:description", content: "Legal notice and contact information for OPSQAI." },
     ],
