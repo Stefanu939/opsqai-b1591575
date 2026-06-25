@@ -16,6 +16,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logo from "@/assets/opsqai-mark.png";
 import { NotificationsBell } from "@/components/app/notifications-bell";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName, activeCompanyId, setActiveCompanyId } = useAuth();
