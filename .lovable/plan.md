@@ -1,91 +1,107 @@
-# Sprint 1 – Enterprise Launch Foundation
 
-Five focused workstreams. All non-destructive; existing authenticated app keeps working.
+# Sprint 2 — Enterprise Knowledge Management
 
-## 1. Remove Google Authentication
+Builds on Sprint 1 without rebuilding it. All work reuses existing tables (`knowledge_documents`, `document_chunks`, `faqs`, `internal_requests`, `audit_log`, `user_roles`, `departments`, `companies`), the existing RAG pipeline in `src/lib/doc-processing.server.ts` + `src/lib/embeddings.server.ts`, the existing chat endpoint `src/routes/api/chat.ts`, the existing View Sources sheet, and the current `/app/*` routing and design system. Multi-tenant RLS pattern (`company_id = current_company_id() or is_platform_admin()`) is preserved on every new table.
 
-- Strip "Continue with Google" button and divider from `src/routes/auth.tsx`.
-- Remove `lovable` import there. (Leave `src/integrations/lovable/` directory untouched — it's auto-generated; nothing else imports it after this change.)
-- Call `supabase--configure_social_auth` with `disable_providers: ["google"]`, keeping email enabled.
-- Add **Forgot password** link on `/auth` → new `/forgot-password` page calling `supabase.auth.resetPasswordForEmail` with `redirectTo: ${origin}/reset-password`.
-- New public `/reset-password` page that handles `type=recovery` and calls `supabase.auth.updateUser({ password })`.
+## 1. SOP Version Management
 
-## 2. Route restructuring (marketing vs app)
+Extend, don't replace, `knowledge_documents`.
 
-Current `/` is the authenticated dashboard. To host public marketing on `opsqai.eu/` we move the dashboard:
+- Migration: add `version int not null default 1`, `is_active boolean not null default true`, `parent_document_id uuid references knowledge_documents(id) on delete cascade`, `change_notes text`, `uploaded_by uuid references auth.users(id)`, `replaced_at timestamptz`. Partial unique index on `(company_id, doc_code) where is_active` so only one active version per SOP code per tenant.
+- Upload flow detects duplicate `doc_code` in the tenant and prompts **Replace current version** vs **Keep both**. On replace: mark previous active=false, insert new row with `parent_document_id = previous.id`, `version = previous.version + 1`, re-run extraction → chunking → embeddings against the new row.
+- Retrieval already joins `knowledge_documents`; add `AND d.is_active` to `match_document_chunks_for_company` so the AI always uses the latest active version.
+- New `/app/knowledge/$docId/versions` route showing version history, change notes, uploaded by, upload date, and a **Rollback** action (flips `is_active`).
+
+## 2. Source Intelligence (upgrade existing View Sources)
+
+Reuse the existing sheet — no new modal.
+
+- Migration: add `section text`, `page int`, `department_id uuid references departments(id)` to `knowledge_documents`. Chunker already records `chunk_index`; extend `document_chunks` with `section text`, `page int` populated during chunking when headers/page markers are detected.
+- Chat response already returns sources; extend the payload with `version`, `section`, `page`, `department`, `last_updated`, `relevance` (cosine similarity), `confidence` (see §3) and a `primary` flag (top hit).
+- Existing sources panel grows columns for those fields and an **Open document** button that opens a signed URL for the storage object.
+
+## 3. AI Confidence Engine
+
+In `src/routes/api/chat.ts`:
+
+- Compute `answerConfidence = weightedAvg(top-K similarity) * coverageFactor` where coverage = fraction of answer sentences with a citation.
+- Configurable threshold per company: new column `companies.min_confidence numeric default 0.55`.
+- Below threshold: return the existing refusal string + `canCreateRequest = true` (already supported); never hallucinate. Persist `confidence` on `messages`.
+
+## 4. Knowledge Gap Detection
+
+New table `knowledge_gaps`:
 
 ```text
-BEFORE                          AFTER
-/                  (dashboard)  /                  (public marketing home)
-/auth              (login)      /auth              (login, no Google)
-                                /product, /features, /pricing,
-                                /contact, /trust, /demo
-                                /legal/impressum, /legal/privacy,
-                                /legal/cookies, /legal/terms,
-                                /legal/responsible-ai, /legal/dpa
-                                /forgot-password, /reset-password
-/_authenticated/* (app pages)   /app, /app/chat, /app/knowledge, … (all under _authenticated)
+id, company_id, question_normalized text, occurrences int,
+first_seen, last_seen, status enum('open','assigned','closed'),
+assignee_id, resolution enum('sop','faq','dismissed') null,
+resolved_document_id uuid null, resolved_faq_id uuid null
 ```
 
-- Rename `src/routes/_authenticated/index.tsx` → `_authenticated/dashboard.tsx` (path `/dashboard`).
-- Add new redirect file `src/routes/app.tsx` → `/dashboard` so `/app` is a stable app entry.
-- Marketing `/` detects session and shows "Go to dashboard" instead of "Sign in" for logged-in users (no forced redirect — better UX for sharing).
-- `/auth` post-login redirect changes from `/` to `/dashboard`.
-- App shell logo/home links updated from `/` to `/dashboard`.
+Insert/upsert from chat when refusal fires; bucket by normalized question (lowercase + trimmed + stopword strip).
 
-## 3. Marketing site (new public routes)
+`/app/admin/knowledge-gaps` (admin + manager): list + filter, actions **Create SOP** (deep-link to upload prefilled with the question), **Create FAQ** (prefilled FAQ editor), **Assign owner**, **Close gap**.
 
-All under a shared `MarketingLayout` component (sticky header + footer, no auth chrome) reusing existing design tokens, shadcn components, and the OPSQAI logo. Each route gets its own `head()` with unique title/description/og.
+## 5. Analytics Dashboard
 
-Pages:
-- `/` Home — hero, value props, logo wall placeholder, CTAs (Book a Demo / Try Demo / Sign in)
-- `/product` — what OPSQAI is, screenshots placeholder, architecture overview
-- `/features` — feature grid (SOP mgmt, RAG, multilingual, audit, RBAC, analytics roadmap)
-- `/pricing` — Starter / Business / Enterprise tiers, all "Contact Sales" for now
-- `/contact` — contact form (sends via existing email infra to a configurable inbox) + email/address
-- `/trust` — Trust Center: encryption, RLS isolation, GDPR, audit logs, subprocessors list, infra, AI transparency
-- `/demo` — public demo assistant (see §5)
+`/app/admin/analytics` (admin + manager). Server fn aggregates from existing `audit_log`, `messages`, `knowledge_gaps`, `feedback` (§6), `knowledge_documents`:
 
-## 4. Legal & compliance pages
+- Top Questions, Most Used SOPs, Most Used FAQs, Open Gaps, Unanswered count, Low-confidence count, Outdated SOPs (`updated_at < now() - interval '6 months'`), Avg confidence, AI usage per day.
+- Export PDF (jspdf) and Excel (xlsx) — both Worker-safe.
 
-`/legal/<slug>` routes with placeholder copy clearly marked "Draft – pending legal review":
-- impressum, privacy, cookies, terms, responsible-ai, dpa
+## 6. Feedback System
 
-Footer links to all of them. Trust Center cross-links here.
+New table `message_feedback (id, company_id, message_id fk, user_id, rating smallint check in (-1,1), comment text)`.
 
-## 5. Public Demo Assistant (`/demo`)
+Add 👍 / 👎 under every assistant message in the chat UI; one-click toggle, optional comment. Feeds analytics.
 
-- Reuses the existing chat UI components (extracted minimal version — no thread sidebar).
-- New server route `src/routes/api/demo-chat.ts` mirroring `/api/chat` but:
-  - No auth required.
-  - Uses a hard-coded `DEMO_COMPANY_ID` constant (a new dedicated company seeded via migration with sample SOPs/FAQs about generic logistics — created in Sprint 2 follow-up; for now the route runs without KB grounding and shows demo answers with a banner).
-  - Rate limit: in-memory per-IP token bucket (10 msgs / 10 min), plus a 50-char max input check and 8-message conversation cap.
-- Prominent banner: "Demo environment — does not access customer data."
-- After 3 exchanges, an inline CTA card: Book a Demo / Start Free Trial / Contact Sales.
+## 7. Smart Escalation
 
-## 6. PWA (production-ready)
+Add `departments.manager_id uuid`, `departments.phone text`, `departments.shift_pattern text`.
 
-- `bun add -D vite-plugin-pwa` and wire it in `vite.config.ts` with `registerType: "autoUpdate"`, `injectRegister: null`, `devOptions: { enabled: false }`.
-- Generated SW at `/sw.js`. NetworkFirst for navigations, CacheFirst for hashed assets, exclude `/~oauth` and `/api/*`.
-- New `src/lib/register-sw.ts` wrapper that refuses to register in dev, preview iframes, Lovable preview hostnames, or with `?sw=off`; also unregisters on those.
-- Call the wrapper from `src/start.ts`.
-- Manifest already present; verify `start_url: "/dashboard"` for installed-app launch into the app (root marketing is fine via Add-to-Home, but installed app should open into the workspace if signed in).
-- Generated 192/512 icons + maskable variants if missing.
-- Install prompt: small "Install app" button in the authenticated app shell when `beforeinstallprompt` fires.
+When chat refuses, payload includes `escalation: { manager: {name, email, phone, department} }` chosen by the asking user's `profiles.department_id`. UI card with **Call** (`tel:`), **Email** (`mailto:`), **Create internal request** (existing flow). Existing `internal_requests` table grows `status enum('open','in_progress','completed','reopened')` (it already has status text — convert via check constraint instead of enum to avoid breaking data).
+
+## 8. SOP Read Confirmation
+
+- `knowledge_documents.is_critical boolean default false`.
+- New `sop_acknowledgements (id, company_id, document_id, document_version int, user_id, acknowledged_at)`.
+- Admin can mark a document **Critical** from the KB detail view. Employees see a blocking banner on `/app` and on `/app/knowledge/$docId` until acknowledged: "I have read and understood this SOP".
+- Manager dashboard widget: % acknowledged per critical SOP, list of pending users.
+
+## 9. Enterprise Notifications
+
+`notifications (id, company_id, user_id, kind enum, payload jsonb, read_at, created_at)`.
+
+Kinds: `sop_outdated`, `faq_outdated`, `new_gap`, `low_confidence`, `quarterly_report`. In-app bell in `app-shell.tsx` with unread badge + dropdown.
+
+Producers (no new external infra):
+- `sop_outdated` / `faq_outdated`: nightly `pg_cron` SQL job over rows with `updated_at < now() - interval '6 months'`.
+- `new_gap`: insert from the same place §4 upserts gaps, fan out to admins + managers in that company.
+- `low_confidence`: insert from chat endpoint when confidence < threshold.
+- `quarterly_report`: cron on the 1st of Jan/Apr/Jul/Oct, payload = analytics snapshot for the previous quarter.
+
+## Out of scope (explicitly)
+
+Billing, SAML, SCIM, OCR, voice, WhatsApp, public API docs, self-serve trial — all deferred to a future Commercial Readiness sprint per your direction.
 
 ## Technical notes
 
-- **Backward compatibility**: the dashboard URL changes from `/` to `/dashboard`. The post-login redirect, app shell, and any in-app `<Link to="/">` are updated in the same edit. Bookmarks to `/` now land on marketing, which shows a "Go to dashboard" button for signed-in users.
-- **No DB schema changes** this sprint — except an optional `demo` company row (deferred until demo KB content exists).
-- **No edits** to `src/integrations/supabase/*` (auto-generated) or `src/routeTree.gen.ts`.
-- **Existing AI features**, RAG pipeline, thread/messages tables, invite flow — untouched.
-- **i18n**: marketing pages use English only for v1 (DE/RO added in Sprint 1.1 once copy is finalized).
-- **`og:image`**: only on leaf routes; reuses the existing OPSQAI mark for now.
-- Estimated diff: ~25 new files, ~8 edited files, 1 supabase tool call, 1 package added.
+- **One migration** introduces all new tables and column additions, each with GRANTs and the standard tenant RLS policy. Updates `match_document_chunks_for_company` to filter `is_active`. Adds the two pg_cron jobs via `cron.schedule`.
+- No edits to `src/integrations/supabase/*`, `src/routeTree.gen.ts`, auth flows, marketing pages, demo, trust, legal, or PWA wiring.
+- Existing chat endpoint is extended in place — same response contract, additive fields only — so the current `MessageList` keeps rendering. New fields are read by the upgraded sources panel and feedback bar.
+- All new admin routes live under `_authenticated/app.admin.*` next to existing ones, guarded by `has_role` checks server-side.
+- New libraries: `xlsx` and `jspdf` (both Worker-compatible) for §5 exports. No native deps.
+- Estimated footprint: 1 migration, ~12 new route/component files, ~8 edited files, 2 packages added.
 
-## Out of scope (deferred to later sprints)
+## Suggested execution order
 
-- Tenant-specific branding/logos beyond what already exists.
-- Notifications system, analytics dashboards, gap detection, SOP versioning, read-confirmations — all Sprints 2-4.
-- Offline-capable cached SOPs/FAQs (PWA shell only this sprint).
-- Real demo KB content (route works without it; Sprint 1.1 will seed sample SOPs).
+1. Migration (all schema + RLS + cron).
+2. SOP versioning UI + replace flow.
+3. Chat endpoint upgrade (confidence, richer sources, gap upsert, low-confidence notification).
+4. Upgraded sources panel + feedback bar.
+5. Knowledge gaps page.
+6. Notifications bell + producers.
+7. Read confirmation flow.
+8. Analytics dashboard + exports.
+9. Escalation card + department manager fields.
