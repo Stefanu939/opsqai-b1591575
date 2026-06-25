@@ -180,6 +180,7 @@ export const Route = createFileRoute("/api/chat")({
         } else if (!isGreeting && query) {
           try {
             const qVec = await embedOne(query);
+            queryEmbedding = qVec;
             const { data: matches, error: matchErr } = await supabase.rpc(
               "match_document_chunks_for_company" as never,
               { query_embedding: `[${qVec.join(",")}]`, match_count: 8, min_similarity: 0.15, _company_id: companyId } as never,
