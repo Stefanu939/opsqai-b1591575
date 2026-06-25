@@ -30,7 +30,7 @@ export const Route = createFileRoute("/trust/gdpr")({
         <li>Subprocessor list — see the main Trust Center page.</li>
       </ul>
       <h2>Contact</h2>
-      <p>Privacy questions: <a href="mailto:privacy@opsqai.eu">privacy@opsqai.eu</a>.</p>
+      <p>Privacy questions: <a href="mailto:notify@opsqai.de">notify@opsqai.de</a>.</p>
     </TrustTopic>
   ),
 });

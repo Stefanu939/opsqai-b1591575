@@ -16,7 +16,7 @@ export const Route = createFileRoute("/trust/incident-response")({
       <ul>
         <li>Platform-level monitoring on the managed cloud (errors, latency, auth failures).</li>
         <li>Database audit triggers for sensitive operations.</li>
-        <li>External vulnerability reports via <a href="mailto:security@opsqai.eu">security@opsqai.eu</a>.</li>
+        <li>External vulnerability reports via <a href="mailto:notify@opsqai.de">notify@opsqai.de</a>.</li>
       </ul>
       <h2>Severity levels</h2>
       <ul>
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/trust/incident-response")({
       <h2>Customer communication</h2>
       <ul>
         <li>For confirmed personal-data breaches affecting a tenant, OPSQAI notifies the tenant administrator within <strong>72 hours</strong> in line with GDPR Article 33 obligations on data processors.</li>
-        <li>Status updates go to the tenant admin email on file and, for SEV-1, to <code>security@opsqai.eu</code> subscribers.</li>
+        <li>Status updates go to the tenant admin email on file and, for SEV-1, to <code>notify@opsqai.de</code> subscribers.</li>
       </ul>
       <h2>Post-incident review</h2>
       <p>Every SEV-1 or SEV-2 incident gets a blameless post-mortem with timeline, root cause, customer impact and remediation actions. Findings update the relevant Trust Center pages.</p>

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/legal/privacy")({
       <p>Last updated: {new Date().getFullYear()}. This Privacy Policy explains how OPSQAI processes personal data when you use opsqai.eu (the marketing site) and the OPSQAI application.</p>
 
       <h2>Who we are</h2>
-      <p>OPSQAI provides an AI knowledge management platform for logistics and supply chain operations. Contact: privacy@opsqai.eu.</p>
+      <p>OPSQAI provides an AI knowledge management platform for logistics and supply chain operations. Contact: notify@opsqai.de.</p>
 
       <h2>What we collect</h2>
       <ul>
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/legal/privacy")({
       <p>Account and content data are retained for the duration of the customer agreement. Audit logs are retained for up to 24 months. Backups follow standard rolling retention.</p>
 
       <h2>Your rights</h2>
-      <p>Under the GDPR you have the right to access, rectify, erase, restrict, port or object to the processing of your personal data. Contact privacy@opsqai.eu to exercise these rights. You may also lodge a complaint with your local data protection authority.</p>
+      <p>Under the GDPR you have the right to access, rectify, erase, restrict, port or object to the processing of your personal data. Contact notify@opsqai.de to exercise these rights. You may also lodge a complaint with your local data protection authority.</p>
 
       <h2>International transfers</h2>
       <p>OPSQAI is operated from the EU. Where data leaves the EEA, transfers are protected by standard contractual clauses or equivalent safeguards.</p>

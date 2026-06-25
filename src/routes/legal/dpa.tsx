@@ -5,7 +5,7 @@ export const Route = createFileRoute("/legal/dpa")({
   component: () => (
     <>
       <h1>Data Processing Agreement</h1>
-      <p>OPSQAI acts as a data processor when handling personal data on behalf of customer companies (the data controller). This page summarizes our DPA. The full executable DPA is available on request from <a href="mailto:legal@opsqai.eu">legal@opsqai.eu</a>.</p>
+      <p>OPSQAI acts as a data processor when handling personal data on behalf of customer companies (the data controller). This page summarizes our DPA. The full executable DPA is available on request from <a href="mailto:notify@opsqai.de">notify@opsqai.de</a>.</p>
 
       <h2>Subject matter & duration</h2>
       <p>Processing for the duration of the customer agreement, for the purpose of operating the OPSQAI AI knowledge platform.</p>
