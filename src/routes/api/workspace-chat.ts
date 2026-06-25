@@ -8,6 +8,7 @@ import { generatePptx } from "@/lib/generators/pptx.server";
 import { generateXlsx } from "@/lib/generators/xlsx.server";
 import { generateDocx } from "@/lib/generators/docx.server";
 import { generatePdf } from "@/lib/generators/pdf.server";
+import { generateCsv, generateTxt } from "@/lib/generators/text.server";
 import type { Database } from "@/integrations/supabase/types";
 
 const BUCKET = "workspace-temp";
@@ -19,10 +20,11 @@ CORE RULES — non-negotiable:
 1. The files in "SESSION FILES" below are TEMPORARY. They are NEVER part of the company knowledge base, NEVER searchable, and will be auto-deleted (retention: ${retention}).
 2. NEVER claim the files are stored permanently or learned from. They live only in this conversation.
 3. Use ONLY the SESSION FILES and the user's instructions. Do not invent facts that are not in the files.
-4. When the user asks for a presentation, spreadsheet, report, Word document or PDF, call the appropriate tool (generate_pptx, generate_xlsx, generate_docx, generate_pdf). Build complete, professional content — proper titles, structured bullets, speaker notes, headers — based on the uploaded files. After the tool returns, briefly tell the user what you created and reference the download link they will see below the message.
-5. Detect the user's language (English, German, Romanian) and answer in that language.
-6. Keep prose concise. Prefer bullet lists, tables and clear structure.
-7. If asked for analysis (summary, comparison, KPIs, risks, action items, non-conformities), answer directly in the chat — do not call a generator unless explicitly asked for a downloadable document.
+4. When the user asks for a downloadable PowerPoint, Excel, Word, PDF, CSV or TXT document, you MUST call the matching tool: generate_pptx, generate_xlsx, generate_docx, generate_pdf, generate_csv, generate_txt. NEVER claim a file was created without calling the tool. NEVER apologise that you "cannot create a downloadable file" — calling the tool IS how you create it.
+5. After the tool returns successfully (\`success: true\`), tell the user in one short sentence what you created and mention the download button below the message. If it returned \`success: false\`, tell the user the artifact generation failed and quote the \`error\` value.
+6. Detect the user's language (English, German, Romanian) and answer in that language.
+7. Keep prose concise. Prefer bullet lists, tables and clear structure.
+8. If asked for analysis (summary, comparison, KPIs, risks, action items, non-conformities), answer directly in the chat — do not call a generator unless explicitly asked for a downloadable document.
 
 SESSION FILES:
 ${filesBlock || "(no files uploaded yet)"}`;
@@ -90,32 +92,85 @@ export const Route = createFileRoute("/api/workspace-chat")({
           }
         };
 
-        async function saveArtifact(
-          kind: "pptx" | "xlsx" | "docx" | "pdf",
-          bytes: Uint8Array,
+        type ArtifactKind = "pptx" | "xlsx" | "docx" | "pdf" | "csv" | "txt";
+        type ArtifactResult =
+          | { success: true; artifact_id: string; file_name: string; kind: ArtifactKind; download_url: string | null; expires_at: string | null }
+          | { success: false; kind: ArtifactKind; error: string; stage: string };
+
+        const log = (event: string, extra: Record<string, unknown> = {}) =>
+          console.log(`[workspace:${event}]`, { sessionId, companyId, userId, ...extra });
+
+        async function runGenerator<I>(
+          kind: ArtifactKind,
+          input: I,
           baseName: string,
           contentType: string,
-        ) {
-          const safe = baseName.replace(/[^\w.\-]+/g, "_").slice(0, 80) || `artifact.${kind}`;
-          const finalName = safe.endsWith(`.${kind}`) ? safe : `${safe}.${kind}`;
+          generator: (input: I) => Promise<Uint8Array> | Uint8Array,
+        ): Promise<ArtifactResult> {
+          log("artifact_generation_started", { kind, baseName });
+          let bytes: Uint8Array;
+          try {
+            log("artifact_builder_started", { kind });
+            bytes = await generator(input);
+            log("artifact_builder_completed", { kind, bytes: bytes.byteLength });
+          } catch (e) {
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "builder", error: msg, stack: (e as Error).stack });
+            return { success: false, kind, error: `Builder failed: ${msg}`, stage: "builder" };
+          }
+          if (!bytes || bytes.byteLength === 0) {
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "builder", error: "empty file" });
+            return { success: false, kind, error: "Generator produced an empty file.", stage: "builder" };
+          }
+          const safe = (baseName || `artifact`).replace(/[^\w.\-]+/g, "_").slice(0, 80) || `artifact.${kind}`;
+          const finalName = safe.toLowerCase().endsWith(`.${kind}`) ? safe : `${safe}.${kind}`;
           const path = `${companyId}/${sessionId}/${crypto.randomUUID()}-${finalName}`;
-          const up = await supabase.storage.from(BUCKET).upload(path, bytes, {
-            contentType, upsert: false,
-          });
-          if (up.error) throw new Error(up.error.message);
+          log("file_created", { kind, finalName, path, bytes: bytes.byteLength });
+          try {
+            log("storage_upload_started", { path });
+            const up = await supabase.storage.from(BUCKET).upload(path, bytes, { contentType, upsert: false });
+            if (up.error) throw new Error(up.error.message);
+            log("storage_upload_completed", { path });
+          } catch (e) {
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "upload", error: msg });
+            return { success: false, kind, error: `Storage upload failed: ${msg}`, stage: "upload" };
+          }
           const expires = expiryForArtifact();
-          const ins = await supabase.from("workspace_artifacts" as never).insert({
-            session_id: sessionId, company_id: companyId, user_id: userId,
-            kind, file_name: finalName, storage_path: path, expires_at: expires,
-          } as never).select("id").single() as unknown as { data: { id: string } | null; error: { message: string } | null };
-          if (ins.error || !ins.data) throw new Error(ins.error?.message ?? "insert failed");
-          const signed = await supabase.storage.from(BUCKET)
-            .createSignedUrl(path, 60 * 10, { download: finalName });
+          let artifactId: string;
+          try {
+            const ins = await supabase.from("workspace_artifacts" as never).insert({
+              session_id: sessionId, company_id: companyId, user_id: userId,
+              kind, file_name: finalName, storage_path: path, expires_at: expires,
+            } as never).select("id").single() as unknown as { data: { id: string } | null; error: { message: string } | null };
+            if (ins.error || !ins.data) throw new Error(ins.error?.message ?? "insert failed");
+            artifactId = ins.data.id;
+          } catch (e) {
+            // Roll back the uploaded file to avoid an orphan in storage.
+            await supabase.storage.from(BUCKET).remove([path]).catch(() => undefined);
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "db_insert", error: msg });
+            return { success: false, kind, error: `Artifact record insert failed: ${msg}`, stage: "db_insert" };
+          }
+          let downloadUrl: string | null = null;
+          try {
+            const signed = await supabase.storage.from(BUCKET)
+              .createSignedUrl(path, 60 * 10, { download: finalName });
+            downloadUrl = signed.data?.signedUrl ?? null;
+            if (!downloadUrl) throw new Error("no signed url returned");
+            log("signed_url_created", { artifactId });
+          } catch (e) {
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:signed_url_failed]", { kind, error: msg });
+            // The artifact row exists; client can call downloadArtifactUrl later.
+          }
+          log("artifact_returned", { artifactId, kind, finalName });
           return {
-            artifact_id: ins.data.id,
+            success: true,
+            artifact_id: artifactId,
             file_name: finalName,
             kind,
-            download_url: signed.data?.signedUrl ?? null,
+            download_url: downloadUrl,
             expires_at: expires,
           };
         }
@@ -140,14 +195,13 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   notes: z.string().max(2000).optional(),
                 })).min(1).max(40),
               }),
-              execute: async (input) => {
-                const bytes = await generatePptx(input);
-                return await saveArtifact(
-                  "pptx", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "pptx", input,
                   input.file_name ?? input.title,
                   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                );
-              },
+                  generatePptx,
+                ),
             }),
             generate_xlsx: tool({
               description: "Generate a downloadable Excel (.xlsx) workbook. Provide one or more sheets with headers and rows.",
@@ -160,14 +214,13 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   rows: z.array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).max(40)).max(2000),
                 })).min(1).max(12),
               }),
-              execute: async (input) => {
-                const bytes = await generateXlsx(input);
-                return await saveArtifact(
-                  "xlsx", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "xlsx", input,
                   input.file_name ?? input.title ?? "workbook",
                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                );
-              },
+                  generateXlsx,
+                ),
             }),
             generate_docx: tool({
               description: "Generate a downloadable Word (.docx) document with headings, paragraphs, bullet lists, numbered lists, and tables.",
@@ -186,14 +239,13 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   }),
                 ])).min(1).max(200),
               }),
-              execute: async (input) => {
-                const bytes = await generateDocx(input);
-                return await saveArtifact(
-                  "docx", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "docx", input,
                   input.file_name ?? input.title,
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                );
-              },
+                  generateDocx,
+                ),
             }),
             generate_pdf: tool({
               description: "Generate a downloadable PDF report. Provide a title, optional subtitle, and sections (heading + paragraphs).",
@@ -206,17 +258,47 @@ export const Route = createFileRoute("/api/workspace-chat")({
                   paragraphs: z.array(z.string().max(4000)).max(40),
                 })).min(1).max(80),
               }),
-              execute: async (input) => {
-                const bytes = await generatePdf(input);
-                return await saveArtifact(
-                  "pdf", bytes,
+              execute: async (input) =>
+                runGenerator(
+                  "pdf", input,
                   input.file_name ?? input.title,
                   "application/pdf",
-                );
-              },
+                  generatePdf,
+                ),
+            }),
+            generate_csv: tool({
+              description: "Generate a downloadable CSV file. Provide optional headers and a 2D rows array. Use this for tabular data exports.",
+              inputSchema: z.object({
+                file_name: z.string().max(80).optional(),
+                headers: z.array(z.string().max(120)).max(40).optional(),
+                rows: z.array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).max(40)).min(1).max(5000),
+                delimiter: z.enum([",", ";", "\t"]).optional(),
+              }),
+              execute: async (input) =>
+                runGenerator(
+                  "csv", input,
+                  input.file_name ?? "export",
+                  "text/csv; charset=utf-8",
+                  (i) => generateCsv(i),
+                ),
+            }),
+            generate_txt: tool({
+              description: "Generate a downloadable plain-text (.txt) file. Pass the full text content.",
+              inputSchema: z.object({
+                file_name: z.string().max(80).optional(),
+                content: z.string().min(1).max(200_000),
+              }),
+              execute: async (input) =>
+                runGenerator(
+                  "txt", input,
+                  input.file_name ?? "note",
+                  "text/plain; charset=utf-8",
+                  (i) => generateTxt(i),
+                ),
             }),
           },
         });
+
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages,

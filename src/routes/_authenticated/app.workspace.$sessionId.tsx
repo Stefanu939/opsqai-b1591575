@@ -33,12 +33,12 @@ export const Route = createFileRoute("/_authenticated/app/workspace/$sessionId")
 });
 
 interface WSFile { id: string; file_name: string; mime: string | null; size_bytes: number | null; status: string; expires_at: string | null; created_at: string }
-interface WSArtifact { id: string; kind: "pptx" | "xlsx" | "docx" | "pdf"; file_name: string; storage_path: string; expires_at: string | null; created_at: string }
+interface WSArtifact { id: string; kind: "pptx" | "xlsx" | "docx" | "pdf" | "csv" | "txt"; file_name: string; storage_path: string; expires_at: string | null; created_at: string }
 interface WSSession { id: string; title: string; company_id: string; user_id: string }
 
 function iconFor(kind: string) {
   if (kind === "pptx") return Presentation;
-  if (kind === "xlsx") return FileSpreadsheet;
+  if (kind === "xlsx" || kind === "csv") return FileSpreadsheet;
   if (kind === "pdf") return FileType2;
   return FileText;
 }
@@ -379,9 +379,13 @@ function MessageRow({
     .join("");
 
   // Tool outputs (generated artifacts)
+  type ToolOut =
+    | { success: true; artifact_id: string; file_name: string; kind: string; download_url?: string | null }
+    | { success: false; kind: string; error: string; stage?: string }
+    | { artifact_id?: string; file_name?: string; kind?: string; download_url?: string | null }; // legacy shape
   const toolOutputs = (m.parts as any[])
     .filter((p) => typeof p.type === "string" && p.type.startsWith("tool-") && p.state === "output-available")
-    .map((p) => p.output as { artifact_id?: string; file_name?: string; kind?: string; download_url?: string });
+    .map((p) => p.output as ToolOut);
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -394,19 +398,41 @@ function MessageRow({
         {toolOutputs.length > 0 && (
           <div className="space-y-1.5">
             {toolOutputs.map((o, i) => {
-              if (!o?.artifact_id) return null;
-              const Icon = iconFor(o.kind ?? "");
+              // Failure card
+              if (o && "success" in o && o.success === false) {
+                return (
+                  <div
+                    key={i}
+                    className="w-full flex items-start gap-2 text-sm border border-destructive/40 bg-destructive/5 rounded-md px-3 py-2"
+                  >
+                    <X className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-destructive">Artifact generation failed{o.kind ? ` (.${o.kind})` : ""}.</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">Reason: {o.error}{o.stage ? ` — stage: ${o.stage}` : ""}</div>
+                    </div>
+                  </div>
+                );
+              }
+              const artifactId = (o as { artifact_id?: string }).artifact_id;
+              const fileName = (o as { file_name?: string }).file_name;
+              const kind = (o as { kind?: string }).kind ?? "";
+              if (!artifactId) return null;
+              const Icon = iconFor(kind);
               return (
                 <button
-                  key={o.artifact_id + i}
+                  key={artifactId + i}
                   onClick={async () => {
-                    const { url } = await dlUrl({ data: { id: o.artifact_id! } });
-                    window.open(url, "_blank");
+                    try {
+                      const { url } = await dlUrl({ data: { id: artifactId } });
+                      window.open(url, "_blank");
+                    } catch (e) {
+                      alert(`Download failed: ${(e as Error).message}`);
+                    }
                   }}
                   className="w-full flex items-center gap-2 text-sm border rounded-md px-3 py-2 bg-background text-foreground hover:border-primary/50"
                 >
                   <Icon className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{o.file_name}</span>
+                  <span className="font-medium truncate">{fileName ?? `artifact.${kind}`}</span>
                   <span className="ml-auto inline-flex items-center gap-1 text-primary"><Download className="h-3.5 w-3.5" />Download</span>
                 </button>
               );
