@@ -23,6 +23,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
 import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
@@ -114,6 +115,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrustSecurityArchitectureRoute =
+  TrustSecurityArchitectureRouteImport.update({
+    id: '/security-architecture',
+    path: '/security-architecture',
+    getParentRoute: () => TrustRoute,
+  } as any)
 const TrustGdprRoute = TrustGdprRouteImport.update({
   id: '/gdpr',
   path: '/gdpr',
@@ -253,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/gdpr': typeof TrustGdprRoute
+  '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -289,6 +297,7 @@ export interface FileRoutesByTo {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/gdpr': typeof TrustGdprRoute
+  '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -327,6 +336,7 @@ export interface FileRoutesById {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/trust/gdpr': typeof TrustGdprRoute
+  '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/gdpr'
+    | '/trust/security-architecture'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
@@ -401,6 +412,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/gdpr'
+    | '/trust/security-architecture'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
@@ -438,6 +450,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/trust/gdpr'
+    | '/trust/security-architecture'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
@@ -569,6 +582,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/trust/security-architecture': {
+      id: '/trust/security-architecture'
+      path: '/security-architecture'
+      fullPath: '/trust/security-architecture'
+      preLoaderRoute: typeof TrustSecurityArchitectureRouteImport
+      parentRoute: typeof TrustRoute
     }
     '/trust/gdpr': {
       id: '/trust/gdpr'
@@ -787,10 +807,12 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
 
 interface TrustRouteChildren {
   TrustGdprRoute: typeof TrustGdprRoute
+  TrustSecurityArchitectureRoute: typeof TrustSecurityArchitectureRoute
 }
 
 const TrustRouteChildren: TrustRouteChildren = {
   TrustGdprRoute: TrustGdprRoute,
+  TrustSecurityArchitectureRoute: TrustSecurityArchitectureRoute,
 }
 
 const TrustRouteWithChildren = TrustRoute._addFileChildren(TrustRouteChildren)
