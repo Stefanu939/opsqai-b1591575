@@ -10,27 +10,49 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useT } from "@/i18n";
-import { Send, FileText, BookOpenCheck, ScrollText, Copy, Check, AlertCircle, Inbox } from "lucide-react";
+import {
+  Send, FileText, BookOpenCheck, ScrollText, Copy, Check, AlertCircle, Inbox,
+  ThumbsUp, ThumbsDown, ExternalLink, Phone, Mail, UserCheck,
+} from "lucide-react";
 import logo from "@/assets/opsqai-mark.png";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
 import { useServerFn } from "@tanstack/react-start";
 import { createInternalRequest } from "@/lib/internal-requests.functions";
+import { rateMessage } from "@/lib/feedback.functions";
 
 interface SourceItem {
   type: "document" | "faq";
   id: string;
+  document_id?: string;
   title: string;
   code?: string | null;
   excerpt: string;
   similarity?: number;
+  version?: number;
+  section?: string | null;
+  page?: number | null;
+  department?: string | null;
+  last_updated?: string | null;
+  confidence?: "high" | "medium" | "low";
+  primary?: boolean;
+}
+
+interface Escalation {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  department: string | null;
 }
 
 interface MessageMeta {
   sources?: SourceItem[];
-  mode?: "greeting" | "kb" | "gap";
+  mode?: "greeting" | "kb" | "gap" | "followup";
   canCreateRequest?: boolean;
   question?: string;
+  confidence?: number;
+  minConfidence?: number;
+  escalation?: Escalation | null;
 }
 
 export const Route = createFileRoute("/_authenticated/app/chat/$threadId")({
@@ -103,6 +125,7 @@ function ChatInner({
   const [input, setInput] = useState("");
   const loading = status === "submitted" || status === "streaming";
   const T = t as (k: string) => string;
+  const initialIds = useMemo(() => new Set(initial.map((m) => m.id)), [initial]);
 
   useEffect(() => {
     if (seed && !seededRef.current && initial.length === 0) {
@@ -147,6 +170,7 @@ function ChatInner({
                 </div>
               );
             }
+            const isPersisted = initialIds.has(m.id);
             return (
               <div key={m.id} className="flex gap-3 group">
                 <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
@@ -159,12 +183,21 @@ function ChatInner({
                   {text && (
                     <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                       <CopyButton text={text} label={T("copy") || "Copy"} />
+                      {typeof meta?.confidence === "number" && meta.confidence > 0 && (
+                        <span className="text-[10px] text-muted-foreground font-mono">
+                          AI confidence {(meta.confidence * 100).toFixed(0)}%
+                        </span>
+                      )}
                     </div>
                   )}
                   {sources.length > 0 && <SourcesPanel sources={sources} T={T} />}
+                  {meta?.escalation && meta.escalation.department && (
+                    <EscalationCard escalation={meta.escalation} />
+                  )}
                   {meta?.canCreateRequest && text && (
                     <CreateRequestCTA threadId={threadId} question={meta.question ?? ""} T={T} />
                   )}
+                  {text && isPersisted && <FeedbackBar messageId={m.id} />}
                 </div>
               </div>
             );
@@ -205,6 +238,47 @@ function ChatInner({
 function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) => string }) {
   const docs = sources.filter((s) => s.type === "document");
   const faqs = sources.filter((s) => s.type === "faq");
+  const primary = docs.find((d) => d.primary) ?? docs[0];
+  const supporting = docs.filter((d) => d !== primary);
+
+  const openDoc = async (documentId?: string) => {
+    if (!documentId) return;
+    const { data: doc } = await supabase
+      .from("knowledge_documents").select("file_path").eq("id", documentId).maybeSingle();
+    if (!doc?.file_path) return;
+    const { data: signed } = await supabase.storage.from("knowledge-docs")
+      .createSignedUrl(doc.file_path, 60 * 10);
+    if (signed?.signedUrl) window.open(signed.signedUrl, "_blank");
+  };
+
+  const DocCard = ({ s, badge }: { s: SourceItem; badge?: string }) => (
+    <div className="rounded-md border border-border p-3 bg-muted/30">
+      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+        {badge && <Badge className="text-[10px]">{badge}</Badge>}
+        {s.code && <Badge variant="outline" className="font-mono text-[10px]">{s.code}</Badge>}
+        {s.version && <Badge variant="secondary" className="text-[10px]">v{s.version}</Badge>}
+        <div className="text-sm font-medium truncate">{s.title}</div>
+      </div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground font-mono mb-2">
+        {s.section && <div><span className="opacity-60">Section:</span> {s.section}</div>}
+        {s.page && <div><span className="opacity-60">Page:</span> {s.page}</div>}
+        {s.department && <div><span className="opacity-60">Dept:</span> {s.department}</div>}
+        {s.last_updated && <div><span className="opacity-60">Updated:</span> {new Date(s.last_updated).toLocaleDateString()}</div>}
+        {typeof s.similarity === "number" && <div><span className="opacity-60">Relevance:</span> {(s.similarity * 100).toFixed(0)}%</div>}
+        {s.confidence && <div><span className="opacity-60">Confidence:</span> {s.confidence}</div>}
+      </div>
+      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">{s.excerpt}</p>
+      <div className="mt-2 flex items-center gap-3">
+        <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
+        {s.document_id && (
+          <button onClick={() => openDoc(s.document_id)} className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline">
+            <ExternalLink className="h-3 w-3" /> Open document
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="mt-3">
       <Sheet>
@@ -219,27 +293,21 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
             <SheetTitle>{T("sources")}</SheetTitle>
           </SheetHeader>
           <div className="mt-6 space-y-5">
-            {docs.length > 0 && (
+            {primary && (
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5" /> {T("documents")}
+                  <FileText className="h-3.5 w-3.5" /> Primary source
+                </h3>
+                <DocCard s={primary} badge="Primary" />
+              </div>
+            )}
+            {supporting.length > 0 && (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  Supporting sources
                 </h3>
                 <div className="space-y-3">
-                  {docs.map((s, i) => (
-                    <div key={i} className="rounded-md border border-border p-3 bg-muted/30">
-                      <div className="flex items-center gap-2 mb-1">
-                        {s.code && <Badge variant="outline" className="font-mono text-[10px]">{s.code}</Badge>}
-                        <div className="text-sm font-medium truncate">{s.title}</div>
-                      </div>
-                      {typeof s.similarity === "number" && (
-                        <div className="text-[10px] text-muted-foreground font-mono mb-2">
-                          {T("relevance")}: {(s.similarity * 100).toFixed(0)}%
-                        </div>
-                      )}
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">{s.excerpt}</p>
-                      <div className="mt-2"><CopyButton text={s.excerpt} label={T("copy") || "Copy"} /></div>
-                    </div>
-                  ))}
+                  {supporting.map((s, i) => <DocCard key={i} s={s} />)}
                 </div>
               </div>
             )}
@@ -261,6 +329,61 @@ function SourcesPanel({ sources, T }: { sources: SourceItem[]; T: (k: string) =>
           </div>
         </SheetContent>
       </Sheet>
+    </div>
+  );
+}
+
+function FeedbackBar({ messageId }: { messageId: string }) {
+  const rate = useServerFn(rateMessage);
+  const [voted, setVoted] = useState<-1 | 1 | null>(null);
+  const vote = async (r: -1 | 1) => {
+    try {
+      await rate({ data: { message_id: messageId, rating: r } });
+      setVoted(r);
+    } catch (e) { console.error(e); }
+  };
+  return (
+    <div className="mt-2 flex items-center gap-1">
+      <button
+        onClick={() => vote(1)}
+        aria-label="Helpful"
+        className={`p-1.5 rounded-md transition-colors ${voted === 1 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+      >
+        <ThumbsUp className="h-3.5 w-3.5" />
+      </button>
+      <button
+        onClick={() => vote(-1)}
+        aria-label="Not helpful"
+        className={`p-1.5 rounded-md transition-colors ${voted === -1 ? "text-destructive bg-destructive/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+      >
+        <ThumbsDown className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function EscalationCard({ escalation }: { escalation: Escalation }) {
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-card p-4">
+      <div className="flex items-start gap-3">
+        <UserCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium">Ask your {escalation.department} manager</div>
+          {escalation.name && <div className="text-xs text-muted-foreground mt-0.5">{escalation.name}</div>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {escalation.phone && (
+              <a href={`tel:${escalation.phone}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-xs font-medium hover:bg-muted">
+                <Phone className="h-3 w-3" /> {escalation.phone}
+              </a>
+            )}
+            {escalation.email && (
+              <a href={`mailto:${escalation.email}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-xs font-medium hover:bg-muted">
+                <Mail className="h-3 w-3" /> {escalation.email}
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -321,12 +444,8 @@ function CreateRequestCTA({ threadId, question, T }: { threadId: string; questio
             </div>
           ) : (
             <Button
-              type="button"
-              size="sm"
-              variant="default"
-              className="mt-3 h-8"
-              onClick={onClick}
-              disabled={state === "sending"}
+              type="button" size="sm" variant="default" className="mt-3 h-8"
+              onClick={onClick} disabled={state === "sending"}
             >
               <Inbox className="h-3.5 w-3.5 mr-1.5" />
               {state === "sending" ? T("sending") : T("createInternalRequest")}
@@ -338,4 +457,3 @@ function CreateRequestCTA({ threadId, question, T }: { threadId: string; questio
     </div>
   );
 }
-

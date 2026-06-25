@@ -55,9 +55,11 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
+import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
 import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
+import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
 
 const TrustRoute = TrustRouteImport.update({
   id: '/trust',
@@ -297,6 +299,12 @@ const AuthenticatedAppAdminPlatformAdminsRoute =
     path: '/admin/platform-admins',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminKnowledgeGapsRoute =
+  AuthenticatedAppAdminKnowledgeGapsRouteImport.update({
+    id: '/admin/knowledge-gaps',
+    path: '/admin/knowledge-gaps',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminDashboardRoute =
   AuthenticatedAppAdminDashboardRouteImport.update({
     id: '/admin/dashboard',
@@ -313,6 +321,12 @@ const AuthenticatedAppAdminAuditRoute =
   AuthenticatedAppAdminAuditRouteImport.update({
     id: '/admin/audit',
     path: '/admin/audit',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAdminAnalyticsRoute =
+  AuthenticatedAppAdminAnalyticsRouteImport.update({
+    id: '/admin/analytics',
+    path: '/admin/analytics',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 
@@ -357,9 +371,11 @@ export interface FileRoutesByFullPath {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -406,9 +422,11 @@ export interface FileRoutesByTo {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -458,9 +476,11 @@ export interface FileRoutesById {
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -510,9 +530,11 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/app/'
+    | '/app/admin/analytics'
     | '/app/admin/audit'
     | '/app/admin/companies'
     | '/app/admin/dashboard'
+    | '/app/admin/knowledge-gaps'
     | '/app/admin/platform-admins'
     | '/app/admin/users'
     | '/app/chat/$threadId'
@@ -559,9 +581,11 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/app'
+    | '/app/admin/analytics'
     | '/app/admin/audit'
     | '/app/admin/companies'
     | '/app/admin/dashboard'
+    | '/app/admin/knowledge-gaps'
     | '/app/admin/platform-admins'
     | '/app/admin/users'
     | '/app/chat/$threadId'
@@ -610,9 +634,11 @@ export interface FileRouteTypes {
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/app/'
+    | '/_authenticated/app/admin/analytics'
     | '/_authenticated/app/admin/audit'
     | '/_authenticated/app/admin/companies'
     | '/_authenticated/app/admin/dashboard'
+    | '/_authenticated/app/admin/knowledge-gaps'
     | '/_authenticated/app/admin/platform-admins'
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/chat/$threadId'
@@ -966,6 +992,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminPlatformAdminsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/knowledge-gaps': {
+      id: '/_authenticated/app/admin/knowledge-gaps'
+      path: '/admin/knowledge-gaps'
+      fullPath: '/app/admin/knowledge-gaps'
+      preLoaderRoute: typeof AuthenticatedAppAdminKnowledgeGapsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/dashboard': {
       id: '/_authenticated/app/admin/dashboard'
       path: '/admin/dashboard'
@@ -987,6 +1020,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminAuditRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/analytics': {
+      id: '/_authenticated/app/admin/analytics'
+      path: '/admin/analytics'
+      fullPath: '/app/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedAppAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
@@ -996,9 +1036,11 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
   AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
+  AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
@@ -1011,9 +1053,12 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
   AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
+  AuthenticatedAppAdminKnowledgeGapsRoute:
+    AuthenticatedAppAdminKnowledgeGapsRoute,
   AuthenticatedAppAdminPlatformAdminsRoute:
     AuthenticatedAppAdminPlatformAdminsRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,

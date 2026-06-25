@@ -61,6 +61,7 @@ export type Database = {
           created_at: string
           id: string
           max_users: number
+          min_confidence: number
           name: string
           subscription_plan: string
           subscription_status: string
@@ -71,6 +72,7 @@ export type Database = {
           created_at?: string
           id?: string
           max_users?: number
+          min_confidence?: number
           name: string
           subscription_plan?: string
           subscription_status?: string
@@ -81,6 +83,7 @@ export type Database = {
           created_at?: string
           id?: string
           max_users?: number
+          min_confidence?: number
           name?: string
           subscription_plan?: string
           subscription_status?: string
@@ -92,20 +95,32 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          email: string | null
           id: string
+          manager_id: string | null
           name: string
+          phone: string | null
+          shift_pattern: string | null
         }
         Insert: {
           company_id: string
           created_at?: string
+          email?: string | null
           id?: string
+          manager_id?: string | null
           name: string
+          phone?: string | null
+          shift_pattern?: string | null
         }
         Update: {
           company_id?: string
           created_at?: string
+          email?: string | null
           id?: string
+          manager_id?: string | null
           name?: string
+          phone?: string | null
+          shift_pattern?: string | null
         }
         Relationships: [
           {
@@ -126,6 +141,8 @@ export type Database = {
           document_id: string
           embedding: string | null
           id: string
+          page: number | null
+          section: string | null
           token_count: number | null
         }
         Insert: {
@@ -136,6 +153,8 @@ export type Database = {
           document_id: string
           embedding?: string | null
           id?: string
+          page?: number | null
+          section?: string | null
           token_count?: number | null
         }
         Update: {
@@ -146,6 +165,8 @@ export type Database = {
           document_id?: string
           embedding?: string | null
           id?: string
+          page?: number | null
+          section?: string | null
           token_count?: number | null
         }
         Relationships: [
@@ -392,48 +413,78 @@ export type Database = {
       knowledge_documents: {
         Row: {
           category: string
+          change_notes: string | null
           chunk_count: number
           company_id: string
           content_text: string
           created_at: string
+          department_id: string | null
           doc_code: string | null
           error: string | null
           file_path: string | null
           file_type: string | null
           id: string
+          is_active: boolean
+          is_critical: boolean
+          page: number | null
+          parent_document_id: string | null
+          replaced_at: string | null
+          section: string | null
           status: string
           title: string
+          updated_at: string
           uploaded_by: string | null
+          version: number
         }
         Insert: {
           category?: string
+          change_notes?: string | null
           chunk_count?: number
           company_id: string
           content_text?: string
           created_at?: string
+          department_id?: string | null
           doc_code?: string | null
           error?: string | null
           file_path?: string | null
           file_type?: string | null
           id?: string
+          is_active?: boolean
+          is_critical?: boolean
+          page?: number | null
+          parent_document_id?: string | null
+          replaced_at?: string | null
+          section?: string | null
           status?: string
           title: string
+          updated_at?: string
           uploaded_by?: string | null
+          version?: number
         }
         Update: {
           category?: string
+          change_notes?: string | null
           chunk_count?: number
           company_id?: string
           content_text?: string
           created_at?: string
+          department_id?: string | null
           doc_code?: string | null
           error?: string | null
           file_path?: string | null
           file_type?: string | null
           id?: string
+          is_active?: boolean
+          is_critical?: boolean
+          page?: number | null
+          parent_document_id?: string | null
+          replaced_at?: string | null
+          section?: string | null
           status?: string
           title?: string
+          updated_at?: string
           uploaded_by?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -443,11 +494,147 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "knowledge_documents_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_gaps: {
+        Row: {
+          assignee_id: string | null
+          company_id: string
+          created_at: string
+          first_seen: string
+          id: string
+          last_seen: string
+          occurrences: number
+          question_normalized: string
+          question_sample: string
+          resolution: string | null
+          resolved_document_id: string | null
+          resolved_faq_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          company_id: string
+          created_at?: string
+          first_seen?: string
+          id?: string
+          last_seen?: string
+          occurrences?: number
+          question_normalized: string
+          question_sample: string
+          resolution?: string | null
+          resolved_document_id?: string | null
+          resolved_faq_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          company_id?: string
+          created_at?: string
+          first_seen?: string
+          id?: string
+          last_seen?: string
+          occurrences?: number
+          question_normalized?: string
+          question_sample?: string
+          resolution?: string | null
+          resolved_document_id?: string | null
+          resolved_faq_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_gaps_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_gaps_resolved_document_id_fkey"
+            columns: ["resolved_document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_gaps_resolved_faq_id_fkey"
+            columns: ["resolved_faq_id"]
+            isOneToOne: false
+            referencedRelation: "faqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_feedback: {
+        Row: {
+          comment: string | null
+          company_id: string
+          created_at: string
+          id: string
+          message_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          message_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_feedback_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_feedback_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
         ]
       }
       messages: {
         Row: {
           company_id: string
+          confidence: number | null
           content: string
           created_at: string
           id: string
@@ -459,6 +646,7 @@ export type Database = {
         }
         Insert: {
           company_id: string
+          confidence?: number | null
           content?: string
           created_at?: string
           id?: string
@@ -470,6 +658,7 @@ export type Database = {
         }
         Update: {
           company_id?: string
+          confidence?: number | null
           content?: string
           created_at?: string
           id?: string
@@ -492,6 +681,53 @@ export type Database = {
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          company_id: string
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          payload: Json
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          link?: string | null
+          payload?: Json
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          payload?: Json
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -555,6 +791,48 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sop_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          company_id: string
+          document_id: string
+          document_version: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          company_id: string
+          document_id: string
+          document_version: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          company_id?: string
+          document_id?: string
+          document_version?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_acknowledgements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sop_acknowledgements_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -655,6 +933,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
+      cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }

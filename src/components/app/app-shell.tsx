@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
+  AlertTriangle, LineChart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logo from "@/assets/opsqai-mark.png";
+import { NotificationsBell } from "@/components/app/notifications-bell";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName, activeCompanyId, setActiveCompanyId } = useAuth();
@@ -37,6 +39,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   ];
   const adminNav = [
     ...(canAdmin ? [{ to: "/app/admin/dashboard", label: t("adminDashboard"), icon: BarChart3 }] : []),
+    ...(canAdmin ? [{ to: "/app/admin/analytics", label: "Analytics", icon: LineChart }] : []),
+    ...(canAdmin ? [{ to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle }] : []),
     ...((isAdmin || isPlatformAdmin) ? [{ to: "/app/admin/users", label: t("users"), icon: Users }] : []),
     ...(canAdmin ? [{ to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText }] : []),
   ];
@@ -66,12 +70,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex h-full flex-col text-sidebar-foreground" style={{ background: "var(--gradient-sidebar)" }}>
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
         <img src={logo} alt="" width={32} height={32} className="drop-shadow-[0_0_8px_rgba(139,124,246,0.5)]" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="font-semibold tracking-tight truncate">{t("appName")}</div>
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60 truncate">
             {companyName ?? t("tagline")}
           </div>
         </div>
+        <NotificationsBell />
       </div>
       {isPlatformAdmin && companies.length > 0 && (
         <div className="px-3 py-3 border-b border-sidebar-border">
@@ -180,16 +185,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           <img src={logo} alt="" width={24} height={24} />
           <span className="font-semibold tracking-tight text-sm">{t("appName")}</span>
         </div>
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72 border-0">
-            <SidebarContent onNavigate={() => setMobileOpen(false)} />
-          </SheetContent>
-        </Sheet>
+        <div className="flex items-center gap-1">
+          <NotificationsBell />
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72 border-0">
+              <SidebarContent onNavigate={() => setMobileOpen(false)} />
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <main className="flex-1 min-w-0 flex flex-col pt-14 md:pt-0">
