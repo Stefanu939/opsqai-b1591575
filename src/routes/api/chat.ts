@@ -260,8 +260,16 @@ export const Route = createFileRoute("/api/chat")({
             `[FAQ ${i + 1}] ${s.title}\n${s.excerpt}`);
           contextBlock = [...docBlocks, ...faqBlocks].join("\n\n---\n\n");
 
-          const lowConfidence = confidence > 0 && confidence < minConfidence;
-          if (sources.length === 0 || lowConfidence) mode = "gap";
+          // Refuse only when retrieval truly returned nothing.
+          // If sources exist (even at low similarity), pass them to the LLM
+          // and let it decide whether they answer the question.
+          if (sources.length === 0) mode = "gap";
+          console.log("[chat:decision]", {
+            mode,
+            sources_count: sources.length,
+            confidence: Number(confidence.toFixed(3)),
+            min_confidence: minConfidence,
+          });
         }
 
         const gateway = createLovableAiGatewayProvider(apiKey);
