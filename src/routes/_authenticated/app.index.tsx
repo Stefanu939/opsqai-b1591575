@@ -64,7 +64,7 @@ function Dashboard() {
   const startChat = async (seed?: string) => {
     const title = seed ? seed.slice(0, 60) : (lang === "de" ? "Neue Unterhaltung" : "New conversation");
     const thread = await newThread({ data: { title } });
-    navigate({ to: "/chat/$threadId", params: { threadId: thread.id }, search: seed ? { q: seed } : {} });
+    navigate({ to: "/app/chat/$threadId", params: { threadId: thread.id }, search: seed ? { q: seed } : {} });
   };
 
   const kpis = [
@@ -124,7 +124,7 @@ function Dashboard() {
         ) : (
           <Card className="divide-y divide-border">
             {threads.map((th) => (
-              <Link key={th.id} to="/chat/$threadId" params={{ threadId: th.id }} className="flex items-center justify-between p-4 hover:bg-muted transition-colors">
+              <Link key={th.id} to="/app/chat/$threadId" params={{ threadId: th.id }} className="flex items-center justify-between p-4 hover:bg-muted transition-colors">
                 <div className="min-w-0">
                   <div className="text-sm font-medium truncate">{th.title}</div>
                   <div className="text-xs text-muted-foreground font-mono mt-0.5">{new Date(th.updated_at).toLocaleString()}</div>
