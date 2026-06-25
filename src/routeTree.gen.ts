@@ -23,6 +23,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
@@ -112,6 +113,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TrustGdprRoute = TrustGdprRouteImport.update({
+  id: '/gdpr',
+  path: '/gdpr',
+  getParentRoute: () => TrustRoute,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
   id: '/terms',
@@ -236,7 +242,7 @@ export interface FileRoutesByFullPath {
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/trust': typeof TrustRoute
+  '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/trust/gdpr': typeof TrustGdprRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -271,7 +278,7 @@ export interface FileRoutesByTo {
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/trust': typeof TrustRoute
+  '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
@@ -281,6 +288,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/trust/gdpr': typeof TrustGdprRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -308,7 +316,7 @@ export interface FileRoutesById {
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/trust': typeof TrustRoute
+  '/trust': typeof TrustRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
@@ -318,6 +326,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/trust/gdpr': typeof TrustGdprRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/trust/gdpr'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/trust/gdpr'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
@@ -426,6 +437,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/trust/gdpr'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
@@ -453,7 +465,7 @@ export interface RootRouteChildren {
   ProductRoute: typeof ProductRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TrustRoute: typeof TrustRoute
+  TrustRoute: typeof TrustRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
 }
@@ -557,6 +569,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/trust/gdpr': {
+      id: '/trust/gdpr'
+      path: '/gdpr'
+      fullPath: '/trust/gdpr'
+      preLoaderRoute: typeof TrustGdprRouteImport
+      parentRoute: typeof TrustRoute
     }
     '/legal/terms': {
       id: '/legal/terms'
@@ -766,6 +785,16 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
+interface TrustRouteChildren {
+  TrustGdprRoute: typeof TrustGdprRoute
+}
+
+const TrustRouteChildren: TrustRouteChildren = {
+  TrustGdprRoute: TrustGdprRoute,
+}
+
+const TrustRouteWithChildren = TrustRoute._addFileChildren(TrustRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -780,7 +809,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductRoute: ProductRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TrustRoute: TrustRoute,
+  TrustRoute: TrustRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
 }
