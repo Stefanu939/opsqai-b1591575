@@ -31,9 +31,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav = [
     { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true },
     { to: "/app/chat", label: t("chat"), icon: MessageSquare },
-    { to: "/knowledge", label: t("knowledge"), icon: BookOpen },
-    { to: "/faq", label: t("faq"), icon: HelpCircle },
-    { to: "/requests", label: t("internalRequests"), icon: Inbox },
+    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen },
+    { to: "/app/faq", label: t("faq"), icon: HelpCircle },
+    { to: "/app/requests", label: t("internalRequests"), icon: Inbox },
   ];
   const adminNav = [
     ...(canAdmin ? [{ to: "/app/admin/dashboard", label: t("adminDashboard"), icon: BarChart3 }] : []),
