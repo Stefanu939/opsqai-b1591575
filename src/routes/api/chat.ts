@@ -239,6 +239,7 @@ export const Route = createFileRoute("/api/chat")({
             if (sims.length) {
               const top = sims.slice(0, 3);
               confidence = top.reduce((a, b) => a + b, 0) / top.length;
+              topSimilarity = sims[0] ?? 0;
             }
           } catch (e) {
             console.error("[chat:retrieval] embed/match failed", e);
