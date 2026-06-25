@@ -368,7 +368,7 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
                   <FileText className="h-3.5 w-3.5" /> Primary source
                 </h3>
-                <DocCard s={primary} badge="Primary" />
+                <DocCard s={primary} isPrimary />
               </div>
             )}
             {supporting.length > 0 && (
