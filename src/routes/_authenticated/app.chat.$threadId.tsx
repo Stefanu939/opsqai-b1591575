@@ -53,6 +53,7 @@ interface MessageMeta {
   confidence?: number;
   minConfidence?: number;
   escalation?: Escalation | null;
+  isKnowledgeGap?: boolean;
 }
 
 type ConfBucket = "high" | "medium" | "low";
