@@ -26,6 +26,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
 import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
 import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
+import { Route as TrustEncryptionRouteImport } from './routes/trust.encryption'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
@@ -131,6 +132,11 @@ const TrustMultiTenantIsolationRoute =
 const TrustGdprRoute = TrustGdprRouteImport.update({
   id: '/gdpr',
   path: '/gdpr',
+  getParentRoute: () => TrustRoute,
+} as any)
+const TrustEncryptionRoute = TrustEncryptionRouteImport.update({
+  id: '/encryption',
+  path: '/encryption',
   getParentRoute: () => TrustRoute,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
@@ -266,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
@@ -304,6 +311,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
@@ -344,6 +352,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
@@ -384,6 +393,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
     | '/trust/security-architecture'
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
     | '/trust/security-architecture'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
     | '/trust/security-architecture'
@@ -615,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/gdpr'
       fullPath: '/trust/gdpr'
       preLoaderRoute: typeof TrustGdprRouteImport
+      parentRoute: typeof TrustRoute
+    }
+    '/trust/encryption': {
+      id: '/trust/encryption'
+      path: '/encryption'
+      fullPath: '/trust/encryption'
+      preLoaderRoute: typeof TrustEncryptionRouteImport
       parentRoute: typeof TrustRoute
     }
     '/legal/terms': {
@@ -826,12 +845,14 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
 )
 
 interface TrustRouteChildren {
+  TrustEncryptionRoute: typeof TrustEncryptionRoute
   TrustGdprRoute: typeof TrustGdprRoute
   TrustMultiTenantIsolationRoute: typeof TrustMultiTenantIsolationRoute
   TrustSecurityArchitectureRoute: typeof TrustSecurityArchitectureRoute
 }
 
 const TrustRouteChildren: TrustRouteChildren = {
+  TrustEncryptionRoute: TrustEncryptionRoute,
   TrustGdprRoute: TrustGdprRoute,
   TrustMultiTenantIsolationRoute: TrustMultiTenantIsolationRoute,
   TrustSecurityArchitectureRoute: TrustSecurityArchitectureRoute,
