@@ -18,7 +18,8 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
     Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType,
   } = await import("docx");
 
-  const children: InstanceType<typeof Paragraph>[] | unknown[] = [];
+  type Child = InstanceType<typeof Paragraph> | InstanceType<typeof Table>;
+  const children: Child[] = [];
 
   children.push(new Paragraph({ text: spec.title, heading: HeadingLevel.TITLE }));
   if (spec.subtitle) {
@@ -57,7 +58,7 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
   const doc = new Document({
     creator: spec.author ?? "OPSQAI",
     title: spec.title,
-    sections: [{ properties: {}, children: children as InstanceType<typeof Paragraph>[] }],
+    sections: [{ properties: {}, children }],
   });
   const buf = await Packer.toBuffer(doc);
   return new Uint8Array(buf);
