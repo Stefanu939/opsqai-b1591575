@@ -150,6 +150,71 @@ function AdminDashboard() {
           )}
         </Card>
       </div>
+
+      {gapStats && (
+        <Card className="p-5 mt-6 border-border/60">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />Knowledge Gaps
+            </h2>
+            <Link to="/app/admin/knowledge-gaps" className="text-xs text-primary hover:underline">Manage →</Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="rounded-lg border border-border/60 p-3">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Open</div>
+              <div className="text-2xl font-semibold tabular-nums mt-1">{gapStats.open}</div>
+            </div>
+            <div className="rounded-lg border border-border/60 p-3">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3" />Resolved (30d)
+              </div>
+              <div className="text-2xl font-semibold tabular-nums mt-1">{gapStats.resolvedThisMonth}</div>
+            </div>
+            <div className="rounded-lg border border-border/60 p-3">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <Gauge className="h-3 w-3" />Avg confidence
+              </div>
+              <div className="text-2xl font-semibold tabular-nums mt-1">
+                {gapStats.avgConfidence ? `${Math.round(gapStats.avgConfidence * 100)}%` : "—"}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border/60 p-3">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Avg resolution</div>
+              <div className="text-2xl font-semibold tabular-nums mt-1">
+                {gapStats.avgResolutionHours ? `${gapStats.avgResolutionHours.toFixed(1)}h` : "—"}
+              </div>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Most requested</div>
+              {gapStats.mostRequested ? (
+                <Link to="/app/admin/knowledge-gaps" className="block text-sm hover:underline truncate">
+                  <span className="font-mono text-xs px-1.5 py-0.5 bg-primary/10 text-primary rounded tabular-nums mr-2">
+                    ×{gapStats.mostRequested.occurrences}
+                  </span>
+                  {gapStats.mostRequested.question_sample}
+                </Link>
+              ) : <p className="text-sm text-muted-foreground">—</p>}
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Top departments</div>
+              {gapStats.topDepartments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">—</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {gapStats.topDepartments.map((d) => (
+                    <li key={d.name} className="flex items-center justify-between text-sm">
+                      <span className="truncate">{d.name}</span>
+                      <span className="font-mono text-xs px-2 py-0.5 bg-primary/10 text-primary rounded tabular-nums">{d.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
