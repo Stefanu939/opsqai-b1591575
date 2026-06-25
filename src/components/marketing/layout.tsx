@@ -94,6 +94,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <ThemeToggle />
             {signedIn ? (
               <Button asChild size="sm"><Link to="/app">Open app</Link></Button>
             ) : (
