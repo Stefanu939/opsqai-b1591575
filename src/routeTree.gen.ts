@@ -24,6 +24,7 @@ import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
+import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsible-ai'
 import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
 import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
 import { Route as TrustEncryptionRouteImport } from './routes/trust.encryption'
@@ -124,6 +125,11 @@ const TrustSecurityArchitectureRoute =
     path: '/security-architecture',
     getParentRoute: () => TrustRoute,
   } as any)
+const TrustResponsibleAiRoute = TrustResponsibleAiRouteImport.update({
+  id: '/responsible-ai',
+  path: '/responsible-ai',
+  getParentRoute: () => TrustRoute,
+} as any)
 const TrustMultiTenantIsolationRoute =
   TrustMultiTenantIsolationRouteImport.update({
     id: '/multi-tenant-isolation',
@@ -282,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
+  '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -322,6 +329,7 @@ export interface FileRoutesByTo {
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
+  '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -364,6 +372,7 @@ export interface FileRoutesById {
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
+  '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -406,6 +415,7 @@ export interface FileRouteTypes {
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
+    | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/app/faq'
     | '/app/knowledge'
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
+    | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/app/faq'
     | '/app/knowledge'
@@ -487,6 +498,7 @@ export interface FileRouteTypes {
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/multi-tenant-isolation'
+    | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/knowledge'
@@ -625,6 +637,13 @@ declare module '@tanstack/react-router' {
       path: '/security-architecture'
       fullPath: '/trust/security-architecture'
       preLoaderRoute: typeof TrustSecurityArchitectureRouteImport
+      parentRoute: typeof TrustRoute
+    }
+    '/trust/responsible-ai': {
+      id: '/trust/responsible-ai'
+      path: '/responsible-ai'
+      fullPath: '/trust/responsible-ai'
+      preLoaderRoute: typeof TrustResponsibleAiRouteImport
       parentRoute: typeof TrustRoute
     }
     '/trust/multi-tenant-isolation': {
@@ -868,6 +887,7 @@ interface TrustRouteChildren {
   TrustEncryptionRoute: typeof TrustEncryptionRoute
   TrustGdprRoute: typeof TrustGdprRoute
   TrustMultiTenantIsolationRoute: typeof TrustMultiTenantIsolationRoute
+  TrustResponsibleAiRoute: typeof TrustResponsibleAiRoute
   TrustSecurityArchitectureRoute: typeof TrustSecurityArchitectureRoute
 }
 
@@ -876,6 +896,7 @@ const TrustRouteChildren: TrustRouteChildren = {
   TrustEncryptionRoute: TrustEncryptionRoute,
   TrustGdprRoute: TrustGdprRoute,
   TrustMultiTenantIsolationRoute: TrustMultiTenantIsolationRoute,
+  TrustResponsibleAiRoute: TrustResponsibleAiRoute,
   TrustSecurityArchitectureRoute: TrustSecurityArchitectureRoute,
 }
 
