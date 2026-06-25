@@ -8,7 +8,7 @@ import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { Users, UserCheck, BookOpen, HelpCircle, MessageSquare, TrendingUp, Building2 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/admin/dashboard")({
+export const Route = createFileRoute("/_authenticated/app/admin/dashboard")({
   component: AdminDashboard,
 });
 

@@ -33,7 +33,7 @@ interface MessageMeta {
   question?: string;
 }
 
-export const Route = createFileRoute("/_authenticated/chat/$threadId")({
+export const Route = createFileRoute("/_authenticated/app/chat/$threadId")({
   validateSearch: (s: Record<string, unknown>) => z.object({ q: z.string().optional() }).parse(s),
   component: ChatThread,
 });

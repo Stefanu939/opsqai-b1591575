@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Building2, Users, FileText, MessageSquare, Power, Trash2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/companies")({
+export const Route = createFileRoute("/_authenticated/app/admin/companies")({
   component: CompaniesPage,
 });
 

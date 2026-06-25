@@ -15,7 +15,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { upsertFaq, deleteFaq } from "@/lib/faqs.functions";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/faq")({
+export const Route = createFileRoute("/_authenticated/app/faq")({
   head: () => ({
     meta: [
       { title: "FAQs — OPSQAI" },

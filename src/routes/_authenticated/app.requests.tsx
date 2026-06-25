@@ -20,7 +20,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Inbox, BookOpenCheck, FileText, MessageSquare, Check } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/requests")({
+export const Route = createFileRoute("/_authenticated/app/requests")({
   component: RequestsPage,
 });
 

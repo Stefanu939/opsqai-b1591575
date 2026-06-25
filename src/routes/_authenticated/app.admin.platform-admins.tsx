@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { ShieldCheck, UserMinus, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/platform-admins")({
+export const Route = createFileRoute("/_authenticated/app/admin/platform-admins")({
   component: PlatformAdminsPage,
 });
 

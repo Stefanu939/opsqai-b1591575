@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
 
-export const Route = createFileRoute("/_authenticated/admin/audit")({
+export const Route = createFileRoute("/_authenticated/app/admin/audit")({
   component: AuditPage,
 });
 

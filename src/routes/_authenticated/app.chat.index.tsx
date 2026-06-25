@@ -11,7 +11,7 @@ import { MessageSquare, Trash2 } from "lucide-react";
 import { deleteThread } from "@/lib/threads.functions";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/chat/")({
+export const Route = createFileRoute("/_authenticated/app/chat/")({
   component: ChatIndex,
 });
 

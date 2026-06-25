@@ -20,7 +20,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { UserPlus, Mail, Trash2, KeyRound, Pencil } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/admin/users")({
+export const Route = createFileRoute("/_authenticated/app/admin/users")({
   component: AdminUsers,
 });
 
