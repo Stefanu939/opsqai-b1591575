@@ -126,7 +126,7 @@ function TrustPage() {
       <section className="mx-auto max-w-4xl px-4 pb-20">
         <h2 className="text-2xl font-semibold tracking-tight">Reporting a vulnerability</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          We welcome reports from security researchers. Please email <a href="mailto:security@opsqai.eu" className="underline">security@opsqai.eu</a> with a description, reproduction steps and your contact details. We will acknowledge within 2 business days.
+          We welcome reports from security researchers. Please email <a href="mailto:notify@opsqai.de" className="underline">notify@opsqai.de</a> with a description, reproduction steps and your contact details. We will acknowledge within 2 business days.
         </p>
         <div className="mt-8 grid gap-3 md:grid-cols-2 text-sm">
           <Link to="/legal/privacy" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Privacy Policy →</Link>

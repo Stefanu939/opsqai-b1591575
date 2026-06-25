@@ -8,7 +8,7 @@ export const Route = createFileRoute("/legal/impressum")({
       <p>Information in accordance with § 5 TMG.</p>
 
       <h2>Operator</h2>
-      <p>OPSQAI<br />Contact: hello@opsqai.eu<br />Web: https://opsqai.eu</p>
+      <p>OPSQAI<br />Contact: notify@opsqai.de<br />Web: https://opsqai.eu</p>
 
       <h2>Responsible for content</h2>
       <p>The operator named above, in accordance with § 55 (2) RStV.</p>

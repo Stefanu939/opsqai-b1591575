@@ -29,7 +29,7 @@ function ContactPage() {
     const body = encodeURIComponent(
       `Name: ${data.get("name")}\nEmail: ${data.get("email")}\nCompany: ${data.get("company")}\n\nMessage:\n${data.get("message")}`,
     );
-    window.location.href = `mailto:hello@opsqai.eu?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:notify@opsqai.de?subject=${subject}&body=${body}`;
     setSent(true);
     toast.success("Your email client is opening — send the prefilled message and we'll reply within 1 business day.");
   };
@@ -76,8 +76,8 @@ function ContactPage() {
           <div className="space-y-4">
             <Card className="p-5">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">Email</div>
-              <a href="mailto:hello@opsqai.eu" className="mt-2 flex items-center gap-2 font-medium hover:underline">
-                <Mail className="h-4 w-4" /> hello@opsqai.eu
+              <a href="mailto:notify@opsqai.de" className="mt-2 flex items-center gap-2 font-medium hover:underline">
+                <Mail className="h-4 w-4" /> notify@opsqai.de
               </a>
             </Card>
             <Card className="p-5">

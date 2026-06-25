@@ -26,7 +26,7 @@ export function TrustTopic({ eyebrow = "Trust Center", title, intro, children }:
         </div>
         <div className="mt-6 flex flex-wrap gap-2 text-sm">
           <Link to="/trust" className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-muted/40">← Back to Trust Center</Link>
-          <Link to="/contact" className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-muted/40">Contact security@opsqai.eu</Link>
+          <Link to="/contact" className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-muted/40">Contact notify@opsqai.de</Link>
         </div>
       </section>
     </MarketingLayout>

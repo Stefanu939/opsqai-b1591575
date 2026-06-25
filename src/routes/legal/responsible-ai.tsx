@@ -23,7 +23,7 @@ export const Route = createFileRoute("/legal/responsible-ai")({
       <p>OPSQAI is a decision-support tool. Customers must review AI output before acting on it in safety-critical contexts (forklift operation, hazardous goods, emergency procedures).</p>
 
       <h2>Bias & language</h2>
-      <p>OPSQAI supports English, German and Romanian. Outputs in any language are translated from the same underlying sources to keep meaning consistent. We monitor for translation drift and welcome reports at quality@opsqai.eu.</p>
+      <p>OPSQAI supports English, German and Romanian. Outputs in any language are translated from the same underlying sources to keep meaning consistent. We monitor for translation drift and welcome reports at notify@opsqai.de.</p>
     </>
   ),
 });

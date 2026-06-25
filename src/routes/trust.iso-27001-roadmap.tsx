@@ -33,7 +33,7 @@ export const Route = createFileRoute("/trust/iso-27001-roadmap")({
       <h2>Target timeline</h2>
       <p>OPSQAI is planning a Stage 1 readiness review in 2026 with an accredited auditor, targeting Stage 2 within the following 6–9 months. Dates depend on customer demand and will be updated here as they firm up.</p>
       <h2>Customer information requests</h2>
-      <p>Until certification, OPSQAI responds to security questionnaires using the public Trust Center as the source of record. For specific controls not covered here, email <a href="mailto:security@opsqai.eu">security@opsqai.eu</a>.</p>
+      <p>Until certification, OPSQAI responds to security questionnaires using the public Trust Center as the source of record. For specific controls not covered here, email <a href="mailto:notify@opsqai.de">notify@opsqai.de</a>.</p>
     </TrustTopic>
   ),
 });
