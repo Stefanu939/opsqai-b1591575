@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrustRouteImport } from './routes/trust'
+import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductRouteImport } from './routes/product'
@@ -58,6 +59,11 @@ import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authen
 const TrustRoute = TrustRouteImport.update({
   id: '/trust',
   path: '/trust',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsRoute = SolutionsRouteImport.update({
+  id: '/solutions',
+  path: '/solutions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
@@ -350,6 +357,7 @@ export interface FileRoutesByTo {
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
@@ -398,6 +406,7 @@ export interface FileRoutesById {
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/solutions'
     | '/trust'
     | '/app'
     | '/api/chat'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/solutions'
     | '/trust'
     | '/app'
     | '/api/chat'
@@ -539,6 +550,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/solutions'
     | '/trust'
     | '/_authenticated/app'
     | '/api/chat'
@@ -587,6 +599,7 @@ export interface RootRouteChildren {
   ProductRoute: typeof ProductRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SolutionsRoute: typeof SolutionsRoute
   TrustRoute: typeof TrustRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
@@ -599,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/trust'
       fullPath: '/trust'
       preLoaderRoute: typeof TrustRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions': {
+      id: '/solutions'
+      path: '/solutions'
+      fullPath: '/solutions'
+      preLoaderRoute: typeof SolutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1021,6 +1041,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductRoute: ProductRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SolutionsRoute: SolutionsRoute,
   TrustRoute: TrustRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
