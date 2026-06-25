@@ -8,11 +8,14 @@ import logo from "@/assets/opsqai-mark.png";
 const NAV = [
   { to: "/product", label: "Product" },
   { to: "/features", label: "Features" },
+  { to: "/solutions", label: "Solutions" },
+  { to: "/industries", label: "Industries" },
   { to: "/pricing", label: "Pricing" },
   { to: "/trust", label: "Trust" },
   { to: "/demo", label: "Demo" },
   { to: "/contact", label: "Contact" },
 ] as const;
+
 
 export function MarketingLayout({ children }: { children: ReactNode }) {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
@@ -45,7 +48,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
           </nav>
           <div className="hidden md:flex items-center gap-2">
             {signedIn ? (
-              <Button asChild size="sm"><Link to="/dashboard">Open app</Link></Button>
+              <Button asChild size="sm"><Link to="/app">Open app</Link></Button>
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm"><Link to="/auth">Sign in</Link></Button>
@@ -67,7 +70,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
               ))}
               <div className="pt-3 mt-2 border-t border-border/60 flex gap-2">
                 {signedIn ? (
-                  <Button asChild size="sm" className="flex-1"><Link to="/dashboard">Open app</Link></Button>
+                  <Button asChild size="sm" className="flex-1"><Link to="/app">Open app</Link></Button>
                 ) : (
                   <>
                     <Button asChild variant="outline" size="sm" className="flex-1"><Link to="/auth">Sign in</Link></Button>
@@ -98,10 +101,13 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
             <ul className="space-y-1.5 text-muted-foreground">
               <li><Link to="/product" className="hover:text-foreground">Overview</Link></li>
               <li><Link to="/features" className="hover:text-foreground">Features</Link></li>
+              <li><Link to="/solutions" className="hover:text-foreground">Solutions</Link></li>
+              <li><Link to="/industries" className="hover:text-foreground">Industries</Link></li>
               <li><Link to="/pricing" className="hover:text-foreground">Pricing</Link></li>
               <li><Link to="/demo" className="hover:text-foreground">Live demo</Link></li>
             </ul>
           </div>
+
           <div>
             <div className="font-medium mb-2">Company</div>
             <ul className="space-y-1.5 text-muted-foreground">

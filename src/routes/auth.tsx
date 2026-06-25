@@ -23,7 +23,7 @@ export const Route = createFileRoute("/auth")({
   }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/dashboard" });
+    if (data.session) throw redirect({ to: "/app" });
   },
   component: AuthPage,
 });
@@ -37,7 +37,7 @@ function AuthPage() {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s) navigate({ to: "/dashboard" });
+      if (s) navigate({ to: "/app" });
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);

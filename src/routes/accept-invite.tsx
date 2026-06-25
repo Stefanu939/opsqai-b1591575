@@ -78,7 +78,7 @@ function AcceptInvitePage() {
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Password set. Welcome to OPSQAI.");
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/app" });
   };
 
   return (

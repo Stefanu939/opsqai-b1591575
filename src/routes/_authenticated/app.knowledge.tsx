@@ -17,7 +17,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { processDocument, deleteKnowledgeDocument, reprocessDocument } from "@/lib/kb.functions";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/knowledge")({
+export const Route = createFileRoute("/_authenticated/app/knowledge")({
   head: () => ({
     meta: [
       { title: "Knowledge Base — OPSQAI" },

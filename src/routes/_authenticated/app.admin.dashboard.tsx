@@ -8,7 +8,7 @@ import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { Users, UserCheck, BookOpen, HelpCircle, MessageSquare, TrendingUp, Building2 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/admin/dashboard")({
+export const Route = createFileRoute("/_authenticated/app/admin/dashboard")({
   component: AdminDashboard,
 });
 
@@ -77,7 +77,7 @@ function AdminDashboard() {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
               <Building2 className="h-4 w-4" />Company health (last 30 days)
             </h2>
-            <Link to="/admin/companies" className="text-xs text-primary hover:underline">Manage →</Link>
+            <Link to="/app/admin/companies" className="text-xs text-primary hover:underline">Manage →</Link>
           </div>
           <div className="overflow-x-auto -mx-2">
             <table className="w-full text-sm">

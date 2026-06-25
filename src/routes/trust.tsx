@@ -101,6 +101,28 @@ function TrustPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <h2 className="text-2xl font-semibold tracking-tight">Trust topics</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Detailed write-ups on the controls behind OPSQAI.</p>
+        <div className="mt-5 grid gap-2 md:grid-cols-2 lg:grid-cols-3 text-sm">
+          {[
+            { to: "/trust/gdpr", label: "GDPR" },
+            { to: "/trust/security-architecture", label: "Security Architecture" },
+            { to: "/trust/multi-tenant-isolation", label: "Multi-Tenant Isolation" },
+            { to: "/trust/encryption", label: "Encryption" },
+            { to: "/trust/audit-logs", label: "Audit Logs" },
+            { to: "/trust/responsible-ai", label: "Responsible AI" },
+            { to: "/trust/data-retention", label: "Data Retention" },
+            { to: "/trust/incident-response", label: "Incident Response" },
+            { to: "/trust/backup-policy", label: "Backup Policy" },
+            { to: "/trust/availability", label: "Availability" },
+            { to: "/trust/iso-27001-roadmap", label: "ISO 27001 Roadmap" },
+          ].map((t) => (
+            <Link key={t.to} to={t.to} className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">{t.label} →</Link>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-4xl px-4 pb-20">
         <h2 className="text-2xl font-semibold tracking-tight">Reporting a vulnerability</h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -111,6 +133,7 @@ function TrustPage() {
           <Link to="/legal/dpa" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Data Processing Agreement →</Link>
           <Link to="/legal/responsible-ai" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Responsible AI →</Link>
           <Link to="/legal/terms" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Terms of Service →</Link>
+
         </div>
       </section>
     </MarketingLayout>

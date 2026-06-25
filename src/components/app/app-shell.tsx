@@ -29,21 +29,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [isPlatformAdmin]);
 
   const nav = [
-    { to: "/dashboard", label: t("dashboard"), icon: LayoutDashboard, exact: true },
-    { to: "/chat", label: t("chat"), icon: MessageSquare },
-    { to: "/knowledge", label: t("knowledge"), icon: BookOpen },
-    { to: "/faq", label: t("faq"), icon: HelpCircle },
-    { to: "/requests", label: t("internalRequests"), icon: Inbox },
+    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true },
+    { to: "/app/chat", label: t("chat"), icon: MessageSquare },
+    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen },
+    { to: "/app/faq", label: t("faq"), icon: HelpCircle },
+    { to: "/app/requests", label: t("internalRequests"), icon: Inbox },
   ];
   const adminNav = [
-    ...(canAdmin ? [{ to: "/admin/dashboard", label: t("adminDashboard"), icon: BarChart3 }] : []),
-    ...((isAdmin || isPlatformAdmin) ? [{ to: "/admin/users", label: t("users"), icon: Users }] : []),
-    ...(canAdmin ? [{ to: "/admin/audit", label: t("auditLog"), icon: ScrollText }] : []),
+    ...(canAdmin ? [{ to: "/app/admin/dashboard", label: t("adminDashboard"), icon: BarChart3 }] : []),
+    ...((isAdmin || isPlatformAdmin) ? [{ to: "/app/admin/users", label: t("users"), icon: Users }] : []),
+    ...(canAdmin ? [{ to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText }] : []),
   ];
   const platformNav = isPlatformAdmin
     ? [
-        { to: "/admin/companies", label: "Companies", icon: Building2 },
-        { to: "/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
+        { to: "/app/admin/companies", label: "Companies", icon: Building2 },
+        { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
       ]
     : [];
 
@@ -157,7 +157,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="truncate">{user?.email}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => { navigate({ to: "/profile" }); onNavigate?.(); }}>
+            <DropdownMenuItem onClick={() => { navigate({ to: "/app/profile" }); onNavigate?.(); }}>
               <UserCircle className="h-4 w-4 mr-2" />{t("myProfile")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">

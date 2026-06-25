@@ -1,14 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /app
 Disallow: /api/
-Disallow: /dashboard
-Disallow: /chat
-Disallow: /knowledge
-Disallow: /faq
-Disallow: /requests
-Disallow: /profile
-Disallow: /admin/
 Disallow: /accept-invite
 Disallow: /reset-password
+Disallow: /forgot-password
 
 Sitemap: https://opsqai.eu/sitemap.xml
