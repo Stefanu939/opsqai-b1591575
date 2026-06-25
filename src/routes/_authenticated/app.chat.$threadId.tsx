@@ -55,6 +55,34 @@ interface MessageMeta {
   escalation?: Escalation | null;
 }
 
+type ConfBucket = "high" | "medium" | "low";
+function bucketConfidence(n: number | undefined | null): ConfBucket {
+  const v = typeof n === "number" ? n : 0;
+  if (v >= 0.5) return "high";
+  if (v >= 0.3) return "medium";
+  return "low";
+}
+function confLabel(b: ConfBucket): string {
+  return b === "high" ? "High" : b === "medium" ? "Medium" : "Low";
+}
+function confClasses(b: ConfBucket): string {
+  if (b === "high") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+  if (b === "medium") return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+  return "bg-muted text-muted-foreground border-border";
+}
+// Show a relevance % that rewards a clear primary match while staying truthful for supporting ones.
+function displayRelevance(sim: number | undefined, isPrimary: boolean): number {
+  const s = typeof sim === "number" ? sim : 0;
+  if (isPrimary && s >= 0.3) return Math.min(100, Math.round(50 + s * 80));
+  return Math.max(0, Math.min(100, Math.round(s * 100)));
+}
+// Strip any "Sources:" / "Quellen:" / "Surse:" trailing block the LLM emits — UI renders sources separately.
+function stripSourcesBlock(text: string): string {
+  if (!text) return text;
+  const re = /\n+\s*(?:\*\*|__)?\s*(?:Sources|Quellen|Surse)\s*:?\s*(?:\*\*|__)?[\s\S]*$/i;
+  return text.replace(re, "").trimEnd();
+}
+
 export const Route = createFileRoute("/_authenticated/app/chat/$threadId")({
   validateSearch: (s: Record<string, unknown>) => z.object({ q: z.string().optional() }).parse(s),
   component: ChatThread,
