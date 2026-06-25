@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-const BASE_URL = "https://opsqai.lovable.app";
+const BASE_URL = "https://opsqai.eu";
 
 interface SitemapEntry {
   path: string;
@@ -15,7 +15,19 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: async () => {
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/auth", changefreq: "monthly", priority: "0.5" },
+          { path: "/product", changefreq: "monthly", priority: "0.8" },
+          { path: "/features", changefreq: "monthly", priority: "0.8" },
+          { path: "/pricing", changefreq: "monthly", priority: "0.8" },
+          { path: "/trust", changefreq: "monthly", priority: "0.7" },
+          { path: "/contact", changefreq: "monthly", priority: "0.6" },
+          { path: "/demo", changefreq: "monthly", priority: "0.6" },
+          { path: "/legal/privacy", changefreq: "yearly", priority: "0.3" },
+          { path: "/legal/cookies", changefreq: "yearly", priority: "0.3" },
+          { path: "/legal/terms", changefreq: "yearly", priority: "0.3" },
+          { path: "/legal/dpa", changefreq: "yearly", priority: "0.3" },
+          { path: "/legal/responsible-ai", changefreq: "yearly", priority: "0.3" },
+          { path: "/legal/impressum", changefreq: "yearly", priority: "0.3" },
+          { path: "/auth", changefreq: "monthly", priority: "0.4" },
         ];
 
         const urls = entries.map((e) =>

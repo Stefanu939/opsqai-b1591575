@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /knowledge
+Disallow: /faq
+Disallow: /requests
+Disallow: /profile
+Disallow: /admin/
+Disallow: /accept-invite
+Disallow: /reset-password
 
-Sitemap: https://opsqai.lovable.app/sitemap.xml
+Sitemap: https://opsqai.eu/sitemap.xml

@@ -1,0 +1,118 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { MarketingLayout } from "@/components/marketing/layout";
+import { Card } from "@/components/ui/card";
+import { ShieldCheck, Lock, FileCheck, Server, Eye, Users, AlertCircle } from "lucide-react";
+
+export const Route = createFileRoute("/trust")({
+  head: () => ({
+    meta: [
+      { title: "Trust Center — OPSQAI" },
+      { name: "description", content: "How OPSQAI protects customer data: multi-tenant isolation, encryption, audit logs, GDPR, responsible AI and incident response." },
+      { property: "og:title", content: "Trust Center — OPSQAI" },
+      { property: "og:description", content: "Security, privacy and compliance posture for OPSQAI." },
+    ],
+  }),
+  component: TrustPage,
+});
+
+const SECTIONS = [
+  {
+    icon: Lock,
+    title: "Encryption",
+    body: "Data is encrypted in transit (TLS 1.2+) and at rest. Database backups are encrypted. Application secrets are stored in managed key storage and never committed to source.",
+  },
+  {
+    icon: Users,
+    title: "Multi-tenant isolation",
+    body: "Every record in OPSQAI carries a company_id. PostgreSQL row-level security policies enforce that authenticated users see only data for their own company. A separate platform super-admin role exists for our internal operations.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Role-based access",
+    body: "Roles are stored separately from user profiles. Admin, manager, team leader and employee permissions are enforced both at the API layer and in the database. Privilege escalation is blocked by a restrictive INSERT policy on user_roles.",
+  },
+  {
+    icon: Eye,
+    title: "Audit logs",
+    body: "Questions asked, sources used, document uploads, role changes and admin actions are recorded in an append-only audit log scoped to each tenant. Admins can review activity for their own company.",
+  },
+  {
+    icon: FileCheck,
+    title: "GDPR posture",
+    body: "OPSQAI is operated from the EU. Customer data is hosted in EU regions. Customers can request export or deletion of their tenant data; we support data portability and the right to be forgotten. A DPA is available on request.",
+  },
+  {
+    icon: Server,
+    title: "Infrastructure",
+    body: "OPSQAI runs on managed cloud infrastructure with automatic backups, region failover and DDoS protection. Production access is restricted to a small operations team using MFA.",
+  },
+  {
+    icon: AlertCircle,
+    title: "Responsible AI",
+    body: "OPSQAI answers strictly from retrieved customer documents. When no source matches, the model returns a refusal — never a guess. Customer documents and questions are not used to train third-party foundation models.",
+  },
+];
+
+const SUBPROCESSORS = [
+  { name: "Lovable Cloud (Supabase)", role: "Application database, authentication, storage, edge functions", region: "EU" },
+  { name: "Cloudflare", role: "Edge runtime, DNS, DDoS protection", region: "Global with EU termination" },
+  { name: "AI model providers (via Lovable AI Gateway)", role: "LLM inference and embeddings", region: "EU / US (no training on customer data)" },
+];
+
+function TrustPage() {
+  return (
+    <MarketingLayout>
+      <section className="mx-auto max-w-4xl px-4 py-16 md:py-24">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">Trust Center</p>
+        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">Security, privacy & responsible AI.</h1>
+        <p className="mt-5 text-lg text-muted-foreground">
+          This page is maintained by OPSQAI to summarize how we protect customer data, isolate tenants and operate the platform responsibly. It is informational and is not a substitute for independent certification.
+        </p>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="grid gap-4 md:grid-cols-2">
+          {SECTIONS.map((s) => (
+            <Card key={s.title} className="p-6 border-border/60">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 grid place-items-center text-primary">
+                <s.icon className="h-5 w-5" />
+              </div>
+              <h2 className="mt-4 font-semibold">{s.title}</h2>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.body}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <h2 className="text-2xl font-semibold tracking-tight">Subprocessors</h2>
+        <p className="mt-2 text-sm text-muted-foreground">OPSQAI engages the following subprocessors to operate the service. Customers are notified of material changes.</p>
+        <div className="mt-5 overflow-hidden rounded-lg border border-border/60">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+              <tr><th className="text-left p-3">Subprocessor</th><th className="text-left p-3">Role</th><th className="text-left p-3">Region</th></tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {SUBPROCESSORS.map((s) => (
+                <tr key={s.name}><td className="p-3 font-medium">{s.name}</td><td className="p-3 text-muted-foreground">{s.role}</td><td className="p-3 text-muted-foreground">{s.region}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-4xl px-4 pb-20">
+        <h2 className="text-2xl font-semibold tracking-tight">Reporting a vulnerability</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We welcome reports from security researchers. Please email <a href="mailto:security@opsqai.eu" className="underline">security@opsqai.eu</a> with a description, reproduction steps and your contact details. We will acknowledge within 2 business days.
+        </p>
+        <div className="mt-8 grid gap-3 md:grid-cols-2 text-sm">
+          <Link to="/legal/privacy" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Privacy Policy →</Link>
+          <Link to="/legal/dpa" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Data Processing Agreement →</Link>
+          <Link to="/legal/responsible-ai" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Responsible AI →</Link>
+          <Link to="/legal/terms" className="rounded-md border border-border/60 px-4 py-3 hover:bg-muted/40">Terms of Service →</Link>
+        </div>
+      </section>
+    </MarketingLayout>
+  );
+}

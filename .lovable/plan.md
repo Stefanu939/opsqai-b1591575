@@ -1,70 +1,91 @@
-# LogiAssist — AI Assistant for Logistics & Warehouse Operations
+# Sprint 1 – Enterprise Launch Foundation
 
-A bilingual (DE/EN) professional web app where warehouse and logistics employees can chat with an AI assistant trained on internal procedures, with a knowledge base, FAQ management, and admin user controls.
+Five focused workstreams. All non-destructive; existing authenticated app keeps working.
 
-## Design Direction
+## 1. Remove Google Authentication
 
-**Visual language:** Industrial-professional. Crisp white surfaces, deep navy primary (`oklch(0.30 0.08 250)`), warm signal-amber accent (`oklch(0.78 0.16 75)`) for active/CTA states, slate neutrals. Subtle 1px hairline borders, generous whitespace, rounded-md (not pill). Inspired by Linear + DHL/Maersk operational dashboards.
+- Strip "Continue with Google" button and divider from `src/routes/auth.tsx`.
+- Remove `lovable` import there. (Leave `src/integrations/lovable/` directory untouched — it's auto-generated; nothing else imports it after this change.)
+- Call `supabase--configure_social_auth` with `disable_providers: ["google"]`, keeping email enabled.
+- Add **Forgot password** link on `/auth` → new `/forgot-password` page calling `supabase.auth.resetPasswordForEmail` with `redirectTo: ${origin}/reset-password`.
+- New public `/reset-password` page that handles `type=recovery` and calls `supabase.auth.updateUser({ password })`.
 
-**Typography:** Inter (UI) + JetBrains Mono (numbers, IDs, CMR refs).
+## 2. Route restructuring (marketing vs app)
 
-**Layout:** Persistent left sidebar (collapsible on mobile → bottom sheet). Top bar with language toggle, user menu. Content area max-w-screen.
+Current `/` is the authenticated dashboard. To host public marketing on `opsqai.eu/` we move the dashboard:
 
-## Features
+```text
+BEFORE                          AFTER
+/                  (dashboard)  /                  (public marketing home)
+/auth              (login)      /auth              (login, no Google)
+                                /product, /features, /pricing,
+                                /contact, /trust, /demo
+                                /legal/impressum, /legal/privacy,
+                                /legal/cookies, /legal/terms,
+                                /legal/responsible-ai, /legal/dpa
+                                /forgot-password, /reset-password
+/_authenticated/* (app pages)   /app, /app/chat, /app/knowledge, … (all under _authenticated)
+```
 
-### Pages / Routes
-- `/auth` — Email+password + Google sign-in
-- `/` (dashboard) — KPI cards (conversations today, KB docs, FAQs, active users for admins), recent threads, quick-start prompts in 8 logistics categories
-- `/chat/$threadId` — AI chat with streaming, thread sidebar, new-thread button
-- `/knowledge` — Upload/list documents (PDF, DOCX, TXT), categorize, delete (admins upload; everyone reads)
-- `/faq` — Searchable FAQ list, admins can create/edit/delete
-- `/admin/users` — Admin-only: list users, assign roles (admin/employee), deactivate
+- Rename `src/routes/_authenticated/index.tsx` → `_authenticated/dashboard.tsx` (path `/dashboard`).
+- Add new redirect file `src/routes/app.tsx` → `/dashboard` so `/app` is a stable app entry.
+- Marketing `/` detects session and shows "Go to dashboard" instead of "Sign in" for logged-in users (no forced redirect — better UX for sharing).
+- `/auth` post-login redirect changes from `/` to `/dashboard`.
+- App shell logo/home links updated from `/` to `/dashboard`.
 
-### AI Assistant
-- Lovable AI Gateway → `google/gemini-3-flash-preview` (streaming via AI SDK)
-- System prompt scoped to logistics topics (Wareneingang, Warenausgang, loading/unloading, CMR, processes, transport planning, safety, internal procedures), bilingual responses matching user's language
-- Context injection: top-matching FAQ entries + knowledge-base document excerpts (simple keyword match for v1; embeddings later)
-- AI Elements for chat UI (Conversation, Message, PromptInput, Response)
+## 3. Marketing site (new public routes)
 
-### Backend (Lovable Cloud)
-**Tables:**
-- `profiles` (id→auth.users, full_name, department, language_pref, created_at)
-- `user_roles` (id, user_id, role enum: admin|employee) + `has_role()` security-definer fn
-- `threads` (id, user_id, title, created_at, updated_at)
-- `messages` (id uuid, thread_id, role, content, parts jsonb, created_at)
-- `knowledge_documents` (id, title, category, file_path, content_text, uploaded_by, created_at)
-- `faqs` (id, question_de, question_en, answer_de, answer_en, category, created_at)
+All under a shared `MarketingLayout` component (sticky header + footer, no auth chrome) reusing existing design tokens, shadcn components, and the OPSQAI logo. Each route gets its own `head()` with unique title/description/og.
 
-**Storage:** `knowledge-docs` bucket (private, admins write, authenticated read)
+Pages:
+- `/` Home — hero, value props, logo wall placeholder, CTAs (Book a Demo / Try Demo / Sign in)
+- `/product` — what OPSQAI is, screenshots placeholder, architecture overview
+- `/features` — feature grid (SOP mgmt, RAG, multilingual, audit, RBAC, analytics roadmap)
+- `/pricing` — Starter / Business / Enterprise tiers, all "Contact Sales" for now
+- `/contact` — contact form (sends via existing email infra to a configurable inbox) + email/address
+- `/trust` — Trust Center: encryption, RLS isolation, GDPR, audit logs, subprocessors list, infra, AI transparency
+- `/demo` — public demo assistant (see §5)
 
-**RLS:** Users see their own threads/messages/profile; everyone authenticated reads FAQs/KB; admins manage FAQs/KB/users via `has_role(auth.uid(),'admin')`.
+## 4. Legal & compliance pages
 
-**Server functions:**
-- `streamChat` server route `/api/chat` — auth, loads thread, retrieves FAQ/KB context, streams via AI SDK, persists messages in `onFinish`
-- `createThread`, `deleteThread`, `listThreads`
-- `uploadDocument`, `listDocuments`, `deleteDocument`
-- FAQ CRUD
-- User admin: list users, set role
+`/legal/<slug>` routes with placeholder copy clearly marked "Draft – pending legal review":
+- impressum, privacy, cookies, terms, responsible-ai, dpa
 
-### Auth
-- Email/password + Google OAuth (via Lovable broker)
-- First registered user auto-promoted to admin (via trigger); subsequent users default to `employee`
-- Profile auto-created on signup via trigger
+Footer links to all of them. Trust Center cross-links here.
 
-### i18n
-Lightweight in-memory dictionary (`src/i18n/`) + `LanguageProvider` reading `profiles.language_pref`, toggle in topbar.
+## 5. Public Demo Assistant (`/demo`)
 
-### Mobile
-Sidebar → Sheet on `<md`. Chat composer sticky bottom. Touch-friendly 44px targets.
+- Reuses the existing chat UI components (extracted minimal version — no thread sidebar).
+- New server route `src/routes/api/demo-chat.ts` mirroring `/api/chat` but:
+  - No auth required.
+  - Uses a hard-coded `DEMO_COMPANY_ID` constant (a new dedicated company seeded via migration with sample SOPs/FAQs about generic logistics — created in Sprint 2 follow-up; for now the route runs without KB grounding and shows demo answers with a banner).
+  - Rate limit: in-memory per-IP token bucket (10 msgs / 10 min), plus a 50-char max input check and 8-message conversation cap.
+- Prominent banner: "Demo environment — does not access customer data."
+- After 3 exchanges, an inline CTA card: Book a Demo / Start Free Trial / Contact Sales.
 
-## Technical Notes
-- TanStack Start file-based routes, `_authenticated/` gate
-- AI SDK + `@ai-sdk/react` `useChat` with `DefaultChatTransport` keyed by threadId
-- AI Elements installed via `bunx ai-elements@latest add conversation message prompt-input shimmer`
-- shadcn for forms/tables/dialogs
-- Generated logo (warehouse/route metaphor, not Sparkles)
+## 6. PWA (production-ready)
 
-## Out of scope for v1
-Vector embeddings (keyword retrieval first), document OCR, voice input, SSO/SAML, multi-tenant.
+- `bun add -D vite-plugin-pwa` and wire it in `vite.config.ts` with `registerType: "autoUpdate"`, `injectRegister: null`, `devOptions: { enabled: false }`.
+- Generated SW at `/sw.js`. NetworkFirst for navigations, CacheFirst for hashed assets, exclude `/~oauth` and `/api/*`.
+- New `src/lib/register-sw.ts` wrapper that refuses to register in dev, preview iframes, Lovable preview hostnames, or with `?sw=off`; also unregisters on those.
+- Call the wrapper from `src/start.ts`.
+- Manifest already present; verify `start_url: "/dashboard"` for installed-app launch into the app (root marketing is fine via Add-to-Home, but installed app should open into the workspace if signed in).
+- Generated 192/512 icons + maskable variants if missing.
+- Install prompt: small "Install app" button in the authenticated app shell when `beforeinstallprompt` fires.
 
-Ready to build?
+## Technical notes
+
+- **Backward compatibility**: the dashboard URL changes from `/` to `/dashboard`. The post-login redirect, app shell, and any in-app `<Link to="/">` are updated in the same edit. Bookmarks to `/` now land on marketing, which shows a "Go to dashboard" button for signed-in users.
+- **No DB schema changes** this sprint — except an optional `demo` company row (deferred until demo KB content exists).
+- **No edits** to `src/integrations/supabase/*` (auto-generated) or `src/routeTree.gen.ts`.
+- **Existing AI features**, RAG pipeline, thread/messages tables, invite flow — untouched.
+- **i18n**: marketing pages use English only for v1 (DE/RO added in Sprint 1.1 once copy is finalized).
+- **`og:image`**: only on leaf routes; reuses the existing OPSQAI mark for now.
+- Estimated diff: ~25 new files, ~8 edited files, 1 supabase tool call, 1 package added.
+
+## Out of scope (deferred to later sprints)
+
+- Tenant-specific branding/logos beyond what already exists.
+- Notifications system, analytics dashboards, gap detection, SOP versioning, read-confirmations — all Sprints 2-4.
+- Offline-capable cached SOPs/FAQs (PWA shell only this sprint).
+- Real demo KB content (route works without it; Sprint 1.1 will seed sample SOPs).
