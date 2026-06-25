@@ -5,9 +5,10 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, BookOpen, HelpCircle, Users, Package, Truck, FileText, ShieldAlert, ArrowDownToLine, ArrowUpFromLine, Route as RouteIcon, ClipboardList } from "lucide-react";
+import { MessageSquare, BookOpen, HelpCircle, Users, Package, Truck, FileText, ShieldAlert, ArrowDownToLine, ArrowUpFromLine, Route as RouteIcon, ClipboardList, AlertTriangle, Check } from "lucide-react";
 import { createThread } from "@/lib/threads.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { listPendingCriticalSops, acknowledgeSop } from "@/lib/sop-ack.functions";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Dashboard,
@@ -97,6 +98,8 @@ function Dashboard() {
           </Card>
         ))}
       </div>
+
+      <CriticalSopBanner />
 
       <section className="mb-8">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">{t("quickStart")}</h2>
