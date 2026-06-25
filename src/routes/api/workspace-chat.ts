@@ -92,32 +92,85 @@ export const Route = createFileRoute("/api/workspace-chat")({
           }
         };
 
-        async function saveArtifact(
-          kind: "pptx" | "xlsx" | "docx" | "pdf",
-          bytes: Uint8Array,
+        type ArtifactKind = "pptx" | "xlsx" | "docx" | "pdf" | "csv" | "txt";
+        type ArtifactResult =
+          | { success: true; artifact_id: string; file_name: string; kind: ArtifactKind; download_url: string | null; expires_at: string | null }
+          | { success: false; kind: ArtifactKind; error: string; stage: string };
+
+        const log = (event: string, extra: Record<string, unknown> = {}) =>
+          console.log(`[workspace:${event}]`, { sessionId, companyId, userId, ...extra });
+
+        async function runGenerator<I>(
+          kind: ArtifactKind,
+          input: I,
           baseName: string,
           contentType: string,
-        ) {
-          const safe = baseName.replace(/[^\w.\-]+/g, "_").slice(0, 80) || `artifact.${kind}`;
-          const finalName = safe.endsWith(`.${kind}`) ? safe : `${safe}.${kind}`;
+          generator: (input: I) => Promise<Uint8Array> | Uint8Array,
+        ): Promise<ArtifactResult> {
+          log("artifact_generation_started", { kind, baseName });
+          let bytes: Uint8Array;
+          try {
+            log("artifact_builder_started", { kind });
+            bytes = await generator(input);
+            log("artifact_builder_completed", { kind, bytes: bytes.byteLength });
+          } catch (e) {
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "builder", error: msg, stack: (e as Error).stack });
+            return { success: false, kind, error: `Builder failed: ${msg}`, stage: "builder" };
+          }
+          if (!bytes || bytes.byteLength === 0) {
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "builder", error: "empty file" });
+            return { success: false, kind, error: "Generator produced an empty file.", stage: "builder" };
+          }
+          const safe = (baseName || `artifact`).replace(/[^\w.\-]+/g, "_").slice(0, 80) || `artifact.${kind}`;
+          const finalName = safe.toLowerCase().endsWith(`.${kind}`) ? safe : `${safe}.${kind}`;
           const path = `${companyId}/${sessionId}/${crypto.randomUUID()}-${finalName}`;
-          const up = await supabase.storage.from(BUCKET).upload(path, bytes, {
-            contentType, upsert: false,
-          });
-          if (up.error) throw new Error(up.error.message);
+          log("file_created", { kind, finalName, path, bytes: bytes.byteLength });
+          try {
+            log("storage_upload_started", { path });
+            const up = await supabase.storage.from(BUCKET).upload(path, bytes, { contentType, upsert: false });
+            if (up.error) throw new Error(up.error.message);
+            log("storage_upload_completed", { path });
+          } catch (e) {
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "upload", error: msg });
+            return { success: false, kind, error: `Storage upload failed: ${msg}`, stage: "upload" };
+          }
           const expires = expiryForArtifact();
-          const ins = await supabase.from("workspace_artifacts" as never).insert({
-            session_id: sessionId, company_id: companyId, user_id: userId,
-            kind, file_name: finalName, storage_path: path, expires_at: expires,
-          } as never).select("id").single() as unknown as { data: { id: string } | null; error: { message: string } | null };
-          if (ins.error || !ins.data) throw new Error(ins.error?.message ?? "insert failed");
-          const signed = await supabase.storage.from(BUCKET)
-            .createSignedUrl(path, 60 * 10, { download: finalName });
+          let artifactId: string;
+          try {
+            const ins = await supabase.from("workspace_artifacts" as never).insert({
+              session_id: sessionId, company_id: companyId, user_id: userId,
+              kind, file_name: finalName, storage_path: path, expires_at: expires,
+            } as never).select("id").single() as unknown as { data: { id: string } | null; error: { message: string } | null };
+            if (ins.error || !ins.data) throw new Error(ins.error?.message ?? "insert failed");
+            artifactId = ins.data.id;
+          } catch (e) {
+            // Roll back the uploaded file to avoid an orphan in storage.
+            await supabase.storage.from(BUCKET).remove([path]).catch(() => undefined);
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:artifact_generation_failed]", { kind, stage: "db_insert", error: msg });
+            return { success: false, kind, error: `Artifact record insert failed: ${msg}`, stage: "db_insert" };
+          }
+          let downloadUrl: string | null = null;
+          try {
+            const signed = await supabase.storage.from(BUCKET)
+              .createSignedUrl(path, 60 * 10, { download: finalName });
+            downloadUrl = signed.data?.signedUrl ?? null;
+            if (!downloadUrl) throw new Error("no signed url returned");
+            log("signed_url_created", { artifactId });
+          } catch (e) {
+            const msg = (e as Error).message || String(e);
+            console.error("[workspace:signed_url_failed]", { kind, error: msg });
+            // The artifact row exists; client can call downloadArtifactUrl later.
+          }
+          log("artifact_returned", { artifactId, kind, finalName });
           return {
-            artifact_id: ins.data.id,
+            success: true,
+            artifact_id: artifactId,
             file_name: finalName,
             kind,
-            download_url: signed.data?.signedUrl ?? null,
+            download_url: downloadUrl,
             expires_at: expires,
           };
         }
