@@ -30,7 +30,7 @@ function ChatIndex() {
 
   const onNew = async () => {
     const th = await newThread({ data: {} });
-    navigate({ to: "/chat/$threadId", params: { threadId: th.id } });
+    navigate({ to: "/app/chat/$threadId", params: { threadId: th.id } });
   };
 
   const onDelete = async (id: string) => {
@@ -49,7 +49,7 @@ function ChatIndex() {
         <Card className="divide-y divide-border">
           {threads.map((th) => (
             <div key={th.id} className="flex items-center gap-3 p-4 hover:bg-muted">
-              <Link to="/chat/$threadId" params={{ threadId: th.id }} className="flex-1 min-w-0 flex items-center gap-3">
+              <Link to="/app/chat/$threadId" params={{ threadId: th.id }} className="flex-1 min-w-0 flex items-center gap-3">
                 <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
                   <div className="text-sm font-medium truncate">{th.title}</div>
