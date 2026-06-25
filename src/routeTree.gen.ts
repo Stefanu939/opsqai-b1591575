@@ -42,6 +42,7 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
+import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
@@ -50,6 +51,7 @@ import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
+import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
@@ -227,6 +229,11 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
   path: '/cookies',
   getParentRoute: () => LegalRouteRoute,
 } as any)
+const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
+  id: '/api/workspace-chat',
+  path: '/api/workspace-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDemoChatRoute = ApiDemoChatRouteImport.update({
   id: '/api/demo-chat',
   path: '/api/demo-chat',
@@ -269,6 +276,12 @@ const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppWorkspaceIndexRoute =
+  AuthenticatedAppWorkspaceIndexRouteImport.update({
+    id: '/workspace/',
+    path: '/workspace/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
     id: '/chat/',
@@ -349,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
+  '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
@@ -381,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -400,6 +415,7 @@ export interface FileRoutesByTo {
   '/trust': typeof TrustRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
+  '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
@@ -432,6 +448,7 @@ export interface FileRoutesByTo {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
+  '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -454,6 +471,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
+  '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
@@ -486,6 +504,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -508,6 +527,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/chat'
     | '/api/demo-chat'
+    | '/api/workspace-chat'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
@@ -540,6 +560,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/lovable/email/queue/process'
     | '/app/chat/'
+    | '/app/workspace/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -559,6 +580,7 @@ export interface FileRouteTypes {
     | '/trust'
     | '/api/chat'
     | '/api/demo-chat'
+    | '/api/workspace-chat'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
@@ -591,6 +613,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/lovable/email/queue/process'
     | '/app/chat'
+    | '/app/workspace'
   id:
     | '__root__'
     | '/'
@@ -612,6 +635,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/api/chat'
     | '/api/demo-chat'
+    | '/api/workspace-chat'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
@@ -644,6 +668,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/$threadId'
     | '/lovable/email/queue/process'
     | '/_authenticated/app/chat/'
+    | '/_authenticated/app/workspace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -665,6 +690,7 @@ export interface RootRouteChildren {
   TrustRoute: typeof TrustRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
+  ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -901,6 +927,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalCookiesRouteImport
       parentRoute: typeof LegalRouteRoute
     }
+    '/api/workspace-chat': {
+      id: '/api/workspace-chat'
+      path: '/api/workspace-chat'
+      fullPath: '/api/workspace-chat'
+      preLoaderRoute: typeof ApiWorkspaceChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/demo-chat': {
       id: '/api/demo-chat'
       path: '/api/demo-chat'
@@ -955,6 +988,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/app/faq'
       preLoaderRoute: typeof AuthenticatedAppFaqRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/workspace/': {
+      id: '/_authenticated/app/workspace/'
+      path: '/workspace'
+      fullPath: '/app/workspace/'
+      preLoaderRoute: typeof AuthenticatedAppWorkspaceIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/chat/': {
@@ -1045,6 +1085,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
+  AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -1064,6 +1105,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
+  AuthenticatedAppWorkspaceIndexRoute: AuthenticatedAppWorkspaceIndexRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
@@ -1151,6 +1193,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrustRoute: TrustRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
+  ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
