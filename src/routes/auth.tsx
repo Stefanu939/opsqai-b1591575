@@ -1,7 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,13 +17,13 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base." },
       { property: "og:title", content: "Sign in — OPSQAI" },
       { property: "og:description", content: "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base." },
-      { property: "og:url", content: "https://opsqai.lovable.app/auth" },
+      { property: "og:url", content: "https://opsqai.de/auth" },
     ],
-    links: [{ rel: "canonical", href: "https://opsqai.lovable.app/auth" }],
+    links: [{ rel: "canonical", href: "https://opsqai.de/auth" }],
   }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/" });
+    if (data.session) throw redirect({ to: "/dashboard" });
   },
   component: AuthPage,
 });
@@ -38,7 +37,7 @@ function AuthPage() {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s) navigate({ to: "/" });
+      if (s) navigate({ to: "/dashboard" });
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
@@ -56,26 +55,23 @@ function AuthPage() {
     }
   };
 
-  const onGoogle = async () => {
-    setBusy(true);
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (r.error) toast.error(r.error.message);
-    setBusy(false);
-  };
-
   const contactAdmin = lang === "de"
     ? "Wenden Sie sich an Ihren Unternehmensadministrator für den Zugang."
+    : lang === "ro"
+    ? "Contactați administratorul companiei pentru acces."
     : "Contact your company administrator for access.";
+
+  const forgotLabel = lang === "de" ? "Passwort vergessen?" : lang === "ro" ? "Ai uitat parola?" : "Forgot password?";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="OPSQAI" width={32} height={32} />
           <span className="font-semibold tracking-tight text-lg">OPSQAI</span>
-        </div>
-        <button onClick={() => setLang(lang === "de" ? "en" : "de")} className="text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground">
-          {lang.toUpperCase()} / {lang === "de" ? "EN" : "DE"}
+        </Link>
+        <button onClick={() => setLang(lang === "de" ? "en" : lang === "en" ? "ro" : "de")} className="text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground">
+          {lang.toUpperCase()}
         </button>
       </div>
       <main className="flex-1 flex items-center justify-center px-4 py-8">
@@ -93,7 +89,10 @@ function AuthPage() {
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">{t("password")}</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">{t("password")}</Label>
+                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">{forgotLabel}</Link>
+              </div>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" minLength={6} />
             </div>
             <Button type="submit" disabled={busy} className="w-full">
@@ -101,26 +100,14 @@ function AuthPage() {
             </Button>
           </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">{t("or")}</span>
-            </div>
-          </div>
-
-          <Button variant="outline" onClick={onGoogle} disabled={busy} className="w-full">
-            {t("continueWithGoogle")}
-          </Button>
-
           <div className="mt-6 rounded-md border border-border bg-muted/40 px-4 py-3 text-center text-xs text-muted-foreground">
             {contactAdmin}
           </div>
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            <Link to="/" className="hover:underline">← {lang === "de" ? "Zurück" : "Back"}</Link>
+            <Link to="/" className="hover:underline">← {lang === "de" ? "Zurück" : lang === "ro" ? "Înapoi" : "Back"}</Link>
           </p>
         </Card>
       </main>
-
     </div>
   );
 }
