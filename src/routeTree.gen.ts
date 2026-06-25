@@ -26,6 +26,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
 import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsible-ai'
 import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
+import { Route as TrustIso27001RoadmapRouteImport } from './routes/trust.iso-27001-roadmap'
 import { Route as TrustIncidentResponseRouteImport } from './routes/trust.incident-response'
 import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
 import { Route as TrustEncryptionRouteImport } from './routes/trust.encryption'
@@ -140,6 +141,11 @@ const TrustMultiTenantIsolationRoute =
     path: '/multi-tenant-isolation',
     getParentRoute: () => TrustRoute,
   } as any)
+const TrustIso27001RoadmapRoute = TrustIso27001RoadmapRouteImport.update({
+  id: '/iso-27001-roadmap',
+  path: '/iso-27001-roadmap',
+  getParentRoute: () => TrustRoute,
+} as any)
 const TrustIncidentResponseRoute = TrustIncidentResponseRouteImport.update({
   id: '/incident-response',
   path: '/incident-response',
@@ -315,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/incident-response': typeof TrustIncidentResponseRoute
+  '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/incident-response': typeof TrustIncidentResponseRoute
+  '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/incident-response': typeof TrustIncidentResponseRoute
+  '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
@@ -454,6 +463,7 @@ export interface FileRouteTypes {
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/incident-response'
+    | '/trust/iso-27001-roadmap'
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/incident-response'
+    | '/trust/iso-27001-roadmap'
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/incident-response'
+    | '/trust/iso-27001-roadmap'
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
@@ -699,6 +711,13 @@ declare module '@tanstack/react-router' {
       path: '/multi-tenant-isolation'
       fullPath: '/trust/multi-tenant-isolation'
       preLoaderRoute: typeof TrustMultiTenantIsolationRouteImport
+      parentRoute: typeof TrustRoute
+    }
+    '/trust/iso-27001-roadmap': {
+      id: '/trust/iso-27001-roadmap'
+      path: '/iso-27001-roadmap'
+      fullPath: '/trust/iso-27001-roadmap'
+      preLoaderRoute: typeof TrustIso27001RoadmapRouteImport
       parentRoute: typeof TrustRoute
     }
     '/trust/incident-response': {
@@ -966,6 +985,7 @@ interface TrustRouteChildren {
   TrustEncryptionRoute: typeof TrustEncryptionRoute
   TrustGdprRoute: typeof TrustGdprRoute
   TrustIncidentResponseRoute: typeof TrustIncidentResponseRoute
+  TrustIso27001RoadmapRoute: typeof TrustIso27001RoadmapRoute
   TrustMultiTenantIsolationRoute: typeof TrustMultiTenantIsolationRoute
   TrustResponsibleAiRoute: typeof TrustResponsibleAiRoute
   TrustSecurityArchitectureRoute: typeof TrustSecurityArchitectureRoute
@@ -979,6 +999,7 @@ const TrustRouteChildren: TrustRouteChildren = {
   TrustEncryptionRoute: TrustEncryptionRoute,
   TrustGdprRoute: TrustGdprRoute,
   TrustIncidentResponseRoute: TrustIncidentResponseRoute,
+  TrustIso27001RoadmapRoute: TrustIso27001RoadmapRoute,
   TrustMultiTenantIsolationRoute: TrustMultiTenantIsolationRoute,
   TrustResponsibleAiRoute: TrustResponsibleAiRoute,
   TrustSecurityArchitectureRoute: TrustSecurityArchitectureRoute,
