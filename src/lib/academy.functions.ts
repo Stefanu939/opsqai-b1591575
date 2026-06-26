@@ -30,7 +30,7 @@ export const listAcademyDepartments = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
-    const { data: rows, error } = await context.supabase
+    const { data: rows, error } = await (context.supabase as any)
       .from("academy_departments")
       .select("id, name, description, created_at")
       .eq("company_id", companyId)
@@ -53,14 +53,14 @@ export const upsertAcademyDepartment = createServerFn({ method: "POST" })
     await requirePermission(context, "academy.manage");
     const companyId = await resolveCompanyForWrite(context, data.company_id);
     if (data.id) {
-      const { error } = await context.supabase
+      const { error } = await (context.supabase as any)
         .from("academy_departments")
         .update({ name: data.name, description: data.description ?? null })
         .eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("academy_departments")
       .insert({ name: data.name, description: data.description ?? null, company_id: companyId })
       .select("id").single();
@@ -98,7 +98,7 @@ export const listAcademyPaths = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
-    let q = context.supabase
+    let q = (context.supabase as any)
       .from("academy_learning_paths")
       .select("*, academy_departments(name)")
       .eq("company_id", companyId)
@@ -123,7 +123,7 @@ export const upsertAcademyPath = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("academy_learning_paths")
       .insert({ ...payload, created_by: context.userId })
       .select("id").single();
@@ -145,18 +145,18 @@ export const getAcademyPath = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: path, error } = await context.supabase
+    const { data: path, error } = await (context.supabase as any)
       .from("academy_learning_paths").select("*, academy_departments(name)")
       .eq("id", data.id).maybeSingle();
     if (error) throw new Error(error.message);
     if (!path) throw new Error("Path not found");
 
-    const { data: chapters } = await context.supabase
+    const { data: chapters } = await (context.supabase as any)
       .from("academy_chapters").select("*").eq("path_id", data.id).order("order_index");
 
     const chapterIds = (chapters ?? []).map((c: any) => c.id);
     const { data: lessons } = chapterIds.length
-      ? await context.supabase
+      ? await (context.supabase as any)
         .from("academy_lessons")
         .select("id, chapter_id, title, order_index, estimated_minutes, publish_status, version, language, source_document_id")
         .in("chapter_id", chapterIds)
@@ -184,14 +184,14 @@ export const upsertAcademyChapter = createServerFn({ method: "POST" })
     await requirePermission(context, "academy.manage");
     const companyId = await resolveCompanyForWrite(context, data.company_id);
     if (data.id) {
-      const { error } = await context.supabase
+      const { error } = await (context.supabase as any)
         .from("academy_chapters")
         .update({ title: data.title, summary: data.summary ?? null, order_index: data.order_index })
         .eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("academy_chapters")
       .insert({
         path_id: data.path_id, title: data.title, summary: data.summary ?? null,
@@ -244,7 +244,7 @@ export const upsertAcademyLesson = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("academy_lessons")
       .insert({ ...payload, created_by: context.userId })
       .select("id").single();
@@ -266,7 +266,7 @@ export const getAcademyLesson = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: lesson, error } = await context.supabase
+    const { data: lesson, error } = await (context.supabase as any)
       .from("academy_lessons")
       .select("*, academy_chapters(id, title, path_id, academy_learning_paths(id, title, passing_score, language))")
       .eq("id", data.id).maybeSingle();
@@ -280,7 +280,7 @@ export const listAcademyLessonVersions = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ lesson_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { data: rows, error } = await context.supabase
+    const { data: rows, error } = await (context.supabase as any)
       .from("academy_lesson_versions")
       .select("id, version, snapshot, created_at")
       .eq("lesson_id", data.lesson_id)
@@ -294,12 +294,12 @@ export const restoreAcademyLessonVersion = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ lesson_id: z.string().uuid(), version: z.number().int() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { data: v } = await context.supabase
+    const { data: v } = await (context.supabase as any)
       .from("academy_lesson_versions")
       .select("snapshot").eq("lesson_id", data.lesson_id).eq("version", data.version).maybeSingle();
     if (!v) throw new Error("Version not found");
     const s = v.snapshot as any;
-    const { error } = await context.supabase
+    const { error } = await (context.supabase as any)
       .from("academy_lessons")
       .update({
         title: s.title, objectives: s.objectives ?? [],
@@ -361,7 +361,7 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
     });
     const lesson = experimental_output as z.infer<typeof LessonSchema>;
 
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("academy_lessons")
       .insert({
         company_id: companyId,
@@ -436,7 +436,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
     const course = experimental_output as z.infer<typeof CourseSchema>;
 
     // Persist as draft path/chapters/lessons
-    const { data: path } = await context.supabase
+    const { data: path } = await (context.supabase as any)
       .from("academy_learning_paths")
       .insert({
         company_id: companyId,
@@ -452,7 +452,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
 
     for (let ci = 0; ci < course.chapters.length; ci++) {
       const ch = course.chapters[ci];
-      const { data: chap } = await context.supabase
+      const { data: chap } = await (context.supabase as any)
         .from("academy_chapters")
         .insert({ company_id: companyId, path_id: pathId, title: ch.title, summary: ch.summary, order_index: ci })
         .select("id").single();
@@ -494,7 +494,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: lesson } = await context.supabase
+    const { data: lesson } = await (context.supabase as any)
       .from("academy_lessons")
       .select("title, objectives, explanation, examples, best_practices, summary")
       .eq("id", data.lesson_id).maybeSingle();
@@ -535,7 +535,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.answers.length !== data.questions.length) throw new Error("Answer count mismatch");
 
-    const { data: lesson } = await context.supabase
+    const { data: lesson } = await (context.supabase as any)
       .from("academy_lessons")
       .select("company_id, chapter_id, academy_chapters!inner(path_id, academy_learning_paths!inner(passing_score))")
       .eq("id", data.lesson_id).maybeSingle();
@@ -578,7 +578,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
 
     // Update progress
     if (data.enrollment_id) {
-      const { data: existing } = await context.supabase
+      const { data: existing } = await (context.supabase as any)
         .from("academy_lesson_progress")
         .select("id, attempts, time_spent_seconds")
         .eq("enrollment_id", data.enrollment_id)
@@ -586,7 +586,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
       const baseAttempts = (existing?.attempts ?? 0) + 1;
       const baseTime = (existing?.time_spent_seconds ?? 0) + (data.time_spent_seconds ?? 0);
       if (existing) {
-        await context.supabase
+        await (context.supabase as any)
           .from("academy_lesson_progress").update({
             attempts: baseAttempts, last_score: score, time_spent_seconds: baseTime,
             status: passed ? "completed" : "in_progress",
@@ -616,15 +616,15 @@ export const enrollSelf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: path } = await context.supabase
+    const { data: path } = await (context.supabase as any)
       .from("academy_learning_paths").select("company_id, mandatory")
       .eq("id", data.path_id).maybeSingle();
     if (!path) throw new Error("Path not found");
-    const { data: existing } = await context.supabase
+    const { data: existing } = await (context.supabase as any)
       .from("academy_enrollments").select("id")
       .eq("path_id", data.path_id).eq("user_id", context.userId).maybeSingle();
     if (existing) return { id: existing.id as string, existing: true };
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("academy_enrollments")
       .insert({
         company_id: (path as any).company_id,
@@ -651,7 +651,7 @@ export const assignEnrollment = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { data: path } = await context.supabase
+    const { data: path } = await (context.supabase as any)
       .from("academy_learning_paths").select("company_id").eq("id", data.path_id).maybeSingle();
     if (!path) throw new Error("Path not found");
     const rows = data.user_ids.map((uid) => ({
@@ -673,7 +673,7 @@ export const assignEnrollment = createServerFn({ method: "POST" })
 export const listMyEnrollments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { data, error } = await (context.supabase as any)
       .from("academy_enrollments")
       .select("id, status, mandatory, due_at, started_at, completed_at, created_at, academy_learning_paths(id, title, description, language, passing_score, academy_departments(name))")
       .eq("user_id", context.userId)
@@ -696,7 +696,7 @@ export const getEnrollmentProgress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: rows } = await context.supabase
+    const { data: rows } = await (context.supabase as any)
       .from("academy_lesson_progress")
       .select("lesson_id, status, last_score, attempts, time_spent_seconds, completed_at")
       .eq("enrollment_id", data.enrollment_id);
@@ -707,12 +707,12 @@ export const completeEnrollment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: enroll } = await context.supabase
+    const { data: enroll } = await (context.supabase as any)
       .from("academy_enrollments").select("id, path_id, user_id, company_id")
       .eq("id", data.enrollment_id).maybeSingle();
     if (!enroll || (enroll as any).user_id !== context.userId) throw new Error("Forbidden");
 
-    const { data: progress } = await context.supabase
+    const { data: progress } = await (context.supabase as any)
       .from("academy_lesson_progress")
       .select("last_score").eq("enrollment_id", data.enrollment_id);
     const scores = (progress ?? []).map((p: any) => Number(p.last_score ?? 0));
@@ -743,7 +743,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
 export const listMyCertificates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase
+    const { data } = await (context.supabase as any)
       .from("academy_certificates")
       .select("id, certificate_code, final_score, issued_at, pdf_path, academy_learning_paths(title)")
       .eq("user_id", context.userId).order("issued_at", { ascending: false });
@@ -754,7 +754,7 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: cert } = await context.supabase
+    const { data: cert } = await (context.supabase as any)
       .from("academy_certificates").select("pdf_path, user_id, company_id")
       .eq("id", data.id).maybeSingle();
     if (!cert) throw new Error("Not found");
@@ -799,7 +799,7 @@ export const academySuggestPath = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, null);
-    let q = context.supabase
+    let q = (context.supabase as any)
       .from("academy_learning_paths")
       .select("id, title, description, target_role, experience_level, mandatory, academy_departments(name)")
       .eq("company_id", companyId).eq("publish_status", "published");
@@ -817,7 +817,7 @@ export const getAcademySettings = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
-    const { data: row } = await context.supabase
+    const { data: row } = await (context.supabase as any)
       .from("academy_settings").select("*").eq("company_id", companyId).maybeSingle();
     return row ?? {
       company_id: companyId, passing_score: 70, quiz_min: 3, quiz_max: 5,
