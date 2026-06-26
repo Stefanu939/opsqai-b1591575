@@ -68,7 +68,7 @@ function ExecutiveDashboard() {
         to: to.toISOString(),
         bucket: range.bucket,
       },
-    }).then((r) => setActivity(r.rows)).catch(() => setActivity([]));
+    }).then((r) => setActivity((r.rows as any[]) ?? [])).catch(() => setActivity([]));
   }, [rangeKey, activeCompanyId]);
 
   const k = data?.kpis ?? {};
