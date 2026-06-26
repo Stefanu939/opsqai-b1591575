@@ -20,7 +20,9 @@ export const upsertFaq = createServerFn({ method: "POST" })
     await requireAnyPermission(context, ["faq.edit", "faq.create", "knowledge.manage"]);
 
     if (data.id) {
-      const { error } = await context.supabase.from("faqs").update(data).eq("id", data.id);
+      const { id, company_id: _companyIgnore, ...patch } = data;
+      void id; void _companyIgnore;
+      const { error } = await context.supabase.from("faqs").update(patch).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
       const { id: _ignore, ...insert } = data;

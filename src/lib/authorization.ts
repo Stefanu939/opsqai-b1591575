@@ -77,5 +77,5 @@ export async function resolveCompanyForWrite(
     if (error) throw new Error(error.message);
     if (data?.id) return data.id as string;
   }
-  return companyId;
+  throw new Error("No company assigned");
 }
