@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { requireAnyPermission } from "@/lib/authorization";
 
 export const listKnowledgeGaps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -58,10 +59,7 @@ export const updateKnowledgeGap = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId)
-      .in("role", ["admin", "manager"]);
-    if (!roles || roles.length === 0) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["knowledge.manage", "analytics.view"]);
     const { id, ...patch } = data;
     const update: Record<string, unknown> = { ...patch };
     if (patch.status === "resolved" && !("resolution_date" in update)) {
@@ -77,10 +75,7 @@ export const deleteKnowledgeGap = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId)
-      .in("role", ["admin", "manager"]);
-    if (!roles || roles.length === 0) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["knowledge.manage", "analytics.view"]);
     const { error } = await context.supabase
       .from("knowledge_gaps").delete().eq("id", data.id);
     if (error) throw new Error(error.message);

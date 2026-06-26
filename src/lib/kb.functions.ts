@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { companyFromStoragePath, requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
 
 const DocInput = z.object({
   title: z.string().min(1),
@@ -19,17 +20,8 @@ export const processDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => DocInput.parse(d))
   .handler(async ({ data, context }) => {
-    // Role check: admin or team_leader can upload KB
-    const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    const allowed = (roles ?? []).some((r) => r.role === "admin");
-    if (!allowed) throw new Error("Forbidden");
-
-    const { data: profile } = await context.supabase
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
-    if (!profile?.company_id) throw new Error("No company assigned");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.create"]);
+    const companyId = await resolveCompanyForWrite(context, companyFromStoragePath(data.file_path));
 
     // Insert document in 'processing' state
     const { data: doc, error: insErr } = await context.supabase
@@ -43,7 +35,7 @@ export const processDocument = createServerFn({ method: "POST" })
         content_text: "",
         status: "processing",
         uploaded_by: context.userId,
-        company_id: profile.company_id,
+        company_id: companyId,
       })
       .select("id, company_id")
       .single();
@@ -119,9 +111,7 @@ export const reprocessDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
-    if (!roles) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: doc } = await supabaseAdmin
@@ -168,9 +158,7 @@ export const deleteKnowledgeDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
-    if (!roles) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.delete"]);
     const { data: doc } = await context.supabase
       .from("knowledge_documents").select("file_path").eq("id", data.id).maybeSingle();
     if (doc?.file_path) {

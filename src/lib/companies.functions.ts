@@ -1,12 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-
-async function requirePlatformAdmin(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "platform_admin").maybeSingle();
-  if (!data) throw new Error("Forbidden: platform admin required");
-}
+import { requirePlatformAdmin } from "@/lib/authorization";
 
 const CompanyInput = z.object({
   name: z.string().min(1),
@@ -19,7 +14,7 @@ const CompanyInput = z.object({
 export const listCompanies = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: companies, error } = await supabaseAdmin
       .from("companies")
@@ -58,7 +53,7 @@ export const createCompany = createServerFn({ method: "POST" })
     admin_last_name: z.string().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: company, error } = await supabaseAdmin
       .from("companies")
@@ -101,7 +96,7 @@ export const updateCompany = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyInput.extend({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { id, ...patch } = data;
     const { error } = await supabaseAdmin.from("companies").update(patch).eq("id", id);
@@ -113,7 +108,7 @@ export const deleteCompany = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     if (data.id === "00000000-0000-0000-0000-000000000001") throw new Error("Cannot delete Default Company");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("companies").delete().eq("id", data.id);
@@ -124,7 +119,7 @@ export const deleteCompany = createServerFn({ method: "POST" })
 export const platformStats = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [companies, profiles, docs, audit] = await Promise.all([
       supabaseAdmin.from("companies").select("id, active", { count: "exact" }),
@@ -148,7 +143,7 @@ export const platformStats = createServerFn({ method: "POST" })
 export const listPlatformAdmins = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: roleRows, error } = await supabaseAdmin
       .from("user_roles").select("user_id, created_at").eq("role", "platform_admin");
@@ -178,7 +173,7 @@ export const promotePlatformAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ email: z.string().email() }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: usersResp } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
     const target = usersResp.users.find((u) => (u.email ?? "").toLowerCase() === data.email.toLowerCase());
@@ -193,7 +188,7 @@ export const demotePlatformAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context.supabase, context.userId);
+    await requirePlatformAdmin(context);
     if (data.user_id === context.userId) throw new Error("You cannot demote yourself");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { count } = await supabaseAdmin

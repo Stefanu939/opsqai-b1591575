@@ -1,18 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 
 async function resolveCompany(context: { supabase: any; userId: string }, hint?: string | null) {
-  const { data: roles } = await context.supabase
-    .from("user_roles").select("role").eq("user_id", context.userId);
-  const isPlatform = (roles ?? []).some(
-    (r: { role: string }) => r.role === "platform_admin" || r.role === "platform_owner",
-  );
+  await requirePermission(context, "dashboard.view");
+  const actor = await getActorRoles(context.supabase, context.userId);
+  const isPlatform = actor.isPlatformAdmin;
   let companyId = hint ?? null;
   if (!companyId || !isPlatform) {
-    const { data: prof } = await context.supabase
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
-    companyId = prof?.company_id ?? companyId;
+    companyId = await getProfileCompany(context.supabase, context.userId) ?? companyId;
+  }
+  if (!companyId && isPlatform) {
+    const { data: firstCompany } = await context.supabase
+      .from("companies").select("id").eq("active", true).order("created_at", { ascending: true }).limit(1).maybeSingle();
+    companyId = firstCompany?.id ?? null;
   }
   if (!companyId) throw new Error("No company");
   return { companyId, isPlatform };

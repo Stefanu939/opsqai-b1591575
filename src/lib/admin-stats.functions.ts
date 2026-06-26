@@ -1,14 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getActorRoles, requirePermission } from "@/lib/authorization";
 
 export const getAdminStats = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId);
-    const isPlatformAdmin = (roles ?? []).some((r) => r.role === "platform_admin");
-    const isAdmin = (roles ?? []).some((r) => r.role === "admin" || r.role === "manager" || r.role === "platform_admin");
-    if (!isAdmin) throw new Error("Forbidden");
+    await requirePermission(context, "dashboard.view");
+    const { isPlatformAdmin } = await getActorRoles(context.supabase, context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -104,12 +102,8 @@ export const listAuditLog = createServerFn({ method: "POST" })
     since: input?.since ?? null,
   }))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role, company_id").eq("user_id", context.userId);
-    const rs = roles ?? [];
-    const isPlatformAdmin = rs.some((r) => r.role === "platform_admin");
-    const canCompanyView = rs.some((r) => r.role === "admin" || r.role === "manager");
-    if (!isPlatformAdmin && !canCompanyView) throw new Error("Forbidden");
+    await requirePermission(context, "audit.view");
+    const { isPlatformAdmin } = await getActorRoles(context.supabase, context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

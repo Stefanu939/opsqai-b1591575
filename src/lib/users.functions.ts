@@ -2,19 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { getActorRoles, requireAnyPermission } from "@/lib/authorization";
 
-const ROLES = ["admin", "manager", "team_leader", "employee"] as const;
+const ROLES = ["admin", "manager", "supervisor", "operator", "viewer", "team_leader", "employee"] as const;
 const RoleEnum = z.enum(ROLES);
-
-async function getActorRoles(supabase: any, userId: string) {
-  const { data } = await supabase.from("user_roles").select("role, company_id").eq("user_id", userId);
-  const roles: string[] = (data ?? []).map((r: any) => r.role);
-  return {
-    roles,
-    isPlatformAdmin: roles.includes("platform_admin"),
-    isCompanyAdmin: roles.includes("admin"),
-  };
-}
 
 async function getActorCompany(supabase: any, userId: string): Promise<string | null> {
   const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
@@ -31,6 +22,7 @@ export const listUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.update", "user.create", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     const actorCompany = await getActorCompany(context.supabase, context.userId);
     const scope = isPlatformAdmin ? (data.company_id ?? null) : actorCompany;
@@ -94,6 +86,7 @@ export const createUser = createServerFn({ method: "POST" })
     company_id: z.string().uuid().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.create", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     const actorCompany = await getActorCompany(context.supabase, context.userId);
     const targetCompany = isPlatformAdmin ? (data.company_id ?? actorCompany) : actorCompany;
@@ -140,6 +133,7 @@ export const inviteUser = createServerFn({ method: "POST" })
     last_name: z.string().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.create", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     const actorCompany = await getActorCompany(context.supabase, context.userId);
     const targetCompany = isPlatformAdmin ? (data.company_id ?? actorCompany) : actorCompany;
@@ -187,6 +181,7 @@ export const updateUser = createServerFn({ method: "POST" })
     roles: z.array(RoleEnum).optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.update", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     const actorCompany = await getActorCompany(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -217,7 +212,7 @@ export const updateUser = createServerFn({ method: "POST" })
     }
 
     if (data.roles && targetCompany) {
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).neq("role", "platform_admin");
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).not("role", "in", "(platform_admin,platform_owner)");
       if (data.roles.length > 0) {
         await supabaseAdmin.from("user_roles").insert(
           data.roles.map((r) => ({ user_id: data.user_id, role: r, company_id: targetCompany })),
@@ -231,6 +226,7 @@ export const deleteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { user_id: string }) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.delete", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     if (data.user_id === context.userId) throw new Error("Cannot delete yourself");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -251,6 +247,7 @@ export const resetUserPassword = createServerFn({ method: "POST" })
     new_password: z.string().min(8),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.update", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (!isPlatformAdmin) {

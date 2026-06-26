@@ -77,7 +77,18 @@ export const Route = createFileRoute("/api/workspace-chat")({
         ]);
         timer.mark("session_and_files");
         const session = sessionRes.data;
-        if (!session || session.user_id !== userId) {
+        const { data: canManageWorkspace } = await (supabase as any).rpc("has_permission", {
+          _user_id: userId,
+          _permission: "workspace.manage",
+        });
+        const { data: canUseWorkspace } = await (supabase as any).rpc("has_permission", {
+          _user_id: userId,
+          _permission: "workspace.use",
+        });
+        if (!canManageWorkspace && !canUseWorkspace) {
+          return new Response("Forbidden", { status: 403 });
+        }
+        if (!session || (session.user_id !== userId && !canManageWorkspace)) {
           return new Response("Session not found", { status: 404 });
         }
         const companyId = session.company_id;

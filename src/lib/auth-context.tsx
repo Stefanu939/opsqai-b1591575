@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isPlatformAdmin = roles.includes("platform_admin") || isPlatformOwner;
   // Platform Owner implicitly has '*' permission via the DB; mirror in UI.
   const hasPermission = (p: Permission | string) =>
-    isPlatformOwner || permissions.has(p);
+    isPlatformOwner || permissions.has("*") || permissions.has(p);
   const hasAnyPermission = (...p: Array<Permission | string>) => p.some(hasPermission);
 
   return (
