@@ -70,6 +70,11 @@ import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
 import { Route as AuthenticatedAppAdminAiAuditRouteImport } from './routes/_authenticated/app.admin.ai-audit'
 import { Route as AuthenticatedAppAdminAcademyRouteImport } from './routes/_authenticated/app.admin.academy'
+import { Route as AuthenticatedAppAcademySettingsRouteImport } from './routes/_authenticated/app.academy.settings'
+import { Route as AuthenticatedAppAcademyKbRouteImport } from './routes/_authenticated/app.academy.kb'
+import { Route as AuthenticatedAppAcademyCoursesRouteImport } from './routes/_authenticated/app.academy.courses'
+import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './routes/_authenticated/app.academy.certificates'
+import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
@@ -398,6 +403,36 @@ const AuthenticatedAppAdminAcademyRoute =
     path: '/admin/academy',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAcademySettingsRoute =
+  AuthenticatedAppAcademySettingsRouteImport.update({
+    id: '/academy/settings',
+    path: '/academy/settings',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAcademyKbRoute =
+  AuthenticatedAppAcademyKbRouteImport.update({
+    id: '/academy/kb',
+    path: '/academy/kb',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAcademyCoursesRoute =
+  AuthenticatedAppAcademyCoursesRouteImport.update({
+    id: '/academy/courses',
+    path: '/academy/courses',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAcademyCertificatesRoute =
+  AuthenticatedAppAcademyCertificatesRouteImport.update({
+    id: '/academy/certificates',
+    path: '/academy/certificates',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAcademyAnalyticsRoute =
+  AuthenticatedAppAcademyAnalyticsRouteImport.update({
+    id: '/academy/analytics',
+    path: '/academy/analytics',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAcademyPathPathIdRoute =
   AuthenticatedAppAcademyPathPathIdRouteImport.update({
     id: '/academy/path/$pathId',
@@ -455,6 +490,11 @@ export interface FileRoutesByFullPath {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
+  '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
+  '/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
+  '/app/academy/kb': typeof AuthenticatedAppAcademyKbRoute
+  '/app/academy/settings': typeof AuthenticatedAppAcademySettingsRoute
   '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
@@ -518,6 +558,11 @@ export interface FileRoutesByTo {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
+  '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
+  '/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
+  '/app/academy/kb': typeof AuthenticatedAppAcademyKbRoute
+  '/app/academy/settings': typeof AuthenticatedAppAcademySettingsRoute
   '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
@@ -584,6 +629,11 @@ export interface FileRoutesById {
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
+  '/_authenticated/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
+  '/_authenticated/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
+  '/_authenticated/app/academy/kb': typeof AuthenticatedAppAcademyKbRoute
+  '/_authenticated/app/academy/settings': typeof AuthenticatedAppAcademySettingsRoute
   '/_authenticated/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/_authenticated/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
@@ -650,6 +700,11 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/app/'
+    | '/app/academy/analytics'
+    | '/app/academy/certificates'
+    | '/app/academy/courses'
+    | '/app/academy/kb'
+    | '/app/academy/settings'
     | '/app/admin/academy'
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
@@ -713,6 +768,11 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/app'
+    | '/app/academy/analytics'
+    | '/app/academy/certificates'
+    | '/app/academy/courses'
+    | '/app/academy/kb'
+    | '/app/academy/settings'
     | '/app/admin/academy'
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
@@ -778,6 +838,11 @@ export interface FileRouteTypes {
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/app/'
+    | '/_authenticated/app/academy/analytics'
+    | '/_authenticated/app/academy/certificates'
+    | '/_authenticated/app/academy/courses'
+    | '/_authenticated/app/academy/kb'
+    | '/_authenticated/app/academy/settings'
     | '/_authenticated/app/admin/academy'
     | '/_authenticated/app/admin/ai-audit'
     | '/_authenticated/app/admin/analytics'
@@ -1253,6 +1318,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminAcademyRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/academy/settings': {
+      id: '/_authenticated/app/academy/settings'
+      path: '/academy/settings'
+      fullPath: '/app/academy/settings'
+      preLoaderRoute: typeof AuthenticatedAppAcademySettingsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy/kb': {
+      id: '/_authenticated/app/academy/kb'
+      path: '/academy/kb'
+      fullPath: '/app/academy/kb'
+      preLoaderRoute: typeof AuthenticatedAppAcademyKbRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy/courses': {
+      id: '/_authenticated/app/academy/courses'
+      path: '/academy/courses'
+      fullPath: '/app/academy/courses'
+      preLoaderRoute: typeof AuthenticatedAppAcademyCoursesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy/certificates': {
+      id: '/_authenticated/app/academy/certificates'
+      path: '/academy/certificates'
+      fullPath: '/app/academy/certificates'
+      preLoaderRoute: typeof AuthenticatedAppAcademyCertificatesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy/analytics': {
+      id: '/_authenticated/app/academy/analytics'
+      path: '/academy/analytics'
+      fullPath: '/app/academy/analytics'
+      preLoaderRoute: typeof AuthenticatedAppAcademyAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/academy/path/$pathId': {
       id: '/_authenticated/app/academy/path/$pathId'
       path: '/academy/path/$pathId'
@@ -1276,6 +1376,11 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppAcademyAnalyticsRoute: typeof AuthenticatedAppAcademyAnalyticsRoute
+  AuthenticatedAppAcademyCertificatesRoute: typeof AuthenticatedAppAcademyCertificatesRoute
+  AuthenticatedAppAcademyCoursesRoute: typeof AuthenticatedAppAcademyCoursesRoute
+  AuthenticatedAppAcademyKbRoute: typeof AuthenticatedAppAcademyKbRoute
+  AuthenticatedAppAcademySettingsRoute: typeof AuthenticatedAppAcademySettingsRoute
   AuthenticatedAppAdminAcademyRoute: typeof AuthenticatedAppAdminAcademyRoute
   AuthenticatedAppAdminAiAuditRoute: typeof AuthenticatedAppAdminAiAuditRoute
   AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
@@ -1302,6 +1407,12 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppAcademyAnalyticsRoute: AuthenticatedAppAcademyAnalyticsRoute,
+  AuthenticatedAppAcademyCertificatesRoute:
+    AuthenticatedAppAcademyCertificatesRoute,
+  AuthenticatedAppAcademyCoursesRoute: AuthenticatedAppAcademyCoursesRoute,
+  AuthenticatedAppAcademyKbRoute: AuthenticatedAppAcademyKbRoute,
+  AuthenticatedAppAcademySettingsRoute: AuthenticatedAppAcademySettingsRoute,
   AuthenticatedAppAdminAcademyRoute: AuthenticatedAppAdminAcademyRoute,
   AuthenticatedAppAdminAiAuditRoute: AuthenticatedAppAdminAiAuditRoute,
   AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
