@@ -33,8 +33,10 @@ export const Route = createFileRoute("/api/workspace-chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+       try {
         const token = request.headers.get("authorization")?.replace("Bearer ", "");
         if (!token) return new Response("Unauthorized", { status: 401 });
+
 
         const apiKey = process.env.LOVABLE_API_KEY;
         const supaUrl = process.env.SUPABASE_URL;
