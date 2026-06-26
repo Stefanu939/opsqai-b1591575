@@ -3,6 +3,8 @@ import {
   ArrowRight, ShieldCheck, Brain, Languages, FileSearch, GitBranch, Users,
   BarChart3, AlertTriangle, Search, Bell, Sparkles, MessageSquare, BookOpen,
   CheckCircle2, TrendingUp, Lock, Globe, ArrowUpRight, Quote,
+  Warehouse, Truck, PackageCheck, Store, Factory, ShoppingCart,
+  Snowflake, ArrowLeftRight, Ship, Network,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
@@ -33,7 +35,19 @@ const HERO_KPIS = [
   { label: "Security", value: "EU", sub: "ISO 27001 roadmap" },
 ];
 
-const LOGOS = ["DACHSER", "DB SCHENKER", "RABEN", "FM LOGISTIC", "CARGO-PARTNER", "DHL"];
+const INDUSTRIES: Array<{ icon: typeof Warehouse; title: string; body: string }> = [
+  { icon: Warehouse, title: "Warehousing", body: "Standardised receiving, putaway, picking and cycle-count procedures across every site." },
+  { icon: PackageCheck, title: "Distribution Centers", body: "Shift-ready SOPs, safety rules and KPIs for high-throughput DC operations." },
+  { icon: Network, title: "3PL Logistics", body: "Per-client procedures, SLAs and quality controls — isolated and auditable." },
+  { icon: Truck, title: "Transport & Fleet", body: "Driver workflows, CMR handling, vehicle checks and incident reporting." },
+  { icon: Store, title: "Retail Logistics", body: "Store replenishment, returns and inter-branch transfer playbooks." },
+  { icon: Factory, title: "Manufacturing Logistics", body: "Line-feed, work-in-progress and finished-goods movement standards." },
+  { icon: ShoppingCart, title: "E-Commerce Fulfillment", body: "Pick-pack-ship SOPs, packaging standards and returns processing." },
+  { icon: Snowflake, title: "Cold Chain Logistics", body: "Temperature compliance, traceability and HACCP-aligned procedures." },
+  { icon: ArrowLeftRight, title: "Cross Dock Operations", body: "Inbound-to-outbound coordination, staging discipline and dock scheduling." },
+  { icon: Ship, title: "Freight Forwarding", body: "Customs, documentation and multimodal coordination knowledge in one place." },
+  { icon: GitBranch, title: "Supply Chain Operations", body: "End-to-end procedures spanning planning, sourcing and distribution." },
+];
 
 const FEATURES = [
   { icon: Brain, title: "Knowledge Management", body: "Centralize SOPs, manuals and FAQs. One source of truth, instantly searchable." },
