@@ -97,23 +97,62 @@ export const getAdminStats = createServerFn({ method: "POST" })
 
 export const listAuditLog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input: { search?: string; limit?: number; offset?: number; since?: string | null } | undefined) => ({
+    search: (input?.search ?? "").trim().slice(0, 200),
+    limit: Math.min(Math.max(input?.limit ?? 50, 1), 200),
+    offset: Math.max(input?.offset ?? 0, 0),
+    since: input?.since ?? null,
+  }))
+  .handler(async ({ data, context }) => {
     const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId);
-    const can = (roles ?? []).some((r) => r.role === "admin" || r.role === "manager");
-    if (!can) throw new Error("Forbidden");
+      .from("user_roles").select("role, company_id").eq("user_id", context.userId);
+    const rs = roles ?? [];
+    const isPlatformAdmin = rs.some((r) => r.role === "platform_admin");
+    const canCompanyView = rs.some((r) => r.role === "admin" || r.role === "manager");
+    if (!isPlatformAdmin && !canCompanyView) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
+
+    // Tenant scoping — platform admins see everything, others only their own company.
+    let companyFilter: string | null = null;
+    if (!isPlatformAdmin) {
+      const { data: prof } = await supabaseAdmin
+        .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      companyFilter = (prof as { company_id: string | null } | null)?.company_id ?? null;
+      if (!companyFilter) return { rows: [], total: 0 };
+    }
+
+    let q = supabaseAdmin
       .from("audit_log")
-      .select("id, user_id, thread_id, question, answer_preview, sources, created_at")
+      .select("id, user_id, company_id, thread_id, question, answer_preview, sources, created_at", { count: "exact" })
       .order("created_at", { ascending: false })
-      .limit(200);
+      .range(data.offset, data.offset + data.limit - 1);
+    if (companyFilter) q = q.eq("company_id", companyFilter);
+    if (data.since) q = q.gte("created_at", data.since);
+    if (data.search) q = q.ilike("question", `%${data.search}%`);
+
+    const { data: rows, error, count } = await q;
     if (error) throw new Error(error.message);
 
-    const userIds = [...new Set((data ?? []).map((r) => r.user_id))];
-    const { data: profiles } = await supabaseAdmin
-      .from("profiles").select("id, full_name").in("id", userIds);
-    const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
-    return (data ?? []).map((r) => ({ ...r, user_name: nameById.get(r.user_id) ?? null }));
+    const userIds = [...new Set((rows ?? []).map((r) => r.user_id))];
+    const companyIds = [...new Set((rows ?? []).map((r) => r.company_id).filter(Boolean) as string[])];
+    const [profilesRes, companiesRes] = await Promise.all([
+      userIds.length
+        ? supabaseAdmin.from("profiles").select("id, full_name").in("id", userIds)
+        : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null }> }),
+      isPlatformAdmin && companyIds.length
+        ? supabaseAdmin.from("companies").select("id, name").in("id", companyIds)
+        : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),
+    ]);
+    const nameById = new Map((profilesRes.data ?? []).map((p) => [p.id, p.full_name]));
+    const companyById = new Map((companiesRes.data ?? []).map((c) => [c.id, c.name]));
+
+    return {
+      rows: (rows ?? []).map((r) => ({
+        ...r,
+        user_name: nameById.get(r.user_id) ?? null,
+        company_name: r.company_id ? companyById.get(r.company_id) ?? null : null,
+      })),
+      total: count ?? 0,
+    };
   });
