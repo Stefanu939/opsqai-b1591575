@@ -501,7 +501,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     if (!lesson) throw new Error("Lesson not found");
     const body = [
       `TITLE: ${lesson.title}`,
-      `OBJECTIVES: ${(lesson.objectives ?? []).join(" | ")}`,
+      `OBJECTIVES: ${(((lesson as any).objectives as string[]) ?? []).join(" | ")}`,
       `EXPLANATION:\n${lesson.explanation ?? ""}`,
       `EXAMPLES:\n${lesson.examples ?? ""}`,
       `BEST PRACTICES:\n${lesson.best_practices ?? ""}`,
