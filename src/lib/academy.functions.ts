@@ -392,9 +392,10 @@ const CourseSchema = z.object({
   chapters: z.array(z.object({
     title: z.string(),
     summary: z.string(),
-    lessons: z.array(LessonSchema).min(1).max(6),
-  })).min(1).max(8),
+    lessons: z.array(LessonSchema),
+  })),
 });
+
 
 export const generateAcademyCourse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
