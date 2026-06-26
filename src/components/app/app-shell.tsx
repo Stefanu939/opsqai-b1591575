@@ -19,12 +19,12 @@ import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { isAdmin, isManager, isPlatformAdmin, signOut, user, companyName, activeCompanyId, setActiveCompanyId } = useAuth();
+  const auth = useAuth();
+  const { isPlatformAdmin, isPlatformOwner, signOut, user, companyName, activeCompanyId, setActiveCompanyId, hasPermission, hasAnyPermission } = auth;
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
-  const canAdmin = isAdmin || isManager || isPlatformAdmin;
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
@@ -32,22 +32,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [isPlatformAdmin]);
 
   const nav = [
-    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true },
-    { to: "/app/chat", label: t("chat"), icon: MessageSquare },
-    ...(canAdmin ? [{ to: "/app/workspace", label: t("workspace"), icon: Sparkles }] : []),
-    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen },
-    { to: "/app/faq", label: t("faq"), icon: HelpCircle },
-    { to: "/app/requests", label: t("internalRequests"), icon: Inbox },
-  ];
+    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true, show: true },
+    { to: "/app/chat", label: t("chat"), icon: MessageSquare, show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage") },
+    { to: "/app/workspace", label: t("workspace"), icon: Sparkles, show: hasPermission("workspace.use") || hasPermission("workspace.manage") },
+    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit") },
+    { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit") },
+    { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true },
+  ].filter((i) => i.show);
+
   const adminNav = [
-    ...(canAdmin ? [{ to: "/app/admin/dashboard", label: t("adminDashboard"), icon: BarChart3 }] : []),
-    ...(canAdmin ? [{ to: "/app/admin/analytics", label: "Analytics", icon: LineChart }] : []),
-    ...(canAdmin ? [{ to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle }] : []),
-    ...((isAdmin || isPlatformAdmin) ? [{ to: "/app/admin/users", label: t("users"), icon: Users }] : []),
-    ...(canAdmin ? [{ to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText }] : []),
-  ];
-  const platformNav = isPlatformAdmin
+    { to: "/app/admin/dashboard", label: t("adminDashboard"), icon: BarChart3, show: hasPermission("dashboard.view") },
+    { to: "/app/admin/analytics", label: "Analytics", icon: LineChart, show: hasPermission("analytics.view") },
+    { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view") },
+    { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete") },
+    { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view") },
+  ].filter((i) => i.show);
+
+  const platformNav = (isPlatformAdmin || isPlatformOwner)
     ? [
+        { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck },
         { to: "/app/admin/companies", label: "Companies", icon: Building2 },
         { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
       ]

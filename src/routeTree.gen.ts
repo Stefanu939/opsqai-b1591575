@@ -58,6 +58,7 @@ import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
+import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
@@ -319,6 +320,12 @@ const AuthenticatedAppAdminPlatformAdminsRoute =
     path: '/admin/platform-admins',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminPlatformRoute =
+  AuthenticatedAppAdminPlatformRouteImport.update({
+    id: '/admin/platform',
+    path: '/admin/platform',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminKnowledgeGapsRoute =
   AuthenticatedAppAdminKnowledgeGapsRouteImport.update({
     id: '/admin/knowledge-gaps',
@@ -397,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -451,6 +459,7 @@ export interface FileRoutesByTo {
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -508,6 +517,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -565,6 +575,7 @@ export interface FileRouteTypes {
     | '/app/admin/companies'
     | '/app/admin/dashboard'
     | '/app/admin/knowledge-gaps'
+    | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/users'
     | '/app/chat/$threadId'
@@ -619,6 +630,7 @@ export interface FileRouteTypes {
     | '/app/admin/companies'
     | '/app/admin/dashboard'
     | '/app/admin/knowledge-gaps'
+    | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/users'
     | '/app/chat/$threadId'
@@ -675,6 +687,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/companies'
     | '/_authenticated/app/admin/dashboard'
     | '/_authenticated/app/admin/knowledge-gaps'
+    | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/chat/$threadId'
@@ -1052,6 +1065,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminPlatformAdminsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/platform': {
+      id: '/_authenticated/app/admin/platform'
+      path: '/admin/platform'
+      fullPath: '/app/admin/platform'
+      preLoaderRoute: typeof AuthenticatedAppAdminPlatformRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/knowledge-gaps': {
       id: '/_authenticated/app/admin/knowledge-gaps'
       path: '/admin/knowledge-gaps'
@@ -1101,6 +1121,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
@@ -1121,6 +1142,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
+  AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
   AuthenticatedAppAdminPlatformAdminsRoute:
     AuthenticatedAppAdminPlatformAdminsRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,

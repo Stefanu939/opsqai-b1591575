@@ -3,6 +3,8 @@ import {
   ArrowRight, ShieldCheck, Brain, Languages, FileSearch, GitBranch, Users,
   BarChart3, AlertTriangle, Search, Bell, Sparkles, MessageSquare, BookOpen,
   CheckCircle2, TrendingUp, Lock, Globe, ArrowUpRight, Quote,
+  Warehouse, Truck, PackageCheck, Store, Factory, ShoppingCart,
+  Snowflake, ArrowLeftRight, Ship, Network,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
@@ -33,7 +35,19 @@ const HERO_KPIS = [
   { label: "Security", value: "EU", sub: "ISO 27001 roadmap" },
 ];
 
-const LOGOS = ["DACHSER", "DB SCHENKER", "RABEN", "FM LOGISTIC", "CARGO-PARTNER", "DHL"];
+const INDUSTRIES: Array<{ icon: typeof Warehouse; title: string; body: string }> = [
+  { icon: Warehouse, title: "Warehousing", body: "Standardised receiving, putaway, picking and cycle-count procedures across every site." },
+  { icon: PackageCheck, title: "Distribution Centers", body: "Shift-ready SOPs, safety rules and KPIs for high-throughput DC operations." },
+  { icon: Network, title: "3PL Logistics", body: "Per-client procedures, SLAs and quality controls — isolated and auditable." },
+  { icon: Truck, title: "Transport & Fleet", body: "Driver workflows, CMR handling, vehicle checks and incident reporting." },
+  { icon: Store, title: "Retail Logistics", body: "Store replenishment, returns and inter-branch transfer playbooks." },
+  { icon: Factory, title: "Manufacturing Logistics", body: "Line-feed, work-in-progress and finished-goods movement standards." },
+  { icon: ShoppingCart, title: "E-Commerce Fulfillment", body: "Pick-pack-ship SOPs, packaging standards and returns processing." },
+  { icon: Snowflake, title: "Cold Chain Logistics", body: "Temperature compliance, traceability and HACCP-aligned procedures." },
+  { icon: ArrowLeftRight, title: "Cross Dock Operations", body: "Inbound-to-outbound coordination, staging discipline and dock scheduling." },
+  { icon: Ship, title: "Freight Forwarding", body: "Customs, documentation and multimodal coordination knowledge in one place." },
+  { icon: GitBranch, title: "Supply Chain Operations", body: "End-to-end procedures spanning planning, sourcing and distribution." },
+];
 
 const FEATURES = [
   { icon: Brain, title: "Knowledge Management", body: "Centralize SOPs, manuals and FAQs. One source of truth, instantly searchable." },
@@ -301,16 +315,28 @@ function DonutMock() {
 
 function TrustBar() {
   return (
-    <section className="border-y border-border/50 bg-[oklch(0.18_0.03_240)]">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
-        <p className="text-[10px] tracking-[0.2em] text-center uppercase text-muted-foreground">
-          Trusted by logistics operators across Europe
-        </p>
-        <div className="mt-5 grid grid-cols-3 sm:grid-cols-6 gap-y-4 items-center justify-items-center">
-          {LOGOS.map((l) => (
-            <span key={l} className="text-xs sm:text-sm font-bold tracking-wider text-muted-foreground/70 hover:text-foreground transition-colors">
-              {l}
-            </span>
+    <section className="border-y border-border/50 bg-[oklch(0.15_0.03_240)]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
+        <div className="text-center max-w-3xl mx-auto">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Industries we serve</p>
+          <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
+            Built for modern logistics operations
+          </h2>
+          <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
+            OPSQAI is designed for organizations that rely on standardized procedures,
+            operational excellence, compliance, and AI-powered knowledge management.
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {INDUSTRIES.map((it) => (
+            <div key={it.title} className="card-enterprise hover-lift p-5 group">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary group-hover:bg-primary/15 transition-colors">
+                <it.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold text-[14.5px]">{it.title}</h3>
+              <p className="mt-1.5 text-[12.5px] text-muted-foreground leading-relaxed">{it.body}</p>
+            </div>
           ))}
         </div>
       </div>

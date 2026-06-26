@@ -777,6 +777,24 @@ export type Database = {
           },
         ]
       }
+      platform_owner_allowlist: {
+        Row: {
+          created_at: string
+          email: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company_id: string
@@ -839,6 +857,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      role_permissions: {
+        Row: {
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
       }
       sop_acknowledgements: {
         Row: {
@@ -946,6 +979,8 @@ export type Database = {
           company_id: string | null
           created_at: string
           id: string
+          immutable_owner: boolean
+          is_platform_owner: boolean
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -953,6 +988,8 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           id?: string
+          immutable_owner?: boolean
+          is_platform_owner?: boolean
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
@@ -960,6 +997,8 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           id?: string
+          immutable_owner?: boolean
+          is_platform_owner?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -1186,6 +1225,10 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      has_permission: {
+        Args: { _permission: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1194,6 +1237,7 @@ export type Database = {
         Returns: boolean
       }
       is_platform_admin: { Args: never; Returns: boolean }
+      is_platform_owner: { Args: { _user_id?: string }; Returns: boolean }
       match_document_chunks: {
         Args: {
           match_count?: number
@@ -1248,6 +1292,12 @@ export type Database = {
         }
         Returns: number
       }
+      my_permissions: {
+        Args: never
+        Returns: {
+          permission: string
+        }[]
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -1273,6 +1323,10 @@ export type Database = {
         | "manager"
         | "team_leader"
         | "platform_admin"
+        | "platform_owner"
+        | "supervisor"
+        | "operator"
+        | "viewer"
       message_role: "user" | "assistant" | "system"
     }
     CompositeTypes: {
@@ -1407,6 +1461,10 @@ export const Constants = {
         "manager",
         "team_leader",
         "platform_admin",
+        "platform_owner",
+        "supervisor",
+        "operator",
+        "viewer",
       ],
       message_role: ["user", "assistant", "system"],
     },
