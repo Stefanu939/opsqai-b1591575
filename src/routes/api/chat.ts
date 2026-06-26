@@ -3,6 +3,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { embedOne } from "@/lib/embeddings.server";
+import { cached, createTimer, background } from "@/lib/perf.server";
 import type { Database } from "@/integrations/supabase/types";
 
 const REFUSAL = {
