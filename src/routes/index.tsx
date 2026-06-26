@@ -4,7 +4,7 @@ import {
   BarChart3, AlertTriangle, Search, Bell, Sparkles, MessageSquare, BookOpen,
   CheckCircle2, TrendingUp, Lock, Globe, ArrowUpRight, Quote,
   Warehouse, Truck, PackageCheck, Store, Factory, ShoppingCart,
-  Snowflake, ArrowLeftRight, Ship, Network,
+  Snowflake, ArrowLeftRight, Ship, Network, ScrollText, KeyRound,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
