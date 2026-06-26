@@ -1,12 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-
-async function requirePlatformAdmin(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "platform_admin").maybeSingle();
-  if (!data) throw new Error("Forbidden: platform admin required");
-}
+import { requirePlatformAdmin } from "@/lib/authorization";
 
 const CompanyInput = z.object({
   name: z.string().min(1),
