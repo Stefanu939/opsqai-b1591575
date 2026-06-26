@@ -716,7 +716,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
       .from("academy_lesson_progress")
       .select("last_score").eq("enrollment_id", data.enrollment_id);
     const scores = (progress ?? []).map((p: any) => Number(p.last_score ?? 0));
-    const finalScore = scores.length ? Math.round(scores.reduce((s, n) => s + n, 0) / scores.length) : 0;
+    const finalScore = scores.length ? Math.round(scores.reduce((s: number, n: number) => s + n, 0) / scores.length) : 0;
 
     await (context.supabase as any).from("academy_enrollments")
       .update({ status: "completed", completed_at: new Date().toISOString() })
