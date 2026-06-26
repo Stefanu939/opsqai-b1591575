@@ -104,7 +104,7 @@ export const listAcademyPaths = createServerFn({ method: "POST" })
       .eq("company_id", companyId)
       .order("order_index", { ascending: true });
     if (data.department_id) q = q.eq("department_id", data.department_id);
-    if (data.publish_status) q = q.eq("publish_status", data.publish_status);
+    if (data.publish_status) q = q.eq("publish_status", data.publish_status as "draft" | "published" | "archived");
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
