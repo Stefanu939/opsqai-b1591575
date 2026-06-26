@@ -304,11 +304,17 @@ export const Route = createFileRoute("/api/chat")({
           : isFollowup ? FOLLOWUP_PROMPT(contextBlock)
           : mode === "gap" ? SYSTEM_PROMPT("", false) : SYSTEM_PROMPT(contextBlock, true);
 
+        // convertToModelMessages is synchronous — no need to await
+        const modelMessages = convertToModelMessages(messages);
+        timer.mark("prepare_llm");
+
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: systemPrompt,
-          messages: await convertToModelMessages(messages),
+          messages: modelMessages,
         });
+        timer.mark("stream_started");
+
 
         const canCreateRequest = mode === "gap";
 
