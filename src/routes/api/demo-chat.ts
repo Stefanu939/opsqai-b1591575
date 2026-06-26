@@ -92,7 +92,8 @@ export const Route = createFileRoute("/api/demo-chat")({
           });
           return Response.json({ reply: result.text });
         } catch (e) {
-          return new Response(`AI gateway error: ${e instanceof Error ? e.message : "unknown"}`, { status: 502 });
+          console.error("[demo-chat] gateway error", e);
+          return new Response("AI service temporarily unavailable.", { status: 502 });
         }
       },
     },

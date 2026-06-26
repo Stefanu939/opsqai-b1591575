@@ -48,20 +48,23 @@ function Page() {
   const exportPdf = () => {
     const w = window.open("", "_blank");
     if (!w) return;
+    const esc = (s: unknown) => String(s ?? "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     w.document.write(`<html><head><title>OPSQAI Analytics</title>
       <style>body{font-family:system-ui;max-width:780px;margin:24px auto;padding:0 24px;color:#111}h1{font-size:22px}h2{font-size:14px;margin-top:24px;text-transform:uppercase;color:#666;letter-spacing:.05em}table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:6px 8px;border-bottom:1px solid #eee;text-align:left}</style></head><body>
       <h1>OPSQAI Knowledge Analytics</h1>
-      <p>Generated ${new Date().toLocaleString()}</p>
+      <p>Generated ${esc(new Date().toLocaleString())}</p>
       <h2>Overview</h2>
-      <table><tr><td>Total questions (30d)</td><td>${data.totalQuestions}</td></tr>
-      <tr><td>Active SOPs</td><td>${data.totalDocs}</td></tr>
-      <tr><td>FAQs</td><td>${data.totalFaqs}</td></tr>
-      <tr><td>Avg AI confidence</td><td>${(data.avgConfidence * 100).toFixed(1)}%</td></tr>
-      <tr><td>Low-confidence answers</td><td>${data.lowConfidenceCount}</td></tr>
-      <tr><td>Open knowledge gaps</td><td>${data.openGaps.length}</td></tr></table>
-      <h2>Top questions</h2><table>${data.topQuestions.map(([q, c]) => `<tr><td>${q}</td><td>${c}</td></tr>`).join("")}</table>
-      <h2>Most used SOPs</h2><table>${data.topDocs.map((d) => `<tr><td>${d.title}</td><td>${d.count}</td></tr>`).join("")}</table>
-      <h2>Outdated SOPs (>6 months)</h2><table>${data.outdatedSops.map((d) => `<tr><td>${d.doc_code ?? ""}</td><td>${d.title}</td><td>${new Date(d.updated_at).toLocaleDateString()}</td></tr>`).join("") || "<tr><td>None</td></tr>"}</table>
+      <table><tr><td>Total questions (30d)</td><td>${esc(data.totalQuestions)}</td></tr>
+      <tr><td>Active SOPs</td><td>${esc(data.totalDocs)}</td></tr>
+      <tr><td>FAQs</td><td>${esc(data.totalFaqs)}</td></tr>
+      <tr><td>Avg AI confidence</td><td>${esc((data.avgConfidence * 100).toFixed(1))}%</td></tr>
+      <tr><td>Low-confidence answers</td><td>${esc(data.lowConfidenceCount)}</td></tr>
+      <tr><td>Open knowledge gaps</td><td>${esc(data.openGaps.length)}</td></tr></table>
+      <h2>Top questions</h2><table>${data.topQuestions.map(([q, c]) => `<tr><td>${esc(q)}</td><td>${esc(c)}</td></tr>`).join("")}</table>
+      <h2>Most used SOPs</h2><table>${data.topDocs.map((d) => `<tr><td>${esc(d.title)}</td><td>${esc(d.count)}</td></tr>`).join("")}</table>
+      <h2>Outdated SOPs (>6 months)</h2><table>${data.outdatedSops.map((d) => `<tr><td>${esc(d.doc_code ?? "")}</td><td>${esc(d.title)}</td><td>${esc(new Date(d.updated_at).toLocaleDateString())}</td></tr>`).join("") || "<tr><td>None</td></tr>"}</table>
       <script>window.print()</script></body></html>`);
     w.document.close();
   };

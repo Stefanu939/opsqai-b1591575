@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
+
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { getActorRoles, requireAnyPermission } from "@/lib/authorization";
@@ -140,8 +140,9 @@ export const inviteUser = createServerFn({ method: "POST" })
     if (!targetCompany) throw new Error("Target company required");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const origin = getRequestHeader("origin") || getRequestHeader("referer") || "";
-    const redirectTo = origin ? `${origin.replace(/\/$/, "")}/accept-invite` : undefined;
+    // Security: never derive auth redirect URL from client-controlled headers.
+    const appUrl = (process.env.APP_URL ?? "https://opsqai.de").replace(/\/$/, "");
+    const redirectTo = `${appUrl}/accept-invite`;
     const { data: inv, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
       redirectTo,
       data: {
