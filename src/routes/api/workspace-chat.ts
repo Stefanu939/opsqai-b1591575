@@ -193,18 +193,23 @@ export const Route = createFileRoute("/api/workspace-chat")({
           };
         }
 
-        // Sanitize prior messages: keep only text parts to avoid choking convertToModelMessages
-        // on legacy / failure-card tool parts persisted from previous turns.
-        const safeMessages = (messages as UIMessage[]).map((m) => ({
+        // Trim history to last 12 messages and only sanitize that window;
+        // older turns are dropped (cheap) rather than re-walked every request.
+        const HISTORY_WINDOW = 12;
+        const windowed = (messages as UIMessage[]).slice(-HISTORY_WINDOW);
+        const safeMessages = windowed.map((m) => ({
           ...m,
           parts: (m.parts ?? []).filter((p: any) => p?.type === "text" && typeof p.text === "string"),
         })).filter((m) => m.parts.length > 0);
+        timer.mark("sanitize_history", { kept: safeMessages.length, original: messages.length });
 
         const gateway = createLovableAiGatewayProvider(apiKey);
+        const modelMessages = await convertToModelMessages(safeMessages as UIMessage[]);
+        timer.mark("prepare_llm");
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: SYSTEM_PROMPT(filesBlock, retention) + `\n\nLanguage hint: ${langHint}`,
-          messages: await convertToModelMessages(safeMessages as UIMessage[]),
+          messages: modelMessages,
 
           tools: {
             generate_pptx: tool({
