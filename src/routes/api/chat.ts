@@ -192,13 +192,25 @@ export const Route = createFileRoute("/api/chat")({
           }
         } else if (!isGreeting && query) {
           try {
-            const qVec = await embedOne(query);
+            // Parallel: embed query AND fetch FAQ pool in one round-trip.
+            // FAQs are cached per-company for 5 min to skip repeated 200-row pulls.
+            const [qVec, faqs] = await Promise.all([
+              embedOne(query),
+              cached("company:faqs", companyId, 5 * 60_000, async () => {
+                const { data } = await supabase
+                  .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category").limit(200);
+                return data ?? [];
+              }),
+            ]);
             queryEmbedding = qVec;
+            timer.mark("embed_and_faqs");
+
             const { data: matches, error: matchErr } = await supabase.rpc(
               "match_document_chunks_for_company" as never,
               { query_embedding: `[${qVec.join(",")}]`, match_count: 8, min_similarity: 0.15, _company_id: companyId } as never,
             ) as { data: Array<{ chunk_id: string; document_id: string; doc_title: string; doc_code: string | null; content: string; similarity: number; chunk_index: number }> | null; error: unknown };
             const matchList = matches ?? [];
+            timer.mark("vector_match", { count: matchList.length });
             console.log("[chat:retrieval]", {
               company_id: companyId,
               query: query.slice(0, 120),
@@ -225,6 +237,7 @@ export const Route = createFileRoute("/api/chat")({
                 docMeta[row.id] = { ...row, department_name: row.department_id ? deptMap[row.department_id] ?? null : null };
               }
             }
+            timer.mark("doc_metadata");
 
             const sims = matchList.map((m) => m.similarity);
             for (let i = 0; i < matchList.length; i++) {
@@ -254,21 +267,19 @@ export const Route = createFileRoute("/api/chat")({
               confidence = top.reduce((a, b) => a + b, 0) / top.length;
               topSimilarity = sims[0] ?? 0;
             }
+
+            const lq = query.toLowerCase();
+            const words = lq.split(/\s+/).filter((w) => w.length > 3);
+            const scored = faqs.map((f) => {
+              const blob = `${f.question_de} ${f.question_en} ${f.answer_de} ${f.answer_en}`.toLowerCase();
+              const s = words.reduce((acc, w) => acc + (blob.includes(w) ? 1 : 0), 0);
+              return { f, s };
+            }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
+            for (const { f } of scored) {
+              sources.push({ type: "faq", id: f.id, title: `${f.question_en} / ${f.question_de}`, excerpt: `EN: ${f.answer_en}\nDE: ${f.answer_de}`, confidence: "medium" });
+            }
           } catch (e) {
             console.error("[chat:retrieval] embed/match failed", e);
-          }
-
-          const { data: faqs } = await supabase
-            .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category").limit(200);
-          const lq = query.toLowerCase();
-          const words = lq.split(/\s+/).filter((w) => w.length > 3);
-          const scored = (faqs ?? []).map((f) => {
-            const blob = `${f.question_de} ${f.question_en} ${f.answer_de} ${f.answer_en}`.toLowerCase();
-            const s = words.reduce((acc, w) => acc + (blob.includes(w) ? 1 : 0), 0);
-            return { f, s };
-          }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
-          for (const { f } of scored) {
-            sources.push({ type: "faq", id: f.id, title: `${f.question_en} / ${f.question_de}`, excerpt: `EN: ${f.answer_en}\nDE: ${f.answer_de}`, confidence: "medium" });
           }
 
           const docBlocks = sources.filter((s) => s.type === "document").map((s, i) =>
@@ -277,9 +288,6 @@ export const Route = createFileRoute("/api/chat")({
             `[FAQ ${i + 1}] ${s.title}\n${s.excerpt}`);
           contextBlock = [...docBlocks, ...faqBlocks].join("\n\n---\n\n");
 
-          // Refuse only when retrieval truly returned nothing.
-          // If sources exist (even at low similarity), pass them to the LLM
-          // and let it decide whether they answer the question.
           if (sources.length === 0) mode = "gap";
           console.log("[chat:decision]", {
             mode,
@@ -288,6 +296,8 @@ export const Route = createFileRoute("/api/chat")({
             min_confidence: minConfidence,
           });
         }
+        timer.mark("rag_complete");
+
 
         const gateway = createLovableAiGatewayProvider(apiKey);
         const systemPrompt = isGreeting ? GREETING_PROMPT(langHint)
