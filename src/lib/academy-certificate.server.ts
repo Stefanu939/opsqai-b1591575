@@ -29,15 +29,15 @@ export async function issueAcademyCertificate(supabase: any, opts: IssueOpts) {
   const code = insert.certificate_code as string;
 
   // 2) Read details for the certificate body.
-  const [{ data: path }, { data: company }, { data: profile }] = await Promise.all([
+  const [{ data: pathRow }, { data: company }, { data: profile }] = await Promise.all([
     supabase.from("academy_learning_paths").select("title, academy_departments(name)").eq("id", opts.pathId).maybeSingle(),
     supabase.from("companies").select("name").eq("id", opts.companyId).maybeSingle(),
     supabase.from("profiles").select("full_name").eq("id", opts.userId).maybeSingle(),
   ]);
 
   const recipient = profile?.full_name ?? "Learner";
-  const courseName = path?.title ?? "Course";
-  const department = (path as any)?.academy_departments?.name ?? "";
+  const courseName = pathRow?.title ?? "Course";
+  const department = (pathRow as any)?.academy_departments?.name ?? "";
   const companyName = company?.name ?? "OPSQAI";
 
   // 3) Build PDF (A4 landscape).
