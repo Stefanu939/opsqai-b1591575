@@ -1273,6 +1273,10 @@ export type Database = {
         | "manager"
         | "team_leader"
         | "platform_admin"
+        | "platform_owner"
+        | "supervisor"
+        | "operator"
+        | "viewer"
       message_role: "user" | "assistant" | "system"
     }
     CompositeTypes: {
@@ -1407,6 +1411,10 @@ export const Constants = {
         "manager",
         "team_leader",
         "platform_admin",
+        "platform_owner",
+        "supervisor",
+        "operator",
+        "viewer",
       ],
       message_role: ["user", "assistant", "system"],
     },
