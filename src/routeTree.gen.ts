@@ -25,6 +25,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
 import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsible-ai'
 import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
@@ -45,6 +46,7 @@ import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
@@ -53,6 +55,7 @@ import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
+import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
@@ -66,6 +69,9 @@ import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_au
 import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
 import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
 import { Route as AuthenticatedAppAdminAiAuditRouteImport } from './routes/_authenticated/app.admin.ai-audit'
+import { Route as AuthenticatedAppAdminAcademyRouteImport } from './routes/_authenticated/app.admin.academy'
+import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
+import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
 const TrustRoute = TrustRouteImport.update({
   id: '/trust',
@@ -144,6 +150,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyCodeRoute = VerifyCodeRouteImport.update({
+  id: '/verify/$code',
+  path: '/verify/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrustSecurityArchitectureRoute =
@@ -248,6 +259,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAcademyChatRoute = ApiAcademyChatRouteImport.update({
+  id: '/api/academy-chat',
+  path: '/api/academy-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -290,6 +306,12 @@ const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
     id: '/chat/',
     path: '/chat/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAcademyIndexRoute =
+  AuthenticatedAppAcademyIndexRouteImport.update({
+    id: '/academy/',
+    path: '/academy/',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const LovableEmailQueueProcessRoute =
@@ -370,6 +392,24 @@ const AuthenticatedAppAdminAiAuditRoute =
     path: '/admin/ai-audit',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminAcademyRoute =
+  AuthenticatedAppAdminAcademyRouteImport.update({
+    id: '/admin/academy',
+    path: '/admin/academy',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAcademyPathPathIdRoute =
+  AuthenticatedAppAcademyPathPathIdRouteImport.update({
+    id: '/academy/path/$pathId',
+    path: '/academy/path/$pathId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAcademyLessonLessonIdRoute =
+  AuthenticatedAppAcademyLessonLessonIdRouteImport.update({
+    id: '/academy/lesson/$lessonId',
+    path: '/academy/lesson/$lessonId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -388,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -408,11 +449,13 @@ export interface FileRoutesByFullPath {
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
@@ -426,8 +469,11 @@ export interface FileRoutesByFullPath {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
+  '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
+  '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -445,6 +491,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
+  '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -465,11 +512,13 @@ export interface FileRoutesByTo {
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
@@ -483,8 +532,11 @@ export interface FileRoutesByTo {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
+  '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
+  '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -505,6 +557,7 @@ export interface FileRoutesById {
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -525,11 +578,13 @@ export interface FileRoutesById {
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/_authenticated/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
@@ -543,8 +598,11 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
+  '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
+  '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -565,6 +623,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/trust'
     | '/app'
+    | '/api/academy-chat'
     | '/api/chat'
     | '/api/demo-chat'
     | '/api/workspace-chat'
@@ -585,11 +644,13 @@ export interface FileRouteTypes {
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/verify/$code'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
     | '/app/'
+    | '/app/admin/academy'
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
@@ -603,8 +664,11 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
+    | '/app/academy/'
     | '/app/chat/'
     | '/app/workspace/'
+    | '/app/academy/lesson/$lessonId'
+    | '/app/academy/path/$pathId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -622,6 +686,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/solutions'
     | '/trust'
+    | '/api/academy-chat'
     | '/api/chat'
     | '/api/demo-chat'
     | '/api/workspace-chat'
@@ -642,11 +707,13 @@ export interface FileRouteTypes {
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/verify/$code'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
     | '/app'
+    | '/app/admin/academy'
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
@@ -660,8 +727,11 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
+    | '/app/academy'
     | '/app/chat'
     | '/app/workspace'
+    | '/app/academy/lesson/$lessonId'
+    | '/app/academy/path/$pathId'
   id:
     | '__root__'
     | '/'
@@ -681,6 +751,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/trust'
     | '/_authenticated/app'
+    | '/api/academy-chat'
     | '/api/chat'
     | '/api/demo-chat'
     | '/api/workspace-chat'
@@ -701,11 +772,13 @@ export interface FileRouteTypes {
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/verify/$code'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/app/'
+    | '/_authenticated/app/admin/academy'
     | '/_authenticated/app/admin/ai-audit'
     | '/_authenticated/app/admin/analytics'
     | '/_authenticated/app/admin/audit'
@@ -719,8 +792,11 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
+    | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/workspace/'
+    | '/_authenticated/app/academy/lesson/$lessonId'
+    | '/_authenticated/app/academy/path/$pathId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -740,9 +816,11 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SolutionsRoute: typeof SolutionsRoute
   TrustRoute: typeof TrustRouteWithChildren
+  ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  VerifyCodeRoute: typeof VerifyCodeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -858,6 +936,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$code': {
+      id: '/verify/$code'
+      path: '/verify/$code'
+      fullPath: '/verify/$code'
+      preLoaderRoute: typeof VerifyCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/trust/security-architecture': {
@@ -1000,6 +1085,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/academy-chat': {
+      id: '/api/academy-chat'
+      path: '/api/academy-chat'
+      fullPath: '/api/academy-chat'
+      preLoaderRoute: typeof ApiAcademyChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app': {
       id: '/_authenticated/app'
       path: '/app'
@@ -1054,6 +1146,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/app/chat/'
       preLoaderRoute: typeof AuthenticatedAppChatIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy/': {
+      id: '/_authenticated/app/academy/'
+      path: '/academy'
+      fullPath: '/app/academy/'
+      preLoaderRoute: typeof AuthenticatedAppAcademyIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/lovable/email/queue/process': {
@@ -1147,6 +1246,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminAiAuditRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/academy': {
+      id: '/_authenticated/app/admin/academy'
+      path: '/admin/academy'
+      fullPath: '/app/admin/academy'
+      preLoaderRoute: typeof AuthenticatedAppAdminAcademyRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy/path/$pathId': {
+      id: '/_authenticated/app/academy/path/$pathId'
+      path: '/academy/path/$pathId'
+      fullPath: '/app/academy/path/$pathId'
+      preLoaderRoute: typeof AuthenticatedAppAcademyPathPathIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/academy/lesson/$lessonId': {
+      id: '/_authenticated/app/academy/lesson/$lessonId'
+      path: '/academy/lesson/$lessonId'
+      fullPath: '/app/academy/lesson/$lessonId'
+      preLoaderRoute: typeof AuthenticatedAppAcademyLessonLessonIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
@@ -1156,6 +1276,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppAdminAcademyRoute: typeof AuthenticatedAppAdminAcademyRoute
   AuthenticatedAppAdminAiAuditRoute: typeof AuthenticatedAppAdminAiAuditRoute
   AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
   AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
@@ -1168,8 +1289,11 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
+  AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
   AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
+  AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
+  AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -1178,6 +1302,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppAdminAcademyRoute: AuthenticatedAppAdminAcademyRoute,
   AuthenticatedAppAdminAiAuditRoute: AuthenticatedAppAdminAiAuditRoute,
   AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
   AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
@@ -1194,8 +1319,13 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
+  AuthenticatedAppAcademyIndexRoute: AuthenticatedAppAcademyIndexRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
   AuthenticatedAppWorkspaceIndexRoute: AuthenticatedAppWorkspaceIndexRoute,
+  AuthenticatedAppAcademyLessonLessonIdRoute:
+    AuthenticatedAppAcademyLessonLessonIdRoute,
+  AuthenticatedAppAcademyPathPathIdRoute:
+    AuthenticatedAppAcademyPathPathIdRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
@@ -1281,9 +1411,11 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SolutionsRoute: SolutionsRoute,
   TrustRoute: TrustRouteWithChildren,
+  ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  VerifyCodeRoute: VerifyCodeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport

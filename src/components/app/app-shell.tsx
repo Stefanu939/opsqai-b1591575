@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart, Sparkles, ClipboardCheck,
+  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
@@ -39,6 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit") },
     { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit") },
     { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true },
+    { to: "/app/academy", label: "Academy", icon: GraduationCap, show: hasPermission("academy.learn") },
   ].filter((i) => i.show);
 
   const adminNav = [
@@ -47,6 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view") },
     { to: "/app/admin/sop-generator", label: "AI SOP Generator", icon: Sparkles, show: hasPermission("sop.generate") },
     { to: "/app/admin/ai-audit", label: "AI Workspace Audit", icon: ClipboardCheck, show: hasPermission("ai_audit.run") },
+    { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage") },
     { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete") },
     { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view") },
   ].filter((i) => i.show);

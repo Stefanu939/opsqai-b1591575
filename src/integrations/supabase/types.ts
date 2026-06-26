@@ -14,6 +14,647 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_certificates: {
+        Row: {
+          certificate_code: string
+          company_id: string
+          created_at: string
+          enrollment_id: string
+          final_score: number
+          id: string
+          issued_at: string
+          path_id: string
+          pdf_path: string | null
+          qr_payload: string | null
+          revoked: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          certificate_code?: string
+          company_id: string
+          created_at?: string
+          enrollment_id: string
+          final_score?: number
+          id?: string
+          issued_at?: string
+          path_id: string
+          pdf_path?: string | null
+          qr_payload?: string | null
+          revoked?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          certificate_code?: string
+          company_id?: string
+          created_at?: string
+          enrollment_id?: string
+          final_score?: number
+          id?: string
+          issued_at?: string
+          path_id?: string
+          pdf_path?: string | null
+          qr_payload?: string | null
+          revoked?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_certificates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_certificates_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "academy_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_certificates_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "academy_learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_chapters: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          order_index: number
+          path_id: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          path_id: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          path_id?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_chapters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_chapters_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "academy_learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_departments: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_departments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_enrollments: {
+        Row: {
+          assigned_by: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          due_at: string | null
+          id: string
+          mandatory: boolean
+          path_id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["academy_enrollment_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          mandatory?: boolean
+          path_id: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["academy_enrollment_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          mandatory?: boolean
+          path_id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["academy_enrollment_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_enrollments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_enrollments_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "academy_learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_learning_paths: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          description: string | null
+          difficulty: string
+          employment_type: string | null
+          experience_level: string | null
+          id: string
+          language: string
+          mandatory: boolean
+          order_index: number
+          passing_score: number
+          publish_status: Database["public"]["Enums"]["academy_publish_status"]
+          target_position: string | null
+          target_role: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          difficulty?: string
+          employment_type?: string | null
+          experience_level?: string | null
+          id?: string
+          language?: string
+          mandatory?: boolean
+          order_index?: number
+          passing_score?: number
+          publish_status?: Database["public"]["Enums"]["academy_publish_status"]
+          target_position?: string | null
+          target_role?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          difficulty?: string
+          employment_type?: string | null
+          experience_level?: string | null
+          id?: string
+          language?: string
+          mandatory?: boolean
+          order_index?: number
+          passing_score?: number
+          publish_status?: Database["public"]["Enums"]["academy_publish_status"]
+          target_position?: string | null
+          target_role?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_learning_paths_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_learning_paths_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "academy_departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_lesson_progress: {
+        Row: {
+          attempts: number
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          enrollment_id: string
+          id: string
+          last_activity_at: string | null
+          last_score: number | null
+          lesson_id: string
+          status: Database["public"]["Enums"]["academy_progress_status"]
+          time_spent_seconds: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          last_activity_at?: string | null
+          last_score?: number | null
+          lesson_id: string
+          status?: Database["public"]["Enums"]["academy_progress_status"]
+          time_spent_seconds?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          last_activity_at?: string | null
+          last_score?: number | null
+          lesson_id?: string
+          status?: Database["public"]["Enums"]["academy_progress_status"]
+          time_spent_seconds?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lesson_progress_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_lesson_progress_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "academy_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "academy_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_lesson_versions: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          lesson_id: string
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_id: string
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_id?: string
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lesson_versions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_lesson_versions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "academy_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_lessons: {
+        Row: {
+          best_practices: string | null
+          chapter_id: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          estimated_minutes: number
+          examples: string | null
+          explanation: string | null
+          id: string
+          language: string
+          objectives: Json
+          order_index: number
+          publish_status: Database["public"]["Enums"]["academy_publish_status"]
+          source_document_id: string | null
+          source_document_version: number | null
+          summary: string | null
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          best_practices?: string | null
+          chapter_id: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          estimated_minutes?: number
+          examples?: string | null
+          explanation?: string | null
+          id?: string
+          language?: string
+          objectives?: Json
+          order_index?: number
+          publish_status?: Database["public"]["Enums"]["academy_publish_status"]
+          source_document_id?: string | null
+          source_document_version?: number | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          best_practices?: string | null
+          chapter_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          estimated_minutes?: number
+          examples?: string | null
+          explanation?: string | null
+          id?: string
+          language?: string
+          objectives?: Json
+          order_index?: number
+          publish_status?: Database["public"]["Enums"]["academy_publish_status"]
+          source_document_id?: string | null
+          source_document_version?: number | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lessons_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "academy_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_lessons_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_lessons_source_document_id_fkey"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_quiz_attempts: {
+        Row: {
+          answers: Json
+          company_id: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          lesson_id: string
+          passed: boolean
+          questions: Json
+          score: number
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          company_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          lesson_id: string
+          passed: boolean
+          questions: Json
+          score: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          company_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          lesson_id?: string
+          passed?: boolean
+          questions?: Json
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_quiz_attempts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_quiz_attempts_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "academy_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_retraining_events: {
+        Row: {
+          affected_count: number
+          company_id: string
+          created_at: string
+          id: string
+          lesson_id: string
+          reason: string
+          source_document_id: string | null
+        }
+        Insert: {
+          affected_count?: number
+          company_id: string
+          created_at?: string
+          id?: string
+          lesson_id: string
+          reason: string
+          source_document_id?: string | null
+        }
+        Update: {
+          affected_count?: number
+          company_id?: string
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          reason?: string
+          source_document_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_retraining_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_retraining_events_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "academy_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_retraining_events_source_document_id_fkey"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_settings: {
+        Row: {
+          certificate_template: Json
+          company_id: string
+          default_difficulty: string
+          languages: string[]
+          passing_score: number
+          quiz_max: number
+          quiz_min: number
+          updated_at: string
+        }
+        Insert: {
+          certificate_template?: Json
+          company_id: string
+          default_difficulty?: string
+          languages?: string[]
+          passing_score?: number
+          quiz_max?: number
+          quiz_min?: number
+          updated_at?: string
+        }
+        Update: {
+          certificate_template?: Json
+          company_id?: string
+          default_difficulty?: string
+          languages?: string[]
+          passing_score?: number
+          quiz_max?: number
+          quiz_min?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_audits: {
         Row: {
           company_id: string
@@ -1267,6 +1908,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      academy_company_visible: { Args: { _company: string }; Returns: boolean }
+      academy_department_performance: {
+        Args: { p_company: string }
+        Returns: Json
+      }
+      academy_heatmap: { Args: { p_company: string }; Returns: Json }
+      academy_kpis: { Args: { p_company: string }; Returns: Json }
+      academy_verify_certificate: { Args: { _code: string }; Returns: Json }
       cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
       cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }
@@ -1397,6 +2046,18 @@ export type Database = {
       }
     }
     Enums: {
+      academy_enrollment_status:
+        | "assigned"
+        | "in_progress"
+        | "completed"
+        | "overdue"
+        | "revoked"
+      academy_progress_status:
+        | "not_started"
+        | "in_progress"
+        | "completed"
+        | "needs_review"
+      academy_publish_status: "draft" | "published" | "archived"
       app_role:
         | "admin"
         | "employee"
@@ -1535,6 +2196,20 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      academy_enrollment_status: [
+        "assigned",
+        "in_progress",
+        "completed",
+        "overdue",
+        "revoked",
+      ],
+      academy_progress_status: [
+        "not_started",
+        "in_progress",
+        "completed",
+        "needs_review",
+      ],
+      academy_publish_status: ["draft", "published", "archived"],
       app_role: [
         "admin",
         "employee",

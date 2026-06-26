@@ -54,6 +54,11 @@ export const PERMISSIONS = {
   NOTIFICATIONS_MANAGE: "notifications.manage",
   GAP_CREATE: "gap.create",
   FEEDBACK_SUBMIT: "feedback.submit",
+  // Academy
+  ACADEMY_LEARN: "academy.learn",
+  ACADEMY_MANAGE: "academy.manage",
+  ACADEMY_PUBLISH: "academy.publish",
+  ACADEMY_CERTIFY: "academy.certify",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
