@@ -1,310 +1,157 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import {
-  getDashboardOverview, getDashboardActivity, getExecutiveInsights,
-} from "@/lib/dashboard.functions";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
-  AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
-  PieChart, Pie, Cell, Legend,
-} from "recharts";
-import {
-  MessageSquare, Brain, AlertTriangle, ShieldAlert, BookOpen, HelpCircle,
-  LayoutTemplate, ClipboardCheck, ScrollText, Users, Sparkles, Gauge,
-  TrendingUp, FileText, Lightbulb,
+  MessageSquare, Sparkles, BookOpen, HelpCircle, Inbox, BarChart3,
+  ArrowRight, ScrollText, ClipboardCheck, Search,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/app/")({ component: ExecutiveDashboard });
+export const Route = createFileRoute("/_authenticated/app/")({
+  component: OperationalHome,
+});
 
-const RANGES = [
-  { key: "today", label: "Today", days: 0, bucket: "hour" as const },
-  { key: "7d", label: "7 Days", days: 7, bucket: "day" as const },
-  { key: "month", label: "This Month", days: 30, bucket: "day" as const },
-  { key: "30d", label: "30 Days", days: 30, bucket: "day" as const },
-];
+function OperationalHome() {
+  const { user, companyName, hasPermission, hasAnyPermission } = useAuth();
+  const hour = new Date().getHours();
+  const greeting = hour < 5 ? "Good evening" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const name =
+    (user?.user_metadata?.first_name as string | undefined) ||
+    (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "there";
 
-function ExecutiveDashboard() {
-  const { activeCompanyId } = useAuth() as any;
-  const overviewFn = useServerFn(getDashboardOverview);
-  const activityFn = useServerFn(getDashboardActivity);
-  const insightsFn = useServerFn(getExecutiveInsights);
+  const quickActions: Array<{
+    to: any; label: string; desc: string; icon: any; show: boolean; primary?: boolean;
+  }> = [
+    {
+      to: "/app/chat", label: "Ask the AI Assistant",
+      desc: "Get instant, source-grounded answers from your operational knowledge.",
+      icon: MessageSquare, primary: true,
+      show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"),
+    },
+    {
+      to: "/app/workspace", label: "Open AI Workspace",
+      desc: "Analyse, compare and generate documents from session-scoped files.",
+      icon: Sparkles,
+      show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
+    },
+    {
+      to: "/app/knowledge", label: "Browse Knowledge Base",
+      desc: "Open SOPs, manuals and procedures across your workspace.",
+      icon: BookOpen,
+      show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"),
+    },
+    {
+      to: "/app/faq", label: "Browse FAQs",
+      desc: "Frequently asked questions answered by your team.",
+      icon: HelpCircle,
+      show: hasAnyPermission("faq.read", "faq.edit"),
+    },
+    {
+      to: "/app/requests", label: "Internal Requests",
+      desc: "Submit a question or resolve one for your colleagues.",
+      icon: Inbox, show: true,
+    },
+  ].filter((a) => a.show);
 
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [insights, setInsights] = useState<string[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
-  const [rangeKey, setRangeKey] = useState("7d");
-
-  const range = RANGES.find((r) => r.key === rangeKey)!;
-
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    Promise.all([
-      overviewFn({ data: { companyId: activeCompanyId ?? null } }),
-      insightsFn({ data: { companyId: activeCompanyId ?? null } }).catch(() => ({ insights: [] })),
-    ]).then(([o, i]) => {
-      if (!alive) return;
-      setData(o); setInsights(i.insights);
-    }).finally(() => alive && setLoading(false));
-    return () => { alive = false; };
-  }, [activeCompanyId]);
-
-  useEffect(() => {
-    const to = new Date();
-    const from = new Date(to);
-    if (range.key === "today") from.setHours(0, 0, 0, 0);
-    else from.setDate(to.getDate() - range.days);
-    activityFn({
-      data: {
-        companyId: activeCompanyId ?? null,
-        from: from.toISOString(),
-        to: to.toISOString(),
-        bucket: range.bucket,
-      },
-    }).then((r) => setActivity((r.rows as any[]) ?? [])).catch(() => setActivity([]));
-  }, [rangeKey, activeCompanyId]);
-
-  const k = data?.kpis ?? {};
-  const health = data?.health ?? { score: 0, label: "—" };
-  const status = data?.knowledgeStatus ?? { complete: 0, inProgress: 0, missing: 0 };
-  const top = data?.topSops ?? [];
-  const critical = data?.criticalSops ?? [];
-  const lastAudit = data?.lastAudit;
-
-  const kpiCards = [
-    { label: "Questions Answered", value: k.questionsAnswered ?? 0, icon: MessageSquare, sub: `${k.questionsToday ?? 0} today` },
-    { label: "AI Confidence", value: `${Math.round((Number(k.avgConfidence) || 0) * 100)}%`, icon: Brain, sub: "Last 30d" },
-    { label: "Knowledge Gaps", value: k.openGaps ?? 0, icon: AlertTriangle, sub: "Open" },
-    { label: "Critical SOPs", value: k.criticalSops ?? 0, icon: ShieldAlert, sub: "Active" },
-    { label: "Documents", value: k.documents ?? 0, icon: BookOpen, sub: "" },
-    { label: "FAQs", value: k.faqs ?? 0, icon: HelpCircle, sub: "" },
-    { label: "Templates", value: k.templates ?? 0, icon: LayoutTemplate, sub: "" },
-    { label: "AI Audits", value: k.aiAudits ?? 0, icon: ClipboardCheck, sub: "" },
-    { label: "Audit Events", value: k.auditEvents ?? 0, icon: ScrollText, sub: "Last 30d" },
-    { label: "Active Users", value: k.activeUsers ?? 0, icon: Users, sub: "Last 30d" },
-    { label: "Workspaces", value: k.workspaces ?? 0, icon: Sparkles, sub: "" },
-    { label: "Health Score", value: `${health.score ?? 0}`, icon: Gauge, sub: health.label },
-  ];
-
-  const donut = useMemo(
-    () => [
-      { name: "Complete", value: status.complete, color: "var(--chart-1, #22c55e)" },
-      { name: "In Progress", value: status.inProgress, color: "var(--chart-2, #eab308)" },
-      { name: "Missing", value: status.missing, color: "var(--chart-3, #ef4444)" },
-    ],
-    [status],
-  );
+  const adminShortcuts: Array<{ to: any; label: string; icon: any; show: boolean }> = [
+    { to: "/app/admin/dashboard", label: "Executive Dashboard", icon: BarChart3, show: hasPermission("dashboard.view") },
+    { to: "/app/admin/audit", label: "Audit Log", icon: ScrollText, show: hasPermission("audit.view") },
+    { to: "/app/admin/ai-audit", label: "AI Workspace Audit", icon: ClipboardCheck, show: hasPermission("ai_audit.run") },
+  ].filter((a) => a.show);
 
   return (
-    <div className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Executive Command Center</p>
-          <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight">Operational overview</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Live KPIs, health and AI insights for your workspace.</p>
-        </div>
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-0.5">
-          {RANGES.map((r) => (
-            <button
-              key={r.key} onClick={() => setRangeKey(r.key)}
-              className={`px-3 py-1.5 text-xs rounded-md transition-colors ${rangeKey === r.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >{r.label}</button>
-          ))}
-        </div>
+    <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
+      <header className="mb-8">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">
+          {companyName ?? "Your workspace"}
+        </p>
+        <h1 className="mt-1 text-3xl md:text-4xl font-semibold tracking-tight">
+          {greeting}, {name} 👋
+        </h1>
+        <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl">
+          Welcome back. Pick up a conversation, dive into a document or jump straight into the AI assistant.
+        </p>
       </header>
 
-      {/* KPI grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {loading
-          ? Array.from({ length: 12 }).map((_, i) => <Skeleton key={i} className="h-[92px] rounded-xl" />)
-          : kpiCards.map((c) => (
-            <Card key={c.label} className="card-enterprise hover-lift p-4 border-0">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate">{c.label}</div>
-                  <div className="text-2xl font-semibold tracking-tight mt-1 tabular-nums">{c.value}</div>
-                  {c.sub && <div className="text-[10px] text-muted-foreground mt-0.5">{c.sub}</div>}
+      {/* Featured chat shortcut */}
+      <Card className="card-enterprise border-0 p-5 md:p-7 mb-6 relative overflow-hidden">
+        <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+        <div className="relative grid md:grid-cols-[1fr_auto] gap-5 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] text-primary">
+              <Sparkles className="h-3 w-3" /> AI Assistant
+            </div>
+            <h2 className="mt-3 text-xl md:text-2xl font-semibold tracking-tight">
+              What do you want to know today?
+            </h2>
+            <p className="mt-1.5 text-sm text-muted-foreground max-w-xl">
+              Ask anything about your SOPs, procedures, safety rules or operations — answers are grounded in your own knowledge.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2 md:items-end shrink-0">
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
+              <Link to="/app/chat">Start a conversation <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              <Link to="/app/workspace"><Sparkles className="mr-2 h-4 w-4" />Open Workspace</Link>
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Quick actions */}
+      <section className="mb-8">
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-3">Quick actions</div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          {quickActions.map((a) => (
+            <Link
+              key={a.to}
+              to={a.to}
+              className="group card-enterprise hover-lift border-0 p-5 flex flex-col text-left transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 grid place-items-center text-primary group-hover:bg-primary/15 transition-colors">
+                  <a.icon className="h-5 w-5" />
                 </div>
-                <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/20 grid place-items-center text-primary shrink-0">
-                  <c.icon className="h-4 w-4" />
-                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
               </div>
-            </Card>
+              <div className="mt-4 font-semibold text-[14.5px]">{a.label}</div>
+              <p className="mt-1 text-[12.5px] text-muted-foreground leading-relaxed">{a.desc}</p>
+            </Link>
           ))}
-      </div>
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
-        {/* Health */}
-        <Card className="card-enterprise border-0 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Workspace Health</div>
-            <Gauge className="h-4 w-4 text-primary" />
+      {/* Admin shortcuts — only render when user can access at least one */}
+      {adminShortcuts.length > 0 && (
+        <section>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-3">For managers & admins</div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            {adminShortcuts.map((a) => (
+              <Link
+                key={a.to}
+                to={a.to}
+                className="group card-enterprise hover-lift border-0 p-4 flex items-center gap-3"
+              >
+                <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary shrink-0">
+                  <a.icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate">{a.label}</div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+              </Link>
+            ))}
           </div>
-          <div className="flex items-baseline gap-2">
-            <div className="text-5xl font-bold tracking-tight tabular-nums">{health.score}</div>
-            <div className="text-sm text-muted-foreground">/100</div>
-          </div>
-          <Badge variant="secondary" className="mt-2">{health.label}</Badge>
-          <div className="mt-4 space-y-2">
-            <Progress value={health.score} className="h-2" />
-            <div className="text-[11px] text-muted-foreground grid grid-cols-2 gap-1 mt-2">
-              {Object.entries(health.breakdown ?? {}).map(([k, v]) => (
-                <div key={k} className="flex justify-between"><span className="capitalize">{k.replace(/([A-Z])/g, " $1")}</span><span className="font-mono">{String(v)}</span></div>
-              ))}
-            </div>
-          </div>
-        </Card>
+        </section>
+      )}
 
-        {/* Insights */}
-        <Card className="card-enterprise border-0 p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Executive Insights · AI Generated</div>
-            <Lightbulb className="h-4 w-4 text-primary" />
-          </div>
-          {insights.length === 0 ? (
-            <div className="text-sm text-muted-foreground">Gathering signals…</div>
-          ) : (
-            <ul className="space-y-2.5">
-              {insights.map((i, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                  <span>{i}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-
-      {/* Activity + Knowledge status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
-        <Card className="card-enterprise border-0 p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Activity Overview</div>
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activity}>
-                <defs>
-                  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                <XAxis dataKey="bucket" tickFormatter={(v) => new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })} fontSize={11} />
-                <YAxis fontSize={11} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  labelFormatter={(v) => new Date(v).toLocaleString()}
-                />
-                <Area type="monotone" dataKey="questions" stroke="hsl(var(--primary))" fill="url(#g1)" name="Questions" />
-                <Area type="monotone" dataKey="conversations" stroke="#a78bfa" fill="transparent" name="Conversations" />
-                <Area type="monotone" dataKey="aiResponses" stroke="#22d3ee" fill="transparent" name="AI Responses" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        <Card className="card-enterprise border-0 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Knowledge Status</div>
-            <BookOpen className="h-4 w-4 text-primary" />
-          </div>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={donut} dataKey="value" innerRadius={50} outerRadius={75} paddingAngle={2}>
-                  {donut.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-      </div>
-
-      {/* Audit summary + critical SOPs + top sops */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-        <Card className="card-enterprise border-0 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Last AI Audit</div>
-            <ClipboardCheck className="h-4 w-4 text-primary" />
-          </div>
-          {lastAudit ? (
-            <>
-              <div className="text-3xl font-semibold tabular-nums">{Math.round(lastAudit.score)}/100</div>
-              <div className="text-xs text-muted-foreground">{new Date(lastAudit.created_at).toLocaleString()}</div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                <div><div className="text-lg font-semibold text-emerald-500">{lastAudit.passed}</div><div className="text-[10px] uppercase text-muted-foreground">Passed</div></div>
-                <div><div className="text-lg font-semibold text-amber-500">{lastAudit.warnings}</div><div className="text-[10px] uppercase text-muted-foreground">Warnings</div></div>
-                <div><div className="text-lg font-semibold text-red-500">{lastAudit.critical}</div><div className="text-[10px] uppercase text-muted-foreground">Critical</div></div>
-              </div>
-              <Button asChild size="sm" variant="outline" className="mt-4 w-full">
-                <Link to="/app/admin/ai-audit">Open Full AI Audit</Link>
-              </Button>
-            </>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              No audit yet.
-              <Button asChild size="sm" variant="outline" className="mt-3 w-full">
-                <Link to="/app/admin/ai-audit">Run first audit</Link>
-              </Button>
-            </div>
-          )}
-        </Card>
-
-        <Card className="card-enterprise border-0 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Critical SOPs</div>
-            <ShieldAlert className="h-4 w-4 text-primary" />
-          </div>
-          {critical.length === 0 ? (
-            <div className="text-sm text-muted-foreground">All critical SOPs are healthy.</div>
-          ) : (
-            <ul className="space-y-2">
-              {critical.slice(0, 6).map((c: any) => (
-                <li key={c.id} className="text-sm flex items-start justify-between gap-2">
-                  <span className="min-w-0 truncate">
-                    {c.code && <span className="font-mono text-[10px] text-muted-foreground mr-1.5">{c.code}</span>}
-                    {c.title}
-                  </span>
-                  <Badge variant="outline" className="text-[10px] shrink-0">{c.reason}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card className="card-enterprise border-0 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Top SOPs</div>
-            <FileText className="h-4 w-4 text-primary" />
-          </div>
-          {top.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No usage data yet.</div>
-          ) : (
-            <ul className="space-y-2">
-              {top.map((s: any, i: number) => (
-                <li key={i} className="text-sm flex items-center justify-between gap-2">
-                  <span className="min-w-0 truncate">
-                    {s.code && <span className="font-mono text-[10px] text-muted-foreground mr-1.5">{s.code}</span>}
-                    {s.title || "(unknown)"}
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">{s.usage}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+      {/* Tip / search footer */}
+      <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
+        <Search className="h-3.5 w-3.5" />
+        Tip: press <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[10px]">⌘K</kbd> to search across SOPs, FAQs, users and audit history.
       </div>
     </div>
   );
