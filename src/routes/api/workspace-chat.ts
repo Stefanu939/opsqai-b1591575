@@ -375,6 +375,7 @@ export const Route = createFileRoute("/api/workspace-chat")({
             } catch (e) {
               console.error("workspace persist failed", e);
             }
+            timer.summary();
           },
         });
        } catch (e) {
