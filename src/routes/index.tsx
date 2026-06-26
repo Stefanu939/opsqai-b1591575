@@ -87,6 +87,11 @@ function Home() {
       <TrustBar />
       <FeaturesGrid />
       <PlatformShowcase />
+      <CapabilitiesSection />
+      <GovernanceSection />
+      <RoadmapSection />
+      <WhyImprovingSection />
+      <PlatformStatusSection />
       <StatsStrip />
       <Testimonial />
       <FinalCTA />
