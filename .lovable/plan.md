@@ -1,71 +1,165 @@
-# OPSQAI Enterprise Redesign — Plan
+# Sprint XI — Executive Workspace Experience
 
-Pure UI/UX modernization. No routes, APIs, DB, auth, or business logic touched. All existing files keep their exports, props, and data flow.
+This sprint is large (14 parts). I'll ship it in 4 sequential batches so each piece is verifiable and never breaks existing functionality. **Nothing in Chat, Knowledge Base, Audit, RAG, RBAC, Workspaces, or Templates will change behavior — only new surfaces are added and a few items relocate.**
 
-## Scope guardrails
+Please confirm scope and answer the 3 questions at the bottom before I start.
 
-- No changes to: routes (`src/routes/**` paths), server functions (`src/lib/**.functions.ts`, `**.server.ts`), Supabase integration, RLS, RBAC, i18n keys, navigation entries, query keys.
-- Allowed: design tokens, Tailwind classes, JSX structure inside components, new presentational components, new marketing sections, new shared UI primitives (Card variants, KPI cards, etc.).
+## Batch 1 — Dashboard becomes Executive Command Center + Chat cleanup
 
-## 1. Design system refresh (`src/styles.css`)
+**Dashboard (**`/app`**)** — rebuild as executive-only:
 
-- Tune semantic tokens for an "enterprise deep navy + teal/cyan" palette (already close — refine contrast, add elevation tiers).
-- Add tokens: `--surface-1/2/3`, `--border-subtle`, `--border-strong`, `--accent-glow`, `--gradient-hero`, `--gradient-cta`, `--shadow-card`, `--shadow-elevated`, `--shadow-glow`.
-- Typography scale: tighten heading tracking, comfortable line-heights, display sizes for hero.
-- Utility classes: `.card-enterprise`, `.glow-ring`, `.hover-lift`, `.grid-noise` (subtle SVG/CSS noise bg).
+- Remove Recent Conversations / Recent Questions / Conversation History blocks.
+- 12 KPI cards, all from live DB: Questions Answered, AI Confidence (avg), Knowledge Gaps (open), Critical SOPs, Documents, FAQs, Templates, AI Audits, Audit Events, Active Users (last 30d), Workspaces, Workspace Health Score.
+- **Workspace Health Score (0–100)** = weighted blend of SOP coverage, AI confidence, open gaps, missing SOPs, audit compliance, template usage, FAQ completeness, latest AI Audit score. Computed in a new SQL function `dashboard_health(company_id)`.
+- **Activity Overview** — line chart (recharts) with period selector: Today / 7d / Week / Month / 30d / Custom. Series: Questions, Conversations, Users, AI Responses. Backed by new `dashboard_activity(company_id, from, to, bucket)` SQL function.
+- **Knowledge Status** donut: Complete / In Progress / Missing SOPs.
+- **AI Audit Summary** widget — last audit, score, passed/warnings/critical + link.
+- **Critical SOP** widget — outdated / no review / low confidence / missing metadata / pending approval.
+- **Top SOPs** — usage count, avg confidence, last updated.
+- **Executive Insights** — AI-generated bullets (Lovable AI) cached 1h per company.
+- Realtime via Supabase channel on `audit_log`, `knowledge_gaps`, `knowledge_documents` → invalidate React Query keys (no manual refresh).
 
-## 2. Marketing site redesign (`src/routes/_marketing/*`, `src/components/marketing/*`)
+**Chat (**`/app/chat`**)** — ChatGPT-style:
 
-Sections rebuilt visually only (copy preserved or lightly polished):
+- Centered welcome (`Good morning, {name} 👋`), suggestion pills, big composer.
+- Sidebar: New Conversation, Favorites, Templates, Workspace Selector, Settings. **No thread history list.**
+- Existing `/app/chat/$threadId` route, RAG, sources panel, feedback — untouched.
 
-- **Layout/Nav**: glass top nav, refined dropdown menus, sign-in + book demo CTAs visible on desktop & mobile (already fixed — restyle only).
-- **Hero**: large display headline w/ teal accent on keyword, subtitle, CTA pair, KPI badge row (Source-grounded, Reduce onboarding, Enterprise Security, Multilingual). Right side: animated dashboard mockup (pure JSX/CSS — KPI tiles, sparkline SVG, donut SVG, recent questions list) with glow ring.
-- **Trust bar**: logo strip restyled (Dachser, DB Schenker, Raben, FM Logistic, cargo-partner).
-- **Features grid**: 9 premium feature blocks (Knowledge Mgmt, Operational Intelligence, Compliance, Analytics, AI Workspace, Knowledge Gaps, Enterprise Search, Notifications, Version Control) — icon + title + desc + hover lift/glow.
-- **Platform showcase**: tabbed/stacked realistic UI previews built in JSX (Dashboard, AI Chat, Knowledge Base, Analytics, AI Workspace, Knowledge Gaps, Internal Requests).
-- **Stats strip**: 95% faster retrieval, 70% reduced onboarding, 24/7 multilingual, Enterprise-ready.
-- **Testimonial**: redesigned quote card.
-- **CTA**: dark gradient block with animated lines (CSS), Book Demo + Explore Platform.
-- **Footer**: enterprise multi-column (Product, Solutions, Industries, Resources, Security, Compliance, Legal, Company, social).
+**Audit Log** — already the source of truth; add the columns this sprint promises (workspace, feedback) to the existing view; no schema break.
 
-## 3. App shell + dashboard restyle
+## Batch 2 — AI SOP Generator + Validator
 
-- `src/components/app-shell.tsx` / sidebar: refined spacing, grouped sections (Workspace / Knowledge / Admin), active indicator pill, hover state, polished collapse, refined topbar (search, notifications bell, workspace switcher, user menu).
-- `src/routes/_authenticated/app.index.tsx` (Dashboard): larger KPI cards w/ trend deltas, sections for Recent Activity, AI Confidence, Knowledge Health, Open Requests, Knowledge Gaps, Latest SOP updates, Usage. Data sources unchanged.
+- New route `/app/knowledge/new-ai` (Manager+) — wizard: Title, Department, Category, Purpose, Inputs, Outputs, Responsible Role, Risk, Approval, Language.
+- Server fn `generateSopDraft` streams a structured SOP via Lovable AI (Gemini), respecting company SOP template if present.
+- Editable markdown preview → "Validate" runs `validateSop` server fn returning {score, missing_steps, duplicates, grammar, unsafe, missing_responsibilities, missing_approvals, coverage_gaps}.
+- "Publish" inserts into `knowledge_documents` + chunks + embeds via existing pipeline. Versioning via existing `sop_versions`.
 
-## 4. Feature page restyle (visual only)
+## Batch 3 — AI Workspace Audit + Smart Notifications + Global Search
 
-- Knowledge Base: cards/table polish, version badges, hover actions.
-- Chat: cleaner bubbles, sources panel, confidence badges, feedback row, suggested follow-ups, refined composer (keep AI Elements primitives).
-- Analytics: enterprise chart cards, trend chips.
-- AI Workspace session view: three-column polish (files / chat / artifacts), retention countdown chip, artifact preview cards.
+- **AI Workspace Audit**: server fn aggregates docs/FAQs/templates/gaps/audit/confidence/coverage → Lovable AI → JSON report → PDF via existing `pdf.server.ts` → stored in `workspace_artifacts` (or new `ai_audits` table) with exec summary, risks, recs, priorities, maturity score. Admin route `/app/admin/ai-audit`.
+- **Notifications**: extend existing `notifications` table consumers; in-app bell already exists — add filters and the new kinds (sop_approved, gap_found, audit_completed, doc_review, template_published, critical_sop_missing). Triggers added on inserts.
+- **Global Search** (`Cmd/Ctrl-K`): command palette searching SOPs, FAQs, templates, documents, audit, users, conversations, AI audits via a single `search_everywhere(q)` SQL function using trigram + vector.
 
-## 5. Micro-interactions & a11y
+## Batch 4 — Personalization + UX polish + Security/RBAC verification
 
-- Subtle hover lifts, skeleton loaders, button transitions (already in tokens).
-- Focus-visible rings, AA contrast, 44px tap targets, `aria-label` audit on icon buttons touched.
-
-## 6. Mobile
-
-- Verify each redesigned surface at 360–414px. Drawer nav, stacked KPIs, scrollable tabs for platform showcase.
-
-## What I will NOT do
-
-- Add/remove routes, change i18n keys, alter server fn signatures, touch RLS/migrations, change query keys or props of existing exported hooks.
+- **Dashboard personalization**: drag-drop / hide / resize / pin / reset; layout JSON in `profiles.dashboard_layout`.
+- **UX**: skeleton loaders on all KPIs/charts, framer-motion transitions, route-level lazy loading for chart bundle, virtualization on long lists.
+- **Light/Dark mode**: theme toggle already exists — verify all new surfaces.
+- **Security/RBAC audit**: re-verify Platform Owner immutability triggers, run linter, ensure every new server fn checks `has_permission`.
+- **Performance**: ensure dashboard payload < 2s; charts code-split.
 
 ## Technical notes
 
-- All charts are inline SVG (no new chart libs) to keep bundle lean and avoid functional risk.
-- Generated dashboard/preview mockups are pure JSX — no new dependencies.
-- All colors via tokens; no hardcoded hex in components.
+- **DB additions** (migrations, additive only):
+  - SQL functions: `dashboard_kpis(company)`, `dashboard_activity(company, from, to, bucket)`, `dashboard_health(company)`, `search_everywhere(company, q)`.
+  - Tables: `ai_audits` (id, company_id, requested_by, score, summary jsonb, pdf_path, created_at), `dashboard_layouts` (user_id PK, layout jsonb).
+  - Notification kinds added as string values (no enum change).
+- **Server fns**: `getDashboardKpis`, `getDashboardActivity`, `getKnowledgeStatus`, `getExecutiveInsights`, `getAiAuditSummary`, `getCriticalSops`, `getTopSops`, `generateSopDraft`, `validateSop`, `runWorkspaceAudit`, `globalSearch`, `saveDashboardLayout`.
+- **Realtime**: existing publication; add `audit_log`, `knowledge_gaps`, `knowledge_documents`, `notifications`.
+- **No removals** from existing files — old dashboard content is replaced in place, chat sidebar's history list is hidden via a feature flag check (`showHistoryInChat = false`) so the data still loads server-side for Audit.
 
-## Delivery
+## Questions before I start
 
-I'll ship in this order, verifying typecheck after each:
-1. Tokens + utilities
-2. Marketing nav/hero/trust
-3. Features + platform showcase + stats + CTA + footer
-4. App shell + dashboard
-5. Knowledge / Chat / Analytics / Workspace polish
+1. **Insights cache window**: 1 hour per company OK, or do you want them recomputed every dashboard load? (cost ≈ 1 Lovable AI call/h/company vs per visit)
+2. **AI SOP Generator visibility**: Manager + Admin + Platform Owner only — correct? (Supervisors excluded.)
+3. **Global Search keyboard shortcut**: `Cmd/Ctrl + K` OK? (currently unused in the app.)
 
-Given the scope (~25–35 files), this is a long single-turn task. Approve and I'll execute end-to-end.
+Reply with answers (or "go with defaults: 1h cache, Manager+, Cmd+K") and I'll start Batch 1 immediately.
+
+Implement Sprint XI as one complete delivery.
+
+&nbsp;
+
+Do not stop after Batch 1.
+
+&nbsp;
+
+Do not wait for intermediate approvals.
+
+&nbsp;
+
+Complete all four batches as one implementation.
+
+&nbsp;
+
+You may internally implement them sequentially if it reduces risk, but the final delivery must include every batch before considering Sprint XI complete.
+
+&nbsp;
+
+Only pause if you encounter a blocking technical issue that requires a product decision.
+
+&nbsp;
+
+Otherwise continue until the entire sprint has been fully implemented, tested and integrated.
+
+&nbsp;
+
+The sprint is considered complete only when every feature described in Sprint XI has been delivered, verified and working together.
+
+Implement Sprint XI as one complete delivery.
+
+&nbsp;
+
+Do not stop after Batch 1.
+
+&nbsp;
+
+Do not wait for intermediate approvals.
+
+&nbsp;
+
+Complete all four batches as one implementation.
+
+&nbsp;
+
+You may internally implement them sequentially if it reduces risk, but the final delivery must include every batch before considering Sprint XI complete.
+
+&nbsp;
+
+Only pause if you encounter a blocking technical issue that requires a product decision.
+
+&nbsp;
+
+Otherwise continue until the entire sprint has been fully implemented, tested and integrated.
+
+&nbsp;
+
+The sprint is considered complete only when every feature described in Sprint XI has been delivered, verified and working together.
+
+Before starting implementation, review the entire existing OPSQAI codebase.
+
+&nbsp;
+
+Understand the architecture first.
+
+&nbsp;
+
+Then implement Sprint XI while preserving the existing architecture.
+
+&nbsp;
+
+Avoid duplicate code.
+
+&nbsp;
+
+Reuse existing components.
+
+&nbsp;
+
+Reuse existing services.
+
+&nbsp;
+
+Reuse existing server functions.
+
+&nbsp;
+
+Reuse existing database structures.
+
+&nbsp;
+
+Think like a Senior Enterprise Software Architect, not like a code generator.
+
+&nbsp;
+
+The objective is to build a production-ready Enterprise SaaS platform.
