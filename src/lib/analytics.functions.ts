@@ -1,13 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requirePermission } from "@/lib/authorization";
 
 export const getKnowledgeAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId)
-      .in("role", ["admin", "manager", "platform_admin"]);
-    if (!roles || roles.length === 0) throw new Error("Forbidden");
+    await requirePermission(context, "analytics.view");
 
     const supa = context.supabase;
     const sinceIso = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();

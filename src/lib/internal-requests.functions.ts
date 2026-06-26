@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { requireAnyPermission } from "@/lib/authorization";
 
 const RoleListSchema = z.object({});
 void RoleListSchema;
@@ -9,12 +10,13 @@ async function isStaff(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   const roles = (data ?? []).map((r: any) => r.role as string);
   return {
-    isPlatform: roles.includes("platform_admin"),
+    isPlatform: roles.includes("platform_admin") || roles.includes("platform_owner"),
     isAdmin: roles.includes("admin"),
     isManager: roles.includes("manager"),
     isTeamLeader: roles.includes("team_leader"),
     isStaff:
       roles.includes("platform_admin") ||
+      roles.includes("platform_owner") ||
       roles.includes("admin") ||
       roles.includes("manager") ||
       roles.includes("team_leader"),
@@ -132,8 +134,7 @@ export const promoteRequestToFaq = createServerFn({ method: "POST" })
     category: z.string().min(1).max(80),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const staff = await isStaff(context.supabase, context.userId);
-    if (!staff.isStaff) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["faq.create", "faq.edit", "knowledge.manage"]);
     const { data: req } = await context.supabase
       .from("internal_requests").select("company_id").eq("id", data.id).maybeSingle();
     if (!req) throw new Error("Request not found");
@@ -166,8 +167,7 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
     content: z.string().trim().min(20).max(50000),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const staff = await isStaff(context.supabase, context.userId);
-    if (!(staff.isAdmin || staff.isManager || staff.isPlatform)) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.create", "sop.publish"]);
     const { data: req } = await context.supabase
       .from("internal_requests").select("company_id").eq("id", data.id).maybeSingle();
     if (!req) throw new Error("Request not found");

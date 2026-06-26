@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { companyFromStoragePath, requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
 
 const ReplaceInput = z.object({
   previous_id: z.string().uuid(),
@@ -17,14 +18,7 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ReplaceInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId);
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "manager");
-    if (!allowed) throw new Error("Forbidden");
-
-    const { data: profile } = await context.supabase
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
-    if (!profile?.company_id) throw new Error("No company assigned");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.edit", "sop.publish"]);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -34,6 +28,7 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
       .eq("id", data.previous_id)
       .maybeSingle();
     if (!prev) throw new Error("Previous version not found");
+    const companyId = await resolveCompanyForWrite(context, companyFromStoragePath(data.file_path) ?? prev.company_id);
 
     // Deactivate previous
     await supabaseAdmin
@@ -53,7 +48,7 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
         content_text: "",
         status: "processing",
         uploaded_by: context.userId,
-        company_id: profile.company_id,
+        company_id: companyId,
         version: (prev as { version: number }).version + 1,
         is_active: true,
         parent_document_id: prev.parent_document_id ?? data.previous_id,
@@ -99,9 +94,7 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
-    if (!roles) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.edit", "sop.publish"]);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: target } = await supabaseAdmin
@@ -127,9 +120,7 @@ export const setCriticalFlag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), is_critical: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
-    if (!roles) throw new Error("Forbidden");
+    await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
     const { error } = await context.supabase
       .from("knowledge_documents")
       .update({ is_critical: data.is_critical } as never)
