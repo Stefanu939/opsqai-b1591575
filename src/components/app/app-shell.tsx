@@ -3,8 +3,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart, Sparkles,
+  AlertTriangle, LineChart, Sparkles, ClipboardCheck,
 } from "lucide-react";
+import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
