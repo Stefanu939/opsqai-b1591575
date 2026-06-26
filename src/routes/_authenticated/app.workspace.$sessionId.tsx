@@ -270,10 +270,12 @@ function ChatPanel({
   onArtifact: () => void | Promise<void>;
   dlUrl: (args: { data: { id: string } }) => Promise<{ url: string }>;
 }) {
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     messages: initial,
     transport,
+    onError: (e) => console.error("[workspace:useChat:error]", e),
   });
+
   const [text, setText] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
   const lastCountRef = useRef(0);
