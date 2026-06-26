@@ -159,18 +159,17 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
 /** AI Workspace Audit — synthesises an audit report and stores it. */
 export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
     await ensurePerm(context, "ai_audit.run");
-    const { data: prof } = await context.supabase
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
-    if (!prof?.company_id) throw new Error("No company");
+    const companyId = await resolveCompany(context, data.company_id);
 
     const [kpi, health, status, top, critical] = await Promise.all([
-      context.supabase.rpc("dashboard_kpis", { p_company: prof.company_id }),
-      context.supabase.rpc("dashboard_health", { p_company: prof.company_id }),
-      context.supabase.rpc("dashboard_knowledge_status", { p_company: prof.company_id }),
-      context.supabase.rpc("dashboard_top_sops", { p_company: prof.company_id, p_limit: 10 }),
-      context.supabase.rpc("dashboard_critical_sops", { p_company: prof.company_id }),
+      context.supabase.rpc("dashboard_kpis", { p_company: companyId }),
+      context.supabase.rpc("dashboard_health", { p_company: companyId }),
+      context.supabase.rpc("dashboard_knowledge_status", { p_company: companyId }),
+      context.supabase.rpc("dashboard_top_sops", { p_company: companyId, p_limit: 10 }),
+      context.supabase.rpc("dashboard_critical_sops", { p_company: companyId }),
     ]);
 
     const sys = `You are an operations consultant producing an executive Workspace Audit report.
@@ -199,7 +198,7 @@ Return strict JSON: {
     const { data: row, error } = await context.supabase
       .from("ai_audits")
       .insert({
-        company_id: prof.company_id,
+        company_id: companyId,
         requested_by: context.userId,
         score,
         maturity: String(report.maturity || "developing"),
@@ -213,7 +212,7 @@ Return strict JSON: {
 
     try {
       await context.supabase.from("notifications").insert({
-        company_id: prof.company_id, user_id: context.userId,
+        company_id: companyId, user_id: context.userId,
         kind: "workspace_audit_ready",
         title: `Workspace audit complete — score ${score}/100`,
         body: String(report.executiveSummary || "").slice(0, 240),
@@ -225,10 +224,14 @@ Return strict JSON: {
 
 export const listAiAudits = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data } = await context.supabase
+  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const actor = await getActorRoles(context.supabase, context.userId);
+    let query = context.supabase
       .from("ai_audits")
       .select("id, score, maturity, passed, warnings, critical, summary, created_at")
       .order("created_at", { ascending: false }).limit(50);
-    return { audits: data ?? [] };
+    if (actor.isPlatformAdmin && data.company_id) query = query.eq("company_id", data.company_id);
+    const { data: audits } = await query;
+    return { audits: audits ?? [] };
   });
