@@ -96,14 +96,14 @@ export async function issueAcademyCertificate(supabase: any, opts: IssueOpts) {
   const pdfBytes = await pdf.save();
 
   // 4) Upload to storage.
-  const path = `${opts.companyId}/${certId}.pdf`;
+  const pdfPath = `${opts.companyId}/${certId}.pdf`;
   const { error: upErr } = await supabase.storage
-    .from(BUCKET).upload(path, pdfBytes, { contentType: "application/pdf", upsert: true });
+    .from(BUCKET).upload(pdfPath, pdfBytes, { contentType: "application/pdf", upsert: true });
   if (upErr) throw new Error(upErr.message);
 
   await supabase.from("academy_certificates")
-    .update({ pdf_path: path, qr_payload: verifyUrl })
+    .update({ pdf_path: pdfPath, qr_payload: verifyUrl })
     .eq("id", certId);
 
-  return { id: certId, code, path };
+  return { id: certId, code, path: pdfPath };
 }

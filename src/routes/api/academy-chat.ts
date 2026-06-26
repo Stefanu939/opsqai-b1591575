@@ -57,7 +57,7 @@ export const Route = createFileRoute("/api/academy-chat")({
           const result = streamText({
             model: gateway(MODEL),
             system: SYSTEM(block, language),
-            messages: convertToModelMessages(body.messages ?? []),
+            messages: await convertToModelMessages(body.messages ?? []),
             temperature: 0.3,
           });
           return result.toUIMessageStreamResponse();

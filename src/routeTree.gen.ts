@@ -45,6 +45,7 @@ import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
@@ -248,6 +249,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAcademyChatRoute = ApiAcademyChatRouteImport.update({
+  id: '/api/academy-chat',
+  path: '/api/academy-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -388,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -445,6 +452,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
+  '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -505,6 +513,7 @@ export interface FileRoutesById {
   '/solutions': typeof SolutionsRoute
   '/trust': typeof TrustRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -565,6 +574,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/trust'
     | '/app'
+    | '/api/academy-chat'
     | '/api/chat'
     | '/api/demo-chat'
     | '/api/workspace-chat'
@@ -622,6 +632,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/solutions'
     | '/trust'
+    | '/api/academy-chat'
     | '/api/chat'
     | '/api/demo-chat'
     | '/api/workspace-chat'
@@ -681,6 +692,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/trust'
     | '/_authenticated/app'
+    | '/api/academy-chat'
     | '/api/chat'
     | '/api/demo-chat'
     | '/api/workspace-chat'
@@ -740,6 +752,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SolutionsRoute: typeof SolutionsRoute
   TrustRoute: typeof TrustRouteWithChildren
+  ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
@@ -998,6 +1011,13 @@ declare module '@tanstack/react-router' {
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy-chat': {
+      id: '/api/academy-chat'
+      path: '/api/academy-chat'
+      fullPath: '/api/academy-chat'
+      preLoaderRoute: typeof ApiAcademyChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -1281,6 +1301,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SolutionsRoute: SolutionsRoute,
   TrustRoute: TrustRouteWithChildren,
+  ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
