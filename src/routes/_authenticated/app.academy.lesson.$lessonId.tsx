@@ -16,6 +16,7 @@ import {
   ArrowUp, Sparkles, CheckCircle2, XCircle, RotateCw, Award,
   GraduationCap, Target, Clock, ChevronLeft, ListChecks, BookOpenCheck, Lock,
 } from "lucide-react";
+import { useT } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lessonId")({
   component: LessonPage,
@@ -93,6 +94,7 @@ function TeacherChat({
   lessonId: string; lesson: any; token: string; enrollmentId: string; initialQ: string;
 }) {
   const navigate = useNavigate();
+  const { lang } = useT();
   const genQuiz = useServerFn(generateAcademyQuiz);
   const submit = useServerFn(submitAcademyQuiz);
 
@@ -110,9 +112,9 @@ function TeacherChat({
     () => new DefaultChatTransport({
       api: "/api/academy-chat",
       headers: { Authorization: `Bearer ${token}` },
-      body: { lessonId, language: lesson?.language ?? "en" },
+      body: { lessonId, language: lang },
     }),
-    [token, lessonId, lesson?.language],
+    [token, lessonId, lang],
   );
   const { messages, sendMessage, status, error: chatError } = useChat({ transport });
 
@@ -162,7 +164,7 @@ function TeacherChat({
     if (!lessonComplete) return;
     setResult(null);
     try {
-      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lesson.language ?? "en" } })) as { questions: Q[] };
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lang } })) as { questions: Q[] };
       setQuiz(q.questions);
       setAnswers(Array(q.questions.length).fill(""));
     } catch (e: any) {
