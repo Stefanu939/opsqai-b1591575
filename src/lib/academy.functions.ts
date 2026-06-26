@@ -315,12 +315,13 @@ export const restoreAcademyLessonVersion = createServerFn({ method: "POST" })
 
 const LessonSchema = z.object({
   title: z.string(),
-  objectives: z.array(z.string()).min(1).max(8),
+  objectives: z.array(z.string()),
   explanation: z.string(),
   examples: z.string(),
   best_practices: z.string(),
   summary: z.string(),
 });
+
 
 export const convertSopToLesson = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -391,9 +392,10 @@ const CourseSchema = z.object({
   chapters: z.array(z.object({
     title: z.string(),
     summary: z.string(),
-    lessons: z.array(LessonSchema).min(1).max(6),
-  })).min(1).max(8),
+    lessons: z.array(LessonSchema),
+  })),
 });
+
 
 export const generateAcademyCourse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
