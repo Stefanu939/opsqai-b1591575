@@ -94,6 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <ThemeToggle className="h-8 w-8" />
         <NotificationsBell />
       </div>
+      <div className="px-3 pt-3"><GlobalSearch asButton /></div>
       {isPlatformAdmin && companies.length > 0 && (
         <div className="px-3 py-3 border-b border-sidebar-border">
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50 mb-1.5">Viewing workspace</div>
