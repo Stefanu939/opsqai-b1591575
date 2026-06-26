@@ -4,7 +4,7 @@ import {
   BarChart3, AlertTriangle, Search, Bell, Sparkles, MessageSquare, BookOpen,
   CheckCircle2, TrendingUp, Lock, Globe, ArrowUpRight, Quote,
   Warehouse, Truck, PackageCheck, Store, Factory, ShoppingCart,
-  Snowflake, ArrowLeftRight, Ship, Network,
+  Snowflake, ArrowLeftRight, Ship, Network, ScrollText, KeyRound,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
@@ -87,6 +87,11 @@ function Home() {
       <TrustBar />
       <FeaturesGrid />
       <PlatformShowcase />
+      <CapabilitiesSection />
+      <GovernanceSection />
+      <RoadmapSection />
+      <WhyImprovingSection />
+      <PlatformStatusSection />
       <StatsStrip />
       <Testimonial />
       <FinalCTA />
@@ -636,5 +641,246 @@ function FinalCTA() {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* New informational sections (platform status, capabilities, roadmap) */
+/* ------------------------------------------------------------------ */
+
+type Stage = "available" | "in_development" | "coming_soon";
+
+const STAGE_META: Record<Stage, { label: string; emoji: string; cls: string }> = {
+  available:      { label: "Available",      emoji: "✓",  cls: "text-emerald-400 bg-emerald-400/10 border-emerald-400/25" },
+  in_development: { label: "In Development", emoji: "🚧", cls: "text-amber-400 bg-amber-400/10 border-amber-400/25" },
+  coming_soon:    { label: "Coming Soon",    emoji: "🔜", cls: "text-sky-400 bg-sky-400/10 border-sky-400/25" },
+};
+
+function StageChip({ stage }: { stage: Stage }) {
+  const m = STAGE_META[stage];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium ${m.cls}`}>
+      <span aria-hidden>{m.emoji}</span>
+      {m.label}
+    </span>
+  );
+}
+
+function CapabilityCard({ title, stage }: { title: string; stage: Stage }) {
+  return (
+    <div className="card-enterprise hover-lift p-4 flex items-center justify-between gap-3 group">
+      <span className="text-[13.5px] font-medium text-foreground/95 truncate">{title}</span>
+      <StageChip stage={stage} />
+    </div>
+  );
+}
+
+const CAPABILITIES_AVAILABLE: string[] = [
+  "AI Assistant (Grounded RAG)", "Knowledge Base", "FAQ Management", "SOP Templates",
+  "Multi Workspace", "Multi Company", "Audit Log", "Knowledge Gaps",
+  "Executive Dashboard", "Analytics", "Enterprise RBAC", "Platform Owner",
+  "Platform Administration", "AI SOP Generator", "Dark / Light Mode", "Mobile Responsive",
+  "Source Citations", "Conversation Audit", "Workspace Isolation", "Role Permissions",
+  "Enterprise Search foundation",
+];
+
+const CAPABILITIES_IN_DEV: string[] = [
+  "AI Workspace Audit", "Executive KPI Charts", "Workspace Health Score",
+  "Knowledge Health Dashboard", "Operational Insights", "Advanced Notifications",
+  "Global Enterprise Search", "AI Validation Engine", "Dashboard Personalization",
+  "Professional Audit Reports",
+];
+
+const CAPABILITIES_COMING: string[] = [
+  "Workflow Automation", "Scheduled Reports", "Email Notifications",
+  "Teams Integration", "Slack Integration", "Microsoft 365 Integration",
+  "Google Workspace Integration", "SAP Integration",
+  "Warehouse Management Connectors", "Transport Management Connectors",
+  "API Marketplace", "Enterprise Billing", "SSO", "SCIM Provisioning",
+  "ISO27001 Toolkit", "Advanced AI Process Intelligence",
+  "Predictive Operational Analytics", "AI Recommendation Engine",
+  "AI Process Optimization",
+];
+
+function CapabilitiesSection() {
+  const groups: Array<{ stage: Stage; heading: string; items: string[] }> = [
+    { stage: "available",      heading: "Available today",     items: CAPABILITIES_AVAILABLE },
+    { stage: "in_development", heading: "In development",      items: CAPABILITIES_IN_DEV },
+    { stage: "coming_soon",    heading: "Coming soon",         items: CAPABILITIES_COMING },
+  ];
+  return (
+    <section id="capabilities" className="border-y border-border/50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
+        <div className="text-center max-w-3xl mx-auto">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Platform status</p>
+          <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">Current Platform Capabilities</h2>
+          <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
+            A transparent view of what OPSQAI delivers today and what's being built next — so teams know
+            exactly what to expect when they roll the platform out.
+          </p>
+        </div>
+
+        <div className="mt-12 space-y-10">
+          {groups.map((g) => (
+            <div key={g.stage}>
+              <div className="flex items-center gap-3 mb-4">
+                <StageChip stage={g.stage} />
+                <h3 className="text-[13.5px] font-semibold tracking-tight uppercase text-foreground/80">{g.heading}</h3>
+                <span className="text-[11px] text-muted-foreground">· {g.items.length}</span>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {g.items.map((t) => <CapabilityCard key={t} title={t} stage={g.stage} />)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const GOVERNANCE: Array<{ title: string; body: string; icon: typeof ShieldCheck }> = [
+  { title: "Platform Owner",          body: "A protected, immutable role with full platform authority and self-healing safeguards.", icon: ShieldCheck },
+  { title: "Platform Administration", body: "Centralized control for companies, super admins and platform-wide policies.",          icon: ShieldCheck },
+  { title: "Company Administration",  body: "Per-tenant administration with full isolation from other companies.",                   icon: Lock },
+  { title: "Workspace Administration",body: "Manage SOPs, FAQs, members and access at the workspace level.",                         icon: Users },
+  { title: "Role Based Access Control", body: "Seven enterprise roles, from Viewer to Platform Owner, with permission inheritance.", icon: ShieldCheck },
+  { title: "Audit Trail",             body: "Every question, source and admin action recorded for compliance reviews.",              icon: ScrollText },
+  { title: "Knowledge Governance",    body: "SOP lifecycle, versioning, gaps and critical-document acknowledgements.",                icon: BookOpen },
+  { title: "AI Governance",           body: "Grounded answers, confidence scoring and policy controls for AI usage.",                 icon: Brain },
+  { title: "Permission Engine",       body: "Granular, table-driven permissions enforced on both the API and the UI.",                icon: KeyRound },
+];
+
+function GovernanceSection() {
+  return (
+    <section id="governance" className="relative">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-28">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Enterprise Governance</p>
+          <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">Governance built in, not bolted on</h2>
+          <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
+            OPSQAI already ships with the governance primitives enterprise operations expect: isolation,
+            roles, audit trails and AI controls.
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {GOVERNANCE.map((g) => (
+            <div key={g.title} className="card-enterprise hover-lift p-6 group">
+              <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 grid place-items-center text-primary group-hover:bg-primary/15 transition-colors">
+                <g.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold text-[15px]">{g.title}</h3>
+              <p className="mt-2 text-[13.5px] text-muted-foreground leading-relaxed">{g.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const ROADMAP: Array<{ phase: string; status: string; stage: Stage; items: string[] }> = [
+  { phase: "Phase 1", status: "Completed", stage: "available", items: [
+    "AI Assistant", "Knowledge Base", "Templates", "FAQ", "Audit Log",
+    "Knowledge Gaps", "Executive Dashboard", "Platform Administration",
+    "Multi Company", "RBAC", "AI SOP Generator",
+  ]},
+  { phase: "Phase 2", status: "Currently being developed", stage: "in_development", items: [
+    "AI Workspace Audit", "Executive Charts", "Workspace Health",
+    "AI Validation", "Global Search", "Executive Insights",
+  ]},
+  { phase: "Phase 3", status: "Future", stage: "coming_soon", items: [
+    "Workflow Automation", "Predictive Analytics", "Enterprise Integrations",
+    "Billing", "AI Process Intelligence",
+  ]},
+];
+
+function RoadmapSection() {
+  return (
+    <section id="roadmap" className="border-y border-border/50 bg-[oklch(0.15_0.03_240)]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-28">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Roadmap</p>
+          <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">Current Development Roadmap</h2>
+          <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
+            A transparent picture of what's shipped, what's being built and what's planned next.
+          </p>
+        </div>
+
+        <div className="mt-14 grid gap-5 md:grid-cols-3">
+          {ROADMAP.map((p) => (
+            <div key={p.phase} className="card-enterprise p-6 relative overflow-hidden">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{p.phase}</div>
+                  <div className="mt-1 text-[15px] font-semibold tracking-tight">{p.status}</div>
+                </div>
+                <StageChip stage={p.stage} />
+              </div>
+              <ul className="mt-5 space-y-2">
+                {p.items.map((it) => (
+                  <li key={it} className="flex items-start gap-2 text-[13px] text-foreground/90">
+                    <span aria-hidden className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                    <span>{STAGE_META[p.stage].emoji} {it}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WhyImprovingSection() {
+  return (
+    <section id="why-improving" className="relative">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-20">
+        <div className="card-enterprise p-8 md:p-10 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] text-primary">
+            <Sparkles className="h-3 w-3" /> Continuous delivery
+          </div>
+          <h2 className="mt-4 text-2xl md:text-3xl font-semibold tracking-tight">Why OPSQAI keeps improving</h2>
+          <p className="mt-4 text-[14.5px] md:text-[15px] text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+            OPSQAI evolves continuously based on operational experience, customer feedback and real
+            warehouse workflows. New enterprise capabilities are released regularly while maintaining
+            full backward compatibility.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const STATUS_ITEMS: Array<{ label: string; value: string; sub: string }> = [
+  { label: "Current maturity",   value: "Enterprise MVP",         sub: "Production-ready core" },
+  { label: "Platform Status",    value: "Active Development",     sub: "New features every sprint" },
+  { label: "Enterprise Features",value: "Growing every sprint",   sub: "Roadmap driven by customers" },
+  { label: "AI Readiness",       value: "Enterprise Grade",       sub: "Grounded, audited, isolated" },
+];
+
+function PlatformStatusSection() {
+  return (
+    <section id="platform-status" className="border-y border-border/50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Live status</p>
+          <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">Enterprise Platform Status</h2>
+        </div>
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {STATUS_ITEMS.map((s) => (
+            <div key={s.label} className="card-enterprise hover-lift p-6">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{s.label}</div>
+              <div className="mt-2 text-xl md:text-2xl font-semibold tracking-tight text-gradient-primary">{s.value}</div>
+              <div className="mt-2 text-[12px] text-muted-foreground leading-relaxed">{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // Avoid unused-import lints in case Users/Languages/etc. drop from FEATURES later
 void Users; void Languages;
+
