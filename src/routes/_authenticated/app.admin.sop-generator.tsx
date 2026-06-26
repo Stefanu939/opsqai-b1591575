@@ -208,3 +208,68 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+
+function HelpDialog() {
+  const fields: Array<{ name: string; tip: string }> = [
+    { name: "Title", tip: "Short, action-oriented name (e.g. 'Outbound shipment handover'). Avoid abbreviations." },
+    { name: "Doc code", tip: "Stable identifier such as SOP-042. Used for citations and version tracking." },
+    { name: "Department", tip: "Owning unit (Warehouse, Quality, HR…). Drives routing & permissions." },
+    { name: "Category", tip: "High-level type (Procedures, Safety, Transport, …) used for filtering and analytics." },
+    { name: "Responsible role", tip: "Job title accountable for executing the SOP (e.g. Shift Supervisor)." },
+    { name: "Risk level", tip: "Operational/safety impact. Critical SOPs surface in dashboards and require acknowledgement." },
+    { name: "Approval level", tip: "Minimum role required to publish/approve revisions." },
+    { name: "Language", tip: "Source language for the draft. The chat layer still answers in the user's language." },
+    { name: "Purpose", tip: "Why this SOP exists, in 1–3 sentences. The AI uses this to scope every section." },
+    { name: "Inputs", tip: "Documents, signals, equipment or prerequisites needed before starting." },
+    { name: "Outputs", tip: "Concrete deliverables, records, or system updates produced when the SOP is followed." },
+  ];
+  const tips = [
+    "Be specific — vague purposes produce generic SOPs.",
+    "Prefer numbered procedural steps; the validator rewards measurable instructions.",
+    "Always run Validate before Publish to catch missing safety/approval sections.",
+    "Published SOPs are auto-chunked and embedded for the assistant — give them a clear doc code.",
+  ];
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" aria-label="SOP Generator help">
+          <HelpCircle className="h-4 w-4 mr-1" /> Help
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><HelpCircle className="h-4 w-4 text-primary" /> AI SOP Generator — Field Guide</DialogTitle>
+          <DialogDescription>How each field shapes the draft, and best practices for high-quality SOPs.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          <div>
+            <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Fields</h4>
+            <dl className="space-y-2">
+              {fields.map((f) => (
+                <div key={f.name} className="border border-border rounded-md p-3">
+                  <dt className="font-medium">{f.name}</dt>
+                  <dd className="text-muted-foreground text-xs mt-0.5">{f.tip}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div>
+            <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Best practices</h4>
+            <ul className="list-disc pl-5 space-y-1 text-muted-foreground text-xs">
+              {tips.map((t) => <li key={t}>{t}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Workflow</h4>
+            <ol className="list-decimal pl-5 space-y-1 text-muted-foreground text-xs">
+              <li>Fill the wizard → Generate produces a Markdown draft.</li>
+              <li>Edit the draft inline; refine wording, numbers, responsibilities.</li>
+              <li>Validate to score quality and surface missing sections.</li>
+              <li>Publish to push the SOP into the Knowledge Base (chunked &amp; embedded).</li>
+            </ol>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
