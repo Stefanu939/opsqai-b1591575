@@ -627,7 +627,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     const { text } = await generateText({
       model: gateway(MODEL),
       messages: [
-        { role: "system", content: `You generate concise enterprise training quizzes in ${data.language}. Each question must be answerable from the lesson content only. Mix multiple_choice (4 options), true_false, and short_answer. Provide a short explanation referencing the lesson. Never invent facts. Return only valid JSON, without markdown fences or commentary.` },
+        { role: "system", content: `You generate concise enterprise training quizzes. Write the question text, options, correct_answer, and explanation in ${data.language}. Each question must be answerable from the lesson content only — translate the lesson on the fly without changing its meaning, never invent facts, never omit safety information. Keep domain/technical terms (e.g. "Wareneingang", "CMR", product codes, system names) in their original language; you may add a short gloss in parentheses. Numbers, units, codes, and quoted policy text stay verbatim. Mix multiple_choice (4 options), true_false, and short_answer. Provide a short explanation referencing the lesson. Return only valid JSON, without markdown fences or commentary.` },
         { role: "user", content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape:\n{"questions":[{"type":"multiple_choice","question":"...","options":["A","B","C","D"],"correct_answer":"A","explanation":"..."}]}` },
       ],
     });
