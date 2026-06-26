@@ -1,12 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 
 async function ensurePerm(context: any, perm: string) {
-  const { data: ok } = await context.supabase.rpc("has_permission", {
-    _user: context.userId, _perm: perm,
-  });
-  if (!ok) throw new Error("Forbidden");
+  await requirePermission(context, perm);
+}
+
+async function resolveCompany(context: any, explicitCompanyId?: string | null) {
+  const actor = await getActorRoles(context.supabase, context.userId);
+  if (actor.isPlatformAdmin && explicitCompanyId) return explicitCompanyId;
+  const companyId = await getProfileCompany(context.supabase, context.userId);
+  if (!companyId) throw new Error("No company selected");
+  return companyId;
 }
 
 async function callLlm(prompt: string, system?: string) {
@@ -99,6 +105,7 @@ const PublishInput = z.object({
   doc_code: z.string().optional().nullable(),
   markdown: z.string().min(20),
   language: z.enum(["en", "de", "ro"]).default("en"),
+  company_id: z.string().uuid().optional().nullable(),
 });
 /** Publish a generated SOP straight into knowledge_documents (as a synthetic text file). */
 export const publishGeneratedSop = createServerFn({ method: "POST" })
@@ -106,12 +113,10 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => PublishInput.parse(d))
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "sop.publish");
-    const { data: prof } = await context.supabase
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
-    if (!prof?.company_id) throw new Error("No company");
+    const companyId = await resolveCompany(context, data.company_id);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const path = `${prof.company_id}/${crypto.randomUUID()}-${data.title.replace(/[^a-z0-9]+/gi, "-")}.md`;
+    const path = `${companyId}/${crypto.randomUUID()}-${data.title.replace(/[^a-z0-9]+/gi, "-")}.md`;
     const { error: upErr } = await supabaseAdmin.storage
       .from("knowledge-docs").upload(path, new Blob([data.markdown], { type: "text/markdown" }), {
         contentType: "text/markdown", upsert: false,
@@ -129,7 +134,7 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
         content_text: data.markdown,
         status: "ready",
         uploaded_by: context.userId,
-        company_id: prof.company_id,
+        company_id: companyId,
       })
       .select("id").single();
     if (error) throw new Error(error.message);
@@ -142,7 +147,7 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
 
     try {
       await context.supabase.from("notifications").insert({
-        company_id: prof.company_id, user_id: context.userId,
+        company_id: companyId, user_id: context.userId,
         kind: "ai_sop_generated", title: `New AI-generated SOP: ${data.title}`,
         body: data.doc_code ?? "",
       });
