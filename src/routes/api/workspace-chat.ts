@@ -188,7 +188,7 @@ export const Route = createFileRoute("/api/workspace-chat")({
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: SYSTEM_PROMPT(filesBlock, retention) + `\n\nLanguage hint: ${langHint}`,
-          messages: convertToModelMessages(safeMessages as UIMessage[]),
+          messages: await convertToModelMessages(safeMessages as UIMessage[]),
 
           tools: {
             generate_pptx: tool({
