@@ -6,11 +6,17 @@ import { useAuth } from "@/lib/auth-context";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator,
 } from "@/components/ui/command";
-import { BookOpen, HelpCircle, MessageSquare, Users, Search } from "lucide-react";
+import { BookOpen, HelpCircle, MessageSquare, Users, Search, AlertTriangle, ClipboardCheck, MessagesSquare, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const ICONS: Record<string, any> = { sop: BookOpen, faq: HelpCircle, audit: MessageSquare, user: Users };
-const LABELS: Record<string, string> = { sop: "SOPs", faq: "FAQs", audit: "Audit log", user: "Users" };
+const ICONS: Record<string, any> = {
+  sop: BookOpen, faq: HelpCircle, audit: MessageSquare, user: Users,
+  gap: AlertTriangle, ai_audit: ClipboardCheck, thread: MessagesSquare, workspace: FlaskConical,
+};
+const LABELS: Record<string, string> = {
+  sop: "SOPs", faq: "FAQs", audit: "Audit log", user: "Users",
+  gap: "Knowledge gaps", ai_audit: "AI audits", thread: "Conversations", workspace: "Workspaces",
+};
 
 export function GlobalSearch({ asButton = false }: { asButton?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -49,6 +55,10 @@ export function GlobalSearch({ asButton = false }: { asButton?: boolean }) {
     else if (r.kind === "faq") navigate({ to: "/app/faq" });
     else if (r.kind === "audit") navigate({ to: "/app/admin/audit" });
     else if (r.kind === "user") navigate({ to: "/app/admin/users" });
+    else if (r.kind === "gap") navigate({ to: "/app/admin/knowledge-gaps" });
+    else if (r.kind === "ai_audit") navigate({ to: "/app/admin/ai-audit" });
+    else if (r.kind === "thread") navigate({ to: "/app/chat/$threadId", params: { threadId: r.id } });
+    else if (r.kind === "workspace") navigate({ to: "/app/workspace/$sessionId", params: { sessionId: r.id } });
   };
 
   return (
