@@ -177,11 +177,19 @@ export const Route = createFileRoute("/api/workspace-chat")({
           };
         }
 
+        // Sanitize prior messages: keep only text parts to avoid choking convertToModelMessages
+        // on legacy / failure-card tool parts persisted from previous turns.
+        const safeMessages = (messages as UIMessage[]).map((m) => ({
+          ...m,
+          parts: (m.parts ?? []).filter((p: any) => p?.type === "text" && typeof p.text === "string"),
+        })).filter((m) => m.parts.length > 0);
+
         const gateway = createLovableAiGatewayProvider(apiKey);
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: SYSTEM_PROMPT(filesBlock, retention) + `\n\nLanguage hint: ${langHint}`,
-          messages: await convertToModelMessages(messages),
+          messages: convertToModelMessages(safeMessages as UIMessage[]),
+
           tools: {
             generate_pptx: tool({
               description: "Generate a downloadable PowerPoint (.pptx) presentation. Provide a title, optional subtitle, and an array of slides with title/subtitle/bullets/notes.",
