@@ -9,6 +9,7 @@ import { generateXlsx } from "@/lib/generators/xlsx.server";
 import { generateDocx } from "@/lib/generators/docx.server";
 import { generatePdf } from "@/lib/generators/pdf.server";
 import { generateCsv, generateTxt } from "@/lib/generators/text.server";
+import { cached, createTimer } from "@/lib/perf.server";
 import type { Database } from "@/integrations/supabase/types";
 
 const BUCKET = "workspace-temp";
@@ -34,9 +35,9 @@ export const Route = createFileRoute("/api/workspace-chat")({
     handlers: {
       POST: async ({ request }) => {
        try {
+        const timer = createTimer("ws-chat");
         const token = request.headers.get("authorization")?.replace("Bearer ", "");
         if (!token) return new Response("Unauthorized", { status: 401 });
-
 
         const apiKey = process.env.LOVABLE_API_KEY;
         const supaUrl = process.env.SUPABASE_URL;
@@ -47,37 +48,52 @@ export const Route = createFileRoute("/api/workspace-chat")({
           global: { headers: { Authorization: `Bearer ${token}` } },
           auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
         });
-        const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
+
+        // Parallel: auth + body parse
+        const [claimsRes, body] = await Promise.all([
+          supabase.auth.getClaims(token),
+          request.json() as Promise<{ messages?: UIMessage[]; sessionId?: string; language?: string }>,
+        ]);
+        timer.mark("auth_and_parse");
+        const { data: claims, error: claimsErr } = claimsRes;
         if (claimsErr || !claims?.claims.sub) return new Response("Unauthorized", { status: 401 });
         const userId = claims.claims.sub;
 
-        const body = (await request.json()) as {
-          messages?: UIMessage[]; sessionId?: string; language?: string;
-        };
         const messages = body.messages ?? [];
         const sessionId = body.sessionId;
         const langHint = body.language ?? "en";
         if (!sessionId) return new Response("sessionId required", { status: 400 });
 
-        const { data: session } = await supabase
-          .from("workspace_sessions" as never)
-          .select("id, company_id, user_id, title")
-          .eq("id", sessionId).maybeSingle() as unknown as { data: { id: string; company_id: string; user_id: string; title: string } | null };
+        // Parallel: session + files (company config comes from session, fetched after with cache)
+        const [sessionRes, filesRes] = await Promise.all([
+          supabase.from("workspace_sessions" as never)
+            .select("id, company_id, user_id, title")
+            .eq("id", sessionId).maybeSingle() as unknown as Promise<{ data: { id: string; company_id: string; user_id: string; title: string } | null }>,
+          supabase.from("workspace_files" as never)
+            .select("id, file_name, mime, extracted_text")
+            .eq("session_id", sessionId).order("created_at") as unknown as Promise<{
+              data: Array<{ id: string; file_name: string; mime: string | null; extracted_text: string | null }> | null;
+            }>,
+        ]);
+        timer.mark("session_and_files");
+        const session = sessionRes.data;
         if (!session || session.user_id !== userId) {
           return new Response("Session not found", { status: 404 });
         }
         const companyId = session.company_id;
+        const files = filesRes.data;
 
-        const { data: company } = await supabase
-          .from("companies").select("workspace_retention").eq("id", companyId).maybeSingle() as unknown as { data: { workspace_retention: string } | null };
-        const retention = company?.workspace_retention ?? "immediate";
+        // Cache workspace retention per-company (15 min)
+        const retention = await cached(
+          "company:ws_retention", companyId, 15 * 60_000,
+          async () => {
+            const { data } = await supabase.from("companies")
+              .select("workspace_retention").eq("id", companyId).maybeSingle() as unknown as { data: { workspace_retention: string } | null };
+            return data?.workspace_retention ?? "immediate";
+          },
+        );
+        timer.mark("company_config");
 
-        const { data: files } = await supabase
-          .from("workspace_files" as never)
-          .select("id, file_name, mime, extracted_text")
-          .eq("session_id", sessionId).order("created_at") as unknown as {
-            data: Array<{ id: string; file_name: string; mime: string | null; extracted_text: string | null }> | null;
-          };
         const filesBlock = (files ?? []).map((f, i) => {
           const txt = (f.extracted_text ?? "").slice(0, MAX_CONTEXT_PER_FILE);
           return `=== File ${i + 1}: ${f.file_name} (${f.mime ?? "?"}) ===\n${txt}`;
@@ -177,18 +193,23 @@ export const Route = createFileRoute("/api/workspace-chat")({
           };
         }
 
-        // Sanitize prior messages: keep only text parts to avoid choking convertToModelMessages
-        // on legacy / failure-card tool parts persisted from previous turns.
-        const safeMessages = (messages as UIMessage[]).map((m) => ({
+        // Trim history to last 12 messages and only sanitize that window;
+        // older turns are dropped (cheap) rather than re-walked every request.
+        const HISTORY_WINDOW = 12;
+        const windowed = (messages as UIMessage[]).slice(-HISTORY_WINDOW);
+        const safeMessages = windowed.map((m) => ({
           ...m,
           parts: (m.parts ?? []).filter((p: any) => p?.type === "text" && typeof p.text === "string"),
         })).filter((m) => m.parts.length > 0);
+        timer.mark("sanitize_history", { kept: safeMessages.length, original: messages.length });
 
         const gateway = createLovableAiGatewayProvider(apiKey);
+        const modelMessages = await convertToModelMessages(safeMessages as UIMessage[]);
+        timer.mark("prepare_llm");
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: SYSTEM_PROMPT(filesBlock, retention) + `\n\nLanguage hint: ${langHint}`,
-          messages: await convertToModelMessages(safeMessages as UIMessage[]),
+          messages: modelMessages,
 
           tools: {
             generate_pptx: tool({
@@ -309,7 +330,7 @@ export const Route = createFileRoute("/api/workspace-chat")({
           },
         });
 
-
+        timer.mark("stream_started");
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
           onError: (err) => {
@@ -354,6 +375,7 @@ export const Route = createFileRoute("/api/workspace-chat")({
             } catch (e) {
               console.error("workspace persist failed", e);
             }
+            timer.summary();
           },
         });
        } catch (e) {

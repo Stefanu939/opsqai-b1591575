@@ -3,6 +3,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { embedOne } from "@/lib/embeddings.server";
+import { cached, createTimer, background } from "@/lib/perf.server";
 import type { Database } from "@/integrations/supabase/types";
 
 const REFUSAL = {
@@ -110,6 +111,7 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const timer = createTimer("chat");
         const authHeader = request.headers.get("authorization");
         const token = authHeader?.replace("Bearer ", "");
         if (!token) return new Response("Unauthorized", { status: 401 });
@@ -124,32 +126,43 @@ export const Route = createFileRoute("/api/chat")({
           auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
         });
 
-        const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
+        // Auth + body parse in parallel
+        const [claimsRes, body] = await Promise.all([
+          supabase.auth.getClaims(token),
+          request.json() as Promise<{ messages?: UIMessage[]; threadId?: string; language?: string }>,
+        ]);
+        timer.mark("auth_and_parse");
+        const { data: claims, error: claimsErr } = claimsRes;
         if (claimsErr || !claims?.claims.sub) return new Response("Unauthorized", { status: 401 });
         const userId = claims.claims.sub;
 
-        const body = (await request.json()) as {
-          messages?: UIMessage[]; threadId?: string; language?: string;
-        };
         const messages = body.messages ?? [];
         const threadId = body.threadId;
         const langHint = body.language ?? "en";
         if (!threadId) return new Response("threadId required", { status: 400 });
 
-        const { data: thread } = await supabase
-          .from("threads").select("id, title, company_id")
-          .eq("id", threadId).eq("user_id", userId).maybeSingle();
+        // Thread + profile in parallel (company comes from thread, then cached)
+        const [threadRes, profileRes] = await Promise.all([
+          supabase.from("threads").select("id, title, company_id")
+            .eq("id", threadId).eq("user_id", userId).maybeSingle(),
+          supabase.from("profiles").select("department_id").eq("id", userId).maybeSingle(),
+        ]);
+        timer.mark("thread_profile");
+        const thread = threadRes.data;
         if (!thread) return new Response("Thread not found", { status: 404 });
         const companyId = thread.company_id;
+        const userDeptId = (profileRes.data as { department_id?: string | null } | null)?.department_id ?? null;
 
-        // Per-company min confidence + escalation manager
-        const { data: company } = await supabase
-          .from("companies").select("min_confidence").eq("id", companyId).maybeSingle();
-        const minConfidence = Number((company as { min_confidence?: number } | null)?.min_confidence ?? 0.55);
-
-        const { data: profile } = await supabase
-          .from("profiles").select("department_id").eq("id", userId).maybeSingle();
-        const userDeptId = (profile as { department_id?: string | null } | null)?.department_id ?? null;
+        // Cached per-company config (15min TTL) — avoids round-trip on every msg
+        const minConfidence = await cached(
+          "company:min_confidence", companyId, 15 * 60_000,
+          async () => {
+            const { data } = await supabase
+              .from("companies").select("min_confidence").eq("id", companyId).maybeSingle();
+            return Number((data as { min_confidence?: number } | null)?.min_confidence ?? 0.55);
+          },
+        );
+        timer.mark("company_config");
 
         const lastUser = [...messages].reverse().find((m) => m.role === "user");
         const query = lastUser?.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim() ?? "";
@@ -179,13 +192,25 @@ export const Route = createFileRoute("/api/chat")({
           }
         } else if (!isGreeting && query) {
           try {
-            const qVec = await embedOne(query);
+            // Parallel: embed query AND fetch FAQ pool in one round-trip.
+            // FAQs are cached per-company for 5 min to skip repeated 200-row pulls.
+            const [qVec, faqs] = await Promise.all([
+              embedOne(query),
+              cached("company:faqs", companyId, 5 * 60_000, async () => {
+                const { data } = await supabase
+                  .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category").limit(200);
+                return data ?? [];
+              }),
+            ]);
             queryEmbedding = qVec;
+            timer.mark("embed_and_faqs");
+
             const { data: matches, error: matchErr } = await supabase.rpc(
               "match_document_chunks_for_company" as never,
               { query_embedding: `[${qVec.join(",")}]`, match_count: 8, min_similarity: 0.15, _company_id: companyId } as never,
             ) as { data: Array<{ chunk_id: string; document_id: string; doc_title: string; doc_code: string | null; content: string; similarity: number; chunk_index: number }> | null; error: unknown };
             const matchList = matches ?? [];
+            timer.mark("vector_match", { count: matchList.length });
             console.log("[chat:retrieval]", {
               company_id: companyId,
               query: query.slice(0, 120),
@@ -212,6 +237,7 @@ export const Route = createFileRoute("/api/chat")({
                 docMeta[row.id] = { ...row, department_name: row.department_id ? deptMap[row.department_id] ?? null : null };
               }
             }
+            timer.mark("doc_metadata");
 
             const sims = matchList.map((m) => m.similarity);
             for (let i = 0; i < matchList.length; i++) {
@@ -241,21 +267,19 @@ export const Route = createFileRoute("/api/chat")({
               confidence = top.reduce((a, b) => a + b, 0) / top.length;
               topSimilarity = sims[0] ?? 0;
             }
+
+            const lq = query.toLowerCase();
+            const words = lq.split(/\s+/).filter((w) => w.length > 3);
+            const scored = faqs.map((f) => {
+              const blob = `${f.question_de} ${f.question_en} ${f.answer_de} ${f.answer_en}`.toLowerCase();
+              const s = words.reduce((acc, w) => acc + (blob.includes(w) ? 1 : 0), 0);
+              return { f, s };
+            }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
+            for (const { f } of scored) {
+              sources.push({ type: "faq", id: f.id, title: `${f.question_en} / ${f.question_de}`, excerpt: `EN: ${f.answer_en}\nDE: ${f.answer_de}`, confidence: "medium" });
+            }
           } catch (e) {
             console.error("[chat:retrieval] embed/match failed", e);
-          }
-
-          const { data: faqs } = await supabase
-            .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category").limit(200);
-          const lq = query.toLowerCase();
-          const words = lq.split(/\s+/).filter((w) => w.length > 3);
-          const scored = (faqs ?? []).map((f) => {
-            const blob = `${f.question_de} ${f.question_en} ${f.answer_de} ${f.answer_en}`.toLowerCase();
-            const s = words.reduce((acc, w) => acc + (blob.includes(w) ? 1 : 0), 0);
-            return { f, s };
-          }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
-          for (const { f } of scored) {
-            sources.push({ type: "faq", id: f.id, title: `${f.question_en} / ${f.question_de}`, excerpt: `EN: ${f.answer_en}\nDE: ${f.answer_de}`, confidence: "medium" });
           }
 
           const docBlocks = sources.filter((s) => s.type === "document").map((s, i) =>
@@ -264,9 +288,6 @@ export const Route = createFileRoute("/api/chat")({
             `[FAQ ${i + 1}] ${s.title}\n${s.excerpt}`);
           contextBlock = [...docBlocks, ...faqBlocks].join("\n\n---\n\n");
 
-          // Refuse only when retrieval truly returned nothing.
-          // If sources exist (even at low similarity), pass them to the LLM
-          // and let it decide whether they answer the question.
           if (sources.length === 0) mode = "gap";
           console.log("[chat:decision]", {
             mode,
@@ -275,17 +296,25 @@ export const Route = createFileRoute("/api/chat")({
             min_confidence: minConfidence,
           });
         }
+        timer.mark("rag_complete");
+
 
         const gateway = createLovableAiGatewayProvider(apiKey);
         const systemPrompt = isGreeting ? GREETING_PROMPT(langHint)
           : isFollowup ? FOLLOWUP_PROMPT(contextBlock)
           : mode === "gap" ? SYSTEM_PROMPT("", false) : SYSTEM_PROMPT(contextBlock, true);
 
+        const modelMessages = await convertToModelMessages(messages);
+
+        timer.mark("prepare_llm");
+
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: systemPrompt,
-          messages: await convertToModelMessages(messages),
+          messages: modelMessages,
         });
+        timer.mark("stream_started");
+
 
         const canCreateRequest = mode === "gap";
 
@@ -463,8 +492,10 @@ export const Route = createFileRoute("/api/chat")({
             } catch (e) {
               console.error("persist messages failed", e);
             }
+            timer.summary({ mode, sources: sources.length });
           },
         });
+
       },
     },
   },
