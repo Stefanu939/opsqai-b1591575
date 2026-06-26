@@ -111,6 +111,7 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const timer = createTimer("chat");
         const authHeader = request.headers.get("authorization");
         const token = authHeader?.replace("Bearer ", "");
         if (!token) return new Response("Unauthorized", { status: 401 });
@@ -125,32 +126,43 @@ export const Route = createFileRoute("/api/chat")({
           auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
         });
 
-        const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
+        // Auth + body parse in parallel
+        const [claimsRes, body] = await Promise.all([
+          supabase.auth.getClaims(token),
+          request.json() as Promise<{ messages?: UIMessage[]; threadId?: string; language?: string }>,
+        ]);
+        timer.mark("auth_and_parse");
+        const { data: claims, error: claimsErr } = claimsRes;
         if (claimsErr || !claims?.claims.sub) return new Response("Unauthorized", { status: 401 });
         const userId = claims.claims.sub;
 
-        const body = (await request.json()) as {
-          messages?: UIMessage[]; threadId?: string; language?: string;
-        };
         const messages = body.messages ?? [];
         const threadId = body.threadId;
         const langHint = body.language ?? "en";
         if (!threadId) return new Response("threadId required", { status: 400 });
 
-        const { data: thread } = await supabase
-          .from("threads").select("id, title, company_id")
-          .eq("id", threadId).eq("user_id", userId).maybeSingle();
+        // Thread + profile in parallel (company comes from thread, then cached)
+        const [threadRes, profileRes] = await Promise.all([
+          supabase.from("threads").select("id, title, company_id")
+            .eq("id", threadId).eq("user_id", userId).maybeSingle(),
+          supabase.from("profiles").select("department_id").eq("id", userId).maybeSingle(),
+        ]);
+        timer.mark("thread_profile");
+        const thread = threadRes.data;
         if (!thread) return new Response("Thread not found", { status: 404 });
         const companyId = thread.company_id;
+        const userDeptId = (profileRes.data as { department_id?: string | null } | null)?.department_id ?? null;
 
-        // Per-company min confidence + escalation manager
-        const { data: company } = await supabase
-          .from("companies").select("min_confidence").eq("id", companyId).maybeSingle();
-        const minConfidence = Number((company as { min_confidence?: number } | null)?.min_confidence ?? 0.55);
-
-        const { data: profile } = await supabase
-          .from("profiles").select("department_id").eq("id", userId).maybeSingle();
-        const userDeptId = (profile as { department_id?: string | null } | null)?.department_id ?? null;
+        // Cached per-company config (15min TTL) — avoids round-trip on every msg
+        const minConfidence = await cached(
+          "company:min_confidence", companyId, 15 * 60_000,
+          async () => {
+            const { data } = await supabase
+              .from("companies").select("min_confidence").eq("id", companyId).maybeSingle();
+            return Number((data as { min_confidence?: number } | null)?.min_confidence ?? 0.55);
+          },
+        );
+        timer.mark("company_config");
 
         const lastUser = [...messages].reverse().find((m) => m.role === "user");
         const query = lastUser?.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim() ?? "";
