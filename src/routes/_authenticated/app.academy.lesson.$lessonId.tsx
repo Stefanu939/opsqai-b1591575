@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowUp, Sparkles, CheckCircle2, XCircle, RotateCw, Award,
-  GraduationCap, Target, Clock, ChevronLeft, ListChecks, BookOpenCheck,
+  GraduationCap, Target, Clock, ChevronLeft, ListChecks, BookOpenCheck, Lock,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lessonId")({
@@ -27,34 +27,84 @@ export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lesson
 
 type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: string; options?: string[]; correct_answer: string; explanation: string };
 
+const COMPLETE_MARKER = "[LESSON_COMPLETE]";
+
 function LessonPage() {
   const { lessonId } = useParams({ from: Route.id });
   const { enrollmentId, q: initialQ } = useSearch({ from: Route.id });
-  const navigate = useNavigate();
   const get = useServerFn(getAcademyLesson);
+  const [lesson, setLesson] = useState<any>(null);
+  const [token, setToken] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const [l, sess] = await Promise.all([
+          get({ data: { id: lessonId } }) as Promise<any>,
+          supabase.auth.getSession(),
+        ]);
+        if (!alive) return;
+        setLesson(l);
+        setToken(sess.data.session?.access_token ?? "");
+      } catch (e: any) {
+        if (!alive) return;
+        setError(e?.message ?? "Could not load the lesson.");
+      }
+    })();
+    return () => { alive = false; };
+  }, [lessonId, get]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-sm">
+        <div className="text-destructive">{error}</div>
+        <Button size="sm" variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+      </div>
+    );
+  }
+
+  if (!lesson || !token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+        <Sparkles className="h-4 w-4 mr-2 animate-pulse text-primary" /> Preparing your AI Teacher…
+      </div>
+    );
+  }
+
+  // Mount the chat only once both lesson + token are ready so useChat captures
+  // a transport that has a valid Bearer header. Re-mount per lesson via `key`.
+  return (
+    <TeacherChat
+      key={lessonId}
+      lessonId={lessonId}
+      lesson={lesson}
+      token={token}
+      enrollmentId={enrollmentId}
+      initialQ={initialQ}
+    />
+  );
+}
+
+function TeacherChat({
+  lessonId, lesson, token, enrollmentId, initialQ,
+}: {
+  lessonId: string; lesson: any; token: string; enrollmentId: string; initialQ: string;
+}) {
+  const navigate = useNavigate();
   const genQuiz = useServerFn(generateAcademyQuiz);
   const submit = useServerFn(submitAcademyQuiz);
 
-  const [lesson, setLesson] = useState<any>(null);
   const [quiz, setQuiz] = useState<Q[] | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
   const [result, setResult] = useState<any>(null);
-  const [token, setToken] = useState<string>("");
   const [contextOpen, setContextOpen] = useState(true);
+  const [input, setInput] = useState("");
   const start = useRef(Date.now());
   const scrollRef = useRef<HTMLDivElement>(null);
   const begunRef = useRef(false);
   const initialQRef = useRef(initialQ);
-
-  useEffect(() => {
-    void (async () => {
-      const l = (await get({ data: { id: lessonId } })) as any;
-      setLesson(l);
-      const { data } = await supabase.auth.getSession();
-      setToken(data.session?.access_token ?? "");
-    })();
-    start.current = Date.now();
-  }, [lessonId]);
 
   const transport = useMemo(
     () => new DefaultChatTransport({
@@ -64,76 +114,97 @@ function LessonPage() {
     }),
     [token, lessonId, lesson?.language],
   );
-  const { messages, sendMessage, status } = useChat({ transport });
-  const [input, setInput] = useState("");
+  const { messages, sendMessage, status, error: chatError } = useChat({ transport });
 
-  // Auto-greet: send hidden __BEGIN__ once the tutor is ready.
+  // Auto-greet
   useEffect(() => {
-    if (!token || !lesson || begunRef.current) return;
+    if (begunRef.current) return;
     begunRef.current = true;
     void sendMessage({ text: "__BEGIN__" });
     if (initialQRef.current) {
       const q = initialQRef.current;
       initialQRef.current = "";
-      setTimeout(() => { void sendMessage({ text: q }); }, 400);
+      setTimeout(() => { void sendMessage({ text: q }); }, 600);
     }
-  }, [token, lesson, sendMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, quiz, result]);
-
-  if (!lesson) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-        <Sparkles className="h-4 w-4 mr-2 animate-pulse text-primary" /> Preparing your AI Teacher…
-      </div>
-    );
-  }
 
   const passing = lesson.academy_chapters?.academy_learning_paths?.passing_score ?? 70;
   const pathId = lesson.academy_chapters?.path_id ?? lesson.academy_chapters?.academy_learning_paths?.id;
   const estimated = lesson.estimated_minutes ?? lesson.duration_minutes ?? 8;
   const elapsedMin = Math.floor((Date.now() - start.current) / 60000);
   const remaining = Math.max(estimated - elapsedMin, 1);
-  const progress = Math.min((elapsedMin / Math.max(estimated, 1)) * 100, quiz ? (result?.passed ? 100 : 85) : 70);
+
+  // Detect lesson-complete marker emitted by the AI Teacher.
+  const lessonComplete = useMemo(
+    () => messages.some(
+      (m) => m.role === "assistant" &&
+        m.parts?.some?.((p: any) => p.type === "text" && p.text.includes(COMPLETE_MARKER)),
+    ),
+    [messages],
+  );
+
+  const stripMarker = (text: string) => text.replace(COMPLETE_MARKER, "").trim();
+
+  const progress = Math.min(
+    quiz
+      ? (result?.passed ? 100 : 90)
+      : lessonComplete ? 80
+        : (elapsedMin / Math.max(estimated, 1)) * 70,
+    100,
+  );
 
   const startQuiz = async () => {
+    if (!lessonComplete) return;
     setResult(null);
-    const q = (await genQuiz({ data: { lesson_id: lessonId, language: lesson.language ?? "en" } })) as { questions: Q[] };
-    setQuiz(q.questions);
-    setAnswers(Array(q.questions.length).fill(""));
+    try {
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lesson.language ?? "en" } })) as { questions: Q[] };
+      setQuiz(q.questions);
+      setAnswers(Array(q.questions.length).fill(""));
+    } catch (e: any) {
+      // surface generation error so users aren't stuck
+      alert(e?.message ?? "Could not generate the quiz. Please try again.");
+    }
   };
 
   const finishQuiz = async () => {
     if (!quiz) return;
-    const r = await submit({
-      data: {
-        lesson_id: lessonId,
-        enrollment_id: enrollmentId || null,
-        questions: quiz, answers,
-        time_spent_seconds: Math.floor((Date.now() - start.current) / 1000),
-      },
-    });
-    setResult(r);
-    if ((r as any).passed && enrollmentId) {
-      setTimeout(() => navigate({ to: "/app/academy/path/$pathId", params: { pathId } }), 1800);
+    try {
+      const r = await submit({
+        data: {
+          lesson_id: lessonId,
+          enrollment_id: enrollmentId || null,
+          questions: quiz, answers,
+          time_spent_seconds: Math.floor((Date.now() - start.current) / 1000),
+        },
+      });
+      setResult(r);
+      if ((r as any).passed && enrollmentId) {
+        setTimeout(() => navigate({ to: "/app/academy/path/$pathId", params: { pathId } }), 1800);
+      }
+    } catch (e: any) {
+      alert(e?.message ?? "Could not submit the quiz.");
     }
   };
 
-  const visibleMessages = messages.filter(
-    (m) => !(m.role === "user" && m.parts?.some?.((p: any) => p.type === "text" && p.text === "__BEGIN__")),
-  );
+  const visibleMessages = messages
+    .filter((m) => !(m.role === "user" && m.parts?.some?.((p: any) => p.type === "text" && p.text === "__BEGIN__")))
+    .map((m) => ({
+      ...m,
+      parts: (m.parts ?? []).map((p: any) =>
+        p.type === "text" ? { ...p, text: stripMarker(p.text) } : p,
+      ).filter((p: any) => p.type !== "text" || p.text.length > 0),
+    }))
+    .filter((m) => (m.parts ?? []).length > 0);
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Slim contextual header */}
       <header className="border-b border-border/70 px-4 md:px-6 py-2.5 flex items-center gap-3 bg-background/90 backdrop-blur sticky top-0 z-10">
-        <Link
-          to="/app/academy/path/$pathId"
-          params={{ pathId }}
-          className="text-muted-foreground hover:text-foreground inline-flex items-center text-sm"
-        >
+        <Link to="/app/academy/path/$pathId" params={{ pathId }} className="text-muted-foreground hover:text-foreground inline-flex items-center text-sm">
           <ChevronLeft className="h-4 w-4" />
         </Link>
         <div className="min-w-0 flex-1">
@@ -148,21 +219,16 @@ function LessonPage() {
         <div className="hidden md:flex items-center gap-2 text-[11px] text-muted-foreground">
           <Clock className="h-3.5 w-3.5" /> ~{remaining} min
         </div>
-        <button
-          onClick={() => setContextOpen((v) => !v)}
-          className="text-[11px] text-muted-foreground hover:text-foreground border border-border rounded-full px-2.5 py-1"
-        >
+        <button onClick={() => setContextOpen((v) => !v)} className="text-[11px] text-muted-foreground hover:text-foreground border border-border rounded-full px-2.5 py-1">
           {contextOpen ? "Hide context" : "Show context"}
         </button>
       </header>
 
-      {/* Progress bar */}
       <div className="h-1 bg-muted/40">
         <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* MAIN — conversation */}
         <div className="flex-1 flex flex-col min-w-0">
           <div ref={scrollRef} className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto w-full px-4 md:px-6 py-6 space-y-5">
@@ -172,15 +238,10 @@ function LessonPage() {
                   Your AI Teacher is preparing the lesson…
                 </div>
               )}
+
               {visibleMessages.map((m) => (
                 <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap break-words ${
-                      m.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border border-border"
-                    }`}
-                  >
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap break-words ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-card border border-border"}`}>
                     {m.role !== "user" && (
                       <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-muted-foreground mb-1">
                         <GraduationCap className="h-3 w-3 text-primary" /> AI Teacher
@@ -199,7 +260,29 @@ function LessonPage() {
                 </div>
               )}
 
-              {/* Inline quiz card injected into the conversation */}
+              {chatError && (
+                <div className="flex justify-start">
+                  <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-2xl px-4 py-2 text-xs inline-flex items-center gap-2">
+                    Connection issue with the AI Teacher.
+                    <button className="underline" onClick={() => { begunRef.current = false; void sendMessage({ text: "__BEGIN__" }); }}>
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {lessonComplete && !quiz && (
+                <div className="flex justify-start">
+                  <Card className="w-full max-w-[92%] p-4 space-y-2 border-primary/30">
+                    <div className="text-sm font-medium flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" /> Lesson complete — your quiz is unlocked
+                    </div>
+                    <p className="text-xs text-muted-foreground">Take a short knowledge check to confirm what you've learned.</p>
+                    <Button size="sm" onClick={startQuiz}><BookOpenCheck className="h-3.5 w-3.5 mr-1" /> Start quiz</Button>
+                  </Card>
+                </div>
+              )}
+
               {quiz && (
                 <div className="flex justify-start">
                   <Card className="w-full max-w-[92%] p-4 space-y-4 border-primary/30">
@@ -213,8 +296,7 @@ function LessonPage() {
                           <div className="space-y-1.5">
                             {(q.options ?? []).map((opt) => (
                               <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer rounded-md px-2 py-1 hover:bg-accent/60">
-                                <input type="radio" name={`q${i}`} value={opt} checked={answers[i] === opt}
-                                  onChange={(e) => setAnswers((a) => a.map((x, j) => j === i ? e.target.value : x))} />
+                                <input type="radio" name={`q${i}`} value={opt} checked={answers[i] === opt} onChange={(e) => setAnswers((a) => a.map((x, j) => j === i ? e.target.value : x))} />
                                 {opt}
                               </label>
                             ))}
@@ -224,8 +306,7 @@ function LessonPage() {
                           <div className="flex gap-3">
                             {["True", "False"].map((opt) => (
                               <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer rounded-md px-2 py-1 hover:bg-accent/60">
-                                <input type="radio" name={`q${i}`} value={opt} checked={answers[i] === opt}
-                                  onChange={(e) => setAnswers((a) => a.map((x, j) => j === i ? e.target.value : x))} />
+                                <input type="radio" name={`q${i}`} value={opt} checked={answers[i] === opt} onChange={(e) => setAnswers((a) => a.map((x, j) => j === i ? e.target.value : x))} />
                                 {opt}
                               </label>
                             ))}
@@ -266,7 +347,6 @@ function LessonPage() {
             </div>
           </div>
 
-          {/* Composer */}
           <div className="border-t border-border bg-background/95 backdrop-blur px-4 md:px-6 py-3">
             <div className="max-w-3xl mx-auto w-full">
               <div className="rounded-2xl border border-border bg-card shadow-sm p-2 flex items-end gap-2 focus-within:ring-2 focus-within:ring-primary/30 transition-shadow">
@@ -277,7 +357,7 @@ function LessonPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      if (!input.trim() || !token || status === "streaming") return;
+                      if (!input.trim() || status === "streaming") return;
                       void sendMessage({ text: input.trim() });
                       setInput("");
                     }
@@ -289,7 +369,7 @@ function LessonPage() {
                   type="button"
                   size="icon"
                   className="h-9 w-9 rounded-full"
-                  disabled={!input.trim() || !token || status === "streaming"}
+                  disabled={!input.trim() || status === "streaming"}
                   onClick={() => {
                     if (!input.trim()) return;
                     void sendMessage({ text: input.trim() });
@@ -304,19 +384,21 @@ function LessonPage() {
                   <Sparkles className="h-3 w-3 text-primary" /> Grounded only in this lesson — no outside information.
                 </div>
                 {!quiz && (
-                  <button
-                    onClick={startQuiz}
-                    className="text-[11.5px] font-medium text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    <BookOpenCheck className="h-3.5 w-3.5" /> I'm ready for the quiz
-                  </button>
+                  lessonComplete ? (
+                    <button onClick={startQuiz} className="text-[11.5px] font-medium text-primary hover:underline inline-flex items-center gap-1">
+                      <BookOpenCheck className="h-3.5 w-3.5" /> I'm ready for the quiz
+                    </button>
+                  ) : (
+                    <span className="text-[11.5px] text-muted-foreground inline-flex items-center gap-1">
+                      <Lock className="h-3 w-3" /> Quiz unlocks after the lesson is complete
+                    </span>
+                  )
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right context drawer */}
         {contextOpen && (
           <aside className="hidden lg:flex w-80 border-l border-border bg-card/40 flex-col overflow-y-auto">
             <div className="p-4 space-y-4">

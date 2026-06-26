@@ -5,7 +5,6 @@ import { z } from "zod";
 import { generateText } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import {
-  hasPermission,
   requirePermission,
   resolveCompanyForWrite,
 } from "@/lib/authorization";
@@ -866,20 +865,18 @@ export const completeEnrollment = createServerFn({ method: "POST" })
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", data.enrollment_id);
 
-    // Issue certificate (skip if user lacks academy.certify — fallback no-op, employee still completes)
-    const canCertify = await hasPermission(context, "academy.certify");
-    if (canCertify) {
-      const { issueAcademyCertificate } = await import("@/lib/academy-certificate.server");
-      const cert = await issueAcademyCertificate(context.supabase, {
-        enrollmentId: (enroll as any).id,
-        pathId: (enroll as any).path_id,
-        userId: (enroll as any).user_id,
-        companyId: (enroll as any).company_id,
-        finalScore,
-      });
-      return { ok: true, certificate_id: cert.id, certificate_code: cert.code };
-    }
-    return { ok: true };
+    // Always issue a certificate for the learner who completed the path.
+    // Uses the admin (service-role) client internally, so permissions like
+    // `academy.certify` are not required for self-completion.
+    const { issueAcademyCertificate } = await import("@/lib/academy-certificate.server");
+    const cert = await issueAcademyCertificate(context.supabase, {
+      enrollmentId: (enroll as any).id,
+      pathId: (enroll as any).path_id,
+      userId: (enroll as any).user_id,
+      companyId: (enroll as any).company_id,
+      finalScore,
+    });
+    return { ok: true, certificate_id: cert.id, certificate_code: cert.code };
   });
 
 /* ----------------------------- Certificates -------------------------- */
@@ -906,8 +903,14 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
       await requirePermission(context, "academy.manage");
     }
     if (!(cert as any).pdf_path) throw new Error("PDF not generated yet");
-    const { data: url, error } = await context.supabase.storage
-      .from("academy-certificates").createSignedUrl((cert as any).pdf_path, 600);
+    // Use the admin client for signed URL generation so it works regardless of
+    // RLS storage-read scoping (the row-level cert check above is the gate).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: url, error } = await supabaseAdmin.storage
+      .from("academy-certificates")
+      .createSignedUrl((cert as any).pdf_path, 600, {
+        download: `opsqai-certificate-${(cert as any).pdf_path.split("/").pop()}`,
+      });
     if (error) throw new Error(error.message);
     return { url: (url as any).signedUrl };
   });
