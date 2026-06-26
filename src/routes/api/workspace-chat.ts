@@ -330,7 +330,7 @@ export const Route = createFileRoute("/api/workspace-chat")({
           },
         });
 
-
+        timer.mark("stream_started");
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
           onError: (err) => {
