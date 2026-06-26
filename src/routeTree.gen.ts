@@ -65,6 +65,7 @@ import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_au
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
 import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
 import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
+import { Route as AuthenticatedAppAdminAiAuditRouteImport } from './routes/_authenticated/app.admin.ai-audit'
 
 const TrustRoute = TrustRouteImport.update({
   id: '/trust',
@@ -363,6 +364,12 @@ const AuthenticatedAppAdminAnalyticsRoute =
     path: '/admin/analytics',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminAiAuditRoute =
+  AuthenticatedAppAdminAiAuditRouteImport.update({
+    id: '/admin/ai-audit',
+    path: '/admin/ai-audit',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -406,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
@@ -462,6 +470,7 @@ export interface FileRoutesByTo {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
@@ -521,6 +530,7 @@ export interface FileRoutesById {
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
@@ -580,6 +590,7 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/app/'
+    | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
     | '/app/admin/companies'
@@ -636,6 +647,7 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/app'
+    | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
     | '/app/admin/companies'
@@ -694,6 +706,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/app/'
+    | '/_authenticated/app/admin/ai-audit'
     | '/_authenticated/app/admin/analytics'
     | '/_authenticated/app/admin/audit'
     | '/_authenticated/app/admin/companies'
@@ -1127,6 +1140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/ai-audit': {
+      id: '/_authenticated/app/admin/ai-audit'
+      path: '/admin/ai-audit'
+      fullPath: '/app/admin/ai-audit'
+      preLoaderRoute: typeof AuthenticatedAppAdminAiAuditRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
@@ -1136,6 +1156,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppAdminAiAuditRoute: typeof AuthenticatedAppAdminAiAuditRoute
   AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
   AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
@@ -1157,6 +1178,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppAdminAiAuditRoute: AuthenticatedAppAdminAiAuditRoute,
   AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
   AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
