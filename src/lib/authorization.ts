@@ -65,6 +65,17 @@ export async function resolveCompanyForWrite(
   const actor = await getActorRoles(context.supabase, context.userId);
   if (actor.isPlatformAdmin && hint) return hint;
   const companyId = await getProfileCompany(context.supabase, context.userId);
-  if (!companyId) throw new Error("No company assigned");
+  if (companyId) return companyId;
+  if (actor.isPlatformAdmin) {
+    const { data, error } = await context.supabase
+      .from("companies")
+      .select("id")
+      .eq("active", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (data?.id) return data.id as string;
+  }
   return companyId;
 }
