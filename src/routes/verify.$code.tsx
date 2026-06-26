@@ -10,20 +10,35 @@ export const Route = createFileRoute("/verify/$code")({
   component: VerifyPage,
 });
 
+type VerifyResult = {
+  valid: boolean;
+  issuedAt: string;
+  score: number;
+  pathTitle: string;
+  company: string;
+  recipient: string;
+  certificateCode: string;
+};
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function VerifyPage() {
   const { code } = useParams({ from: Route.id });
-  const [state, setState] = useState<"loading" | "ok" | "missing">("loading");
-  const [cert, setCert] = useState<any>(null);
+  const [state, setState] = useState<"loading" | "ok" | "missing" | "revoked">("loading");
+  const [cert, setCert] = useState<VerifyResult | null>(null);
+
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase
-        .from("academy_certificates")
-        .select("final_score, issued_at, revoked, academy_learning_paths(title), profiles:user_id(full_name)")
-        .eq("certificate_code", code).maybeSingle();
-      if (!data || (data as any).revoked) setState("missing");
-      else { setCert(data); setState("ok"); }
+      if (!UUID_RE.test(code)) { setState("missing"); return; }
+      const { data, error } = await supabase.rpc("academy_verify_certificate", { _code: code });
+      if (error || !data) { setState("missing"); return; }
+      const r = data as VerifyResult;
+      if (!r.certificateCode) { setState("missing"); return; }
+      if (!r.valid) { setCert(r); setState("revoked"); return; }
+      setCert(r); setState("ok");
     })();
   }, [code]);
+
   return (
     <div className="min-h-screen grid place-items-center bg-background p-6">
       <Card className="p-8 max-w-md w-full text-center space-y-4">
@@ -31,16 +46,24 @@ function VerifyPage() {
         <div className="text-xl font-semibold">OPSQAI Academy Certificate</div>
         {state === "loading" && <div className="text-sm text-muted-foreground">Verifying…</div>}
         {state === "missing" && (
-          <div className="text-sm text-destructive flex items-center justify-center gap-2"><XCircle className="h-4 w-4" /> Certificate not found or revoked.</div>
+          <div className="text-sm text-destructive flex items-center justify-center gap-2">
+            <XCircle className="h-4 w-4" /> Certificate not found.
+          </div>
+        )}
+        {state === "revoked" && (
+          <div className="text-sm text-destructive flex items-center justify-center gap-2">
+            <XCircle className="h-4 w-4" /> Certificate has been revoked.
+          </div>
         )}
         {state === "ok" && cert && (
           <div className="space-y-2 text-sm">
             <Badge variant="default" className="mx-auto"><ShieldCheck className="h-3 w-3 mr-1" /> Verified</Badge>
-            <div><b>{(cert.profiles as any)?.full_name ?? "Learner"}</b></div>
-            <div className="text-muted-foreground">{(cert.academy_learning_paths as any)?.title}</div>
-            <div>Score: {cert.final_score}%</div>
-            <div className="text-xs text-muted-foreground">Issued {new Date(cert.issued_at).toLocaleDateString()}</div>
-            <div className="font-mono text-[10px] text-muted-foreground break-all">{code}</div>
+            <div><b>{cert.recipient || "Learner"}</b></div>
+            <div className="text-muted-foreground">{cert.pathTitle}</div>
+            <div className="text-muted-foreground">{cert.company}</div>
+            <div>Score: {cert.score}%</div>
+            <div className="text-xs text-muted-foreground">Issued {new Date(cert.issuedAt).toLocaleDateString()}</div>
+            <div className="font-mono text-[10px] text-muted-foreground break-all">{cert.certificateCode}</div>
           </div>
         )}
       </Card>
