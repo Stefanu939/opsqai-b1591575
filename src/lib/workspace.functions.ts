@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { extractWorkspaceText } from "@/lib/workspace.extract.server";
+import { companyFromStoragePath, requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
 
 const BUCKET = "workspace-temp";
 
@@ -18,30 +19,20 @@ function retentionToExpiry(retention: string | null | undefined): string | null 
   }
 }
 
-async function profileCompany(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("profiles").select("company_id").eq("id", userId).maybeSingle();
-  return data?.company_id as string | undefined;
-}
-
 async function companyRetention(supabase: any, companyId: string): Promise<string> {
   const { data } = await supabase
     .from("companies").select("workspace_retention").eq("id", companyId).maybeSingle();
   return (data?.workspace_retention as string) ?? "immediate";
 }
 
-async function ensureWorkspaceRole(supabase: any, userId: string) {
-  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-  const roles = (data ?? []).map((r: any) => r.role as string);
-  if (!(roles.includes("admin") || roles.includes("manager") || roles.includes("platform_admin"))) {
-    throw new Error("AI Workspace is available to managers and admins only.");
-  }
+async function ensureWorkspaceRole(context: { supabase: any; userId: string }) {
+  await requireAnyPermission(context, ["workspace.manage", "workspace.use", "platform.manage"]);
 }
 
 export const listWorkspaceSessions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await ensureWorkspaceRole(context.supabase, context.userId);
+    await ensureWorkspaceRole(context);
     const { data, error } = await context.supabase
       .from("workspace_sessions")
       .select("id, title, created_at, updated_at, user_id")
@@ -53,11 +44,10 @@ export const listWorkspaceSessions = createServerFn({ method: "GET" })
 
 export const createWorkspaceSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ title: z.string().trim().max(120).optional() }).parse(d ?? {}))
+  .inputValidator((d: unknown) => z.object({ title: z.string().trim().max(120).optional(), company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
-    await ensureWorkspaceRole(context.supabase, context.userId);
-    const companyId = await profileCompany(context.supabase, context.userId);
-    if (!companyId) throw new Error("No company assigned");
+    await ensureWorkspaceRole(context);
+    const companyId = await resolveCompanyForWrite(context, data.company_id);
     const { data: row, error } = await context.supabase
       .from("workspace_sessions")
       .insert({ company_id: companyId, user_id: context.userId, title: data.title || "New workspace" })
@@ -70,7 +60,7 @@ export const getWorkspaceSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await ensureWorkspaceRole(context.supabase, context.userId);
+    await ensureWorkspaceRole(context);
     const { data: session } = await context.supabase
       .from("workspace_sessions").select("*").eq("id", data.id).maybeSingle();
     if (!session) throw new Error("Session not found");
@@ -100,6 +90,7 @@ export const renameWorkspaceSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), title: z.string().trim().min(1).max(120) }).parse(d))
   .handler(async ({ data, context }) => {
+    await ensureWorkspaceRole(context);
     const { error } = await context.supabase
       .from("workspace_sessions").update({ title: data.title }).eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -110,6 +101,7 @@ export const deleteWorkspaceSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await ensureWorkspaceRole(context);
     // Best-effort storage cleanup
     const { data: files } = await context.supabase
       .from("workspace_files").select("storage_path").eq("session_id", data.id);
@@ -136,9 +128,8 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
     size_bytes: z.number().nonnegative().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await ensureWorkspaceRole(context.supabase, context.userId);
-    const companyId = await profileCompany(context.supabase, context.userId);
-    if (!companyId) throw new Error("No company assigned");
+    await ensureWorkspaceRole(context);
+    const companyId = await resolveCompanyForWrite(context, companyFromStoragePath(data.storage_path));
     const retention = await companyRetention(context.supabase, companyId);
     const expires = retentionToExpiry(retention);
 
@@ -177,6 +168,7 @@ export const deleteWorkspaceFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await ensureWorkspaceRole(context);
     const { data: row } = await context.supabase
       .from("workspace_files").select("storage_path").eq("id", data.id).maybeSingle();
     if ((row as any)?.storage_path) {
@@ -191,6 +183,7 @@ export const downloadArtifactUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await ensureWorkspaceRole(context);
     const { data: art } = await context.supabase
       .from("workspace_artifacts").select("storage_path, file_name").eq("id", data.id).maybeSingle();
     if (!art) throw new Error("Artifact not found");
@@ -205,13 +198,11 @@ export const updateCompanyRetention = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({
     retention: z.enum(["immediate", "1h", "24h", "7d", "manual"]),
+    company_id: z.string().uuid().optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
-    const r = (roles ?? []).map((x: any) => x.role as string);
-    if (!(r.includes("admin") || r.includes("platform_admin"))) throw new Error("Forbidden");
-    const companyId = await profileCompany(context.supabase, context.userId);
-    if (!companyId) throw new Error("No company assigned");
+    await requireAnyPermission(context, ["workspace.manage", "platform.manage"]);
+    const companyId = await resolveCompanyForWrite(context, data.company_id);
     const { error } = await context.supabase
       .from("companies").update({ workspace_retention: data.retention } as any).eq("id", companyId);
     if (error) throw new Error(error.message);
