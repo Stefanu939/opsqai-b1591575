@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_audits: {
+        Row: {
+          company_id: string
+          created_at: string
+          critical: number
+          id: string
+          maturity: string
+          passed: number
+          pdf_path: string | null
+          requested_by: string | null
+          score: number
+          summary: Json
+          warnings: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          critical?: number
+          id?: string
+          maturity?: string
+          passed?: number
+          pdf_path?: string | null
+          requested_by?: string | null
+          score?: number
+          summary?: Json
+          warnings?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          critical?: number
+          id?: string
+          maturity?: string
+          passed?: number
+          pdf_path?: string | null
+          requested_by?: string | null
+          score?: number
+          summary?: Json
+          warnings?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_audits_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           answer_preview: string | null
@@ -799,6 +849,7 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          dashboard_layout: Json | null
           department: string | null
           department_id: string | null
           first_name: string | null
@@ -814,6 +865,7 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string
+          dashboard_layout?: Json | null
           department?: string | null
           department_id?: string | null
           first_name?: string | null
@@ -829,6 +881,7 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          dashboard_layout?: Json | null
           department?: string | null
           department_id?: string | null
           first_name?: string | null
@@ -1217,6 +1270,24 @@ export type Database = {
       cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
       cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }
+      dashboard_activity: {
+        Args: {
+          p_bucket?: string
+          p_company: string
+          p_from: string
+          p_to: string
+        }
+        Returns: Json
+      }
+      dashboard_critical_sops: { Args: { p_company: string }; Returns: Json }
+      dashboard_health: { Args: { p_company: string }; Returns: Json }
+      dashboard_knowledge_status: { Args: { p_company: string }; Returns: Json }
+      dashboard_kpis: { Args: { p_company: string }; Returns: Json }
+      dashboard_last_ai_audit: { Args: { p_company: string }; Returns: Json }
+      dashboard_top_sops: {
+        Args: { p_company: string; p_limit?: number }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1305,6 +1376,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      search_everywhere: {
+        Args: { p_company: string; p_limit?: number; p_q: string }
+        Returns: Json
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }

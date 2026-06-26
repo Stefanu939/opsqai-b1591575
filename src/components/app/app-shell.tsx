@@ -3,8 +3,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart, Sparkles,
+  AlertTriangle, LineChart, Sparkles, ClipboardCheck,
 } from "lucide-react";
+import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/admin/dashboard", label: t("adminDashboard"), icon: BarChart3, show: hasPermission("dashboard.view") },
     { to: "/app/admin/analytics", label: "Analytics", icon: LineChart, show: hasPermission("analytics.view") },
     { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view") },
+    { to: "/app/admin/sop-generator", label: "AI SOP Generator", icon: Sparkles, show: hasPermission("sop.generate") },
+    { to: "/app/admin/ai-audit", label: "AI Workspace Audit", icon: ClipboardCheck, show: hasPermission("ai_audit.run") },
     { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete") },
     { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view") },
   ].filter((i) => i.show);
@@ -91,6 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <ThemeToggle className="h-8 w-8" />
         <NotificationsBell />
       </div>
+      <div className="px-3 pt-3"><GlobalSearch asButton /></div>
       {isPlatformAdmin && companies.length > 0 && (
         <div className="px-3 py-3 border-b border-sidebar-border">
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50 mb-1.5">Viewing workspace</div>
