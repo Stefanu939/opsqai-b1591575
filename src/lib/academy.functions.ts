@@ -119,7 +119,7 @@ export const upsertAcademyPath = createServerFn({ method: "POST" })
     const payload: Record<string, unknown> = { ...data, company_id: companyId };
     delete (payload as any).id;
     if (data.id) {
-      const { error } = await context.supabase.from("academy_learning_paths").update(payload).eq("id", data.id);
+      const { error } = await (context.supabase as any).from("academy_learning_paths").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
@@ -136,7 +136,7 @@ export const deleteAcademyPath = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { error } = await context.supabase.from("academy_learning_paths").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any).from("academy_learning_paths").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -207,7 +207,7 @@ export const deleteAcademyChapter = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { error } = await context.supabase.from("academy_chapters").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any).from("academy_chapters").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -240,7 +240,7 @@ export const upsertAcademyLesson = createServerFn({ method: "POST" })
     const payload: Record<string, unknown> = { ...data, company_id: companyId };
     delete (payload as any).id;
     if (data.id) {
-      const { error } = await context.supabase.from("academy_lessons").update(payload).eq("id", data.id);
+      const { error } = await (context.supabase as any).from("academy_lessons").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
@@ -257,7 +257,7 @@ export const deleteAcademyLesson = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { error } = await context.supabase.from("academy_lessons").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any).from("academy_lessons").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -459,7 +459,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
       const chapterId = chap!.id as string;
       for (let li = 0; li < ch.lessons.length; li++) {
         const ls = ch.lessons[li];
-        await context.supabase.from("academy_lessons").insert({
+        await (context.supabase as any).from("academy_lessons").insert({
           company_id: companyId, chapter_id: chapterId,
           title: ls.title, objectives: ls.objectives,
           explanation: ls.explanation, examples: ls.examples,
@@ -566,7 +566,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
     const score = Math.round((correctCount / results.length) * 100);
     const passed = score >= passingScore;
 
-    await context.supabase.from("academy_quiz_attempts").insert({
+    await (context.supabase as any).from("academy_quiz_attempts").insert({
       company_id: (lesson as any).company_id,
       lesson_id: data.lesson_id,
       user_id: context.userId,
@@ -594,7 +594,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
             last_activity_at: new Date().toISOString(),
           }).eq("id", existing.id);
       } else {
-        await context.supabase.from("academy_lesson_progress").insert({
+        await (context.supabase as any).from("academy_lesson_progress").insert({
           company_id: (lesson as any).company_id,
           enrollment_id: data.enrollment_id,
           lesson_id: data.lesson_id,
@@ -663,7 +663,7 @@ export const assignEnrollment = createServerFn({ method: "POST" })
       assigned_by: context.userId,
       due_at: data.due_at ?? null,
     }));
-    const { error } = await context.supabase.from("academy_enrollments").upsert(rows, {
+    const { error } = await (context.supabase as any).from("academy_enrollments").upsert(rows, {
       onConflict: "path_id,user_id", ignoreDuplicates: false,
     });
     if (error) throw new Error(error.message);
@@ -686,7 +686,7 @@ export const startEnrollment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await context.supabase.from("academy_enrollments")
+    await (context.supabase as any).from("academy_enrollments")
       .update({ status: "in_progress", started_at: new Date().toISOString() })
       .eq("id", data.id).eq("user_id", context.userId).is("started_at", null);
     return { ok: true };
@@ -718,7 +718,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
     const scores = (progress ?? []).map((p: any) => Number(p.last_score ?? 0));
     const finalScore = scores.length ? Math.round(scores.reduce((s, n) => s + n, 0) / scores.length) : 0;
 
-    await context.supabase.from("academy_enrollments")
+    await (context.supabase as any).from("academy_enrollments")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", data.enrollment_id);
 
@@ -840,7 +840,7 @@ export const saveAcademySettings = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const companyId = await resolveCompanyForWrite(context, data.company_id);
-    const { error } = await context.supabase.from("academy_settings").upsert({
+    const { error } = await (context.supabase as any).from("academy_settings").upsert({
       company_id: companyId,
       passing_score: data.passing_score,
       quiz_min: data.quiz_min, quiz_max: data.quiz_max,
