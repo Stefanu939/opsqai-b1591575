@@ -492,8 +492,10 @@ export const Route = createFileRoute("/api/chat")({
             } catch (e) {
               console.error("persist messages failed", e);
             }
+            timer.summary({ mode, sources: sources.length });
           },
         });
+
       },
     },
   },
