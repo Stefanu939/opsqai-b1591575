@@ -164,7 +164,7 @@ function TeacherChat({
     if (!lessonComplete) return;
     setResult(null);
     try {
-      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lesson.language ?? "en" } })) as { questions: Q[] };
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lang } })) as { questions: Q[] };
       setQuiz(q.questions);
       setAnswers(Array(q.questions.length).fill(""));
     } catch (e: any) {
