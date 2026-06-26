@@ -57,6 +57,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
+import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/_authenticated/app.admin.sop-generator'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
@@ -314,6 +315,12 @@ const AuthenticatedAppAdminUsersRoute =
     path: '/admin/users',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminSopGeneratorRoute =
+  AuthenticatedAppAdminSopGeneratorRouteImport.update({
+    id: '/admin/sop-generator',
+    path: '/admin/sop-generator',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminPlatformAdminsRoute =
   AuthenticatedAppAdminPlatformAdminsRouteImport.update({
     id: '/admin/platform-admins',
@@ -406,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
+  '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -461,6 +469,7 @@ export interface FileRoutesByTo {
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
+  '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -519,6 +528,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
+  '/_authenticated/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -577,6 +587,7 @@ export interface FileRouteTypes {
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
+    | '/app/admin/sop-generator'
     | '/app/admin/users'
     | '/app/chat/$threadId'
     | '/app/workspace/$sessionId'
@@ -632,6 +643,7 @@ export interface FileRouteTypes {
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
+    | '/app/admin/sop-generator'
     | '/app/admin/users'
     | '/app/chat/$threadId'
     | '/app/workspace/$sessionId'
@@ -689,6 +701,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/knowledge-gaps'
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
+    | '/_authenticated/app/admin/sop-generator'
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/app/workspace/$sessionId'
@@ -1058,6 +1071,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/sop-generator': {
+      id: '/_authenticated/app/admin/sop-generator'
+      path: '/admin/sop-generator'
+      fullPath: '/app/admin/sop-generator'
+      preLoaderRoute: typeof AuthenticatedAppAdminSopGeneratorRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/platform-admins': {
       id: '/_authenticated/app/admin/platform-admins'
       path: '/admin/platform-admins'
@@ -1123,6 +1143,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
+  AuthenticatedAppAdminSopGeneratorRoute: typeof AuthenticatedAppAdminSopGeneratorRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -1145,6 +1166,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
   AuthenticatedAppAdminPlatformAdminsRoute:
     AuthenticatedAppAdminPlatformAdminsRoute,
+  AuthenticatedAppAdminSopGeneratorRoute:
+    AuthenticatedAppAdminSopGeneratorRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
