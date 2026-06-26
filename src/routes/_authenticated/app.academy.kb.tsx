@@ -108,7 +108,7 @@ function AcademyKBPage() {
                   <div className="flex flex-wrap gap-1 text-[10px] pt-1">
                     {p.academy_departments?.name && <Badge variant="secondary">{p.academy_departments.name}</Badge>}
                     {p.target_role && <Badge variant="outline">{p.target_role}</Badge>}
-                    {p.status && <Badge variant={p.status === "published" ? "default" : "outline"}>{p.status}</Badge>}
+                    {p.publish_status && <Badge variant={p.publish_status === "published" ? "default" : "outline"}>{p.publish_status}</Badge>}
                   </div>
                 </Card>
               </Link>
