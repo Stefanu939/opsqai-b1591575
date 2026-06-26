@@ -85,7 +85,10 @@ export const Route = createFileRoute("/api/workspace-chat")({
           _user_id: userId,
           _permission: "workspace.use",
         });
-        if (!session || (session.user_id !== userId && !canManageWorkspace && !canUseWorkspace)) {
+        if (!canManageWorkspace && !canUseWorkspace) {
+          return new Response("Forbidden", { status: 403 });
+        }
+        if (!session || (session.user_id !== userId && !canManageWorkspace)) {
           return new Response("Session not found", { status: 404 });
         }
         const companyId = session.company_id;
