@@ -304,6 +304,11 @@ export const Route = createFileRoute("/api/workspace-chat")({
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
+          onError: (err) => {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error("[workspace:stream_error]", { sessionId, error: msg, stack: err instanceof Error ? err.stack : undefined });
+            return `AI Workspace error: ${msg}`;
+          },
           onFinish: async ({ messages: finalMessages }) => {
             try {
               const { data: existing } = await supabase
@@ -343,7 +348,16 @@ export const Route = createFileRoute("/api/workspace-chat")({
             }
           },
         });
+       } catch (e) {
+        const msg = (e as Error).message || String(e);
+        console.error("[workspace:handler_error]", { error: msg, stack: (e as Error).stack });
+        return new Response(JSON.stringify({ error: msg }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        });
+       }
       },
+
     },
   },
 });
