@@ -33,8 +33,10 @@ export const Route = createFileRoute("/api/workspace-chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+       try {
         const token = request.headers.get("authorization")?.replace("Bearer ", "");
         if (!token) return new Response("Unauthorized", { status: 401 });
+
 
         const apiKey = process.env.LOVABLE_API_KEY;
         const supaUrl = process.env.SUPABASE_URL;
@@ -175,11 +177,19 @@ export const Route = createFileRoute("/api/workspace-chat")({
           };
         }
 
+        // Sanitize prior messages: keep only text parts to avoid choking convertToModelMessages
+        // on legacy / failure-card tool parts persisted from previous turns.
+        const safeMessages = (messages as UIMessage[]).map((m) => ({
+          ...m,
+          parts: (m.parts ?? []).filter((p: any) => p?.type === "text" && typeof p.text === "string"),
+        })).filter((m) => m.parts.length > 0);
+
         const gateway = createLovableAiGatewayProvider(apiKey);
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: SYSTEM_PROMPT(filesBlock, retention) + `\n\nLanguage hint: ${langHint}`,
-          messages: await convertToModelMessages(messages),
+          messages: await convertToModelMessages(safeMessages as UIMessage[]),
+
           tools: {
             generate_pptx: tool({
               description: "Generate a downloadable PowerPoint (.pptx) presentation. Provide a title, optional subtitle, and an array of slides with title/subtitle/bullets/notes.",
@@ -302,6 +312,11 @@ export const Route = createFileRoute("/api/workspace-chat")({
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
+          onError: (err) => {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error("[workspace:stream_error]", { sessionId, error: msg, stack: err instanceof Error ? err.stack : undefined });
+            return `AI Workspace error: ${msg}`;
+          },
           onFinish: async ({ messages: finalMessages }) => {
             try {
               const { data: existing } = await supabase
@@ -341,7 +356,16 @@ export const Route = createFileRoute("/api/workspace-chat")({
             }
           },
         });
+       } catch (e) {
+        const msg = (e as Error).message || String(e);
+        console.error("[workspace:handler_error]", { error: msg, stack: (e as Error).stack });
+        return new Response(JSON.stringify({ error: msg }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        });
+       }
       },
+
     },
   },
 });
