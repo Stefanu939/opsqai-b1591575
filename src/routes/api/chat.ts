@@ -304,8 +304,8 @@ export const Route = createFileRoute("/api/chat")({
           : isFollowup ? FOLLOWUP_PROMPT(contextBlock)
           : mode === "gap" ? SYSTEM_PROMPT("", false) : SYSTEM_PROMPT(contextBlock, true);
 
-        // convertToModelMessages is synchronous — no need to await
-        const modelMessages = convertToModelMessages(messages);
+        const modelMessages = await convertToModelMessages(messages);
+
         timer.mark("prepare_llm");
 
         const result = streamText({
