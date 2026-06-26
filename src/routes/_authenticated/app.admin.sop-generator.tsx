@@ -78,7 +78,10 @@ function SopGenerator() {
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> AI SOP Generator</h1>
           <p className="text-sm text-muted-foreground mt-1">Draft → validate → publish, all assisted by AI.</p>
         </div>
-        <Button asChild variant="ghost" size="sm"><Link to="/app/knowledge"><ArrowLeft className="h-4 w-4 mr-1" /> Knowledge</Link></Button>
+        <div className="flex items-center gap-2">
+          <HelpDialog />
+          <Button asChild variant="ghost" size="sm"><Link to="/app/knowledge"><ArrowLeft className="h-4 w-4 mr-1" /> Knowledge</Link></Button>
+        </div>
       </div>
 
       {step === "wizard" && (
