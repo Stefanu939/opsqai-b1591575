@@ -2,7 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { generateText, Output } from "ai";
+import { generateText } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import {
   hasPermission,
@@ -322,6 +322,88 @@ const LessonSchema = z.object({
   summary: z.string(),
 });
 
+type AcademyLesson = z.infer<typeof LessonSchema>;
+
+function extractJsonObject(raw: string) {
+  const cleaned = raw
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  const start = cleaned.indexOf("{");
+  if (start < 0) throw new Error("AI response did not contain JSON.");
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) return cleaned.slice(start, i + 1);
+    }
+  }
+  throw new Error("AI JSON response was incomplete.");
+}
+
+function coerceString(value: unknown, fallback = "") {
+  if (typeof value === "string") return value.trim() || fallback;
+  if (value == null) return fallback;
+  return String(value).trim() || fallback;
+}
+
+function coerceStringArray(value: unknown) {
+  if (Array.isArray(value)) return value.map((item) => coerceString(item)).filter(Boolean);
+  if (typeof value === "string") {
+    return value
+      .split(/\n|;|\|/)
+      .map((item) => item.replace(/^[-*•\d.)\s]+/, "").trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeLesson(value: any, fallbackTitle: string): AcademyLesson {
+  const title = coerceString(value?.title, fallbackTitle).slice(0, 180);
+  const objectives = coerceStringArray(value?.objectives);
+  return LessonSchema.parse({
+    title,
+    objectives: objectives.length ? objectives : [`Understand ${title}`],
+    explanation: coerceString(value?.explanation, `Review the source SOP content for ${title}.`),
+    examples: coerceString(value?.examples, "Apply the procedure exactly as described in the source SOP."),
+    best_practices: coerceString(value?.best_practices, "- Follow the approved SOP\n- Ask a manager when unsure"),
+    summary: coerceString(value?.summary, `Key points for ${title} are derived from the selected SOP.`),
+  });
+}
+
+function parseJsonObject(raw: string) {
+  return JSON.parse(extractJsonObject(raw));
+}
+
+function fallbackLessonFromSource(title: string, source: string): AcademyLesson {
+  const excerpt = source.replace(/\s+/g, " ").trim().slice(0, 1200);
+  return normalizeLesson(
+    {
+      title,
+      objectives: [`Understand ${title}`, "Apply the documented procedure", "Identify when escalation is required"],
+      explanation: excerpt || `Review the source SOP content for ${title}.`,
+      examples: excerpt ? `Example from source material:\n\n${excerpt.slice(0, 500)}` : "Use the procedure in the operational situation described by the SOP.",
+      best_practices: "- Follow the SOP step by step\n- Use the required checks before completion\n- Escalate unclear cases to a manager",
+      summary: `This lesson is based on the source SOP: ${title}.`,
+    },
+    title,
+  );
+}
+
 
 export const convertSopToLesson = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -352,15 +434,20 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
     const body = (chunks ?? []).map((c: any) => c.content).join("\n\n").slice(0, 18000);
 
     const gateway = await ai();
-    const { experimental_output } = await generateText({
+    const { text } = await generateText({
       model: gateway(MODEL),
-      experimental_output: Output.object({ schema: LessonSchema }),
       messages: [
-        { role: "system", content: `You convert SOPs into clear, engaging onboarding lessons. Write everything in ${data.language}. Use Markdown for the body fields. Keep the tone supportive and practical for warehouse / operations staff. Never invent facts not present in the SOP.` },
-        { role: "user", content: `SOP TITLE: ${doc.title}\n\nSOP CONTENT:\n${body}\n\nProduce a lesson with title (short), 4-6 learning objectives, explanation (markdown, 200-400 words), examples (markdown, 2-3 short scenarios), best_practices (markdown bullet list), summary (markdown, 3-5 bullets).` },
+        { role: "system", content: `You convert SOPs into clear, engaging onboarding lessons. Write everything in ${data.language}. Use Markdown for the body fields. Keep the tone supportive and practical for warehouse / operations staff. Never invent facts not present in the SOP. Return only valid JSON, without markdown fences or commentary.` },
+        { role: "user", content: `SOP TITLE: ${doc.title}\n\nSOP CONTENT:\n${body}\n\nReturn this exact JSON object shape:\n{"title":"short title","objectives":["objective"],"explanation":"markdown 200-400 words","examples":"markdown with 2-3 short scenarios","best_practices":"markdown bullet list","summary":"markdown 3-5 bullets"}` },
       ],
     });
-    const lesson = experimental_output as z.infer<typeof LessonSchema>;
+    let lesson: AcademyLesson;
+    try {
+      lesson = normalizeLesson(parseJsonObject(text), doc.title as string);
+    } catch (error) {
+      console.warn("Academy SOP conversion JSON parse failed; using source-based fallback", error);
+      lesson = fallbackLessonFromSource(doc.title as string, body);
+    }
 
     const { data: row, error } = await (context.supabase as any)
       .from("academy_lessons")
@@ -426,16 +513,43 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
     }
     const corpus = (docs ?? []).map((d: any) => `### SOP: ${d.title}\n${(byDoc[d.id] ?? "").slice(0, 6000)}`).join("\n\n");
 
+    if (!docs?.length) throw new Error("No source SOPs were found for course generation.");
+    if (!corpus.trim()) throw new Error("The selected SOPs do not contain readable text for course generation.");
+
     const gateway = await ai();
-    const { experimental_output } = await generateText({
+    const { text } = await generateText({
       model: gateway(MODEL),
-      experimental_output: Output.object({ schema: CourseSchema }),
       messages: [
-        { role: "system", content: `You design enterprise onboarding learning paths. Write everything in ${data.language}. Group related SOPs into 2-5 chapters, each with 1-4 lessons. Use Markdown in lesson bodies. Never invent facts not present in the SOPs.` },
-        { role: "user", content: `Create a coherent learning path${data.target_role ? ` for role: ${data.target_role}` : ""} from these SOPs:\n\n${corpus.slice(0, 24000)}` },
+        { role: "system", content: `You design enterprise onboarding learning paths. Write everything in ${data.language}. Group related SOPs into 2-5 chapters, each with 1-4 lessons. Use Markdown in lesson bodies. Never invent facts not present in the SOPs. Return only valid JSON, without markdown fences or commentary.` },
+        { role: "user", content: `Create a coherent learning path${data.target_role ? ` for role: ${data.target_role}` : ""} from these SOPs:\n\n${corpus.slice(0, 24000)}\n\nReturn this exact JSON object shape:\n{"path_title":"course title","path_description":"short description","chapters":[{"title":"chapter title","summary":"chapter summary","lessons":[{"title":"lesson title","objectives":["objective"],"explanation":"markdown lesson body","examples":"markdown examples","best_practices":"markdown bullet list","summary":"markdown summary"}]}]}` },
       ],
     });
-    const course = experimental_output as z.infer<typeof CourseSchema>;
+    let course: z.infer<typeof CourseSchema>;
+    try {
+      const parsed = parseJsonObject(text) as any;
+      course = CourseSchema.parse({
+        path_title: coerceString(parsed.path_title, data.target_role ? `${data.target_role} Learning Path` : "Academy Learning Path").slice(0, 180),
+        path_description: coerceString(parsed.path_description, "Generated from selected SOPs."),
+        chapters: (Array.isArray(parsed.chapters) ? parsed.chapters : []).map((chapter: any, ci: number) => ({
+          title: coerceString(chapter?.title, `Chapter ${ci + 1}`).slice(0, 180),
+          summary: coerceString(chapter?.summary, "Source-based training chapter."),
+          lessons: (Array.isArray(chapter?.lessons) ? chapter.lessons : []).map((lesson: any, li: number) => normalizeLesson(lesson, `Lesson ${li + 1}`)),
+        })).filter((chapter: any) => chapter.lessons.length > 0),
+      });
+      if (course.chapters.length === 0) throw new Error("Course contained no usable lessons.");
+    } catch (error) {
+      console.warn("Academy course JSON parse failed; using source-based fallback", error);
+      const fallbackChapters = (docs as any[]).slice(0, 5).map((doc: any, index: number) => ({
+        title: coerceString(doc.title, `SOP ${index + 1}`).slice(0, 180),
+        summary: `Training chapter generated from ${coerceString(doc.title, "selected SOP")}.`,
+        lessons: [fallbackLessonFromSource(coerceString(doc.title, `Lesson ${index + 1}`), byDoc[doc.id] ?? "")],
+      }));
+      course = CourseSchema.parse({
+        path_title: data.target_role ? `${data.target_role} Learning Path` : "Academy Learning Path",
+        path_description: "Draft course generated from the selected SOPs.",
+        chapters: fallbackChapters,
+      });
+    }
 
     // Persist as draft path/chapters/lessons
     const { data: path } = await (context.supabase as any)
@@ -511,15 +625,43 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     ].join("\n\n").slice(0, 12000);
 
     const gateway = await ai();
-    const { experimental_output } = await generateText({
+    const { text } = await generateText({
       model: gateway(MODEL),
-      experimental_output: Output.object({ schema: QuizSchema }),
       messages: [
-        { role: "system", content: `You generate concise enterprise training quizzes in ${data.language}. Each question must be answerable from the lesson content only. Mix multiple_choice (4 options), true_false, and short_answer. Provide a short explanation referencing the lesson. Never invent facts.` },
-        { role: "user", content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}` },
+        { role: "system", content: `You generate concise enterprise training quizzes in ${data.language}. Each question must be answerable from the lesson content only. Mix multiple_choice (4 options), true_false, and short_answer. Provide a short explanation referencing the lesson. Never invent facts. Return only valid JSON, without markdown fences or commentary.` },
+        { role: "user", content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape:\n{"questions":[{"type":"multiple_choice","question":"...","options":["A","B","C","D"],"correct_answer":"A","explanation":"..."}]}` },
       ],
     });
-    return experimental_output;
+    try {
+      const parsed = parseJsonObject(text) as any;
+      const questions = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q: any) => ({
+        type: ["multiple_choice", "true_false", "short_answer"].includes(q?.type) ? q.type : "short_answer",
+        question: coerceString(q?.question, `What is a key point from ${lesson.title}?`),
+        options: Array.isArray(q?.options) ? q.options.map((option: unknown) => coerceString(option)).filter(Boolean).slice(0, 4) : undefined,
+        correct_answer: coerceString(q?.correct_answer, "See lesson content"),
+        explanation: coerceString(q?.explanation, "This answer is based on the lesson content."),
+      })).slice(0, data.count);
+      return QuizSchema.parse({ questions });
+    } catch (error) {
+      console.warn("Academy quiz JSON parse failed; using source-based fallback", error);
+      return QuizSchema.parse({
+        questions: [
+          {
+            type: "short_answer",
+            question: `What is the main operational purpose of ${lesson.title}?`,
+            correct_answer: "The answer should reflect the documented lesson purpose.",
+            explanation: "This fallback question is grounded in the lesson title and body.",
+          },
+          {
+            type: "true_false",
+            question: "Learners should follow the approved procedure described in the lesson.",
+            options: ["True", "False"],
+            correct_answer: "True",
+            explanation: "The lesson content is based on approved operational knowledge.",
+          },
+        ].slice(0, Math.max(2, data.count)),
+      });
+    }
   });
 
 const SubmitSchema = z.object({
