@@ -25,6 +25,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
 import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsible-ai'
 import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
@@ -68,6 +69,7 @@ import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_au
 import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
 import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
 import { Route as AuthenticatedAppAdminAiAuditRouteImport } from './routes/_authenticated/app.admin.ai-audit'
+import { Route as AuthenticatedAppAdminAcademyRouteImport } from './routes/_authenticated/app.admin.academy'
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
@@ -148,6 +150,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyCodeRoute = VerifyCodeRouteImport.update({
+  id: '/verify/$code',
+  path: '/verify/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrustSecurityArchitectureRoute =
@@ -385,6 +392,12 @@ const AuthenticatedAppAdminAiAuditRoute =
     path: '/admin/ai-audit',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminAcademyRoute =
+  AuthenticatedAppAdminAcademyRouteImport.update({
+    id: '/admin/academy',
+    path: '/admin/academy',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAcademyPathPathIdRoute =
   AuthenticatedAppAcademyPathPathIdRouteImport.update({
     id: '/academy/path/$pathId',
@@ -436,11 +449,13 @@ export interface FileRoutesByFullPath {
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
@@ -497,11 +512,13 @@ export interface FileRoutesByTo {
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
@@ -561,11 +578,13 @@ export interface FileRoutesById {
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
   '/_authenticated/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
@@ -625,11 +644,13 @@ export interface FileRouteTypes {
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/verify/$code'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
     | '/app/'
+    | '/app/admin/academy'
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
@@ -686,11 +707,13 @@ export interface FileRouteTypes {
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/verify/$code'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
     | '/app'
+    | '/app/admin/academy'
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
@@ -749,11 +772,13 @@ export interface FileRouteTypes {
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/verify/$code'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/app/'
+    | '/_authenticated/app/admin/academy'
     | '/_authenticated/app/admin/ai-audit'
     | '/_authenticated/app/admin/analytics'
     | '/_authenticated/app/admin/audit'
@@ -795,6 +820,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  VerifyCodeRoute: typeof VerifyCodeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -910,6 +936,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$code': {
+      id: '/verify/$code'
+      path: '/verify/$code'
+      fullPath: '/verify/$code'
+      preLoaderRoute: typeof VerifyCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/trust/security-architecture': {
@@ -1213,6 +1246,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminAiAuditRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/academy': {
+      id: '/_authenticated/app/admin/academy'
+      path: '/admin/academy'
+      fullPath: '/app/admin/academy'
+      preLoaderRoute: typeof AuthenticatedAppAdminAcademyRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/academy/path/$pathId': {
       id: '/_authenticated/app/academy/path/$pathId'
       path: '/academy/path/$pathId'
@@ -1236,6 +1276,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppAdminAcademyRoute: typeof AuthenticatedAppAdminAcademyRoute
   AuthenticatedAppAdminAiAuditRoute: typeof AuthenticatedAppAdminAiAuditRoute
   AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
   AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
@@ -1261,6 +1302,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppAdminAcademyRoute: AuthenticatedAppAdminAcademyRoute,
   AuthenticatedAppAdminAiAuditRoute: AuthenticatedAppAdminAiAuditRoute,
   AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
   AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
@@ -1373,6 +1415,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  VerifyCodeRoute: VerifyCodeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
