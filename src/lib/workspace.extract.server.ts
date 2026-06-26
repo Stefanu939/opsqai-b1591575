@@ -47,29 +47,21 @@ async function extractDocx(buffer: ArrayBuffer): Promise<string> {
 }
 
 async function extractXlsx(buffer: ArrayBuffer): Promise<string> {
-  const ExcelJS = (await import("exceljs")).default;
-  const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  const XLSX = await import("xlsx");
+  const wb = XLSX.read(new Uint8Array(buffer), { type: "array" });
   const parts: string[] = [];
-  wb.eachSheet((sheet) => {
-    parts.push(`=== Sheet: ${sheet.name} ===`);
-    sheet.eachRow((row) => {
-      const cells = (row.values as unknown[]).slice(1).map((v) => {
-        if (v == null) return "";
-        if (typeof v === "object") {
-          const o = v as { text?: string; result?: unknown; richText?: { text: string }[] };
-          if (o.richText) return o.richText.map((r) => r.text).join("");
-          if (o.text != null) return String(o.text);
-          if (o.result != null) return String(o.result);
-        }
-        return String(v);
-      });
-      parts.push(cells.join("\t"));
-    });
+  for (const name of wb.SheetNames) {
+    const ws = wb.Sheets[name];
+    parts.push(`=== Sheet: ${name} ===`);
+    const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
+    for (const row of aoa) {
+      parts.push((row as unknown[]).map((c) => (c == null ? "" : String(c))).join("\t"));
+    }
     parts.push("");
-  });
+  }
   return parts.join("\n");
 }
+
 
 function extractPptx(buffer: ArrayBuffer): string {
   const files = unzipSync(new Uint8Array(buffer));
