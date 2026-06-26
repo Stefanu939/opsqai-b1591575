@@ -77,11 +77,11 @@ export const Route = createFileRoute("/api/workspace-chat")({
         ]);
         timer.mark("session_and_files");
         const session = sessionRes.data;
-        const { data: canManageWorkspace } = await supabase.rpc("has_permission", {
+        const { data: canManageWorkspace } = await (supabase as any).rpc("has_permission", {
           _user_id: userId,
           _permission: "workspace.manage",
         });
-        const { data: canUseWorkspace } = await supabase.rpc("has_permission", {
+        const { data: canUseWorkspace } = await (supabase as any).rpc("has_permission", {
           _user_id: userId,
           _permission: "workspace.use",
         });
