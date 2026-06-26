@@ -94,6 +94,7 @@ function TeacherChat({
   lessonId: string; lesson: any; token: string; enrollmentId: string; initialQ: string;
 }) {
   const navigate = useNavigate();
+  const { lang } = useT();
   const genQuiz = useServerFn(generateAcademyQuiz);
   const submit = useServerFn(submitAcademyQuiz);
 
@@ -111,9 +112,9 @@ function TeacherChat({
     () => new DefaultChatTransport({
       api: "/api/academy-chat",
       headers: { Authorization: `Bearer ${token}` },
-      body: { lessonId, language: lesson?.language ?? "en" },
+      body: { lessonId, language: lang },
     }),
-    [token, lessonId, lesson?.language],
+    [token, lessonId, lang],
   );
   const { messages, sendMessage, status, error: chatError } = useChat({ transport });
 
