@@ -445,8 +445,21 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
       payload: { document_id: doc.id, format: ext, path },
       created_by: context.userId,
     });
-    return { url: signed.data.signedUrl, path, mime };
+    // Return inline base64 so the client can build a Blob URL on its own origin
+    // (avoids ad-blockers that block requests to *.supabase.co).
+    let base64 = "";
+    {
+      const chunk = 0x8000;
+      let bin = "";
+      for (let i = 0; i < bytes.length; i += chunk) {
+        bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      base64 = btoa(bin);
+    }
+    const filename = `${safe || "document"}.${ext}`;
+    return { url: signed.data.signedUrl, path, mime, base64, filename };
   });
+
 
 // Helper used by API route to build a context block for the AI writing assistant.
 export async function loadCustomerContextForAi(companyId: string): Promise<CustomerContext & { _systemBlock: string }> {
