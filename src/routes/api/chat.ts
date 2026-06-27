@@ -197,8 +197,10 @@ export const Route = createFileRoute("/api/chat")({
             const [qVec, faqs] = await Promise.all([
               embedOne(query),
               cached("company:faqs", companyId, 5 * 60_000, async () => {
+                // Defense-in-depth: explicit company filter on top of RLS isolation.
                 const { data } = await supabase
-                  .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category").limit(200);
+                  .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category")
+                  .eq("company_id", companyId).limit(500);
                 return data ?? [];
               }),
             ]);
