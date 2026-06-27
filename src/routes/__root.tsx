@@ -89,12 +89,12 @@ const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('opsqai-th
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="bg-background text-foreground antialiased">{children}<Scripts /></body>
+      <body className="bg-background text-foreground antialiased" suppressHydrationWarning>{children}<Scripts /></body>
     </html>
   );
 }
