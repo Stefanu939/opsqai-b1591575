@@ -1,90 +1,117 @@
-## Enterprise Customer Workspace Manager
+## Customer Workspace Manager — Simplification & AI Document Automation
 
-Internal OPSQAI admin module. Visible **only** to Platform Owner / Platform Admin (and future Super Admin). Hidden from every workspace-level role. Reuses the existing Enterprise UI — no redesign.
+Scope: keep all existing tabs, components, colors, navigation, and exports exactly as they are. Layer the new behavior on top of the current screens.
 
-### Where it lives
+---
 
-- New protected route: `/app/admin/customers` (with nested `/app/admin/customers/$companyId/...`)
-- New sidebar entry under the existing "Platform" group, gated by `isPlatformAdmin || isPlatformOwner`
-- Route `beforeLoad` enforces the same gate (defense in depth)
+### 1. Access control
 
-### Database (1 migration)
+`src/lib/authorization.ts` → extend `requirePlatformAdmin` (or add `requirePlatformOrWorkspaceAdmin`) to also accept `workspace_owner`. Same gate is applied:
 
-All new tables `company_id` keyed, RLS = `is_platform_admin()` only.
+- in the route `beforeLoad` of `app.admin.customers.tsx`
+- in every customer server function
+- on the sidebar entry in `app/app-shell.tsx`
 
-| Table | Purpose |
-|---|---|
-| `customer_profiles` | 1:1 with `companies`. JSONB columns `general`, `commercial`, `implementation`, `ai_config`, `sla`, `branding` (overrides), plus scalar `account_manager_id`, `renewal_date`, `contract_status`, `onboarding_pct`. |
-| `customer_features` | Per-company feature matrix. `feature_key`, `state` (enabled/disabled/beta/enterprise/coming_soon), `notes`. Seeded from a server-side feature catalog. |
-| `customer_compliance` | Pre-populated templates (GDPR, ISO 27001, ISO 9001, SOC 2, RBAC, isolation, encryption, backups, audit, retention, MFA, DR, BCP, residency) as editable rows `(area, status, evidence, notes, owner)`. |
-| `customer_security` | Editable rows by `area` (auth, authz, encryption, storage, infra, backups, monitoring, IR, pentest, vuln mgmt, logging, audit, network). |
-| `customer_documents` | Generated/edited docs. `doc_type`, `title`, `status` (draft/review/approved/sent/archived), `markdown`, `metadata` JSONB, current `version`. |
-| `customer_document_versions` | Immutable snapshots `(document_id, version, markdown, metadata, created_by, created_at)` — restoreable. |
-| `customer_timeline` | `event_type`, `payload`, `occurred_at`. Auto-rows from triggers on documents + manual inserts. |
+Roles `admin`, `manager`, `supervisor`, `operator` keep being denied.
 
-Plus storage bucket `customer-exports` (platform-admin only) for PDF/DOCX artifacts. Add RPC `customer_health(p_company)` that reuses existing `dashboard_kpis` / `dashboard_health` and adds knowledge-gap trend, AI adoption, Academy progress, support activity.
+---
 
-### Server functions (`src/lib/customers.functions.ts`)
+### 2. Simplified Profile tab (same UI primitives)
 
-All `requireSupabaseAuth` + role check `is_platform_admin()`:
+Replace `GENERAL_FIELDS`, `COMMERCIAL_FIELDS`, `IMPLEMENTATION_FIELDS` content with a slim card layout — same `Card` / `Input` / `Select` components, just fewer fields:
 
-- `listCustomers()` — companies with summary stats
-- `getCustomerProfile(companyId)` — profile + features + compliance + security + branding + health
-- `upsertProfileSection(companyId, section, data)` — patches one JSONB block
-- `upsertFeatureState`, `upsertComplianceRow`, `upsertSecurityRow`
-- `listDocuments(companyId)`, `getDocument(id)`, `createDocument(companyId, docType)`, `updateDocument`, `archiveDocument`, `restoreVersion(id, version)`
-- `generateDocument(companyId, docType, options)` — pulls profile, runs a template, then optionally calls Lovable AI Gateway (`google/gemini-2.5-flash`) to enrich
-- `aiAssist(documentId, action, selection?)` — Generate/Rewrite/Simplify/MakeTechnical/Executive/Industry/Translate/ImproveFormatting via Gateway
-- `exportDocument(id, format)` — markdown → PDF (existing pdf pipeline) / DOCX (`docx` lib already in deps) / HTML / MD; writes to `customer-exports`, returns signed URL
-- `listTimeline(companyId)`, `addTimelineEvent`
+- **Company**: companyName (read-only from `companies.name`), legalName, registrationNumber, vatNumber, address, country
+- **Contact**: contactPerson, email, phone, website
+- **Workspace**: workspaceName, language, timezone
+- **Subscription**: single `Select` → Pilot / Standard / Business / Enterprise
 
-Feature catalog (`src/lib/feature-catalog.ts`) is the source of truth for the matrix: AI Assistant, KB, FAQ, Knowledge Gaps, Audit Log, Analytics, Executive Dashboard, Reports, Brand Center, Academy, Workspace Health, AI SOP Generator, Source Citations, Platform Admin, RBAC, Multi-language, Enterprise Export, Support Center, plus the rest detected from the route tree.
+All legacy `commercial.*`, `implementation.*`, `ai_config.*`, `sla.*` JSONB stays in the DB (no destructive migration); the simplified UI just stops writing/displaying them, and the document generator stops requiring them.
 
-### Frontend (reuses shadcn primitives)
+---
 
-```text
-/app/admin/customers
-├── index.tsx              Customer selector table (search, status, renewal soon)
-└── $companyId/
-    ├── route.tsx          Customer header + sub-tabs (loads profile once)
-    ├── index.tsx          Overview: health KPIs, activity strip
-    ├── profile.tsx        General + Contacts + Commercial + Implementation
-    ├── features.tsx       Feature matrix grid (state dropdowns)
-    ├── compliance.tsx     Compliance rows by area
-    ├── security.tsx       Security rows by area
-    ├── ai-config.tsx      Editable AI block
-    ├── sla.tsx            SLA editor
-    ├── branding.tsx       Logo/colors/banner/domain
-    ├── documents.tsx      Doc list + AI editor + Export + Version drawer
-    └── timeline.tsx       Activity feed
+### 3. Subscription engine
+
+New file `src/lib/subscription-plans.ts`:
+
+```ts
+export const SUBSCRIPTION_PLANS = {
+  pilot:      { label: "Pilot",      maxUsers: 25,   storageGB: 5,   academy: false, aiFeatures: "basic",    analytics: "basic",    support: "email",          modules: [...] },
+  standard:   { label: "Standard",   maxUsers: 100,  storageGB: 25,  academy: true,  aiFeatures: "standard", analytics: "standard", support: "business hours", modules: [...] },
+  business:   { label: "Business",   maxUsers: 500,  storageGB: 100, academy: true,  aiFeatures: "advanced", analytics: "advanced", support: "24/5",           modules: [...] },
+  enterprise: { label: "Enterprise", maxUsers: null, storageGB: 500, academy: true,  aiFeatures: "full",     analytics: "full",     support: "24/7 + CSM",     modules: [...] },
+}
 ```
 
-All forms use existing `Form`, `Card`, `Tabs`, `Table`, `Dialog`, `Badge`. The AI document editor reuses the markdown editor primitives already used by the AI SOP Generator; AI action buttons live in a toolbar above it.
+When the plan dropdown changes, `upsertCustomerProfile` also writes the derived values into `customer_profiles.commercial` and updates `companies.subscription_plan` + `max_users`. Feature matrix tab keeps working but is now read-only-by-default seeded from `SUBSCRIPTION_PLANS[plan].modules`.
 
-### AI & integration hooks
+---
 
-- Lovable AI Gateway for all generation/rewrite/translate actions (no extra keys)
-- Template strings live in `src/lib/customer-templates.ts` — 18 doc types listed in the brief
-- Each document carries a `metadata.integrations` JSON slot so future CRM / HubSpot / Salesforce / Dynamics / Drive / SharePoint / DocuSign / M365 connectors can attach external IDs without schema change
+### 4. Documents tab — keep current layout
 
-### Access enforcement (RBAC, defense in depth)
+No structural change to `DocumentsTab`. Add three things inline using the same buttons/cards that already exist:
 
-1. Sidebar entry: `show: isPlatformAdmin || isPlatformOwner`
-2. Route `beforeLoad`: redirect non-platform-admin to `/app`
-3. Every server fn re-checks `is_platform_admin()` and 403s otherwise
-4. RLS on all 7 new tables: `USING (public.is_platform_admin())` for SELECT/INSERT/UPDATE/DELETE; service_role grant for triggers/exports
+- A grouping helper that splits the existing document list into folders by `metadata.category` — rendered as collapsible `Card` sections labeled **Commercial / Technical / Legal / Compliance / Customer Success / Custom Documents**.
+- A `Generate All Standard Documents` button next to the existing **Generate** button (`Wand2` icon, same `Button` component).
+- Two new buttons next to the existing per-doc Export menu: **Download Folder** and **Download All (.zip)**.
 
-### Out of scope (this sprint)
+---
 
-- Live external CRM sync (schema is ready; connectors land later)
-- E-signature embed (DocuSign hook stub only)
-- Editing the existing Brand Center — branding tab here writes only the **customer override** block
+### 5. Intelligent, grounded document generation
 
-### Delivery order
+Rewrite `generateCustomerDocument` in `src/lib/customers.functions.ts`:
 
-1. Migration (tables + RLS + RPC + bucket)
-2. `customers.functions.ts` + feature catalog + templates
-3. Selector + customer shell + Profile/Features/Compliance/Security/SLA/AI/Branding tabs
-4. Documents tab (list, editor, AI toolbar, versions)
-5. Export pipeline (PDF/DOCX/HTML/MD) + Timeline auto-events
-6. Sidebar entry, route gate, end-to-end check with Playwright as `baristefan5@gmail.com`
+1. Load profile + company + `SUBSCRIPTION_PLANS[plan]` + a curated `OPSQAI_FACTS` block (product description, branding, feature catalog summary, official template skeleton). These four are the **only** sources the AI may use.
+2. Run the template's `build(ctx)` as a deterministic skeleton.
+3. Call Lovable AI Gateway (`google/gemini-2.5-flash`) with a strict system prompt:
+   - "Use ONLY the provided JSON sources. Never invent company info, contacts, features, prices or specifications. If a field is missing, write `**[MISSING: <field>]**` instead of guessing."
+   - Input = `{ profile, plan, opsqai_facts, template_skeleton }`.
+4. Store both the AI markdown and the resolved source set in `metadata.sources` for auditability.
+5. Add `metadata.missing_fields[]` derived from `[MISSING: …]` matches so the UI can show a clear "Missing data" badge.
+
+Determinism: temperature 0.2, deterministic prompt, identical `(profile, plan)` ⇒ identical output (verified by hashing inputs and storing the hash in `metadata.input_hash`; we skip regeneration if hash matches and content exists).
+
+New server fn `generateAllStandardDocuments({ company_id })` — iterates the recommended template list for the active subscription and calls the same path. Returns the list of created/updated doc ids.
+
+---
+
+### 6. Document folders & bulk download
+
+- Existing `metadata.category` already exists; just normalize to the six folder names above. Manual uploads land in `Custom Documents`.
+- New server fn `downloadCustomerDocuments({ company_id, category? })`:
+  - Renders each doc as PDF via the existing `generatePdf` pipeline.
+  - Zips with `fflate` (already on the Worker — pure JS, edge-safe).
+  - Returns base64 + mime to the client (same Blob-URL pattern we already use to dodge the ad-blocker on `*.supabase.co`).
+
+---
+
+### 7. "Needs Update" auto-flagging
+
+Migration:
+
+- Add `customer_documents.needs_update boolean default false`.
+- Add `customer_documents.input_hash text`.
+- Trigger `customer_profile_dirty_tracker` on `customer_profiles` UPDATE: when `general.legalName`, `general.address`, `general.registrationNumber`, `general.vatNumber`, contact person or `commercial.subscriptionPlan` change, set `needs_update = true` on every document for that company.
+- Trigger on `companies` UPDATE for `name` → same effect.
+
+UI: in `DocumentsTab` the existing row shows a small "Needs Update" `Badge` when set, plus a per-row **Regenerate** action and a top-level **Regenerate All** button (both reuse the existing generate flow, which clears `needs_update` on success).
+
+---
+
+### 8. Verification
+
+- `bun run build` to ensure the new code typechecks and the bundle stays Worker-compatible.
+- Playwright as `baristefan5@gmail.com` (`LOVABLE_BROWSER_AUTH_STATUS=injected`): navigate to `/app/admin/customers`, pick a workspace, run **Generate All Standard Documents**, then click **Export PDF** on one document and assert the Blob URL download works without error and without any `*.supabase.co` request.
+
+---
+
+### Technical notes
+
+- No destructive schema changes; legacy JSONB columns are kept.
+- All new fns are `requireSupabaseAuth` + `requirePlatformAdmin`-equivalent.
+- `fflate` is pure JS (Worker-safe). PDF generation reuses the already-hardened `generatePdf` (sanitized for WinAnsi). Downloads stream through Blob URLs on the app origin.
+
+### Out of scope (explicit)
+
+- No UI redesign, color/typography/spacing changes, navigation changes.
+- No removal of existing templates, tabs, or export formats.
+- No external CRM/e-sign integrations.
