@@ -84,24 +84,12 @@ function CustomersPage() {
 
       {/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(companyId) ? (
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="flex flex-wrap h-auto">
+          <TabsList>
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="features">Features</TabsTrigger>
-            <TabsTrigger value="compliance">Compliance</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="config">AI · SLA · Branding</TabsTrigger>
-            <TabsTrigger value="health">Health</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
           </TabsList>
           <TabsContent value="profile"><ProfileTab companyId={companyId} /></TabsContent>
-          <TabsContent value="features"><FeaturesTab companyId={companyId} /></TabsContent>
-          <TabsContent value="compliance"><ComplianceTab companyId={companyId} /></TabsContent>
-          <TabsContent value="security"><SecurityTab companyId={companyId} /></TabsContent>
-          <TabsContent value="config"><ConfigTab companyId={companyId} /></TabsContent>
-          <TabsContent value="health"><HealthTab companyId={companyId} /></TabsContent>
           <TabsContent value="documents"><DocumentsTab companyId={companyId} /></TabsContent>
-          <TabsContent value="timeline"><TimelineTab companyId={companyId} /></TabsContent>
         </Tabs>
       ) : (
         <Card><CardContent className="p-8 text-center text-muted-foreground">No customer workspaces yet.</CardContent></Card>
@@ -135,12 +123,12 @@ const PLAN_OPTIONS: Array<[string, string]> = [
   ["pilot", "Pilot"], ["standard", "Standard"], ["business", "Business"], ["enterprise", "Enterprise"],
 ];
 
-// Inline plan capabilities — keep in sync with src/lib/subscription-plans.ts.
-const PLAN_INFO: Record<string, { maxUsers: string; storage: string; academy: string; ai: string; analytics: string; support: string }> = {
-  pilot:      { maxUsers: "25",        storage: "5 GB",   academy: "—",     ai: "Basic",    analytics: "Basic",    support: "Email, business hours" },
-  standard:   { maxUsers: "100",       storage: "25 GB",  academy: "✓",     ai: "Standard", analytics: "Standard", support: "Business hours 8x5" },
-  business:   { maxUsers: "500",       storage: "100 GB", academy: "✓",     ai: "Advanced", analytics: "Advanced", support: "Priority 24x5" },
-  enterprise: { maxUsers: "Unlimited", storage: "500 GB", academy: "✓",     ai: "Full",     analytics: "Full",     support: "24x7 + CSM" },
+// Plan -> estimated user capacity (only customer-size hint; everything else is internal).
+const PLAN_CAPACITY: Record<string, string> = {
+  pilot: "Up to 25 users",
+  standard: "Up to 100 users",
+  business: "Up to 500 users",
+  enterprise: "Unlimited users",
 };
 
 function ProfileTab({ companyId }: { companyId: string }) {
@@ -171,7 +159,7 @@ function ProfileTab({ companyId }: { companyId: string }) {
 
   if (isLoading) return <p className="text-muted-foreground p-4">Loading profile…</p>;
 
-  const info = PLAN_INFO[subscriptionPlan] ?? PLAN_INFO.standard;
+  const capacity = PLAN_CAPACITY[subscriptionPlan] ?? PLAN_CAPACITY.standard;
 
   const Field = ({ k, label }: { k: string; label: string }) => (
     <div>
@@ -206,7 +194,7 @@ function ProfileTab({ companyId }: { companyId: string }) {
       <Card>
         <CardHeader>
           <CardTitle>Subscription</CardTitle>
-          <CardDescription>Single source of truth — everything below is derived automatically.</CardDescription>
+          <CardDescription>Defines customer size and personalizes generated documents.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,14 +207,10 @@ function ProfileTab({ companyId }: { companyId: string }) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Max Users</div><div className="font-medium">{info.maxUsers}</div></div>
-            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Storage</div><div className="font-medium">{info.storage}</div></div>
-            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Academy</div><div className="font-medium">{info.academy}</div></div>
-            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">AI Features</div><div className="font-medium">{info.ai}</div></div>
-            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Analytics</div><div className="font-medium">{info.analytics}</div></div>
-            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Support</div><div className="font-medium">{info.support}</div></div>
+            <div>
+              <Label>Estimated User Capacity</Label>
+              <div className="rounded-md border px-3 py-2 text-sm font-medium">{capacity}</div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -245,267 +229,6 @@ function ProfileTab({ companyId }: { companyId: string }) {
 }
 
 
-// ----------------- Features Tab -----------------
-
-function FeaturesTab({ companyId }: { companyId: string }) {
-  const list = useServerFn(listCustomerFeatures);
-  const save = useServerFn(upsertCustomerFeature);
-  const qc = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["customer-features", companyId],
-    queryFn: () => list({ data: { company_id: companyId } }),
-  });
-  const mut = useMutation({
-    mutationFn: (vars: any) => save({ data: vars }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["customer-features", companyId] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const grouped = useMemo(() => {
-    const m: Record<string, typeof data> = {} as any;
-    for (const f of data ?? []) (m[f.category] ||= [] as any).push(f);
-    return m;
-  }, [data]);
-
-  return (
-    <div className="space-y-4 mt-4">
-      {Object.entries(grouped).map(([cat, rows]) => (
-        <Card key={cat}>
-          <CardHeader><CardTitle>{cat}</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {(rows ?? []).map((f: any) => (
-              <div key={f.feature_key} className="flex items-center justify-between gap-3 rounded-md border p-3">
-                <div className="min-w-0">
-                  <div className="font-medium truncate">{f.label}</div>
-                  <div className="text-xs text-muted-foreground">{f.feature_key}</div>
-                </div>
-                <Select
-                  value={f.state}
-                  onValueChange={(state) => mut.mutate({ company_id: companyId, feature_key: f.feature_key, state, notes: f.notes ?? null })}
-                >
-                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["enabled","disabled","beta","enterprise","coming_soon"].map((s) => (
-                      <SelectItem key={s} value={s}>{s.replace("_"," ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// ----------------- Compliance Tab -----------------
-
-function ComplianceTab({ companyId }: { companyId: string }) {
-  const list = useServerFn(listCustomerCompliance);
-  const save = useServerFn(upsertCustomerCompliance);
-  const qc = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["customer-compliance", companyId],
-    queryFn: () => list({ data: { company_id: companyId } }),
-  });
-  const mut = useMutation({
-    mutationFn: (vars: any) => save({ data: vars }),
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["customer-compliance", companyId] }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-      {(data ?? []).map((row: any) => (
-        <Card key={row.area}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center justify-between">
-              {row.area}
-              <Badge variant={row.status === "met" || row.status === "exceeded" ? "default" : "secondary"}>{row.status}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Select value={row.status} onValueChange={(v) => mut.mutate({ ...row, status: v, company_id: companyId })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["not_applicable","pending","in_progress","met","exceeded"].map((s) => (
-                  <SelectItem key={s} value={s}>{s.replace("_"," ")}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Textarea
-              placeholder="Evidence / link"
-              defaultValue={row.evidence ?? ""}
-              onBlur={(e) => e.target.value !== (row.evidence ?? "") && mut.mutate({ ...row, evidence: e.target.value, company_id: companyId })}
-              rows={2}
-            />
-            <Input
-              placeholder="Owner"
-              defaultValue={row.owner ?? ""}
-              onBlur={(e) => e.target.value !== (row.owner ?? "") && mut.mutate({ ...row, owner: e.target.value, company_id: companyId })}
-            />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// ----------------- Security Tab -----------------
-
-function SecurityTab({ companyId }: { companyId: string }) {
-  const list = useServerFn(listCustomerSecurity);
-  const save = useServerFn(upsertCustomerSecurity);
-  const qc = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["customer-security", companyId],
-    queryFn: () => list({ data: { company_id: companyId } }),
-  });
-  const mut = useMutation({
-    mutationFn: (vars: any) => save({ data: vars }),
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["customer-security", companyId] }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-      {(data ?? []).map((row: any) => (
-        <Card key={row.area}>
-          <CardHeader className="pb-2"><CardTitle className="text-base">{row.area}</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            <Textarea
-              placeholder="Summary"
-              defaultValue={row.summary ?? ""}
-              onBlur={(e) => e.target.value !== (row.summary ?? "") && mut.mutate({ company_id: companyId, area: row.area, summary: e.target.value, notes: row.notes })}
-              rows={2}
-            />
-            <Textarea
-              placeholder="Notes"
-              defaultValue={row.notes ?? ""}
-              onBlur={(e) => e.target.value !== (row.notes ?? "") && mut.mutate({ company_id: companyId, area: row.area, summary: row.summary, notes: e.target.value })}
-              rows={2}
-            />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// ----------------- Config Tab (AI / SLA / Branding) -----------------
-
-const AI_FIELDS: Array<[string, string]> = [
-  ["embeddingModel", "Embedding Model"], ["languageModel", "Language Model"],
-  ["semanticSearch", "Semantic Search"], ["rag", "RAG"], ["citationEngine", "Citation Engine"],
-  ["supportedLanguages", "Supported Languages"], ["chunkSize", "Chunk Size"],
-  ["contextWindow", "Context Window"], ["aiCapabilities", "AI Capabilities"],
-];
-const SLA_FIELDS: Array<[string, string]> = [
-  ["responseTime", "Response Time"], ["availability", "Availability"], ["supportHours", "Support Hours"],
-  ["escalationLevels", "Escalation Levels"], ["maintenanceWindows", "Maintenance Windows"],
-  ["rpo", "RPO"], ["rto", "RTO"], ["supportContacts", "Support Contacts"],
-];
-const BRAND_FIELDS: Array<[string, string]> = [
-  ["logo", "Company Logo URL"], ["primaryColor", "Primary Brand Color"], ["accentColor", "Accent Color"],
-  ["banner", "Banner URL"], ["workspaceBranding", "Workspace Branding"], ["emailBranding", "Email Branding"], ["domain", "Domain"],
-];
-
-function ConfigTab({ companyId }: { companyId: string }) {
-  const get = useServerFn(getCustomerProfile);
-  const save = useServerFn(upsertCustomerProfile);
-  const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["customer-profile", companyId],
-    queryFn: () => get({ data: { company_id: companyId } }),
-  });
-
-  const [ai, setAi] = useState<Record<string, string>>({});
-  const [sla, setSla] = useState<Record<string, string>>({});
-  const [brand, setBrand] = useState<Record<string, string>>({});
-  const [hydrated, setHydrated] = useState(false);
-
-  if (data && !hydrated) {
-    const p: any = data.profile ?? {};
-    setAi(p.ai_config ?? {});
-    setSla(p.sla ?? {});
-    setBrand(p.branding ?? {});
-    setHydrated(true);
-  }
-
-  const mut = useMutation({
-    mutationFn: (vars: any) => save({ data: vars }),
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["customer-profile", companyId] }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  if (isLoading) return <p className="p-4 text-muted-foreground">Loading…</p>;
-
-  const FieldBlock = ({ title, fields, state, setState }: { title: string; fields: [string,string][]; state: Record<string,string>; setState: (s: Record<string,string>) => void }) => (
-    <Card>
-      <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {fields.map(([k, label]) => (
-          <div key={k}>
-            <Label>{label}</Label>
-            <Input value={state[k] ?? ""} onChange={(e) => setState({ ...state, [k]: e.target.value })} />
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-
-  return (
-    <div className="space-y-4 mt-4">
-      <FieldBlock title="AI Configuration" fields={AI_FIELDS} state={ai} setState={setAi} />
-      <FieldBlock title="SLA" fields={SLA_FIELDS} state={sla} setState={setSla} />
-      <FieldBlock title="Branding" fields={BRAND_FIELDS} state={brand} setState={setBrand} />
-      <div className="flex justify-end">
-        <Button onClick={() => mut.mutate({ company_id: companyId, ai_config: ai, sla, branding: brand })} disabled={mut.isPending}>
-          <Save className="h-4 w-4 mr-2" />Save Configuration
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// ----------------- Health Tab -----------------
-
-function HealthTab({ companyId }: { companyId: string }) {
-  const get = useServerFn(customerHealth);
-  const { data, refetch, isFetching } = useQuery({
-    queryKey: ["customer-health", companyId],
-    queryFn: () => get({ data: { company_id: companyId } }),
-  });
-  const h: any = data ?? {};
-  const metric = (label: string, value: unknown, suffix = "") => (
-    <Card>
-      <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">{label}</CardTitle></CardHeader>
-      <CardContent><div className="text-3xl font-bold">{value !== undefined && value !== null ? String(value) : "—"}{suffix}</div></CardContent>
-    </Card>
-  );
-  return (
-    <div className="space-y-4 mt-4">
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />Refresh
-        </Button>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {metric("Workspace Health", h.workspaceHealth, "/100")}
-        {metric("Knowledge Docs", h.knowledgeDocs)}
-        {metric("Critical Docs", h.criticalDocs)}
-        {metric("FAQs", h.faqs ?? h.faqUsage)}
-        {metric("Monthly Active Users", h.mau ?? h.monthlyActiveUsers)}
-        {metric("AI Adoption", h.aiAdoption, "%")}
-        {metric("Search Success", h.searchSuccess, "%")}
-        {metric("Training Progress", h.trainingProgress, "%")}
-        {metric("Knowledge Gaps (open)", h.openGaps ?? h.knowledgeGapTrend)}
-        {metric("Support Activity", h.supportActivity)}
-      </div>
-    </div>
-  );
-}
 
 // ----------------- Documents Tab -----------------
 
@@ -851,32 +574,3 @@ function DocumentEditor({ docId, companyId, onClose }: { docId: string; companyI
   );
 }
 
-// ----------------- Timeline Tab -----------------
-
-function TimelineTab({ companyId }: { companyId: string }) {
-  const list = useServerFn(listCustomerTimeline);
-  const { data } = useQuery({
-    queryKey: ["customer-timeline", companyId],
-    queryFn: () => list({ data: { company_id: companyId } }),
-  });
-  return (
-    <Card className="mt-4">
-      <CardHeader><CardTitle>Customer Timeline</CardTitle></CardHeader>
-      <CardContent>
-        {!data?.length ? (
-          <p className="text-muted-foreground text-sm">No events yet.</p>
-        ) : (
-          <ol className="relative border-l ml-2 space-y-4">
-            {data.map((e: any) => (
-              <li key={e.id} className="pl-4">
-                <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-primary" />
-                <div className="text-sm font-medium">{e.title}</div>
-                <div className="text-xs text-muted-foreground">{e.event_type} · {new Date(e.occurred_at).toLocaleString()}</div>
-              </li>
-            ))}
-          </ol>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
