@@ -57,9 +57,6 @@ function Page() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/_authenticated/app/admin/support" });
 
-  if (!auth.isPlatformAdmin) {
-    return <div className="p-8 text-sm text-muted-foreground">Platform admins only.</div>;
-  }
 
   const listFn = useServerFn(listSupportConversations);
   const getFn = useServerFn(getSupportConversation);
