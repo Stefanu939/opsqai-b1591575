@@ -18,6 +18,8 @@ interface AuthState {
   isSupervisor: boolean;
   isOperator: boolean;
   isViewer: boolean;
+  isWorkspaceOwner: boolean;
+  isChampion: boolean;
   isPlatformAdmin: boolean;
   isPlatformOwner: boolean;
   hasPermission: (p: Permission | string) => boolean;
@@ -100,12 +102,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       companyId, companyName,
       activeCompanyId, setActiveCompanyId,
       // Capability shortcuts. Platform Owner / Platform Admin bypass tenant gates.
-      isAdmin: roles.includes("admin") || isPlatformAdmin,
-      isManager: roles.includes("manager") || isPlatformAdmin,
+      isAdmin: roles.includes("admin") || roles.includes("workspace_owner") || isPlatformAdmin,
+      isManager: roles.includes("manager") || roles.includes("workspace_owner") || roles.includes("champion") || isPlatformAdmin,
       isSupervisor: roles.includes("supervisor") || roles.includes("team_leader") || isPlatformAdmin,
       isTeamLeader: roles.includes("supervisor") || roles.includes("team_leader") || isPlatformAdmin,
       isOperator: roles.includes("operator") || roles.includes("employee"),
       isViewer: roles.includes("viewer"),
+      isWorkspaceOwner: roles.includes("workspace_owner") || isPlatformAdmin,
+      isChampion: roles.includes("champion"),
       isPlatformAdmin,
       isPlatformOwner,
       hasPermission,
