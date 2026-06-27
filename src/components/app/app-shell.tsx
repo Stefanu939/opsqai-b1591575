@@ -60,6 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     ? [
         { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck },
         { to: "/app/admin/companies", label: "Companies", icon: Building2 },
+        { to: "/app/admin/support", label: "Support Inbox", icon: Inbox },
         { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
       ]
     : [];
