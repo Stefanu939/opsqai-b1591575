@@ -254,7 +254,7 @@
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
-    border-color: oklch(0.82 0.14 200 / 0.35);
+    border-color: rgba(37,99,235,0.35);
   }
 }
 
@@ -271,8 +271,8 @@
 
 @utility bg-grid-faint {
   background-image:
-    linear-gradient(to right, oklch(0.40 0.05 230 / 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.40 0.05 230 / 0.08) 1px, transparent 1px);
+    linear-gradient(to right, rgba(148,163,184,0.10) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148,163,184,0.10) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
@@ -283,7 +283,7 @@
   padding: 0.25rem 0.625rem;
   border-radius: 999px;
   border: 1px solid var(--color-border);
-  background: oklch(0.22 0.04 240 / 0.6);
+  background: color-mix(in oklab, var(--color-card) 70%, transparent);
   font-size: 0.75rem;
   color: var(--color-muted-foreground);
 }
@@ -307,7 +307,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent, oklch(0.82 0.14 200 / 0.20), transparent);
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.20), transparent);
     animation: shimmer-line 2.4s ease-in-out infinite;
   }
 }
