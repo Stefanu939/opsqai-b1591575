@@ -112,24 +112,38 @@ function CustomersPage() {
   );
 }
 
-// ----------------- Profile Tab -----------------
+// ----------------- Profile Tab (simplified) -----------------
 
-const GENERAL_FIELDS: Array<[string, string]> = [
-  ["legalName", "Legal Name"], ["address", "Address"], ["country", "Country"], ["industry", "Industry"],
-  ["website", "Website"], ["employees", "Number of Employees"], ["warehouses", "Number of Warehouses"],
-  ["users", "Number of Users"], ["languages", "Languages"], ["timezone", "Timezone"],
-  ["primaryContact", "Primary Contact"], ["technicalContact", "Technical Contact"], ["accountManager", "Account Manager"],
+const COMPANY_FIELDS: Array<[string, string]> = [
+  ["legalName", "Legal Name"],
+  ["registrationNumber", "Registration Number"],
+  ["vatNumber", "VAT Number"],
+  ["address", "Address"],
+  ["country", "Country"],
+];
+const CONTACT_FIELDS: Array<[string, string]> = [
+  ["contactPerson", "Contact Person"],
+  ["email", "Email"],
+  ["phone", "Phone"],
+  ["website", "Website"],
+];
+const WORKSPACE_FIELDS: Array<[string, string]> = [
+  ["workspaceName", "Workspace Name"],
+  ["language", "Language"],
+  ["timezone", "Timezone"],
 ];
 
-const COMMERCIAL_FIELDS: Array<[string, string]> = [
-  ["subscriptionPlan", "Subscription"], ["seats", "Seats"], ["aiCredits", "Additional AI Credits"],
-  ["extraStorage", "Extra Storage"], ["discounts", "Discounts"], ["billingFrequency", "Billing Frequency"],
+const PLAN_OPTIONS: Array<[string, string]> = [
+  ["pilot", "Pilot"], ["standard", "Standard"], ["business", "Business"], ["enterprise", "Enterprise"],
 ];
 
-const IMPLEMENTATION_FIELDS: Array<[string, string]> = [
-  ["pilot", "Pilot"], ["production", "Production"], ["goLive", "Go-Live"], ["hypercare", "Hypercare"],
-  ["trainingStatus", "Training Status"], ["onboardingStatus", "Onboarding Status"],
-];
+// Inline plan capabilities — keep in sync with src/lib/subscription-plans.ts.
+const PLAN_INFO: Record<string, { maxUsers: string; storage: string; academy: string; ai: string; analytics: string; support: string }> = {
+  pilot:      { maxUsers: "25",        storage: "5 GB",   academy: "—",     ai: "Basic",    analytics: "Basic",    support: "Email, business hours" },
+  standard:   { maxUsers: "100",       storage: "25 GB",  academy: "✓",     ai: "Standard", analytics: "Standard", support: "Business hours 8x5" },
+  business:   { maxUsers: "500",       storage: "100 GB", academy: "✓",     ai: "Advanced", analytics: "Advanced", support: "Priority 24x5" },
+  enterprise: { maxUsers: "Unlimited", storage: "500 GB", academy: "✓",     ai: "Full",     analytics: "Full",     support: "24x7 + CSM" },
+};
 
 function ProfileTab({ companyId }: { companyId: string }) {
   const get = useServerFn(getCustomerProfile);
@@ -141,95 +155,80 @@ function ProfileTab({ companyId }: { companyId: string }) {
   });
 
   const [general, setGeneral] = useState<Record<string, string>>({});
-  const [commercial, setCommercial] = useState<Record<string, string>>({});
-  const [implementation, setImplementation] = useState<Record<string, string>>({});
-  const [contractStatus, setContractStatus] = useState("prospect");
-  const [renewalDate, setRenewalDate] = useState("");
-  const [onboardingPct, setOnboardingPct] = useState(0);
-  const [commercialNotes, setCommercialNotes] = useState("");
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>("standard");
   const [hydrated, setHydrated] = useState(false);
 
   if (data && !hydrated) {
     const p: any = data.profile ?? {};
     setGeneral(p.general ?? {});
-    setCommercial({ ...(p.commercial ?? {}) });
-    setCommercialNotes(p.commercial?.notes ?? "");
-    setImplementation(p.implementation ?? {});
-    setContractStatus(p.contract_status ?? "prospect");
-    setRenewalDate(p.renewal_date ?? "");
-    setOnboardingPct(p.onboarding_pct ?? 0);
+    setSubscriptionPlan((p.commercial?.subscriptionPlan ?? "standard").toLowerCase());
     setHydrated(true);
   }
 
   const mut = useMutation({
     mutationFn: (vars: any) => save({ data: vars }),
-    onSuccess: () => { toast.success("Profile saved"); qc.invalidateQueries({ queryKey: ["customer-profile", companyId] }); },
+    onSuccess: () => { toast.success("Profile saved"); qc.invalidateQueries({ queryKey: ["customer-profile", companyId] }); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   if (isLoading) return <p className="text-muted-foreground p-4">Loading profile…</p>;
 
+  const info = PLAN_INFO[subscriptionPlan] ?? PLAN_INFO.standard;
+
+  const Field = ({ k, label }: { k: string; label: string }) => (
+    <div>
+      <Label>{label}</Label>
+      <Input value={general[k] ?? ""} onChange={(e) => setGeneral({ ...general, [k]: e.target.value })} />
+    </div>
+  );
+
   return (
     <div className="space-y-4 mt-4">
       <Card>
-        <CardHeader><CardTitle>General Information</CardTitle><CardDescription>Customer master data — reused across all generated documents.</CardDescription></CardHeader>
+        <CardHeader><CardTitle>Company</CardTitle><CardDescription>Minimum information required for customer management and document generation.</CardDescription></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {GENERAL_FIELDS.map(([k, label]) => (
-            <div key={k}>
-              <Label>{label}</Label>
-              <Input value={general[k] ?? ""} onChange={(e) => setGeneral({ ...general, [k]: e.target.value })} />
-            </div>
-          ))}
+          {COMPANY_FIELDS.map(([k, label]) => <Field key={k} k={k} label={label} />)}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Commercial</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Contact</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {CONTACT_FIELDS.map(([k, label]) => <Field key={k} k={k} label={label} />)}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Workspace</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {WORKSPACE_FIELDS.map(([k, label]) => <Field key={k} k={k} label={label} />)}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Subscription</CardTitle>
+          <CardDescription>Single source of truth — everything below is derived automatically.</CardDescription>
+        </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {COMMERCIAL_FIELDS.map(([k, label]) => (
-              <div key={k}>
-                <Label>{label}</Label>
-                <Input value={commercial[k] ?? ""} onChange={(e) => setCommercial({ ...commercial, [k]: e.target.value })} />
-              </div>
-            ))}
             <div>
-              <Label>Contract Status</Label>
-              <Select value={contractStatus} onValueChange={setContractStatus}>
+              <Label>Subscription Plan</Label>
+              <Select value={subscriptionPlan} onValueChange={setSubscriptionPlan}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {["prospect","pilot","active","renewal","paused","churned"].map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
+                  {PLAN_OPTIONS.map(([v, label]) => <SelectItem key={v} value={v}>{label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Renewal Date</Label>
-              <Input type="date" value={renewalDate ?? ""} onChange={(e) => setRenewalDate(e.target.value)} />
-            </div>
           </div>
-          <div>
-            <Label>Commercial Notes</Label>
-            <Textarea rows={3} value={commercialNotes} onChange={(e) => setCommercialNotes(e.target.value)} />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>Implementation</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {IMPLEMENTATION_FIELDS.map(([k, label]) => (
-              <div key={k}>
-                <Label>{label}</Label>
-                <Input value={implementation[k] ?? ""} onChange={(e) => setImplementation({ ...implementation, [k]: e.target.value })} />
-              </div>
-            ))}
-            <div>
-              <Label>Completion %</Label>
-              <Input type="number" min={0} max={100} value={onboardingPct} onChange={(e) => setOnboardingPct(Number(e.target.value || 0))} />
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Max Users</div><div className="font-medium">{info.maxUsers}</div></div>
+            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Storage</div><div className="font-medium">{info.storage}</div></div>
+            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Academy</div><div className="font-medium">{info.academy}</div></div>
+            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">AI Features</div><div className="font-medium">{info.ai}</div></div>
+            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Analytics</div><div className="font-medium">{info.analytics}</div></div>
+            <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">Support</div><div className="font-medium">{info.support}</div></div>
           </div>
         </CardContent>
       </Card>
@@ -237,12 +236,8 @@ function ProfileTab({ companyId }: { companyId: string }) {
       <div className="flex justify-end">
         <Button onClick={() => mut.mutate({
           company_id: companyId,
-          contract_status: contractStatus,
-          renewal_date: renewalDate || null,
-          onboarding_pct: onboardingPct,
           general,
-          commercial: { ...commercial, notes: commercialNotes },
-          implementation,
+          commercial: { subscriptionPlan },
         })} disabled={mut.isPending}>
           <Save className="h-4 w-4 mr-2" />Save Profile
         </Button>
@@ -250,6 +245,7 @@ function ProfileTab({ companyId }: { companyId: string }) {
     </div>
   );
 }
+
 
 // ----------------- Features Tab -----------------
 
