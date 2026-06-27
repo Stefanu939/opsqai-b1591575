@@ -24,7 +24,7 @@ function greet(name?: string | null, lang?: string) {
 function ChatWelcome() {
   const navigate = useNavigate();
   const newThread = useServerFn(createThread);
-  const { user } = useAuth();
+  const { user, scopeCompanyId } = useAuth();
   const { lang } = useT();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,7 +35,9 @@ function ChatWelcome() {
     const q = text.trim(); if (!q || busy) return;
     setBusy(true);
     try {
-      const th = await newThread({ data: { title: q.slice(0, 60) } });
+      // Bind the thread to the active workspace so RAG retrieval and FAQ
+      // matching automatically scope to the tenant the admin is viewing.
+      const th = await newThread({ data: { title: q.slice(0, 60), companyId: scopeCompanyId ?? undefined } });
       navigate({ to: "/app/chat/$threadId", params: { threadId: th.id }, search: { q } });
     } catch (e) { toast.error(String(e)); setBusy(false); }
   };
