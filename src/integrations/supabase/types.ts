@@ -2209,6 +2209,10 @@ export type Database = {
       is_platform_admin: { Args: never; Returns: boolean }
       is_platform_owner: { Args: { _user_id?: string }; Returns: boolean }
       knowledge_health: { Args: { p_company: string }; Returns: Json }
+      log_workspace_switch: {
+        Args: { p_next: string; p_previous: string }
+        Returns: undefined
+      }
       match_document_chunks: {
         Args: {
           match_count?: number
