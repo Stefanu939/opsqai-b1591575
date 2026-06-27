@@ -92,6 +92,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Keep companyName in sync with the active workspace (platform admins can switch).
+  useEffect(() => {
+    if (!session?.user) return;
+    const target = activeCompanyId ?? companyId;
+    if (!target) { setCompanyName(null); return; }
+    supabase.from("companies").select("name").eq("id", target).maybeSingle().then(({ data }) => {
+      setCompanyName(data?.name ?? null);
+    });
+  }, [activeCompanyId, companyId, session?.user?.id]);
+
   const signOut = async () => { await supabase.auth.signOut(); };
 
   const isPlatformOwner = roles.includes("platform_owner");
