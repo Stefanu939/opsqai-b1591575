@@ -2094,6 +2094,7 @@ export type Database = {
         Returns: Json
       }
       gap_users: { Args: { p_company: string }; Returns: Json }
+      get_profile_phone: { Args: { _id: string }; Returns: string }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean

@@ -33,10 +33,14 @@ function ProfilePage() {
   useEffect(() => {
     fetchDepts().then((d) => setDepts(d as Dept[])).catch(() => {});
     if (!user) return;
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle().then(({ data }) => {
-      if (data) setForm({
+    supabase.from("profiles")
+      .select("first_name,last_name,position,department_id,language_pref")
+      .eq("id", user.id).maybeSingle().then(async ({ data }) => {
+      if (!data) return;
+      const { data: phoneVal } = await supabase.rpc("get_profile_phone", { _id: user.id });
+      setForm({
         first_name: data.first_name ?? "", last_name: data.last_name ?? "",
-        position: data.position ?? "", phone: data.phone ?? "",
+        position: data.position ?? "", phone: (phoneVal as string | null) ?? "",
         department_id: data.department_id ?? "", language_pref: (data.language_pref as "de" | "en" | "ro") ?? "en",
       });
     });
