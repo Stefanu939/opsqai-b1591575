@@ -208,7 +208,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar text-sidebar-foreground px-4 h-14 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="" width={24} height={24} />
+          <LogoMark size={24} className="text-sidebar-foreground" />
           <span className="font-semibold tracking-tight text-sm">{t("appName")}</span>
         </div>
         <div className="flex items-center gap-1">
