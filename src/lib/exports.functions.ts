@@ -330,7 +330,7 @@ export const runExport = createServerFn({ method: "POST" })
       }
 
       // 6. Audit
-      await context.supabase.rpc("audit_write", ({
+      await context.supabase.rpc("audit_write", {
         p_company: companyId,
         p_user: context.userId,
         p_module: data.kind === "workspace" ? "workspace" : data.kind,
@@ -374,7 +374,7 @@ export const runExport = createServerFn({ method: "POST" })
           error: err instanceof Error ? err.message : String(err),
         })
         .eq("id", jobId);
-      await context.supabase.rpc("audit_write", ({
+      await context.supabase.rpc("audit_write", {
         p_company: companyId,
         p_user: context.userId,
         p_module: data.kind,
