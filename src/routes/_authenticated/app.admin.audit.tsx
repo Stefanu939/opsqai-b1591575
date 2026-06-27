@@ -238,7 +238,7 @@ function EntriesView({ companyId, userId, back }: { companyId: string; userId: s
               </div>
               {r.question && <p className="text-sm mt-2">{r.question}</p>}
               {r.answerPreview && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{r.answerPreview}</p>}
-              {(r.oldValue || r.newValue) && (
+              {(r.oldValue != null || r.newValue != null) && (
                 <details className="mt-2 text-xs">
                   <summary className="cursor-pointer text-muted-foreground">Change details</summary>
                   <div className="grid sm:grid-cols-2 gap-2 mt-2">
