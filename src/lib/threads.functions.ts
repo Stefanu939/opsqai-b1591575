@@ -4,8 +4,11 @@ import { z } from "zod";
 
 export const createThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { title?: string; companyId?: string }) =>
-    z.object({ title: z.string().optional(), companyId: z.string().uuid().optional() }).parse(d))
+  .inputValidator((d: { title?: string; companyId?: string | null }) =>
+    z.object({
+      title: z.string().optional(),
+      companyId: z.union([z.string().uuid(), z.literal(""), z.null()]).optional().transform((v) => (v ? v : undefined)),
+    }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase
       .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
