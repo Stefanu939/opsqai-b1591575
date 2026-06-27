@@ -2068,6 +2068,8 @@ export type Database = {
         | "supervisor"
         | "operator"
         | "viewer"
+        | "workspace_owner"
+        | "champion"
       message_role: "user" | "assistant" | "system"
     }
     CompositeTypes: {
@@ -2220,6 +2222,8 @@ export const Constants = {
         "supervisor",
         "operator",
         "viewer",
+        "workspace_owner",
+        "champion",
       ],
       message_role: ["user", "assistant", "system"],
     },
