@@ -484,11 +484,11 @@ export const listGapUserQuestions = createServerFn({ method: "POST" })
     const { data: rows, error } = await context.supabase.rpc("gap_user_questions", {
       p_company: data.company_id,
       p_user: data.user_id,
-      p_status: data.status ?? null,
-      p_from: data.from ?? null,
-      p_to: data.to ?? null,
-      p_department: data.department_id ?? null,
-    });
+      p_status: data.status ?? undefined,
+      p_from: data.from ?? undefined,
+      p_to: data.to ?? undefined,
+      p_department: data.department_id ?? undefined,
+    } as any);
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
@@ -539,13 +539,13 @@ export const listAuditEntries = createServerFn({ method: "POST" })
     const { data: rows, error } = await context.supabase.rpc("audit_entries", {
       p_company: data.company_id,
       p_user: data.user_id,
-      p_module: data.module ?? null,
-      p_action: data.action ?? null,
-      p_severity: data.severity ?? null,
-      p_from: data.from ?? null,
-      p_to: data.to ?? null,
+      p_module: data.module ?? undefined,
+      p_action: data.action ?? undefined,
+      p_severity: data.severity ?? undefined,
+      p_from: data.from ?? undefined,
+      p_to: data.to ?? undefined,
       p_limit: data.limit ?? 200,
-    });
+    } as any);
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
