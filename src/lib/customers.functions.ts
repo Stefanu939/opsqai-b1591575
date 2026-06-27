@@ -251,9 +251,84 @@ export const getCustomerDocument = createServerFn({ method: "POST" })
     return { doc, versions: versions ?? [] };
   });
 
+// ---- Deterministic input fingerprint (for "Needs Update" tracking) ----
+async function sha256Hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const buf = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function buildGenerationInputs(companyName: string, profile: any, planKey: SubscriptionPlanKey) {
+  const ctx = buildContextFromProfile(companyName, profile);
+  const plan = SUBSCRIPTION_PLANS[planKey] ?? resolvePlan(planKey);
+  return { ctx, plan };
+}
+
+/**
+ * Grounded enrichment: takes the deterministic template skeleton and runs it
+ * through Lovable AI Gateway with a STRICT system prompt that forbids
+ * hallucination. If the gateway is unreachable or the key is missing, falls
+ * back to the deterministic skeleton — never invents content.
+ */
+async function enrichWithAi(args: {
+  skeleton: string;
+  ctx: CustomerContext;
+  plan: typeof SUBSCRIPTION_PLANS[SubscriptionPlanKey];
+  templateLabel: string;
+  templateCategory: string;
+}): Promise<{ markdown: string; missing: string[]; usedAi: boolean }> {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) {
+    const missing = Array.from(args.skeleton.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map((m) => m[1]);
+    return { markdown: args.skeleton, missing, usedAi: false };
+  }
+  try {
+    const { generateText } = await import("ai");
+    const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
+    const gateway = createLovableAiGatewayProvider(key);
+    const system = [
+      "You are OPSQAI's enterprise document writer.",
+      "You will refine a deterministic markdown skeleton into a professional document.",
+      "ABSOLUTE RULES — non-negotiable:",
+      "1. Use ONLY facts from the provided JSON sources: PROFILE, PLAN, OPSQAI_FACTS.",
+      "2. NEVER invent company info, contacts, prices, features, dates, legal terms or technical specs.",
+      "3. If a field is missing, write **[MISSING: <field>]** verbatim — do not guess.",
+      "4. Keep the structure of the skeleton intact. You may rewrite prose for clarity and add short paragraphs that contextualize values already present in the sources.",
+      "5. Preserve all markdown tables and bullet points. Do NOT remove sections.",
+      "6. Output ONLY the final markdown document — no commentary, no code fences.",
+    ].join("\n");
+    const sources = {
+      PROFILE: args.ctx,
+      PLAN: args.plan,
+      OPSQAI_FACTS,
+      DOCUMENT: { label: args.templateLabel, category: args.templateCategory },
+    };
+    const { text } = await generateText({
+      model: gateway("google/gemini-2.5-flash"),
+      temperature: 0.2,
+      system,
+      prompt: `SOURCES (JSON):\n${JSON.stringify(sources, null, 2)}\n\nSKELETON:\n${args.skeleton}\n\nReturn the polished markdown.`,
+    });
+    const markdown = (text || "").trim() || args.skeleton;
+    const missing = Array.from(markdown.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map((m) => m[1]);
+    return { markdown, missing, usedAi: true };
+  } catch (err) {
+    console.error("[customer-doc-gen] AI enrichment failed, using skeleton:", err);
+    const missing = Array.from(args.skeleton.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map((m) => m[1]);
+    return { markdown: args.skeleton, missing, usedAi: false };
+  }
+}
+
+const GenerateInput = z.object({
+  company_id: Uuid,
+  template: z.string().min(1),
+  /** When provided, overwrites the existing doc in place and resets needs_update. */
+  document_id: Uuid.optional(),
+});
+
 export const generateCustomerDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: Uuid, template: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => GenerateInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const tpl = TEMPLATES[data.template as TemplateKey];
@@ -263,20 +338,93 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
       supabaseAdmin.from("companies").select("name").eq("id", data.company_id).maybeSingle(),
       supabaseAdmin.from("customer_profiles").select("*").eq("company_id", data.company_id).maybeSingle(),
     ]);
-    const ctx = buildContextFromProfile(company?.name ?? "Customer", profile as any);
-    const markdown = tpl.build(ctx);
+    const planKey = ((profile as any)?.commercial?.subscriptionPlan ?? "standard") as SubscriptionPlanKey;
+    const { ctx, plan } = buildGenerationInputs(company?.name ?? "Customer", profile, planKey);
+    const skeleton = tpl.build(ctx);
+    const enriched = await enrichWithAi({
+      skeleton, ctx, plan, templateLabel: tpl.label, templateCategory: tpl.category,
+    });
+    const input_hash = await sha256Hex(JSON.stringify({ tpl: tpl.key, ctx, plan }));
+    const metadata = {
+      template: tpl.key,
+      category: tpl.category,
+      missing_fields: enriched.missing,
+      sources: ["customer_profile", "subscription_plan", "opsqai_facts", "template_skeleton"],
+      ai_enriched: enriched.usedAi,
+      generated_at: new Date().toISOString(),
+    };
+
+    if (data.document_id) {
+      const { error } = await supabaseAdmin.from("customer_documents")
+        .update({
+          doc_type: tpl.key,
+          title: `${tpl.label} – ${company?.name ?? "Customer"}`,
+          markdown: enriched.markdown,
+          metadata,
+          input_hash,
+          needs_update: false,
+        })
+        .eq("id", data.document_id);
+      if (error) throw new Error(error.message);
+      return { id: data.document_id };
+    }
+
     const { data: inserted, error } = await supabaseAdmin.from("customer_documents").insert({
       company_id: data.company_id,
       doc_type: tpl.key,
       title: `${tpl.label} – ${company?.name ?? "Customer"}`,
       status: "draft",
-      markdown,
-      metadata: { template: tpl.key, category: tpl.category },
+      markdown: enriched.markdown,
+      metadata,
+      input_hash,
+      needs_update: false,
       created_by: context.userId,
     }).select("id").single();
     if (error || !inserted) throw new Error(error?.message || "Failed to create document");
     return { id: inserted.id };
   });
+
+export const regenerateCustomerDocument = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireCustomerManagerAccess(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: doc } = await supabaseAdmin.from("customer_documents")
+      .select("id, company_id, doc_type").eq("id", data.id).maybeSingle();
+    if (!doc) throw new Error("Document not found");
+    // delegate to generateCustomerDocument with document_id (in-place update)
+    return await generateCustomerDocument({
+      data: { company_id: doc.company_id, template: doc.doc_type, document_id: doc.id },
+    } as any);
+  });
+
+export const generateAllStandardDocuments = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => CompanyOnly.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireCustomerManagerAccess(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: profile } = await supabaseAdmin.from("customer_profiles")
+      .select("commercial").eq("company_id", data.company_id).maybeSingle();
+    const planKey = ((profile as any)?.commercial?.subscriptionPlan ?? "standard") as SubscriptionPlanKey;
+    const plan = SUBSCRIPTION_PLANS[planKey] ?? resolvePlan(planKey);
+    const { data: existing } = await supabaseAdmin.from("customer_documents")
+      .select("id, doc_type").eq("company_id", data.company_id);
+    const byType = new Map<string, string>((existing ?? []).map((d: any) => [d.doc_type, d.id]));
+    const results: Array<{ template: string; id: string; updated: boolean }> = [];
+    for (const tplKey of plan.recommendedTemplates) {
+      if (!TEMPLATES[tplKey as TemplateKey]) continue;
+      const existingId = byType.get(tplKey);
+      const r = await generateCustomerDocument({
+        data: { company_id: data.company_id, template: tplKey, document_id: existingId },
+      } as any);
+      results.push({ template: tplKey, id: r.id, updated: !!existingId });
+    }
+    return { count: results.length, results, plan: plan.key };
+  });
+
+
 
 const DocPatch = z.object({
   id: Uuid,
