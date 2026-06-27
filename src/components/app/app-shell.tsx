@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
+import { SupportWidget } from "@/components/support/support-widget";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
@@ -58,6 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     ? [
         { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck },
         { to: "/app/admin/companies", label: "Companies", icon: Building2 },
+        { to: "/app/admin/support", label: "Support Inbox", icon: Inbox },
         { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
       ]
     : [];
@@ -229,8 +232,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <main className="flex-1 min-w-0 flex flex-col pt-14 md:pt-0">
+        <WorkspaceContextBanner />
         {children}
       </main>
+      <SupportWidget />
     </div>
   );
 }

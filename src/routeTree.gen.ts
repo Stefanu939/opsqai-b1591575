@@ -61,6 +61,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
+import { Route as AuthenticatedAppAdminSupportRouteImport } from './routes/_authenticated/app.admin.support'
 import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/_authenticated/app.admin.sop-generator'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
@@ -349,6 +350,12 @@ const AuthenticatedAppAdminUsersRoute =
     path: '/admin/users',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminSupportRoute =
+  AuthenticatedAppAdminSupportRouteImport.update({
+    id: '/admin/support',
+    path: '/admin/support',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminSopGeneratorRoute =
   AuthenticatedAppAdminSopGeneratorRouteImport.update({
     id: '/admin/sop-generator',
@@ -512,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
+  '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -581,6 +589,7 @@ export interface FileRoutesByTo {
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
+  '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -653,6 +662,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/_authenticated/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
+  '/_authenticated/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -725,6 +735,7 @@ export interface FileRouteTypes {
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/sop-generator'
+    | '/app/admin/support'
     | '/app/admin/users'
     | '/app/chat/$threadId'
     | '/app/workspace/$sessionId'
@@ -794,6 +805,7 @@ export interface FileRouteTypes {
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/sop-generator'
+    | '/app/admin/support'
     | '/app/admin/users'
     | '/app/chat/$threadId'
     | '/app/workspace/$sessionId'
@@ -865,6 +877,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
     | '/_authenticated/app/admin/sop-generator'
+    | '/_authenticated/app/admin/support'
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/app/workspace/$sessionId'
@@ -1267,6 +1280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/support': {
+      id: '/_authenticated/app/admin/support'
+      path: '/admin/support'
+      fullPath: '/app/admin/support'
+      preLoaderRoute: typeof AuthenticatedAppAdminSupportRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/sop-generator': {
       id: '/_authenticated/app/admin/sop-generator'
       path: '/admin/sop-generator'
@@ -1411,6 +1431,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
   AuthenticatedAppAdminSopGeneratorRoute: typeof AuthenticatedAppAdminSopGeneratorRoute
+  AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -1447,6 +1468,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAdminPlatformAdminsRoute,
   AuthenticatedAppAdminSopGeneratorRoute:
     AuthenticatedAppAdminSopGeneratorRoute,
+  AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
@@ -1553,13 +1575,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
