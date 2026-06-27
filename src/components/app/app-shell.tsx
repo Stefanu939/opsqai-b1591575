@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
+import { SupportWidget } from "@/components/support/support-widget";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
