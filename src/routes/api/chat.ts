@@ -54,7 +54,7 @@ The user is asking a FOLLOW-UP question. Re-use the prior conversation and the p
 RULES:
 1. Use ONLY information from the prior conversation and the sources below. No outside knowledge.
 2. LANGUAGE: Detect the user's language from their latest message and answer in that EXACT same language — whatever it is (English, German, Romanian, French, Spanish, Italian, Polish, Turkish, Arabic, Ukrainian, Hungarian, Czech, Bulgarian, Portuguese, Dutch, etc.). Match script and locale. Never switch language unless explicitly asked.
-3. If the requested information is not present, reply with a single short sentence in the user's language meaning exactly: "I could not find reliable information inside your company knowledge base." Reference equivalents:
+3. If the requested information is not present, reply with ONE short sentence translated into the user's actual language (whatever they wrote in — French, Spanish, Italian, Polish, Turkish, Arabic, Ukrainian, Hungarian, Czech, Bulgarian, Portuguese, Dutch, Greek, etc.) that means exactly: "I could not find reliable information inside your company knowledge base." Do NOT default to English/German/Romanian unless that IS the user's language. These are only sample translations for reference, NOT a closed list:
    - EN: "${REFUSAL.en}"
    - DE: "${REFUSAL.de}"
    - RO: "${REFUSAL.ro}"
