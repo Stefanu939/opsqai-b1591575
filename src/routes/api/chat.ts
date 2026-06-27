@@ -197,8 +197,10 @@ export const Route = createFileRoute("/api/chat")({
             const [qVec, faqs] = await Promise.all([
               embedOne(query),
               cached("company:faqs", companyId, 5 * 60_000, async () => {
+                // Defense-in-depth: explicit company filter on top of RLS isolation.
                 const { data } = await supabase
-                  .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category").limit(200);
+                  .from("faqs").select("id,question_de,question_en,answer_de,answer_en,category")
+                  .eq("company_id", companyId).limit(500);
                 return data ?? [];
               }),
             ]);
@@ -268,15 +270,26 @@ export const Route = createFileRoute("/api/chat")({
               topSimilarity = sims[0] ?? 0;
             }
 
+            const STOP = new Set(["the","and","for","with","what","when","where","how","why","who","which","does","from","this","that","into","über","das","der","die","den","und","mit","wie","was","wann","wer","wo","von","für","ist","sind","sa","de","la","ce","cum","cand","care","este","sunt","pentru","din"]);
             const lq = query.toLowerCase();
-            const words = lq.split(/\s+/).filter((w) => w.length > 3);
+            const words = Array.from(new Set(lq.split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 3 && !STOP.has(w))));
             const scored = faqs.map((f) => {
-              const blob = `${f.question_de} ${f.question_en} ${f.answer_de} ${f.answer_en}`.toLowerCase();
-              const s = words.reduce((acc, w) => acc + (blob.includes(w) ? 1 : 0), 0);
+              const qBlob = `${f.question_de} ${f.question_en} ${f.category}`.toLowerCase();
+              const aBlob = `${f.answer_de} ${f.answer_en}`.toLowerCase();
+              // Weight question/category hits more than answer hits.
+              const s = words.reduce((acc, w) => acc + (qBlob.includes(w) ? 2 : 0) + (aBlob.includes(w) ? 1 : 0), 0);
               return { f, s };
-            }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 3);
-            for (const { f } of scored) {
-              sources.push({ type: "faq", id: f.id, title: `${f.question_en} / ${f.question_de}`, excerpt: `EN: ${f.answer_en}\nDE: ${f.answer_de}`, confidence: "medium" });
+            }).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 5);
+            const faqConf = (s: number): "high" | "medium" | "low" =>
+              s >= 4 ? "high" : s >= 2 ? "medium" : "low";
+            for (const { f, s } of scored) {
+              sources.push({ type: "faq", id: f.id, title: `${f.question_en} / ${f.question_de}`, excerpt: `EN: ${f.answer_en}\nDE: ${f.answer_de}`, confidence: faqConf(s) });
+            }
+            // If we found strong FAQ matches, boost confidence so the answer isn't refused on weak KB sim alone.
+            if (scored.length > 0 && confidence < 0.6) {
+              const faqBoost = Math.min(0.75, 0.5 + scored[0].s * 0.05);
+              confidence = Math.max(confidence, faqBoost);
+              if (topSimilarity < faqBoost) topSimilarity = faqBoost;
             }
           } catch (e) {
             console.error("[chat:retrieval] embed/match failed", e);
