@@ -69,10 +69,14 @@ interface Health {
 function Page() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/_authenticated/app/admin/knowledge-gaps" });
-  const { isPlatformAdmin, companyId } = useAuth();
+  const { isPlatformAdmin, companyId, activeCompanyId } = useAuth();
 
-  // Company-scoped users skip the companies layer.
-  const scopedCompanyId = isPlatformAdmin ? search.company ?? null : companyId;
+  // Workspace context: when a platform admin enters a tenant via the workspace
+  // switcher, skip the Companies drill-down and jump straight into that tenant
+  // unless they explicitly drilled elsewhere via URL.
+  const scopedCompanyId = isPlatformAdmin
+    ? search.company ?? activeCompanyId ?? null
+    : companyId;
   const scopedUserId = search.user ?? null;
 
   if (isPlatformAdmin && !scopedCompanyId) return <CompaniesView />;
