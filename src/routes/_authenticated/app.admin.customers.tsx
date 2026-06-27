@@ -2,7 +2,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,13 +49,12 @@ function CustomersPage() {
   const [companies, setCompanies] = useState<CompanyRow[]>([]);
   const [companyId, setCompanyId] = useState<string>("");
 
-  useState(() => {
+  useEffect(() => {
     supabase.from("companies").select("id, name").order("name").then(({ data }) => {
       setCompanies(data ?? []);
-      if ((data ?? []).length && !companyId) setCompanyId(data![0].id);
+      setCompanyId((prev) => prev || (data?.[0]?.id ?? ""));
     });
-    return 0 as unknown as void;
-  });
+  }, []);
 
   if (!allowed) {
     return (
