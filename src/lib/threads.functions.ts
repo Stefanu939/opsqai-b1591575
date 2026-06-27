@@ -4,14 +4,26 @@ import { z } from "zod";
 
 export const createThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { title?: string }) => z.object({ title: z.string().optional() }).parse(d))
+  .inputValidator((d: { title?: string; companyId?: string }) =>
+    z.object({ title: z.string().optional(), companyId: z.string().uuid().optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase
       .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
-    if (!profile?.company_id) throw new Error("No company assigned");
+
+    // Platform admins may scope a thread to any workspace they're currently viewing.
+    let companyId = profile?.company_id ?? null;
+    if (data.companyId && data.companyId !== companyId) {
+      const { data: roleRows } = await context.supabase
+        .from("user_roles").select("role").eq("user_id", context.userId);
+      const roles = (roleRows ?? []).map((r) => r.role as string);
+      const isPlatform = roles.includes("platform_admin") || roles.includes("platform_owner");
+      if (isPlatform) companyId = data.companyId;
+    }
+    if (!companyId) throw new Error("No company assigned");
+
     const { data: row, error } = await context.supabase
       .from("threads")
-      .insert({ user_id: context.userId, company_id: profile.company_id, title: data.title ?? "New conversation" })
+      .insert({ user_id: context.userId, company_id: companyId, title: data.title ?? "New conversation" })
       .select("id,title,created_at,updated_at")
       .single();
     if (error) throw new Error(error.message);
