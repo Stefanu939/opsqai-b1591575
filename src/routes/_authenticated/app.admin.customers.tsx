@@ -540,9 +540,27 @@ function DocumentsTab({ companyId }: { companyId: string }) {
   });
   const exportMut = useMutation({
     mutationFn: (vars: { id: string; format: "docx"|"pdf"|"md"|"html" }) => exporter({ data: vars }),
-    onSuccess: (r) => { window.open(r.url, "_blank"); },
+    onSuccess: (r: any) => {
+      try {
+        const bin = atob(r.base64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        const blob = new Blob([arr], { type: r.mime });
+        const href = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = href;
+        a.download = r.filename || "document";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(href), 5_000);
+      } catch {
+        window.open(r.url, "_blank");
+      }
+    },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <div className="space-y-4 mt-4">
