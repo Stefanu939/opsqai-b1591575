@@ -28,6 +28,7 @@ export const listInternalRequests = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({
     status: z.enum(["open", "in_review", "answered", "closed", "all"]).optional(),
     mine: z.boolean().optional(),
+    companyId: z.string().uuid().optional(),
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     let q = context.supabase
@@ -37,6 +38,7 @@ export const listInternalRequests = createServerFn({ method: "POST" })
       .limit(500);
     if (data.mine) q = q.eq("user_id", context.userId);
     if (data.status && data.status !== "all") q = q.eq("status", data.status);
+    if (data.companyId) q = q.eq("company_id", data.companyId);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
 
