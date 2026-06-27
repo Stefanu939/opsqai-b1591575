@@ -1713,6 +1713,106 @@ export type Database = {
           },
         ]
       }
+      support_conversations: {
+        Row: {
+          assigned_to: string | null
+          company_id: string
+          context: Json
+          created_at: string
+          id: string
+          last_message_at: string
+          opened_by: string
+          priority: Database["public"]["Enums"]["support_priority"]
+          status: Database["public"]["Enums"]["support_status"]
+          subject: string
+          unread_for_customer: number
+          unread_for_platform: number
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          company_id: string
+          context?: Json
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          opened_by: string
+          priority?: Database["public"]["Enums"]["support_priority"]
+          status?: Database["public"]["Enums"]["support_status"]
+          subject: string
+          unread_for_customer?: number
+          unread_for_platform?: number
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          company_id?: string
+          context?: Json
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          opened_by?: string
+          priority?: Database["public"]["Enums"]["support_priority"]
+          status?: Database["public"]["Enums"]["support_status"]
+          subject?: string
+          unread_for_customer?: number
+          unread_for_platform?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_conversations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_messages: {
+        Row: {
+          attachments: Json
+          body: string
+          context: Json
+          conversation_id: string
+          created_at: string
+          id: string
+          internal_note: boolean
+          sender_id: string
+          sender_kind: Database["public"]["Enums"]["support_sender_kind"]
+        }
+        Insert: {
+          attachments?: Json
+          body: string
+          context?: Json
+          conversation_id: string
+          created_at?: string
+          id?: string
+          internal_note?: boolean
+          sender_id: string
+          sender_kind: Database["public"]["Enums"]["support_sender_kind"]
+        }
+        Update: {
+          attachments?: Json
+          body?: string
+          context?: Json
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          internal_note?: boolean
+          sender_id?: string
+          sender_kind?: Database["public"]["Enums"]["support_sender_kind"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -2221,6 +2321,9 @@ export type Database = {
         | "workspace_owner"
         | "champion"
       message_role: "user" | "assistant" | "system"
+      support_priority: "low" | "normal" | "high" | "critical"
+      support_sender_kind: "customer" | "platform"
+      support_status: "open" | "pending" | "resolved" | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2376,6 +2479,9 @@ export const Constants = {
         "champion",
       ],
       message_role: ["user", "assistant", "system"],
+      support_priority: ["low", "normal", "high", "critical"],
+      support_sender_kind: ["customer", "platform"],
+      support_status: ["open", "pending", "resolved", "closed"],
     },
   },
 } as const
