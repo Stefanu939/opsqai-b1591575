@@ -34,7 +34,7 @@ interface Faq { id: string; question_de: string; question_en: string; answer_de:
 
 function FaqPage() {
   const { t, lang } = useT();
-  const { isAdmin } = useAuth();
+  const { isAdmin, scopeCompanyId } = useAuth();
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faq | null>(null);
@@ -44,10 +44,14 @@ function FaqPage() {
   const del = useServerFn(deleteFaq);
 
   const load = async () => {
-    const { data } = await supabase.from("faqs").select("*").order("category");
+    let q = supabase.from("faqs").select("*").order("category");
+    // Workspace context: filter to the active workspace. Platform admins in
+    // Global mode (no active workspace) see all companies.
+    if (scopeCompanyId) q = q.eq("company_id", scopeCompanyId);
+    const { data } = await q;
     setFaqs((data ?? []) as Faq[]);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [scopeCompanyId]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
