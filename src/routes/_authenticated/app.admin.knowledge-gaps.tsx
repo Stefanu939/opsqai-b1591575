@@ -109,7 +109,7 @@ function CompaniesView() {
   const [rows, setRows] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    list().then((r) => setRows(r as Company[])).finally(() => setLoading(false));
+    list().then((r) => setRows(r as unknown as Company[])).finally(() => setLoading(false));
   }, [list]);
 
   return (
@@ -165,8 +165,8 @@ function UsersView({ companyId, backToCompanies }: { companyId: string; backToCo
 
   useEffect(() => {
     Promise.all([
-      list({ data: { company_id: companyId } }).then((r) => setRows(r as UserRow[])),
-      healthFn({ data: { company_id: companyId } }).then((r) => setHealth(r as Health)),
+      list({ data: { company_id: companyId } }).then((r) => setRows(r as unknown as UserRow[])),
+      healthFn({ data: { company_id: companyId } }).then((r) => setHealth(r as unknown as Health)),
     ]).finally(() => setLoading(false));
   }, [companyId, list, healthFn]);
 
@@ -259,7 +259,7 @@ function QuestionsView({
       const r = await list({
         data: { company_id: companyId, user_id: userId, status: filter === "all" ? undefined : filter, from, to },
       });
-      setRows(r as Question[]);
+      setRows(r as unknown as Question[]);
     } finally { setLoading(false); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [companyId, userId, filter, from, to]);

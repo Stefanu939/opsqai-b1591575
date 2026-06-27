@@ -75,7 +75,7 @@ function CompaniesView() {
   const list = useServerFn(listAuditCompanies);
   const [rows, setRows] = useState<CompanyRow[]>([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => { list().then((r) => setRows(r as CompanyRow[])).finally(() => setLoading(false)); }, [list]);
+  useEffect(() => { list().then((r) => setRows(r as unknown as CompanyRow[])).finally(() => setLoading(false)); }, [list]);
 
   return (
     <Shell title="Audit Log" subtitle="Activity recorded across all companies.">
@@ -113,7 +113,7 @@ function UsersView({ companyId, back }: { companyId: string; back?: () => void }
   const [rows, setRows] = useState<UserRow[]>([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
-  useEffect(() => { list({ data: { company_id: companyId } }).then((r) => setRows(r as UserRow[])).finally(() => setLoading(false)); }, [companyId, list]);
+  useEffect(() => { list({ data: { company_id: companyId } }).then((r) => setRows(r as unknown as UserRow[])).finally(() => setLoading(false)); }, [companyId, list]);
 
   const filtered = useMemo(
     () => rows.filter((r) => !q || r.name.toLowerCase().includes(q.toLowerCase())),
@@ -178,7 +178,7 @@ function EntriesView({ companyId, userId, back }: { companyId: string; userId: s
           from: from ? new Date(from).toISOString() : undefined,
         },
       });
-      setRows(r as Entry[]);
+      setRows(r as unknown as Entry[]);
     } finally { setLoading(false); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [companyId, userId, moduleFilter, action, severity, from]);
