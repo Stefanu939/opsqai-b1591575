@@ -352,8 +352,7 @@ export const runExport = createServerFn({ method: "POST" })
         p_success: true,
         p_ip: null,
         p_ua: null,
-      } as any));
-      });
+      } as any);
 
       // 7. Signed URL for download
       const { data: signed } = await context.supabase.storage
@@ -387,8 +386,7 @@ export const runExport = createServerFn({ method: "POST" })
         p_success: false,
         p_ip: null,
         p_ua: null,
-      } as any));
-      });
+      } as any);
       throw err;
     }
   });
