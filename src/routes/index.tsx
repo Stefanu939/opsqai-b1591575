@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/opsqai-mark.png";
+import { LogoMark } from "@/components/brand/logo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -634,7 +634,7 @@ function FinalCTA() {
             </div>
           </div>
           {/* Floating logo watermark */}
-          <img src={logo} alt="" width={120} height={120} className="hidden md:block absolute right-6 bottom-6 opacity-10" />
+          <LogoMark size={120} className="hidden md:block absolute right-6 bottom-6 opacity-10 text-foreground" />
         </div>
       </div>
     </section>

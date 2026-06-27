@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import logo from "@/assets/opsqai-mark.png";
+import { LogoMark } from "@/components/brand/logo";
 
 export const Route = createFileRoute("/accept-invite")({
   ssr: false,
@@ -85,7 +85,7 @@ function AcceptInvitePage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="flex flex-col items-center gap-3">
-          <img src={logo} alt="OPSQAI" className="h-12 w-12" />
+          <LogoMark size={48} className="text-foreground" />
           <div className="text-center">
             <h1 className="text-2xl font-semibold tracking-tight">Accept your invitation</h1>
             <p className="text-sm text-muted-foreground mt-1">

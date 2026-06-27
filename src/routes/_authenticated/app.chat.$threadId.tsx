@@ -14,7 +14,7 @@ import {
   Send, FileText, BookOpenCheck, ScrollText, Copy, Check, AlertCircle, Inbox,
   ThumbsUp, ThumbsDown, ExternalLink, Phone, Mail, UserCheck,
 } from "lucide-react";
-import logo from "@/assets/opsqai-mark.png";
+import { LogoMark } from "@/components/brand/logo";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
 import { useServerFn } from "@tanstack/react-start";
@@ -183,7 +183,7 @@ function ChatInner({
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-6">
           {messages.length === 0 && (
             <div className="text-center py-12">
-              <img src={logo} alt="" width={48} height={48} className="mx-auto mb-3" />
+              <LogoMark size={48} className="mx-auto mb-3 text-foreground" />
               <p className="text-sm text-muted-foreground">{T("askAnything")}</p>
               <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">{T("ragNote")}</p>
             </div>
@@ -208,7 +208,7 @@ function ChatInner({
             return (
               <div key={m.id} className="flex gap-3 group">
                 <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
-                  <img src={logo} alt="" width={20} height={20} />
+                  <LogoMark size={20} className="text-foreground" />
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
@@ -262,7 +262,7 @@ function ChatInner({
           {loading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-3">
               <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
-                <img src={logo} alt="" width={20} height={20} />
+                <LogoMark size={20} className="text-foreground" />
               </div>
               <div className="flex-1 pt-2"><ThinkingDots label={T("searching")} /></div>
             </div>

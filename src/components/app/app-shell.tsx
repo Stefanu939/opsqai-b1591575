@@ -15,7 +15,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import logo from "@/assets/opsqai-mark.png";
+import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -51,6 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage") },
     { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete") },
     { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view") },
+    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: true },
   ].filter((i) => i.show);
 
   const platformNav = (isPlatformAdmin || isPlatformOwner)
@@ -86,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div className="flex h-full flex-col text-sidebar-foreground" style={{ background: "var(--gradient-sidebar)" }}>
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <img src={logo} alt="" width={32} height={32} className="drop-shadow-[0_0_10px_oklch(0.82_0.14_200/0.55)]" />
+        <LogoMark size={32} className="text-sidebar-foreground" />
         <div className="min-w-0 flex-1">
           <div className="font-semibold tracking-tight truncate">{t("appName")}</div>
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/55 truncate">
@@ -208,7 +209,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar text-sidebar-foreground px-4 h-14 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="" width={24} height={24} />
+          <LogoMark size={24} className="text-sidebar-foreground" />
           <span className="font-semibold tracking-tight text-sm">{t("appName")}</span>
         </div>
         <div className="flex items-center gap-1">

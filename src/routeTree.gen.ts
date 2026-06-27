@@ -53,6 +53,7 @@ import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
+import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticated/app.brand'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
@@ -301,6 +302,11 @@ const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppBrandRoute = AuthenticatedAppBrandRouteImport.update({
+  id: '/brand',
+  path: '/brand',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppWorkspaceIndexRoute =
   AuthenticatedAppWorkspaceIndexRouteImport.update({
     id: '/workspace/',
@@ -485,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -553,6 +560,7 @@ export interface FileRoutesByTo {
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -624,6 +632,7 @@ export interface FileRoutesById {
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/_authenticated/app/brand': typeof AuthenticatedAppBrandRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
@@ -695,6 +704,7 @@ export interface FileRouteTypes {
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/verify/$code'
+    | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
@@ -763,6 +773,7 @@ export interface FileRouteTypes {
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/verify/$code'
+    | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/profile'
@@ -833,6 +844,7 @@ export interface FileRouteTypes {
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/verify/$code'
+    | '/_authenticated/app/brand'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
@@ -1199,6 +1211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFaqRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/brand': {
+      id: '/_authenticated/app/brand'
+      path: '/brand'
+      fullPath: '/app/brand'
+      preLoaderRoute: typeof AuthenticatedAppBrandRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/workspace/': {
       id: '/_authenticated/app/workspace/'
       path: '/workspace'
@@ -1371,6 +1390,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppBrandRoute: typeof AuthenticatedAppBrandRoute
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
@@ -1402,6 +1422,7 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppBrandRoute: AuthenticatedAppBrandRoute,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
@@ -1532,13 +1553,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

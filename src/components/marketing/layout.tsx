@@ -4,7 +4,7 @@ import { Menu, X, Linkedin, Mail, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/opsqai-mark.png";
+import { LogoMark } from "@/components/brand/logo";
 
 const NAV = [
   { to: "/product", label: "Product" },
@@ -80,7 +80,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/75 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <img src={logo} alt="" width={30} height={30} className="drop-shadow-[0_0_14px_oklch(0.82_0.14_200/0.55)]" />
+            <LogoMark size={30} className="text-foreground" />
             <span className="font-semibold tracking-tight text-[15px]">OPSQAI</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center max-w-2xl">
@@ -143,7 +143,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
           <div className="grid gap-10 md:grid-cols-12">
             <div className="md:col-span-3">
               <div className="flex items-center gap-2.5">
-                <img src={logo} alt="" width={28} height={28} />
+                <LogoMark size={28} className="text-foreground" />
                 <span className="font-semibold tracking-tight">OPSQAI</span>
               </div>
               <p className="mt-3 text-xs text-muted-foreground leading-relaxed max-w-xs">
