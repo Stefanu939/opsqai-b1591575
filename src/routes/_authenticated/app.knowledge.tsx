@@ -89,10 +89,13 @@ function KnowledgePage() {
       .select("id,title,doc_code,category,file_path,file_type,content_text,status,error,chunk_count,created_at,version,is_active,is_critical,parent_document_id,change_notes,updated_at")
       .order("created_at", { ascending: false });
     if (!showInactive) q = q.eq("is_active", true);
+    // Honor the active workspace context. Platform admins in Global mode (no
+    // active workspace) intentionally see all companies' documents.
+    if (scopeCompanyId) q = q.eq("company_id", scopeCompanyId);
     const { data } = await q;
     setDocs((data ?? []) as Doc[]);
   };
-  useEffect(() => { load(); const t = setInterval(load, 5000); return () => clearInterval(t); }, [showInactive]);
+  useEffect(() => { load(); const t = setInterval(load, 5000); return () => clearInterval(t); }, [showInactive, scopeCompanyId]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
