@@ -784,10 +784,11 @@ const ROADMAP: Array<{ phase: string; status: string; stage: Stage; items: strin
     "AI Assistant", "Knowledge Base", "Templates", "FAQ", "Audit Log",
     "Knowledge Gaps", "Executive Dashboard", "Platform Administration",
     "Multi Company", "RBAC", "AI SOP Generator",
+    "AI Workspace Audit", "Global Search", "AI Workspace", "OPSQAI Academy",
   ]},
   { phase: "Phase 2", status: "Currently being developed", stage: "in_development", items: [
-    "AI Workspace Audit", "Executive Charts", "Workspace Health",
-    "AI Validation", "Global Search", "Executive Insights",
+    "Executive Charts", "Workspace Health",
+    "AI Validation", "Executive Insights", "Advanced Notifications",
   ]},
   { phase: "Phase 3", status: "Future", stage: "coming_soon", items: [
     "Workflow Automation", "Predictive Analytics", "Enterprise Integrations",
