@@ -370,6 +370,8 @@ function KnowledgePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} kind="kb" onDeleted={load} />
     </div>
   );
 }

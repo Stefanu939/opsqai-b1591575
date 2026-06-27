@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertFaq, deleteFaq } from "@/lib/faqs.functions";
+import { ExportDialog } from "@/components/admin/export-dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/faq")({
@@ -37,6 +38,7 @@ function FaqPage() {
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faq | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
   const [search, setSearch] = useState("");
   const save = useServerFn(upsertFaq);
   const del = useServerFn(deleteFaq);
