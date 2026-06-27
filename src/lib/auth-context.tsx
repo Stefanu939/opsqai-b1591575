@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     // Best-effort audit. RPC is a no-op for non-platform users.
     if (previous !== id) {
-      supabase.rpc("log_workspace_switch", { p_previous: previous, p_next: id }).then(() => {}, () => {});
+      supabase.rpc("log_workspace_switch", { p_previous: previous as never, p_next: id as never }).then(() => {}, () => {});
     }
   };
 
