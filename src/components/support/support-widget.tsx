@@ -113,7 +113,7 @@ export function SupportWidget() {
     refreshUnread();
     const t = setInterval(refreshUnread, 30000);
     const ch = supabase
-      .channel("support-unread")
+      .channel(`support-unread-${auth.user.id}-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "support_messages" }, refreshUnread)
       .on("postgres_changes", { event: "*", schema: "public", table: "support_conversations" }, refreshUnread)
       .subscribe();
