@@ -517,6 +517,9 @@ function HealthTab({ companyId }: { companyId: string }) {
 function DocumentsTab({ companyId }: { companyId: string }) {
   const list = useServerFn(listCustomerDocuments);
   const generate = useServerFn(generateCustomerDocument);
+  const generateAll = useServerFn(generateAllStandardDocuments);
+  const regenerate = useServerFn(regenerateCustomerDocument);
+  const downloadZip = useServerFn(downloadCustomerDocumentsZip);
   const remove = useServerFn(deleteCustomerDocument);
   const exporter = useServerFn(exportCustomerDocument);
   const qc = useQueryClient();
@@ -530,6 +533,16 @@ function DocumentsTab({ companyId }: { companyId: string }) {
   const gen = useMutation({
     mutationFn: () => generate({ data: { company_id: companyId, template: tpl } }),
     onSuccess: (r) => { toast.success("Document generated"); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); setOpenId(r.id); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const genAll = useMutation({
+    mutationFn: () => generateAll({ data: { company_id: companyId } }),
+    onSuccess: (r: any) => { toast.success(`Generated ${r.count} documents for ${r.plan}`); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const regen = useMutation({
+    mutationFn: (id: string) => regenerate({ data: { id } }),
+    onSuccess: () => { toast.success("Regenerated"); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
   const del = useMutation({
@@ -559,7 +572,35 @@ function DocumentsTab({ companyId }: { companyId: string }) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const zipMut = useMutation({
+    mutationFn: (vars: { category?: string }) => downloadZip({ data: { company_id: companyId, ...(vars.category ? { category: vars.category } : {}) } }),
+    onSuccess: (r: any) => {
+      try {
+        const bin = atob(r.base64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        const blob = new Blob([arr], { type: r.mime });
+        const href = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = href;
+        a.download = r.filename || "documents.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(href), 5_000);
+        toast.success(`Downloaded ${r.count} documents`);
+      } catch (e) { toast.error((e as Error).message); }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
+  // Group documents into folders by category.
+  const grouped = (docs ?? []).reduce<Record<string, any[]>>((acc, d: any) => {
+    const cat = d.metadata?.category ?? "Custom Documents";
+    (acc[cat] ||= []).push(d);
+    return acc;
+  }, {});
+  const categories = Object.keys(grouped).sort();
 
   return (
     <div className="space-y-4 mt-4">
@@ -580,6 +621,12 @@ function DocumentsTab({ companyId }: { companyId: string }) {
           <Button onClick={() => gen.mutate()} disabled={gen.isPending}>
             <Plus className="h-4 w-4 mr-2" />Generate from Profile
           </Button>
+          <Button variant="secondary" onClick={() => genAll.mutate()} disabled={genAll.isPending}>
+            <Sparkles className="h-4 w-4 mr-2" />Generate All Standard Documents
+          </Button>
+          <Button variant="outline" onClick={() => zipMut.mutate({})} disabled={zipMut.isPending || !docs?.length}>
+            <FileDown className="h-4 w-4 mr-2" />Download All (.zip)
+          </Button>
         </CardContent>
       </Card>
 
@@ -589,23 +636,41 @@ function DocumentsTab({ companyId }: { companyId: string }) {
           {!docs?.length ? (
             <p className="text-muted-foreground text-sm">No documents yet.</p>
           ) : (
-            <div className="space-y-2">
-              {docs.map((d: any) => (
-                <div key={d.id} className="flex items-center justify-between gap-3 rounded-md border p-3 hover:bg-muted/30">
-                  <div className="min-w-0">
-                    <div className="font-medium truncate flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />{d.title}
-                    </div>
-                    <div className="text-xs text-muted-foreground">v{d.version} · {d.status} · {new Date(d.updated_at).toLocaleString()}</div>
+            <div className="space-y-5">
+              {categories.map((cat) => (
+                <div key={cat}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold text-muted-foreground">📁 {cat} <span className="text-xs font-normal">({grouped[cat].length})</span></div>
+                    <Button size="sm" variant="ghost" onClick={() => zipMut.mutate({ category: cat })} disabled={zipMut.isPending}>
+                      <FileDown className="h-3.5 w-3.5 mr-1" />Download Folder
+                    </Button>
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    <Button size="sm" variant="outline" onClick={() => setOpenId(d.id)}>Edit</Button>
-                    {(["docx","pdf","md","html"] as const).map((fmt) => (
-                      <Button key={fmt} size="sm" variant="ghost" onClick={() => exportMut.mutate({ id: d.id, format: fmt })} disabled={exportMut.isPending}>
-                        <FileDown className="h-3.5 w-3.5 mr-1" />{fmt.toUpperCase()}
-                      </Button>
+                  <div className="space-y-2">
+                    {grouped[cat].map((d: any) => (
+                      <div key={d.id} className="flex items-center justify-between gap-3 rounded-md border p-3 hover:bg-muted/30">
+                        <div className="min-w-0">
+                          <div className="font-medium truncate flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />{d.title}
+                            {d.needs_update && <span className="text-[10px] uppercase tracking-wide rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5">Needs Update</span>}
+                          </div>
+                          <div className="text-xs text-muted-foreground">v{d.version} · {d.status} · {new Date(d.updated_at).toLocaleString()}</div>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          <Button size="sm" variant="outline" onClick={() => setOpenId(d.id)}>Edit</Button>
+                          {d.needs_update && (
+                            <Button size="sm" variant="secondary" onClick={() => regen.mutate(d.id)} disabled={regen.isPending}>
+                              <Sparkles className="h-3.5 w-3.5 mr-1" />Regenerate
+                            </Button>
+                          )}
+                          {(["docx","pdf","md","html"] as const).map((fmt) => (
+                            <Button key={fmt} size="sm" variant="ghost" onClick={() => exportMut.mutate({ id: d.id, format: fmt })} disabled={exportMut.isPending}>
+                              <FileDown className="h-3.5 w-3.5 mr-1" />{fmt.toUpperCase()}
+                            </Button>
+                          ))}
+                          <Button size="sm" variant="ghost" onClick={() => { if (confirm("Delete document?")) del.mutate(d.id); }}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                      </div>
                     ))}
-                    <Button size="sm" variant="ghost" onClick={() => { if (confirm("Delete document?")) del.mutate(d.id); }}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 </div>
               ))}
@@ -618,6 +683,7 @@ function DocumentsTab({ companyId }: { companyId: string }) {
     </div>
   );
 }
+
 
 // ----------------- Document Editor + AI Writing Assistant -----------------
 
