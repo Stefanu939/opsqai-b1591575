@@ -27,7 +27,9 @@ import {
   listCustomerSecurity, upsertCustomerSecurity,
   customerHealth, listCustomerTimeline,
   listCustomerDocuments, getCustomerDocument, generateCustomerDocument,
+  generateAllStandardDocuments, regenerateCustomerDocument, downloadCustomerDocumentsZip,
   updateCustomerDocument, deleteCustomerDocument, exportCustomerDocument, restoreCustomerDocumentVersion,
+
 } from "@/lib/customers.functions";
 import { TEMPLATE_LIST } from "@/lib/customer-templates";
 
