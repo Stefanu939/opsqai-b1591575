@@ -678,13 +678,15 @@ const CAPABILITIES_AVAILABLE: string[] = [
   "Executive Dashboard", "Analytics", "Enterprise RBAC", "Platform Owner",
   "Platform Administration", "AI SOP Generator", "Dark / Light Mode", "Mobile Responsive",
   "Source Citations", "Conversation Audit", "Workspace Isolation", "Role Permissions",
-  "Enterprise Search foundation",
+  "Global Enterprise Search", "AI Workspace Audit", "AI Workspace (Document Generation)",
+  "Bilingual UI (EN / DE / RO)", "PWA Install", "In-App Notifications",
+  "Internal Requests", "SOP Versioning", "Confidence Scoring",
 ];
 
 const CAPABILITIES_IN_DEV: string[] = [
-  "AI Workspace Audit", "Executive KPI Charts", "Workspace Health Score",
+  "Executive KPI Charts", "Workspace Health Score",
   "Knowledge Health Dashboard", "Operational Insights", "Advanced Notifications",
-  "Global Enterprise Search", "AI Validation Engine", "Dashboard Personalization",
+  "AI Validation Engine", "Dashboard Personalization",
   "Professional Audit Reports",
 ];
 
