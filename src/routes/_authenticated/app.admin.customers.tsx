@@ -22,14 +22,9 @@ import {
 import { toast } from "sonner";
 import {
   getCustomerProfile, upsertCustomerProfile,
-  listCustomerFeatures, upsertCustomerFeature,
-  listCustomerCompliance, upsertCustomerCompliance,
-  listCustomerSecurity, upsertCustomerSecurity,
-  customerHealth, listCustomerTimeline,
   listCustomerDocuments, getCustomerDocument, generateCustomerDocument,
   generateAllStandardDocuments, regenerateCustomerDocument, downloadCustomerDocumentsZip,
   updateCustomerDocument, deleteCustomerDocument, exportCustomerDocument, restoreCustomerDocumentVersion,
-
 } from "@/lib/customers.functions";
 import { TEMPLATE_LIST } from "@/lib/customer-templates";
 
