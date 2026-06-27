@@ -14,10 +14,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { FileText, Trash2, Upload, RefreshCw, AlertTriangle, CheckCircle2, Loader2, GitBranch, ShieldAlert, History, RotateCcw } from "lucide-react";
+import { FileText, Trash2, Upload, RefreshCw, AlertTriangle, CheckCircle2, Loader2, GitBranch, ShieldAlert, History, RotateCcw, Download } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { processDocument, deleteKnowledgeDocument, reprocessDocument } from "@/lib/kb.functions";
 import { replaceDocumentVersion, rollbackToVersion, setCriticalFlag } from "@/lib/sop-versions.functions";
+import { ExportDialog } from "@/components/admin/export-dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/knowledge")({
@@ -73,6 +74,7 @@ function KnowledgePage() {
   const [replaceNotes, setReplaceNotes] = useState("");
   const [versionsFor, setVersionsFor] = useState<Doc | null>(null);
   const [versions, setVersions] = useState<Doc[]>([]);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const process = useServerFn(processDocument);
   const del = useServerFn(deleteKnowledgeDocument);
