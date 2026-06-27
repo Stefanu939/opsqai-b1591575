@@ -37,6 +37,20 @@ interface AuthState {
 
 const Ctx = createContext<AuthState | null>(null);
 const ACTIVE_KEY = "opsqai.active_company";
+const UUID_LIKE_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+function normalizeCompanyId(id: string | null | undefined) {
+  if (!id) return null;
+  const trimmed = id.trim();
+  return UUID_LIKE_RE.test(trimmed) ? trimmed : null;
+}
+
+function readStoredActiveCompanyId() {
+  if (typeof window === "undefined") return null;
+  const normalized = normalizeCompanyId(localStorage.getItem(ACTIVE_KEY));
+  if (!normalized) localStorage.removeItem(ACTIVE_KEY);
+  return normalized;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -45,20 +59,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [activeCompanyId, setActiveCompanyIdState] = useState<string | null>(
-    typeof window !== "undefined" ? localStorage.getItem(ACTIVE_KEY) : null,
+    readStoredActiveCompanyId,
   );
   const [loading, setLoading] = useState(true);
 
   const setActiveCompanyId = (id: string | null) => {
+    const next = normalizeCompanyId(id);
     const previous = activeCompanyId;
-    setActiveCompanyIdState(id);
+    setActiveCompanyIdState(next);
     if (typeof window !== "undefined") {
-      if (id) localStorage.setItem(ACTIVE_KEY, id);
+      if (next) localStorage.setItem(ACTIVE_KEY, next);
       else localStorage.removeItem(ACTIVE_KEY);
     }
     // Best-effort audit. RPC is a no-op for non-platform users.
-    if (previous !== id) {
-      supabase.rpc("log_workspace_switch", { p_previous: previous as never, p_next: id as never }).then(() => {}, () => {});
+    if (previous !== next) {
+      supabase.rpc("log_workspace_switch", { p_previous: previous as never, p_next: next as never }).then(() => {}, () => {});
     }
   };
 
@@ -102,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Keep companyName in sync with the active workspace (platform admins can switch).
   useEffect(() => {
     if (!session?.user) return;
-    const target = activeCompanyId ?? companyId;
+    const target = normalizeCompanyId(activeCompanyId) ?? normalizeCompanyId(companyId);
     if (!target) { setCompanyName(null); return; }
     supabase.from("companies").select("name").eq("id", target).maybeSingle().then(({ data }) => {
       setCompanyName(data?.name ?? null);
