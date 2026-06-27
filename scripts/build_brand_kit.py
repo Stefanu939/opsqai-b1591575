@@ -1,8 +1,20 @@
 """Render the OPSQAI brand kit (favicons, PWA icons, OG, social) from the
 canonical SVG marks in public/brand/."""
-import os, io
-import cairosvg
+import os, io, subprocess, shutil
 from PIL import Image, ImageDraw, ImageFont
+
+RSVG = shutil.which("rsvg-convert") or "/nix/store/fd4yyy6gn26378dadwcj0sf1y7x5n08a-librsvg-2.61.3/bin/rsvg-convert"
+
+def _render(svg_path, w, h):
+    out = subprocess.run([RSVG, "-w", str(w), "-h", str(h), "-f", "png", svg_path],
+                         check=True, capture_output=True).stdout
+    return out
+
+class cairosvg:  # tiny shim so the rest of the script keeps reading cleanly
+    @staticmethod
+    def svg2png(url=None, output_width=None, output_height=None):
+        return _render(url, output_width, output_height)
+
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BRAND = os.path.join(ROOT, "public", "brand")
