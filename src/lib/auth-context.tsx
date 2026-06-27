@@ -123,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session, user: session?.user ?? null, roles, permissions,
       companyId, companyName,
       activeCompanyId, setActiveCompanyId,
+      scopeCompanyId: isPlatformAdmin ? activeCompanyId : companyId,
       // Capability shortcuts. Platform Owner / Platform Admin bypass tenant gates.
       isAdmin: roles.includes("admin") || roles.includes("workspace_owner") || isPlatformAdmin,
       isManager: roles.includes("manager") || roles.includes("workspace_owner") || roles.includes("champion") || isPlatformAdmin,
