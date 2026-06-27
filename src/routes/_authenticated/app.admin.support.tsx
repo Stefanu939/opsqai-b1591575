@@ -186,6 +186,10 @@ function Page() {
     navigate({ to: "/app" });
   };
 
+  if (!auth.isPlatformAdmin) {
+    return <div className="p-8 text-sm text-muted-foreground">Platform admins only.</div>;
+  }
+
   return (
     <div className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
       <div className="mb-6 flex items-baseline justify-between gap-3 flex-wrap">
