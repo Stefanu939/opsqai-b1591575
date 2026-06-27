@@ -43,10 +43,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const setActiveCompanyId = (id: string | null) => {
+    const previous = activeCompanyId;
     setActiveCompanyIdState(id);
     if (typeof window !== "undefined") {
       if (id) localStorage.setItem(ACTIVE_KEY, id);
       else localStorage.removeItem(ACTIVE_KEY);
+    }
+    // Best-effort audit. RPC is a no-op for non-platform users.
+    if (previous !== id) {
+      supabase.rpc("log_workspace_switch", { p_previous: previous, p_next: id }).then(() => {}, () => {});
     }
   };
 
