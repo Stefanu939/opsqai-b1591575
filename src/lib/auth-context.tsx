@@ -12,6 +12,13 @@ interface AuthState {
   companyName: string | null;
   activeCompanyId: string | null;
   setActiveCompanyId: (id: string | null) => void;
+  /**
+   * Effective workspace scope for filtering tenant-scoped data.
+   * - Platform admins: activeCompanyId (null = Global mode = no filter applied).
+   * - Everyone else: their profile companyId.
+   * Use for `.eq('company_id', scopeCompanyId)` on client-side queries.
+   */
+  scopeCompanyId: string | null;
   isAdmin: boolean;
   isManager: boolean;
   isTeamLeader: boolean;
