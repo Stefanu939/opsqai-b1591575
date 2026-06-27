@@ -63,6 +63,9 @@ function FaqPage() {
       answer_de: String(fd.get("ade") ?? ""),
       answer_en: String(fd.get("aen") ?? ""),
       category: String(fd.get("cat") ?? "general"),
+      // Anchor new FAQs to the active workspace so platform admins working
+      // inside a tenant don't accidentally write to their home company.
+      company_id: scopeCompanyId ?? undefined,
     };
     try { await save({ data: payload }); setOpen(false); setEditing(null); load(); }
     catch (err) { toast.error(String(err)); }
