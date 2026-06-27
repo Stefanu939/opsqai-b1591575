@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LogoMark, Logo, LogoStacked, LogoWordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -197,7 +197,7 @@ function BrandPage() {
       </section>
 
       <footer className="pt-6 border-t border-border text-sm text-muted-foreground flex items-center justify-between">
-        <span>Need a custom export? <Link to="/contact" className="text-primary underline-offset-4 hover:underline">Get in touch</Link>.</span>
+        <span>Need a custom export? <a href="mailto:brand@opsqai.de" className="text-primary underline-offset-4 hover:underline">brand@opsqai.de</a></span>
         <Button asChild variant="outline" size="sm">
           <a href="/brand/logo-mark.svg" download>
             <Download className="h-4 w-4 mr-2" /> Master mark
