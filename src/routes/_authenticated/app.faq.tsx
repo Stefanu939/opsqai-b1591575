@@ -76,11 +76,17 @@ function FaqPage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 max-w-4xl w-full mx-auto">
-      <div className="flex items-center justify-between mb-6 gap-4">
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <h1 className="text-2xl font-semibold tracking-tight">{t("faq")}</h1>
-        {isAdmin && (
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
-            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />{t("addFaq")}</Button></DialogTrigger>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button variant="outline" onClick={() => setExportOpen(true)}>
+              <Download className="h-4 w-4 mr-2" /> Export
+            </Button>
+          )}
+          {isAdmin && (
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
+              <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />{t("addFaq")}</Button></DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader><DialogTitle>{editing ? t("edit") : t("addFaq")}</DialogTitle></DialogHeader>
               <form onSubmit={onSubmit} className="space-y-3">
