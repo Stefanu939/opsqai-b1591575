@@ -202,6 +202,11 @@ function KnowledgePage() {
             Show archived versions
           </label>
           {canEdit && (
+            <Button variant="outline" onClick={() => setExportOpen(true)}>
+              <Download className="h-4 w-4 mr-2" /> Export
+            </Button>
+          )}
+          {canEdit && (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild><Button><Upload className="h-4 w-4 mr-2" />{t("upload")}</Button></DialogTrigger>
               <DialogContent>
