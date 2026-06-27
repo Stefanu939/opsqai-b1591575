@@ -6,6 +6,14 @@ import { requireAnyPermission } from "@/lib/authorization";
 const RoleListSchema = z.object({});
 void RoleListSchema;
 
+const UUID_LIKE_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+function normalizeOptionalUuid(value: unknown) {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return UUID_LIKE_RE.test(trimmed) ? trimmed : undefined;
+}
+
 async function isStaff(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   const roles = (data ?? []).map((r: any) => r.role as string);
@@ -28,10 +36,7 @@ export const listInternalRequests = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({
     status: z.enum(["open", "in_review", "answered", "closed", "all"]).optional(),
     mine: z.boolean().optional(),
-    companyId: z.preprocess(
-      (v) => (typeof v === "string" && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(v) ? v : undefined),
-      z.string().uuid().optional(),
-    ),
+    companyId: z.preprocess(normalizeOptionalUuid, z.string().optional()),
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     let q = context.supabase
