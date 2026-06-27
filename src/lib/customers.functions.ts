@@ -612,6 +612,80 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
   });
 
 
+// ---- Bulk PDF download (folder / all) ----
+
+function bytesToBase64(bytes: Uint8Array): string {
+  const chunk = 0x8000;
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
+const DownloadInput = z.object({
+  company_id: Uuid,
+  category: z.string().min(1).max(80).optional(),
+});
+
+export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => DownloadInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireCustomerManagerAccess(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: company } = await supabaseAdmin.from("companies").select("name").eq("id", data.company_id).maybeSingle();
+    const { data: docs, error } = await supabaseAdmin.from("customer_documents")
+      .select("id, title, markdown, metadata, version, doc_type")
+      .eq("company_id", data.company_id);
+    if (error) throw new Error(error.message);
+    const filtered = (docs ?? []).filter((d: any) =>
+      !data.category || (d.metadata?.category ?? "Custom Documents") === data.category);
+    if (filtered.length === 0) throw new Error("No documents to download");
+
+    const { generatePdf } = await import("@/lib/generators/pdf.server");
+    const { zipSync, strToU8 } = await import("fflate");
+    const files: Record<string, Uint8Array> = {};
+    for (const d of filtered) {
+      const blocks = markdownToBlocks(d.markdown ?? "");
+      const sections: { heading?: string; paragraphs: string[] }[] = [];
+      let current: { heading?: string; paragraphs: string[] } = { heading: undefined, paragraphs: [] };
+      for (const b of blocks) {
+        if (b.type === "h1" || b.type === "h2" || b.type === "h3") {
+          if (current.heading || current.paragraphs.length) sections.push(current);
+          current = { heading: b.text, paragraphs: [] };
+        } else if (b.type === "p") current.paragraphs.push(b.text);
+        else if (b.type === "bullets") current.paragraphs.push(b.items.map((i) => `• ${i}`).join("\n"));
+        else if (b.type === "table") current.paragraphs.push([b.headers.join(" | "), ...b.rows.map((r) => r.join(" | "))].join("\n"));
+      }
+      if (current.heading || current.paragraphs.length) sections.push(current);
+      const pdf = await generatePdf({
+        title: d.title,
+        subtitle: `${company?.name ?? ""} · v${d.version}`,
+        author: "OPSQAI",
+        sections,
+      });
+      const folder = (d.metadata?.category ?? "Custom Documents").replace(/[^\w -]+/g, "_");
+      const safe = String(d.title).replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80);
+      files[`${folder}/${safe}.pdf`] = pdf;
+    }
+    files["README.txt"] = strToU8(
+      `OPSQAI Customer Documents Export\nCompany: ${company?.name ?? ""}\nGenerated: ${new Date().toISOString()}\nDocuments: ${filtered.length}\n`,
+    );
+    const zipped = zipSync(files, { level: 6 });
+    const safeName = (company?.name ?? "customer").replace(/[^a-zA-Z0-9._-]+/g, "_");
+    const filename = data.category
+      ? `${safeName}_${data.category.replace(/\s+/g, "_")}.zip`
+      : `${safeName}_all_documents.zip`;
+    return {
+      base64: bytesToBase64(zipped),
+      mime: "application/zip",
+      filename,
+      count: filtered.length,
+    };
+  });
+
+
 // Helper used by API route to build a context block for the AI writing assistant.
 export async function loadCustomerContextForAi(companyId: string): Promise<CustomerContext & { _systemBlock: string }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
