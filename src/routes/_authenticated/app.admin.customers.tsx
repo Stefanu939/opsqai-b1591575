@@ -84,7 +84,7 @@ function CustomersPage() {
         </div>
       </div>
 
-      {companyId ? (
+      {/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(companyId) ? (
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="profile">Profile</TabsTrigger>
