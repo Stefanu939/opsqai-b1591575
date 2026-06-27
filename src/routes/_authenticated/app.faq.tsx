@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertFaq, deleteFaq } from "@/lib/faqs.functions";
+import { ExportDialog } from "@/components/admin/export-dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/faq")({
@@ -37,6 +38,7 @@ function FaqPage() {
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faq | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
   const [search, setSearch] = useState("");
   const save = useServerFn(upsertFaq);
   const del = useServerFn(deleteFaq);
@@ -74,11 +76,17 @@ function FaqPage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 max-w-4xl w-full mx-auto">
-      <div className="flex items-center justify-between mb-6 gap-4">
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <h1 className="text-2xl font-semibold tracking-tight">{t("faq")}</h1>
-        {isAdmin && (
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
-            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />{t("addFaq")}</Button></DialogTrigger>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button variant="outline" onClick={() => setExportOpen(true)}>
+              <Download className="h-4 w-4 mr-2" /> Export
+            </Button>
+          )}
+          {isAdmin && (
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
+              <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />{t("addFaq")}</Button></DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader><DialogTitle>{editing ? t("edit") : t("addFaq")}</DialogTitle></DialogHeader>
               <form onSubmit={onSubmit} className="space-y-3">
@@ -92,8 +100,9 @@ function FaqPage() {
                 <Button type="submit" className="w-full">{t("save")}</Button>
               </form>
             </DialogContent>
-          </Dialog>
-        )}
+            </Dialog>
+          )}
+        </div>
       </div>
 
       <Input placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4" />
@@ -125,6 +134,8 @@ function FaqPage() {
           </Accordion>
         </Card>
       )}
+
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} kind="faq" onDeleted={load} />
     </div>
   );
 }
