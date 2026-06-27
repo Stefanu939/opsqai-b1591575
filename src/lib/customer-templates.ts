@@ -16,6 +16,15 @@ export interface CustomerContext {
   primaryContact?: string;
   technicalContact?: string;
   accountManager?: string;
+  // simplified profile additions
+  registrationNumber?: string;
+  vatNumber?: string;
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  workspaceName?: string;
+  language?: string;
+
   // commercial
   subscriptionPlan?: string;
   seats?: number | string;
@@ -73,15 +82,19 @@ export type TemplateKey =
   | "training_plan"
   | "support_plan"
   | "onboarding_guide"
-  | "renewal_summary";
+  | "renewal_summary"
+  | "service_agreement"
+  | "data_processing_agreement";
+
 
 export interface TemplateDef {
   key: TemplateKey;
   label: string;
-  category: "Commercial" | "Technical" | "Compliance" | "Customer Success";
+  category: "Commercial" | "Technical" | "Legal" | "Compliance" | "Customer Success";
   description: string;
   build: (ctx: CustomerContext) => string;
 }
+
 
 const v = (x: unknown, fallback = "—") => {
   const s = x === undefined || x === null || x === "" ? "" : String(x);
@@ -339,7 +352,49 @@ Renewal date: ${v(ctx.renewalDate)}.
 Contract status: ${v(ctx.contractStatus)}.
 `,
   },
+  service_agreement: {
+    key: "service_agreement", label: "Service Agreement", category: "Legal",
+    description: "Master service agreement skeleton.",
+    build: (ctx) => `${header(ctx, "Service Agreement")}
+${profileBlock(ctx)}
+
+## Parties
+- **Customer:** ${v(ctx.legalName, v(ctx.companyName))}, ${v(ctx.address)}, ${v(ctx.country)}.
+- **Provider:** OPSQAI.
+
+## Subscription
+- Plan: ${v(ctx.subscriptionPlan)}
+- Seats: ${v(ctx.seats)}
+- Billing frequency: ${v(ctx.billingFrequency)}
+- Renewal: ${v(ctx.renewalDate)}
+
+## Term & Termination
+Standard OPSQAI terms apply unless overridden by an addendum.
+`,
+  },
+  data_processing_agreement: {
+    key: "data_processing_agreement", label: "Data Processing Agreement (DPA)", category: "Legal",
+    description: "GDPR Article 28 data processing terms.",
+    build: (ctx) => `${header(ctx, "Data Processing Agreement")}
+
+## Controller
+${v(ctx.legalName, v(ctx.companyName))} — ${v(ctx.address)}, ${v(ctx.country)}.
+
+## Processor
+OPSQAI acts as Processor for the Personal Data described in Annex I.
+
+## Subject Matter
+Provision of the OPSQAI knowledge-intelligence platform under the ${v(ctx.subscriptionPlan)} subscription.
+
+## Sub-processors
+Disclosed in the OPSQAI trust center and updated with prior notice.
+
+## Security Measures
+TLS in transit, encryption at rest, RLS-enforced workspace isolation, audit logging, daily backups.
+`,
+  },
 };
+
 
 export const TEMPLATE_LIST = Object.values(TEMPLATES);
 
@@ -368,6 +423,14 @@ export function buildContextFromProfile(
     primaryContact: pick(g, "primaryContact"),
     technicalContact: pick(g, "technicalContact"),
     accountManager: pick(g, "accountManager"),
+    registrationNumber: pick(g, "registrationNumber"),
+    vatNumber: pick(g, "vatNumber"),
+    contactPerson: pick(g, "contactPerson"),
+    email: pick(g, "email"),
+    phone: pick(g, "phone"),
+    workspaceName: pick(g, "workspaceName"),
+    language: pick(g, "language"),
+
     subscriptionPlan: pick(c, "subscriptionPlan"),
     seats: pick(c, "seats"),
     aiCredits: pick(c, "aiCredits"),

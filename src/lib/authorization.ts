@@ -45,6 +45,17 @@ export async function requirePlatformAdmin(context: { supabase: any; userId: str
   return actor;
 }
 
+/**
+ * Customer Workspace Manager gate: Platform Owner, Platform Admin, or Workspace Owner.
+ * Never Admin/Manager/Supervisor/Operator.
+ */
+export async function requireCustomerManagerAccess(context: { supabase: any; userId: string }) {
+  const actor = await getActorRoles(context.supabase, context.userId);
+  if (actor.isPlatformAdmin || actor.roles.includes("workspace_owner")) return actor;
+  throw new Error("Forbidden: customer workspace manager access required");
+}
+
+
 export async function getProfileCompany(supabase: any, userId: string): Promise<string | null> {
   const { data, error } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
   if (error) throw new Error(error.message);

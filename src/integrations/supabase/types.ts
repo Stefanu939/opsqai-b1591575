@@ -901,8 +901,10 @@ export type Database = {
           created_by: string | null
           doc_type: string
           id: string
+          input_hash: string | null
           markdown: string
           metadata: Json
+          needs_update: boolean
           status: string
           title: string
           updated_at: string
@@ -914,8 +916,10 @@ export type Database = {
           created_by?: string | null
           doc_type: string
           id?: string
+          input_hash?: string | null
           markdown?: string
           metadata?: Json
+          needs_update?: boolean
           status?: string
           title: string
           updated_at?: string
@@ -927,8 +931,10 @@ export type Database = {
           created_by?: string | null
           doc_type?: string
           id?: string
+          input_hash?: string | null
           markdown?: string
           metadata?: Json
+          needs_update?: boolean
           status?: string
           title?: string
           updated_at?: string
