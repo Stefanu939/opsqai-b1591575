@@ -45,6 +45,7 @@ import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
+import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
@@ -259,6 +260,11 @@ const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
 const ApiDemoChatRoute = ApiDemoChatRouteImport.update({
   id: '/api/demo-chat',
   path: '/api/demo-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCustomerWriterRoute = ApiCustomerWriterRouteImport.update({
+  id: '/api/customer-writer',
+  path: '/api/customer-writer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -478,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -548,6 +555,7 @@ export interface FileRoutesByTo {
   '/trust': typeof TrustRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -621,6 +629,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -694,6 +703,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/academy-chat'
     | '/api/chat'
+    | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
@@ -764,6 +774,7 @@ export interface FileRouteTypes {
     | '/trust'
     | '/api/academy-chat'
     | '/api/chat'
+    | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
@@ -836,6 +847,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/api/academy-chat'
     | '/api/chat'
+    | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
@@ -908,6 +920,7 @@ export interface RootRouteChildren {
   TrustRoute: typeof TrustRouteWithChildren
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
@@ -1166,6 +1179,13 @@ declare module '@tanstack/react-router' {
       path: '/api/demo-chat'
       fullPath: '/api/demo-chat'
       preLoaderRoute: typeof ApiDemoChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/customer-writer': {
+      id: '/api/customer-writer'
+      path: '/api/customer-writer'
+      fullPath: '/api/customer-writer'
+      preLoaderRoute: typeof ApiCustomerWriterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -1567,6 +1587,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrustRoute: TrustRouteWithChildren,
   ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiCustomerWriterRoute: ApiCustomerWriterRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   VerifyCodeRoute: VerifyCodeRoute,
