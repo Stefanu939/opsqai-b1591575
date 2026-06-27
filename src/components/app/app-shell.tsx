@@ -51,7 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage") },
     { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete") },
     { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view") },
-    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: true },
+    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner },
   ].filter((i) => i.show);
 
   const platformNav = (isPlatformAdmin || isPlatformOwner)

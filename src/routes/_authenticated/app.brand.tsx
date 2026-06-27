@@ -1,12 +1,29 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { LogoMark, Logo, LogoStacked, LogoWordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Download } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/app/brand")({
-  component: BrandPage,
+  component: BrandGuard,
 });
+
+function BrandGuard() {
+  const { isPlatformAdmin, isPlatformOwner, loading } = useAuth() as ReturnType<typeof useAuth> & { loading?: boolean };
+  if (loading) return null;
+  if (!isPlatformAdmin && !isPlatformOwner) {
+    return (
+      <div className="mx-auto max-w-md p-8 text-center">
+        <h1 className="text-xl font-semibold">Restricted</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Brand Center is available only to Platform Admins and the Platform Owner.</p>
+        <Link to="/app" className="mt-4 inline-block text-sm text-primary underline-offset-4 hover:underline">Back to app</Link>
+      </div>
+    );
+  }
+  return <BrandPage />;
+}
+
 
 type Asset = { label: string; href: string; ext: string };
 
