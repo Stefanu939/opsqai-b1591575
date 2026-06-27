@@ -100,8 +100,9 @@ function FaqPage() {
                 <Button type="submit" className="w-full">{t("save")}</Button>
               </form>
             </DialogContent>
-          </Dialog>
-        )}
+            </Dialog>
+          )}
+        </div>
       </div>
 
       <Input placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4" />
@@ -133,6 +134,8 @@ function FaqPage() {
           </Accordion>
         </Card>
       )}
+
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} kind="faq" onDeleted={load} />
     </div>
   );
 }
