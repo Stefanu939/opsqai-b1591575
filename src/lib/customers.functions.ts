@@ -18,7 +18,7 @@ export const getCustomerProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: company }, { data: profile }] = await Promise.all([
       supabaseAdmin.from("companies").select("id, name, subscription_plan, subscription_status, max_users, active").eq("id", data.company_id).maybeSingle(),
@@ -46,7 +46,7 @@ export const upsertCustomerProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ProfilePatch.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("customer_profiles")
       .upsert({ ...data }, { onConflict: "company_id" });
@@ -60,7 +60,7 @@ export const listCustomerFeatures = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("customer_features").select("*").eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
@@ -89,7 +89,7 @@ export const upsertCustomerFeature = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => FeatureUpsert.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("customer_features")
       .upsert(data, { onConflict: "company_id,feature_key" });
@@ -103,7 +103,7 @@ export const listCustomerCompliance = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("customer_compliance").select("*").eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
@@ -127,7 +127,7 @@ export const upsertCustomerCompliance = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ComplianceUpsert.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("customer_compliance")
       .upsert(data, { onConflict: "company_id,area" });
@@ -141,7 +141,7 @@ export const listCustomerSecurity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("customer_security").select("*").eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
@@ -163,7 +163,7 @@ export const upsertCustomerSecurity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SecurityUpsert.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("customer_security")
       .upsert(data, { onConflict: "company_id,area" });
@@ -177,7 +177,7 @@ export const customerHealth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rpc, error } = await (supabaseAdmin as any).rpc("customer_health", { p_company: data.company_id });
     if (error) throw new Error(error.message);
@@ -190,7 +190,7 @@ export const listCustomerTimeline = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("customer_timeline")
       .select("id, event_type, title, payload, occurred_at, created_by")
@@ -212,7 +212,7 @@ export const addCustomerTimelineEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => TimelineInsert.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("customer_timeline").insert({
       ...data, created_by: context.userId,
@@ -227,7 +227,7 @@ export const listCustomerDocuments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("customer_documents")
       .select("id, doc_type, title, status, version, updated_at, created_at")
@@ -241,7 +241,7 @@ export const getCustomerDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: doc, error } = await supabaseAdmin.from("customer_documents").select("*").eq("id", data.id).maybeSingle();
     if (error) throw new Error(error.message);
@@ -255,7 +255,7 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ company_id: Uuid, template: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const tpl = TEMPLATES[data.template as TemplateKey];
     if (!tpl) throw new Error("Unknown template");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -289,7 +289,7 @@ export const updateCustomerDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => DocPatch.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { id, ...patch } = data;
     const { error } = await supabaseAdmin.from("customer_documents").update(patch).eq("id", id);
@@ -301,7 +301,7 @@ export const deleteCustomerDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("customer_documents").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -312,7 +312,7 @@ export const restoreCustomerDocumentVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ document_id: Uuid, version_id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: ver, error } = await supabaseAdmin.from("customer_document_versions")
       .select("title, markdown, metadata").eq("id", data.version_id).maybeSingle();
@@ -382,7 +382,7 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ExportInput.parse(d))
   .handler(async ({ data, context }) => {
-    await requirePlatformAdmin(context);
+    await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: doc } = await supabaseAdmin.from("customer_documents")
       .select("id, company_id, title, markdown, version, doc_type").eq("id", data.id).maybeSingle();
