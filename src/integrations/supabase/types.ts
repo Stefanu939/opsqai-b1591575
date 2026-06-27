@@ -707,33 +707,60 @@ export type Database = {
       }
       audit_log: {
         Row: {
+          action: string | null
           answer_preview: string | null
           company_id: string
           created_at: string
           id: string
+          ip: string | null
+          module: string | null
+          new_value: Json | null
+          old_value: Json | null
           question: string
+          resource: string | null
+          severity: string
           sources: Json | null
+          success: boolean
           thread_id: string | null
+          user_agent: string | null
           user_id: string
         }
         Insert: {
+          action?: string | null
           answer_preview?: string | null
           company_id: string
           created_at?: string
           id?: string
+          ip?: string | null
+          module?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
           question: string
+          resource?: string | null
+          severity?: string
           sources?: Json | null
+          success?: boolean
           thread_id?: string | null
+          user_agent?: string | null
           user_id: string
         }
         Update: {
+          action?: string | null
           answer_preview?: string | null
           company_id?: string
           created_at?: string
           id?: string
+          ip?: string | null
+          module?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
           question?: string
+          resource?: string | null
+          severity?: string
           sources?: Json | null
+          success?: boolean
           thread_id?: string | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: [
@@ -966,6 +993,83 @@ export type Database = {
           used_at?: string | null
         }
         Relationships: []
+      }
+      exports: {
+        Row: {
+          bytes: number | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deletion_status: string | null
+          deletion_typed: string | null
+          error: string | null
+          expires_at: string
+          file_count: number | null
+          format: string
+          id: string
+          kind: string
+          manifest: Json | null
+          mode: string
+          progress: number
+          sha256: string | null
+          status: string
+          storage_path: string | null
+        }
+        Insert: {
+          bytes?: number | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deletion_status?: string | null
+          deletion_typed?: string | null
+          error?: string | null
+          expires_at?: string
+          file_count?: number | null
+          format?: string
+          id?: string
+          kind: string
+          manifest?: Json | null
+          mode: string
+          progress?: number
+          sha256?: string | null
+          status?: string
+          storage_path?: string | null
+        }
+        Update: {
+          bytes?: number | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deletion_status?: string | null
+          deletion_typed?: string | null
+          error?: string | null
+          expires_at?: string
+          file_count?: number | null
+          format?: string
+          id?: string
+          kind?: string
+          manifest?: Json | null
+          mode?: string
+          progress?: number
+          sha256?: string | null
+          status?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       faqs: {
         Row: {
@@ -1916,6 +2020,37 @@ export type Database = {
       academy_heatmap: { Args: { p_company: string }; Returns: Json }
       academy_kpis: { Args: { p_company: string }; Returns: Json }
       academy_verify_certificate: { Args: { _code: string }; Returns: Json }
+      audit_companies: { Args: never; Returns: Json }
+      audit_entries: {
+        Args: {
+          p_action?: string
+          p_company: string
+          p_from?: string
+          p_limit?: number
+          p_module?: string
+          p_severity?: string
+          p_to?: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      audit_users: { Args: { p_company: string }; Returns: Json }
+      audit_write: {
+        Args: {
+          p_action: string
+          p_company: string
+          p_ip: string
+          p_module: string
+          p_new: Json
+          p_old: Json
+          p_resource: string
+          p_severity: string
+          p_success: boolean
+          p_ua: string
+          p_user: string
+        }
+        Returns: string
+      }
       cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
       cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }
@@ -1946,6 +2081,19 @@ export type Database = {
         Returns: number
       }
       ensure_platform_owner: { Args: never; Returns: number }
+      gap_companies: { Args: never; Returns: Json }
+      gap_user_questions: {
+        Args: {
+          p_company: string
+          p_department?: string
+          p_from?: string
+          p_status?: string
+          p_to?: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      gap_users: { Args: { p_company: string }; Returns: Json }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean
@@ -1959,6 +2107,7 @@ export type Database = {
       }
       is_platform_admin: { Args: never; Returns: boolean }
       is_platform_owner: { Args: { _user_id?: string }; Returns: boolean }
+      knowledge_health: { Args: { p_company: string }; Returns: Json }
       match_document_chunks: {
         Args: {
           match_count?: number
