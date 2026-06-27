@@ -311,7 +311,7 @@ export const runExport = createServerFn({ method: "POST" })
           sha256: pkg.sha256,
           bytes: pkg.bytes.byteLength,
           file_count: pkg.fileCount,
-          manifest: pkg.manifest,
+          manifest: pkg.manifest as any,
         })
         .eq("id", jobId);
 
