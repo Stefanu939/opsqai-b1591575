@@ -28,7 +28,10 @@ export const listInternalRequests = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({
     status: z.enum(["open", "in_review", "answered", "closed", "all"]).optional(),
     mine: z.boolean().optional(),
-    companyId: z.string().uuid().optional(),
+    companyId: z.preprocess(
+      (v) => (typeof v === "string" && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(v) ? v : undefined),
+      z.string().uuid().optional(),
+    ),
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     let q = context.supabase
