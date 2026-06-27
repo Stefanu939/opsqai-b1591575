@@ -20,7 +20,9 @@ async function requireAdminOrPlatform(supabase: any, userId: string) {
 
 export const listUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional() }).parse(d ?? {}))
+  .inputValidator((d: unknown) => z.object({
+    company_id: z.union([z.string().uuid(), z.literal(""), z.null()]).optional().transform((v) => (v ? v : undefined)),
+  }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["user.update", "user.create", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
