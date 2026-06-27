@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { requirePlatformAdmin } from "@/lib/authorization";
+import { requireCustomerManagerAccess } from "@/lib/authorization";
 import { z } from "zod";
 import { FEATURE_CATALOG, COMPLIANCE_AREAS, SECURITY_AREAS } from "@/lib/feature-catalog";
 import { TEMPLATES, buildContextFromProfile, type TemplateKey, type CustomerContext } from "@/lib/customer-templates";
+import { SUBSCRIPTION_PLANS, resolvePlan, type SubscriptionPlanKey } from "@/lib/subscription-plans";
+import { OPSQAI_FACTS } from "@/lib/opsqai-facts";
 
 const Uuid = z.string().uuid();
 const CompanyOnly = z.object({ company_id: Uuid });
+
 
 // ------- Profile -------
 
