@@ -36,9 +36,10 @@ import { TEMPLATE_LIST } from "@/lib/customer-templates";
 export const Route = createFileRoute("/_authenticated/app/admin/customers")({
   beforeLoad: ({ context }: any) => {
     const a = context?.auth;
-    if (a && !(a.isPlatformAdmin || a.isPlatformOwner)) {
+    if (a && !(a.isPlatformAdmin || a.isPlatformOwner || a.isWorkspaceOwner)) {
       throw redirect({ to: "/app" });
     }
+
   },
   component: CustomersPage,
 });
