@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import logo from "@/assets/opsqai-mark.png";
+import { LogoMark } from "@/components/brand/logo";
 
 export const Route = createFileRoute("/forgot-password")({
   ssr: false,
@@ -44,7 +44,7 @@ function ForgotPassword() {
     <div className="min-h-screen bg-background flex flex-col">
       <div className="p-4">
         <Link to="/" className="flex items-center gap-2 w-fit">
-          <img src={logo} alt="OPSQAI" width={28} height={28} />
+          <LogoMark size={28} className="text-foreground" />
           <span className="font-semibold tracking-tight">OPSQAI</span>
         </Link>
       </div>
