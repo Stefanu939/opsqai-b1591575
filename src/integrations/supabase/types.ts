@@ -812,6 +812,308 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_compliance: {
+        Row: {
+          area: string
+          company_id: string
+          evidence: string | null
+          id: string
+          notes: string | null
+          owner: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          company_id: string
+          evidence?: string | null
+          id?: string
+          notes?: string | null
+          owner?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          company_id?: string
+          evidence?: string | null
+          id?: string
+          notes?: string | null
+          owner?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_compliance_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_document_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          document_id: string
+          id: string
+          markdown: string
+          metadata: Json
+          title: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          id?: string
+          markdown: string
+          metadata?: Json
+          title: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          id?: string
+          markdown?: string
+          metadata?: Json
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "customer_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_documents: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          doc_type: string
+          id: string
+          markdown: string
+          metadata: Json
+          status: string
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          doc_type: string
+          id?: string
+          markdown?: string
+          metadata?: Json
+          status?: string
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string
+          id?: string
+          markdown?: string
+          metadata?: Json
+          status?: string
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_features: {
+        Row: {
+          company_id: string
+          feature_key: string
+          id: string
+          notes: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          feature_key: string
+          id?: string
+          notes?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          feature_key?: string
+          id?: string
+          notes?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_features_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_profiles: {
+        Row: {
+          account_manager_id: string | null
+          ai_config: Json
+          branding: Json
+          commercial: Json
+          company_id: string
+          contract_status: string
+          created_at: string
+          general: Json
+          implementation: Json
+          integrations: Json
+          onboarding_pct: number
+          renewal_date: string | null
+          sla: Json
+          updated_at: string
+        }
+        Insert: {
+          account_manager_id?: string | null
+          ai_config?: Json
+          branding?: Json
+          commercial?: Json
+          company_id: string
+          contract_status?: string
+          created_at?: string
+          general?: Json
+          implementation?: Json
+          integrations?: Json
+          onboarding_pct?: number
+          renewal_date?: string | null
+          sla?: Json
+          updated_at?: string
+        }
+        Update: {
+          account_manager_id?: string | null
+          ai_config?: Json
+          branding?: Json
+          commercial?: Json
+          company_id?: string
+          contract_status?: string
+          created_at?: string
+          general?: Json
+          implementation?: Json
+          integrations?: Json
+          onboarding_pct?: number
+          renewal_date?: string | null
+          sla?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_security: {
+        Row: {
+          area: string
+          company_id: string
+          controls: Json
+          id: string
+          notes: string | null
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          company_id: string
+          controls?: Json
+          id?: string
+          notes?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          company_id?: string
+          controls?: Json
+          id?: string
+          notes?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_security_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_timeline: {
+        Row: {
+          company_id: string
+          created_by: string | null
+          event_type: string
+          id: string
+          occurred_at: string
+          payload: Json
+          title: string
+        }
+        Insert: {
+          company_id: string
+          created_by?: string | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+          title: string
+        }
+        Update: {
+          company_id?: string
+          created_by?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_timeline_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           company_id: string
@@ -2154,6 +2456,7 @@ export type Database = {
       cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
       cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }
+      customer_health: { Args: { p_company: string }; Returns: Json }
       dashboard_activity: {
         Args: {
           p_bucket?: string
