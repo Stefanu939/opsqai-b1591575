@@ -45,6 +45,7 @@ import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
+import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
@@ -67,6 +68,7 @@ import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './route
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
+import { Route as AuthenticatedAppAdminCustomersRouteImport } from './routes/_authenticated/app.admin.customers'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
 import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
 import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
@@ -261,6 +263,11 @@ const ApiDemoChatRoute = ApiDemoChatRouteImport.update({
   path: '/api/demo-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCustomerWriterRoute = ApiCustomerWriterRouteImport.update({
+  id: '/api/customer-writer',
+  path: '/api/customer-writer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -386,6 +393,12 @@ const AuthenticatedAppAdminDashboardRoute =
     path: '/admin/dashboard',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminCustomersRoute =
+  AuthenticatedAppAdminCustomersRouteImport.update({
+    id: '/admin/customers',
+    path: '/admin/customers',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminCompaniesRoute =
   AuthenticatedAppAdminCompaniesRouteImport.update({
     id: '/admin/companies',
@@ -478,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -514,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
+  '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
@@ -548,6 +563,7 @@ export interface FileRoutesByTo {
   '/trust': typeof TrustRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -584,6 +600,7 @@ export interface FileRoutesByTo {
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
+  '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
@@ -621,6 +638,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -657,6 +675,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
+  '/_authenticated/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
@@ -694,6 +713,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/academy-chat'
     | '/api/chat'
+    | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
@@ -730,6 +750,7 @@ export interface FileRouteTypes {
     | '/app/admin/analytics'
     | '/app/admin/audit'
     | '/app/admin/companies'
+    | '/app/admin/customers'
     | '/app/admin/dashboard'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
@@ -764,6 +785,7 @@ export interface FileRouteTypes {
     | '/trust'
     | '/api/academy-chat'
     | '/api/chat'
+    | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
@@ -800,6 +822,7 @@ export interface FileRouteTypes {
     | '/app/admin/analytics'
     | '/app/admin/audit'
     | '/app/admin/companies'
+    | '/app/admin/customers'
     | '/app/admin/dashboard'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
@@ -836,6 +859,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/api/academy-chat'
     | '/api/chat'
+    | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
@@ -872,6 +896,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/analytics'
     | '/_authenticated/app/admin/audit'
     | '/_authenticated/app/admin/companies'
+    | '/_authenticated/app/admin/customers'
     | '/_authenticated/app/admin/dashboard'
     | '/_authenticated/app/admin/knowledge-gaps'
     | '/_authenticated/app/admin/platform'
@@ -908,6 +933,7 @@ export interface RootRouteChildren {
   TrustRoute: typeof TrustRouteWithChildren
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
@@ -1168,6 +1194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDemoChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/customer-writer': {
+      id: '/api/customer-writer'
+      path: '/api/customer-writer'
+      fullPath: '/api/customer-writer'
+      preLoaderRoute: typeof ApiCustomerWriterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -1322,6 +1355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminDashboardRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/customers': {
+      id: '/_authenticated/app/admin/customers'
+      path: '/admin/customers'
+      fullPath: '/app/admin/customers'
+      preLoaderRoute: typeof AuthenticatedAppAdminCustomersRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/companies': {
       id: '/_authenticated/app/admin/companies'
       path: '/admin/companies'
@@ -1426,6 +1466,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
   AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
+  AuthenticatedAppAdminCustomersRoute: typeof AuthenticatedAppAdminCustomersRoute
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
@@ -1460,6 +1501,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
   AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
+  AuthenticatedAppAdminCustomersRoute: AuthenticatedAppAdminCustomersRoute,
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
@@ -1567,6 +1609,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrustRoute: TrustRouteWithChildren,
   ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiCustomerWriterRoute: ApiCustomerWriterRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   VerifyCodeRoute: VerifyCodeRoute,

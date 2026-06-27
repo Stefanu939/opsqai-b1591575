@@ -1,74 +1,90 @@
+## Enterprise Customer Workspace Manager
 
-# Sprint — Workspace Context & Enterprise Support Center
+Internal OPSQAI admin module. Visible **only** to Platform Owner / Platform Admin (and future Super Admin). Hidden from every workspace-level role. Reuses the existing Enterprise UI — no redesign.
 
-No redesign. Reuse the existing OPSQAI shell, sidebar, design tokens, cards, dialogs.
+### Where it lives
 
-## 1. Workspace Context Switcher (extend, don't replace)
+- New protected route: `/app/admin/customers` (with nested `/app/admin/customers/$companyId/...`)
+- New sidebar entry under the existing "Platform" group, gated by `isPlatformAdmin || isPlatformOwner`
+- Route `beforeLoad` enforces the same gate (defense in depth)
 
-The sidebar already has a Platform-Admin-only company picker writing `activeCompanyId` to `auth-context` + localStorage, and most server functions already accept a `companyId` hint via `resolveCompany()`. We promote it to the single source of truth.
+### Database (1 migration)
 
-- **Persistent context indicator**: a small "Viewing workspace · {name}" pill in the top of every page (rendered inside `AppShell`, above `<Outlet />`). When `activeCompanyId` is null and user is platform-admin, show "All Companies (Global)".
-- **`useActiveCompany()` hook**: thin wrapper around auth-context returning `{ companyId, companyName, isGlobal, canSwitch }`. Every page that today fetches data with the user's own company falls back to `activeCompanyId ?? companyId`.
-- **Audit on switch**: extend `setActiveCompanyId` in `auth-context.tsx` to call a new server fn `logWorkspaceSwitch({ previous, next })` which inserts into `audit_log` with module=`workspace`, action=`switch`, severity=`info`, payload `{ previous_company_id, new_company_id, platform_role }`.
-- **Non-platform users**: unchanged — switcher hidden, `activeCompanyId` always null, server functions resolve via profile.
-- **Backend**: no schema change. Server functions already honour the hint; audit the 2–3 modules that don't yet (academy admin, knowledge-gaps drill-down, ai-audit) by passing `activeCompanyId` from the page.
+All new tables `company_id` keyed, RLS = `is_platform_admin()` only.
 
-## 2. Enterprise Support Center
+| Table | Purpose |
+|---|---|
+| `customer_profiles` | 1:1 with `companies`. JSONB columns `general`, `commercial`, `implementation`, `ai_config`, `sla`, `branding` (overrides), plus scalar `account_manager_id`, `renewal_date`, `contract_status`, `onboarding_pct`. |
+| `customer_features` | Per-company feature matrix. `feature_key`, `state` (enabled/disabled/beta/enterprise/coming_soon), `notes`. Seeded from a server-side feature catalog. |
+| `customer_compliance` | Pre-populated templates (GDPR, ISO 27001, ISO 9001, SOC 2, RBAC, isolation, encryption, backups, audit, retention, MFA, DR, BCP, residency) as editable rows `(area, status, evidence, notes, owner)`. |
+| `customer_security` | Editable rows by `area` (auth, authz, encryption, storage, infra, backups, monitoring, IR, pentest, vuln mgmt, logging, audit, network). |
+| `customer_documents` | Generated/edited docs. `doc_type`, `title`, `status` (draft/review/approved/sent/archived), `markdown`, `metadata` JSONB, current `version`. |
+| `customer_document_versions` | Immutable snapshots `(document_id, version, markdown, metadata, created_by, created_at)` — restoreable. |
+| `customer_timeline` | `event_type`, `payload`, `occurred_at`. Auto-rows from triggers on documents + manual inserts. |
 
-A persistent in-app support channel between workspace admins and Platform Admins. Reuses existing UI primitives (Card, Button, Sheet, Dialog, Avatar, Badge).
+Plus storage bucket `customer-exports` (platform-admin only) for PDF/DOCX artifacts. Add RPC `customer_health(p_company)` that reuses existing `dashboard_kpis` / `dashboard_health` and adds knowledge-gap trend, AI adoption, Academy progress, support activity.
 
-### Database (one migration)
+### Server functions (`src/lib/customers.functions.ts`)
 
-- `support_conversations` — `id, company_id, opened_by, subject, status (open|pending|resolved|closed), priority (low|normal|high|critical), assigned_to (platform admin user_id, nullable), last_message_at, unread_for_customer, unread_for_platform, context jsonb, created_at, updated_at`.
-- `support_messages` — `id, conversation_id, sender_id, sender_kind (customer|platform), body text, internal_note bool, attachments jsonb, context jsonb, created_at`.
-- `support_attachments` storage bucket (private) — path `{company_id}/{conversation_id}/{uuid}-{filename}`.
-- RLS:
-  - Customer side: `SELECT/INSERT` only when `company_id = profile company` AND caller has one of `platform_owner, platform_admin, workspace_owner, admin, manager`. `internal_note = true` rows hidden from customers.
-  - Platform side: `platform_owner` / `platform_admin` full access.
-- Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE support_conversations, support_messages`.
-- Audit triggers on insert/update writing to `audit_log` (created, replied, assigned, priority changed, closed, reopened, workspace opened, attachment uploaded).
+All `requireSupabaseAuth` + role check `is_platform_admin()`:
 
-### Server functions (`src/lib/support.functions.ts`)
+- `listCustomers()` — companies with summary stats
+- `getCustomerProfile(companyId)` — profile + features + compliance + security + branding + health
+- `upsertProfileSection(companyId, section, data)` — patches one JSONB block
+- `upsertFeatureState`, `upsertComplianceRow`, `upsertSecurityRow`
+- `listDocuments(companyId)`, `getDocument(id)`, `createDocument(companyId, docType)`, `updateDocument`, `archiveDocument`, `restoreVersion(id, version)`
+- `generateDocument(companyId, docType, options)` — pulls profile, runs a template, then optionally calls Lovable AI Gateway (`google/gemini-2.5-flash`) to enrich
+- `aiAssist(documentId, action, selection?)` — Generate/Rewrite/Simplify/MakeTechnical/Executive/Industry/Translate/ImproveFormatting via Gateway
+- `exportDocument(id, format)` — markdown → PDF (existing pdf pipeline) / DOCX (`docx` lib already in deps) / HTML / MD; writes to `customer-exports`, returns signed URL
+- `listTimeline(companyId)`, `addTimelineEvent`
 
-`listMyConversations`, `listPlatformInbox({ company?, status?, priority?, assigned?, search? })`, `getConversation(id)`, `createConversation({ subject, priority, body, attachments, context })`, `postMessage({ conversation_id, body, internal_note, attachments })`, `assignConversation`, `setPriority`, `setStatus`, `uploadAttachmentUrl` (signed upload URL).
+Feature catalog (`src/lib/feature-catalog.ts`) is the source of truth for the matrix: AI Assistant, KB, FAQ, Knowledge Gaps, Audit Log, Analytics, Executive Dashboard, Reports, Brand Center, Academy, Workspace Health, AI SOP Generator, Source Citations, Platform Admin, RBAC, Multi-language, Enterprise Export, Support Center, plus the rest detected from the route tree.
 
-All gated via `requirePermission("support.use")` or `support.manage` (platform). Add both to `role_permissions` for the right roles.
+### Frontend (reuses shadcn primitives)
 
-### Frontend
+```text
+/app/admin/customers
+├── index.tsx              Customer selector table (search, status, renewal soon)
+└── $companyId/
+    ├── route.tsx          Customer header + sub-tabs (loads profile once)
+    ├── index.tsx          Overview: health KPIs, activity strip
+    ├── profile.tsx        General + Contacts + Commercial + Implementation
+    ├── features.tsx       Feature matrix grid (state dropdowns)
+    ├── compliance.tsx     Compliance rows by area
+    ├── security.tsx       Security rows by area
+    ├── ai-config.tsx      Editable AI block
+    ├── sla.tsx            SLA editor
+    ├── branding.tsx       Logo/colors/banner/domain
+    ├── documents.tsx      Doc list + AI editor + Export + Version drawer
+    └── timeline.tsx       Activity feed
+```
 
-- **Global provider**: `<SupportProvider>` mounted in `_authenticated/route.tsx` above `<AppShell>`. Owns conversation state, realtime channel subscription, unread counts, attach paste/drag.
-- **Floating bubble**: `src/components/support/support-widget.tsx` — fixed bottom-right, hidden on `/app/admin/support` (the inbox). Shows unread badge. Click opens a Sheet with conversation list + active thread (Intercom-style). Survives route changes because it lives in the provider, not in route components.
-- **Auto-context**: every new message attaches `{ company_id, company_name, viewing_company_id, route, module, role, browser, os, screen, language, app_version, timestamp }` derived from `auth-context` + `window`/`navigator`.
-- **Platform inbox**: `src/routes/_authenticated/app.admin.support.tsx` — table grouped by company/priority/status with filters and search. Each conversation page has:
-  - Reply box (with internal-note toggle for platform side).
-  - "Open Workspace" button → calls `setActiveCompanyId(conversation.company_id)` then `navigate({ to: "/app" })`. Audit row written automatically.
-  - Assign / priority / status controls.
-- **Permissions in UI**: bubble visible only when `hasAnyPermission("support.use","support.manage")`. Sidebar gets a "Support Inbox" link under Platform group for platform admins.
+All forms use existing `Form`, `Card`, `Tabs`, `Table`, `Dialog`, `Badge`. The AI document editor reuses the markdown editor primitives already used by the AI SOP Generator; AI action buttons live in a toolbar above it.
 
-### Notifications
+### AI & integration hooks
 
-- DB trigger on `support_messages` insert → insert into existing `notifications` table for the *other* side (customers for platform replies, all company admins/managers for customer messages → for platform delivery we notify all `platform_admin` users).
+- Lovable AI Gateway for all generation/rewrite/translate actions (no extra keys)
+- Template strings live in `src/lib/customer-templates.ts` — 18 doc types listed in the brief
+- Each document carries a `metadata.integrations` JSON slot so future CRM / HubSpot / Salesforce / Dynamics / Drive / SharePoint / DocuSign / M365 connectors can attach external IDs without schema change
 
-## Technical Notes
+### Access enforcement (RBAC, defense in depth)
 
-- Reuse `Sheet`, `Dialog`, `Card`, `Badge`, `Avatar`, `Textarea`, `Button`, `DropdownMenu` from `src/components/ui/*` — no new design tokens.
-- Realtime via `supabase.channel('support:{conversation_id}')` inside the provider; cleanup on unmount.
-- Attachments uploaded directly to storage with signed URL; message stores `{path, name, size, mime}` array.
-- Typing indicator + read receipts via realtime presence/broadcast on the per-conversation channel.
-- File types: image/*, pdf, doc(x), xls(x). 20 MB max client-side check.
+1. Sidebar entry: `show: isPlatformAdmin || isPlatformOwner`
+2. Route `beforeLoad`: redirect non-platform-admin to `/app`
+3. Every server fn re-checks `is_platform_admin()` and 403s otherwise
+4. RLS on all 7 new tables: `USING (public.is_platform_admin())` for SELECT/INSERT/UPDATE/DELETE; service_role grant for triggers/exports
 
-## Out of scope
+### Out of scope (this sprint)
 
-No changes to design system, layout, sidebar visuals, typography, colors, or existing module UIs.
+- Live external CRM sync (schema is ready; connectors land later)
+- E-signature embed (DocuSign hook stub only)
+- Editing the existing Brand Center — branding tab here writes only the **customer override** block
 
-## Deliverables
+### Delivery order
 
-1. Migration: support tables, RLS, realtime, audit triggers, two new permissions, grants.
-2. `src/lib/support.functions.ts`.
-3. `src/components/support/{support-provider,support-widget,conversation-view,message-bubble,attachment-chip}.tsx`.
-4. `src/routes/_authenticated/app.admin.support.tsx` + sidebar link.
-5. `src/components/app/workspace-context-banner.tsx` rendered inside `AppShell`.
-6. `useActiveCompany()` hook + audit-on-switch wiring in `auth-context.tsx` and a `logWorkspaceSwitch` server fn.
-7. i18n strings (EN/DE/RO) for new UI labels.
-
-Approve to proceed.
+1. Migration (tables + RLS + RPC + bucket)
+2. `customers.functions.ts` + feature catalog + templates
+3. Selector + customer shell + Profile/Features/Compliance/Security/SLA/AI/Branding tabs
+4. Documents tab (list, editor, AI toolbar, versions)
+5. Export pipeline (PDF/DOCX/HTML/MD) + Timeline auto-events
+6. Sidebar entry, route gate, end-to-end check with Playwright as `baristefan5@gmail.com`
