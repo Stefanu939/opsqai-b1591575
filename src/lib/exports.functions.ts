@@ -18,6 +18,11 @@ import { getActorRoles, getProfileCompany } from "@/lib/authorization";
 
 const BUCKET = "workspace-exports";
 const PACKAGE_VERSION = "1.0.0";
+const Uuid = z.string().uuid();
+const optionalUiUuid = z.preprocess(
+  (value) => (typeof value === "string" && Uuid.safeParse(value).success ? value : undefined),
+  Uuid.optional(),
+);
 
 type Mode = "only" | "migrate" | "delete";
 type Kind = "kb" | "faq" | "workspace";
@@ -26,7 +31,7 @@ const InputSchema = z.object({
   kind: z.enum(["kb", "faq", "workspace"]),
   mode: z.enum(["only", "migrate", "delete"]),
   format: z.enum(["zip", "json", "csv", "markdown"]).default("zip"),
-  company_id: z.string().uuid().optional(),
+  company_id: optionalUiUuid,
   delete_confirmation: z.string().optional(), // must equal "DELETE" for mode=delete
 });
 
@@ -459,8 +464,9 @@ export const listGapCompanies = createServerFn({ method: "GET" })
 
 export const listGapUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
+    if (!data.company_id) return [];
     const { data: rows, error } = await context.supabase.rpc("gap_users", { p_company: data.company_id });
     if (error) throw new Error(error.message);
     return rows ?? [];
@@ -471,16 +477,17 @@ export const listGapUserQuestions = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid(),
-        user_id: z.string().uuid(),
+        company_id: optionalUiUuid,
+        user_id: optionalUiUuid,
         status: z.string().optional(),
         from: z.string().optional(),
         to: z.string().optional(),
-        department_id: z.string().uuid().optional(),
+        department_id: optionalUiUuid,
       })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!data.company_id || !data.user_id) return [];
     const { data: rows, error } = await context.supabase.rpc("gap_user_questions", {
       p_company: data.company_id,
       p_user: data.user_id,
@@ -495,8 +502,9 @@ export const listGapUserQuestions = createServerFn({ method: "POST" })
 
 export const getKnowledgeHealth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
+    if (!data.company_id) return null;
     const { data: row, error } = await context.supabase.rpc("knowledge_health", { p_company: data.company_id });
     if (error) throw new Error(error.message);
     return row;
@@ -512,8 +520,9 @@ export const listAuditCompanies = createServerFn({ method: "GET" })
 
 export const listAuditUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
+    if (!data.company_id) return [];
     const { data: rows, error } = await context.supabase.rpc("audit_users", { p_company: data.company_id });
     if (error) throw new Error(error.message);
     return rows ?? [];
@@ -524,8 +533,8 @@ export const listAuditEntries = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid(),
-        user_id: z.string().uuid(),
+        company_id: optionalUiUuid,
+        user_id: optionalUiUuid,
         module: z.string().optional(),
         action: z.string().optional(),
         severity: z.string().optional(),
@@ -536,6 +545,7 @@ export const listAuditEntries = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!data.company_id || !data.user_id) return [];
     const { data: rows, error } = await context.supabase.rpc("audit_entries", {
       p_company: data.company_id,
       p_user: data.user_id,
