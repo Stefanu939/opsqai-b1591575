@@ -640,7 +640,7 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
       .eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
     const filtered = (docs ?? []).filter((d: any) =>
-      !data.category || (d.metadata?.category ?? "Custom Documents") === data.category);
+      !data.category || ((d.metadata as any)?.category ?? "Custom Documents") === data.category);
     if (filtered.length === 0) throw new Error("No documents to download");
 
     const { generatePdf } = await import("@/lib/generators/pdf.server");
@@ -665,7 +665,7 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
         author: "OPSQAI",
         sections,
       });
-      const folder = (d.metadata?.category ?? "Custom Documents").replace(/[^\w -]+/g, "_");
+      const folder = ((d.metadata as any)?.category ?? "Custom Documents").replace(/[^\w -]+/g, "_");
       const safe = String(d.title).replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80);
       files[`${folder}/${safe}.pdf`] = pdf;
     }
