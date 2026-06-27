@@ -157,11 +157,11 @@ export const updateSupportConversation = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "support.manage");
-    const patch: Record<string, unknown> = {};
+    const patch: { status?: string; priority?: string; assigned_to?: string | null } = {};
     if (data.status) patch.status = data.status;
     if (data.priority) patch.priority = data.priority;
     if (data.assigned_to !== undefined) patch.assigned_to = data.assigned_to;
-    const { error } = await context.supabase.from("support_conversations").update(patch).eq("id", data.id);
+    const { error } = await context.supabase.from("support_conversations").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
