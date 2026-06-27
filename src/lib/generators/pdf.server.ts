@@ -28,8 +28,23 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
   let y = PAGE_H - MARGIN;
 
   const newPage = () => { page = pdf.addPage([PAGE_W, PAGE_H]); y = PAGE_H - MARGIN; };
+  // pdf-lib's standard fonts only support WinAnsi. Replace common unicode
+  // (em/en dashes, smart quotes, ellipsis, NBSP) with safe equivalents and
+  // strip anything else outside the encodable range to avoid runtime crashes.
+  const sanitize = (text: string): string => {
+    const replaced = (text ?? "")
+      .replace(/\r\n?/g, "\n")
+      .replace(/[\u2013\u2014\u2212]/g, "-")
+      .replace(/[\u2018\u2019\u201A\u2032]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u2033]/g, '"')
+      .replace(/\u2026/g, "...")
+      .replace(/[\u00A0\u2007\u202F]/g, " ")
+      .replace(/[\u2022\u25CF]/g, "*");
+    // Drop any remaining non-WinAnsi characters (keep tab/newline + 0x20-0xFF).
+    return replaced.replace(/[^\t\n\x20-\xFF]/g, "");
+  };
   const wrap = (text: string, font: typeof regular, size: number): string[] => {
-    const words = text.split(/\s+/);
+    const words = sanitize(text).split(/\s+/);
     const lines: string[] = [];
     let line = "";
     for (const w of words) {
@@ -49,6 +64,7 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
     }
     y -= opts.gap ?? 4;
   };
+
 
   draw(spec.title, { font: bold, size: 22, gap: 8 });
   if (spec.subtitle) draw(spec.subtitle, { font: regular, size: 12, color: accent, gap: 12 });
