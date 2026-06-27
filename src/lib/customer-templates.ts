@@ -16,6 +16,15 @@ export interface CustomerContext {
   primaryContact?: string;
   technicalContact?: string;
   accountManager?: string;
+  // simplified profile additions
+  registrationNumber?: string;
+  vatNumber?: string;
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  workspaceName?: string;
+  language?: string;
+
   // commercial
   subscriptionPlan?: string;
   seats?: number | string;
