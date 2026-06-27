@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div className="flex h-full flex-col text-sidebar-foreground" style={{ background: "var(--gradient-sidebar)" }}>
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <img src={logo} alt="" width={32} height={32} className="drop-shadow-[0_0_10px_oklch(0.82_0.14_200/0.55)]" />
+        <LogoMark size={32} className="text-sidebar-foreground" />
         <div className="min-w-0 flex-1">
           <div className="font-semibold tracking-tight truncate">{t("appName")}</div>
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/55 truncate">
