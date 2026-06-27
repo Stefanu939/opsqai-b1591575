@@ -44,11 +44,13 @@ interface Entry {
 function Page() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/_authenticated/app/admin/audit" });
-  const { isPlatformAdmin, isAdmin, isManager, companyId } = useAuth();
+  const { isPlatformAdmin, isAdmin, isManager, companyId, activeCompanyId } = useAuth();
   if (!(isAdmin || isManager || isPlatformAdmin))
     return <div className="p-8 text-sm text-muted-foreground">Admin only.</div>;
 
-  const scopedCompany = isPlatformAdmin ? search.company ?? null : companyId;
+  // Honor the workspace switcher: a platform admin viewing AdelaCompany jumps
+  // directly into AdelaCompany's audit feed. Explicit URL params still win.
+  const scopedCompany = isPlatformAdmin ? search.company ?? activeCompanyId ?? null : companyId;
   const scopedUser = search.user ?? null;
 
   if (isPlatformAdmin && !scopedCompany) return <CompaniesView />;

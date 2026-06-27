@@ -50,7 +50,7 @@ function statusVariant(s: Req["status"]): "default" | "secondary" | "outline" {
 function RequestsPage() {
   const { t } = useT();
   const T = t as (k: string) => string;
-  const { isAdmin, isManager, isPlatformAdmin } = useAuth();
+  const { isAdmin, isManager, isPlatformAdmin, scopeCompanyId } = useAuth();
   const isStaff = isAdmin || isManager || isPlatformAdmin;
   const [tab, setTab] = useState<"all" | "mine">(isStaff ? "all" : "mine");
   const [filter, setFilter] = useState<"open" | "in_review" | "answered" | "closed" | "all">("open");
@@ -67,14 +67,19 @@ function RequestsPage() {
   const reload = async () => {
     setLoading(true);
     try {
-      const data = await list({ data: { mine: tab === "mine", status: filter } });
+      const data = await list({ data: {
+        mine: tab === "mine",
+        status: filter,
+        // Honor the active workspace context (platform admins only).
+        companyId: scopeCompanyId ?? undefined,
+      } });
       setRows(data as Req[]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { void reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tab, filter]);
+  useEffect(() => { void reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tab, filter, scopeCompanyId]);
 
   const counts = useMemo(() => ({
     open: rows.filter((r) => r.status === "open").length,

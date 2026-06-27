@@ -12,6 +12,13 @@ interface AuthState {
   companyName: string | null;
   activeCompanyId: string | null;
   setActiveCompanyId: (id: string | null) => void;
+  /**
+   * Effective workspace scope for filtering tenant-scoped data.
+   * - Platform admins: activeCompanyId (null = Global mode = no filter applied).
+   * - Everyone else: their profile companyId.
+   * Use for `.eq('company_id', scopeCompanyId)` on client-side queries.
+   */
+  scopeCompanyId: string | null;
   isAdmin: boolean;
   isManager: boolean;
   isTeamLeader: boolean;
@@ -116,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session, user: session?.user ?? null, roles, permissions,
       companyId, companyName,
       activeCompanyId, setActiveCompanyId,
+      scopeCompanyId: isPlatformAdmin ? activeCompanyId : companyId,
       // Capability shortcuts. Platform Owner / Platform Admin bypass tenant gates.
       isAdmin: roles.includes("admin") || roles.includes("workspace_owner") || isPlatformAdmin,
       isManager: roles.includes("manager") || roles.includes("workspace_owner") || roles.includes("champion") || isPlatformAdmin,
