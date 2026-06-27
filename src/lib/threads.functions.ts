@@ -2,12 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+
+const optionalUiUuid = z.preprocess((value) => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return UUID_RE.test(trimmed) ? trimmed : undefined;
+}, z.string().optional());
+
 export const createThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { title?: string; companyId?: string | null }) =>
     z.object({
       title: z.string().optional(),
-      companyId: z.union([z.string().uuid(), z.literal(""), z.null()]).optional().transform((v) => (v ? v : undefined)),
+      companyId: optionalUiUuid,
     }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase
