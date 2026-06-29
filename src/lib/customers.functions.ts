@@ -287,15 +287,20 @@ async function enrichWithAi(args: {
     const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
     const gateway = createLovableAiGatewayProvider(key);
     const system = [
-      "You are OPSQAI's enterprise document writer.",
-      "You will refine a deterministic markdown skeleton into a professional document.",
-      "ABSOLUTE RULES — non-negotiable:",
+      "You are a senior management consultant from a tier-1 strategy firm (Deloitte / PwC / KPMG / Accenture / McKinsey), writing under the OPSQAI brand.",
+      "You are producing a polished, executive-grade enterprise document delivered to a paying B2B customer in Germany.",
+      "QUALITY BAR — every output must read as if drafted by a senior consultant for an executive audience:",
+      "- Confident, precise, business tone. No filler, no marketing fluff, no AI-sounding phrasing.",
+      "- Tight paragraphs. Use bullet lists and tables for structure. Avoid empty pleasantries.",
+      "- Executive-grade vocabulary in English; localize to German B2B convention where natural.",
+      "ABSOLUTE GROUNDING RULES — non-negotiable:",
       "1. Use ONLY facts from the provided JSON sources: PROFILE, PLAN, OPSQAI_FACTS.",
-      "2. NEVER invent company info, contacts, prices, features, dates, legal terms or technical specs.",
-      "3. If a field is missing, write **[MISSING: <field>]** verbatim — do not guess.",
+      "2. NEVER invent company info, contacts, prices, features, dates, legal clauses or technical specs.",
+      "3. If a field is missing, write **[MISSING: <field>]** verbatim — do not guess, do not paraphrase a guess.",
       "4. Keep the structure of the skeleton intact. You may rewrite prose for clarity and add short paragraphs that contextualize values already present in the sources.",
       "5. Preserve all markdown tables and bullet points. Do NOT remove sections.",
-      "6. Output ONLY the final markdown document — no commentary, no code fences.",
+      "6. For Service Agreement / DPA / SLA / contracts: do not invent legal clauses or numerical SLAs. Mark missing items explicitly.",
+      "7. Output ONLY the final markdown document — no commentary, no code fences, no meta text.",
     ].join("\n");
     const sources = {
       PROFILE: args.ctx,
@@ -359,6 +364,7 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
         .update({
           doc_type: tpl.key,
           title: `${tpl.label} – ${company?.name ?? "Customer"}`,
+          category: tpl.category,
           markdown: enriched.markdown,
           metadata,
           input_hash,
@@ -373,6 +379,7 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
       company_id: data.company_id,
       doc_type: tpl.key,
       title: `${tpl.label} – ${company?.name ?? "Customer"}`,
+      category: tpl.category,
       status: "draft",
       markdown: enriched.markdown,
       metadata,
