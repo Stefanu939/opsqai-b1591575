@@ -46,13 +46,14 @@ export async function requirePlatformAdmin(context: { supabase: any; userId: str
 }
 
 /**
- * Customer Workspace Manager gate: Platform Owner, Platform Admin, or Workspace Owner.
- * Never Admin/Manager/Supervisor/Operator.
+ * Customer Delivery Center gate: Platform Owner and Platform Super Admin ONLY.
+ * This is an internal OPSQAI business tool — never accessible to customer-side
+ * roles (workspace_owner, admin, manager, supervisor, operator).
  */
 export async function requireCustomerManagerAccess(context: { supabase: any; userId: string }) {
   const actor = await getActorRoles(context.supabase, context.userId);
-  if (actor.isPlatformAdmin || actor.roles.includes("workspace_owner")) return actor;
-  throw new Error("Forbidden: customer workspace manager access required");
+  if (actor.isPlatformAdmin) return actor;
+  throw new Error("Forbidden: customer delivery center access required");
 }
 
 

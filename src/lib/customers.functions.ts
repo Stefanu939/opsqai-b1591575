@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireCustomerManagerAccess } from "@/lib/authorization";
 import { z } from "zod";
 import { FEATURE_CATALOG, COMPLIANCE_AREAS, SECURITY_AREAS } from "@/lib/feature-catalog";
-import { TEMPLATES, buildContextFromProfile, type TemplateKey, type CustomerContext } from "@/lib/customer-templates";
+import { TEMPLATES, buildContextFromProfile, CUSTOMER_PACKAGE_TEMPLATES, type TemplateKey, type CustomerContext } from "@/lib/customer-templates";
 import { SUBSCRIPTION_PLANS, resolvePlan, type SubscriptionPlanKey } from "@/lib/subscription-plans";
 import { OPSQAI_FACTS } from "@/lib/opsqai-facts";
 
@@ -230,7 +230,7 @@ export const listCustomerDocuments = createServerFn({ method: "POST" })
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("customer_documents")
-      .select("id, doc_type, title, status, version, updated_at, created_at")
+      .select("id, doc_type, title, status, category, needs_update, version, metadata, updated_at, created_at")
       .eq("company_id", data.company_id)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -287,15 +287,20 @@ async function enrichWithAi(args: {
     const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
     const gateway = createLovableAiGatewayProvider(key);
     const system = [
-      "You are OPSQAI's enterprise document writer.",
-      "You will refine a deterministic markdown skeleton into a professional document.",
-      "ABSOLUTE RULES — non-negotiable:",
+      "You are a senior management consultant from a tier-1 strategy firm (Deloitte / PwC / KPMG / Accenture / McKinsey), writing under the OPSQAI brand.",
+      "You are producing a polished, executive-grade enterprise document delivered to a paying B2B customer in Germany.",
+      "QUALITY BAR — every output must read as if drafted by a senior consultant for an executive audience:",
+      "- Confident, precise, business tone. No filler, no marketing fluff, no AI-sounding phrasing.",
+      "- Tight paragraphs. Use bullet lists and tables for structure. Avoid empty pleasantries.",
+      "- Executive-grade vocabulary in English; localize to German B2B convention where natural.",
+      "ABSOLUTE GROUNDING RULES — non-negotiable:",
       "1. Use ONLY facts from the provided JSON sources: PROFILE, PLAN, OPSQAI_FACTS.",
-      "2. NEVER invent company info, contacts, prices, features, dates, legal terms or technical specs.",
-      "3. If a field is missing, write **[MISSING: <field>]** verbatim — do not guess.",
+      "2. NEVER invent company info, contacts, prices, features, dates, legal clauses or technical specs.",
+      "3. If a field is missing, write **[MISSING: <field>]** verbatim — do not guess, do not paraphrase a guess.",
       "4. Keep the structure of the skeleton intact. You may rewrite prose for clarity and add short paragraphs that contextualize values already present in the sources.",
       "5. Preserve all markdown tables and bullet points. Do NOT remove sections.",
-      "6. Output ONLY the final markdown document — no commentary, no code fences.",
+      "6. For Service Agreement / DPA / SLA / contracts: do not invent legal clauses or numerical SLAs. Mark missing items explicitly.",
+      "7. Output ONLY the final markdown document — no commentary, no code fences, no meta text.",
     ].join("\n");
     const sources = {
       PROFILE: args.ctx,
@@ -359,6 +364,7 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
         .update({
           doc_type: tpl.key,
           title: `${tpl.label} – ${company?.name ?? "Customer"}`,
+          category: tpl.category,
           markdown: enriched.markdown,
           metadata,
           input_hash,
@@ -373,6 +379,7 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
       company_id: data.company_id,
       doc_type: tpl.key,
       title: `${tpl.label} – ${company?.name ?? "Customer"}`,
+      category: tpl.category,
       status: "draft",
       markdown: enriched.markdown,
       metadata,
@@ -425,12 +432,44 @@ export const generateAllStandardDocuments = createServerFn({ method: "POST" })
   });
 
 
+/**
+ * Generate Customer Package — the primary delivery action.
+ * Generates the full enterprise package for the customer (all templates in
+ * CUSTOMER_PACKAGE_TEMPLATES), regardless of plan. Existing docs of the same
+ * template type are updated in place; missing ones are created. Returns a
+ * summary the UI can show as a toast.
+ */
+export const generateCustomerPackage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => CompanyOnly.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireCustomerManagerAccess(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin.from("customer_documents")
+      .select("id, doc_type").eq("company_id", data.company_id);
+    const byType = new Map<string, string>((existing ?? []).map((d: any) => [d.doc_type, d.id]));
+    const results: Array<{ template: string; id: string; updated: boolean }> = [];
+    for (const tplKey of CUSTOMER_PACKAGE_TEMPLATES) {
+      if (!TEMPLATES[tplKey]) continue;
+      const existingId = byType.get(tplKey);
+      try {
+        const r = await generateCustomerDocument({
+          data: { company_id: data.company_id, template: tplKey, document_id: existingId },
+        } as any);
+        results.push({ template: tplKey, id: r.id, updated: !!existingId });
+      } catch (e) {
+        console.error("[customer-package] template failed", tplKey, e);
+      }
+    }
+    return { count: results.length, results };
+  });
 
 const DocPatch = z.object({
   id: Uuid,
   title: z.string().min(1).max(280).optional(),
   markdown: z.string().optional(),
-  status: z.enum(["draft","review","approved","sent","archived"]).optional(),
+  status: z.enum(["draft","ready","review","approved","sent","archived"]).optional(),
+  category: z.enum(["Commercial","Contracts","Implementation","Training","Security","Compliance","Technical","Marketing","Internal","Generated","Archive"]).optional(),
 });
 
 export const updateCustomerDocument = createServerFn({ method: "POST" })
