@@ -432,12 +432,44 @@ export const generateAllStandardDocuments = createServerFn({ method: "POST" })
   });
 
 
+/**
+ * Generate Customer Package — the primary delivery action.
+ * Generates the full enterprise package for the customer (all templates in
+ * CUSTOMER_PACKAGE_TEMPLATES), regardless of plan. Existing docs of the same
+ * template type are updated in place; missing ones are created. Returns a
+ * summary the UI can show as a toast.
+ */
+export const generateCustomerPackage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => CompanyOnly.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireCustomerManagerAccess(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin.from("customer_documents")
+      .select("id, doc_type").eq("company_id", data.company_id);
+    const byType = new Map<string, string>((existing ?? []).map((d: any) => [d.doc_type, d.id]));
+    const results: Array<{ template: string; id: string; updated: boolean }> = [];
+    for (const tplKey of CUSTOMER_PACKAGE_TEMPLATES) {
+      if (!TEMPLATES[tplKey]) continue;
+      const existingId = byType.get(tplKey);
+      try {
+        const r = await generateCustomerDocument({
+          data: { company_id: data.company_id, template: tplKey, document_id: existingId },
+        } as any);
+        results.push({ template: tplKey, id: r.id, updated: !!existingId });
+      } catch (e) {
+        console.error("[customer-package] template failed", tplKey, e);
+      }
+    }
+    return { count: results.length, results };
+  });
 
 const DocPatch = z.object({
   id: Uuid,
   title: z.string().min(1).max(280).optional(),
   markdown: z.string().optional(),
-  status: z.enum(["draft","review","approved","sent","archived"]).optional(),
+  status: z.enum(["draft","ready","review","approved","sent","archived"]).optional(),
+  category: z.enum(["Commercial","Contracts","Implementation","Training","Security","Compliance","Technical","Marketing","Internal","Generated","Archive"]).optional(),
 });
 
 export const updateCustomerDocument = createServerFn({ method: "POST" })
