@@ -14,27 +14,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Building2, Save, Sparkles, FileText, Download, Trash2, History, Plus, Wand2, Languages, RefreshCw, FileDown,
+  Building2, Save, Sparkles, FileText, Trash2, History, Plus, Wand2, Languages, FileDown, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   getCustomerProfile, upsertCustomerProfile,
-  listCustomerDocuments, getCustomerDocument, generateCustomerDocument,
-  generateAllStandardDocuments, regenerateCustomerDocument, downloadCustomerDocumentsZip,
-  updateCustomerDocument, deleteCustomerDocument, exportCustomerDocument, restoreCustomerDocumentVersion,
+  listCustomerDocuments, getCustomerDocument,
+  generateCustomerDocument, generateCustomerPackage, generateAllStandardDocuments,
+  regenerateCustomerDocument, downloadCustomerDocumentsZip,
+  updateCustomerDocument, deleteCustomerDocument, exportCustomerDocument,
+  restoreCustomerDocumentVersion,
 } from "@/lib/customers.functions";
-import { TEMPLATE_LIST } from "@/lib/customer-templates";
+import { TEMPLATE_LIST, DOC_CATEGORIES, DOC_STATUSES } from "@/lib/customer-templates";
 
 export const Route = createFileRoute("/_authenticated/app/admin/customers")({
   beforeLoad: ({ context }: any) => {
     const a = context?.auth;
-    if (a && !(a.isPlatformAdmin || a.isPlatformOwner || a.isWorkspaceOwner)) {
+    // Internal OPSQAI tool: Platform Owner + Platform Super Admin only.
+    if (a && !(a.isPlatformAdmin || a.isPlatformOwner)) {
       throw redirect({ to: "/app" });
     }
-
   },
   component: CustomersPage,
 });
@@ -57,7 +59,7 @@ function CustomersPage() {
   if (!allowed) {
     return (
       <div className="p-8 max-w-2xl mx-auto">
-        <Card><CardContent className="p-6">This module is restricted to Platform Admins.</CardContent></Card>
+        <Card><CardContent className="p-6">This module is restricted to Platform Owner and Platform Super Admin.</CardContent></Card>
       </div>
     );
   }
@@ -66,13 +68,15 @@ function CustomersPage() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Customer Workspace Manager</h1>
-          <p className="text-muted-foreground">Internal OPSQAI module · Platform Owner & Platform Admin only</p>
+          <h1 className="text-3xl font-bold tracking-tight">Customer Delivery Center</h1>
+          <p className="text-muted-foreground">
+            Internal OPSQAI workspace · Platform Owner &amp; Platform Super Admin only · Manage customer records and generate enterprise delivery packages.
+          </p>
         </div>
         <div className="flex items-center gap-2 min-w-[280px]">
           <Building2 className="h-4 w-4 text-muted-foreground" />
           <Select value={companyId} onValueChange={setCompanyId}>
-            <SelectTrigger className="w-[280px]"><SelectValue placeholder="Select customer workspace" /></SelectTrigger>
+            <SelectTrigger className="w-[280px]"><SelectValue placeholder="Select customer" /></SelectTrigger>
             <SelectContent>
               {companies.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -92,44 +96,52 @@ function CustomersPage() {
           <TabsContent value="documents"><DocumentsTab companyId={companyId} /></TabsContent>
         </Tabs>
       ) : (
-        <Card><CardContent className="p-8 text-center text-muted-foreground">No customer workspaces yet.</CardContent></Card>
+        <Card><CardContent className="p-8 text-center text-muted-foreground">No customers yet.</CardContent></Card>
       )}
     </div>
   );
 }
 
-// ----------------- Profile Tab (simplified) -----------------
-
-const COMPANY_FIELDS: Array<[string, string]> = [
-  ["legalName", "Legal Name"],
-  ["registrationNumber", "Registration Number"],
-  ["vatNumber", "VAT Number"],
-  ["address", "Address"],
-  ["country", "Country"],
-];
-const CONTACT_FIELDS: Array<[string, string]> = [
-  ["contactPerson", "Contact Person"],
-  ["email", "Email"],
-  ["phone", "Phone"],
-  ["website", "Website"],
-];
-const WORKSPACE_FIELDS: Array<[string, string]> = [
-  ["workspaceName", "Workspace Name"],
-  ["language", "Language"],
-  ["timezone", "Timezone"],
-];
+// ----------------- Profile Tab (full enterprise customer record) -----------------
 
 const PLAN_OPTIONS: Array<[string, string]> = [
   ["pilot", "Pilot"], ["standard", "Standard"], ["business", "Business"], ["enterprise", "Enterprise"],
 ];
-
-// Plan -> estimated user capacity (only customer-size hint; everything else is internal).
 const PLAN_CAPACITY: Record<string, string> = {
   pilot: "Up to 25 users",
   standard: "Up to 100 users",
   business: "Up to 500 users",
   enterprise: "Unlimited users",
 };
+const STATUS_OPTIONS: Array<[string, string]> = [
+  ["prospect", "Prospect"], ["pilot", "Pilot"], ["active", "Active"],
+  ["at_risk", "At risk"], ["renewing", "Renewing"], ["churned", "Churned"],
+];
+
+const COMPANY_FIELDS: Array<[string, string, string?]> = [
+  ["legalName", "Legal Name"],
+  ["registrationNumber", "Registration Number"],
+  ["vatNumber", "VAT Number"],
+  ["industry", "Industry", "e.g. Logistics, Retail, Manufacturing"],
+  ["warehouseType", "Warehouse Type", "e.g. Distribution, Fulfilment, Cold-chain"],
+  ["employees", "Number of Employees"],
+  ["purchasedLicenses", "Purchased Licenses"],
+  ["website", "Website"],
+  ["logoUrl", "Logo URL"],
+  ["address", "Address"],
+  ["country", "Country"],
+  ["countries", "Operating Countries"],
+  ["languages", "Languages"],
+];
+const CONTACT_FIELDS: Array<[string, string]> = [
+  ["primaryContact", "Primary Contact"],
+  ["technicalContact", "Technical Contact"],
+  ["billingContact", "Billing Contact"],
+  ["supportContact", "Support Contact"],
+  ["email", "Email"],
+  ["phone", "Phone"],
+  ["accountManager", "OPSQAI Account Manager"],
+];
 
 function ProfileTab({ companyId }: { companyId: string }) {
   const get = useServerFn(getCustomerProfile);
@@ -141,66 +153,90 @@ function ProfileTab({ companyId }: { companyId: string }) {
   });
 
   const [general, setGeneral] = useState<Record<string, string>>({});
-  const [subscriptionPlan, setSubscriptionPlan] = useState<string>("standard");
+  const [commercial, setCommercial] = useState<Record<string, string>>({});
+  const [branding, setBranding] = useState<Record<string, string>>({});
+  const [implementation, setImplementation] = useState<Record<string, string>>({});
+  const [contractStatus, setContractStatus] = useState("prospect");
+  const [renewalDate, setRenewalDate] = useState("");
   const [hydrated, setHydrated] = useState(false);
 
   if (data && !hydrated) {
     const p: any = data.profile ?? {};
     setGeneral(p.general ?? {});
-    setSubscriptionPlan((p.commercial?.subscriptionPlan ?? "standard").toLowerCase());
+    setCommercial(p.commercial ?? {});
+    setBranding(p.branding ?? {});
+    setImplementation(p.implementation ?? {});
+    setContractStatus(p.contract_status ?? "prospect");
+    setRenewalDate(p.renewal_date ?? "");
     setHydrated(true);
   }
 
   const mut = useMutation({
     mutationFn: (vars: any) => save({ data: vars }),
-    onSuccess: () => { toast.success("Profile saved"); qc.invalidateQueries({ queryKey: ["customer-profile", companyId] }); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
+    onSuccess: () => {
+      toast.success("Profile saved");
+      qc.invalidateQueries({ queryKey: ["customer-profile", companyId] });
+      qc.invalidateQueries({ queryKey: ["customer-docs", companyId] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   if (isLoading) return <p className="text-muted-foreground p-4">Loading profile…</p>;
 
+  const subscriptionPlan = (commercial.subscriptionPlan ?? "standard").toLowerCase();
   const capacity = PLAN_CAPACITY[subscriptionPlan] ?? PLAN_CAPACITY.standard;
 
-  const Field = ({ k, label }: { k: string; label: string }) => (
+  const TextField = ({ k, label, placeholder, store, setStore }: {
+    k: string; label: string; placeholder?: string;
+    store: Record<string, string>; setStore: (v: Record<string, string>) => void;
+  }) => (
     <div>
-      <Label>{label}</Label>
-      <Input value={general[k] ?? ""} onChange={(e) => setGeneral({ ...general, [k]: e.target.value })} />
+      <Label className="text-xs">{label}</Label>
+      <Input
+        placeholder={placeholder}
+        value={store[k] ?? ""}
+        onChange={(e) => setStore({ ...store, [k]: e.target.value })}
+      />
     </div>
   );
 
   return (
     <div className="space-y-4 mt-4">
       <Card>
-        <CardHeader><CardTitle>Company</CardTitle><CardDescription>Minimum information required for customer management and document generation.</CardDescription></CardHeader>
+        <CardHeader>
+          <CardTitle>Company</CardTitle>
+          <CardDescription>Core customer identity. Used in every generated document.</CardDescription>
+        </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {COMPANY_FIELDS.map(([k, label]) => <Field key={k} k={k} label={label} />)}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>Contact</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {CONTACT_FIELDS.map(([k, label]) => <Field key={k} k={k} label={label} />)}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>Workspace</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {WORKSPACE_FIELDS.map(([k, label]) => <Field key={k} k={k} label={label} />)}
+          {COMPANY_FIELDS.map(([k, label, ph]) =>
+            <TextField key={k} k={k} label={label} placeholder={ph} store={general} setStore={setGeneral} />)}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Subscription</CardTitle>
-          <CardDescription>Defines customer size and personalizes generated documents.</CardDescription>
+          <CardTitle>Contacts</CardTitle>
+          <CardDescription>Stakeholders involved in the engagement.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {CONTACT_FIELDS.map(([k, label]) =>
+            <TextField key={k} k={k} label={label} store={general} setStore={setGeneral} />)}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Subscription &amp; Commercial</CardTitle>
+          <CardDescription>Subscription drives customer size; commercial fields feed proposals, SOW and quotation.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Subscription Plan</Label>
-              <Select value={subscriptionPlan} onValueChange={setSubscriptionPlan}>
+              <Label className="text-xs">Subscription Plan</Label>
+              <Select
+                value={subscriptionPlan}
+                onValueChange={(v) => setCommercial({ ...commercial, subscriptionPlan: v })}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PLAN_OPTIONS.map(([v, label]) => <SelectItem key={v} value={v}>{label}</SelectItem>)}
@@ -208,9 +244,60 @@ function ProfileTab({ companyId }: { companyId: string }) {
               </Select>
             </div>
             <div>
-              <Label>Estimated User Capacity</Label>
+              <Label className="text-xs">Estimated User Capacity</Label>
               <div className="rounded-md border px-3 py-2 text-sm font-medium">{capacity}</div>
             </div>
+            <TextField k="aiCredits" label="Additional AI Credits" store={commercial} setStore={setCommercial} />
+            <TextField k="extraStorage" label="Extra Storage" store={commercial} setStore={setCommercial} />
+            <TextField k="billingFrequency" label="Billing Frequency" store={commercial} setStore={setCommercial} />
+            <TextField k="billingInfo" label="Billing Information" store={commercial} setStore={setCommercial} />
+            <TextField k="discounts" label="Discounts" store={commercial} setStore={setCommercial} />
+            <TextField k="contractStartDate" label="Contract Start Date" store={commercial} setStore={setCommercial} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs">Renewal Date</Label>
+              <Input type="date" value={renewalDate ?? ""} onChange={(e) => setRenewalDate(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Customer Status</Label>
+              <Select value={contractStatus} onValueChange={setContractStatus}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map(([v, label]) => <SelectItem key={v} value={v}>{label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Branding</CardTitle>
+          <CardDescription>Customer branding used in generated marketing-style documents.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <TextField k="primaryColor" label="Brand Primary Color" placeholder="#0F172A" store={branding} setStore={setBranding} />
+          <TextField k="accentColor" label="Brand Accent Color" placeholder="#2563EB" store={branding} setStore={setBranding} />
+          <TextField k="preferredLanguage" label="Preferred Language" placeholder="DE / EN / RO" store={general} setStore={setGeneral} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notes</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs">Customer Notes</Label>
+            <Textarea rows={4} value={general.customerNotes ?? ""}
+              onChange={(e) => setGeneral({ ...general, customerNotes: e.target.value })} />
+          </div>
+          <div>
+            <Label className="text-xs">Implementation Notes</Label>
+            <Textarea rows={4} value={implementation.notes ?? ""}
+              onChange={(e) => setImplementation({ ...implementation, notes: e.target.value })} />
           </div>
         </CardContent>
       </Card>
@@ -219,7 +306,11 @@ function ProfileTab({ companyId }: { companyId: string }) {
         <Button onClick={() => mut.mutate({
           company_id: companyId,
           general,
-          commercial: { subscriptionPlan },
+          commercial,
+          branding,
+          implementation,
+          contract_status: contractStatus,
+          renewal_date: renewalDate || null,
         })} disabled={mut.isPending}>
           <Save className="h-4 w-4 mr-2" />Save Profile
         </Button>
@@ -228,13 +319,21 @@ function ProfileTab({ companyId }: { companyId: string }) {
   );
 }
 
+// ----------------- Documents Tab (Enterprise Delivery Center) -----------------
 
-
-// ----------------- Documents Tab -----------------
+const STATUS_BADGE: Record<string, string> = {
+  draft: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+  ready: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200",
+  review: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
+  approved: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
+  sent: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200",
+  archived: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+};
 
 function DocumentsTab({ companyId }: { companyId: string }) {
   const list = useServerFn(listCustomerDocuments);
   const generate = useServerFn(generateCustomerDocument);
+  const generatePkg = useServerFn(generateCustomerPackage);
   const generateAll = useServerFn(generateAllStandardDocuments);
   const regenerate = useServerFn(regenerateCustomerDocument);
   const downloadZip = useServerFn(downloadCustomerDocumentsZip);
@@ -243,19 +342,37 @@ function DocumentsTab({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
   const [tpl, setTpl] = useState<string>(TEMPLATE_LIST[0].key);
+  const [catFilter, setCatFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: docs } = useQuery({
     queryKey: ["customer-docs", companyId],
     queryFn: () => list({ data: { company_id: companyId } }),
   });
+
   const gen = useMutation({
     mutationFn: () => generate({ data: { company_id: companyId, template: tpl } }),
-    onSuccess: (r) => { toast.success("Document generated"); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); setOpenId(r.id); },
+    onSuccess: (r) => {
+      toast.success("Document generated");
+      qc.invalidateQueries({ queryKey: ["customer-docs", companyId] });
+      setOpenId(r.id);
+    },
     onError: (e: Error) => toast.error(e.message),
   });
-  const genAll = useMutation({
+  const genPkg = useMutation({
+    mutationFn: () => generatePkg({ data: { company_id: companyId } }),
+    onSuccess: (r: any) => {
+      toast.success(`Customer package generated · ${r.count} documents`);
+      qc.invalidateQueries({ queryKey: ["customer-docs", companyId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const genStd = useMutation({
     mutationFn: () => generateAll({ data: { company_id: companyId } }),
-    onSuccess: (r: any) => { toast.success(`Generated ${r.count} documents for ${r.plan}`); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
+    onSuccess: (r: any) => {
+      toast.success(`Generated ${r.count} plan documents (${r.plan})`);
+      qc.invalidateQueries({ queryKey: ["customer-docs", companyId] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const regen = useMutation({
@@ -278,15 +395,10 @@ function DocumentsTab({ companyId }: { companyId: string }) {
         const blob = new Blob([arr], { type: r.mime });
         const href = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = href;
-        a.download = r.filename || "document";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        a.href = href; a.download = r.filename || "document";
+        document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(href), 5_000);
-      } catch {
-        window.open(r.url, "_blank");
-      }
+      } catch { window.open(r.url, "_blank"); }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -300,11 +412,8 @@ function DocumentsTab({ companyId }: { companyId: string }) {
         const blob = new Blob([arr], { type: r.mime });
         const href = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = href;
-        a.download = r.filename || "documents.zip";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        a.href = href; a.download = r.filename || "documents.zip";
+        document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(href), 5_000);
         toast.success(`Downloaded ${r.count} documents`);
       } catch (e) { toast.error((e as Error).message); }
@@ -312,53 +421,103 @@ function DocumentsTab({ companyId }: { companyId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Group documents into folders by category.
-  const grouped = (docs ?? []).reduce<Record<string, any[]>>((acc, d: any) => {
-    const cat = d.metadata?.category ?? "Custom Documents";
+  // Filter + group by category.
+  const filtered = (docs ?? []).filter((d: any) =>
+    (catFilter === "all" || (d.category ?? "Generated") === catFilter) &&
+    (statusFilter === "all" || d.status === statusFilter),
+  );
+  const grouped = useMemo(() => filtered.reduce<Record<string, any[]>>((acc, d: any) => {
+    const cat = d.category ?? "Generated";
     (acc[cat] ||= []).push(d);
     return acc;
-  }, {});
-  const categories = Object.keys(grouped).sort();
+  }, {}), [filtered]);
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const d of (docs ?? []) as any[]) {
+      const k = d.category ?? "Generated";
+      c[k] = (c[k] ?? 0) + 1;
+    }
+    return c;
+  }, [docs]);
 
   return (
     <div className="space-y-4 mt-4">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4" />Generate New Document</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Package className="h-4 w-4" />Generate</CardTitle>
+          <CardDescription>
+            "Generate Customer Package" runs the full enterprise document set for this customer. Individual templates can be added one at a time.
+          </CardDescription>
+        </CardHeader>
         <CardContent className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[280px]">
-            <Label>Template</Label>
+          <Button onClick={() => genPkg.mutate()} disabled={genPkg.isPending} size="lg">
+            <Package className="h-4 w-4 mr-2" />
+            {genPkg.isPending ? "Generating customer package…" : "Generate Customer Package"}
+          </Button>
+          <Button variant="secondary" onClick={() => genStd.mutate()} disabled={genStd.isPending}>
+            <Sparkles className="h-4 w-4 mr-2" />Generate Plan-Standard Set
+          </Button>
+          <div className="h-8 w-px bg-border mx-1" />
+          <div className="min-w-[260px]">
+            <Label className="text-xs">Single template</Label>
             <Select value={tpl} onValueChange={setTpl}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {TEMPLATE_LIST.map((t) => (
-                  <SelectItem key={t.key} value={t.key}>{t.label} <span className="text-xs text-muted-foreground">· {t.category}</span></SelectItem>
+                  <SelectItem key={t.key} value={t.key}>
+                    {t.label} <span className="text-xs text-muted-foreground">· {t.category}</span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={() => gen.mutate()} disabled={gen.isPending}>
-            <Plus className="h-4 w-4 mr-2" />Generate from Profile
+          <Button onClick={() => gen.mutate()} disabled={gen.isPending} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />Generate
           </Button>
-          <Button variant="secondary" onClick={() => genAll.mutate()} disabled={genAll.isPending}>
-            <Sparkles className="h-4 w-4 mr-2" />Generate All Standard Documents
-          </Button>
-          <Button variant="outline" onClick={() => zipMut.mutate({})} disabled={zipMut.isPending || !docs?.length}>
+          <Button variant="ghost" onClick={() => zipMut.mutate({})} disabled={zipMut.isPending || !docs?.length}>
             <FileDown className="h-4 w-4 mr-2" />Download All (.zip)
           </Button>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Customer Documents</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle>Delivery Library</CardTitle>
+            <div className="flex flex-wrap gap-2 items-center">
+              <Select value={catFilter} onValueChange={setCatFilter}>
+                <SelectTrigger className="h-8 w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {DOC_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c} {counts[c] ? `(${counts[c]})` : ""}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-8 w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  {DOC_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
         <CardContent>
-          {!docs?.length ? (
-            <p className="text-muted-foreground text-sm">No documents yet.</p>
+          {!filtered.length ? (
+            <p className="text-muted-foreground text-sm py-6 text-center">No documents match the current filters.</p>
           ) : (
-            <div className="space-y-5">
-              {categories.map((cat) => (
+            <div className="space-y-6">
+              {Object.keys(grouped).sort().map((cat) => (
                 <div key={cat}>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-semibold text-muted-foreground">📁 {cat} <span className="text-xs font-normal">({grouped[cat].length})</span></div>
+                    <div className="text-sm font-semibold flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      {cat}
+                      <Badge variant="outline" className="text-[10px]">{grouped[cat].length}</Badge>
+                    </div>
                     <Button size="sm" variant="ghost" onClick={() => zipMut.mutate({ category: cat })} disabled={zipMut.isPending}>
                       <FileDown className="h-3.5 w-3.5 mr-1" />Download Folder
                     </Button>
@@ -369,9 +528,10 @@ function DocumentsTab({ companyId }: { companyId: string }) {
                         <div className="min-w-0">
                           <div className="font-medium truncate flex items-center gap-2">
                             <FileText className="h-4 w-4 text-muted-foreground" />{d.title}
+                            <span className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 ${STATUS_BADGE[d.status] ?? STATUS_BADGE.draft}`}>{d.status}</span>
                             {d.needs_update && <span className="text-[10px] uppercase tracking-wide rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5">Needs Update</span>}
                           </div>
-                          <div className="text-xs text-muted-foreground">v{d.version} · {d.status} · {new Date(d.updated_at).toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">v{d.version} · {new Date(d.updated_at).toLocaleString()}</div>
                         </div>
                         <div className="flex flex-wrap gap-1">
                           <Button size="sm" variant="outline" onClick={() => setOpenId(d.id)}>Edit</Button>
@@ -402,7 +562,6 @@ function DocumentsTab({ companyId }: { companyId: string }) {
   );
 }
 
-
 // ----------------- Document Editor + AI Writing Assistant -----------------
 
 function DocumentEditor({ docId, companyId, onClose }: { docId: string; companyId: string; onClose: () => void }) {
@@ -417,6 +576,7 @@ function DocumentEditor({ docId, companyId, onClose }: { docId: string; companyI
   const [title, setTitle] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [status, setStatus] = useState("draft");
+  const [category, setCategory] = useState("Generated");
   const [hydrated, setHydrated] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
@@ -425,11 +585,12 @@ function DocumentEditor({ docId, companyId, onClose }: { docId: string; companyI
     setTitle(data.doc.title);
     setMarkdown(data.doc.markdown);
     setStatus(data.doc.status);
+    setCategory((data.doc as any).category ?? "Generated");
     setHydrated(true);
   }
 
   const save = useMutation({
-    mutationFn: () => update({ data: { id: docId, title, markdown, status: status as any } }),
+    mutationFn: () => update({ data: { id: docId, title, markdown, status: status as any, category: category as any } }),
     onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); refetch(); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -478,14 +639,18 @@ function DocumentEditor({ docId, companyId, onClose }: { docId: string; companyI
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
           <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_160px_160px] gap-2">
               <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DOC_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {["draft","review","approved","sent","archived"].map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
+                  {DOC_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -573,4 +738,3 @@ function DocumentEditor({ docId, companyId, onClose }: { docId: string; companyI
     </Dialog>
   );
 }
-
