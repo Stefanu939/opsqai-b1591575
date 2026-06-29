@@ -230,7 +230,7 @@ export const listCustomerDocuments = createServerFn({ method: "POST" })
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("customer_documents")
-      .select("id, doc_type, title, status, version, updated_at, created_at")
+      .select("id, doc_type, title, status, category, needs_update, version, metadata, updated_at, created_at")
       .eq("company_id", data.company_id)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
