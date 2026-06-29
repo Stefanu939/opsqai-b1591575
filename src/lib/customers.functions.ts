@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireCustomerManagerAccess } from "@/lib/authorization";
 import { z } from "zod";
 import { FEATURE_CATALOG, COMPLIANCE_AREAS, SECURITY_AREAS } from "@/lib/feature-catalog";
-import { TEMPLATES, buildContextFromProfile, type TemplateKey, type CustomerContext } from "@/lib/customer-templates";
+import { TEMPLATES, buildContextFromProfile, CUSTOMER_PACKAGE_TEMPLATES, type TemplateKey, type CustomerContext } from "@/lib/customer-templates";
 import { SUBSCRIPTION_PLANS, resolvePlan, type SubscriptionPlanKey } from "@/lib/subscription-plans";
 import { OPSQAI_FACTS } from "@/lib/opsqai-facts";
 
