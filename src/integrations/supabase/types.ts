@@ -896,6 +896,7 @@ export type Database = {
       }
       customer_documents: {
         Row: {
+          category: string
           company_id: string
           created_at: string
           created_by: string | null
@@ -911,6 +912,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          category?: string
           company_id: string
           created_at?: string
           created_by?: string | null
@@ -926,6 +928,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          category?: string
           company_id?: string
           created_at?: string
           created_by?: string | null
