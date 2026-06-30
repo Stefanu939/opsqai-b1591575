@@ -125,7 +125,7 @@ function AdminUsers() {
                   ))}
                 </div>
                 <div className="flex gap-1">
-                  <EditDialog u={u} depts={depts} onDone={load} update={update} />
+                  <EditDialog u={u} depts={depts} onDone={load} update={update} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
                   <ResetPwDialog u={u} onDone={load} reset={resetPw} />
                   <Button size="icon" variant="ghost" disabled={isSelf} onClick={async () => {
                     if (!confirm(`Delete ${u.email}?`)) return;
