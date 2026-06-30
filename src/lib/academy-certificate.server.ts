@@ -67,7 +67,7 @@ export async function issueAcademyCertificate(_userSupabase: any, opts: IssueOpt
   const companyName = company?.name ?? "OPSQAI";
 
   // 3) Build PDF (A4 landscape).
-  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib/es/index.js");
   const QRCode = (await import("qrcode")).default;
 
   const verifyUrl = `https://opsqai.de/verify/${code}`;
