@@ -62,6 +62,8 @@ import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
@@ -362,6 +364,16 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppWorkspaceSessionIdRoute =
   AuthenticatedAppWorkspaceSessionIdRouteImport.update({
     id: '/workspace/$sessionId',
@@ -583,6 +595,8 @@ export interface FileRoutesByFullPath {
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
@@ -660,6 +674,8 @@ export interface FileRoutesByTo {
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
@@ -741,6 +757,8 @@ export interface FileRoutesById {
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
@@ -822,6 +840,8 @@ export interface FileRouteTypes {
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/app/academy/'
     | '/app/chat/'
@@ -899,6 +919,8 @@ export interface FileRouteTypes {
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/app/academy'
     | '/app/chat'
@@ -979,6 +1001,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
     | '/_authenticated/app/workspace/$sessionId'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
@@ -1013,6 +1037,8 @@ export interface RootRouteChildren {
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -1387,6 +1413,20 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/queue/process'
       fullPath: '/lovable/email/queue/process'
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app/workspace/$sessionId': {
@@ -1769,6 +1809,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
