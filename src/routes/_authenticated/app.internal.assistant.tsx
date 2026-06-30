@@ -16,16 +16,44 @@ export const Route = createFileRoute("/_authenticated/app/internal/assistant")({
   head: () => ({ meta: [{ title: "OPSQAI Assistant · OPSQAI Internal" }] }),
 });
 
-const STARTERS = [
-  "How do I create a company?",
-  "How do I invite users?",
-  "How do I generate an SOP?",
-  "How do I run an AI Audit?",
-  "How do I assign training?",
-  "How do I publish documents?",
-  "How do I manage roles?",
-  "How do I resolve Knowledge Gaps?",
-];
+const STARTERS_BY_LANG: Record<string, string[]> = {
+  en: [
+    "How do I create a company?",
+    "How do I invite users?",
+    "How do I generate an SOP?",
+    "How do I run an AI Audit?",
+    "How do I assign training?",
+    "How do I publish documents?",
+    "How do I manage roles?",
+    "How do I resolve Knowledge Gaps?",
+  ],
+  de: [
+    "Wie lege ich ein Unternehmen an?",
+    "Wie lade ich Benutzer ein?",
+    "Wie erstelle ich eine SOP?",
+    "Wie führe ich ein KI-Audit durch?",
+    "Wie weise ich Schulungen zu?",
+    "Wie veröffentliche ich Dokumente?",
+    "Wie verwalte ich Rollen?",
+    "Wie löse ich Wissenslücken?",
+  ],
+  ro: [
+    "Cum creez o companie?",
+    "Cum invit utilizatori?",
+    "Cum generez un SOP?",
+    "Cum rulez un Audit AI?",
+    "Cum atribui un training?",
+    "Cum public documente?",
+    "Cum gestionez rolurile?",
+    "Cum rezolv Knowledge Gaps?",
+  ],
+};
+
+const UI_STRINGS: Record<string, { eyebrow: string; title: string; subtitle: string; tryAsking: string; sources: string; thinking: string; placeholder: string; send: string; new: string }> = {
+  en: { eyebrow: "OPSQAI Assistant", title: "Ask anything about using OPSQAI", subtitle: "Grounded in System Knowledge only — never touches customer data.", tryAsking: "Try asking", sources: "Sources", thinking: "Thinking…", placeholder: "Ask how to use OPSQAI…", send: "Send", new: "New" },
+  de: { eyebrow: "OPSQAI Assistent", title: "Fragen Sie alles zur Nutzung von OPSQAI", subtitle: "Basiert ausschließlich auf System-Wissen — keine Kundendaten.", tryAsking: "Fragen Sie z. B.", sources: "Quellen", thinking: "Denke nach…", placeholder: "Wie nutze ich OPSQAI?…", send: "Senden", new: "Neu" },
+  ro: { eyebrow: "Asistent OPSQAI", title: "Întreabă orice despre utilizarea OPSQAI", subtitle: "Bazat doar pe System Knowledge — nu accesează date despre clienți.", tryAsking: "Încearcă să întrebi", sources: "Surse", thinking: "Se gândește…", placeholder: "Cum folosesc OPSQAI?…", send: "Trimite", new: "Nou" },
+};
 
 type Source = { id: string; title: string; slug: string; category: string; excerpt: string; similarity: number };
 
