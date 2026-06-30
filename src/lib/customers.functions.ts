@@ -640,16 +640,26 @@ function markdownToBlocks(md: string) {
         items.push(lines[i].replace(/^[-*]\s+/, "")); i++;
       }
       blocks.push({ type: "bullets", items });
-    } else if (/^\s*\|/.test(ln) && i + 1 < lines.length && /^\s*\|\s*-+/.test(lines[i+1])) {
+    } else if (/\|/.test(ln) && i + 1 < lines.length && /^\s*\|?\s*:?-+/.test(lines[i+1]) && /\|/.test(lines[i+1])) {
       flushP();
-      const headers = ln.split("|").map((c) => c.trim()).filter((c, idx, a) => idx > 0 && idx < a.length - 1);
+      // Robust table-cell splitter: tolerates missing leading/trailing pipes.
+      const splitRow = (raw: string): string[] => {
+        let s = raw.trim();
+        if (s.startsWith("|")) s = s.slice(1);
+        if (s.endsWith("|")) s = s.slice(0, -1);
+        return s.split("|").map((c) => c.trim());
+      };
+      const headers = splitRow(ln);
       i += 2;
       const rows: string[][] = [];
-      while (i < lines.length && /^\s*\|/.test(lines[i])) {
-        const row = lines[i].split("|").map((c) => c.trim()).filter((c, idx, a) => idx > 0 && idx < a.length - 1);
+      while (i < lines.length && /\|/.test(lines[i]) && lines[i].trim() !== "") {
+        const row = splitRow(lines[i]);
+        // pad/truncate to header width
+        while (row.length < headers.length) row.push("");
+        if (row.length > headers.length) row.length = headers.length;
         rows.push(row); i++;
       }
-      blocks.push({ type: "table", headers, rows });
+      if (headers.length) blocks.push({ type: "table", headers, rows });
     } else if (ln.trim() === "") {
       flushP();
       i++;
