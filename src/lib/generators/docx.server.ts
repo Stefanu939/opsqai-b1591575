@@ -47,12 +47,12 @@ export interface DocxSpec {
 // Calm enterprise palette (hex without #)
 const C = {
   ink: "0F1729",
-  sub: "4B5772",
-  brand: "3358D4",
-  brandSoft: "5B7CE6",
-  teal: "0E9F92",
-  amber: "C98A2B",
-  red: "C93F3F",
+  sub: "50607A",
+  brand: "3A5BB8",
+  brandSoft: "6A82C8",
+  teal: "1F9485",
+  amber: "B8862E",
+  red: "B94545",
   line: "E4E7EC",
   panel: "F7F8FA",
   panelDeep: "EDEFF4",
