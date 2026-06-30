@@ -50,8 +50,9 @@ function createLovableProvider(sb: SupabaseClient): EmailProvider {
         recipient_email: input.to,
         status: "pending",
       });
+      const purpose = input.purpose ?? "transactional";
       const { error } = await sb.rpc("enqueue_email", {
-        queue_name: input.purpose === "auth" ? "auth_emails" : "transactional_emails",
+        queue_name: purpose === "auth" ? "auth_emails" : "transactional_emails",
         payload: {
           message_id: input.messageId,
           to: input.to,
@@ -61,8 +62,9 @@ function createLovableProvider(sb: SupabaseClient): EmailProvider {
           subject: input.subject,
           html: input.html,
           text: input.text,
-          purpose: input.purpose ?? "transactional",
+          purpose,
           label: input.templateName,
+          idempotency_key: input.messageId,
           queued_at: new Date().toISOString(),
         },
       });
