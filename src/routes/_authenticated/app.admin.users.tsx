@@ -144,7 +144,7 @@ function AdminUsers() {
   );
 }
 
-function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; create: (a: { data: any }) => Promise<any> }) {
+function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create, onDeptCreated }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; create: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const empty = { email: "", password: "", first_name: "", last_name: "", position: "", phone: "", department_id: "", role: "employee" as Role, company_id: "" };
