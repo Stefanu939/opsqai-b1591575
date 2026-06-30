@@ -295,7 +295,7 @@ function Audit() {
           title="A continuous AI auditor for your operational knowledge"
           intro="OPSQAI continuously analyses your knowledge base to expose gaps, conflicts and weaknesses — and recommends what to improve next."
         />
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {AUDIT.map((a) => (
             <article key={a.title} className="card-enterprise hover-lift p-6">
