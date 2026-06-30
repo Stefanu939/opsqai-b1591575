@@ -214,10 +214,6 @@ function Academy() {
           </Button>
         </div>
         <div className="lg:col-span-7 space-y-4">
-          <div className="card-enterprise p-2 overflow-hidden">
-            <img src={demoAcademy} alt="OPSQAI Academy interface preview" loading="lazy" width={1280} height={800}
-                 className="w-full rounded-md border border-border/60" />
-          </div>
           <div className="card-enterprise p-6 sm:p-8">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary">
