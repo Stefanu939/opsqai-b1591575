@@ -501,6 +501,41 @@ export const deleteCustomerDocument = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteAllCustomerDocuments = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => CompanyOnly.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireCustomerManagerAccess(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error: selErr } = await supabaseAdmin
+      .from("customer_documents").select("id").eq("company_id", data.company_id);
+    if (selErr) throw new Error(selErr.message);
+    const ids = (rows ?? []).map((r: any) => r.id);
+    if (!ids.length) return { ok: true, deleted: 0 };
+    const { error } = await supabaseAdmin.from("customer_documents").delete().eq("company_id", data.company_id);
+    if (error) throw new Error(error.message);
+    // Best-effort: purge generated exports for this customer from storage.
+    try {
+      const { data: files } = await supabaseAdmin.storage.from("customer-exports").list(data.company_id, { limit: 1000 });
+      const paths: string[] = [];
+      for (const docDir of files ?? []) {
+        const { data: inner } = await supabaseAdmin.storage
+          .from("customer-exports").list(`${data.company_id}/${docDir.name}`, { limit: 1000 });
+        for (const f of inner ?? []) paths.push(`${data.company_id}/${docDir.name}/${f.name}`);
+      }
+      if (paths.length) await supabaseAdmin.storage.from("customer-exports").remove(paths);
+    } catch (e) {
+      console.warn("[deleteAllCustomerDocuments] storage purge failed", e);
+    }
+    await supabaseAdmin.from("customer_timeline").insert({
+      company_id: data.company_id, event_type: "documents_purged",
+      title: `Deleted ${ids.length} generated documents`,
+      payload: { count: ids.length },
+      created_by: context.userId,
+    });
+    return { ok: true, deleted: ids.length };
+  });
+
 export const restoreCustomerDocumentVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ document_id: Uuid, version_id: Uuid }).parse(d))
@@ -548,7 +583,20 @@ function markdownToBlocks(md: string) {
     "executive note": "executive",
   };
 
-  const lines = md.split(/\r?\n/);
+  // ---- Normalization: scrub placeholders, AI artefacts, duplicate blank lines.
+  const normalized = (md ?? "")
+    // [MISSING] / [MISSING: field] markers from older templates
+    .replace(/\*\*\[MISSING(?::\s*[^\]]+)?\]\*\*/g, "Not configured")
+    .replace(/\[MISSING(?::\s*[^\]]+)?\]/g, "Not configured")
+    // [to be confirmed] AI placeholders
+    .replace(/\[to\s+be\s+confirmed\]/gi, "Not configured")
+    // strip stray code fences around the whole doc
+    .replace(/^```(?:markdown|md)?\s*\n?/i, "")
+    .replace(/\n?```\s*$/i, "")
+    // collapse 3+ blank lines
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+\n/g, "\n");
+  const lines = normalized.split(/\r?\n/);
   const blocks: Block[] = [];
   let buf: string[] = [];
   const flushP = () => { if (buf.length) { blocks.push({ type: "p", text: buf.join(" ") }); buf = []; } };
@@ -627,16 +675,26 @@ function markdownToBlocks(md: string) {
         items.push(lines[i].replace(/^[-*]\s+/, "")); i++;
       }
       blocks.push({ type: "bullets", items });
-    } else if (/^\s*\|/.test(ln) && i + 1 < lines.length && /^\s*\|\s*-+/.test(lines[i+1])) {
+    } else if (/\|/.test(ln) && i + 1 < lines.length && /^\s*\|?\s*:?-+/.test(lines[i+1]) && /\|/.test(lines[i+1])) {
       flushP();
-      const headers = ln.split("|").map((c) => c.trim()).filter((c, idx, a) => idx > 0 && idx < a.length - 1);
+      // Robust table-cell splitter: tolerates missing leading/trailing pipes.
+      const splitRow = (raw: string): string[] => {
+        let s = raw.trim();
+        if (s.startsWith("|")) s = s.slice(1);
+        if (s.endsWith("|")) s = s.slice(0, -1);
+        return s.split("|").map((c) => c.trim());
+      };
+      const headers = splitRow(ln);
       i += 2;
       const rows: string[][] = [];
-      while (i < lines.length && /^\s*\|/.test(lines[i])) {
-        const row = lines[i].split("|").map((c) => c.trim()).filter((c, idx, a) => idx > 0 && idx < a.length - 1);
+      while (i < lines.length && /\|/.test(lines[i]) && lines[i].trim() !== "") {
+        const row = splitRow(lines[i]);
+        // pad/truncate to header width
+        while (row.length < headers.length) row.push("");
+        if (row.length > headers.length) row.length = headers.length;
         rows.push(row); i++;
       }
-      blocks.push({ type: "table", headers, rows });
+      if (headers.length) blocks.push({ type: "table", headers, rows });
     } else if (ln.trim() === "") {
       flushP();
       i++;

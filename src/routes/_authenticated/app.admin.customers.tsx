@@ -25,7 +25,7 @@ import {
   listCustomerDocuments, getCustomerDocument,
   generateCustomerDocument, generateCustomerPackage, generateAllStandardDocuments,
   regenerateCustomerDocument, downloadCustomerDocumentsZip,
-  updateCustomerDocument, deleteCustomerDocument, exportCustomerDocument,
+  updateCustomerDocument, deleteCustomerDocument, deleteAllCustomerDocuments, exportCustomerDocument,
   restoreCustomerDocumentVersion,
 } from "@/lib/customers.functions";
 import { TEMPLATE_LIST, DOC_CATEGORIES, DOC_STATUSES } from "@/lib/customer-templates";
@@ -338,6 +338,7 @@ function DocumentsTab({ companyId }: { companyId: string }) {
   const regenerate = useServerFn(regenerateCustomerDocument);
   const downloadZip = useServerFn(downloadCustomerDocumentsZip);
   const remove = useServerFn(deleteCustomerDocument);
+  const removeAll = useServerFn(deleteAllCustomerDocuments);
   const exporter = useServerFn(exportCustomerDocument);
   const qc = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -383,6 +384,11 @@ function DocumentsTab({ companyId }: { companyId: string }) {
   const del = useMutation({
     mutationFn: (id: string) => remove({ data: { id } }),
     onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const delAll = useMutation({
+    mutationFn: () => removeAll({ data: { company_id: companyId } }),
+    onSuccess: (r: any) => { toast.success(`Deleted ${r.deleted ?? 0} documents`); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
   const exportMut = useMutation({
@@ -477,6 +483,21 @@ function DocumentsTab({ companyId }: { companyId: string }) {
           </Button>
           <Button variant="ghost" onClick={() => zipMut.mutate({})} disabled={zipMut.isPending || !docs?.length}>
             <FileDown className="h-4 w-4 mr-2" />Download All (.zip)
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+            onClick={() => {
+              const n = docs?.length ?? 0;
+              if (!n) return;
+              if (confirm(`Delete ALL ${n} generated documents for this customer? This cannot be undone.`)) {
+                delAll.mutate();
+              }
+            }}
+            disabled={delAll.isPending || !docs?.length}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {delAll.isPending ? "Deleting…" : "Delete All"}
           </Button>
         </CardContent>
       </Card>

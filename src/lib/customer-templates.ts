@@ -155,8 +155,8 @@ export interface TemplateDef {
   build: (ctx: CustomerContext) => string;
 }
 
-const v = (x: unknown, fallback = "**[MISSING]**") => {
-  const s = x === undefined || x === null || x === "" ? "" : String(x);
+const v = (x: unknown, fallback = "Not configured") => {
+  const s = x === undefined || x === null || x === "" ? "" : String(x).trim();
   return s || fallback;
 };
 
