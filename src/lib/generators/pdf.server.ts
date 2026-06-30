@@ -609,6 +609,9 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
     } else if (b.type === "pagebreak") {
       ctx = addContentPage();
     }
+    } catch (err) {
+      console.error("[pdf] skipped malformed block", b?.type, err);
+    }
   }
 
   // -------- FINAL FOOTER PASS --------
