@@ -815,6 +815,60 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submissions: {
+        Row: {
+          company: string | null
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          ip_hash: string | null
+          message: string
+          name: string
+          phone: string | null
+          reference_code: string
+          routed_to: string
+          status: Database["public"]["Enums"]["contact_status"]
+          subject: Database["public"]["Enums"]["contact_subject"]
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          message: string
+          name: string
+          phone?: string | null
+          reference_code?: string
+          routed_to: string
+          status?: Database["public"]["Enums"]["contact_status"]
+          subject?: Database["public"]["Enums"]["contact_subject"]
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          message?: string
+          name?: string
+          phone?: string | null
+          reference_code?: string
+          routed_to?: string
+          status?: Database["public"]["Enums"]["contact_status"]
+          subject?: Database["public"]["Enums"]["contact_subject"]
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       customer_compliance: {
         Row: {
           area: string
@@ -1892,6 +1946,60 @@ export type Database = {
           },
         ]
       }
+      platform_email_settings: {
+        Row: {
+          company_name: string
+          contact_email: string
+          footer_text: string
+          id: boolean
+          logo_url: string
+          privacy_email: string
+          provider: string
+          reply_to_email: string
+          security_email: string
+          sender_email: string
+          sender_name: string
+          support_email: string
+          updated_at: string
+          updated_by: string | null
+          website_url: string
+        }
+        Insert: {
+          company_name?: string
+          contact_email?: string
+          footer_text?: string
+          id?: boolean
+          logo_url?: string
+          privacy_email?: string
+          provider?: string
+          reply_to_email?: string
+          security_email?: string
+          sender_email?: string
+          sender_name?: string
+          support_email?: string
+          updated_at?: string
+          updated_by?: string | null
+          website_url?: string
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string
+          footer_text?: string
+          id?: boolean
+          logo_url?: string
+          privacy_email?: string
+          provider?: string
+          reply_to_email?: string
+          security_email?: string
+          sender_email?: string
+          sender_name?: string
+          support_email?: string
+          updated_at?: string
+          updated_by?: string | null
+          website_url?: string
+        }
+        Relationships: []
+      }
       platform_owner_allowlist: {
         Row: {
           created_at: string
@@ -2696,6 +2804,18 @@ export type Database = {
         | "viewer"
         | "workspace_owner"
         | "champion"
+      contact_status: "new" | "in_progress" | "resolved" | "spam"
+      contact_subject:
+        | "general"
+        | "demo"
+        | "sales"
+        | "pricing"
+        | "support"
+        | "bug"
+        | "security"
+        | "privacy"
+        | "partnership"
+        | "other"
       message_role: "user" | "assistant" | "system"
       support_priority: "low" | "normal" | "high" | "critical"
       support_sender_kind: "customer" | "platform"
@@ -2853,6 +2973,19 @@ export const Constants = {
         "viewer",
         "workspace_owner",
         "champion",
+      ],
+      contact_status: ["new", "in_progress", "resolved", "spam"],
+      contact_subject: [
+        "general",
+        "demo",
+        "sales",
+        "pricing",
+        "support",
+        "bug",
+        "security",
+        "privacy",
+        "partnership",
+        "other",
       ],
       message_role: ["user", "assistant", "system"],
       support_priority: ["low", "normal", "high", "critical"],
