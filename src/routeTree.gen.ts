@@ -43,6 +43,7 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
@@ -51,6 +52,8 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
@@ -61,7 +64,11 @@ import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_au
 import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
@@ -72,6 +79,7 @@ import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
+import { Route as AuthenticatedAppAdminEmailRouteImport } from './routes/_authenticated/app.admin.email'
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
 import { Route as AuthenticatedAppAdminCustomersRouteImport } from './routes/_authenticated/app.admin.customers'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
@@ -259,6 +267,11 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
   path: '/cookies',
   getParentRoute: () => LegalRouteRoute,
 } as any)
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
   path: '/api/workspace-chat',
@@ -298,6 +311,16 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
+  id: '/api/public/contact-submit',
+  path: '/api/public/contact-submit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRequestsRoute =
   AuthenticatedAppRequestsRouteImport.update({
@@ -356,12 +379,34 @@ const AuthenticatedAppAcademyIndexRoute =
     path: '/academy/',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppWorkspaceSessionIdRoute =
   AuthenticatedAppWorkspaceSessionIdRouteImport.update({
     id: '/workspace/$sessionId',
@@ -420,6 +465,12 @@ const AuthenticatedAppAdminKnowledgeGapsRoute =
   AuthenticatedAppAdminKnowledgeGapsRouteImport.update({
     id: '/admin/knowledge-gaps',
     path: '/admin/knowledge-gaps',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAdminEmailRoute =
+  AuthenticatedAppAdminEmailRouteImport.update({
+    id: '/admin/email',
+    path: '/admin/email',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminDashboardRoute =
@@ -536,6 +587,7 @@ export interface FileRoutesByFullPath {
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
@@ -560,6 +612,8 @@ export interface FileRoutesByFullPath {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
@@ -573,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -583,7 +638,11 @@ export interface FileRoutesByFullPath {
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/internal/': typeof AuthenticatedAppInternalIndexRoute
@@ -614,6 +673,7 @@ export interface FileRoutesByTo {
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
@@ -637,6 +697,8 @@ export interface FileRoutesByTo {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
@@ -650,6 +712,7 @@ export interface FileRoutesByTo {
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -660,7 +723,11 @@ export interface FileRoutesByTo {
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/internal': typeof AuthenticatedAppInternalIndexRoute
@@ -694,6 +761,7 @@ export interface FileRoutesById {
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
@@ -718,6 +786,8 @@ export interface FileRoutesById {
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/_authenticated/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
@@ -731,6 +801,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/_authenticated/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/_authenticated/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -741,7 +812,11 @@ export interface FileRoutesById {
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/internal/': typeof AuthenticatedAppInternalIndexRoute
@@ -775,6 +850,7 @@ export interface FileRouteTypes {
     | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/workspace-chat'
+    | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
@@ -799,6 +875,8 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
+    | '/api/public/contact-submit'
+    | '/lovable/email/suppression'
     | '/app/'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
@@ -812,6 +890,7 @@ export interface FileRouteTypes {
     | '/app/admin/companies'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
+    | '/app/admin/email'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
@@ -822,7 +901,11 @@ export interface FileRouteTypes {
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/app/academy/'
     | '/app/chat/'
     | '/app/internal/'
@@ -853,6 +936,7 @@ export interface FileRouteTypes {
     | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/workspace-chat'
+    | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
@@ -876,6 +960,8 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
+    | '/api/public/contact-submit'
+    | '/lovable/email/suppression'
     | '/app'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
@@ -889,6 +975,7 @@ export interface FileRouteTypes {
     | '/app/admin/companies'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
+    | '/app/admin/email'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
@@ -899,7 +986,11 @@ export interface FileRouteTypes {
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/app/academy'
     | '/app/chat'
     | '/app/internal'
@@ -932,6 +1023,7 @@ export interface FileRouteTypes {
     | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/workspace-chat'
+    | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
@@ -956,6 +1048,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
+    | '/api/public/contact-submit'
+    | '/lovable/email/suppression'
     | '/_authenticated/app/'
     | '/_authenticated/app/academy/analytics'
     | '/_authenticated/app/academy/certificates'
@@ -969,6 +1063,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/companies'
     | '/_authenticated/app/admin/customers'
     | '/_authenticated/app/admin/dashboard'
+    | '/_authenticated/app/admin/email'
     | '/_authenticated/app/admin/knowledge-gaps'
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
@@ -979,7 +1074,11 @@ export interface FileRouteTypes {
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
     | '/_authenticated/app/workspace/$sessionId'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/internal/'
@@ -1012,8 +1111,15 @@ export interface RootRouteChildren {
   ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
+  LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
+  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1256,6 +1362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalCookiesRouteImport
       parentRoute: typeof LegalRouteRoute
     }
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/workspace-chat': {
       id: '/api/workspace-chat'
       path: '/api/workspace-chat'
@@ -1311,6 +1424,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/contact-submit': {
+      id: '/api/public/contact-submit'
+      path: '/api/public/contact-submit'
+      fullPath: '/api/public/contact-submit'
+      preLoaderRoute: typeof ApiPublicContactSubmitRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app/requests': {
       id: '/_authenticated/app/requests'
@@ -1382,11 +1509,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
       path: '/lovable/email/queue/process'
       fullPath: '/lovable/email/queue/process'
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app/workspace/$sessionId': {
@@ -1457,6 +1612,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/knowledge-gaps'
       fullPath: '/app/admin/knowledge-gaps'
       preLoaderRoute: typeof AuthenticatedAppAdminKnowledgeGapsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/admin/email': {
+      id: '/_authenticated/app/admin/email'
+      path: '/admin/email'
+      fullPath: '/app/admin/email'
+      preLoaderRoute: typeof AuthenticatedAppAdminEmailRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/dashboard': {
@@ -1622,6 +1784,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
   AuthenticatedAppAdminCustomersRoute: typeof AuthenticatedAppAdminCustomersRoute
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
+  AuthenticatedAppAdminEmailRoute: typeof AuthenticatedAppAdminEmailRoute
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -1658,6 +1821,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
   AuthenticatedAppAdminCustomersRoute: AuthenticatedAppAdminCustomersRoute,
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
+  AuthenticatedAppAdminEmailRoute: AuthenticatedAppAdminEmailRoute,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
   AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
@@ -1768,8 +1932,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDemoChatRoute: ApiDemoChatRoute,
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
+  LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

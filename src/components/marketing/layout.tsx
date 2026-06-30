@@ -153,9 +153,9 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
                 <a href="https://www.linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
                   <Linkedin className="h-4 w-4" />
                 </a>
-                <a href="mailto:notify@opsqai.de" aria-label="Email" className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
+                <Link to="/contact" aria-label="Contact OPSQAI" className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
                   <Mail className="h-4 w-4" />
-                </a>
+                </Link>
                 <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub" className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
                   <Github className="h-4 w-4" />
                 </a>
