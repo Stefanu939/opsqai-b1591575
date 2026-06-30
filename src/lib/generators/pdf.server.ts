@@ -372,10 +372,10 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
       // Eyebrow: section number
       const num = `SECTION ${String(h1Counter).padStart(2, "0")}`;
       ctx.page.drawText(num, { x: MARGIN_X, y: ctx.y, size: 8, font: bold, color: BRAND });
-      ctx.y -= 14;
+      ctx.y -= 20;
       // Title
       ctx.page.drawText(sanitize(text), { x: MARGIN_X, y: ctx.y, size: 22, font: bold, color: INK });
-      ctx.y -= 16;
+      ctx.y -= 18;
       // Accent rule
       ctx.page.drawLine({
         start: { x: MARGIN_X, y: ctx.y }, end: { x: MARGIN_X + 40, y: ctx.y },
