@@ -548,7 +548,20 @@ function markdownToBlocks(md: string) {
     "executive note": "executive",
   };
 
-  const lines = md.split(/\r?\n/);
+  // ---- Normalization: scrub placeholders, AI artefacts, duplicate blank lines.
+  const normalized = (md ?? "")
+    // [MISSING] / [MISSING: field] markers from older templates
+    .replace(/\*\*\[MISSING(?::\s*[^\]]+)?\]\*\*/g, "Not configured")
+    .replace(/\[MISSING(?::\s*[^\]]+)?\]/g, "Not configured")
+    // [to be confirmed] AI placeholders
+    .replace(/\[to\s+be\s+confirmed\]/gi, "Not configured")
+    // strip stray code fences around the whole doc
+    .replace(/^```(?:markdown|md)?\s*\n?/i, "")
+    .replace(/\n?```\s*$/i, "")
+    // collapse 3+ blank lines
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+\n/g, "\n");
+  const lines = normalized.split(/\r?\n/);
   const blocks: Block[] = [];
   let buf: string[] = [];
   const flushP = () => { if (buf.length) { blocks.push({ type: "p", text: buf.join(" ") }); buf = []; } };
