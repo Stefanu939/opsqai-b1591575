@@ -104,14 +104,17 @@ export const createInternalRequest = createServerFn({ method: "POST" })
 
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: requester } = await supabaseAdmin.from("profiles").select("email, first_name, full_name").eq("id", context.userId).maybeSingle();
-      if (requester && (requester as { email?: string }).email) {
+      const { data: requesterAuth } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+      const requesterEmail = requesterAuth?.user?.email;
+      const { data: requesterProfile } = await supabaseAdmin.from("profiles").select("first_name, full_name").eq("id", context.userId).maybeSingle();
+      if (requesterEmail) {
         const { dispatchTransactionalEmail } = await import("@/lib/email/dispatch.server");
         await dispatchTransactionalEmail({
           templateName: "request-created",
-          recipientEmail: (requester as { email: string }).email,
+          recipientEmail: requesterEmail,
           templateData: {
-            firstName: (requester as { first_name?: string; full_name?: string }).first_name ?? (requester as { full_name?: string }).full_name,
+            firstName: (requesterProfile as { first_name?: string; full_name?: string } | null)?.first_name
+              ?? (requesterProfile as { full_name?: string } | null)?.full_name,
             question: data.question,
             referenceId: `IRQ-${String(row.id).slice(0, 8).toUpperCase()}`,
             requestUrl: "https://opsqai.de/app/requests",

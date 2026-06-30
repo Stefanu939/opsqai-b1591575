@@ -879,15 +879,18 @@ export const completeEnrollment = createServerFn({ method: "POST" })
 
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: learner } = await supabaseAdmin.from("profiles").select("email, full_name, first_name").eq("id", (enroll as any).user_id).maybeSingle();
+      const { data: learnerAuth } = await supabaseAdmin.auth.admin.getUserById((enroll as any).user_id);
+      const learnerEmail = learnerAuth?.user?.email;
+      const { data: learnerProfile } = await supabaseAdmin.from("profiles").select("full_name, first_name").eq("id", (enroll as any).user_id).maybeSingle();
       const { data: path } = await supabaseAdmin.from("academy_learning_paths").select("title").eq("id", (enroll as any).path_id).maybeSingle();
-      if (learner && (learner as { email?: string }).email) {
+      if (learnerEmail) {
         const { dispatchTransactionalEmail } = await import("@/lib/email/dispatch.server");
         await dispatchTransactionalEmail({
           templateName: "certificate-ready",
-          recipientEmail: (learner as { email: string }).email,
+          recipientEmail: learnerEmail,
           templateData: {
-            learnerName: (learner as { first_name?: string; full_name?: string }).first_name ?? (learner as { full_name?: string }).full_name,
+            learnerName: (learnerProfile as { first_name?: string; full_name?: string } | null)?.first_name
+              ?? (learnerProfile as { full_name?: string } | null)?.full_name,
             pathTitle: (path as { title?: string } | null)?.title,
             score: finalScore,
             certificateUrl: "https://opsqai.de/app/academy",
