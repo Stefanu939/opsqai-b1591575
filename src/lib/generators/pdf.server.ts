@@ -561,6 +561,7 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
 
   // -------- RENDER --------
   for (const b of blocks) {
+    try {
     if (b.type === "h1") drawHeading(b.text, 1);
     else if (b.type === "h2") drawHeading(b.text, 2);
     else if (b.type === "h3") drawHeading(b.text, 3);
