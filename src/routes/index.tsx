@@ -206,7 +206,7 @@ function PlatformOverview() {
 
 function Academy() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24 grid lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-5">
           <SectionHead
@@ -293,7 +293,7 @@ function Assistant() {
 
 function Audit() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="AI Audit"
@@ -349,7 +349,7 @@ function EnterpriseDocs() {
 
 function Analytics() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="Analytics"
@@ -398,7 +398,7 @@ function WhyOpsqai() {
 
 function Trust() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="Built for Enterprise"
