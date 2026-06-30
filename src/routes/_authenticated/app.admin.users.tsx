@@ -192,10 +192,12 @@ function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create, onDep
             <Field label={t("position")}><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></Field>
             <Field label={t("phone")}><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
             <Field label={t("department")}>
-              <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
-              </Select>
+              <DeptPicker
+                depts={depts} value={form.department_id}
+                onChange={(v) => setForm({ ...form, department_id: v })}
+                companyId={isPlatformAdmin ? form.company_id : undefined}
+                onCreated={onDeptCreated}
+              />
             </Field>
           </div>
           <DialogFooter><Button disabled={busy} type="submit">{t("create")}</Button></DialogFooter>
