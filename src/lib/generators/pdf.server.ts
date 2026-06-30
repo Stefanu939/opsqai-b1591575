@@ -301,9 +301,9 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
   if (tocEntries.length >= 2) {
     // Eyebrow
     ctx.page.drawText("CONTENTS", { x: MARGIN_X, y: ctx.y, size: 9, font: bold, color: BRAND });
-    ctx.y -= 14;
+    ctx.y -= 22;
     ctx.page.drawText("Table of Contents", { x: MARGIN_X, y: ctx.y, size: 24, font: bold, color: INK });
-    ctx.y -= 10;
+    ctx.y -= 14;
     ctx.page.drawLine({
       start: { x: MARGIN_X, y: ctx.y }, end: { x: MARGIN_X + 56, y: ctx.y },
       thickness: 2.5, color: BRAND,
