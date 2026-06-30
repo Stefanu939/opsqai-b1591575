@@ -31,7 +31,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
-    supabase.from("companies").select("id, name").order("name").then(({ data }) => setCompanies(data ?? []));
+    supabase.from("companies").select("id, name, is_system").order("name").then(({ data }) => {
+      setCompanies(((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>).filter((c) => !c.is_system));
+    });
   }, [isPlatformAdmin]);
 
   const nav = [
