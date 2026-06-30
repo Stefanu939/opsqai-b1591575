@@ -517,7 +517,30 @@ function markdownToBlocks(md: string) {
   type Block =
     | { type: "h1" | "h2" | "h3" | "p"; text: string }
     | { type: "bullets"; items: string[] }
-    | { type: "table"; headers: string[]; rows: string[][] };
+    | { type: "numbered"; items: string[] }
+    | { type: "table"; headers: string[]; rows: string[][] }
+    | { type: "callout"; kind?: "recommendation"|"risk"|"opportunity"|"key-takeaway"|"best-practice"|"note"|"executive"; title?: string; text: string }
+    | { type: "kpis"; items: Array<{ label: string; value: string; sub?: string }> }
+    | { type: "divider" }
+    | { type: "pagebreak" };
+
+  const calloutMap: Record<string, Block extends { type: "callout"; kind?: infer K } ? K : never> = {
+    recommendation: "recommendation",
+    recommendations: "recommendation",
+    risk: "risk",
+    risks: "risk",
+    opportunity: "opportunity",
+    opportunities: "opportunity",
+    "key takeaway": "key-takeaway",
+    "key-takeaway": "key-takeaway",
+    takeaway: "key-takeaway",
+    "best practice": "best-practice",
+    "best-practice": "best-practice",
+    note: "note",
+    executive: "executive",
+    "executive note": "executive",
+  };
+
   const lines = md.split(/\r?\n/);
   const blocks: Block[] = [];
   let buf: string[] = [];
@@ -525,12 +548,71 @@ function markdownToBlocks(md: string) {
   let i = 0;
   while (i < lines.length) {
     const ln = lines[i];
+    // Fenced callout: ::: kind ... :::  or ::: kind | Title ... :::
+    const fenceOpen = ln.match(/^:::\s*(?:callout\s+)?([a-zA-Z][\w \-]*)(?:\s*\|\s*(.+))?\s*$/);
+    if (fenceOpen) {
+      flushP();
+      const rawKind = fenceOpen[1].trim().toLowerCase();
+      const title = fenceOpen[2]?.trim();
+      const kind = calloutMap[rawKind] ?? "note";
+      i++;
+      const inner: string[] = [];
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) { inner.push(lines[i]); i++; }
+      if (i < lines.length) i++;
+      blocks.push({ type: "callout", kind, title, text: inner.join(" ").replace(/\s+/g, " ").trim() });
+      continue;
+    }
+    // KPI block: ::: kpis  rows of `Label | Value | Sub`
+    if (/^:::\s*kpis?\s*$/i.test(ln)) {
+      flushP();
+      i++;
+      const items: Array<{ label: string; value: string; sub?: string }> = [];
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
+        const row = lines[i].split("|").map((s) => s.trim());
+        if (row[0] && row[1]) items.push({ label: row[0], value: row[1], sub: row[2] || undefined });
+        i++;
+      }
+      if (i < lines.length) i++;
+      if (items.length) blocks.push({ type: "kpis", items });
+      continue;
+    }
+    // Blockquote callout: > [Kind] text  (or > [Kind: Title] text)
+    if (/^>\s*/.test(ln)) {
+      flushP();
+      const quoted: string[] = [];
+      while (i < lines.length && /^>\s*/.test(lines[i])) {
+        quoted.push(lines[i].replace(/^>\s?/, ""));
+        i++;
+      }
+      const joined = quoted.join(" ").trim();
+      const tagMatch = joined.match(/^\[\s*([a-zA-Z][\w \-]*?)(?:\s*:\s*([^\]]+))?\s*\]\s*(.*)$/);
+      if (tagMatch) {
+        const rawKind = tagMatch[1].trim().toLowerCase();
+        const kind = calloutMap[rawKind] ?? "note";
+        const title = tagMatch[2]?.trim();
+        blocks.push({ type: "callout", kind, title, text: tagMatch[3].trim() });
+      } else {
+        blocks.push({ type: "callout", kind: "note", text: joined });
+      }
+      continue;
+    }
+    // Horizontal rule -> divider
+    if (/^\s*(---|\*\*\*|___)\s*$/.test(ln)) { flushP(); blocks.push({ type: "divider" }); i++; continue; }
+    // Explicit page break
+    if (/^\s*<pagebreak\s*\/?>/i.test(ln)) { flushP(); blocks.push({ type: "pagebreak" }); i++; continue; }
     if (/^#{1,3}\s+/.test(ln)) {
       flushP();
       const m = ln.match(/^(#{1,3})\s+(.*)$/)!;
       const lvl = m[1].length as 1 | 2 | 3;
       blocks.push({ type: (`h${lvl}` as "h1" | "h2" | "h3"), text: m[2] });
       i++;
+    } else if (/^\s*\d+\.\s+/.test(ln)) {
+      flushP();
+      const items: string[] = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*\d+\.\s+/, "")); i++;
+      }
+      blocks.push({ type: "numbered", items });
     } else if (/^[-*]\s+/.test(ln)) {
       flushP();
       const items: string[] = [];
