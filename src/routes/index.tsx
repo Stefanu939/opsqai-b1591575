@@ -244,10 +244,6 @@ function Assistant() {
     <section className="border-t border-border/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24 grid lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-7 order-2 lg:order-1 space-y-4">
-          <div className="card-enterprise p-2 overflow-hidden">
-            <img src={demoAssistant} alt="OPSQAI AI Assistant chat preview" loading="lazy" width={1280} height={800}
-                 className="w-full rounded-md border border-border/60" />
-          </div>
           <div className="card-enterprise p-6 sm:p-8">
             <div className="rounded-lg border border-border bg-background/40 p-4">
               <div className="text-xs text-muted-foreground">You</div>
