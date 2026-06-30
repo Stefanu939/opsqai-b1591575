@@ -53,6 +53,7 @@ import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
@@ -78,6 +79,7 @@ import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
+import { Route as AuthenticatedAppAdminEmailRouteImport } from './routes/_authenticated/app.admin.email'
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
 import { Route as AuthenticatedAppAdminCustomersRouteImport } from './routes/_authenticated/app.admin.customers'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
@@ -315,6 +317,11 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
+  id: '/api/public/contact-submit',
+  path: '/api/public/contact-submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppRequestsRoute =
   AuthenticatedAppRequestsRouteImport.update({
     id: '/requests',
@@ -460,6 +467,12 @@ const AuthenticatedAppAdminKnowledgeGapsRoute =
     path: '/admin/knowledge-gaps',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminEmailRoute =
+  AuthenticatedAppAdminEmailRouteImport.update({
+    id: '/admin/email',
+    path: '/admin/email',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminDashboardRoute =
   AuthenticatedAppAdminDashboardRouteImport.update({
     id: '/admin/dashboard',
@@ -599,6 +612,7 @@ export interface FileRoutesByFullPath {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
@@ -613,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -682,6 +697,7 @@ export interface FileRoutesByTo {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
@@ -696,6 +712,7 @@ export interface FileRoutesByTo {
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -769,6 +786,7 @@ export interface FileRoutesById {
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
@@ -783,6 +801,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/_authenticated/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/_authenticated/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -856,6 +875,7 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
+    | '/api/public/contact-submit'
     | '/lovable/email/suppression'
     | '/app/'
     | '/app/academy/analytics'
@@ -870,6 +890,7 @@ export interface FileRouteTypes {
     | '/app/admin/companies'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
+    | '/app/admin/email'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
@@ -939,6 +960,7 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
+    | '/api/public/contact-submit'
     | '/lovable/email/suppression'
     | '/app'
     | '/app/academy/analytics'
@@ -953,6 +975,7 @@ export interface FileRouteTypes {
     | '/app/admin/companies'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
+    | '/app/admin/email'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
@@ -1025,6 +1048,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
+    | '/api/public/contact-submit'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
     | '/_authenticated/app/academy/analytics'
@@ -1039,6 +1063,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/companies'
     | '/_authenticated/app/admin/customers'
     | '/_authenticated/app/admin/dashboard'
+    | '/_authenticated/app/admin/email'
     | '/_authenticated/app/admin/knowledge-gaps'
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
@@ -1088,6 +1113,7 @@ export interface RootRouteChildren {
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -1406,6 +1432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/contact-submit': {
+      id: '/api/public/contact-submit'
+      path: '/api/public/contact-submit'
+      fullPath: '/api/public/contact-submit'
+      preLoaderRoute: typeof ApiPublicContactSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/requests': {
       id: '/_authenticated/app/requests'
       path: '/requests'
@@ -1581,6 +1614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminKnowledgeGapsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/email': {
+      id: '/_authenticated/app/admin/email'
+      path: '/admin/email'
+      fullPath: '/app/admin/email'
+      preLoaderRoute: typeof AuthenticatedAppAdminEmailRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/dashboard': {
       id: '/_authenticated/app/admin/dashboard'
       path: '/admin/dashboard'
@@ -1744,6 +1784,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
   AuthenticatedAppAdminCustomersRoute: typeof AuthenticatedAppAdminCustomersRoute
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
+  AuthenticatedAppAdminEmailRoute: typeof AuthenticatedAppAdminEmailRoute
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -1780,6 +1821,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
   AuthenticatedAppAdminCustomersRoute: AuthenticatedAppAdminCustomersRoute,
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
+  AuthenticatedAppAdminEmailRoute: AuthenticatedAppAdminEmailRoute,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
   AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
@@ -1892,6 +1934,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
