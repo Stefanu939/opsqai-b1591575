@@ -1,6 +1,7 @@
-// Server-only: premium enterprise DOCX generator.
-// Cover page, running header/footer with page numbers, banded tables,
-// callout panels (shaded single-cell tables), KPI grids.
+// Server-only: premium executive DOCX generator.
+// Same API as before — only the visual presentation is elevated.
+// Editorial cover, refined typography, premium KPI grid, chip-tagged callouts,
+// horizontal-rule tables, elegant section dividers and footer chip.
 
 export type DocxBlock =
   | { type: "h1" | "h2" | "h3"; text: string }
@@ -47,15 +48,19 @@ export interface DocxSpec {
 // Calm enterprise palette (hex without #)
 const C = {
   ink: "0F1729",
+  inkSoft: "2E3851",
   sub: "50607A",
+  muted: "8C99B0",
   brand: "3A5BB8",
   brandSoft: "6A82C8",
   teal: "1F9485",
   amber: "B8862E",
   red: "B94545",
   line: "E4E7EC",
+  lineSoft: "F1F3F7",
   panel: "F7F8FA",
   panelDeep: "EDEFF4",
+  white: "FFFFFF",
 };
 
 function calloutColor(kind?: string) {
@@ -90,136 +95,205 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
   };
 
   const noBorders = {
-    top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+    top: { style: BorderStyle.NONE, size: 0, color: C.white },
+    bottom: { style: BorderStyle.NONE, size: 0, color: C.white },
+    left: { style: BorderStyle.NONE, size: 0, color: C.white },
+    right: { style: BorderStyle.NONE, size: 0, color: C.white },
   };
-  const thinBorders = {
-    top: { style: BorderStyle.SINGLE, size: 4, color: C.line },
-    bottom: { style: BorderStyle.SINGLE, size: 4, color: C.line },
-    left: { style: BorderStyle.SINGLE, size: 4, color: C.line },
-    right: { style: BorderStyle.SINGLE, size: 4, color: C.line },
-  };
+  const hRuleOnly = (color = C.line, size = 4) => ({
+    top: { style: BorderStyle.NONE, size: 0, color: C.white },
+    bottom: { style: BorderStyle.SINGLE, size, color },
+    left: { style: BorderStyle.NONE, size: 0, color: C.white },
+    right: { style: BorderStyle.NONE, size: 0, color: C.white },
+  });
 
   // ---------- Cover ----------
   const cover: any[] = [];
-  cover.push(
-    new Paragraph({
-      spacing: { before: 800, after: 200 },
-      children: [
-        new TextRun({ text: meta.brand, bold: true, color: C.brand, size: 26 }),
-        new TextRun({ text: meta.customerName ? `        ${meta.customerName}` : "", bold: true, color: C.ink, size: 22 }),
-      ],
-    }),
-    new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: C.brand, space: 1 } },
-      spacing: { after: 600 },
-    }),
-    new Paragraph({
-      spacing: { before: 1200, after: 120 },
-      children: [new TextRun({ text: meta.documentType.toUpperCase(), bold: true, color: C.brandSoft, size: 18, characterSpacing: 80 })],
-    }),
-    new Paragraph({
-      spacing: { after: 200 },
-      children: [new TextRun({ text: spec.title, bold: true, color: C.ink, size: 56 })],
-    }),
-  );
+  // Top brand bar (full width via paragraph with thick top border)
+  cover.push(new Paragraph({
+    border: { top: { style: BorderStyle.SINGLE, size: 36, color: C.brand, space: 1 } },
+    spacing: { after: 0 },
+  }));
+  cover.push(new Paragraph({
+    border: { top: { style: BorderStyle.SINGLE, size: 18, color: C.brandSoft, space: 1 } },
+    spacing: { after: 600 },
+  }));
+
+  // Brand mark row
+  cover.push(new Paragraph({
+    spacing: { before: 200, after: 100 },
+    tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
+    children: [
+      new TextRun({ text: meta.brand, bold: true, color: C.ink, size: 28 }),
+      new TextRun({ text: "   Enterprise Document", color: C.muted, size: 18 }),
+      new TextRun({ text: meta.customerName ? `\t${meta.customerName}` : "", bold: true, color: C.ink, size: 22 }),
+    ],
+  }));
+
+  // Editorial eyebrow + accent rule
+  cover.push(new Paragraph({
+    spacing: { before: 2400, after: 80 },
+    children: [new TextRun({ text: meta.documentType.toUpperCase(), bold: true, color: C.brand, size: 18, characterSpacing: 80 })],
+  }));
+  cover.push(new Paragraph({
+    spacing: { after: 280 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: C.brand, space: 1 } },
+    children: [new TextRun({ text: "", size: 2 })],
+  }));
+
+  // Title
+  cover.push(new Paragraph({
+    spacing: { after: 240, line: 480 },
+    children: [new TextRun({ text: spec.title, bold: true, color: C.ink, size: 64 })],
+  }));
   if (spec.subtitle) {
     cover.push(new Paragraph({
-      spacing: { after: 600 },
-      children: [new TextRun({ text: spec.subtitle, italics: true, color: C.sub, size: 24 })],
+      spacing: { after: 600, line: 320 },
+      children: [new TextRun({ text: spec.subtitle, italics: true, color: C.sub, size: 26 })],
     }));
   }
 
-  const coverMetaRow = (k: string, v: string) =>
-    new TableRow({
+  // Document details eyebrow
+  cover.push(new Paragraph({
+    spacing: { before: 2200, after: 120 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: C.line, space: 4 } },
+    children: [new TextRun({ text: "DOCUMENT DETAILS", bold: true, color: C.muted, size: 14, characterSpacing: 60 })],
+  }));
+
+  // Two-column meta grid
+  const coverMetaCell = (k: string, v: string, isFirst = false) =>
+    new TableCell({
+      width: { size: 50, type: WidthType.PERCENTAGE },
+      borders: noBorders,
+      margins: { top: 80, bottom: 80, left: isFirst ? 0 : 200, right: 100 },
       children: [
-        new TableCell({
-          width: { size: 28, type: WidthType.PERCENTAGE },
-          borders: noBorders,
-          children: [new Paragraph({ children: [new TextRun({ text: k.toUpperCase(), bold: true, color: C.sub, size: 16 })] })],
-        }),
-        new TableCell({
-          width: { size: 72, type: WidthType.PERCENTAGE },
-          borders: noBorders,
-          children: [new Paragraph({ children: [new TextRun({ text: v, color: C.ink, size: 20 })] })],
-        }),
+        new Paragraph({ children: [new TextRun({ text: k.toUpperCase(), bold: true, color: C.muted, size: 14, characterSpacing: 40 })] }),
+        new Paragraph({ spacing: { before: 40 }, children: [new TextRun({ text: v, bold: true, color: C.ink, size: 22 })] }),
       ],
     });
 
-  cover.push(
-    new Paragraph({ spacing: { before: 2200, after: 100 },
-      border: { top: { style: BorderStyle.SINGLE, size: 6, color: C.line, space: 1 } } }),
-    new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        coverMetaRow("Prepared for", meta.customerName || "—"),
-        coverMetaRow("Workspace", meta.workspaceName || "—"),
-        coverMetaRow("Document", `${meta.documentType} · ${meta.revision}`),
-        coverMetaRow("Version", `v${meta.version}`),
-        coverMetaRow("Date", meta.date),
-      ],
-    }),
-    // Confidentiality strip
-    new Paragraph({ spacing: { before: 400 } }),
-    new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [new TableRow({
-        children: [new TableCell({
-          shading: { type: ShadingType.SOLID, color: C.panel, fill: C.panel },
-          borders: {
-            top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-            bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-            right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-            left: { style: BorderStyle.SINGLE, size: 24, color: C.amber },
-          },
-          children: [new Paragraph({
-            spacing: { before: 100, after: 100 },
-            children: [new TextRun({ text: `  ${meta.confidentiality}`, italics: true, color: C.sub, size: 18 })],
-          })],
-        })],
+  const metaRows: Array<[string, string]> = [
+    ["Prepared for", meta.customerName || "—"],
+    ["Workspace", meta.workspaceName || "—"],
+    ["Document", `${meta.documentType} · ${meta.revision}`],
+    ["Version", `v${meta.version}`],
+    ["Date", meta.date],
+    ["", ""],
+  ];
+  const gridRows: any[] = [];
+  for (let i = 0; i < metaRows.length; i += 2) {
+    const a = metaRows[i];
+    const b = metaRows[i + 1] ?? ["", ""];
+    gridRows.push(new TableRow({
+      children: [coverMetaCell(a[0], a[1], true), coverMetaCell(b[0], b[1])],
+    }));
+  }
+  cover.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: gridRows,
+  }));
+
+  // Confidentiality strip
+  cover.push(new Paragraph({ spacing: { before: 360 } }));
+  cover.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [new TableRow({
+      children: [new TableCell({
+        shading: { type: ShadingType.SOLID, color: C.panel, fill: C.panel },
+        borders: {
+          top: { style: BorderStyle.NONE, size: 0, color: C.white },
+          bottom: { style: BorderStyle.NONE, size: 0, color: C.white },
+          right: { style: BorderStyle.NONE, size: 0, color: C.white },
+          left: { style: BorderStyle.SINGLE, size: 28, color: C.amber },
+        },
+        margins: { top: 140, bottom: 140, left: 240, right: 240 },
+        children: [
+          new Paragraph({ children: [new TextRun({ text: "CONFIDENTIAL", bold: true, color: C.amber, size: 14, characterSpacing: 60 })] }),
+          new Paragraph({ spacing: { before: 60 }, children: [new TextRun({ text: meta.confidentiality, italics: true, color: C.sub, size: 18 })] }),
+        ],
       })],
-    }),
-    new Paragraph({ children: [new PageBreak()] }),
-  );
+    })],
+  }));
+  cover.push(new Paragraph({ children: [new PageBreak()] }));
 
   // ---------- Body blocks ----------
   type Child = any;
   const body: Child[] = [];
 
-  const heading = (text: string, level: 1 | 2 | 3) =>
-    new Paragraph({
-      heading: level === 1 ? HeadingLevel.HEADING_1 : level === 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3,
-      spacing: { before: level === 1 ? 360 : 240, after: level === 1 ? 160 : 100 },
-      children: [new TextRun({ text, bold: true, color: C.ink, size: level === 1 ? 32 : level === 2 ? 24 : 20 })],
-      border: level === 1
-        ? { bottom: { style: BorderStyle.SINGLE, size: 12, color: C.brand, space: 4 } }
-        : undefined,
-    });
+  let h1Counter = 0;
+  const heading = (text: string, level: 1 | 2 | 3): any[] => {
+    if (level === 1) {
+      h1Counter++;
+      return [
+        new Paragraph({
+          spacing: { before: 480, after: 60 },
+          children: [new TextRun({ text: `SECTION ${String(h1Counter).padStart(2, "0")}`, bold: true, color: C.brand, size: 16, characterSpacing: 60 })],
+        }),
+        new Paragraph({
+          spacing: { after: 80 },
+          children: [new TextRun({ text, bold: true, color: C.ink, size: 36 })],
+        }),
+        new Paragraph({
+          spacing: { after: 240 },
+          border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: C.brand, space: 4 } },
+          children: [new TextRun({ text: "", size: 2 })],
+        }),
+      ];
+    }
+    if (level === 2) {
+      return [new Paragraph({
+        spacing: { before: 320, after: 120 },
+        children: [
+          new TextRun({ text: "▍ ", color: C.brandSoft, size: 24 }),
+          new TextRun({ text, bold: true, color: C.ink, size: 26 }),
+        ],
+      })];
+    }
+    return [new Paragraph({
+      spacing: { before: 200, after: 80 },
+      children: [new TextRun({ text, bold: true, color: C.inkSoft, size: 22 })],
+    })];
+  };
 
   const para = (text: string) =>
     new Paragraph({
-      spacing: { after: 120, line: 320 },
-      children: [new TextRun({ text, color: C.ink, size: 22 })],
+      spacing: { after: 140, line: 340 },
+      children: [new TextRun({ text, color: C.inkSoft, size: 22 })],
     });
 
   const calloutBlock = (b: Extract<DocxBlock, { type: "callout" }>) => {
     const theme = calloutColor(b.kind);
-    const inner: any[] = [
-      new Paragraph({
-        spacing: { after: 60 },
-        children: [new TextRun({ text: theme.tag, bold: true, color: theme.bar, size: 16, characterSpacing: 60 })],
-      }),
-    ];
+    // Chip-tag table inside
+    const tagRow = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: { ...noBorders, insideHorizontal: { style: BorderStyle.NONE, size: 0, color: C.white }, insideVertical: { style: BorderStyle.NONE, size: 0, color: C.white } },
+      rows: [new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 30, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.SOLID, color: theme.bar, fill: theme.bar },
+            borders: noBorders,
+            margins: { top: 40, bottom: 40, left: 120, right: 120 },
+            children: [new Paragraph({ children: [new TextRun({ text: theme.tag, bold: true, color: C.white, size: 14, characterSpacing: 60 })] })],
+          }),
+          new TableCell({
+            width: { size: 70, type: WidthType.PERCENTAGE },
+            borders: noBorders,
+            children: [new Paragraph({})],
+          }),
+        ],
+      })],
+    });
+    const inner: any[] = [tagRow, new Paragraph({ spacing: { before: 100 } })];
     if (b.title) {
       inner.push(new Paragraph({
         spacing: { after: 80 },
-        children: [new TextRun({ text: b.title, bold: true, color: C.ink, size: 22 })],
+        children: [new TextRun({ text: b.title, bold: true, color: C.ink, size: 24 })],
       }));
     }
     inner.push(new Paragraph({
-      children: [new TextRun({ text: b.text, color: C.ink, size: 20 })],
+      spacing: { line: 320 },
+      children: [new TextRun({ text: b.text, color: C.inkSoft, size: 20 })],
     }));
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
@@ -227,12 +301,12 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
         children: [new TableCell({
           shading: { type: ShadingType.SOLID, color: C.panel, fill: C.panel },
           borders: {
-            top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-            bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-            right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-            left: { style: BorderStyle.SINGLE, size: 24, color: theme.bar },
+            top: { style: BorderStyle.NONE, size: 0, color: C.white },
+            bottom: { style: BorderStyle.NONE, size: 0, color: C.white },
+            right: { style: BorderStyle.NONE, size: 0, color: C.white },
+            left: { style: BorderStyle.SINGLE, size: 28, color: theme.bar },
           },
-          margins: { top: 160, bottom: 160, left: 200, right: 200 },
+          margins: { top: 180, bottom: 200, left: 260, right: 260 },
           children: inner,
         })],
       })],
@@ -243,22 +317,26 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
     const cols = Math.min(items.length, 4);
     const cells = items.slice(0, cols).map((it) => new TableCell({
       width: { size: Math.floor(100 / cols), type: WidthType.PERCENTAGE },
-      shading: { type: ShadingType.SOLID, color: "FFFFFF", fill: "FFFFFF" },
+      shading: { type: ShadingType.SOLID, color: C.white, fill: C.white },
       borders: {
-        top: { style: BorderStyle.SINGLE, size: 24, color: C.brand },
+        top: { style: BorderStyle.SINGLE, size: 28, color: C.brand },
         bottom: { style: BorderStyle.SINGLE, size: 4, color: C.line },
         left: { style: BorderStyle.SINGLE, size: 4, color: C.line },
         right: { style: BorderStyle.SINGLE, size: 4, color: C.line },
       },
-      margins: { top: 140, bottom: 140, left: 160, right: 160 },
+      margins: { top: 220, bottom: 180, left: 200, right: 200 },
       children: [
-        new Paragraph({ children: [new TextRun({ text: it.label.toUpperCase(), bold: true, color: C.sub, size: 14, characterSpacing: 40 })] }),
-        new Paragraph({ spacing: { before: 80 }, children: [new TextRun({ text: it.value, bold: true, color: C.ink, size: 36 })] }),
-        ...(it.sub ? [new Paragraph({ spacing: { before: 40 }, children: [new TextRun({ text: it.sub, color: C.sub, size: 16 })] })] : []),
+        new Paragraph({ children: [new TextRun({ text: it.label.toUpperCase(), bold: true, color: C.muted, size: 14, characterSpacing: 60 })] }),
+        new Paragraph({ spacing: { before: 100, after: 80 }, children: [new TextRun({ text: it.value, bold: true, color: C.ink, size: 44 })] }),
+        new Paragraph({
+          border: { top: { style: BorderStyle.SINGLE, size: 4, color: C.lineSoft, space: 2 } },
+          children: [new TextRun({ text: it.sub ?? " ", color: C.sub, size: 16 })],
+        }),
       ],
     }));
     return new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
+      columnWidths: Array(cols).fill(Math.floor(9000 / cols)),
       rows: [new TableRow({ children: cells })],
     });
   };
@@ -268,73 +346,96 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
       tableHeader: true,
       children: headers.map((h) => new TableCell({
         shading: { type: ShadingType.SOLID, color: C.panelDeep, fill: C.panelDeep },
-        borders: thinBorders,
-        margins: { top: 90, bottom: 90, left: 120, right: 120 },
-        children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, color: C.ink, size: 18 })] })],
+        borders: {
+          top: { style: BorderStyle.NONE, size: 0, color: C.white },
+          bottom: { style: BorderStyle.SINGLE, size: 18, color: C.brand },
+          left: { style: BorderStyle.NONE, size: 0, color: C.white },
+          right: { style: BorderStyle.NONE, size: 0, color: C.white },
+        },
+        margins: { top: 140, bottom: 140, left: 160, right: 160 },
+        children: [new Paragraph({ children: [new TextRun({ text: (h ?? "").toUpperCase(), bold: true, color: C.ink, size: 17, characterSpacing: 40 })] })],
       })),
     });
-    const body = rows.map((r, idx) => new TableRow({
-      children: r.map((c) => new TableCell({
-        shading: idx % 2 === 0
+    const bodyRows = rows.map((r, idx) => new TableRow({
+      children: r.map((c, ci) => new TableCell({
+        shading: idx % 2 === 1
           ? { type: ShadingType.SOLID, color: C.panel, fill: C.panel }
-          : { type: ShadingType.SOLID, color: "FFFFFF", fill: "FFFFFF" },
-        borders: thinBorders,
-        margins: { top: 80, bottom: 80, left: 120, right: 120 },
-        children: [new Paragraph({ children: [new TextRun({ text: c ?? "", color: C.ink, size: 18 })] })],
+          : { type: ShadingType.SOLID, color: C.white, fill: C.white },
+        borders: hRuleOnly(C.lineSoft, 2),
+        margins: { top: 120, bottom: 120, left: 160, right: 160 },
+        children: [new Paragraph({ children: [new TextRun({ text: c ?? "", bold: ci === 0, color: ci === 0 ? C.ink : C.inkSoft, size: 19 })] })],
       })),
     }));
-    return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [header, ...body] });
+    // Closing rule row (subtle)
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.NONE, size: 0, color: C.white },
+        bottom: { style: BorderStyle.SINGLE, size: 6, color: C.line },
+        left: { style: BorderStyle.NONE, size: 0, color: C.white },
+        right: { style: BorderStyle.NONE, size: 0, color: C.white },
+        insideHorizontal: { style: BorderStyle.NONE, size: 0, color: C.white },
+        insideVertical: { style: BorderStyle.NONE, size: 0, color: C.white },
+      },
+      rows: [header, ...bodyRows],
+    });
   };
 
+  const dividerBlock = () => new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 280, after: 280 },
+    children: [new TextRun({ text: "◆", color: C.brand, size: 18 })],
+  });
+
   for (const b of spec.blocks) {
-    if (b.type === "h1") body.push(heading(b.text, 1));
-    else if (b.type === "h2") body.push(heading(b.text, 2));
-    else if (b.type === "h3") body.push(heading(b.text, 3));
+    if (b.type === "h1") body.push(...heading(b.text, 1));
+    else if (b.type === "h2") body.push(...heading(b.text, 2));
+    else if (b.type === "h3") body.push(...heading(b.text, 3));
     else if (b.type === "p") body.push(para(b.text));
     else if (b.type === "bullets") {
       for (const it of b.items) {
         body.push(new Paragraph({
           bullet: { level: 0 },
-          spacing: { after: 80, line: 300 },
-          children: [new TextRun({ text: it, color: C.ink, size: 22 })],
+          spacing: { after: 100, line: 320 },
+          children: [new TextRun({ text: it, color: C.inkSoft, size: 22 })],
         }));
       }
+      body.push(new Paragraph({ spacing: { after: 80 } }));
     } else if (b.type === "numbered") {
       b.items.forEach((it, i) => {
         body.push(new Paragraph({
-          spacing: { after: 80, line: 300 },
+          spacing: { after: 100, line: 320 },
           children: [
-            new TextRun({ text: `${i + 1}.  `, bold: true, color: C.brand, size: 22 }),
-            new TextRun({ text: it, color: C.ink, size: 22 }),
+            new TextRun({ text: `${String(i + 1).padStart(2, "0")}  `, bold: true, color: C.brand, size: 22 }),
+            new TextRun({ text: it, color: C.inkSoft, size: 22 }),
           ],
         }));
       });
+      body.push(new Paragraph({ spacing: { after: 80 } }));
     } else if (b.type === "table") {
       body.push(dataTable(b.headers, b.rows));
-      body.push(new Paragraph({ spacing: { after: 160 } }));
+      body.push(new Paragraph({ spacing: { after: 200 } }));
     } else if (b.type === "callout") {
       body.push(calloutBlock(b));
-      body.push(new Paragraph({ spacing: { after: 160 } }));
+      body.push(new Paragraph({ spacing: { after: 200 } }));
     } else if (b.type === "kpis") {
       body.push(kpiGrid(b.items));
-      body.push(new Paragraph({ spacing: { after: 200 } }));
+      body.push(new Paragraph({ spacing: { after: 240 } }));
     } else if (b.type === "divider") {
-      body.push(new Paragraph({
-        spacing: { before: 120, after: 120 },
-        border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: C.line, space: 1 } },
-      }));
+      body.push(dividerBlock());
     } else if (b.type === "pagebreak") {
       body.push(new Paragraph({ children: [new PageBreak()] }));
     }
   }
 
-  // ---------- Header / Footer (applied to body section) ----------
+  // ---------- Header / Footer ----------
   const runningHeader = new Header({
     children: [new Paragraph({
       tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
-      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: C.line, space: 4 } },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: C.line, space: 6 } },
       children: [
-        new TextRun({ text: meta.brand, bold: true, color: C.brand, size: 16 }),
+        new TextRun({ text: meta.brand, bold: true, color: C.ink, size: 16 }),
+        new TextRun({ text: `  ${meta.documentType}`, color: C.muted, size: 16 }),
         new TextRun({ text: `\t${meta.customerName || ""}`, color: C.sub, size: 16 }),
       ],
     })],
@@ -345,11 +446,11 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
         { type: AlignmentType.CENTER, position: 4500 },
         { type: AlignmentType.RIGHT, position: 9000 },
       ],
-      border: { top: { style: BorderStyle.SINGLE, size: 4, color: C.line, space: 4 } },
+      border: { top: { style: BorderStyle.SINGLE, size: 4, color: C.line, space: 6 } },
       children: [
         new TextRun({ text: meta.confidentiality, italics: true, color: C.sub, size: 14 }),
-        new TextRun({ text: `\t${meta.documentType} · v${meta.version} · ${meta.date}\t`, color: C.sub, size: 14 }),
-        new TextRun({ children: ["Page ", PageNumber.CURRENT, " / ", PageNumber.TOTAL_PAGES], bold: true, color: C.sub, size: 14 }),
+        new TextRun({ text: `\tv${meta.version} · ${meta.date}\t`, color: C.sub, size: 14 }),
+        new TextRun({ children: ["Page ", PageNumber.CURRENT, " / ", PageNumber.TOTAL_PAGES], bold: true, color: C.ink, size: 14 }),
       ],
     })],
   });
@@ -371,14 +472,12 @@ export async function generateDocx(spec: DocxSpec): Promise<Uint8Array> {
       }],
     },
     sections: [
-      // Cover section — no header/footer
       {
-        properties: { page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } },
+        properties: { page: { margin: { top: 1080, bottom: 1080, left: 1440, right: 1440 } } },
         children: cover,
       },
-      // Body section
       {
-        properties: { page: { margin: { top: 1600, bottom: 1600, left: 1440, right: 1440 } } },
+        properties: { page: { margin: { top: 1680, bottom: 1680, left: 1440, right: 1440 } } },
         headers: { default: runningHeader },
         footers: { default: runningFooter },
         children: body,
