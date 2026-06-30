@@ -68,9 +68,9 @@ function CustomersPage() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Customer Delivery Center</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Enterprise Documents</h1>
           <p className="text-muted-foreground">
-            Internal OPSQAI workspace · Platform Owner &amp; Platform Super Admin only · Manage customer records and generate enterprise delivery packages.
+            Internal OPSQAI workspace · Platform Owner &amp; Platform Super Admin only · Generate premium customer-facing enterprise deliverables.
           </p>
         </div>
         <div className="flex items-center gap-2 min-w-[280px]">
