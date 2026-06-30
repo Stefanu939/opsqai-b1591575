@@ -546,8 +546,8 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
       end: { x: cx - 14, y: ctx.y - 6 },
       thickness: 0.4, color: LINE,
     });
-    // Diamond accent
-    ctx.page.drawRectangle({ x: cx - 3, y: ctx.y - 9, width: 6, height: 6, color: BRAND, rotate: { type: "degrees", angle: 45 } as any });
+    // Brand accent dot
+    ctx.page.drawCircle({ x: cx, y: ctx.y - 6, size: 2.5, color: BRAND });
     ctx.page.drawLine({
       start: { x: cx + 14, y: ctx.y - 6 },
       end: { x: MARGIN_X + MAX_W, y: ctx.y - 6 },
