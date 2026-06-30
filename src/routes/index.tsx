@@ -8,6 +8,15 @@ import {
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
+import demoAssistant from "@/assets/demo-assistant.jpg";
+import demoAcademy from "@/assets/demo-academy.jpg";
+import demoAudit from "@/assets/demo-audit.jpg";
+import demoDocs from "@/assets/demo-docs.jpg";
+import demoAnalytics from "@/assets/demo-analytics.jpg";
+import {
+  ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, Tooltip, CartesianGrid,
+} from "recharts";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -197,7 +206,7 @@ function PlatformOverview() {
 
 function Academy() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24 grid lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-5">
           <SectionHead
@@ -209,7 +218,11 @@ function Academy() {
             <Link to="/features">See Academy features <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </Button>
         </div>
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-7 space-y-4">
+          <div className="card-enterprise p-2 overflow-hidden">
+            <img src={demoAcademy} alt="OPSQAI Academy interface preview" loading="lazy" width={1280} height={800}
+                 className="w-full rounded-md border border-border/60" />
+          </div>
           <div className="card-enterprise p-6 sm:p-8">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary">
@@ -239,7 +252,11 @@ function Assistant() {
   return (
     <section className="border-t border-border/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24 grid lg:grid-cols-12 gap-12 items-start">
-        <div className="lg:col-span-7 order-2 lg:order-1">
+        <div className="lg:col-span-7 order-2 lg:order-1 space-y-4">
+          <div className="card-enterprise p-2 overflow-hidden">
+            <img src={demoAssistant} alt="OPSQAI AI Assistant chat preview" loading="lazy" width={1280} height={800}
+                 className="w-full rounded-md border border-border/60" />
+          </div>
           <div className="card-enterprise p-6 sm:p-8">
             <div className="rounded-lg border border-border bg-background/40 p-4">
               <div className="text-xs text-muted-foreground">You</div>
@@ -284,14 +301,18 @@ function Assistant() {
 
 function Audit() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="AI Audit"
           title="A continuous AI auditor for your operational knowledge"
           intro="OPSQAI continuously analyses your knowledge base to expose gaps, conflicts and weaknesses — and recommends what to improve next."
         />
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 card-enterprise p-2 overflow-hidden">
+          <img src={demoAudit} alt="OPSQAI AI Audit dashboard preview" loading="lazy" width={1280} height={800}
+               className="w-full rounded-md border border-border/60" />
+        </div>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {AUDIT.map((a) => (
             <article key={a.title} className="card-enterprise hover-lift p-6">
               <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary">
@@ -311,12 +332,16 @@ function EnterpriseDocs() {
   return (
     <section className="border-t border-border/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24 grid lg:grid-cols-12 gap-12 items-start">
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-5 space-y-6">
           <SectionHead
             eyebrow="Enterprise Documents"
             title="Generate consulting-grade documentation in minutes"
             intro="OPSQAI produces enterprise-ready documents grounded in your customer profile, subscription and approved facts — consistent, on-brand and ready for review."
           />
+          <div className="card-enterprise p-2 overflow-hidden">
+            <img src={demoDocs} alt="OPSQAI Enterprise Documents preview" loading="lazy" width={1280} height={800}
+                 className="w-full rounded-md border border-border/60" />
+          </div>
         </div>
         <div className="lg:col-span-7">
           <div className="card-enterprise p-6 sm:p-8 grid sm:grid-cols-2 gap-3">
@@ -340,14 +365,19 @@ function EnterpriseDocs() {
 
 function Analytics() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="Analytics"
           title="Operational insight across every workspace"
           intro="Track how knowledge is used, how teams learn and where AI is creating measurable impact."
         />
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <AnalyticsCharts />
+        <div className="mt-8 card-enterprise p-2 overflow-hidden">
+          <img src={demoAnalytics} alt="OPSQAI Analytics dashboard preview" loading="lazy" width={1280} height={800}
+               className="w-full rounded-md border border-border/60" />
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {ANALYTICS.map((a) => (
             <div key={a.label} className="card-enterprise hover-lift p-5">
               <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary">
@@ -359,6 +389,83 @@ function Analytics() {
         </div>
       </div>
     </section>
+  );
+}
+
+function AnalyticsCharts() {
+  const adoption = [
+    { m: "Jan", v: 28 }, { m: "Feb", v: 41 }, { m: "Mar", v: 53 },
+    { m: "Apr", v: 62 }, { m: "May", v: 71 }, { m: "Jun", v: 84 },
+  ];
+  const usage = [
+    { d: "Mon", q: 320 }, { d: "Tue", q: 410 }, { d: "Wed", q: 478 },
+    { d: "Thu", q: 442 }, { d: "Fri", q: 510 }, { d: "Sat", q: 198 }, { d: "Sun", q: 156 },
+  ];
+  const teams = [
+    { t: "Warehouse", v: 78 }, { t: "Operations", v: 64 },
+    { t: "Quality", v: 52 }, { t: "Training", v: 47 }, { t: "Support", v: 39 },
+  ];
+  return (
+    <div className="mt-10 grid gap-4 lg:grid-cols-3">
+      <div className="card-enterprise p-5">
+        <div className="flex items-center justify-between">
+          <div className="text-[11px] tracking-wider uppercase text-muted-foreground font-medium">Adoption</div>
+          <div className="text-xs text-primary font-semibold">+56% H1</div>
+        </div>
+        <div className="mt-1 text-2xl font-display font-semibold tracking-tight">84%</div>
+        <div className="h-32 mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={adoption} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <defs>
+                <linearGradient id="gAdop" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.5} />
+                  <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="m" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} />
+              <YAxis hide />
+              <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 12 }} />
+              <Area dataKey="v" stroke="var(--color-chart-1)" strokeWidth={2} fill="url(#gAdop)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="card-enterprise p-5">
+        <div className="flex items-center justify-between">
+          <div className="text-[11px] tracking-wider uppercase text-muted-foreground font-medium">Weekly questions</div>
+          <div className="text-xs text-[var(--color-chart-2)] font-semibold">2.5k</div>
+        </div>
+        <div className="mt-1 text-2xl font-display font-semibold tracking-tight">+22%</div>
+        <div className="h-32 mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={usage} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+              <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} />
+              <YAxis hide />
+              <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 12 }} />
+              <Line dataKey="q" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="card-enterprise p-5">
+        <div className="flex items-center justify-between">
+          <div className="text-[11px] tracking-wider uppercase text-muted-foreground font-medium">Active by team</div>
+          <div className="text-xs text-muted-foreground">last 30 days</div>
+        </div>
+        <div className="mt-1 text-2xl font-display font-semibold tracking-tight">5 teams</div>
+        <div className="h-32 mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={teams} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <XAxis dataKey="t" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} />
+              <YAxis hide />
+              <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 12 }} />
+              <Bar dataKey="v" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -389,7 +496,7 @@ function WhyOpsqai() {
 
 function Trust() {
   return (
-    <section className="border-t border-border/50 bg-[oklch(0.15_0.03_240)]">
+    <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="Built for Enterprise"

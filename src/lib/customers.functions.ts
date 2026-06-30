@@ -287,17 +287,23 @@ async function enrichWithAi(args: {
     const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
     const gateway = createLovableAiGatewayProvider(key);
     const system = [
-      "You are a senior management consultant from a tier-1 strategy firm (Deloitte / PwC / KPMG / Accenture / McKinsey), writing under the OPSQAI brand.",
-      "You are producing a polished, executive-grade enterprise document delivered to a paying B2B customer in Germany.",
-      "QUALITY BAR — every output must read as if drafted by a senior consultant for an executive audience:",
-      "- Confident, precise, business tone. No filler, no marketing fluff, no AI-sounding phrasing.",
-      "- Tight paragraphs. Use bullet lists and tables for structure. Avoid empty pleasantries.",
+      "You are a senior management consultant from a tier-1 strategy firm (Deloitte / PwC / KPMG / Accenture / McKinsey), writing under the OPSQAI brand for an enterprise B2B audience in Germany.",
+      "DELIVERABLE QUALITY BAR — must read as drafted by a senior consultant for the executive sponsor:",
+      "- Confident, precise, executive tone. Every paragraph delivers value. No filler, no AI clichés, no marketing fluff.",
+      "- Strong logical flow with tight paragraphs (3-6 lines). Use tables and bullet lists for structure.",
       "- Executive-grade vocabulary in English; localize to German B2B convention where natural.",
+      "PREMIUM ENTERPRISE BLOCKS — use them where they add value (not as decoration):",
+      "- KPI cards: ```::: kpis\\nLabel | Value | Sub\\n…\\n:::```",
+      "- Callouts: `> [Recommendation] …`, `> [Risk] …`, `> [Opportunity] …`, `> [Key Takeaway] …`, `> [Best Practice] …`, `> [Executive Note] …`.",
+      "- Horizontal rule `---` to separate major narrative pivots.",
+      "OUTPUT FORMAT:",
+      "- Do NOT include a cover page, document title or metadata header — those are auto-generated.",
+      "- Start directly with the first H1 (e.g. `# Executive Summary`). Use H2 for subsections.",
       "ABSOLUTE GROUNDING RULES — non-negotiable:",
       "1. Use ONLY facts from the provided JSON sources: PROFILE, PLAN, OPSQAI_FACTS.",
       "2. NEVER invent company info, contacts, prices, features, dates, legal clauses or technical specs.",
       "3. If a field is missing, write **[MISSING: <field>]** verbatim — do not guess, do not paraphrase a guess.",
-      "4. Keep the structure of the skeleton intact. You may rewrite prose for clarity and add short paragraphs that contextualize values already present in the sources.",
+      "4. Keep the structure of the skeleton intact. You may rewrite prose for clarity and add concise paragraphs that contextualize existing facts.",
       "5. Preserve all markdown tables and bullet points. Do NOT remove sections.",
       "6. For Service Agreement / DPA / SLA / contracts: do not invent legal clauses or numerical SLAs. Mark missing items explicitly.",
       "7. Output ONLY the final markdown document — no commentary, no code fences, no meta text.",
@@ -517,7 +523,31 @@ function markdownToBlocks(md: string) {
   type Block =
     | { type: "h1" | "h2" | "h3" | "p"; text: string }
     | { type: "bullets"; items: string[] }
-    | { type: "table"; headers: string[]; rows: string[][] };
+    | { type: "numbered"; items: string[] }
+    | { type: "table"; headers: string[]; rows: string[][] }
+    | { type: "callout"; kind?: "recommendation"|"risk"|"opportunity"|"key-takeaway"|"best-practice"|"note"|"executive"; title?: string; text: string }
+    | { type: "kpis"; items: Array<{ label: string; value: string; sub?: string }> }
+    | { type: "divider" }
+    | { type: "pagebreak" };
+
+  type CalloutKind = "recommendation"|"risk"|"opportunity"|"key-takeaway"|"best-practice"|"note"|"executive";
+  const calloutMap: Record<string, CalloutKind> = {
+    recommendation: "recommendation",
+    recommendations: "recommendation",
+    risk: "risk",
+    risks: "risk",
+    opportunity: "opportunity",
+    opportunities: "opportunity",
+    "key takeaway": "key-takeaway",
+    "key-takeaway": "key-takeaway",
+    takeaway: "key-takeaway",
+    "best practice": "best-practice",
+    "best-practice": "best-practice",
+    note: "note",
+    executive: "executive",
+    "executive note": "executive",
+  };
+
   const lines = md.split(/\r?\n/);
   const blocks: Block[] = [];
   let buf: string[] = [];
@@ -525,12 +555,71 @@ function markdownToBlocks(md: string) {
   let i = 0;
   while (i < lines.length) {
     const ln = lines[i];
+    // Fenced callout: ::: kind ... :::  or ::: kind | Title ... :::
+    const fenceOpen = ln.match(/^:::\s*(?:callout\s+)?([a-zA-Z][\w \-]*)(?:\s*\|\s*(.+))?\s*$/);
+    if (fenceOpen) {
+      flushP();
+      const rawKind = fenceOpen[1].trim().toLowerCase();
+      const title = fenceOpen[2]?.trim();
+      const kind = calloutMap[rawKind] ?? "note";
+      i++;
+      const inner: string[] = [];
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) { inner.push(lines[i]); i++; }
+      if (i < lines.length) i++;
+      blocks.push({ type: "callout", kind, title, text: inner.join(" ").replace(/\s+/g, " ").trim() });
+      continue;
+    }
+    // KPI block: ::: kpis  rows of `Label | Value | Sub`
+    if (/^:::\s*kpis?\s*$/i.test(ln)) {
+      flushP();
+      i++;
+      const items: Array<{ label: string; value: string; sub?: string }> = [];
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
+        const row = lines[i].split("|").map((s) => s.trim());
+        if (row[0] && row[1]) items.push({ label: row[0], value: row[1], sub: row[2] || undefined });
+        i++;
+      }
+      if (i < lines.length) i++;
+      if (items.length) blocks.push({ type: "kpis", items });
+      continue;
+    }
+    // Blockquote callout: > [Kind] text  (or > [Kind: Title] text)
+    if (/^>\s*/.test(ln)) {
+      flushP();
+      const quoted: string[] = [];
+      while (i < lines.length && /^>\s*/.test(lines[i])) {
+        quoted.push(lines[i].replace(/^>\s?/, ""));
+        i++;
+      }
+      const joined = quoted.join(" ").trim();
+      const tagMatch = joined.match(/^\[\s*([a-zA-Z][\w \-]*?)(?:\s*:\s*([^\]]+))?\s*\]\s*(.*)$/);
+      if (tagMatch) {
+        const rawKind = tagMatch[1].trim().toLowerCase();
+        const kind = calloutMap[rawKind] ?? "note";
+        const title = tagMatch[2]?.trim();
+        blocks.push({ type: "callout", kind, title, text: tagMatch[3].trim() });
+      } else {
+        blocks.push({ type: "callout", kind: "note", text: joined });
+      }
+      continue;
+    }
+    // Horizontal rule -> divider
+    if (/^\s*(---|\*\*\*|___)\s*$/.test(ln)) { flushP(); blocks.push({ type: "divider" }); i++; continue; }
+    // Explicit page break
+    if (/^\s*<pagebreak\s*\/?>/i.test(ln)) { flushP(); blocks.push({ type: "pagebreak" }); i++; continue; }
     if (/^#{1,3}\s+/.test(ln)) {
       flushP();
       const m = ln.match(/^(#{1,3})\s+(.*)$/)!;
       const lvl = m[1].length as 1 | 2 | 3;
       blocks.push({ type: (`h${lvl}` as "h1" | "h2" | "h3"), text: m[2] });
       i++;
+    } else if (/^\s*\d+\.\s+/.test(ln)) {
+      flushP();
+      const items: string[] = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*\d+\.\s+/, "")); i++;
+      }
+      blocks.push({ type: "numbered", items });
     } else if (/^[-*]\s+/.test(ln)) {
       flushP();
       const items: string[] = [];
@@ -575,7 +664,18 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
       .select("id, company_id, title, markdown, version, doc_type").eq("id", data.id).maybeSingle();
     if (!doc) throw new Error("Document not found");
     const { data: company } = await supabaseAdmin.from("companies").select("name").eq("id", doc.company_id).maybeSingle();
-    const subtitle = `${company?.name ?? ""} · v${doc.version} · ${new Date().toISOString().slice(0,10)}`;
+    const today = new Date().toISOString().slice(0,10);
+    const subtitle = `${company?.name ?? ""} · v${doc.version} · ${today}`;
+    const meta = {
+      customerName: company?.name ?? "",
+      workspaceName: company?.name ?? "",
+      documentType: TEMPLATES[doc.doc_type as TemplateKey]?.label ?? (doc.doc_type ?? "Enterprise Document"),
+      version: String(doc.version ?? "1.0"),
+      date: today,
+      confidentiality: "Confidential — for the named recipient only",
+      brand: "OPSQAI",
+      revision: `R${doc.version ?? 1}`,
+    };
     let bytes: Uint8Array;
     let mime: string;
     let ext: string;
@@ -586,12 +686,63 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
       const blocks = markdownToBlocks(doc.markdown);
       const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!));
       const body = blocks.map((b) => {
-        if (b.type === "p") return `<p>${esc(b.text)}</p>`;
+        if (b.type === "p" || b.type === "h1" || b.type === "h2" || b.type === "h3") return `<${b.type}>${esc(b.text)}</${b.type}>`;
         if (b.type === "bullets") return `<ul>${b.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
+        if (b.type === "numbered") return `<ol>${b.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ol>`;
         if (b.type === "table") return `<table><thead><tr>${b.headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-        return `<${b.type}>${esc(b.text)}</${b.type}>`;
+        if (b.type === "callout") return `<aside class="callout c-${b.kind ?? "note"}"><div class="ctag">${esc((b.kind ?? "note").replace("-"," ").toUpperCase())}</div>${b.title ? `<h4>${esc(b.title)}</h4>` : ""}<p>${esc(b.text)}</p></aside>`;
+        if (b.type === "kpis") return `<div class="kpis">${b.items.map((k) => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div>${k.sub ? `<div class="kpi-sub">${esc(k.sub)}</div>` : ""}</div>`).join("")}</div>`;
+        if (b.type === "divider") return `<hr/>`;
+        return "";
       }).join("\n");
-      const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(doc.title)}</title><style>body{font-family:Inter,system-ui,sans-serif;max-width:780px;margin:40px auto;padding:0 24px;color:#0F172A;line-height:1.55}h1,h2,h3{font-family:'Space Grotesk',Inter,sans-serif;color:#0F172A}h1{border-bottom:2px solid #2563EB;padding-bottom:8px}h2{color:#2563EB;margin-top:32px}table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid #e2e8f0;padding:8px 12px;text-align:left;font-size:14px}th{background:#f8fafc}footer{margin-top:48px;border-top:1px solid #e2e8f0;padding-top:12px;font-size:12px;color:#64748b}</style></head><body><header><small>OPSQAI · ${esc(subtitle)}</small></header>${body}<footer>Generated by OPSQAI Customer Workspace Manager.</footer></body></html>`;
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(doc.title)}</title><style>
+        :root{--ink:#0F1729;--sub:#4B5772;--brand:#3358D4;--brand2:#5B7CE6;--teal:#0E9F92;--amber:#C98A2B;--red:#C93F3F;--line:#E4E7EC;--panel:#F7F8FA}
+        body{font-family:Inter,system-ui,sans-serif;max-width:820px;margin:0 auto;padding:48px 32px;color:var(--ink);line-height:1.6;background:#fff}
+        header.cover{padding:48px 0 32px;border-bottom:3px solid var(--brand);margin-bottom:48px}
+        header.cover .brand{font-weight:700;color:var(--brand);letter-spacing:.04em}
+        header.cover h1{font-family:'Space Grotesk',Inter,sans-serif;font-size:42px;margin:24px 0 8px;line-height:1.1}
+        header.cover .meta{color:var(--sub);font-size:13px;margin-top:24px;display:grid;grid-template-columns:160px 1fr;row-gap:6px}
+        header.cover .meta b{color:var(--sub);font-size:11px;letter-spacing:.08em}
+        h1,h2,h3,h4{font-family:'Space Grotesk',Inter,sans-serif;color:var(--ink)}
+        h1{font-size:26px;border-bottom:2px solid var(--brand);padding-bottom:8px;margin-top:48px}
+        h2{font-size:19px;color:var(--ink);margin-top:32px}
+        h3{font-size:15px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-top:24px}
+        table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}
+        th,td{border:1px solid var(--line);padding:10px 12px;text-align:left}
+        th{background:#EDEFF4;font-weight:600}
+        tbody tr:nth-child(odd){background:var(--panel)}
+        .callout{background:var(--panel);border-left:4px solid var(--sub);padding:14px 18px;margin:18px 0;border-radius:4px}
+        .callout .ctag{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--sub);margin-bottom:6px}
+        .callout h4{margin:0 0 6px}
+        .callout p{margin:0;color:var(--ink)}
+        .c-recommendation{border-color:var(--brand)} .c-recommendation .ctag{color:var(--brand)}
+        .c-risk{border-color:var(--red)} .c-risk .ctag{color:var(--red)}
+        .c-opportunity,.c-best-practice{border-color:var(--teal)} .c-opportunity .ctag,.c-best-practice .ctag{color:var(--teal)}
+        .c-key-takeaway{border-color:var(--brand2)} .c-key-takeaway .ctag{color:var(--brand2)}
+        .c-executive{border-color:var(--ink)} .c-executive .ctag{color:var(--ink)}
+        .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:20px 0}
+        .kpi{background:#fff;border:1px solid var(--line);border-top:3px solid var(--brand);padding:16px;border-radius:6px}
+        .kpi-label{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--sub)}
+        .kpi-value{font-family:'Space Grotesk',Inter,sans-serif;font-size:26px;font-weight:700;margin-top:6px}
+        .kpi-sub{font-size:11px;color:var(--sub);margin-top:4px}
+        hr{border:none;border-top:1px solid var(--line);margin:24px 0}
+        footer{margin-top:64px;border-top:1px solid var(--line);padding-top:14px;font-size:11px;color:var(--sub);display:flex;justify-content:space-between}
+      </style></head><body>
+        <header class="cover">
+          <div class="brand">${esc(meta.brand)} · ${esc(meta.customerName)}</div>
+          <h1>${esc(doc.title)}</h1>
+          <div style="color:var(--sub);font-size:13px">${esc(meta.documentType)}</div>
+          <div class="meta">
+            <b>PREPARED FOR</b><span>${esc(meta.customerName || "—")}</span>
+            <b>WORKSPACE</b><span>${esc(meta.workspaceName || "—")}</span>
+            <b>VERSION</b><span>v${esc(meta.version)} · ${esc(meta.revision)}</span>
+            <b>DATE</b><span>${esc(meta.date)}</span>
+            <b>CONFIDENTIALITY</b><span><em>${esc(meta.confidentiality)}</em></span>
+          </div>
+        </header>
+        ${body}
+        <footer><span>${esc(meta.confidentiality)}</span><span>${esc(meta.brand)} · ${esc(meta.documentType)} · v${esc(meta.version)}</span></footer>
+      </body></html>`;
       bytes = new TextEncoder().encode(html);
       mime = "text/html"; ext = "html";
     } else if (data.format === "docx") {
@@ -599,25 +750,16 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
       bytes = await generateDocx({
         title: doc.title, subtitle, author: "OPSQAI",
         blocks: markdownToBlocks(doc.markdown) as any,
+        meta,
       });
       mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"; ext = "docx";
     } else {
       const { generatePdf } = await import("@/lib/generators/pdf.server");
-      const blocks = markdownToBlocks(doc.markdown);
-      const sections: { heading?: string; paragraphs: string[] }[] = [];
-      let current: { heading?: string; paragraphs: string[] } = { heading: undefined, paragraphs: [] };
-      for (const b of blocks) {
-        if (b.type === "h1" || b.type === "h2" || b.type === "h3") {
-          if (current.heading || current.paragraphs.length) sections.push(current);
-          current = { heading: b.text, paragraphs: [] };
-        } else if (b.type === "p") current.paragraphs.push(b.text);
-        else if (b.type === "bullets") current.paragraphs.push(b.items.map((i) => `• ${i}`).join("\n"));
-        else if (b.type === "table") {
-          current.paragraphs.push([b.headers.join(" | "), ...b.rows.map((r) => r.join(" | "))].join("\n"));
-        }
-      }
-      if (current.heading || current.paragraphs.length) sections.push(current);
-      bytes = await generatePdf({ title: doc.title, subtitle, author: "OPSQAI", sections });
+      bytes = await generatePdf({
+        title: doc.title, subtitle, author: "OPSQAI",
+        blocks: markdownToBlocks(doc.markdown) as any,
+        meta,
+      });
       mime = "application/pdf"; ext = "pdf";
     }
 
@@ -685,24 +827,25 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
     const { generatePdf } = await import("@/lib/generators/pdf.server");
     const { zipSync, strToU8 } = await import("fflate");
     const files: Record<string, Uint8Array> = {};
+    const today = new Date().toISOString().slice(0, 10);
     for (const d of filtered) {
       const blocks = markdownToBlocks(d.markdown ?? "");
-      const sections: { heading?: string; paragraphs: string[] }[] = [];
-      let current: { heading?: string; paragraphs: string[] } = { heading: undefined, paragraphs: [] };
-      for (const b of blocks) {
-        if (b.type === "h1" || b.type === "h2" || b.type === "h3") {
-          if (current.heading || current.paragraphs.length) sections.push(current);
-          current = { heading: b.text, paragraphs: [] };
-        } else if (b.type === "p") current.paragraphs.push(b.text);
-        else if (b.type === "bullets") current.paragraphs.push(b.items.map((i) => `• ${i}`).join("\n"));
-        else if (b.type === "table") current.paragraphs.push([b.headers.join(" | "), ...b.rows.map((r) => r.join(" | "))].join("\n"));
-      }
-      if (current.heading || current.paragraphs.length) sections.push(current);
+      const docType = TEMPLATES[d.doc_type as TemplateKey]?.label ?? (d.doc_type ?? "Enterprise Document");
       const pdf = await generatePdf({
         title: d.title,
         subtitle: `${company?.name ?? ""} · v${d.version}`,
         author: "OPSQAI",
-        sections,
+        blocks: blocks as any,
+        meta: {
+          customerName: company?.name ?? "",
+          workspaceName: company?.name ?? "",
+          documentType: docType,
+          version: String(d.version ?? "1.0"),
+          date: today,
+          confidentiality: "Confidential — for the named recipient only",
+          brand: "OPSQAI",
+          revision: `R${d.version ?? 1}`,
+        },
       });
       const folder = ((d.metadata as any)?.category ?? "Custom Documents").replace(/[^\w -]+/g, "_");
       const safe = String(d.title).replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80);

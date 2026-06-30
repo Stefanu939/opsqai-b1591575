@@ -1,117 +1,119 @@
-## Customer Workspace Manager — Simplification & AI Document Automation
 
-Scope: keep all existing tabs, components, colors, navigation, and exports exactly as they are. Layer the new behavior on top of the current screens.
+## Scope (3 things, no new modules / routes / sidebars)
 
----
+1. Rename existing **Customer Delivery Center** → **Enterprise Documents** (label only; same route `/app/admin/customers`, same workflow, same files).
+2. Upgrade document **generation quality** (PDF + DOCX) so exports look like consulting deliverables, plus tighten the AI writing prompt to match the reference PDF you'll upload.
+3. **Recalibrate the color system** (softer enterprise blue, calmer dark surfaces) across the entire app + landing.
+4. On the **existing landing page only**, add charts and a small demo screenshot under each module sub-title — keep current structure.
 
-### 1. Access control
-
-`src/lib/authorization.ts` → extend `requirePlatformAdmin` (or add `requirePlatformOrWorkspaceAdmin`) to also accept `workspace_owner`. Same gate is applied:
-
-- in the route `beforeLoad` of `app.admin.customers.tsx`
-- in every customer server function
-- on the sidebar entry in `app/app-shell.tsx`
-
-Roles `admin`, `manager`, `supervisor`, `operator` keep being denied.
+Out of scope: new routes, sidebar redesign, layout changes, typography changes, new templates.
 
 ---
 
-### 2. Simplified Profile tab (same UI primitives)
+## 1. Rename to "Enterprise Documents"
 
-Replace `GENERAL_FIELDS`, `COMMERCIAL_FIELDS`, `IMPLEMENTATION_FIELDS` content with a slim card layout — same `Card` / `Input` / `Select` components, just fewer fields:
+Touch only labels and copy. No route, file, or function renames.
 
-- **Company**: companyName (read-only from `companies.name`), legalName, registrationNumber, vatNumber, address, country
-- **Contact**: contactPerson, email, phone, website
-- **Workspace**: workspaceName, language, timezone
-- **Subscription**: single `Select` → Pilot / Standard / Business / Enterprise
-
-All legacy `commercial.*`, `implementation.*`, `ai_config.*`, `sla.*` JSONB stays in the DB (no destructive migration); the simplified UI just stops writing/displaying them, and the document generator stops requiring them.
+- `src/routes/_authenticated/app.admin.customers.tsx` — page title, breadcrumb, header, page `<head>` title.
+- Sidebar entry in `src/components/app/app-shell.tsx` — change label "Customer Delivery Center" → "Enterprise Documents". Icon, order, route untouched.
+- `src/i18n/index.tsx` — update the EN / DE / RO strings for that menu item and page heading.
+- Marketing site "Enterprise Documents" module card stays; just confirm copy alignment.
 
 ---
 
-### 3. Subscription engine
+## 2. Premium document generation
 
-New file `src/lib/subscription-plans.ts`:
+Keep workflow exactly: pick workspace → pick type → generate → preview → export.
 
-```ts
-export const SUBSCRIPTION_PLANS = {
-  pilot:      { label: "Pilot",      maxUsers: 25,   storageGB: 5,   academy: false, aiFeatures: "basic",    analytics: "basic",    support: "email",          modules: [...] },
-  standard:   { label: "Standard",   maxUsers: 100,  storageGB: 25,  academy: true,  aiFeatures: "standard", analytics: "standard", support: "business hours", modules: [...] },
-  business:   { label: "Business",   maxUsers: 500,  storageGB: 100, academy: true,  aiFeatures: "advanced", analytics: "advanced", support: "24/5",           modules: [...] },
-  enterprise: { label: "Enterprise", maxUsers: null, storageGB: 500, academy: true,  aiFeatures: "full",     analytics: "full",     support: "24/7 + CSM",     modules: [...] },
-}
-```
+### 2a. AI writing prompt (`src/routes/api/customer-writer.ts`)
+- Tighten the system prompt: enforce consulting structure (Cover meta → Exec Summary → TOC sections → Key Takeaways → Recommendations → Risks/Opportunities → Next Steps).
+- Forbid AI clichés ("In today's fast-paced world…", "leverage", "unlock"), forbid invented numbers; require `[to be confirmed]` for unknowns.
+- Emit structured markdown blocks the renderer understands:
+  - `## Section` headings
+  - `> [!kpi] Label | Value | Sub` for KPI cards
+  - `> [!callout:recommendation|risk|opportunity|takeaway|note]` panels
+  - `| col | col |` tables
+  - `- [ ] step — owner — date` for timeline/roadmap rows
+- Enforce per-template length budgets (the ones you listed: 2–4, 4–8, 3–6 pages…).
+- Output `# Document Title` on line 1 + a YAML-ish front matter block with `subtitle`, `confidentiality`, `version`, `revision`, `generated_at`, `workspace`, `customer_logo_url`.
 
-When the plan dropdown changes, `upsertCustomerProfile` also writes the derived values into `customer_profiles.commercial` and updates `companies.subscription_plan` + `max_users`. Feature matrix tab keeps working but is now read-only-by-default seeded from `SUBSCRIPTION_PLANS[plan].modules`.
+### 2b. PDF generator (`src/lib/generators/pdf.server.ts`)
+Rewrite as a real layout engine on `pdf-lib`, still WinAnsi-safe:
+- **Cover page**: OPSQAI mark + customer logo (if provided), title, subtitle, customer name, workspace, confidentiality stripe, version / revision / date block, accent rule.
+- **Page chrome**: running header (doc title left, customer right), running footer (page x / y, confidentiality, OPSQAI © year), 1pt hairline rules in accent.
+- **Auto Table of Contents** page built from collected H2/H3 with dot leaders + page numbers (two-pass layout).
+- **Typography hierarchy**: H1/H2/H3 sizes, lead paragraph, body, caption; consistent 1.45 line height; first-line spacing rules; widow/orphan guard (move heading to next page if <3 body lines follow).
+- **Markdown parser** (lightweight, no new deps) that understands the structured blocks above and renders:
+  - KPI cards (rounded rect, big value, small label, accent bar)
+  - Callout panels (left accent bar, soft tinted fill, icon glyph)
+  - Tables with zebra rows, header band, cell padding, column auto-sizing, page-break across rows
+  - Timeline (dot + connector + date + owner)
+  - Section dividers (thin rule + small caps label)
+- **Export verification pass**: detect empty trailing pages, orphan headings, oversize images; drop empty pages, push orphans, downscale rasters > page width.
 
----
+### 2c. DOCX generator (`src/lib/generators/docx.server.ts`)
+Apply the docx skill conventions:
+- Explicit US Letter page size, 1" margins, Arial 11 default.
+- Override `Heading1/2/3` with `outlineLevel` so Word/Google Docs generate the TOC.
+- Real numbered/bulleted lists via `LevelFormat`, never unicode bullets.
+- Cover paragraph block (title, subtitle, customer, workspace, version, date, confidentiality).
+- Header w/ doc title + footer w/ page numbers via `PageNumber.CURRENT`.
+- Tables built with dual widths (`columnWidths` + per-cell `width` in DXA), `ShadingType.CLEAR` for shaded header rows, hairline borders.
+- KPI / callout blocks rendered as styled single-row tables with colored shading + left border accent.
+- Insert `TableOfContents` after cover.
+- Use the same markdown→blocks parser as PDF (extract to `src/lib/generators/doc-blocks.ts`) so both formats stay consistent.
 
-### 4. Documents tab — keep current layout
-
-No structural change to `DocumentsTab`. Add three things inline using the same buttons/cards that already exist:
-
-- A grouping helper that splits the existing document list into folders by `metadata.category` — rendered as collapsible `Card` sections labeled **Commercial / Technical / Legal / Compliance / Customer Success / Custom Documents**.
-- A `Generate All Standard Documents` button next to the existing **Generate** button (`Wand2` icon, same `Button` component).
-- Two new buttons next to the existing per-doc Export menu: **Download Folder** and **Download All (.zip)**.
-
----
-
-### 5. Intelligent, grounded document generation
-
-Rewrite `generateCustomerDocument` in `src/lib/customers.functions.ts`:
-
-1. Load profile + company + `SUBSCRIPTION_PLANS[plan]` + a curated `OPSQAI_FACTS` block (product description, branding, feature catalog summary, official template skeleton). These four are the **only** sources the AI may use.
-2. Run the template's `build(ctx)` as a deterministic skeleton.
-3. Call Lovable AI Gateway (`google/gemini-2.5-flash`) with a strict system prompt:
-   - "Use ONLY the provided JSON sources. Never invent company info, contacts, features, prices or specifications. If a field is missing, write `**[MISSING: <field>]**` instead of guessing."
-   - Input = `{ profile, plan, opsqai_facts, template_skeleton }`.
-4. Store both the AI markdown and the resolved source set in `metadata.sources` for auditability.
-5. Add `metadata.missing_fields[]` derived from `[MISSING: …]` matches so the UI can show a clear "Missing data" badge.
-
-Determinism: temperature 0.2, deterministic prompt, identical `(profile, plan)` ⇒ identical output (verified by hashing inputs and storing the hash in `metadata.input_hash`; we skip regeneration if hash matches and content exists).
-
-New server fn `generateAllStandardDocuments({ company_id })` — iterates the recommended template list for the active subscription and calls the same path. Returns the list of created/updated doc ids.
-
----
-
-### 6. Document folders & bulk download
-
-- Existing `metadata.category` already exists; just normalize to the six folder names above. Manual uploads land in `Custom Documents`.
-- New server fn `downloadCustomerDocuments({ company_id, category? })`:
-  - Renders each doc as PDF via the existing `generatePdf` pipeline.
-  - Zips with `fflate` (already on the Worker — pure JS, edge-safe).
-  - Returns base64 + mime to the client (same Blob-URL pattern we already use to dodge the ad-blocker on `*.supabase.co`).
+### 2d. Shared
+- New helper `src/lib/generators/doc-blocks.ts` — parse the AI markdown into a typed block list (`cover`, `toc`, `h2`, `para`, `kpi`, `callout`, `table`, `timeline`, `divider`, `pagebreak`).
+- Pass customer metadata (name, logo URL from `customer_profiles`, workspace name, subscription, confidentiality) from `customers.functions.ts` into the generator alongside the markdown — no schema change.
+- Preview pane in `app.admin.customers.tsx` reuses the same block list to render an on-screen preview that matches the export.
 
 ---
 
-### 7. "Needs Update" auto-flagging
+## 3. Calmer color system (palette only)
 
-Migration:
+Single change point: `src/styles.css` `:root` and `.dark` blocks. No component edits.
 
-- Add `customer_documents.needs_update boolean default false`.
-- Add `customer_documents.input_hash text`.
-- Trigger `customer_profile_dirty_tracker` on `customer_profiles` UPDATE: when `general.legalName`, `general.address`, `general.registrationNumber`, `general.vatNumber`, contact person or `commercial.subscriptionPlan` change, set `needs_update = true` on every document for that company.
-- Trigger on `companies` UPDATE for `name` → same effect.
+**Light:**
+- `--primary` `#2563eb` → `#3358D4` (deeper, lower-chroma indigo-blue)
+- `--primary-glow` `#3b82f6` → `#5B7CE6`
+- `--ring` matches primary at 35% opacity feel
+- `--accent-foreground` softened; `--signal` teal `#14b8a6` → `#0E9F92`
+- `--chart-1..5` re-tuned to muted enterprise set (slate-blue, teal, indigo, emerald-muted, amber-muted)
+- `--border` slightly warmer (`#E4E7EC`)
 
-UI: in `DocumentsTab` the existing row shows a small "Needs Update" `Badge` when set, plus a per-row **Regenerate** action and a top-level **Regenerate All** button (both reuse the existing generate flow, which clears `needs_update` on success).
+**Dark:**
+- Background `#020617` → `#0B0E14` (warmer, softer black)
+- Surface / card raised to `#11151D` with a +1 step elevation token
+- `--primary` in dark → `#5B7CE6` (less neon, AA on dark)
+- `--ring` reduced opacity / desaturated
+- Borders `#1E2330` instead of pure slate-900
+
+All semantic tokens (`bg-primary`, `text-primary`, sidebar, charts, focus ring, hover/active) inherit automatically — no component-level edits needed.
+
+Add a short comment block at the top of the palette documenting the "Notion / Linear / Stripe" intent so future edits keep it calm.
 
 ---
 
-### 8. Verification
+## 4. Landing page additions (existing `src/routes/index.tsx` only)
 
-- `bun run build` to ensure the new code typechecks and the bundle stays Worker-compatible.
-- Playwright as `baristefan5@gmail.com` (`LOVABLE_BROWSER_AUTH_STATUS=injected`): navigate to `/app/admin/customers`, pick a workspace, run **Generate All Standard Documents**, then click **Export PDF** on one document and assert the Blob URL download works without error and without any `*.supabase.co` request.
+Keep current section order and structure. Two additions per existing module card / sub-section:
+
+- A small **demo image** (192–240px tall, rounded, subtle border + shadow) directly under each module's sub-title, so a visitor instantly sees what the module looks like. Images generated via `imagegen` (one per module: AI Assistant, KB, Academy, SOP Generator, AI Audit, Health, Analytics, Workspaces, Enterprise Documents, Brand Center, Support) and stored under `src/assets/` then externalized via `lovable-assets`.
+- Lightweight **charts** in the Analytics, AI Audit, and Health sections using `recharts` (already in the stack via shadcn chart) — a small line chart (knowledge health trend), a bar chart (questions answered vs gaps), and a radial/score gauge (audit score). Static demo data, no backend calls.
+
+No new sections, no layout changes, no nav changes.
 
 ---
 
-### Technical notes
+## Technical details
 
-- No destructive schema changes; legacy JSONB columns are kept.
-- All new fns are `requireSupabaseAuth` + `requirePlatformAdmin`-equivalent.
-- `fflate` is pure JS (Worker-safe). PDF generation reuses the already-hardened `generatePdf` (sanitized for WinAnsi). Downloads stream through Blob URLs on the app origin.
+- All work stays in: `src/styles.css`, `src/routes/_authenticated/app.admin.customers.tsx`, `src/components/app/app-shell.tsx`, `src/i18n/index.tsx`, `src/lib/generators/pdf.server.ts`, `src/lib/generators/docx.server.ts`, `src/lib/generators/doc-blocks.ts` (new shared parser), `src/lib/customers.functions.ts` (only to pass extra metadata into the generator call), `src/routes/api/customer-writer.ts` (prompt only), `src/routes/index.tsx` (+ generated assets).
+- No DB migrations. No new routes. No new env vars. No sidebar restructure.
+- The reference PDF you upload next will guide cover, typography weights, KPI card proportions, table styling, and callout colors — used as visual inspiration only; no text copied.
 
-### Out of scope (explicit)
+---
 
-- No UI redesign, color/typography/spacing changes, navigation changes.
-- No removal of existing templates, tabs, or export formats.
-- No external CRM/e-sign integrations.
+## Open question
+
+You mentioned uploading a reference PDF — please attach it before I start so I can calibrate the cover, KPI cards, callout panels, and table style to match its visual quality. I'll begin implementation as soon as it's attached (or you can tell me to proceed without it and I'll use a Stripe/Linear/McKinsey-style baseline).
