@@ -501,6 +501,41 @@ export const deleteCustomerDocument = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteAllCustomerDocuments = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => CompanyOnly.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireCustomerManagerAccess(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error: selErr } = await supabaseAdmin
+      .from("customer_documents").select("id").eq("company_id", data.company_id);
+    if (selErr) throw new Error(selErr.message);
+    const ids = (rows ?? []).map((r: any) => r.id);
+    if (!ids.length) return { ok: true, deleted: 0 };
+    const { error } = await supabaseAdmin.from("customer_documents").delete().eq("company_id", data.company_id);
+    if (error) throw new Error(error.message);
+    // Best-effort: purge generated exports for this customer from storage.
+    try {
+      const { data: files } = await supabaseAdmin.storage.from("customer-exports").list(data.company_id, { limit: 1000 });
+      const paths: string[] = [];
+      for (const docDir of files ?? []) {
+        const { data: inner } = await supabaseAdmin.storage
+          .from("customer-exports").list(`${data.company_id}/${docDir.name}`, { limit: 1000 });
+        for (const f of inner ?? []) paths.push(`${data.company_id}/${docDir.name}/${f.name}`);
+      }
+      if (paths.length) await supabaseAdmin.storage.from("customer-exports").remove(paths);
+    } catch (e) {
+      console.warn("[deleteAllCustomerDocuments] storage purge failed", e);
+    }
+    await supabaseAdmin.from("customer_timeline").insert({
+      company_id: data.company_id, event_type: "documents_purged",
+      title: `Deleted ${ids.length} generated documents`,
+      payload: { count: ids.length },
+      created_by: context.userId,
+    });
+    return { ok: true, deleted: ids.length };
+  });
+
 export const restoreCustomerDocumentVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ document_id: Uuid, version_id: Uuid }).parse(d))
