@@ -101,6 +101,25 @@ export const createInternalRequest = createServerFn({ method: "POST" })
       priority: data.priority ?? "normal",
     }).select("id").single();
     if (error) throw new Error(error.message);
+
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: requester } = await supabaseAdmin.from("profiles").select("email, first_name, full_name").eq("id", context.userId).maybeSingle();
+      if (requester && (requester as { email?: string }).email) {
+        const { dispatchTransactionalEmail } = await import("@/lib/email/dispatch.server");
+        await dispatchTransactionalEmail({
+          templateName: "request-created",
+          recipientEmail: (requester as { email: string }).email,
+          templateData: {
+            firstName: (requester as { first_name?: string; full_name?: string }).first_name ?? (requester as { full_name?: string }).full_name,
+            question: data.question,
+            referenceId: `IRQ-${String(row.id).slice(0, 8).toUpperCase()}`,
+            requestUrl: "https://opsqai.de/app/requests",
+          },
+        });
+      }
+    } catch (e) { console.error("[internal-requests.create] confirmation email failed", (e as Error).message); }
+
     return { ok: true, id: row.id };
   });
 

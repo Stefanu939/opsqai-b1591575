@@ -876,6 +876,27 @@ export const completeEnrollment = createServerFn({ method: "POST" })
       companyId: (enroll as any).company_id,
       finalScore,
     });
+
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: learner } = await supabaseAdmin.from("profiles").select("email, full_name, first_name").eq("id", (enroll as any).user_id).maybeSingle();
+      const { data: path } = await supabaseAdmin.from("academy_learning_paths").select("title").eq("id", (enroll as any).path_id).maybeSingle();
+      if (learner && (learner as { email?: string }).email) {
+        const { dispatchTransactionalEmail } = await import("@/lib/email/dispatch.server");
+        await dispatchTransactionalEmail({
+          templateName: "certificate-ready",
+          recipientEmail: (learner as { email: string }).email,
+          templateData: {
+            learnerName: (learner as { first_name?: string; full_name?: string }).first_name ?? (learner as { full_name?: string }).full_name,
+            pathTitle: (path as { title?: string } | null)?.title,
+            score: finalScore,
+            certificateUrl: "https://opsqai.de/app/academy",
+            verifyUrl: `https://opsqai.de/verify/${cert.code}`,
+          },
+        });
+      }
+    } catch (e) { console.error("[academy.completePath] certificate email failed", (e as Error).message); }
+
     return { ok: true, certificate_id: cert.id, certificate_code: cert.code };
   });
 
