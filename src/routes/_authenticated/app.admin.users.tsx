@@ -349,3 +349,63 @@ function ResetPwDialog({ u, onDone, reset }: { u: U; onDone: () => void; reset: 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="space-y-1.5"><Label className="text-xs">{label}</Label>{children}</div>;
 }
+
+/**
+ * Department picker with inline create. Filters by companyId when provided.
+ * Lets admins/managers type a new department name (e.g., "Warehouse", "Picker")
+ * and persist it to the current company.
+ */
+function DeptPicker({
+  depts, value, onChange, companyId, onCreated,
+}: {
+  depts: Dept[]; value: string; onChange: (id: string) => void;
+  companyId?: string | null; onCreated: (d: Dept) => void;
+}) {
+  const create = useServerFn(createDepartment);
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const NEW = "__new__";
+  const visible = companyId ? depts.filter((d) => !d.company_id || d.company_id === companyId) : depts;
+
+  const submit = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    try {
+      const payload: { name: string; company_id?: string } = { name: trimmed };
+      if (companyId) payload.company_id = companyId;
+      const d = await create({ data: payload }) as Dept;
+      onCreated({ id: d.id, name: d.name, company_id: companyId ?? null });
+      onChange(d.id);
+      setAdding(false); setName("");
+      toast.success(`Department "${d.name}" added`);
+    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+  };
+
+  if (adding) {
+    return (
+      <div className="flex gap-1.5">
+        <Input
+          autoFocus value={name} placeholder="e.g. Warehouse, Picker, Loading"
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
+        />
+        <Button type="button" size="sm" disabled={busy || !name.trim()} onClick={submit}>Add</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => { setAdding(false); setName(""); }}>Cancel</Button>
+      </div>
+    );
+  }
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => { if (v === NEW) setAdding(true); else onChange(v); }}
+    >
+      <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={NEW}>+ Create new department…</SelectItem>
+        {visible.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  );
+}
