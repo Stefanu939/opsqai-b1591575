@@ -484,6 +484,21 @@ function DocumentsTab({ companyId }: { companyId: string }) {
           <Button variant="ghost" onClick={() => zipMut.mutate({})} disabled={zipMut.isPending || !docs?.length}>
             <FileDown className="h-4 w-4 mr-2" />Download All (.zip)
           </Button>
+          <Button
+            variant="ghost"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+            onClick={() => {
+              const n = docs?.length ?? 0;
+              if (!n) return;
+              if (confirm(`Delete ALL ${n} generated documents for this customer? This cannot be undone.`)) {
+                delAll.mutate();
+              }
+            }}
+            disabled={delAll.isPending || !docs?.length}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {delAll.isPending ? "Deleting…" : "Delete All"}
+          </Button>
         </CardContent>
       </Card>
 
