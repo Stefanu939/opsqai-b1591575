@@ -8,11 +8,6 @@ import {
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
-import demoAssistant from "@/assets/demo-assistant.jpg";
-import demoAcademy from "@/assets/demo-academy.jpg";
-import demoAudit from "@/assets/demo-audit.jpg";
-import demoDocs from "@/assets/demo-docs.jpg";
-import demoAnalytics from "@/assets/demo-analytics.jpg";
 import {
   ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, CartesianGrid,
@@ -219,10 +214,6 @@ function Academy() {
           </Button>
         </div>
         <div className="lg:col-span-7 space-y-4">
-          <div className="card-enterprise p-2 overflow-hidden">
-            <img src={demoAcademy} alt="OPSQAI Academy interface preview" loading="lazy" width={1280} height={800}
-                 className="w-full rounded-md border border-border/60" />
-          </div>
           <div className="card-enterprise p-6 sm:p-8">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary">
@@ -253,10 +244,6 @@ function Assistant() {
     <section className="border-t border-border/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24 grid lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-7 order-2 lg:order-1 space-y-4">
-          <div className="card-enterprise p-2 overflow-hidden">
-            <img src={demoAssistant} alt="OPSQAI AI Assistant chat preview" loading="lazy" width={1280} height={800}
-                 className="w-full rounded-md border border-border/60" />
-          </div>
           <div className="card-enterprise p-6 sm:p-8">
             <div className="rounded-lg border border-border bg-background/40 p-4">
               <div className="text-xs text-muted-foreground">You</div>
@@ -308,10 +295,7 @@ function Audit() {
           title="A continuous AI auditor for your operational knowledge"
           intro="OPSQAI continuously analyses your knowledge base to expose gaps, conflicts and weaknesses — and recommends what to improve next."
         />
-        <div className="mt-10 card-enterprise p-2 overflow-hidden">
-          <img src={demoAudit} alt="OPSQAI AI Audit dashboard preview" loading="lazy" width={1280} height={800}
-               className="w-full rounded-md border border-border/60" />
-        </div>
+        
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {AUDIT.map((a) => (
             <article key={a.title} className="card-enterprise hover-lift p-6">
@@ -338,10 +322,6 @@ function EnterpriseDocs() {
             title="Generate consulting-grade documentation in minutes"
             intro="OPSQAI produces enterprise-ready documents grounded in your customer profile, subscription and approved facts — consistent, on-brand and ready for review."
           />
-          <div className="card-enterprise p-2 overflow-hidden">
-            <img src={demoDocs} alt="OPSQAI Enterprise Documents preview" loading="lazy" width={1280} height={800}
-                 className="w-full rounded-md border border-border/60" />
-          </div>
         </div>
         <div className="lg:col-span-7">
           <div className="card-enterprise p-6 sm:p-8 grid sm:grid-cols-2 gap-3">
@@ -373,10 +353,6 @@ function Analytics() {
           intro="Track how knowledge is used, how teams learn and where AI is creating measurable impact."
         />
         <AnalyticsCharts />
-        <div className="mt-8 card-enterprise p-2 overflow-hidden">
-          <img src={demoAnalytics} alt="OPSQAI Analytics dashboard preview" loading="lazy" width={1280} height={800}
-               className="w-full rounded-md border border-border/60" />
-        </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {ANALYTICS.map((a) => (
             <div key={a.label} className="card-enterprise hover-lift p-5">
