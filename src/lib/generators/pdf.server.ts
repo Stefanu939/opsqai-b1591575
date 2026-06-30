@@ -82,14 +82,14 @@ export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
   const MARGIN_BOTTOM = 72;
   const MAX_W = PAGE_W - MARGIN_X * 2;
 
-  // Calm enterprise palette (matches UI v3)
+  // Calm enterprise palette (matches UI v4 — Linear/Notion feel)
   const INK = rgb(0.06, 0.09, 0.16);          // #0F1729
-  const SUB = rgb(0.29, 0.34, 0.45);          // #4B5772
-  const BRAND = rgb(0.20, 0.345, 0.83);       // #3358D4
-  const BRAND_SOFT = rgb(0.357, 0.486, 0.902);// #5B7CE6
-  const TEAL = rgb(0.055, 0.624, 0.572);      // #0E9F92
-  const AMBER = rgb(0.788, 0.541, 0.169);     // #C98A2B
-  const RED = rgb(0.788, 0.247, 0.247);       // #C93F3F
+  const SUB = rgb(0.314, 0.376, 0.478);       // #50607A
+  const BRAND = rgb(0.227, 0.357, 0.722);     // #3A5BB8
+  const BRAND_SOFT = rgb(0.416, 0.510, 0.784);// #6A82C8
+  const TEAL = rgb(0.122, 0.580, 0.522);      // #1F9485
+  const AMBER = rgb(0.722, 0.525, 0.180);     // #B8862E
+  const RED = rgb(0.725, 0.271, 0.271);       // #B94545
   const LINE = rgb(0.894, 0.906, 0.925);      // #E4E7EC
   const PANEL_BG = rgb(0.969, 0.973, 0.980);  // #F7F8FA
   const WHITE = rgb(1, 1, 1);
