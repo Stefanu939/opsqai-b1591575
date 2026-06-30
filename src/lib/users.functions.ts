@@ -123,6 +123,20 @@ export const createUser = createServerFn({ method: "POST" })
     await supabaseAdmin.from("user_roles").insert({
       user_id: created.user.id, role: data.role, company_id: targetCompany,
     });
+
+    try {
+      const { dispatchTransactionalEmail } = await import("@/lib/email/dispatch.server");
+      const { data: company } = await supabaseAdmin.from("companies").select("name").eq("id", targetCompany).maybeSingle();
+      await dispatchTransactionalEmail({
+        templateName: "welcome",
+        recipientEmail: data.email,
+        templateData: {
+          firstName: data.first_name ?? data.email.split("@")[0],
+          workspaceName: (company as { name?: string } | null)?.name,
+        },
+      });
+    } catch (e) { console.error("[users.createUser] welcome email failed", (e as Error).message); }
+
     return { ok: true, id: created.user.id };
   });
 
@@ -170,6 +184,23 @@ export const inviteUser = createServerFn({ method: "POST" })
     await supabaseAdmin.from("user_roles").insert({
       user_id: inv.user.id, role: data.role, company_id: targetCompany,
     });
+
+    try {
+      const { dispatchTransactionalEmail } = await import("@/lib/email/dispatch.server");
+      const { data: company } = await supabaseAdmin.from("companies").select("name").eq("id", targetCompany).maybeSingle();
+      const { data: actorProfile } = await supabaseAdmin.from("profiles").select("full_name").eq("id", context.userId).maybeSingle();
+      await dispatchTransactionalEmail({
+        templateName: "workspace-invitation",
+        recipientEmail: data.email,
+        templateData: {
+          inviterName: (actorProfile as { full_name?: string } | null)?.full_name ?? "An OPSQAI admin",
+          workspaceName: (company as { name?: string } | null)?.name,
+          role: data.role,
+          acceptUrl: redirectTo,
+        },
+      });
+    } catch (e) { console.error("[users.inviteUser] invitation email failed", (e as Error).message); }
+
     return { ok: true };
   });
 
