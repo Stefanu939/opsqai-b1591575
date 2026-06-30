@@ -251,8 +251,11 @@ function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite, onDep
               <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}</SelectContent></Select>
           </Field>
           <Field label={t("department")}>
-            <Select value={dept} onValueChange={setDept}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-              <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select>
+            <DeptPicker
+              depts={depts} value={dept} onChange={setDept}
+              companyId={isPlatformAdmin ? companyId : undefined}
+              onCreated={onDeptCreated}
+            />
           </Field>
           <DialogFooter><Button disabled={busy} type="submit">{t("sendInvite")}</Button></DialogFooter>
         </form>
