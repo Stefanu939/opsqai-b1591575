@@ -386,6 +386,11 @@ function DocumentsTab({ companyId }: { companyId: string }) {
     onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
+  const delAll = useMutation({
+    mutationFn: () => removeAll({ data: { company_id: companyId } }),
+    onSuccess: (r: any) => { toast.success(`Deleted ${r.deleted ?? 0} documents`); qc.invalidateQueries({ queryKey: ["customer-docs", companyId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const exportMut = useMutation({
     mutationFn: (vars: { id: string; format: "docx"|"pdf"|"md"|"html" }) => exporter({ data: vars }),
     onSuccess: (r: any) => {
