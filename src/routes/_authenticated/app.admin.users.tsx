@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  listUsers, createUser, inviteUser, updateUser, deleteUser, resetUserPassword, listDepartments,
+  listUsers, createUser, inviteUser, updateUser, deleteUser, resetUserPassword, listDepartments, createDepartment,
 } from "@/lib/users.functions";
 import { listCompanies } from "@/lib/companies.functions";
 import { Card } from "@/components/ui/card";
@@ -40,7 +40,7 @@ interface U {
   last_sign_in_at: string | null; created_at: string;
   roles: string[];
 }
-interface Dept { id: string; name: string }
+interface Dept { id: string; name: string; company_id?: string | null }
 interface Company { id: string; name: string }
 
 function AdminUsers() {
@@ -92,8 +92,8 @@ function AdminUsers() {
           <p className="text-sm text-muted-foreground mt-1">{t("usersDesc")}</p>
         </div>
         <div className="flex gap-2">
-          <InviteDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} invite={invite} />
-          <CreateDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} create={create} />
+          <InviteDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} invite={invite} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
+          <CreateDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} create={create} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
         </div>
       </div>
 
@@ -125,7 +125,7 @@ function AdminUsers() {
                   ))}
                 </div>
                 <div className="flex gap-1">
-                  <EditDialog u={u} depts={depts} onDone={load} update={update} />
+                  <EditDialog u={u} depts={depts} onDone={load} update={update} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
                   <ResetPwDialog u={u} onDone={load} reset={resetPw} />
                   <Button size="icon" variant="ghost" disabled={isSelf} onClick={async () => {
                     if (!confirm(`Delete ${u.email}?`)) return;
@@ -144,7 +144,7 @@ function AdminUsers() {
   );
 }
 
-function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; create: (a: { data: any }) => Promise<any> }) {
+function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create, onDeptCreated }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; create: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const empty = { email: "", password: "", first_name: "", last_name: "", position: "", phone: "", department_id: "", role: "employee" as Role, company_id: "" };
@@ -192,10 +192,12 @@ function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create }: { d
             <Field label={t("position")}><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></Field>
             <Field label={t("phone")}><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
             <Field label={t("department")}>
-              <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
-              </Select>
+              <DeptPicker
+                depts={depts} value={form.department_id}
+                onChange={(v) => setForm({ ...form, department_id: v })}
+                companyId={isPlatformAdmin ? form.company_id : undefined}
+                onCreated={onDeptCreated}
+              />
             </Field>
           </div>
           <DialogFooter><Button disabled={busy} type="submit">{t("create")}</Button></DialogFooter>
@@ -205,7 +207,7 @@ function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create }: { d
   );
 }
 
-function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; invite: (a: { data: any }) => Promise<any> }) {
+function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite, onDeptCreated }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; invite: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -249,8 +251,11 @@ function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite }: { d
               <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}</SelectContent></Select>
           </Field>
           <Field label={t("department")}>
-            <Select value={dept} onValueChange={setDept}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-              <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select>
+            <DeptPicker
+              depts={depts} value={dept} onChange={setDept}
+              companyId={isPlatformAdmin ? companyId : undefined}
+              onCreated={onDeptCreated}
+            />
           </Field>
           <DialogFooter><Button disabled={busy} type="submit">{t("sendInvite")}</Button></DialogFooter>
         </form>
@@ -259,7 +264,7 @@ function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite }: { d
   );
 }
 
-function EditDialog({ u, depts, onDone, update }: { u: U; depts: Dept[]; onDone: () => void; update: (a: { data: any }) => Promise<any> }) {
+function EditDialog({ u, depts, onDone, update, onDeptCreated }: { u: U; depts: Dept[]; onDone: () => void; update: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -292,10 +297,12 @@ function EditDialog({ u, depts, onDone, update }: { u: U; depts: Dept[]; onDone:
             <Field label={t("position")}><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></Field>
             <Field label={t("phone")}><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
             <Field label={t("department")}>
-              <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
-              </Select>
+              <DeptPicker
+                depts={depts} value={form.department_id}
+                onChange={(v) => setForm({ ...form, department_id: v })}
+                companyId={u.company_id}
+                onCreated={onDeptCreated}
+              />
             </Field>
           </div>
           <div className="space-y-2">
@@ -348,4 +355,64 @@ function ResetPwDialog({ u, onDone, reset }: { u: U; onDone: () => void; reset: 
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="space-y-1.5"><Label className="text-xs">{label}</Label>{children}</div>;
+}
+
+/**
+ * Department picker with inline create. Filters by companyId when provided.
+ * Lets admins/managers type a new department name (e.g., "Warehouse", "Picker")
+ * and persist it to the current company.
+ */
+function DeptPicker({
+  depts, value, onChange, companyId, onCreated,
+}: {
+  depts: Dept[]; value: string; onChange: (id: string) => void;
+  companyId?: string | null; onCreated: (d: Dept) => void;
+}) {
+  const create = useServerFn(createDepartment);
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const NEW = "__new__";
+  const visible = companyId ? depts.filter((d) => !d.company_id || d.company_id === companyId) : depts;
+
+  const submit = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    try {
+      const payload: { name: string; company_id?: string } = { name: trimmed };
+      if (companyId) payload.company_id = companyId;
+      const d = await create({ data: payload }) as Dept;
+      onCreated({ id: d.id, name: d.name, company_id: companyId ?? null });
+      onChange(d.id);
+      setAdding(false); setName("");
+      toast.success(`Department "${d.name}" added`);
+    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+  };
+
+  if (adding) {
+    return (
+      <div className="flex gap-1.5">
+        <Input
+          autoFocus value={name} placeholder="e.g. Warehouse, Picker, Loading"
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
+        />
+        <Button type="button" size="sm" disabled={busy || !name.trim()} onClick={submit}>Add</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => { setAdding(false); setName(""); }}>Cancel</Button>
+      </div>
+    );
+  }
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => { if (v === NEW) setAdding(true); else onChange(v); }}
+    >
+      <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={NEW}>+ Create new department…</SelectItem>
+        {visible.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  );
 }
