@@ -128,7 +128,7 @@ export const Route = createFileRoute("/api/internal-chat")({
 
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
-          system: hasSources ? SYSTEM_PROMPT(context, true) : SYSTEM_PROMPT("", false),
+          system: hasSources ? SYSTEM_PROMPT(context, true, langHint) : SYSTEM_PROMPT("", false, langHint),
           messages: await convertToModelMessages(messages),
         });
 
