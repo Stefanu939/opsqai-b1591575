@@ -92,8 +92,8 @@ function AdminUsers() {
           <p className="text-sm text-muted-foreground mt-1">{t("usersDesc")}</p>
         </div>
         <div className="flex gap-2">
-          <InviteDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} invite={invite} />
-          <CreateDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} create={create} />
+          <InviteDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} invite={invite} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
+          <CreateDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} create={create} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
         </div>
       </div>
 
