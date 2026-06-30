@@ -297,10 +297,12 @@ function EditDialog({ u, depts, onDone, update, onDeptCreated }: { u: U; depts: 
             <Field label={t("position")}><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></Field>
             <Field label={t("phone")}><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
             <Field label={t("department")}>
-              <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
-              </Select>
+              <DeptPicker
+                depts={depts} value={form.department_id}
+                onChange={(v) => setForm({ ...form, department_id: v })}
+                companyId={u.company_id}
+                onCreated={onDeptCreated}
+              />
             </Field>
           </div>
           <div className="space-y-2">
