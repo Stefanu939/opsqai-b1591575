@@ -207,7 +207,7 @@ function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create, onDep
   );
 }
 
-function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; invite: (a: { data: any }) => Promise<any> }) {
+function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite, onDeptCreated }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; invite: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
