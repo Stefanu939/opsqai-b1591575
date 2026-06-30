@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  listUsers, createUser, inviteUser, updateUser, deleteUser, resetUserPassword, listDepartments,
+  listUsers, createUser, inviteUser, updateUser, deleteUser, resetUserPassword, listDepartments, createDepartment,
 } from "@/lib/users.functions";
 import { listCompanies } from "@/lib/companies.functions";
 import { Card } from "@/components/ui/card";
