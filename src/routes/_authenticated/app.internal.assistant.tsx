@@ -16,16 +16,44 @@ export const Route = createFileRoute("/_authenticated/app/internal/assistant")({
   head: () => ({ meta: [{ title: "OPSQAI Assistant · OPSQAI Internal" }] }),
 });
 
-const STARTERS = [
-  "How do I create a company?",
-  "How do I invite users?",
-  "How do I generate an SOP?",
-  "How do I run an AI Audit?",
-  "How do I assign training?",
-  "How do I publish documents?",
-  "How do I manage roles?",
-  "How do I resolve Knowledge Gaps?",
-];
+const STARTERS_BY_LANG: Record<string, string[]> = {
+  en: [
+    "How do I create a company?",
+    "How do I invite users?",
+    "How do I generate an SOP?",
+    "How do I run an AI Audit?",
+    "How do I assign training?",
+    "How do I publish documents?",
+    "How do I manage roles?",
+    "How do I resolve Knowledge Gaps?",
+  ],
+  de: [
+    "Wie lege ich ein Unternehmen an?",
+    "Wie lade ich Benutzer ein?",
+    "Wie erstelle ich eine SOP?",
+    "Wie führe ich ein KI-Audit durch?",
+    "Wie weise ich Schulungen zu?",
+    "Wie veröffentliche ich Dokumente?",
+    "Wie verwalte ich Rollen?",
+    "Wie löse ich Wissenslücken?",
+  ],
+  ro: [
+    "Cum creez o companie?",
+    "Cum invit utilizatori?",
+    "Cum generez un SOP?",
+    "Cum rulez un Audit AI?",
+    "Cum atribui un training?",
+    "Cum public documente?",
+    "Cum gestionez rolurile?",
+    "Cum rezolv Knowledge Gaps?",
+  ],
+};
+
+const UI_STRINGS: Record<string, { eyebrow: string; title: string; subtitle: string; tryAsking: string; sources: string; thinking: string; placeholder: string; send: string; new: string }> = {
+  en: { eyebrow: "OPSQAI Assistant", title: "Ask anything about using OPSQAI", subtitle: "Grounded in System Knowledge only — never touches customer data.", tryAsking: "Try asking", sources: "Sources", thinking: "Thinking…", placeholder: "Ask how to use OPSQAI…", send: "Send", new: "New" },
+  de: { eyebrow: "OPSQAI Assistent", title: "Fragen Sie alles zur Nutzung von OPSQAI", subtitle: "Basiert ausschließlich auf System-Wissen — keine Kundendaten.", tryAsking: "Fragen Sie z. B.", sources: "Quellen", thinking: "Denke nach…", placeholder: "Wie nutze ich OPSQAI?…", send: "Senden", new: "Neu" },
+  ro: { eyebrow: "Asistent OPSQAI", title: "Întreabă orice despre utilizarea OPSQAI", subtitle: "Bazat doar pe System Knowledge — nu accesează date despre clienți.", tryAsking: "Încearcă să întrebi", sources: "Surse", thinking: "Se gândește…", placeholder: "Cum folosesc OPSQAI?…", send: "Trimite", new: "Nou" },
+};
 
 type Source = { id: string; title: string; slug: string; category: string; excerpt: string; similarity: number };
 
@@ -71,29 +99,30 @@ function AssistantPage() {
     setSessionId((n) => n + 1);
   };
 
+  const t = UI_STRINGS[lang] ?? UI_STRINGS.en;
+  const starters = STARTERS_BY_LANG[lang] ?? STARTERS_BY_LANG.en;
+
   return (
     <div className="max-w-3xl mx-auto w-full p-6 flex flex-col h-[calc(100vh-6rem)]">
       <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 text-sm text-primary/80 font-medium">
-            <Sparkles className="h-4 w-4" /> OPSQAI Assistant
+            <Sparkles className="h-4 w-4" /> {t.eyebrow}
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight mt-0.5">Ask anything about using OPSQAI</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Grounded in System Knowledge only — never touches customer data.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight mt-0.5">{t.title}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t.subtitle}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={reset} className="gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" /> New
+          <RefreshCw className="h-3.5 w-3.5" /> {t.new}
         </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-3 pb-3">
         {messages.length === 0 && (
           <Card className="p-4">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Try asking</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t.tryAsking}</div>
             <div className="flex flex-wrap gap-1.5">
-              {STARTERS.map((s) => (
+              {starters.map((s) => (
                 <Button key={s} variant="outline" size="sm" className="h-auto py-1.5 text-xs"
                   onClick={() => { setInput(s); setTimeout(submit, 0); }}>
                   {s}
@@ -114,7 +143,7 @@ function AssistantPage() {
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{text}</div>
                 {!isUser && sources.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-border/60 space-y-1">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sources</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t.sources}</div>
                     {sources.map((s) => (
                       <Link
                         key={s.id}
@@ -134,7 +163,7 @@ function AssistantPage() {
           );
         })}
         {busy && (
-          <div className="text-xs text-muted-foreground animate-pulse">Thinking…</div>
+          <div className="text-xs text-muted-foreground animate-pulse">{t.thinking}</div>
         )}
         <div ref={endRef} />
       </div>
@@ -144,12 +173,12 @@ function AssistantPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
-          placeholder="Ask how to use OPSQAI…"
+          placeholder={t.placeholder}
           className="resize-none min-h-[44px] max-h-32"
           rows={1}
         />
         <Button onClick={submit} disabled={busy || !input.trim()} className="gap-1.5">
-          <Send className="h-4 w-4" /> Send
+          <Send className="h-4 w-4" /> {t.send}
         </Button>
       </div>
     </div>
