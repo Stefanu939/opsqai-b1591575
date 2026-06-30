@@ -778,6 +778,7 @@ export type Database = {
           active: boolean
           created_at: string
           id: string
+          is_system: boolean
           max_users: number
           min_confidence: number
           name: string
@@ -790,6 +791,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          is_system?: boolean
           max_users?: number
           min_confidence?: number
           name: string
@@ -802,6 +804,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          is_system?: boolean
           max_users?: number
           min_confidence?: number
           name?: string
@@ -1535,11 +1538,13 @@ export type Database = {
           id: string
           is_active: boolean
           is_critical: boolean
+          knowledge_type: string
           page: number | null
           parent_document_id: string | null
           replaced_at: string | null
           section: string | null
           status: string
+          system_slug: string | null
           title: string
           updated_at: string
           uploaded_by: string | null
@@ -1560,11 +1565,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_critical?: boolean
+          knowledge_type?: string
           page?: number | null
           parent_document_id?: string | null
           replaced_at?: string | null
           section?: string | null
           status?: string
+          system_slug?: string | null
           title: string
           updated_at?: string
           uploaded_by?: string | null
@@ -1585,11 +1592,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_critical?: boolean
+          knowledge_type?: string
           page?: number | null
           parent_document_id?: string | null
           replaced_at?: string | null
           section?: string | null
           status?: string
+          system_slug?: string | null
           title?: string
           updated_at?: string
           uploaded_by?: string | null
@@ -2148,6 +2157,56 @@ export type Database = {
         }
         Relationships: []
       }
+      system_doc_catalog: {
+        Row: {
+          body_hash: string
+          body_md: string
+          category: string
+          created_at: string
+          document_id: string | null
+          feature_key: string | null
+          related_slugs: string[]
+          slug: string
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body_hash: string
+          body_md: string
+          category: string
+          created_at?: string
+          document_id?: string | null
+          feature_key?: string | null
+          related_slugs?: string[]
+          slug: string
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body_hash?: string
+          body_md?: string
+          category?: string
+          created_at?: string
+          document_id?: string | null
+          feature_key?: string | null
+          related_slugs?: string[]
+          slug?: string
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_doc_catalog_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       threads: {
         Row: {
           company_id: string
@@ -2599,6 +2658,7 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      system_company_id: { Args: never; Returns: string }
       user_belongs_to_company: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean

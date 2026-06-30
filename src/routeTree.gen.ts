@@ -44,6 +44,7 @@ import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
+import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -53,13 +54,17 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
+import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenticated/app.internal'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticated/app.brand'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
+import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
+import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
+import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
 import { Route as AuthenticatedAppAdminSupportRouteImport } from './routes/_authenticated/app.admin.support'
@@ -79,6 +84,7 @@ import { Route as AuthenticatedAppAcademyKbRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppAcademyCoursesRouteImport } from './routes/_authenticated/app.academy.courses'
 import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './routes/_authenticated/app.academy.certificates'
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
+import { Route as AuthenticatedAppInternalKnowledgeSlugRouteImport } from './routes/_authenticated/app.internal.knowledge.$slug'
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
@@ -258,6 +264,11 @@ const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   path: '/api/workspace-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInternalChatRoute = ApiInternalChatRouteImport.update({
+  id: '/api/internal-chat',
+  path: '/api/internal-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDemoChatRoute = ApiDemoChatRouteImport.update({
   id: '/api/demo-chat',
   path: '/api/demo-chat',
@@ -305,6 +316,12 @@ const AuthenticatedAppKnowledgeRoute =
     path: '/knowledge',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppInternalRoute =
+  AuthenticatedAppInternalRouteImport.update({
+    id: '/internal',
+    path: '/internal',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -320,6 +337,12 @@ const AuthenticatedAppWorkspaceIndexRoute =
     id: '/workspace/',
     path: '/workspace/',
     getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppInternalIndexRoute =
+  AuthenticatedAppInternalIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAppInternalRoute,
   } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
@@ -344,6 +367,18 @@ const AuthenticatedAppWorkspaceSessionIdRoute =
     id: '/workspace/$sessionId',
     path: '/workspace/$sessionId',
     getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppInternalKnowledgeRoute =
+  AuthenticatedAppInternalKnowledgeRouteImport.update({
+    id: '/knowledge',
+    path: '/knowledge',
+    getParentRoute: () => AuthenticatedAppInternalRoute,
+  } as any)
+const AuthenticatedAppInternalAssistantRoute =
+  AuthenticatedAppInternalAssistantRouteImport.update({
+    id: '/assistant',
+    path: '/assistant',
+    getParentRoute: () => AuthenticatedAppInternalRoute,
   } as any)
 const AuthenticatedAppChatThreadIdRoute =
   AuthenticatedAppChatThreadIdRouteImport.update({
@@ -459,6 +494,12 @@ const AuthenticatedAppAcademyAnalyticsRoute =
     path: '/academy/analytics',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppInternalKnowledgeSlugRoute =
+  AuthenticatedAppInternalKnowledgeSlugRouteImport.update({
+    id: '/$slug',
+    path: '/$slug',
+    getParentRoute: () => AuthenticatedAppInternalKnowledgeRoute,
+  } as any)
 const AuthenticatedAppAcademyPathPathIdRoute =
   AuthenticatedAppAcademyPathPathIdRouteImport.update({
     id: '/academy/path/$pathId',
@@ -493,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
+  '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -514,6 +556,7 @@ export interface FileRoutesByFullPath {
   '/verify/$code': typeof VerifyCodeRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
+  '/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
@@ -537,13 +580,17 @@ export interface FileRoutesByFullPath {
   '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
+  '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/app/internal/': typeof AuthenticatedAppInternalIndexRoute
   '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
+  '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -565,6 +612,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
+  '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -609,13 +657,17 @@ export interface FileRoutesByTo {
   '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
+  '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
+  '/app/internal': typeof AuthenticatedAppInternalIndexRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
+  '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -640,6 +692,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
+  '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -661,6 +714,7 @@ export interface FileRoutesById {
   '/verify/$code': typeof VerifyCodeRoute
   '/_authenticated/app/brand': typeof AuthenticatedAppBrandRoute
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
+  '/_authenticated/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
@@ -684,13 +738,17 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
+  '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/_authenticated/app/internal/': typeof AuthenticatedAppInternalIndexRoute
   '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
+  '/_authenticated/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -715,6 +773,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/demo-chat'
+    | '/api/internal-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -736,6 +795,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/app/brand'
     | '/app/faq'
+    | '/app/internal'
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
@@ -759,13 +819,17 @@ export interface FileRouteTypes {
     | '/app/admin/support'
     | '/app/admin/users'
     | '/app/chat/$threadId'
+    | '/app/internal/assistant'
+    | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
     | '/app/academy/'
     | '/app/chat/'
+    | '/app/internal/'
     | '/app/workspace/'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
+    | '/app/internal/knowledge/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -787,6 +851,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/demo-chat'
+    | '/api/internal-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -831,13 +896,17 @@ export interface FileRouteTypes {
     | '/app/admin/support'
     | '/app/admin/users'
     | '/app/chat/$threadId'
+    | '/app/internal/assistant'
+    | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
     | '/app/academy'
     | '/app/chat'
+    | '/app/internal'
     | '/app/workspace'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
+    | '/app/internal/knowledge/$slug'
   id:
     | '__root__'
     | '/'
@@ -861,6 +930,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/customer-writer'
     | '/api/demo-chat'
+    | '/api/internal-chat'
     | '/api/workspace-chat'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -882,6 +952,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/_authenticated/app/brand'
     | '/_authenticated/app/faq'
+    | '/_authenticated/app/internal'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
@@ -905,13 +976,17 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/support'
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/chat/$threadId'
+    | '/_authenticated/app/internal/assistant'
+    | '/_authenticated/app/internal/knowledge'
     | '/_authenticated/app/workspace/$sessionId'
     | '/lovable/email/queue/process'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
+    | '/_authenticated/app/internal/'
     | '/_authenticated/app/workspace/'
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
+    | '/_authenticated/app/internal/knowledge/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -935,6 +1010,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
+  ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -1187,6 +1263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWorkspaceChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal-chat': {
+      id: '/api/internal-chat'
+      path: '/api/internal-chat'
+      fullPath: '/api/internal-chat'
+      preLoaderRoute: typeof ApiInternalChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/demo-chat': {
       id: '/api/demo-chat'
       path: '/api/demo-chat'
@@ -1250,6 +1333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/internal': {
+      id: '/_authenticated/app/internal'
+      path: '/internal'
+      fullPath: '/app/internal'
+      preLoaderRoute: typeof AuthenticatedAppInternalRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/faq': {
       id: '/_authenticated/app/faq'
       path: '/faq'
@@ -1270,6 +1360,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/workspace/'
       preLoaderRoute: typeof AuthenticatedAppWorkspaceIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/internal/': {
+      id: '/_authenticated/app/internal/'
+      path: '/'
+      fullPath: '/app/internal/'
+      preLoaderRoute: typeof AuthenticatedAppInternalIndexRouteImport
+      parentRoute: typeof AuthenticatedAppInternalRoute
     }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
@@ -1298,6 +1395,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/workspace/$sessionId'
       preLoaderRoute: typeof AuthenticatedAppWorkspaceSessionIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/internal/knowledge': {
+      id: '/_authenticated/app/internal/knowledge'
+      path: '/knowledge'
+      fullPath: '/app/internal/knowledge'
+      preLoaderRoute: typeof AuthenticatedAppInternalKnowledgeRouteImport
+      parentRoute: typeof AuthenticatedAppInternalRoute
+    }
+    '/_authenticated/app/internal/assistant': {
+      id: '/_authenticated/app/internal/assistant'
+      path: '/assistant'
+      fullPath: '/app/internal/assistant'
+      preLoaderRoute: typeof AuthenticatedAppInternalAssistantRouteImport
+      parentRoute: typeof AuthenticatedAppInternalRoute
     }
     '/_authenticated/app/chat/$threadId': {
       id: '/_authenticated/app/chat/$threadId'
@@ -1432,6 +1543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/internal/knowledge/$slug': {
+      id: '/_authenticated/app/internal/knowledge/$slug'
+      path: '/$slug'
+      fullPath: '/app/internal/knowledge/$slug'
+      preLoaderRoute: typeof AuthenticatedAppInternalKnowledgeSlugRouteImport
+      parentRoute: typeof AuthenticatedAppInternalKnowledgeRoute
+    }
     '/_authenticated/app/academy/path/$pathId': {
       id: '/_authenticated/app/academy/path/$pathId'
       path: '/academy/path/$pathId'
@@ -1449,9 +1567,45 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAppInternalKnowledgeRouteChildren {
+  AuthenticatedAppInternalKnowledgeSlugRoute: typeof AuthenticatedAppInternalKnowledgeSlugRoute
+}
+
+const AuthenticatedAppInternalKnowledgeRouteChildren: AuthenticatedAppInternalKnowledgeRouteChildren =
+  {
+    AuthenticatedAppInternalKnowledgeSlugRoute:
+      AuthenticatedAppInternalKnowledgeSlugRoute,
+  }
+
+const AuthenticatedAppInternalKnowledgeRouteWithChildren =
+  AuthenticatedAppInternalKnowledgeRoute._addFileChildren(
+    AuthenticatedAppInternalKnowledgeRouteChildren,
+  )
+
+interface AuthenticatedAppInternalRouteChildren {
+  AuthenticatedAppInternalAssistantRoute: typeof AuthenticatedAppInternalAssistantRoute
+  AuthenticatedAppInternalKnowledgeRoute: typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  AuthenticatedAppInternalIndexRoute: typeof AuthenticatedAppInternalIndexRoute
+}
+
+const AuthenticatedAppInternalRouteChildren: AuthenticatedAppInternalRouteChildren =
+  {
+    AuthenticatedAppInternalAssistantRoute:
+      AuthenticatedAppInternalAssistantRoute,
+    AuthenticatedAppInternalKnowledgeRoute:
+      AuthenticatedAppInternalKnowledgeRouteWithChildren,
+    AuthenticatedAppInternalIndexRoute: AuthenticatedAppInternalIndexRoute,
+  }
+
+const AuthenticatedAppInternalRouteWithChildren =
+  AuthenticatedAppInternalRoute._addFileChildren(
+    AuthenticatedAppInternalRouteChildren,
+  )
+
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppBrandRoute: typeof AuthenticatedAppBrandRoute
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
+  AuthenticatedAppInternalRoute: typeof AuthenticatedAppInternalRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
@@ -1486,6 +1640,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppBrandRoute: AuthenticatedAppBrandRoute,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
+  AuthenticatedAppInternalRoute: AuthenticatedAppInternalRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
@@ -1611,6 +1766,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
+  ApiInternalChatRoute: ApiInternalChatRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

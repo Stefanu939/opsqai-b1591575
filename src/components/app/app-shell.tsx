@@ -31,7 +31,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
-    supabase.from("companies").select("id, name").order("name").then(({ data }) => setCompanies(data ?? []));
+    supabase.from("companies").select("id, name, is_system").order("name").then(({ data }) => {
+      setCompanies(((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>).filter((c) => !c.is_system));
+    });
   }, [isPlatformAdmin]);
 
   const nav = [
@@ -58,6 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const platformNav = (isPlatformAdmin || isPlatformOwner)
     ? [
+        { to: "/app/internal", label: "OPSQAI Internal", icon: Sparkles },
         { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck },
         { to: "/app/admin/companies", label: "Companies", icon: Building2 },
         { to: "/app/admin/customers", label: "Enterprise Documents", icon: Building2 },
