@@ -71,63 +71,63 @@
   --popover: #ffffff;
   --popover-foreground: #0f1729;
 
-  /* Primary = deep enterprise indigo-blue, lower chroma than #2563EB */
-  --primary: #3358d4;
+  /* Primary = calm enterprise indigo, low chroma (Linear/Notion feel) */
+  --primary: #3a5bb8;
   --primary-foreground: #f7f8fa;
-  --primary-glow: #5b7ce6;
+  --primary-glow: #6a82c8;
 
   --secondary: #eef1f6;
   --secondary-foreground: #0f1729;
 
   --muted: #eef1f6;
-  --muted-foreground: #4b5772;
+  --muted-foreground: #50607a;
 
-  /* Accent = muted teal (data / success surfaces) */
-  --accent: #ecfaf6;
+  /* Accent = soft muted teal */
+  --accent: #eef7f4;
   --accent-foreground: #0e7d6f;
 
-  --signal: #0e9f92;
+  --signal: #1f9485;
   --signal-foreground: #052e29;
 
-  --destructive: #c93f3f;
+  --destructive: #b94545;
   --destructive-foreground: #f7f8fa;
 
-  --success: #138a6a;
-  --warning: #c98a2b;
+  --success: #1a8a6c;
+  --warning: #b8862e;
 
   --border: #e4e7ec;
   --border-strong: #cdd2dc;
   --input: #e4e7ec;
-  --ring: #5b7ce6;
+  --ring: #6a82c8;
 
-  --chart-1: #3358d4;
-  --chart-2: #0e9f92;
-  --chart-3: #6f7ad6;
-  --chart-4: #138a6a;
-  --chart-5: #c98a2b;
+  --chart-1: #3a5bb8;
+  --chart-2: #1f9485;
+  --chart-3: #7681c4;
+  --chart-4: #1a8a6c;
+  --chart-5: #b8862e;
 
   --sidebar: #f7f8fa;
   --sidebar-foreground: #0f1729;
-  --sidebar-primary: #3358d4;
+  --sidebar-primary: #3a5bb8;
   --sidebar-primary-foreground: #f7f8fa;
   --sidebar-accent: #e8ecf3;
   --sidebar-accent-foreground: #0f1729;
   --sidebar-border: #e4e7ec;
-  --sidebar-ring: #5b7ce6;
+  --sidebar-ring: #6a82c8;
 
-  --gradient-hero: radial-gradient(60% 80% at 70% 0%, rgba(51,88,212,0.06) 0%, transparent 60%),
-                   radial-gradient(50% 70% at 10% 100%, rgba(14,159,146,0.05) 0%, transparent 65%);
+  --gradient-hero: radial-gradient(60% 80% at 70% 0%, rgba(58,91,184,0.05) 0%, transparent 60%),
+                   radial-gradient(50% 70% at 10% 100%, rgba(31,148,133,0.04) 0%, transparent 65%);
   --gradient-cta: linear-gradient(135deg, #f7f8fa 0%, #e8ecf3 100%);
-  --gradient-primary: linear-gradient(135deg, #3358d4 0%, #2a47b0 100%);
+  --gradient-primary: linear-gradient(135deg, #3a5bb8 0%, #2f4a99 100%);
   --gradient-card: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
   --gradient-sidebar: linear-gradient(180deg, #f7f8fa 0%, #eef1f6 100%);
   --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
 
   --shadow-xs: 0 1px 2px 0 rgba(15,23,41,0.04);
   --shadow-sm: 0 1px 3px 0 rgba(15,23,41,0.06), 0 1px 2px -1px rgba(15,23,41,0.04);
-  --shadow-md: 0 6px 16px -4px rgba(15,23,41,0.08), 0 2px 6px -2px rgba(15,23,41,0.05);
-  --shadow-lg: 0 20px 48px -12px rgba(15,23,41,0.10), 0 6px 16px -6px rgba(15,23,41,0.06);
-  --shadow-glow: 0 0 0 1px rgba(91,124,230,0.18), 0 8px 28px -6px rgba(91,124,230,0.18);
+  --shadow-md: 0 6px 16px -4px rgba(15,23,41,0.07), 0 2px 6px -2px rgba(15,23,41,0.04);
+  --shadow-lg: 0 20px 48px -12px rgba(15,23,41,0.09), 0 6px 16px -6px rgba(15,23,41,0.05);
+  --shadow-glow: 0 0 0 1px rgba(106,130,200,0.14), 0 6px 24px -8px rgba(106,130,200,0.14);
 }
 
 .dark {
