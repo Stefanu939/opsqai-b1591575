@@ -264,7 +264,7 @@ function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite, onDep
   );
 }
 
-function EditDialog({ u, depts, onDone, update }: { u: U; depts: Dept[]; onDone: () => void; update: (a: { data: any }) => Promise<any> }) {
+function EditDialog({ u, depts, onDone, update, onDeptCreated }: { u: U; depts: Dept[]; onDone: () => void; update: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
