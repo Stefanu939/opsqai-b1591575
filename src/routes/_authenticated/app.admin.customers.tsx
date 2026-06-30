@@ -338,6 +338,7 @@ function DocumentsTab({ companyId }: { companyId: string }) {
   const regenerate = useServerFn(regenerateCustomerDocument);
   const downloadZip = useServerFn(downloadCustomerDocumentsZip);
   const remove = useServerFn(deleteCustomerDocument);
+  const removeAll = useServerFn(deleteAllCustomerDocuments);
   const exporter = useServerFn(exportCustomerDocument);
   const qc = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
