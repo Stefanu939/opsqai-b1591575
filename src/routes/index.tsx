@@ -322,10 +322,6 @@ function EnterpriseDocs() {
             title="Generate consulting-grade documentation in minutes"
             intro="OPSQAI produces enterprise-ready documents grounded in your customer profile, subscription and approved facts — consistent, on-brand and ready for review."
           />
-          <div className="card-enterprise p-2 overflow-hidden">
-            <img src={demoDocs} alt="OPSQAI Enterprise Documents preview" loading="lazy" width={1280} height={800}
-                 className="w-full rounded-md border border-border/60" />
-          </div>
         </div>
         <div className="lg:col-span-7">
           <div className="card-enterprise p-6 sm:p-8 grid sm:grid-cols-2 gap-3">
