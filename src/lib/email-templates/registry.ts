@@ -1,23 +1,28 @@
-import type { ComponentType } from 'react'
+import type { ComponentType } from "react";
 
 export interface TemplateEntry {
-  component: ComponentType<any>
-  subject: string | ((data: Record<string, any>) => string)
-  displayName?: string
-  previewData?: Record<string, any>
+  component: ComponentType<any>;
+  subject: string | ((data: Record<string, any>) => string);
+  displayName?: string;
+  previewData?: Record<string, any>;
   /** Fixed recipient — overrides caller-provided recipientEmail when set. */
-  to?: string
+  to?: string;
 }
 
+import { template as contactConfirmation } from "./contact-confirmation";
+import { template as workspaceInvitation } from "./workspace-invitation";
+import { template as certificateReady } from "./certificate-ready";
+import { template as supportTicketCreated } from "./support-ticket-created";
+import { template as testEmail } from "./test-email";
+
 /**
- * Template registry — maps template names to their React Email components.
- * Import and register new templates here after creating them in this directory.
- *
- * Example:
- *   import { template as welcomeTemplate } from './welcome'
- *   // then add to TEMPLATES: 'welcome': welcomeTemplate
+ * Central registry. Every OPSQAI transactional email lives here.
+ * Auth emails are handled separately by the auth webhook.
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
-  // Add templates here as they are created, e.g.:
-  // 'welcome': welcomeTemplate,
-}
+  "contact-confirmation": contactConfirmation,
+  "workspace-invitation": workspaceInvitation,
+  "certificate-ready": certificateReady,
+  "support-ticket-created": supportTicketCreated,
+  "test-email": testEmail,
+};
