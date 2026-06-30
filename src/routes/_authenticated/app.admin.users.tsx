@@ -40,7 +40,7 @@ interface U {
   last_sign_in_at: string | null; created_at: string;
   roles: string[];
 }
-interface Dept { id: string; name: string }
+interface Dept { id: string; name: string; company_id?: string | null }
 interface Company { id: string; name: string }
 
 function AdminUsers() {
