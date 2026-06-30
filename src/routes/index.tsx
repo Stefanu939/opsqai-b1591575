@@ -353,10 +353,6 @@ function Analytics() {
           intro="Track how knowledge is used, how teams learn and where AI is creating measurable impact."
         />
         <AnalyticsCharts />
-        <div className="mt-8 card-enterprise p-2 overflow-hidden">
-          <img src={demoAnalytics} alt="OPSQAI Analytics dashboard preview" loading="lazy" width={1280} height={800}
-               className="w-full rounded-md border border-border/60" />
-        </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {ANALYTICS.map((a) => (
             <div key={a.label} className="card-enterprise hover-lift p-5">
