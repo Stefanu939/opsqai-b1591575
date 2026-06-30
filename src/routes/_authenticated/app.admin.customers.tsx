@@ -25,7 +25,7 @@ import {
   listCustomerDocuments, getCustomerDocument,
   generateCustomerDocument, generateCustomerPackage, generateAllStandardDocuments,
   regenerateCustomerDocument, downloadCustomerDocumentsZip,
-  updateCustomerDocument, deleteCustomerDocument, exportCustomerDocument,
+  updateCustomerDocument, deleteCustomerDocument, deleteAllCustomerDocuments, exportCustomerDocument,
   restoreCustomerDocumentVersion,
 } from "@/lib/customers.functions";
 import { TEMPLATE_LIST, DOC_CATEGORIES, DOC_STATUSES } from "@/lib/customer-templates";
