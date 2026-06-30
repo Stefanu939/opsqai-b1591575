@@ -820,6 +820,7 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
 
     const { generatePdf } = await import("@/lib/generators/pdf.server");
     const { zipSync, strToU8 } = await import("fflate");
+    const files: Record<string, Uint8Array> = {};
     const today = new Date().toISOString().slice(0, 10);
     for (const d of filtered) {
       const blocks = markdownToBlocks(d.markdown ?? "");
