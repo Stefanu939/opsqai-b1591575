@@ -66,6 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/app/admin/customers", label: "Enterprise Documents", icon: Building2 },
         { to: "/app/admin/support", label: "Support Inbox", icon: Inbox },
         { to: "/app/admin/email", label: "Email Settings", icon: Inbox },
+        { to: "/app/admin/email-logs", label: "Email Logs", icon: ScrollText },
         { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
       ]
     : [];
