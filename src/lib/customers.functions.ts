@@ -820,25 +820,25 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
 
     const { generatePdf } = await import("@/lib/generators/pdf.server");
     const { zipSync, strToU8 } = await import("fflate");
-    const files: Record<string, Uint8Array> = {};
+    const today = new Date().toISOString().slice(0, 10);
     for (const d of filtered) {
       const blocks = markdownToBlocks(d.markdown ?? "");
-      const sections: { heading?: string; paragraphs: string[] }[] = [];
-      let current: { heading?: string; paragraphs: string[] } = { heading: undefined, paragraphs: [] };
-      for (const b of blocks) {
-        if (b.type === "h1" || b.type === "h2" || b.type === "h3") {
-          if (current.heading || current.paragraphs.length) sections.push(current);
-          current = { heading: b.text, paragraphs: [] };
-        } else if (b.type === "p") current.paragraphs.push(b.text);
-        else if (b.type === "bullets") current.paragraphs.push(b.items.map((i) => `• ${i}`).join("\n"));
-        else if (b.type === "table") current.paragraphs.push([b.headers.join(" | "), ...b.rows.map((r) => r.join(" | "))].join("\n"));
-      }
-      if (current.heading || current.paragraphs.length) sections.push(current);
+      const docType = TEMPLATES[d.doc_type as TemplateKey]?.label ?? (d.doc_type ?? "Enterprise Document");
       const pdf = await generatePdf({
         title: d.title,
         subtitle: `${company?.name ?? ""} · v${d.version}`,
         author: "OPSQAI",
-        sections,
+        blocks: blocks as any,
+        meta: {
+          customerName: company?.name ?? "",
+          workspaceName: company?.name ?? "",
+          documentType: docType,
+          version: String(d.version ?? "1.0"),
+          date: today,
+          confidentiality: "Confidential — for the named recipient only",
+          brand: "OPSQAI",
+          revision: `R${d.version ?? 1}`,
+        },
       });
       const folder = ((d.metadata as any)?.category ?? "Custom Documents").replace(/[^\w -]+/g, "_");
       const safe = String(d.title).replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80);
