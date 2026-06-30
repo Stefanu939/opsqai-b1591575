@@ -268,9 +268,35 @@ export const resetUserPassword = createServerFn({ method: "POST" })
 export const listDepartments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase.from("departments").select("id, name").order("name");
+    const { data, error } = await context.supabase.from("departments").select("id, name, company_id").order("name");
     if (error) throw new Error(error.message);
     return data ?? [];
+  });
+
+export const createDepartment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({
+    name: z.string().trim().min(1).max(80),
+    company_id: z.string().uuid().optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { isPlatformAdmin, isCompanyAdmin, isManager } = await getActorRoles(context.supabase, context.userId);
+    if (!isPlatformAdmin && !isCompanyAdmin && !isManager) throw new Error("Forbidden");
+    const actorCompany = await getActorCompany(context.supabase, context.userId);
+    const targetCompany = isPlatformAdmin ? (data.company_id ?? actorCompany) : actorCompany;
+    if (!targetCompany) throw new Error("Target company required");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin
+      .from("departments").select("id, name")
+      .eq("company_id", targetCompany).ilike("name", data.name).maybeSingle();
+    if (existing) return { id: existing.id, name: existing.name };
+
+    const { data: inserted, error } = await supabaseAdmin
+      .from("departments").insert({ name: data.name, company_id: targetCompany })
+      .select("id, name").single();
+    if (error) throw new Error(error.message);
+    return inserted;
   });
 
 export const updateMyProfile = createServerFn({ method: "POST" })
