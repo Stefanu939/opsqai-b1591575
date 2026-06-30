@@ -8,11 +8,6 @@ import {
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
-import demoAssistant from "@/assets/demo-assistant.jpg";
-import demoAcademy from "@/assets/demo-academy.jpg";
-import demoAudit from "@/assets/demo-audit.jpg";
-import demoDocs from "@/assets/demo-docs.jpg";
-import demoAnalytics from "@/assets/demo-analytics.jpg";
 import {
   ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, CartesianGrid,
