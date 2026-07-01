@@ -279,8 +279,8 @@ function darkCard(s, x, y, w, h) {
   bgLight(s);
   brandBar(s, false);
   eyebrow(s, "Modul 02 · Academy");
-  title(s, "Onboarding condus de AI. Certificate în minute, nu luni.");
-  subtitle(s, "De la Department → Learning Path → Chapter → Lesson → Quiz. Totul generat automat din baza voastră de cunoștințe.");
+  title(s, "Onboarding condus de AI.");
+  subtitle(s, "De la Department → Learning Path → Chapter → Lesson → Quiz. Certificate PDF verificabile, generate automat.", 1.55);
 
   const steps = [
     ["Departament", "Definit de manager", "Warehouse, Picker, Transport, Customer Care…"],
