@@ -132,7 +132,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
                 <>
                   <Button asChild variant="ghost" size="sm" className="text-foreground/85"><Link to="/auth">Sign in</Link></Button>
                   <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_8px_24px_-8px_oklch(0.82_0.14_200/0.5)]">
-                    <Link to="/contact">Book a demo</Link>
+                    <Link to="/demo">Launch Interactive Demo</Link>
                   </Button>
                 </>
               )}
