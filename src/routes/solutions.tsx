@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ClipboardCheck, GraduationCap, MessageSquareWarning, ShieldCheck, Wrench } from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardCheck, GraduationCap, MessageSquareWarning, ShieldCheck, Wrench } from "lucide-react";
+import { SOLUTION_PAGES } from "@/content/solutions/data";
 
 import { pageHead } from "@/lib/seo";
 
