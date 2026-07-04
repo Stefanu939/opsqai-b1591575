@@ -96,6 +96,7 @@ import { Route as AuthenticatedAppAdminEmailRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
 import { Route as AuthenticatedAppAdminCustomersRouteImport } from './routes/_authenticated/app.admin.customers'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
+import { Route as AuthenticatedAppAdminCommandCenterRouteImport } from './routes/_authenticated/app.admin.command-center'
 import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
 import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
 import { Route as AuthenticatedAppAdminAiAuditRouteImport } from './routes/_authenticated/app.admin.ai-audit'
@@ -572,6 +573,12 @@ const AuthenticatedAppAdminCompaniesRoute =
     path: '/admin/companies',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminCommandCenterRoute =
+  AuthenticatedAppAdminCommandCenterRouteImport.update({
+    id: '/admin/command-center',
+    path: '/admin/command-center',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminAuditRoute =
   AuthenticatedAppAdminAuditRouteImport.update({
     id: '/admin/audit',
@@ -723,6 +730,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
+  '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
@@ -820,6 +828,7 @@ export interface FileRoutesByTo {
   '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
+  '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
@@ -923,6 +932,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
   '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
   '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
+  '/_authenticated/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/_authenticated/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
@@ -1026,6 +1036,7 @@ export interface FileRouteTypes {
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
+    | '/app/admin/command-center'
     | '/app/admin/companies'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
@@ -1123,6 +1134,7 @@ export interface FileRouteTypes {
     | '/app/admin/ai-audit'
     | '/app/admin/analytics'
     | '/app/admin/audit'
+    | '/app/admin/command-center'
     | '/app/admin/companies'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
@@ -1225,6 +1237,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/ai-audit'
     | '/_authenticated/app/admin/analytics'
     | '/_authenticated/app/admin/audit'
+    | '/_authenticated/app/admin/command-center'
     | '/_authenticated/app/admin/companies'
     | '/_authenticated/app/admin/customers'
     | '/_authenticated/app/admin/dashboard'
@@ -1902,6 +1915,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminCompaniesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/command-center': {
+      id: '/_authenticated/app/admin/command-center'
+      path: '/admin/command-center'
+      fullPath: '/app/admin/command-center'
+      preLoaderRoute: typeof AuthenticatedAppAdminCommandCenterRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/audit': {
       id: '/_authenticated/app/admin/audit'
       path: '/admin/audit'
@@ -2063,6 +2083,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminAiAuditRoute: typeof AuthenticatedAppAdminAiAuditRoute
   AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
   AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
+  AuthenticatedAppAdminCommandCenterRoute: typeof AuthenticatedAppAdminCommandCenterRoute
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
   AuthenticatedAppAdminCustomersRoute: typeof AuthenticatedAppAdminCustomersRoute
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
@@ -2102,6 +2123,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminAiAuditRoute: AuthenticatedAppAdminAiAuditRoute,
   AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
   AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
+  AuthenticatedAppAdminCommandCenterRoute:
+    AuthenticatedAppAdminCommandCenterRoute,
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
   AuthenticatedAppAdminCustomersRoute: AuthenticatedAppAdminCustomersRoute,
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
