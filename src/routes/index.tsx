@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Database, Activity,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
+import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Button } from "@/components/ui/button";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -31,6 +32,7 @@ function Home() {
   return (
     <MarketingLayout>
       <Hero />
+      <ProductShowcase />
       <TrustBar />
       <WhatIsOpsqai />
       <PlatformOverview />
