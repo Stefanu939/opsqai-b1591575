@@ -1,53 +1,50 @@
 /**
- * Central content manifest. New articles/guides/case-studies are registered
- * here and picked up automatically by listing pages and sitemap.xml.
+ * Central content manifest. Phase 2 ships the scaffolding with empty arrays;
+ * Phase 4 registers each new blog post / guide / case study here so the
+ * listing pages and sitemap.xml pick them up automatically.
  *
- * Future-proofing: the sitemap loader reads these arrays, so shipping a new
- * post only requires (1) writing a `.ts` module under the matching folder
- * and (2) importing it into the corresponding array below.
+ * To register a new article:
+ *   1. Create `src/content/blog/my-slug.ts` exporting a `BlogPost`
+ *   2. Import and add it to `BLOG_POSTS` below
+ *
+ * The sitemap loader reads these arrays — no other place to update.
  */
 
 import type { BlogPost } from "./blog/_types";
 import type { Guide } from "./guides/_types";
 import type { CaseStudy } from "./case-studies/_types";
 
-// ---------- Blog ----------
-import { post as pKmDefinition } from "./blog/enterprise-knowledge-management-2026";
-import { post as pOperationalKnowledge } from "./blog/operational-knowledge-live-systems";
-import { post as pSemanticSearch } from "./blog/semantic-vs-keyword-search";
-import { post as pAiGovernance } from "./blog/ai-governance-multi-tenant";
-import { post as pSourceBackedAi } from "./blog/source-backed-ai";
-import { post as pAuditReadyKb } from "./blog/audit-ready-knowledge-base";
+export const BLOG_POSTS: BlogPost[] = [];
+export const GUIDES: Guide[] = [];
+export const CASE_STUDIES: CaseStudy[] = [];
 
-// ---------- Guides ----------
-import { guide as gDigitizeSops } from "./guides/how-to-digitize-warehouse-sops";
-import { guide as gRolloutAi } from "./guides/rollout-ai-across-distribution";
-import { guide as gAuditReadiness } from "./guides/iso-aligned-operational-audits";
-import { guide as gOnboarding30 } from "./guides/30-day-onboarding-playbook";
-
-// ---------- Case Studies ----------
-import { study as csMultiWarehouse } from "./case-studies/multi-warehouse-rollout";
-import { study as cs3plDigitization } from "./case-studies/3pl-sop-digitization";
-
-export const BLOG_POSTS: BlogPost[] = [
-  pKmDefinition,
-  pOperationalKnowledge,
-  pSemanticSearch,
-  pAiGovernance,
-  pSourceBackedAi,
-  pAuditReadyKb,
-];
-
-export const GUIDES: Guide[] = [gDigitizeSops, gRolloutAi, gAuditReadiness, gOnboarding30];
-
-export const CASE_STUDIES: CaseStudy[] = [csMultiWarehouse, cs3plDigitization];
-
-export function findBlogPost(slug: string) {
+export function findBlogPost(slug: string): BlogPost | undefined {
   return BLOG_POSTS.find((p) => p.slug === slug);
 }
-export function findGuide(slug: string) {
+export function findGuide(slug: string): Guide | undefined {
   return GUIDES.find((g) => g.slug === slug);
 }
-export function findCaseStudy(slug: string) {
+export function findCaseStudy(slug: string): CaseStudy | undefined {
   return CASE_STUDIES.find((c) => c.slug === slug);
 }
+
+export const CONTENT_ROADMAP = {
+  blog: [
+    "What Is Enterprise Knowledge Management in 2026",
+    "Operational Knowledge: Turning SOPs Into Live Systems",
+    "Semantic Search vs Keyword Search in Warehouse Operations",
+    "AI Governance for Multi-Tenant SaaS",
+    "Source-Backed AI: Why Grounded Answers Matter",
+    "Building an Audit-Ready Knowledge Base",
+  ],
+  guides: [
+    "How to Digitize Warehouse SOPs",
+    "How to Roll Out AI Assistants Across a Distribution Network",
+    "How to Prepare for ISO-Aligned Operational Audits",
+    "Onboarding Playbook: 30 Days to First Value with OPSQAI",
+  ],
+  caseStudies: [
+    "Multi-Warehouse Rollout: Cutting Onboarding Time",
+    "SOP Digitization for a 3PL Distribution Center",
+  ],
+};
