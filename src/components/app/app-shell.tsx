@@ -19,6 +19,7 @@ import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
+import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
 import { SupportWidget } from "@/components/support/support-widget";
 
 export function AppShell({ children }: { children: ReactNode }) {
