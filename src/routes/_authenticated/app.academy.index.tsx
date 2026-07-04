@@ -12,9 +12,10 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import {
   GraduationCap, Sparkles, Award, Clock, User as UserIcon, AlertTriangle, CheckCircle2,
-  Search, PlayCircle, BookOpen, ArrowRight, Timer, ListChecks,
+  Search, PlayCircle, BookOpen, ArrowRight, Timer, ListChecks, PlusCircle,
 } from "lucide-react";
 import { AcademySubnav } from "@/components/app/academy-subnav";
+import { AssignTrainingDialog } from "@/components/academy/assign-training-dialog";
 
 export const Route = createFileRoute("/_authenticated/app/academy/")({
   component: MyTrainingHome,
