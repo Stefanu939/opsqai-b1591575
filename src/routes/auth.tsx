@@ -64,56 +64,124 @@ function AuthPage() {
   const forgotLabel = lang === "de" ? "Passwort vergessen?" : lang === "ro" ? "Ai uitat parola?" : "Forgot password?";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex items-center justify-between p-4">
+    <div
+      className="min-h-screen bg-background flex flex-col"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
+      }}
+    >
+      {/* Top bar — compact on mobile, unchanged on desktop */}
+      <div className="flex items-center justify-between px-5 pt-4 pb-2 md:p-4">
         <Link to="/" className="flex items-center gap-2">
-          <LogoMark size={32} className="text-foreground" />
-          <span className="font-semibold tracking-tight text-lg">OPSQAI</span>
+          <LogoMark size={28} className="text-foreground md:h-8 md:w-8" />
+          <span className="font-semibold tracking-tight text-base md:text-lg">OPSQAI</span>
         </Link>
-        <button onClick={() => setLang(lang === "de" ? "en" : lang === "en" ? "ro" : "de")} className="text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground">
+        <button
+          onClick={() => setLang(lang === "de" ? "en" : lang === "en" ? "ro" : "de")}
+          aria-label="Change language"
+          className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-border/60 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground"
+        >
           {lang.toUpperCase()}
         </button>
       </div>
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md p-8">
-          <div className="text-center mb-6">
-            <LogoMark size={64} className="mx-auto mb-4 text-foreground" />
-            <h1 className="text-2xl font-semibold tracking-tight">OPSQAI</h1>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground/70 mt-1">Operational Knowledge Intelligence</p>
-            <p className="text-sm text-muted-foreground mt-2">{t("tagline")}</p>
+
+      {/*
+        Mobile (<md): full-viewport native-app layout — flush edges, no card
+        chrome, generous touch targets, full-width primary action.
+        Desktop (>=md): the original centered card is preserved verbatim
+        via md:* overrides.
+      */}
+      <main className="flex-1 flex flex-col md:items-center md:justify-center px-5 md:px-4 pt-4 md:py-8">
+        <Card
+          className={
+            // Reset all card chrome on mobile so it looks like a native screen,
+            // and restore the desktop card via md: overrides.
+            "w-full flex-1 md:flex-none max-w-md " +
+            "border-0 bg-transparent shadow-none p-0 " +
+            "md:border md:bg-card md:shadow-sm md:p-8 flex flex-col"
+          }
+        >
+          {/* Brand header — bigger logo & type on mobile */}
+          <div className="text-center mt-6 md:mt-0 mb-8 md:mb-6">
+            <LogoMark size={72} className="mx-auto mb-5 h-20 w-20 md:h-16 md:w-16 text-foreground" />
+            <h1 className="text-3xl md:text-2xl font-semibold tracking-tight">OPSQAI</h1>
+            <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-muted-foreground/70 mt-1.5">
+              Operational Knowledge Intelligence
+            </p>
+            <p className="text-[15px] md:text-sm text-muted-foreground mt-3 md:mt-2">
+              {t("tagline")}
+            </p>
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-5 md:space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("email")}</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+              <Label htmlFor="email" className="text-sm md:text-sm">{t("email")}</Label>
+              <Input
+                id="email"
+                type="email"
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md px-4"
+              />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("password")}</Label>
-                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">{forgotLabel}</Link>
+                <Label htmlFor="password" className="text-sm">{t("password")}</Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm md:text-xs text-muted-foreground hover:text-foreground min-h-11 md:min-h-0 inline-flex items-center"
+                >
+                  {forgotLabel}
+                </Link>
               </div>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" minLength={6} />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                minLength={6}
+                className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md px-4"
+              />
             </div>
-            <Button type="submit" disabled={busy} className="w-full">
+            <Button
+              type="submit"
+              disabled={busy}
+              className="w-full h-12 md:h-10 text-base md:text-sm font-semibold rounded-xl md:rounded-md mt-2 md:mt-0"
+            >
               {t("signIn")}
             </Button>
           </form>
 
-          <div className="mt-6 rounded-md border border-border bg-muted/40 px-4 py-3 text-center text-xs text-muted-foreground">
-            {contactAdmin}
-          </div>
-          <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-xs">
-            <p className="text-muted-foreground">
-              {lang === "de" ? "Kein Konto?" : lang === "ro" ? "Nu ai cont?" : "No account yet?"}
+          {/* Secondary blocks — tighter on mobile, tucked to bottom of viewport */}
+          <div className="mt-auto md:mt-6 pt-6 md:pt-0 space-y-3 md:space-y-0">
+            <div className="rounded-xl md:rounded-md border border-border bg-muted/40 px-4 py-3 text-center text-[13px] md:text-xs text-muted-foreground md:mt-6">
+              {contactAdmin}
+            </div>
+            <div className="rounded-xl md:rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-[13px] md:text-xs md:mt-4">
+              <p className="text-muted-foreground">
+                {lang === "de" ? "Kein Konto?" : lang === "ro" ? "Nu ai cont?" : "No account yet?"}
+              </p>
+              <Link to="/demo" className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline">
+                {lang === "de" ? "Interaktive Demo starten" : lang === "ro" ? "Lansează Demo Interactiv" : "Launch Interactive Demo"} →
+              </Link>
+            </div>
+            <p className="text-center text-sm md:text-xs text-muted-foreground pt-2 md:pt-0 md:mt-4">
+              <Link to="/" className="inline-flex min-h-11 md:min-h-0 items-center hover:underline">
+                ← {lang === "de" ? "Zurück" : lang === "ro" ? "Înapoi" : "Back"}
+              </Link>
             </p>
-            <Link to="/demo" className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline">
-              {lang === "de" ? "Interaktive Demo starten" : lang === "ro" ? "Lansează Demo Interactiv" : "Launch Interactive Demo"} →
-            </Link>
           </div>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            <Link to="/" className="hover:underline">← {lang === "de" ? "Zurück" : lang === "ro" ? "Înapoi" : "Back"}</Link>
-          </p>
         </Card>
       </main>
     </div>
