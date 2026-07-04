@@ -1,196 +1,138 @@
+# OPSQAI Enterprise SEO Sprint — Phased Plan
 
-# Academy → Enterprise LMS refactor
+## Current baseline (verified)
 
-Scope: UX / workflow / capability changes only. No visual redesign. Reuse existing design tokens, shadcn components, sidebar, routing shell, auth and RBAC. All work stays inside the already-authenticated `_authenticated/app.academy.*` tree and the existing DB schema (`academy_learning_paths`, `academy_chapters`, `academy_lessons`, `academy_enrollments`, `academy_lesson_progress`, `academy_certificates`, `academy_quiz_attempts`).
+Marketing surface today: `/`, `/product`, `/features`, `/solutions`, `/industries`, `/pricing`, `/contact`, `/demo`, `/trust` + 11 sub-pages, `/legal/*`. Sitemap + robots.txt exist. Root `head()` has OG, Twitter, Organization + WebSite JSON-LD, fonts preconnected.
 
-## 1. Navigation — split learner from library
+Gaps to close: no blog/resources/guides/case-studies/docs; no commercial landing pages beyond the 4 core; per-page `head()` needs audit (many likely inherit generic root meta); no BreadcrumbList, FAQPage, SoftwareApplication, Article, HowTo schema anywhere; no hreflang despite EN/DE/RO app; no IndexNow; heading hierarchy and internal-link graph unverified.
 
-Update `src/components/app/app-shell.tsx` sidebar so learners get a dedicated area:
+## Non-goals
+
+- No visual redesign.
+- No fabricated capabilities — every claim maps to a real OPSQAI feature already in the codebase.
+- No mass-generated article dump. 12–15 seed articles, hand-crafted, all educational.
+
+## Phase 1 — Technical SEO Audit & Fixes (foundation)
+
+**Audit pass.** For each existing public route, verify title, description, canonical, og:*, twitter:*, H1 uniqueness, alt text, semantic landmarks. Output an internal audit table (not shipped) so fixes are traceable.
+
+**Fixes shipped.**
+- Add per-route `head()` where missing: unique title, description, og:title, og:description, og:url, canonical (leaf-only), og:type, twitter:card.
+- Move any `og:image` off `__root.tsx` (currently there — overrides every child) into leaf routes; keep root for `og:type`/`og:site_name` only.
+- Add JSON-LD per route type: `SoftwareApplication` on `/product` and `/features`; `FAQPage` on `/pricing` FAQ block; `BreadcrumbList` on every non-home page; keep `Organization` + `WebSite` + `SearchAction` on root.
+- Fix any duplicate H1s, promote H2s where needed, add missing alt text on marketing images, add skip-to-content link.
+- Extend `robots.txt` with an explicit `Sitemap:` (already there), add `Disallow: /auth`, `Disallow: /verify/`, `Disallow: /demo/app/`.
+- Extend `sitemap.xml` server route to list all Phase 2/3 new URLs and to pull blog/case-study slugs from a filesystem manifest (see Phase 4).
+
+**Performance.**
+- Convert font `<link rel="stylesheet">` to `<link rel="preconnect">` (already) + non-blocking font load via `media="print" onload` swap.
+- Add `fetchpriority="high"` + `preload` for the home LCP image.
+- Confirm images are `.webp/.avif` where possible; lazy-load below-fold via `loading="lazy" decoding="async"`.
+- Split the fonts weight axis (drop unused weights) to shrink CSS.
+
+## Phase 2 — Content Architecture (empty shells, ready to fill)
+
+Create the section scaffolding with the existing enterprise design language. Each section is a real route with head(), a listing page, and a detail template. No placeholder content — Phase 4 fills the seed entries; unfilled sections show a curated empty state ("Coming Q1").
+
+New routes:
+```text
+/resources                → hub linking to blog, guides, case-studies, docs
+/blog                     → index (list of articles)
+/blog/$slug               → article detail (Article + BreadcrumbList JSON-LD)
+/guides                   → index (long-form playbooks)
+/guides/$slug             → HowTo / Article schema
+/case-studies             → index
+/case-studies/$slug       → CreativeWork + Article schema
+/docs                     → documentation home (link to product docs)
+/help                     → help-center hub (FAQPage schema)
+```
+
+Content storage: MDX-like TS modules under `src/content/{blog,guides,case-studies}/`. Each file exports `{ meta, body }`. Route loaders read from a generated manifest so the sitemap + listing pages stay in sync automatically (future-proof deliverable).
+
+## Phase 3 — Commercial Landing Pages (10 pages)
+
+Following the enterprise design of `/product` and `/features`. Each explains: problem → solution → OPSQAI capabilities → benefits → CTA. All map to real features.
 
 ```text
-Dashboard
-Knowledge          → /app/knowledge   (documentation only)
-My Training        → /app/academy     (assigned courses — landing)
-AI Teacher         → /app/academy/teacher   (dedicated launcher)
-Certificates       → /app/academy/certificates
+/solutions/enterprise-ai-for-logistics
+/solutions/warehouse-ai-assistant
+/solutions/ai-knowledge-management
+/solutions/operational-knowledge-platform
+/solutions/warehouse-sop-software
+/solutions/warehouse-documentation-software
+/solutions/ai-for-warehouse-operations
+/solutions/ai-for-distribution-centers
+/solutions/operational-ai-platform
+/solutions/enterprise-knowledge-base
 ```
 
-- Rename the current "Academy" sidebar entry to **My Training** (icon unchanged: `GraduationCap`).
-- Remove the "Knowledge → launch course" affordance from `app.knowledge.tsx` (course launch chips) so learners never enter Knowledge to start a course.
-- Managers/admins keep **Academy Manager** in the admin group (`/app/admin/academy`) with the extra tabs described in §7.
-- Permissions stay: `academy.learn` (employees), `academy.manage` (managers/admins), `academy.assign` (new — see §8).
+Each: unique `<title>`, description, H1, 3 body sections tied to real OPSQAI modules (Chat, SOP Generator, Knowledge Base, Academy, Audit, Compliance), `SoftwareApplication` + `BreadcrumbList` schema, related-links block into blog/guides/case-studies. Existing `/solutions` becomes a hub index.
 
-## 2. My Training dashboard (`/app/academy`)
+Keyword mapping is grounded — I'll run Semrush `keyword_compare` / `serp_analysis` for the 10 target phrases before writing copy so headers and body reflect real search intent, not guesses.
 
-Rebuild `app.academy.index.tsx` around **modern training cards**, one per enrollment. Data source: `academy_enrollments` joined with `academy_learning_paths`, `academy_chapters`, `academy_lessons`, `academy_lesson_progress`, `academy_certificates`.
+## Phase 4 — Seed Content (12–15 articles, hand-crafted)
 
-Card fields:
+Roadmap file `src/content/roadmap.md` lists 40+ topics grouped by pillar (Enterprise AI, Knowledge Management, Warehouse AI, SOP Management, Compliance, Governance). Ship the first 12–15 across the pillars:
 
-| Field | Source |
-|---|---|
-| Thumbnail / icon | Path icon (fallback: `GraduationCap`) |
-| Title | `path.title` |
-| Mandatory / Optional badge | `enrollment.mandatory` |
-| Progress bar + % | `count(progress.status='completed') / count(lessons)` |
-| Lessons completed | same |
-| Estimated duration | `sum(lessons.estimated_minutes)` |
-| Assigned by | `profiles.display_name(enrollment.assigned_by)` |
-| Due date | `enrollment.due_at` |
-| Primary CTA | Start / Continue / View Certificate |
-| State chips | `Overdue` (due_at < now && not completed) with warning styling; `Completed ✓` |
+**Blog (educational, 800–1200 words):**
+- What Is Enterprise Knowledge Management in 2026
+- Operational Knowledge: Turning SOPs Into Live Systems
+- Semantic Search vs Keyword Search in Warehouse Operations
+- AI Governance for Multi-Tenant SaaS
+- Source-Backed AI: Why Grounded Answers Matter
+- Building an Audit-Ready Knowledge Base
 
-Layout: three filter chips at top — **Mandatory · Optional · Completed** — plus a **My Training** search input scoped to assigned enrollments only (§11). Grid: `grid gap-4 md:grid-cols-2 xl:grid-cols-3` using existing `Card`, `Badge`, `Progress`, `Button`.
+**Guides (HowTo schema, 1500–2500 words):**
+- How to Digitize Warehouse SOPs
+- How to Roll Out AI Assistants Across a Distribution Network
+- How to Prepare for ISO-Aligned Operational Audits
+- Onboarding Playbook: 30 Days to First Value with OPSQAI
 
-New employee summary widget (top of `app.index.tsx` Dashboard) — reusing the existing dashboard card style:
+**Case-study templates (2 placeholders framed as illustrative anonymized narratives, clearly labelled — will be swapped for real customers when available):**
+- Multi-Warehouse Rollout: Cutting Onboarding Time
+- SOP Digitization for a 3PL Distribution Center
 
-- Mandatory Training active count → link to `/app/academy?filter=mandatory`
-- Certificates count → `/app/academy/certificates`
-- Average quiz score (from `academy_quiz_attempts.score`)
-- Learning progress % (weighted across active enrollments)
-- Upcoming deadlines (enrollments with `due_at < now + 14d`)
+Every article: unique metadata, Article/HowTo JSON-LD with author + datePublished, BreadcrumbList, internal links into 3–5 landing pages and 2 sibling articles, canonical + og:*.
 
-## 3. Course view (path detail)
+## Phase 5 — International SEO, EEAT, Search Console
 
-Keep `app.academy.path.$pathId.tsx` structure but add a **stepper** rendering the learning-path sequence and a clear "Next lesson" affordance:
+**hreflang.** Each public route emits `<link rel="alternate" hreflang="en|de|ro|x-default">`. Since the current site content is English-only in code, the alternates initially all point to the English URL — but the plumbing ships now so translated pages plug in without refactor. Add `?lang=` search param support and a language-switcher meta helper.
+
+**EEAT.** Add an `/about` route with company origin, an authors module (`src/content/authors/`), and author bylines on every article. Extend `/trust` hub with a visible summary block on the home page ("Enterprise-grade, GDPR, source-backed AI, role-based access, multi-tenant isolation") linking into existing trust sub-pages — surfaces existing capabilities, no new claims.
+
+**Search Console readiness.**
+- Provision GSC verification via the Google Search Console connector (META token flow) — will trigger the connector flow when the user is ready.
+- Add Bing Webmaster verification meta tag.
+- IndexNow: `public/<key>.txt` + a lightweight server route `/api/public/indexnow-ping` that pings IndexNow when a new blog/guide slug is added. Optional and behind a feature flag until domain is verified.
+- Extend sitemap into a sitemap index once article count grows past ~50 (future-proofing hook already in the loader).
+
+## Phase 6 — Deliverable report
+
+At the end I produce `SEO_SPRINT_REPORT.md` at repo root with:
+- Every technical fix (before/after)
+- Structured data added per route
+- Performance deltas (bundle size, LCP hints)
+- Metadata inventory table
+- New URLs shipped
+- Content roadmap remaining
+- Recommendations for the next sprint
+
+## Sequencing & checkpoints
 
 ```text
-Step 1: Warehouse Safety   ✓
-Step 2: Receiving          ● in progress
-Step 3: Picking            ○
-Step 4: Packing            ○
-Final Assessment           ○
-Certificate                🎖
+Phase 1 (technical audit + head/schema/perf)     → ship, review
+Phase 2 (empty content architecture routes)      → ship, review
+Phase 3 (10 landing pages)                       → ship, review
+Phase 4 (12–15 seed articles)                    → ship, review
+Phase 5 (hreflang, EEAT, GSC, Bing, IndexNow)    → ship, review
+Phase 6 (final report)                           → deliver
 ```
 
-Reuse existing chapter/lesson list; add a top summary row (progress, est. time, mandatory, due date, assigned-by).
+Each phase is independently shippable and reviewable. I'll pause between phases for feedback so you can steer copy tone and priority.
 
-## 4. Lesson view
+## What I need from you before I start
 
-Reorganize `app.academy.lesson.$lessonId.tsx` sections into the requested order using existing components — no visual redesign:
-
-```
-Lesson title
-Objectives            (existing bullets)
-Progress + Estimated time  (existing header widgets)
-AI Teacher            (existing chat)
-Lesson summary        (existing)
-Quiz                  (existing)
-Notes                 (new: personal notes → academy_lesson_progress.notes text; add column)
-[ Previous ]  [ Mark complete ]  [ Next lesson ]
-```
-
-Prev/Next resolve within the current path via chapter+lesson `order_index`. AI Teacher grounding already scoped to the lesson — unchanged.
-
-## 5. Certificates page
-
-Rebuild `app.academy.certificates.tsx` as a card grid, one card per row in `academy_certificates`:
-
-- Path title, completion date, expiration date (if any), certificate ID (`code`), status (Valid / Expiring / Expired).
-- Actions: **View** (existing verify route `/verify/$code`), **Download PDF** (new: `generateCertificatePdf` server fn using `pdf-lib`, streamed as a server-route response at `/api/public/certificates/$code.pdf` — signed by verifying the code exists and belongs to the caller's company via RLS).
-
-## 6. AI Teacher launcher (`/app/academy/teacher`)
-
-Thin new route that lets employees pick any lesson from their **active** enrollments and jump into AI Teacher for that lesson. No new grounding logic — reuses `api/academy-chat.ts`.
-
-## 7. Manager / Admin experience
-
-Extend `app.admin.academy.tsx` (Academy Manager) with per-course analytics — pulled from existing tables, no schema needed:
-
-| Metric | Query |
-|---|---|
-| Assigned users | count(enrollments) |
-| Completed | count where status='completed' |
-| In progress | count where status='in_progress' |
-| Overdue | count where due_at<now and not completed |
-| Avg completion time | avg(completed_at - started_at) |
-| Avg quiz score | avg(quiz_attempts.score) |
-| Completion % | completed / assigned |
-| Certificates issued | count(certificates where path_id=…) |
-
-Also add a **Cohort** table per course listing users with status + progress + last activity, so a manager sees who is behind on mandatory training.
-
-## 8. Assign flow (make the Assign button real)
-
-New dialog component `AssignTrainingDialog` opened from:
-
-- Academy Manager → course row action
-- Academy Manager → new bulk **Assign** toolbar
-- Admin → user detail page
-
-Capabilities:
-
-- **Targets:** individual employees (multi-select), departments, roles, or Entire Company (checkbox). Resolved server-side to a distinct user set.
-- **Content:** one course, multiple courses, or full learning path (courses = paths in current schema; multi-select allowed).
-- **Options:** due date, priority (low / normal / high), mandatory toggle, notify checkbox.
-
-Server fn `assignTraining` (createServerFn + `requireSupabaseAuth`, gated by permission `academy.assign` → managers, company_admin, platform admins):
-
-1. Resolve target user ids from targets.
-2. Upsert `academy_enrollments` (unique on `path_id,user_id`) with `assigned_by=userId`, `mandatory`, `due_at`, `status='assigned'`.
-3. Insert `notifications` rows for each new enrollment (see §9).
-4. Return counts (assigned, skipped-already-enrolled).
-
-New role → permission mapping: add `academy.assign` to `role_permissions` for `company_admin`, `manager`. Migration in the same batch.
-
-Assigned courses appear in `/app/academy` on next load — no extra client wiring; the enrollment already flows through the dashboard query.
-
-## 9. Notifications
-
-Reuse the existing `notifications` table. Emit `type` values:
-
-- `academy.course_assigned`
-- `academy.course_due_soon` (nightly `pg_cron` @ 07:00 UTC → any enrollment where `due_at between now and now+3d`, unnotified)
-- `academy.course_overdue` (same cron: `due_at < now`)
-- `academy.quiz_available` (on lesson completion when quiz exists)
-- `academy.certificate_earned` (on certificate row insert — trigger)
-- `academy.path_completed` (on last lesson completion)
-
-Add a small guard column `notified_stage text[]` on `academy_enrollments` so cron doesn't re-notify.
-
-## 10. Certificates on completion
-
-Trigger `academy_issue_certificate` on `academy_enrollments UPDATE` when status transitions to `completed`: inserts an `academy_certificates` row (code = short random, valid_until = optional based on path setting) and emits the notification above. Idempotent.
-
-## 11. Search scoping
-
-`/app/academy` search hits only enrollments belonging to the current user (already enforced by RLS). Knowledge search remains on `/app/knowledge` — no cross-linking.
-
-## 12. RBAC summary
-
-| Role | Can |
-|---|---|
-| Employee | See only own enrollments; launch AI Teacher, take quizzes, view own certificates |
-| Manager | Everything Employee can + assign training within their company + view cohort analytics |
-| Company Admin | Manager + author/edit paths/chapters/lessons + issue/revoke certificates |
-| Platform Super Admin | All companies via existing global admin tools |
-| Platform Owner | Existing platform surfaces unchanged |
-
-Enforced via existing `has_role` / `has_permission` functions + RLS on academy tables (already scoped by `company_id`). Only new grant: add `academy.assign` permission row and gate `AssignTrainingDialog` + server fn on it.
-
-## Delivery batches
-
-**Batch A — schema & backend**
-- Migration: add `academy_lesson_progress.notes text`, `academy_enrollments.priority text default 'normal'`, `academy_enrollments.notified_stages text[] default '{}'`, `role_permissions` rows for `academy.assign`.
-- Trigger `academy_issue_certificate` + notification emitters.
-- `pg_cron` nightly job → `/api/public/hooks/academy-nudge`.
-- Server fns: `listMyTraining`, `getMyTrainingSummary`, `assignTraining`, `listCourseAnalytics`, `listCourseCohort`, `getCertificatePdf` (server route).
-
-**Batch B — learner UX**
-- Sidebar split (My Training / Knowledge / AI Teacher / Certificates).
-- Rebuild `app.academy.index.tsx` (cards + filters + search).
-- Employee summary widget on `app.index.tsx`.
-- Path detail stepper.
-- Lesson view section reorder + notes.
-- Certificates page rebuild + PDF download.
-- AI Teacher launcher route.
-- Remove course-launch chips from Knowledge.
-
-**Batch C — manager/admin UX**
-- Academy Manager analytics tab per course.
-- Cohort table.
-- `AssignTrainingDialog` (accessible from course row, bulk toolbar, and user detail).
-- Notifications wiring end-to-end.
-
-Typecheck after each batch. No visual redesign — every new surface reuses existing `Card`, `Badge`, `Progress`, `Button`, `Dialog`, `Table`, `Tabs`, sidebar, and design tokens.
-
-Reply **continue** and I'll start with Batch A (schema + server functions + cron).
+1. **Confirm phased delivery** (approve this plan) or ask me to collapse/reorder phases.
+2. **Article tone**: strict technical/educational (Deloitte-style whitepapers) or approachable-professional (Notion/Linear blog tone)?
+3. **Case studies**: do you have real customer stories I can anonymize, or should Phase 4 ship illustrative narratives clearly labelled as such?
+4. **Search Console**: when you're ready, I'll trigger the Google connector to verify `opsqai.de` — say the word and I'll run it in Phase 5.
