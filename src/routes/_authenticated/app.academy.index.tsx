@@ -113,11 +113,18 @@ function MyTrainingHome() {
               Your assigned learning, in one place. Continue where you left off, complete mandatory training and earn certificates.
             </p>
           </div>
-          <Button asChild variant="outline" className="gap-2">
-            <Link to="/app/academy/teacher">
-              <Sparkles className="h-4 w-4" /> AI Teacher
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasPermission("academy.assign") && (
+              <Button onClick={() => setAssignOpen(true)} className="gap-2">
+                <PlusCircle className="h-4 w-4" /> Assign training
+              </Button>
+            )}
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/app/academy/teacher">
+                <Sparkles className="h-4 w-4" /> AI Teacher
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Summary widget */}
