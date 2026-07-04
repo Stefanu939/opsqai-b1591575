@@ -8,10 +8,68 @@ Sprint plan: `.lovable/plan.md`. This file is updated at each phase checkpoint.
 |-------|-------|--------|
 | 1 | Technical SEO audit & fixes | ✅ Shipped |
 | 2 | Content architecture (empty shells) | ✅ Shipped |
-| 3 | 10 commercial landing pages | ⏸ Awaiting go-ahead |
-| 4 | 12–15 seed articles | ⏸ Awaiting go-ahead |
-| 5 | hreflang, EEAT, GSC, Bing, IndexNow | ✅ hreflang shipped · GSC/Bing/IndexNow pending your trigger |
-| 6 | Final report | 🟨 In progress (this file) |
+| 3 | 10 commercial landing pages | ✅ Shipped |
+| 4 | 12–15 seed articles (6 blog + 4 guides + 2 case studies) | ✅ Shipped |
+| 5 | hreflang, EEAT, GSC verification | 🟨 GSC verification meta live in code — awaiting publish, then verify call |
+| 6 | Final report | 🟨 Rolling update |
+
+---
+
+## Phase 3 — 10 commercial landing pages
+
+Served via `/solutions/$slug` dynamic route from `src/content/solutions/data.ts`. Each page has:
+- Unique `title`, `description`, `keywords`, canonical, hreflang, breadcrumbs
+- `SoftwareApplication` + `BreadcrumbList` JSON-LD (+ `FAQPage` where FAQs exist)
+- Executive/technical voice, real capabilities, related-links block, dual CTAs
+
+URLs shipped:
+- `/solutions/enterprise-ai-for-logistics`
+- `/solutions/warehouse-ai-assistant`
+- `/solutions/ai-knowledge-management`
+- `/solutions/operational-knowledge-platform`
+- `/solutions/warehouse-sop-software`
+- `/solutions/warehouse-documentation-software`
+- `/solutions/ai-for-warehouse-operations`
+- `/solutions/ai-for-distribution-centers`
+- `/solutions/operational-ai-platform`
+- `/solutions/enterprise-knowledge-base`
+
+`/solutions` hub now lists all ten as a browseable grid below the use-case cards.
+
+---
+
+## Phase 4 — Seed content
+
+**Blog (6, approachable-professional tone)** in `src/content/blog/`:
+1. What Is Enterprise Knowledge Management in 2026
+2. Operational Knowledge: Turning SOPs Into Live Systems
+3. Semantic Search vs Keyword Search in Warehouse Operations
+4. AI Governance for Multi-Tenant SaaS
+5. Source-Backed AI: Why Grounded Answers Matter
+6. Building an Audit-Ready Knowledge Base
+
+**Guides (4, HowTo schema)** in `src/content/guides/`:
+1. How to Digitize Warehouse SOPs
+2. How to Roll Out AI Assistants Across a Distribution Network
+3. How to Prepare for ISO-Aligned Operational Audits
+4. Onboarding Playbook: 30 Days to First Value with OPSQAI
+
+**Case studies (2, clearly labelled illustrative)** in `src/content/case-studies/`:
+1. Multi-Warehouse Rollout: Cutting Onboarding Time
+2. SOP Digitization for a 3PL Distribution Center
+
+Each entry auto-appears in listing pages, sitemap, and JSON-LD via `src/content/manifest.ts`.
+
+---
+
+## Phase 5 — Google Search Console verification
+
+- Google Search Console connector linked (`std_01kwqkvnehffqsrfbeb5y6v083`).
+- META verification token requested for `https://opsqai.de/`.
+- `<meta name="google-site-verification" content="doSgT7AbYXFy4PqKvzuXoGvIlApYP44UMowQd5ChIp4" />` added to root `head()`.
+- **Blocked until publish**: verification call must be made after the meta tag is live at opsqai.de. Publish the site, then I will call the verify + site-add endpoints in the next turn.
+
+
 
 ---
 
