@@ -226,7 +226,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const bottomTabs = nav.slice(0, 4);
 
   return (
-    <div className="min-h-screen flex bg-background overscroll-none">
+    <div className="min-h-screen flex bg-background">
       <aside className="hidden md:flex w-64 shrink-0 border-r border-sidebar-border">
         <SidebarContent />
       </aside>
