@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { LayoutDashboard, LineChart, ClipboardCheck, Sparkles } from "lucide-react";
-import { ExecutiveDashboard } from "./app.admin.dashboard";
-import { KnowledgeAnalyticsPage } from "./app.admin.analytics";
-import { AiAuditPage } from "./app.admin.ai-audit";
+import { ExecutiveDashboard } from "@/components/admin/executive-dashboard";
+import { KnowledgeAnalyticsPage } from "@/components/admin/knowledge-analytics";
+import { AiAuditPage } from "@/components/admin/ai-audit";
 
 const searchSchema = z.object({
   view: z.enum(["overview", "analytics", "audit"]).catch("overview"),
