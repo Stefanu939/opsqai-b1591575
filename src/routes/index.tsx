@@ -4,7 +4,8 @@ import {
   Building2, Languages, GraduationCap, Lock, Network, CheckCircle2,
   XCircle, Upload, Sparkles, MessageSquare, FileCheck2, Workflow,
   Warehouse, Truck, Factory, PackageSearch, ShoppingCart, ClipboardCheck,
-  Boxes, Layers, Quote,
+  Boxes, Layers, BarChart3, Zap, Clock, TrendingUp, Send, Paperclip,
+  LayoutDashboard, Database, Activity,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
