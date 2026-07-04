@@ -27,14 +27,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
+  const [companies, setCompanies] = useState<Array<{ id: string; name: string; is_system?: boolean }>>([]);
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
-    supabase.from("companies").select("id, name, is_system").order("name").then(({ data }) => {
-      setCompanies(((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>).filter((c) => !c.is_system));
+    supabase.from("companies").select("id, name, is_system").order("is_system", { ascending: false }).order("name").then(({ data }) => {
+      // Include OPSQAI Internal for platform admins so it is switchable from the sidebar.
+      setCompanies((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>);
     });
   }, [isPlatformAdmin]);
+
 
   const nav = [
     { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true, show: true },
