@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from "react";
 import {
   Building2, Users, BookOpen, MessageSquare, Sparkles, Languages,
   GraduationCap, FileText, ShieldCheck, History, LayoutGrid,
@@ -27,7 +27,7 @@ interface SceneDef {
 
 /* ---------------- Frame primitives (faithful to app tokens) --------------- */
 
-function AppFrame({ title, sidebar, children }: { title: string; sidebar: { icon: React.ElementType; label: string; active?: boolean }[]; children: React.ReactNode }) {
+function AppFrame({ title, sidebar, children }: { title: string; sidebar: { icon: ElementType; label: string; active?: boolean }[]; children: ReactNode }) {
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden border border-border/60 bg-background shadow-2xl grid grid-cols-[220px_1fr]">
       <aside className="bg-muted/40 border-r border-border/60 p-4 flex flex-col gap-1">
@@ -818,7 +818,7 @@ export function ProductShowcase() {
   );
 }
 
-function IconBtn({ children, onClick, label }: { children: React.ReactNode; onClick: () => void; label: string }) {
+function IconBtn({ children, onClick, label }: { children: ReactNode; onClick: () => void; label: string }) {
   return (
     <button
       onClick={onClick}
