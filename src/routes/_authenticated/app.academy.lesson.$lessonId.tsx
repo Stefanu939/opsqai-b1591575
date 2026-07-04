@@ -16,7 +16,7 @@ import {
   ArrowUp, Sparkles, CheckCircle2, XCircle, RotateCw, Award,
   GraduationCap, Target, Clock, ChevronLeft, ListChecks, BookOpenCheck, Lock,
 } from "lucide-react";
-import { useT } from "@/i18n";
+
 
 export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lessonId")({
   component: LessonPage,
