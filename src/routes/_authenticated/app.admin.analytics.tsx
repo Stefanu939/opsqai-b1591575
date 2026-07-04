@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/app/admin/analytics")({
 
 type Data = Awaited<ReturnType<typeof getKnowledgeAnalytics>>;
 
-function Page() {
+export function KnowledgeAnalyticsPage() {
   const fn = useServerFn(getKnowledgeAnalytics);
   const [data, setData] = useState<Data | null>(null);
 
