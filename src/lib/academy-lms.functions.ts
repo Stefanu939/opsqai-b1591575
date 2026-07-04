@@ -579,8 +579,8 @@ export const listAssignTargets = createServerFn({ method: "POST" })
         .eq("company_id", companyId),
     ]);
 
-    const roles = Array.from(
-      new Set((rolesRes.data ?? []).map((r: any) => r.role).filter(Boolean)),
+    const roles: string[] = Array.from(
+      new Set(((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role).filter(Boolean)),
     );
 
     return {
