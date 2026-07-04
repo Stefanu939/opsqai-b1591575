@@ -39,6 +39,40 @@ async function loadSettings(sb: SupabaseClient): Promise<PlatformEmailSettings> 
   );
 }
 
+/** Generate a cryptographically random 32-byte hex token. */
+function generateToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Get-or-create the unsubscribe token for a recipient. Transactional emails
+ * MUST include this token or Lovable Send returns 400.
+ * Auth emails do not require it.
+ */
+async function resolveUnsubscribeToken(sb: SupabaseClient, email: string): Promise<string> {
+  const normalized = email.toLowerCase();
+  const { data: existing } = await sb
+    .from("email_unsubscribe_tokens")
+    .select("token, used_at")
+    .eq("email", normalized)
+    .maybeSingle();
+  if (existing && !existing.used_at) return existing.token as string;
+
+  const token = generateToken();
+  await sb
+    .from("email_unsubscribe_tokens")
+    .upsert({ token, email: normalized }, { onConflict: "email", ignoreDuplicates: true });
+  const { data: stored } = await sb
+    .from("email_unsubscribe_tokens")
+    .select("token")
+    .eq("email", normalized)
+    .maybeSingle();
+  if (!stored?.token) throw new Error("unsubscribe_token_unavailable");
+  return stored.token as string;
+}
+
 /** Lovable Emails provider: enqueue into pgmq, logged in email_send_log. */
 function createLovableProvider(sb: SupabaseClient): EmailProvider {
   return {
@@ -51,6 +85,8 @@ function createLovableProvider(sb: SupabaseClient): EmailProvider {
         status: "pending",
       });
       const purpose = input.purpose ?? "transactional";
+      const unsubscribeToken =
+        purpose === "auth" ? undefined : await resolveUnsubscribeToken(sb, input.to);
       const { error } = await sb.rpc("enqueue_email", {
         queue_name: purpose === "auth" ? "auth_emails" : "transactional_emails",
         payload: {
@@ -65,6 +101,7 @@ function createLovableProvider(sb: SupabaseClient): EmailProvider {
           purpose,
           label: input.templateName,
           idempotency_key: input.messageId,
+          ...(unsubscribeToken ? { unsubscribe_token: unsubscribeToken } : {}),
           queued_at: new Date().toISOString(),
         },
       });
@@ -82,6 +119,7 @@ function createLovableProvider(sb: SupabaseClient): EmailProvider {
     },
   };
 }
+
 
 function selectProvider(id: ProviderId, sb: SupabaseClient): EmailProvider {
   switch (id) {
