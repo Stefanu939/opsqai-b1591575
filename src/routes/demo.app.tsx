@@ -18,7 +18,8 @@ export const Route = createFileRoute("/demo/app")({
   component: DemoAppLayout,
 });
 
-const MENU = [
+type MenuItem = { to: string; label: string; icon: React.ElementType; exact?: boolean };
+const MENU: MenuItem[] = [
   { to: "/demo/app",           label: "Overview",       icon: LayoutDashboard, exact: true },
   { to: "/demo/app/chat",      label: "AI Chat",        icon: MessageSquare },
   { to: "/demo/app/knowledge", label: "Knowledge Base", icon: BookOpen },
@@ -27,7 +28,7 @@ const MENU = [
   { to: "/demo/app/analytics", label: "Analytics",      icon: BarChart3 },
   { to: "/demo/app/audit",     label: "Audit log",      icon: Activity },
   { to: "/demo/app/users",     label: "People & roles", icon: Users },
-] as const;
+];
 
 function DemoAppLayout() {
   const { active } = useDemoSession();
