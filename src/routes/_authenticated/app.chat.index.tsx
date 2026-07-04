@@ -99,8 +99,13 @@ function ChatWelcome() {
         </div>
 
         <p className="mt-6 text-[11px] text-muted-foreground">
-          Conversation history is available in the Audit Log.
+          {lang === "de"
+            ? "Frühere Unterhaltungen findest du in der Seitenleiste."
+            : lang === "ro"
+            ? "Găsești conversațiile anterioare în bara laterală."
+            : "Your past conversations are listed in the sidebar."}
         </p>
+
       </div>
     </div>
   );
