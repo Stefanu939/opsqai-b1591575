@@ -272,10 +272,10 @@ function AiAuditPage() {
 
               {/* Findings */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FindingsCard title="Strengths" icon={CheckCircle2} tone="emerald" items={summary.strengths} />
-                <FindingsCard title="Opportunities" icon={Lightbulb} tone="sky" items={summary.opportunities} />
-                <FindingsCard title="Warnings" icon={AlertCircle} tone="amber" items={summary.warnings} />
-                <FindingsCard title="Critical Findings" icon={XCircle} tone="red" items={summary.critical} />
+                <FindingsCard title="Strengths" icon={CheckCircle2} tone="emerald" items={Array.isArray(summary.strengths) ? summary.strengths : []} />
+                <FindingsCard title="Opportunities" icon={Lightbulb} tone="sky" items={Array.isArray(summary.opportunities) ? summary.opportunities : []} />
+                <FindingsCard title="Warnings" icon={AlertCircle} tone="amber" items={Array.isArray(summary.warnings) ? summary.warnings : []} />
+                <FindingsCard title="Critical Findings" icon={XCircle} tone="red" items={Array.isArray(summary.critical) ? summary.critical : []} />
               </div>
 
               {/* Priority Action Plan */}
