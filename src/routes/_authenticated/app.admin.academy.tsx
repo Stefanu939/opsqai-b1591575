@@ -9,8 +9,9 @@ import {
   upsertAcademyLesson, deleteAcademyLesson,
   convertSopToLesson, generateAcademyCourse,
   academyDashboard, getAcademySettings, saveAcademySettings,
-  assignEnrollment,
+  assignEnrollment, listPathAssignments, listAssignablePathLearners, removeEnrollment,
 } from "@/lib/academy.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
