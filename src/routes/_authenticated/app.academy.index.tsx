@@ -182,6 +182,17 @@ function MyTrainingHome() {
           </div>
         )}
       </div>
+      <AssignTrainingDialog
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+        onAssigned={() => {
+          void (async () => {
+            const [enrolls, s] = await Promise.all([list(), summary()]);
+            setRows((enrolls as Enrollment[]) ?? []);
+            setStats(s as any);
+          })();
+        }}
+      />
     </div>
   );
 }
