@@ -7,7 +7,8 @@
 
 function isWorkboxCacheForThisRegistration(name) {
   const hasWorkboxBucket = /(^|-)precache-v\d+-|(^|-)runtime-|(^|-)googleAnalytics-/.test(name);
-  return hasWorkboxBucket && name.endsWith(self.registration.scope);
+  const isThisAppsNamedRuntimeCache = name === "opsqai-pages" || name === "opsqai-assets";
+  return isThisAppsNamedRuntimeCache || (hasWorkboxBucket && name.endsWith(self.registration.scope));
 }
 
 self.addEventListener("install", () => self.skipWaiting());
