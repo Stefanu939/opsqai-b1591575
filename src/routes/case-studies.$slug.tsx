@@ -45,7 +45,7 @@ export const Route = createFileRoute("/case-studies/$slug")({
 });
 
 function CaseStudyPage() {
-  const { study } = Route.useLoaderData();
+  const { study } = Route.useLoaderData() as { study: import("@/content/case-studies/_types").CaseStudy };
   return (
     <main className="mx-auto max-w-3xl px-6 py-20">
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">

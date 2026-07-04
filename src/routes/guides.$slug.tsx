@@ -47,7 +47,7 @@ export const Route = createFileRoute("/guides/$slug")({
 });
 
 function GuidePage() {
-  const { guide } = Route.useLoaderData();
+  const { guide } = Route.useLoaderData() as { guide: import("@/content/guides/_types").Guide };
   return (
     <main className="mx-auto max-w-3xl px-6 py-20">
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">

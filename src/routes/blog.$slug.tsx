@@ -53,7 +53,7 @@ function PostNotFound() {
 }
 
 function BlogPostPage() {
-  const { post } = Route.useLoaderData();
+  const { post } = Route.useLoaderData() as { post: import("@/content/blog/_types").BlogPost };
   return (
     <main className="mx-auto max-w-3xl px-6 py-20">
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">
