@@ -688,39 +688,57 @@ function WhyChoose() {
   );
 }
 
-/* ---------------- Testimonials placeholder ---------------- */
+/* ---------------- Founding customers ---------------- */
 
-function Testimonials() {
+const PILOT_PILLARS = [
+  { icon: Sparkles, title: "Hands-on rollout", body: "We personally shape the workspace, ingest your SOPs and tune the assistant to your operations vocabulary." },
+  { icon: ShieldCheck, title: "Enterprise controls from day one", body: "Workspace isolation, roles, audit log and EU hosting — even during pilot." },
+  { icon: TrendingUp, title: "Shared success metrics", body: "We define onboarding-time, error-rate and adoption KPIs with you, and review them monthly." },
+];
+
+function FoundingCustomers() {
   return (
     <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
-        <SectionHead
-          eyebrow="Customer Stories"
-          title="Trusted by operations teams"
-          intro="Case studies and quotes from pilot customers will be published here as they graduate to production."
-          center
-        />
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="card-enterprise p-6">
-              <Quote className="h-6 w-6 text-primary/60" />
-              <div className="mt-4 h-3 w-4/5 rounded bg-muted-foreground/15" />
-              <div className="mt-2 h-3 w-3/5 rounded bg-muted-foreground/15" />
-              <div className="mt-2 h-3 w-2/3 rounded bg-muted-foreground/15" />
-              <div className="mt-6 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-primary/15" />
+        <div className="grid lg:grid-cols-12 gap-10 items-start">
+          <div className="lg:col-span-5">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Founding Customer Program</p>
+            <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
+              Partner with us early — shape the product, own the outcome
+            </h2>
+            <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
+              OPSQAI is currently onboarding a limited set of founding customers across logistics
+              and warehousing. You get direct access to the founding team, preferential pricing and
+              a roadmap you can influence.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link to="/contact">Talk to the team <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/pricing">See pricing</Link>
+              </Button>
+            </div>
+          </div>
+          <div className="lg:col-span-7 grid gap-3">
+            {PILOT_PILLARS.map((p) => (
+              <div key={p.title} className="card-enterprise p-5 flex items-start gap-4">
+                <span className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 grid place-items-center text-primary shrink-0">
+                  <p.icon className="h-5 w-5" />
+                </span>
                 <div>
-                  <div className="h-2.5 w-24 rounded bg-muted-foreground/20" />
-                  <div className="mt-1.5 h-2 w-16 rounded bg-muted-foreground/15" />
+                  <div className="text-[15px] font-semibold">{p.title}</div>
+                  <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{p.body}</p>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
+
 
 /* ---------------- FAQ ---------------- */
 
