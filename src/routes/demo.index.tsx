@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { startDemoSession, useDemoSession } from "@/lib/demo/session";
 
-export const Route = createFileRoute("/demo")({
+export const Route = createFileRoute("/demo/")({
   head: () => ({
     meta: [
       { title: "OPSQAI Interactive Demo — Explore a live enterprise workspace" },
