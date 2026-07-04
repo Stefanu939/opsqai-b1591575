@@ -828,7 +828,7 @@ export const listPathAssignments = createServerFn({ method: "POST" })
     const userIds = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
     if (userIds.length === 0) return [];
     const { data: profiles } = await (context.supabase as any)
-      .from("profiles").select("id, full_name, first_name, last_name, email").in("id", userIds);
+      .from("profiles").select("id, full_name, first_name, last_name").in("id", userIds);
     const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]));
     return (rows ?? []).map((r: any) => ({ ...r, profile: byId.get(r.user_id) ?? null }));
   });
