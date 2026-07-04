@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { runWorkspaceAudit, listAiAudits } from "@/lib/ai-features.functions";
@@ -17,10 +17,6 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
-
-export const Route = createFileRoute("/_authenticated/app/admin/ai-audit")({ component: AiAuditPage });
-
-export { AiAuditPage };
 
 const MATURITY_LEVELS = [
   { level: 1, name: "Initial", threshold: 0 },
