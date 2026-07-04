@@ -5,5 +5,17 @@ Disallow: /api/
 Disallow: /accept-invite
 Disallow: /reset-password
 Disallow: /forgot-password
+Disallow: /auth
+Disallow: /verify/
+Disallow: /demo/app/
+
+# Explicit — some bots respect these
+User-agent: GPTBot
+Allow: /
+Disallow: /app
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
 
 Sitemap: https://opsqai.de/sitemap.xml

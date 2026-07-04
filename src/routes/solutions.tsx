@@ -4,17 +4,21 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, ClipboardCheck, GraduationCap, MessageSquareWarning, ShieldCheck, Wrench } from "lucide-react";
 
+import { pageHead } from "@/lib/seo";
+
 export const Route = createFileRoute("/solutions")({
-  head: () => ({
-    meta: [
-      { title: "Solutions — OPSQAI" },
-      { name: "description", content: "OPSQAI solutions for warehouse operations: SOP assistant, onboarding, compliance, knowledge gap capture, shift handover and audit readiness." },
-      { property: "og:title", content: "Solutions — OPSQAI" },
-      { property: "og:description", content: "Concrete ways teams use OPSQAI on the warehouse floor." },
-      { property: "og:url", content: "https://opsqai.de/solutions" },
-    ],
-    links: [{ rel: "canonical", href: "https://opsqai.de/solutions" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Solutions — OPSQAI for Warehouse & Logistics Operations",
+      description:
+        "OPSQAI solutions for warehouse operations: SOP assistant, onboarding, compliance, knowledge gap capture, shift handover and audit readiness.",
+      path: "/solutions",
+      keywords: "warehouse AI, SOP assistant, onboarding, compliance, shift handover, audit readiness",
+      breadcrumbs: [
+        { name: "Home", path: "/" },
+        { name: "Solutions", path: "/solutions" },
+      ],
+    }),
   component: SolutionsPage,
 });
 

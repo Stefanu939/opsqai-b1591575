@@ -51,9 +51,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "OPSQAI turns your SOPs, manuals and FAQs into instant, grounded answers for every warehouse and operations team. Multilingual, auditable, GDPR-ready." },
       { property: "og:site_name", content: "OPSQAI" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://opsqai.de/og-image.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://opsqai.de/og-image.jpg" },
+      // og:image intentionally lives on leaf routes — root og:image would
+      // override every child's share image.
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -72,8 +72,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "Organization", name: "OPSQAI", url: "https://opsqai.de/", description: "Enterprise AI knowledge management, operational intelligence and compliance for logistics & supply chain." },
-            { "@type": "WebSite", name: "OPSQAI", url: "https://opsqai.de/" },
+            {
+              "@type": "Organization",
+              name: "OPSQAI",
+              url: "https://opsqai.de/",
+              logo: "https://opsqai.de/icons/icon-192.png",
+              description: "Enterprise AI knowledge management, operational intelligence and compliance for logistics & supply chain.",
+              sameAs: ["https://www.linkedin.com/company/opsqai"],
+            },
+            {
+              "@type": "WebSite",
+              name: "OPSQAI",
+              url: "https://opsqai.de/",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://opsqai.de/blog?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            },
           ],
         }),
       },

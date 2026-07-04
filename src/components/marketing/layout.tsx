@@ -44,18 +44,29 @@ const FOOTER_COLS: Array<{ title: string; links: Array<{ to: string; label: stri
   {
     title: "Resources",
     links: [
+      { to: "/resources", label: "Resource Hub" },
+      { to: "/blog", label: "Blog" },
+      { to: "/guides", label: "Guides" },
+      { to: "/case-studies", label: "Case Studies" },
+      { to: "/docs", label: "Documentation" },
+      { to: "/help", label: "Help Center" },
+    ],
+  },
+  {
+    title: "Trust",
+    links: [
       { to: "/trust", label: "Trust Center" },
       { to: "/trust/responsible-ai", label: "Responsible AI" },
       { to: "/trust/security-architecture", label: "Security" },
-      { to: "/contact", label: "Help Center" },
+      { to: "/trust/gdpr", label: "GDPR" },
     ],
   },
   {
     title: "Company",
     links: [
+      { to: "/about", label: "About" },
       { to: "/contact", label: "Contact" },
-      { to: "/contact", label: "Careers" },
-      { to: "/contact", label: "Partners" },
+      { to: "/demo", label: "Live demo" },
     ],
   },
   {
