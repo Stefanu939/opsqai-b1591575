@@ -120,7 +120,7 @@ export const changeSubscriptionStatus = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.rpc("subscription_apply_status", {
       _company: data.company_id,
       _to_status: data.to_status,
-      _reason: data.reason ?? null,
+      _reason: data.reason ?? undefined,
       _actor_kind: "platform_admin",
     });
     if (error) throw new Error(error.message);
