@@ -12,9 +12,10 @@ export const DEMO_COMPANY_NAME = "Atlas Logistics GmbH";
 type Snapshot = { expiresAt: number | null };
 
 const listeners = new Set<() => void>();
-function emit() { listeners.forEach((l) => l()); }
+let cached: Snapshot = { expiresAt: null };
+let hydrated = false;
 
-function read(): Snapshot {
+function computeFromStorage(): Snapshot {
   if (typeof window === "undefined") return { expiresAt: null };
   try {
     const raw = localStorage.getItem(KEY);
@@ -24,6 +25,23 @@ function read(): Snapshot {
     return { expiresAt: v.expiresAt };
   } catch { return { expiresAt: null }; }
 }
+
+function refresh() {
+  const next = computeFromStorage();
+  if (next.expiresAt !== cached.expiresAt) {
+    cached = next;
+  }
+}
+
+function read(): Snapshot {
+  if (!hydrated && typeof window !== "undefined") {
+    hydrated = true;
+    refresh();
+  }
+  return cached;
+}
+
+function emit() { refresh(); listeners.forEach((l) => l()); }
 
 export function startDemoSession(durationMs = DEFAULT_DURATION_MS) {
   const expiresAt = Date.now() + durationMs;
