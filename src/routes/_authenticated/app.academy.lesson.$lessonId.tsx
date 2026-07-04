@@ -167,14 +167,47 @@ function TeacherChat({
 
   const startQuiz = async () => {
     if (!lessonComplete) return;
+    if (!learnLang) {
+      alert("Please pick a language first (top-right selector) so the quiz can be generated in that language.");
+      return;
+    }
     setResult(null);
     try {
-      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lang } })) as { questions: Q[] };
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: learnLang } })) as { questions: Q[] };
       setQuiz(q.questions);
       setAnswers(Array(q.questions.length).fill(""));
     } catch (e: any) {
       // surface generation error so users aren't stuck
       alert(e?.message ?? "Could not generate the quiz. Please try again.");
+    }
+  };
+
+  // When the learner changes language mid-conversation, nudge the AI Teacher
+  // to switch on the next reply and (if a quiz is already on screen) regenerate
+  // it in the new language.
+  const handleLangChange = (next: string) => {
+    if (next === learnLang) return;
+    setLearnLang(next);
+    const label = LANG_LABEL[next] ?? next;
+    if (begunRef.current) {
+      void sendMessage({ text: `Please continue in ${label} from now on.` });
+    }
+    if (quiz && lessonComplete) {
+      // Regenerate quiz in the new language
+      setQuiz(null);
+      setAnswers([]);
+      setResult(null);
+      setTimeout(() => { void startQuizWithLang(next); }, 200);
+    }
+  };
+
+  const startQuizWithLang = async (lg: string) => {
+    try {
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lg } })) as { questions: Q[] };
+      setQuiz(q.questions);
+      setAnswers(Array(q.questions.length).fill(""));
+    } catch (e: any) {
+      alert(e?.message ?? "Could not regenerate the quiz.");
     }
   };
 
