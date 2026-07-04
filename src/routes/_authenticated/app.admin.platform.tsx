@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import {
-  ShieldCheck, Building2, Users, BarChart3, ScrollText, Mail, Inbox, Sparkles, FileText,
+  ShieldCheck, Building2, Users, BarChart3, ScrollText, Mail, Inbox, Sparkles, FileText, Plug,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import type { ComponentType, SVGProps } from "react";

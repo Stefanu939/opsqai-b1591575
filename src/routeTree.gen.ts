@@ -120,6 +120,7 @@ import { Route as AuthenticatedAppAcademyCoursesRouteImport } from './routes/_au
 import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './routes/_authenticated/app.academy.certificates'
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
 import { Route as AuthenticatedAppInternalKnowledgeSlugRouteImport } from './routes/_authenticated/app.internal.knowledge.$slug'
+import { Route as AuthenticatedAppAdminIntegrationsProviderRouteImport } from './routes/_authenticated/app.admin.integrations.$provider'
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
@@ -718,6 +719,12 @@ const AuthenticatedAppInternalKnowledgeSlugRoute =
     path: '/$slug',
     getParentRoute: () => AuthenticatedAppInternalKnowledgeRoute,
   } as any)
+const AuthenticatedAppAdminIntegrationsProviderRoute =
+  AuthenticatedAppAdminIntegrationsProviderRouteImport.update({
+    id: '/$provider',
+    path: '/$provider',
+    getParentRoute: () => AuthenticatedAppAdminIntegrationsRoute,
+  } as any)
 const AuthenticatedAppAcademyPathPathIdRoute =
   AuthenticatedAppAcademyPathPathIdRouteImport.update({
     id: '/academy/path/$pathId',
@@ -820,7 +827,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
-  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRoute
+  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -843,6 +850,7 @@ export interface FileRoutesByFullPath {
   '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
+  '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRoutesByTo {
@@ -930,7 +938,7 @@ export interface FileRoutesByTo {
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
-  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRoute
+  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -953,6 +961,7 @@ export interface FileRoutesByTo {
   '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
+  '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRoutesById {
@@ -1046,7 +1055,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/_authenticated/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/_authenticated/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
-  '/_authenticated/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRoute
+  '/_authenticated/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -1069,6 +1078,7 @@ export interface FileRoutesById {
   '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
+  '/_authenticated/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/_authenticated/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRouteTypes {
@@ -1185,6 +1195,7 @@ export interface FileRouteTypes {
     | '/app/workspace/'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
+    | '/app/admin/integrations/$provider'
     | '/app/internal/knowledge/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1295,6 +1306,7 @@ export interface FileRouteTypes {
     | '/app/workspace'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
+    | '/app/admin/integrations/$provider'
     | '/app/internal/knowledge/$slug'
   id:
     | '__root__'
@@ -1410,6 +1422,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/workspace/'
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
+    | '/_authenticated/app/admin/integrations/$provider'
     | '/_authenticated/app/internal/knowledge/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -2235,6 +2248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppInternalKnowledgeSlugRouteImport
       parentRoute: typeof AuthenticatedAppInternalKnowledgeRoute
     }
+    '/_authenticated/app/admin/integrations/$provider': {
+      id: '/_authenticated/app/admin/integrations/$provider'
+      path: '/$provider'
+      fullPath: '/app/admin/integrations/$provider'
+      preLoaderRoute: typeof AuthenticatedAppAdminIntegrationsProviderRouteImport
+      parentRoute: typeof AuthenticatedAppAdminIntegrationsRoute
+    }
     '/_authenticated/app/academy/path/$pathId': {
       id: '/_authenticated/app/academy/path/$pathId'
       path: '/academy/path/$pathId'
@@ -2300,6 +2320,21 @@ const AuthenticatedAppInternalRouteWithChildren =
     AuthenticatedAppInternalRouteChildren,
   )
 
+interface AuthenticatedAppAdminIntegrationsRouteChildren {
+  AuthenticatedAppAdminIntegrationsProviderRoute: typeof AuthenticatedAppAdminIntegrationsProviderRoute
+}
+
+const AuthenticatedAppAdminIntegrationsRouteChildren: AuthenticatedAppAdminIntegrationsRouteChildren =
+  {
+    AuthenticatedAppAdminIntegrationsProviderRoute:
+      AuthenticatedAppAdminIntegrationsProviderRoute,
+  }
+
+const AuthenticatedAppAdminIntegrationsRouteWithChildren =
+  AuthenticatedAppAdminIntegrationsRoute._addFileChildren(
+    AuthenticatedAppAdminIntegrationsRouteChildren,
+  )
+
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppBrandRoute: typeof AuthenticatedAppBrandRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
@@ -2325,7 +2360,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
   AuthenticatedAppAdminEmailRoute: typeof AuthenticatedAppAdminEmailRoute
   AuthenticatedAppAdminEmailLogsRoute: typeof AuthenticatedAppAdminEmailLogsRoute
-  AuthenticatedAppAdminIntegrationsRoute: typeof AuthenticatedAppAdminIntegrationsRoute
+  AuthenticatedAppAdminIntegrationsRoute: typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -2368,7 +2403,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminEmailRoute: AuthenticatedAppAdminEmailRoute,
   AuthenticatedAppAdminEmailLogsRoute: AuthenticatedAppAdminEmailLogsRoute,
   AuthenticatedAppAdminIntegrationsRoute:
-    AuthenticatedAppAdminIntegrationsRoute,
+    AuthenticatedAppAdminIntegrationsRouteWithChildren,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
   AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
