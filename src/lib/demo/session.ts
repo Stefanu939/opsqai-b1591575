@@ -10,11 +10,14 @@ export const DEMO_COMPANY_ID = "00000000-0000-0000-0000-0000000d3110";
 export const DEMO_COMPANY_NAME = "Atlas Logistics GmbH";
 
 type Snapshot = { expiresAt: number | null };
+const SERVER_SNAPSHOT: Snapshot = { expiresAt: null };
+function getServerSnapshot(): Snapshot { return SERVER_SNAPSHOT; }
 
 const listeners = new Set<() => void>();
-function emit() { listeners.forEach((l) => l()); }
+let cached: Snapshot = { expiresAt: null };
+let hydrated = false;
 
-function read(): Snapshot {
+function computeFromStorage(): Snapshot {
   if (typeof window === "undefined") return { expiresAt: null };
   try {
     const raw = localStorage.getItem(KEY);
@@ -24,6 +27,23 @@ function read(): Snapshot {
     return { expiresAt: v.expiresAt };
   } catch { return { expiresAt: null }; }
 }
+
+function refresh() {
+  const next = computeFromStorage();
+  if (next.expiresAt !== cached.expiresAt) {
+    cached = next;
+  }
+}
+
+function read(): Snapshot {
+  if (!hydrated && typeof window !== "undefined") {
+    hydrated = true;
+    refresh();
+  }
+  return cached;
+}
+
+function emit() { refresh(); listeners.forEach((l) => l()); }
 
 export function startDemoSession(durationMs = DEFAULT_DURATION_MS) {
   const expiresAt = Date.now() + durationMs;
@@ -45,7 +65,7 @@ function subscribe(cb: () => void) {
 }
 
 export function useDemoSession() {
-  const snap = useSyncExternalStore(subscribe, read, () => ({ expiresAt: null }));
+  const snap = useSyncExternalStore(subscribe, read, getServerSnapshot);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
