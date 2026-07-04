@@ -391,11 +391,6 @@ function CreateEndpointDialog({
   genSecretFn: () => Promise<{ secret: string }>;
   onCreated: () => void;
 }) {
-  companyId: string | null;
-  userId: string | null;
-  genSecretFn: (opts?: unknown) => Promise<{ secret: string }>;
-  onCreated: () => void;
-}) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [events, setEvents] = useState<string[]>([]);
