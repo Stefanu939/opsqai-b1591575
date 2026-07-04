@@ -20,6 +20,8 @@ import {
 
 export const Route = createFileRoute("/_authenticated/app/admin/ai-audit")({ component: AiAuditPage });
 
+export { AiAuditPage };
+
 const MATURITY_LEVELS = [
   { level: 1, name: "Initial", threshold: 0 },
   { level: 2, name: "Developing", threshold: 35 },
