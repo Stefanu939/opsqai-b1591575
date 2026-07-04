@@ -236,10 +236,19 @@ function IntegrationDetail() {
                 {busy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Power className="h-4 w-4 mr-2" />}
                 Disable integration
               </Button>
-              <Button variant="ghost" className="w-full sm:w-auto" disabled>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Manage configuration
-              </Button>
+              {def.provider === "webhooks" ? (
+                <Button asChild variant="default" className="w-full sm:w-auto">
+                  <Link to="/app/admin/webhooks">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Manage endpoints
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="ghost" className="w-full sm:w-auto" disabled>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Manage configuration
+                </Button>
+              )}
             </div>
           </div>
         ) : (
