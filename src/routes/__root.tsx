@@ -52,6 +52,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "OPSQAI" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "google-site-verification", content: "doSgT7AbYXFy4PqKvzuXoGvIlApYP44UMowQd5ChIp4" },
       // og:image intentionally lives on leaf routes — root og:image would
       // override every child's share image.
     ],
