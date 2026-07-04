@@ -394,9 +394,10 @@ Return STRICT JSON only, matching this schema (keep all keys):
       timeline: gains.length >= 3 ? "3-6 weeks" : gains.length >= 1 ? "2-3 weeks" : "n/a",
     };
 
-    const passedN = Number(report.passed) || heuristic.passed;
-    const warnN = Number(report.warnings) || heuristic.warnings;
-    const critN = Number(report.critical_count ?? (Array.isArray(report.critical) ? report.critical.length : heuristic.critical));
+    const rpt = report as any;
+    const passedN = Number(rpt.passed) || heuristic.passedCount;
+    const warnN = Number(rpt.warnings) || heuristic.warningsCount;
+    const critN = Number(rpt.critical_count ?? (Array.isArray(rpt.critical) ? rpt.critical.length : heuristic.criticalCount));
 
     const { data: row, error } = await context.supabase
       .from("ai_audits")
@@ -404,7 +405,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
         company_id: companyId,
         requested_by: context.userId,
         score,
-        maturity: String(report.maturityName || ml.name).toLowerCase().replace(" ", "_"),
+        maturity: String(rpt.maturityName || ml.name).toLowerCase().replace(" ", "_"),
         summary: report,
         passed: passedN,
         warnings: warnN,
