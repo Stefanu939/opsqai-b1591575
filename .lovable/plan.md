@@ -1,372 +1,196 @@
-# OPSQAI Interactive Demo — implementation plan
 
-Replace every "Start Free Trial" / small public chat demo with a premium **Interactive Demo Workspace** that reuses every production screen against a seeded, read-only "OPSQAI Demo" company.
+# Academy → Enterprise LMS refactor
 
-## 1. Data — seeded demo tenant
+Scope: UX / workflow / capability changes only. No visual redesign. Reuse existing design tokens, shadcn components, sidebar, routing shell, auth and RBAC. All work stays inside the already-authenticated `_authenticated/app.academy.*` tree and the existing DB schema (`academy_learning_paths`, `academy_chapters`, `academy_lessons`, `academy_enrollments`, `academy_lesson_progress`, `academy_certificates`, `academy_quiz_attempts`).
 
-Single migration + data seed:
+## 1. Navigation — split learner from library
 
-- `companies` row `OPSQAI Demo` with fixed UUID `00000000-0000-0000-0000-0000000d3110` and a new boolean column `is_demo_tenant`.
-- Realistic logistics content across: `departments` (Inbound, Outbound, QC, Safety, Fleet, HR, IT), 6 warehouses, ~12 fictional `profiles` (Anna Weber – Warehouse Manager, Marco Rossi – Team Leader Inbound, etc.), `user_roles` for each, ~18 `knowledge_documents` (SOP-INB-01…, SOP-SAFE-01…, work instructions, policies, manuals), chunks + embeddings via existing pipeline, ~25 `faqs` (EN/DE), 3 `academy_learning_paths` with chapters + lessons, ~8 `threads` + `messages` of prior AI chat history, ~200 `audit_log` rows spread across 90 days, 1 `ai_audits` row.
-- All rows tagged `company_id = demo`. No PII.
-- Idempotent seed script (`scripts/seed_demo_tenant.ts`) runnable server-side; also called by nightly reset cron.
+Update `src/components/app/app-shell.tsx` sidebar so learners get a dedicated area:
 
-## 2. Anonymous demo session
-
-- New table `demo_sessions(id uuid pk, token text unique, started_at, expires_at, ip)`. 15-min TTL.
-- Server route `POST /api/public/demo/start` → mints token, sets httpOnly cookie `opsqai_demo=<jwt>` with `{ demoCompanyId, exp }`, returns `{ expiresAt }`.
-- Server route `POST /api/public/demo/end` → clears cookie.
-- New server helper `resolveDemoContext(request)` → reads cookie, verifies JWT, returns `{ isDemo: true, companyId, expiresAt } | null`.
-
-## 3. Auth + read-only enforcement
-
-Rather than minting a Supabase user, we introduce a **demo mode** parallel to `requireSupabaseAuth`:
-
-- New middleware `allowDemoOrAuth` used by *read* server fns already used by production screens (`listThreads`, `listKnowledgeDocs`, `listFaqs`, `academy*`, `dashboard_*`, `audit_entries`, `search_everywhere`, etc.). When the demo cookie is present it swaps `context.supabase` for a server publishable client scoped to the demo `company_id` and sets `context.isDemo = true`.
-- All *write* server fns keep `requireSupabaseAuth` unchanged → in demo mode they 401 automatically.
-- Add narrow `TO anon` SELECT policies on the demo-visible tables filtered by `company_id = demo AND is_demo_tenant(company_id)` via a `SECURITY DEFINER` helper `public.is_demo_company(uuid)`. This keeps RLS as the source of truth.
-
-## 4. Client — demo shell
-
-- New route `/demo/welcome` (replaces current `/demo`): premium welcome card, ~12–15 min tour messaging, `Launch Demo Workspace` button → calls `/api/public/demo/start`, redirects to `/demo/app`.
-- New pathless layout `src/routes/_demo/route.tsx` mirroring `_authenticated/route.tsx` but reading the demo cookie via a client hook `useDemoSession()`. Children re-export the existing production route components from `_authenticated/*` so every UI change automatically flows into the demo.
-- `AppShell` gains a `demoMode` prop (auto-detected from context) that renders a persistent top strip: "Demo Session · 14:58 remaining · This is a read-only preview of OPSQAI".
-- A single `<DemoWriteGuard>` wraps the app tree and intercepts clicks on any element with `data-write-action`, plus toast-level interception via a shared `useCanWrite()` hook already used by mutation buttons. Instead of the mutation firing, it opens a shared `<DemoReadOnlyDialog>`:
-  > **Available in your own OPSQAI workspace**
-  > The Interactive Demo is intentionally read-only so you can explore the platform safely. During implementation, your organization will have full administrative capabilities tailored to your roles and permissions.
-  > [Book a demo] [Contact sales]
-- Countdown hook `useDemoCountdown(expiresAt)` → on `0` opens `<DemoEndedDialog>` (blocks interaction, offers Book a Demo / Contact Sales, clears cookie).
-
-## 5. CTA + routing replacement
-
-- `src/components/marketing/layout.tsx` header CTA → **Launch Demo Workspace** → `/demo/welcome`.
-- Landing `src/routes/index.tsx`, `pricing.tsx`, `product.tsx`, `features.tsx`, `solutions.tsx`, `industries.tsx`, `contact.tsx` — replace every "Start free trial" / "Try demo" button with the same CTA + label.
-- `src/routes/auth.tsx` "no account?" area → link "Explore the Interactive Demo instead".
-- `/demo` (old public SOP chat) → 301 to `/demo/welcome`; remove `src/routes/api/demo-chat.ts` after the AI chat route below is wired.
-
-## 6. AI chat inside the demo
-
-- Reuse existing `/api/chat` route; add `resolveDemoContext` at the top so a valid demo cookie authorises the call and forces `companyId = demo` + `readOnly = true` (no thread persistence — messages kept in memory on the client, or persisted to `threads` with `is_ephemeral=true` and cleaned by reset cron). Sources render exactly like production.
-
-## 7. Nightly reset
-
-- `pg_cron` job `demo_reset_nightly` at 03:00 UTC: deletes `threads/messages/workspace_sessions/audit_log` rows tagged `is_demo_ephemeral=true` under the demo company, re-runs the seed's `INSERT ... ON CONFLICT DO NOTHING` layer so any manual drift is corrected. Also purges expired `demo_sessions`.
-
-## Technical section
-
-- **Migration**: `companies.is_demo_tenant`, `demo_sessions` table + grants, `is_demo_company()` fn, new `TO anon` SELECT policies (documents, faqs, academy_*, threads read-only where `is_demo_ephemeral`, audit_log, ai_audits, profiles limited columns, user_roles), pg_cron job.
-- **Server**: `src/lib/demo/session.server.ts` (mint/verify JWT with `DEMO_SESSION_SECRET`), `src/lib/demo/context.server.ts` (`resolveDemoContext`), `src/integrations/supabase/demo-middleware.ts` (`allowDemoOrAuth`), `src/routes/api/public/demo.start.ts`, `demo.end.ts`.
-- **Client**: `src/lib/demo/use-demo-session.ts`, `src/components/demo/{welcome-card,countdown-strip,read-only-dialog,ended-dialog,write-guard}.tsx`, `src/routes/demo.welcome.tsx`, `src/routes/_demo/route.tsx` + child re-exports (`_demo/app.index.tsx`, `_demo/app.chat.$threadId.tsx`, …).
-- **Refactor touchpoints**: existing read server fns (`listThreads`, `academy.listPaths`, `dashboard_kpis` wrappers, `listFaqs`, `listKnowledgeDocs`, `audit.list`, `search_everywhere`, `notifications.list`) switch from `requireSupabaseAuth` to `allowDemoOrAuth`. Write fns untouched.
-- **CTA replacements**: batch grep + edit across `src/routes/{index,pricing,product,features,solutions,industries,contact,auth}.tsx`, `src/components/marketing/layout.tsx`, `src/routes/demo.tsx` (delete/replace).
-- **Env**: add `DEMO_SESSION_SECRET` via `add_secret`.
-
-## Delivery approach
-
-Because this is a very large change, I'll ship it in 3 batches with typecheck between each:
-
-1. **Batch A** — Migration (schema + policies + `is_demo_company`, `demo_sessions`, `is_demo_tenant`), seed script, secrets. Awaits your approval on the migration.
-2. **Batch B** — Server session mint/verify, `allowDemoOrAuth`, refactor existing read fns, `/api/chat` demo branch, `/api/public/demo/*`.
-3. **Batch C** — Welcome route, `_demo` layout + child re-exports, countdown strip, read-only dialog, ended dialog, replace every marketing CTA, delete old `/demo`.
-
-&nbsp;
-
----
-
-# 1. Chat-ul demo
-
-Aș schimba partea aceasta:
-
-> no thread persistence — messages kept in memory
-
-în
-
-> Persist demo chat threads only for the lifetime of the active demo session. Store them as ephemeral records linked to the demo session and automatically remove them when the session expires or during the nightly reset.
-
-De ce?
-
-Dacă utilizatorul dă refresh după 10 minute și își pierde conversația, experiența este slabă.
-
-Mai bine:
-
-- refresh -> conversația rămâne
-- expiră demo -> conversația dispare
-
----
-
-# 2. Demo Workspace
-
-Aș adăuga:
-
-> Every module should contain enough realistic data to immediately demonstrate its value. No empty states should exist anywhere inside the demo workspace.
-
-Este foarte important.
-
-Nu vreau:
-
-Knowledge Base
-
-0 documents
-
-Academy
-
-0 learning paths
-
-Audit
-
-0 logs
-
-Analytics
-
-0 data
-
----
-
-# 3. Analytics
-
-Eu aș popula analytics mult mai mult.
-
-Nu doar KPI.
-
-Ci:
-
-- AI usage
-- AI confidence
-- Knowledge gaps
-- Top questions
-- Academy completion
-- Audit activity
-- User activity
-
-Exact ce vinzi.
-
----
-
-# 4. AI
-
-Aș adăuga:
-
-> The AI should proactively demonstrate the platform.
-
-Exemplu.
-
-Întreb:
-
-> How do I unload a trailer?
-
-AI:
-
-răspunde
-
-- &nbsp;
-
-Sources
-
-- &nbsp;
-
-Related SOPs
-
-- &nbsp;
-
-Related FAQ
-
-- &nbsp;
-
-Related Academy Lesson
-
-- &nbsp;
-
-Safety policy
-
-- &nbsp;
-
-Audit implication
-
-Asta impresionează.
-
----
-
-# 5. Search Everywhere
-
-Aș verifica să funcționeze.
-
-Pentru că este unul dintre cele mai bune selling points.
-
----
-
-# 6. Academy
-
-Nu doar să vadă.
-
-Să poată intra.
-
-Să citească.
-
-Să navigheze.
-
-Doar progresul să fie blocat.
-
----
-
-# 7. Audit
-
-Foarte important.
-
-Nu doar 200 de loguri.
-
-Fă-le credibile.
-
-Exemplu:
-
-```
-Marco Rossi
-
-Updated SOP-INB-14
-
-2 days ago
-
-
+```text
+Dashboard
+Knowledge          → /app/knowledge   (documentation only)
+My Training        → /app/academy     (assigned courses — landing)
+AI Teacher         → /app/academy/teacher   (dedicated launcher)
+Certificates       → /app/academy/certificates
 ```
 
-```
-Anna Weber
+- Rename the current "Academy" sidebar entry to **My Training** (icon unchanged: `GraduationCap`).
+- Remove the "Knowledge → launch course" affordance from `app.knowledge.tsx` (course launch chips) so learners never enter Knowledge to start a course.
+- Managers/admins keep **Academy Manager** in the admin group (`/app/admin/academy`) with the extra tabs described in §7.
+- Permissions stay: `academy.learn` (employees), `academy.manage` (managers/admins), `academy.assign` (new — see §8).
 
-Approved Forklift Safety Policy
+## 2. My Training dashboard (`/app/academy`)
 
+Rebuild `app.academy.index.tsx` around **modern training cards**, one per enrollment. Data source: `academy_enrollments` joined with `academy_learning_paths`, `academy_chapters`, `academy_lessons`, `academy_lesson_progress`, `academy_certificates`.
 
-```
+Card fields:
 
-```
-Knowledge Base
+| Field | Source |
+|---|---|
+| Thumbnail / icon | Path icon (fallback: `GraduationCap`) |
+| Title | `path.title` |
+| Mandatory / Optional badge | `enrollment.mandatory` |
+| Progress bar + % | `count(progress.status='completed') / count(lessons)` |
+| Lessons completed | same |
+| Estimated duration | `sum(lessons.estimated_minutes)` |
+| Assigned by | `profiles.display_name(enrollment.assigned_by)` |
+| Due date | `enrollment.due_at` |
+| Primary CTA | Start / Continue / View Certificate |
+| State chips | `Overdue` (due_at < now && not completed) with warning styling; `Completed ✓` |
 
-18 documents updated
+Layout: three filter chips at top — **Mandatory · Optional · Completed** — plus a **My Training** search input scoped to assigned enrollments only (§11). Grid: `grid gap-4 md:grid-cols-2 xl:grid-cols-3` using existing `Card`, `Badge`, `Progress`, `Button`.
 
+New employee summary widget (top of `app.index.tsx` Dashboard) — reusing the existing dashboard card style:
 
-```
+- Mandatory Training active count → link to `/app/academy?filter=mandatory`
+- Certificates count → `/app/academy/certificates`
+- Average quiz score (from `academy_quiz_attempts.score`)
+- Learning progress % (weighted across active enrollments)
+- Upcoming deadlines (enrollments with `due_at < now + 14d`)
 
-```
-AI
+## 3. Course view (path detail)
 
-Confidence increased from 92% to 97%
+Keep `app.academy.path.$pathId.tsx` structure but add a **stepper** rendering the learning-path sequence and a clear "Next lesson" affordance:
 
-
-```
-
----
-
-# 8. Countdown
-
-Eu l-aș face discret.
-
-Nu gigantic.
-
-Gen.
-
-```
-Demo Session
-
-13:24 remaining
-
-
-```
-
-sus.
-
----
-
-# 9. Expirare
-
-Nu aș închide instant aplicația.
-
-Mai bine.
-
-Overlay.
-
-Background blur.
-
-"You can still look around, but AI and interactions are disabled."
-
-Este mai elegant.
-
----
-
-# 10. Cel mai important
-
-Asta lipsește complet.
-
-## Guided Tour
-
-Prima dată când intră.
-
-Sus.
-
-```
-Welcome.
-
-Suggested exploration
-
-1️⃣ Ask the AI a warehouse question.
-
-2️⃣ Explore the Knowledge Base.
-
-3️⃣ Open Analytics.
-
-4️⃣ Review Audit.
-
-5️⃣ Browse Academy.
-
-Estimated time
-
-12 minutes.
-
-
+```text
+Step 1: Warehouse Safety   ✓
+Step 2: Receiving          ● in progress
+Step 3: Picking            ○
+Step 4: Packing            ○
+Final Assessment           ○
+Certificate                🎖
 ```
 
-Nu tutorial.
+Reuse existing chapter/lesson list; add a top summary row (progress, est. time, mandatory, due date, assigned-by).
 
-Doar un checklist.
+## 4. Lesson view
 
-Este enorm pentru conversie.
-
----
-
-# 11. Un lucru pe care l-aș schimba
-
-În loc de
+Reorganize `app.academy.lesson.$lessonId.tsx` sections into the requested order using existing components — no visual redesign:
 
 ```
-OPSQAI Demo
-
+Lesson title
+Objectives            (existing bullets)
+Progress + Estimated time  (existing header widgets)
+AI Teacher            (existing chat)
+Lesson summary        (existing)
+Quiz                  (existing)
+Notes                 (new: personal notes → academy_lesson_progress.notes text; add column)
+[ Previous ]  [ Mark complete ]  [ Next lesson ]
 ```
 
-Aș crea ceva mult mai realist.
+Prev/Next resolve within the current path via chapter+lesson `order_index`. AI Teacher grounding already scoped to the lesson — unchanged.
 
-Exemplu
+## 5. Certificates page
 
-```
-Nordic Distribution Group
+Rebuild `app.academy.certificates.tsx` as a card grid, one card per row in `academy_certificates`:
 
-```
+- Path title, completion date, expiration date (if any), certificate ID (`code`), status (Valid / Expiring / Expired).
+- Actions: **View** (existing verify route `/verify/$code`), **Download PDF** (new: `generateCertificatePdf` server fn using `pdf-lib`, streamed as a server-route response at `/api/public/certificates/$code.pdf` — signed by verifying the code exists and belongs to the caller's company via RLS).
 
-sau
+## 6. AI Teacher launcher (`/app/academy/teacher`)
 
-```
-Atlas Logistics GmbH
+Thin new route that lets employees pick any lesson from their **active** enrollments and jump into AI Teacher for that lesson. No new grounding logic — reuses `api/academy-chat.ts`.
 
-```
+## 7. Manager / Admin experience
 
-sau
+Extend `app.admin.academy.tsx` (Academy Manager) with per-course analytics — pulled from existing tables, no schema needed:
 
-```
-Nova Supply Chain
+| Metric | Query |
+|---|---|
+| Assigned users | count(enrollments) |
+| Completed | count where status='completed' |
+| In progress | count where status='in_progress' |
+| Overdue | count where due_at<now and not completed |
+| Avg completion time | avg(completed_at - started_at) |
+| Avg quiz score | avg(quiz_attempts.score) |
+| Completion % | completed / assigned |
+| Certificates issued | count(certificates where path_id=…) |
 
-```
+Also add a **Cohort** table per course listing users with status + progress + last activity, so a manager sees who is behind on mandatory training.
 
-Pentru că atunci omul uită că este într-un demo.
+## 8. Assign flow (make the Assign button real)
 
-Pare un client real.
+New dialog component `AssignTrainingDialog` opened from:
 
-Poți păstra "OPSQAI Demo" doar intern, dar în UI afișează un nume de companie fictiv, credibil.
+- Academy Manager → course row action
+- Academy Manager → new bulk **Assign** toolbar
+- Admin → user detail page
 
----
+Capabilities:
 
+- **Targets:** individual employees (multi-select), departments, roles, or Entire Company (checkbox). Resolved server-side to a distinct user set.
+- **Content:** one course, multiple courses, or full learning path (courses = paths in current schema; multi-select allowed).
+- **Options:** due date, priority (low / normal / high), mandatory toggle, notify checkbox.
+
+Server fn `assignTraining` (createServerFn + `requireSupabaseAuth`, gated by permission `academy.assign` → managers, company_admin, platform admins):
+
+1. Resolve target user ids from targets.
+2. Upsert `academy_enrollments` (unique on `path_id,user_id`) with `assigned_by=userId`, `mandatory`, `due_at`, `status='assigned'`.
+3. Insert `notifications` rows for each new enrollment (see §9).
+4. Return counts (assigned, skipped-already-enrolled).
+
+New role → permission mapping: add `academy.assign` to `role_permissions` for `company_admin`, `manager`. Migration in the same batch.
+
+Assigned courses appear in `/app/academy` on next load — no extra client wiring; the enrollment already flows through the dashboard query.
+
+## 9. Notifications
+
+Reuse the existing `notifications` table. Emit `type` values:
+
+- `academy.course_assigned`
+- `academy.course_due_soon` (nightly `pg_cron` @ 07:00 UTC → any enrollment where `due_at between now and now+3d`, unnotified)
+- `academy.course_overdue` (same cron: `due_at < now`)
+- `academy.quiz_available` (on lesson completion when quiz exists)
+- `academy.certificate_earned` (on certificate row insert — trigger)
+- `academy.path_completed` (on last lesson completion)
+
+Add a small guard column `notified_stage text[]` on `academy_enrollments` so cron doesn't re-notify.
+
+## 10. Certificates on completion
+
+Trigger `academy_issue_certificate` on `academy_enrollments UPDATE` when status transitions to `completed`: inserts an `academy_certificates` row (code = short random, valid_until = optional based on path setting) and emits the notification above. Idempotent.
+
+## 11. Search scoping
+
+`/app/academy` search hits only enrollments belonging to the current user (already enforced by RLS). Knowledge search remains on `/app/knowledge` — no cross-linking.
+
+## 12. RBAC summary
+
+| Role | Can |
+|---|---|
+| Employee | See only own enrollments; launch AI Teacher, take quizzes, view own certificates |
+| Manager | Everything Employee can + assign training within their company + view cohort analytics |
+| Company Admin | Manager + author/edit paths/chapters/lessons + issue/revoke certificates |
+| Platform Super Admin | All companies via existing global admin tools |
+| Platform Owner | Existing platform surfaces unchanged |
+
+Enforced via existing `has_role` / `has_permission` functions + RLS on academy tables (already scoped by `company_id`). Only new grant: add `academy.assign` permission row and gate `AssignTrainingDialog` + server fn on it.
+
+## Delivery batches
+
+**Batch A — schema & backend**
+- Migration: add `academy_lesson_progress.notes text`, `academy_enrollments.priority text default 'normal'`, `academy_enrollments.notified_stages text[] default '{}'`, `role_permissions` rows for `academy.assign`.
+- Trigger `academy_issue_certificate` + notification emitters.
+- `pg_cron` nightly job → `/api/public/hooks/academy-nudge`.
+- Server fns: `listMyTraining`, `getMyTrainingSummary`, `assignTraining`, `listCourseAnalytics`, `listCourseCohort`, `getCertificatePdf` (server route).
+
+**Batch B — learner UX**
+- Sidebar split (My Training / Knowledge / AI Teacher / Certificates).
+- Rebuild `app.academy.index.tsx` (cards + filters + search).
+- Employee summary widget on `app.index.tsx`.
+- Path detail stepper.
+- Lesson view section reorder + notes.
+- Certificates page rebuild + PDF download.
+- AI Teacher launcher route.
+- Remove course-launch chips from Knowledge.
+
+**Batch C — manager/admin UX**
+- Academy Manager analytics tab per course.
+- Cohort table.
+- `AssignTrainingDialog` (accessible from course row, bulk toolbar, and user detail).
+- Notifications wiring end-to-end.
+
+Typecheck after each batch. No visual redesign — every new surface reuses existing `Card`, `Badge`, `Progress`, `Button`, `Dialog`, `Table`, `Tabs`, sidebar, and design tokens.
+
+Reply **continue** and I'll start with Batch A (schema + server functions + cron).

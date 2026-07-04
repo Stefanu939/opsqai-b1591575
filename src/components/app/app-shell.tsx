@@ -45,7 +45,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit") },
     { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit") },
     { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true },
-    { to: "/app/academy", label: "Academy", icon: GraduationCap, show: hasPermission("academy.learn") },
+    { to: "/app/academy", label: "My Training", icon: GraduationCap, show: hasPermission("academy.learn") },
   ].filter((i) => i.show);
 
   const adminNav = [

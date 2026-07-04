@@ -176,7 +176,9 @@ export type Database = {
           due_at: string | null
           id: string
           mandatory: boolean
+          notified_stages: string[]
           path_id: string
+          priority: string
           started_at: string | null
           status: Database["public"]["Enums"]["academy_enrollment_status"]
           updated_at: string
@@ -190,7 +192,9 @@ export type Database = {
           due_at?: string | null
           id?: string
           mandatory?: boolean
+          notified_stages?: string[]
           path_id: string
+          priority?: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["academy_enrollment_status"]
           updated_at?: string
@@ -204,7 +208,9 @@ export type Database = {
           due_at?: string | null
           id?: string
           mandatory?: boolean
+          notified_stages?: string[]
           path_id?: string
+          priority?: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["academy_enrollment_status"]
           updated_at?: string
@@ -316,6 +322,7 @@ export type Database = {
           last_activity_at: string | null
           last_score: number | null
           lesson_id: string
+          notes: string | null
           status: Database["public"]["Enums"]["academy_progress_status"]
           time_spent_seconds: number
           updated_at: string
@@ -331,6 +338,7 @@ export type Database = {
           last_activity_at?: string | null
           last_score?: number | null
           lesson_id: string
+          notes?: string | null
           status?: Database["public"]["Enums"]["academy_progress_status"]
           time_spent_seconds?: number
           updated_at?: string
@@ -346,6 +354,7 @@ export type Database = {
           last_activity_at?: string | null
           last_score?: number | null
           lesson_id?: string
+          notes?: string | null
           status?: Database["public"]["Enums"]["academy_progress_status"]
           time_spent_seconds?: number
           updated_at?: string
@@ -2639,6 +2648,19 @@ export type Database = {
       }
       academy_heatmap: { Args: { p_company: string }; Returns: Json }
       academy_kpis: { Args: { p_company: string }; Returns: Json }
+      academy_resolve_targets: {
+        Args: {
+          _company_id: string
+          _department_ids: string[]
+          _entire_company: boolean
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_ids: string[]
+        }
+        Returns: {
+          user_id: string
+        }[]
+      }
+      academy_send_reminders: { Args: never; Returns: number }
       academy_verify_certificate: { Args: { _code: string }; Returns: Json }
       audit_companies: { Args: never; Returns: Json }
       audit_entries: {
