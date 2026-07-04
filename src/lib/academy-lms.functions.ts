@@ -550,3 +550,51 @@ export const listCourseCohort = createServerFn({ method: "POST" })
       };
     });
   });
+
+/** Assignable targets for the manager's company (users, departments, roles, paths). */
+export const listAssignTargets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requirePermission(context, "academy.assign");
+    const supabase = context.supabase as any;
+    const companyId = await resolveCompanyForWrite(context, null);
+
+    const [usersRes, deptsRes, pathsRes, rolesRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, full_name, first_name, last_name, department_id")
+        .eq("company_id", companyId)
+        .order("full_name", { ascending: true, nullsFirst: false })
+        .limit(500),
+      supabase.from("departments").select("id, name").eq("company_id", companyId).order("name"),
+      supabase
+        .from("academy_learning_paths")
+        .select("id, title, mandatory, publish_status")
+        .eq("company_id", companyId)
+        .eq("publish_status", "published")
+        .order("title"),
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("company_id", companyId),
+    ]);
+
+    const roles = Array.from(
+      new Set((rolesRes.data ?? []).map((r: any) => r.role).filter(Boolean)),
+    );
+
+    return {
+      company_id: companyId,
+      users: (usersRes.data ?? []).map((u: any) => ({
+        id: u.id,
+        name:
+          u.full_name ??
+          [u.first_name, u.last_name].filter(Boolean).join(" ") ??
+          "User",
+        department_id: u.department_id,
+      })),
+      departments: deptsRes.data ?? [],
+      roles,
+      paths: pathsRes.data ?? [],
+    };
+  });
