@@ -20,9 +20,6 @@ import {
   TrendingUp, FileText, Lightbulb,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/app/admin/dashboard")({
-  component: ExecutiveDashboard,
-});
 
 const RANGES = [
   { key: "today", label: "Today", days: 0, bucket: "hour" as const },
