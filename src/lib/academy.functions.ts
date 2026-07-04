@@ -813,6 +813,56 @@ export const assignEnrollment = createServerFn({ method: "POST" })
     return { count: rows.length };
   });
 
+/** List all learners already assigned to a path (managers/admins only). */
+export const listPathAssignments = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePermission(context, "academy.manage");
+    const { data: rows, error } = await (context.supabase as any)
+      .from("academy_enrollments")
+      .select("id, user_id, status, mandatory, due_at, started_at, completed_at, created_at, company_id")
+      .eq("path_id", data.path_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    const userIds = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
+    if (userIds.length === 0) return [];
+    const { data: profiles } = await (context.supabase as any)
+      .from("profiles").select("id, full_name, first_name, last_name, email").in("id", userIds);
+    const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    return (rows ?? []).map((r: any) => ({ ...r, profile: byId.get(r.user_id) ?? null }));
+  });
+
+/** List profiles for the same company as a path (used by the Assign picker). */
+export const listAssignablePathLearners = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePermission(context, "academy.manage");
+    const { data: path } = await (context.supabase as any)
+      .from("academy_learning_paths").select("company_id").eq("id", data.path_id).maybeSingle();
+    if (!path) throw new Error("Path not found");
+    const { data: rows, error } = await (context.supabase as any)
+      .from("profiles")
+      .select("id, full_name, first_name, last_name, email, department_id, active")
+      .eq("company_id", (path as any).company_id)
+      .order("full_name");
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const removeEnrollment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePermission(context, "academy.manage");
+    const { error } = await (context.supabase as any)
+      .from("academy_enrollments").delete().eq("id", data.enrollment_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+
+  });
+
 export const listMyEnrollments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
