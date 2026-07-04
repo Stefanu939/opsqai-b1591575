@@ -713,6 +713,7 @@ export type Database = {
           created_at: string
           id: string
           ip: string | null
+          is_demo_ephemeral: boolean
           module: string | null
           new_value: Json | null
           old_value: Json | null
@@ -732,6 +733,7 @@ export type Database = {
           created_at?: string
           id?: string
           ip?: string | null
+          is_demo_ephemeral?: boolean
           module?: string | null
           new_value?: Json | null
           old_value?: Json | null
@@ -751,6 +753,7 @@ export type Database = {
           created_at?: string
           id?: string
           ip?: string | null
+          is_demo_ephemeral?: boolean
           module?: string | null
           new_value?: Json | null
           old_value?: Json | null
@@ -777,7 +780,9 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          display_name: string | null
           id: string
+          is_demo_tenant: boolean
           is_system: boolean
           max_users: number
           min_confidence: number
@@ -790,7 +795,9 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          display_name?: string | null
           id?: string
+          is_demo_tenant?: boolean
           is_system?: boolean
           max_users?: number
           min_confidence?: number
@@ -803,7 +810,9 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          display_name?: string | null
           id?: string
+          is_demo_tenant?: boolean
           is_system?: boolean
           max_users?: number
           min_confidence?: number
@@ -1179,6 +1188,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      demo_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          ip: string | null
+          started_at: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          ip?: string | null
+          started_at?: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip?: string | null
+          started_at?: string
+          token?: string
+        }
+        Relationships: []
       }
       departments: {
         Row: {
@@ -1852,6 +1888,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_demo_ephemeral: boolean
           parts: Json | null
           role: Database["public"]["Enums"]["message_role"]
           sources: Json | null
@@ -1864,6 +1901,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_demo_ephemeral?: boolean
           parts?: Json | null
           role: Database["public"]["Enums"]["message_role"]
           sources?: Json | null
@@ -1876,6 +1914,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_demo_ephemeral?: boolean
           parts?: Json | null
           role?: Database["public"]["Enums"]["message_role"]
           sources?: Json | null
@@ -2320,6 +2359,7 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          is_demo_ephemeral: boolean
           title: string
           updated_at: string
           user_id: string
@@ -2328,6 +2368,7 @@ export type Database = {
           company_id: string
           created_at?: string
           id?: string
+          is_demo_ephemeral?: boolean
           title?: string
           updated_at?: string
           user_id: string
@@ -2336,6 +2377,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          is_demo_ephemeral?: boolean
           title?: string
           updated_at?: string
           user_id?: string
@@ -2655,6 +2697,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      demo_cleanup: { Args: never; Returns: undefined }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
@@ -2686,6 +2729,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_demo_company: { Args: { _company_id: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_platform_owner: { Args: { _user_id?: string }; Returns: boolean }
       knowledge_health: { Args: { p_company: string }; Returns: Json }
