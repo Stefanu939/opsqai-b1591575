@@ -39,28 +39,72 @@ export const Route = createFileRoute("/_authenticated/app/admin/academy")({
 
 function AcademyAdmin() {
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <header className="flex items-center gap-3">
-        <GraduationCap className="h-7 w-7 text-primary" />
-        <div>
-          <h1 className="text-2xl font-semibold">Academy Manager</h1>
-          <p className="text-sm text-muted-foreground">Design learning paths, monitor progress, and configure your Academy.</p>
+    <div className="flex-1 min-h-0 overflow-auto">
+      {/* Enterprise header band */}
+      <div className="border-b border-border bg-gradient-to-b from-muted/40 to-background">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-0">
+          <div className="flex items-start gap-4">
+            <div className="hidden md:flex h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 items-center justify-center shrink-0">
+              <GraduationCap className="h-6 w-6 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-primary/80">
+                OPSQAI · Learning &amp; Development
+              </div>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mt-0.5">
+                Academy Manager
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+                Design curricula, orchestrate assignments and monitor workforce
+                competency across departments — from a single operational cockpit.
+              </p>
+            </div>
+          </div>
+
+          <Tabs defaultValue="dashboard" className="mt-6">
+            <TabsList className="bg-transparent p-0 h-auto gap-1 border-b border-border rounded-none -mb-px w-full justify-start overflow-x-auto">
+              <TabsTrigger
+                value="dashboard"
+                className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />Dashboard
+              </TabsTrigger>
+              <TabsTrigger
+                value="library"
+                className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />Curriculum Library
+              </TabsTrigger>
+              <TabsTrigger
+                value="ai"
+                className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                <Wand2 className="h-4 w-4 mr-2" />AI Course Studio
+              </TabsTrigger>
+              <TabsTrigger
+                value="assign"
+                className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                <Users className="h-4 w-4 mr-2" />Assignments
+              </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                <SettingsIcon className="h-4 w-4 mr-2" />Configuration
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="max-w-7xl mx-auto px-0 py-6 md:py-8">
+              <TabsContent value="dashboard" className="mt-0"><DashboardTab /></TabsContent>
+              <TabsContent value="library" className="mt-0"><LibraryTab /></TabsContent>
+              <TabsContent value="ai" className="mt-0"><AiTab /></TabsContent>
+              <TabsContent value="assign" className="mt-0"><AssignTab /></TabsContent>
+              <TabsContent value="settings" className="mt-0"><SettingsTab /></TabsContent>
+            </div>
+          </Tabs>
         </div>
-      </header>
-      <Tabs defaultValue="dashboard">
-        <TabsList>
-          <TabsTrigger value="dashboard"><BarChart3 className="h-4 w-4 mr-1" />Dashboard</TabsTrigger>
-          <TabsTrigger value="library"><BookOpen className="h-4 w-4 mr-1" />Library</TabsTrigger>
-          <TabsTrigger value="ai"><Wand2 className="h-4 w-4 mr-1" />AI Generators</TabsTrigger>
-          <TabsTrigger value="assign"><Users className="h-4 w-4 mr-1" />Assignments</TabsTrigger>
-          <TabsTrigger value="settings"><SettingsIcon className="h-4 w-4 mr-1" />Settings</TabsTrigger>
-        </TabsList>
-        <TabsContent value="dashboard" className="mt-4"><DashboardTab /></TabsContent>
-        <TabsContent value="library" className="mt-4"><LibraryTab /></TabsContent>
-        <TabsContent value="ai" className="mt-4"><AiTab /></TabsContent>
-        <TabsContent value="assign" className="mt-4"><AssignTab /></TabsContent>
-        <TabsContent value="settings" className="mt-4"><SettingsTab /></TabsContent>
-      </Tabs>
+      </div>
     </div>
   );
 }
