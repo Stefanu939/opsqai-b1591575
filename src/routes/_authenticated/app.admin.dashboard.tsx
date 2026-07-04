@@ -31,7 +31,7 @@ const RANGES = [
   { key: "30d", label: "30 Days", days: 30, bucket: "day" as const },
 ];
 
-function ExecutiveDashboard() {
+export function ExecutiveDashboard() {
   const { activeCompanyId, hasPermission } = useAuth() as any;
   const overviewFn = useServerFn(getDashboardOverview);
   const activityFn = useServerFn(getDashboardActivity);
