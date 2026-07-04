@@ -388,6 +388,11 @@ function CreateEndpointDialog({
   setOpen: (v: boolean) => void;
   companyId: string | null;
   userId: string | null;
+  genSecretFn: () => Promise<{ secret: string }>;
+  onCreated: () => void;
+}) {
+  companyId: string | null;
+  userId: string | null;
   genSecretFn: (opts?: unknown) => Promise<{ secret: string }>;
   onCreated: () => void;
 }) {
