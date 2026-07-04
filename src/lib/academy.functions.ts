@@ -844,9 +844,10 @@ export const listAssignablePathLearners = createServerFn({ method: "POST" })
     if (!path) throw new Error("Path not found");
     const { data: rows, error } = await (context.supabase as any)
       .from("profiles")
-      .select("id, full_name, first_name, last_name, email, department_id, active")
+      .select("id, full_name, first_name, last_name, department_id, is_active")
       .eq("company_id", (path as any).company_id)
       .order("full_name");
+
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
