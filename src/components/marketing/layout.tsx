@@ -1,10 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Menu, X, Linkedin, Mail, Github } from "lucide-react";
+import { Menu, X, Linkedin, Mail, Github, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 import { LogoMark } from "@/components/brand/logo";
+import { useT, type Lang } from "@/i18n";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 const NAV = [
   { to: "/product", label: "Product" },
@@ -68,12 +73,19 @@ const FOOTER_COLS: Array<{ title: string; links: Array<{ to: string; label: stri
 export function MarketingLayout({ children }: { children: ReactNode }) {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [open, setOpen] = useState(false);
+  const { lang, setLang } = useT();
+  const LANGS: Array<{ code: Lang; label: string }> = [
+    { code: "en", label: "English" },
+    { code: "de", label: "Deutsch" },
+    { code: "ro", label: "Română" },
+  ];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
     return () => sub.subscription.unsubscribe();
   }, []);
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
