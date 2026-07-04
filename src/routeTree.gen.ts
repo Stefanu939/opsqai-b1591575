@@ -60,6 +60,7 @@ import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenticated/app.internal'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
+import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticated/app.brand'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
 import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
@@ -357,6 +358,11 @@ const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppBrandRoute = AuthenticatedAppBrandRouteImport.update({
   id: '/brand',
   path: '/brand',
@@ -376,9 +382,9 @@ const AuthenticatedAppInternalIndexRoute =
   } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
-    id: '/chat/',
-    path: '/chat/',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAppChatRoute,
   } as any)
 const AuthenticatedAppAcademyIndexRoute =
   AuthenticatedAppAcademyIndexRouteImport.update({
@@ -434,9 +440,9 @@ const AuthenticatedAppInternalAssistantRoute =
   } as any)
 const AuthenticatedAppChatThreadIdRoute =
   AuthenticatedAppChatThreadIdRouteImport.update({
-    id: '/chat/$threadId',
-    path: '/chat/$threadId',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => AuthenticatedAppChatRoute,
   } as any)
 const AuthenticatedAppAdminUsersRoute =
   AuthenticatedAppAdminUsersRouteImport.update({
@@ -621,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
+  '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -799,6 +806,7 @@ export interface FileRoutesById {
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/_authenticated/app/brand': typeof AuthenticatedAppBrandRoute
+  '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -890,6 +898,7 @@ export interface FileRouteTypes {
     | '/trust/security-architecture'
     | '/verify/$code'
     | '/app/brand'
+    | '/app/chat'
     | '/app/faq'
     | '/app/internal'
     | '/app/knowledge'
@@ -1067,6 +1076,7 @@ export interface FileRouteTypes {
     | '/trust/security-architecture'
     | '/verify/$code'
     | '/_authenticated/app/brand'
+    | '/_authenticated/app/chat'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/internal'
     | '/_authenticated/app/knowledge'
@@ -1507,6 +1517,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFaqRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/chat': {
+      id: '/_authenticated/app/chat'
+      path: '/chat'
+      fullPath: '/app/chat'
+      preLoaderRoute: typeof AuthenticatedAppChatRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/brand': {
       id: '/_authenticated/app/brand'
       path: '/brand'
@@ -1530,10 +1547,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
-      path: '/chat'
+      path: '/'
       fullPath: '/app/chat/'
       preLoaderRoute: typeof AuthenticatedAppChatIndexRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppChatRoute
     }
     '/_authenticated/app/academy/': {
       id: '/_authenticated/app/academy/'
@@ -1600,10 +1617,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/app/chat/$threadId': {
       id: '/_authenticated/app/chat/$threadId'
-      path: '/chat/$threadId'
+      path: '/$threadId'
       fullPath: '/app/chat/$threadId'
       preLoaderRoute: typeof AuthenticatedAppChatThreadIdRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppChatRoute
     }
     '/_authenticated/app/admin/users': {
       id: '/_authenticated/app/admin/users'
@@ -1769,6 +1786,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAppChatRouteChildren {
+  AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
+  AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
+}
+
+const AuthenticatedAppChatRouteChildren: AuthenticatedAppChatRouteChildren = {
+  AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
+  AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
+}
+
+const AuthenticatedAppChatRouteWithChildren =
+  AuthenticatedAppChatRoute._addFileChildren(AuthenticatedAppChatRouteChildren)
+
 interface AuthenticatedAppInternalKnowledgeRouteChildren {
   AuthenticatedAppInternalKnowledgeSlugRoute: typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
@@ -1806,6 +1836,7 @@ const AuthenticatedAppInternalRouteWithChildren =
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppBrandRoute: typeof AuthenticatedAppBrandRoute
+  AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppInternalRoute: typeof AuthenticatedAppInternalRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
@@ -1832,10 +1863,8 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminSopGeneratorRoute: typeof AuthenticatedAppAdminSopGeneratorRoute
   AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
-  AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
-  AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
   AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
   AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
   AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1843,6 +1872,7 @@ interface AuthenticatedAppRouteChildren {
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppBrandRoute: AuthenticatedAppBrandRoute,
+  AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppInternalRoute: AuthenticatedAppInternalRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
@@ -1873,11 +1903,9 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAdminSopGeneratorRoute,
   AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
-  AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
   AuthenticatedAppAcademyIndexRoute: AuthenticatedAppAcademyIndexRoute,
-  AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
   AuthenticatedAppWorkspaceIndexRoute: AuthenticatedAppWorkspaceIndexRoute,
   AuthenticatedAppAcademyLessonLessonIdRoute:
     AuthenticatedAppAcademyLessonLessonIdRoute,
