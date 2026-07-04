@@ -107,7 +107,24 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-2 shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 px-2 text-[13px] text-muted-foreground hover:text-foreground gap-1.5" aria-label="Change language">
+                  <Globe className="h-4 w-4" />
+                  <span className="font-mono text-[11px]">{lang.toUpperCase()}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[140px]">
+                {LANGS.map((l) => (
+                  <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)} className={l.code === lang ? "font-semibold text-primary" : ""}>
+                    <span className="font-mono text-[10px] mr-2 opacity-70">{l.code.toUpperCase()}</span>
+                    {l.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ThemeToggle className="h-9 w-9" />
+
             <div className="hidden sm:flex items-center gap-2">
               {signedIn ? (
                 <Button asChild size="sm"><Link to="/app">Open app</Link></Button>
