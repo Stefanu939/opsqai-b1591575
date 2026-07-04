@@ -119,7 +119,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SelectTrigger className="h-8 bg-sidebar-accent/40 border-sidebar-border text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All companies (global)</SelectItem>
-              {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              {companies.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.is_system ? `★ ${c.name}` : c.name}
+                </SelectItem>
+              ))}
+
             </SelectContent>
           </Select>
         </div>
