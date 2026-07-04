@@ -16,6 +16,9 @@ export const Route = createFileRoute("/trust/security-architecture")({
       title="Security Architecture"
       intro="OPSQAI is a single-page React application served from an edge runtime, talking to a managed PostgreSQL backend through a publishable API and to AI models through a server-side gateway."
     >
+      <p className="mb-6 rounded-md border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary">
+        Built on modern architecture: TanStack, Supabase, pgvector, RLS, PWA-ready
+      </p>
       <h2>Layers</h2>
       <ul>
         <li><strong>Edge / CDN:</strong> TLS termination, DDoS protection, static asset caching, request routing.</li>
