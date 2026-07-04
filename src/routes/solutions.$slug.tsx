@@ -49,7 +49,7 @@ export const Route = createFileRoute("/solutions/$slug")({
 });
 
 function SolutionDetailPage() {
-  const { solution } = Route.useLoaderData();
+  const { solution } = Route.useLoaderData() as { solution: import("@/content/solutions/data").SolutionPage };
   return (
     <MarketingLayout>
       <section className="mx-auto max-w-4xl px-4 pt-16 pb-10 md:pt-24">
