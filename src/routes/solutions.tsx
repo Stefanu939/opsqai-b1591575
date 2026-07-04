@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ClipboardCheck, GraduationCap, MessageSquareWarning, ShieldCheck, Wrench } from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardCheck, GraduationCap, MessageSquareWarning, ShieldCheck, Wrench } from "lucide-react";
+import { SOLUTION_PAGES } from "@/content/solutions/data";
 
 import { pageHead } from "@/lib/seo";
 
@@ -89,7 +90,31 @@ function SolutionsPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Explore by use case</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">Deep-dive landing pages</h2>
+          </div>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {SOLUTION_PAGES.map((s) => (
+            <Link key={s.slug} to="/solutions/$slug" params={{ slug: s.slug }} className="group rounded-xl border border-border/60 bg-card/40 p-5 transition hover:border-primary/50 hover:bg-card">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-widest text-primary">{s.eyebrow}</p>
+                  <h3 className="mt-2 font-semibold text-foreground">{s.h1}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{s.description}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-primary" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-4xl px-4 pb-20 text-center">
+
         <h2 className="text-2xl font-semibold tracking-tight">See it on your SOPs.</h2>
         <p className="mt-2 text-muted-foreground">A 20-minute working session with your real documents.</p>
         <div className="mt-6 flex flex-wrap gap-3 justify-center">

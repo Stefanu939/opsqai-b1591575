@@ -44,6 +44,7 @@ import { Route as TrustDataRetentionRouteImport } from './routes/trust.data-rete
 import { Route as TrustBackupPolicyRouteImport } from './routes/trust.backup-policy'
 import { Route as TrustAvailabilityRouteImport } from './routes/trust.availability'
 import { Route as TrustAuditLogsRouteImport } from './routes/trust.audit-logs'
+import { Route as SolutionsSlugRouteImport } from './routes/solutions.$slug'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
@@ -296,6 +297,11 @@ const TrustAuditLogsRoute = TrustAuditLogsRouteImport.update({
   id: '/audit-logs',
   path: '/audit-logs',
   getParentRoute: () => TrustRoute,
+} as any)
+const SolutionsSlugRoute = SolutionsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => SolutionsRoute,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
   id: '/terms',
@@ -738,7 +744,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/solutions': typeof SolutionsRoute
+  '/solutions': typeof SolutionsRouteWithChildren
   '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
@@ -759,6 +765,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$slug': typeof SolutionsSlugRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
   '/trust/availability': typeof TrustAvailabilityRoute
   '/trust/backup-policy': typeof TrustBackupPolicyRoute
@@ -850,7 +857,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/solutions': typeof SolutionsRoute
+  '/solutions': typeof SolutionsRouteWithChildren
   '/trust': typeof TrustRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
@@ -869,6 +876,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$slug': typeof SolutionsSlugRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
   '/trust/availability': typeof TrustAvailabilityRoute
   '/trust/backup-policy': typeof TrustBackupPolicyRoute
@@ -960,7 +968,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/solutions': typeof SolutionsRoute
+  '/solutions': typeof SolutionsRouteWithChildren
   '/trust': typeof TrustRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
@@ -981,6 +989,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$slug': typeof SolutionsSlugRoute
   '/trust/audit-logs': typeof TrustAuditLogsRoute
   '/trust/availability': typeof TrustAvailabilityRoute
   '/trust/backup-policy': typeof TrustBackupPolicyRoute
@@ -1095,6 +1104,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$slug'
     | '/trust/audit-logs'
     | '/trust/availability'
     | '/trust/backup-policy'
@@ -1205,6 +1215,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$slug'
     | '/trust/audit-logs'
     | '/trust/availability'
     | '/trust/backup-policy'
@@ -1316,6 +1327,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$slug'
     | '/trust/audit-logs'
     | '/trust/availability'
     | '/trust/backup-policy'
@@ -1409,7 +1421,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  SolutionsRoute: typeof SolutionsRoute
+  SolutionsRoute: typeof SolutionsRouteWithChildren
   TrustRoute: typeof TrustRouteWithChildren
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -1677,6 +1689,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/trust/audit-logs'
       preLoaderRoute: typeof TrustAuditLogsRouteImport
       parentRoute: typeof TrustRoute
+    }
+    '/solutions/$slug': {
+      id: '/solutions/$slug'
+      path: '/$slug'
+      fullPath: '/solutions/$slug'
+      preLoaderRoute: typeof SolutionsSlugRouteImport
+      parentRoute: typeof SolutionsRoute
     }
     '/legal/terms': {
       id: '/legal/terms'
@@ -2417,6 +2436,18 @@ const GuidesRouteChildren: GuidesRouteChildren = {
 const GuidesRouteWithChildren =
   GuidesRoute._addFileChildren(GuidesRouteChildren)
 
+interface SolutionsRouteChildren {
+  SolutionsSlugRoute: typeof SolutionsSlugRoute
+}
+
+const SolutionsRouteChildren: SolutionsRouteChildren = {
+  SolutionsSlugRoute: SolutionsSlugRoute,
+}
+
+const SolutionsRouteWithChildren = SolutionsRoute._addFileChildren(
+  SolutionsRouteChildren,
+)
+
 interface TrustRouteChildren {
   TrustAuditLogsRoute: typeof TrustAuditLogsRoute
   TrustAvailabilityRoute: typeof TrustAvailabilityRoute
@@ -2493,7 +2524,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  SolutionsRoute: SolutionsRoute,
+  SolutionsRoute: SolutionsRouteWithChildren,
   TrustRoute: TrustRouteWithChildren,
   ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
