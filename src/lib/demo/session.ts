@@ -63,7 +63,7 @@ function subscribe(cb: () => void) {
 }
 
 export function useDemoSession() {
-  const snap = useSyncExternalStore(subscribe, read, () => ({ expiresAt: null }));
+  const snap = useSyncExternalStore(subscribe, read, getServerSnapshot);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
