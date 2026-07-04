@@ -445,19 +445,7 @@ function Enterprise() {
   );
 }
 
-/* ---------------- Screenshots ---------------- */
-
-const SCREENS = [
-  { title: "Dashboard", body: "Live operational KPIs and adoption at a glance." },
-  { title: "Knowledge Base", body: "Central repository for SOPs, manuals and policies." },
-  { title: "FAQ", body: "Structured, versioned answers to the questions teams repeat." },
-  { title: "Chat", body: "The AI Assistant, grounded in your documents." },
-  { title: "Documents", body: "Ingested files with version history and status." },
-  { title: "Users", body: "Roles, teams and department assignments." },
-  { title: "Settings", body: "Workspace, branding and policy configuration." },
-  { title: "Admin", body: "Cross-tenant governance for platform owners." },
-  { title: "Analytics", body: "Usage, AI activity and knowledge health." },
-];
+/* ---------------- Screenshots (product surfaces) ---------------- */
 
 function Screenshots() {
   return (
@@ -465,24 +453,149 @@ function Screenshots() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="Inside the Platform"
-          title="More than a chat window"
+          title="Much more than a chat window"
           intro="A full operational surface — dashboards, knowledge management, users, analytics — not just a message box."
         />
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SCREENS.map((s) => (
-            <div key={s.title} className="card-enterprise overflow-hidden">
-              <div className="aspect-[16/10] bg-gradient-to-br from-primary/10 via-background to-background border-b border-border/60 relative">
-                <div className="absolute inset-0 bg-grid-faint opacity-40" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rounded-lg border border-primary/30 bg-background/70 backdrop-blur px-3 py-1.5 text-xs text-primary font-medium">
-                    {s.title}
-                  </div>
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="text-sm font-semibold">{s.title}</div>
-                <div className="mt-1 text-xs text-muted-foreground leading-relaxed">{s.body}</div>
-              </div>
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
+          <MockDashboard />
+          <MockKnowledge />
+          <MockAnalytics />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MockShell({ title, icon: Icon, children }: { title: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
+  return (
+    <div className="card-enterprise hover-lift overflow-hidden">
+      <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 h-10">
+        <div className="flex items-center gap-2 text-xs font-semibold">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+          <span>{title}</span>
+        </div>
+        <div className="flex gap-1">
+          <span className="h-2 w-2 rounded-full bg-red-400/60" />
+          <span className="h-2 w-2 rounded-full bg-yellow-400/60" />
+          <span className="h-2 w-2 rounded-full bg-green-400/60" />
+        </div>
+      </div>
+      <div className="p-4 min-h-[240px]">{children}</div>
+    </div>
+  );
+}
+
+function MockDashboard() {
+  const kpis = [
+    { label: "Questions", value: "12,480", trend: "+18%" },
+    { label: "Accuracy", value: "96%", trend: "+2.1%" },
+    { label: "Sources", value: "3,214", trend: "+124" },
+    { label: "Active users", value: "428", trend: "+34" },
+  ];
+  return (
+    <MockShell title="Dashboard" icon={LayoutDashboard}>
+      <div className="grid grid-cols-2 gap-2">
+        {kpis.map((k) => (
+          <div key={k.label} className="rounded-lg border border-border/60 bg-background/40 p-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{k.label}</div>
+            <div className="mt-1 text-lg font-semibold">{k.value}</div>
+            <div className="text-[10px] text-primary flex items-center gap-1"><TrendingUp className="h-2.5 w-2.5" />{k.trend}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-3">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Weekly activity</div>
+        <div className="flex items-end gap-1.5 h-14">
+          {[40, 65, 55, 80, 70, 90, 75].map((h, i) => (
+            <div key={i} className="flex-1 rounded-sm bg-primary/70" style={{ height: `${h}%` }} />
+          ))}
+        </div>
+      </div>
+      <div className="mt-3 text-xs text-muted-foreground">Live operational KPIs and adoption at a glance.</div>
+    </MockShell>
+  );
+}
+
+function MockKnowledge() {
+  const docs = [
+    { name: "SOP-INB-014 · Inbound Damages", tag: "Published", tint: "text-primary bg-primary/10 border-primary/30" },
+    { name: "Safety Manual v3.2", tag: "Indexed", tint: "text-primary bg-primary/10 border-primary/30" },
+    { name: "Picking & Packing Guide", tag: "Draft", tint: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
+    { name: "Returns Policy 2026", tag: "Published", tint: "text-primary bg-primary/10 border-primary/30" },
+    { name: "Forklift Operation Rules", tag: "Indexed", tint: "text-primary bg-primary/10 border-primary/30" },
+  ];
+  return (
+    <MockShell title="Knowledge Base" icon={Database}>
+      <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-xs text-muted-foreground">
+        <Search className="h-3.5 w-3.5" /> Search SOPs, manuals, policies…
+      </div>
+      <div className="mt-3 space-y-1.5">
+        {docs.map((d) => (
+          <div key={d.name} className="flex items-center gap-2 rounded-md border border-border/60 bg-background/40 px-3 py-2">
+            <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+            <div className="text-[12px] truncate flex-1">{d.name}</div>
+            <span className={`text-[9px] uppercase tracking-wider rounded border px-1.5 py-0.5 ${d.tint}`}>{d.tag}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 text-xs text-muted-foreground">Central repository with versioning and status.</div>
+    </MockShell>
+  );
+}
+
+function MockAnalytics() {
+  const gaps = [
+    { q: "What's the SLA for damaged returns?", count: 42 },
+    { q: "Which SOP covers cold-chain breaks?", count: 31 },
+    { q: "Who signs off overtime on Sundays?", count: 24 },
+  ];
+  return (
+    <MockShell title="Analytics" icon={BarChart3}>
+      <div className="rounded-lg border border-border/60 bg-background/40 p-3">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Answer confidence</div>
+        <div className="mt-2 flex items-center gap-3">
+          <div className="text-2xl font-semibold">96%</div>
+          <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-full w-[96%] bg-gradient-to-r from-primary to-primary/60" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-3">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+          <Zap className="h-3 w-3 text-primary" /> Top knowledge gaps
+        </div>
+        <div className="space-y-1.5">
+          {gaps.map((g) => (
+            <div key={g.q} className="flex items-center justify-between text-[11px]">
+              <span className="truncate pr-2">{g.q}</span>
+              <span className="text-primary font-mono">{g.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-3 text-xs text-muted-foreground">Usage, AI activity and knowledge health.</div>
+    </MockShell>
+  );
+}
+
+/* ---------------- Metrics band ---------------- */
+
+function MetricsBand() {
+  const metrics = [
+    { k: "< 2s", v: "Answer latency", sub: "Median across pilot workspaces" },
+    { k: "96%", v: "Source accuracy", sub: "Answers grounded in citations" },
+    { k: "70%", v: "Onboarding time", sub: "Reduction versus manual handover" },
+    { k: "3", v: "Languages, day 1", sub: "DE · EN · RO — more on request" },
+  ];
+  return (
+    <section className="border-t border-border/50 bg-muted/40">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-14">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {metrics.map((m) => (
+            <div key={m.v}>
+              <div className="text-4xl font-semibold tracking-tight text-gradient-primary">{m.k}</div>
+              <div className="mt-1 text-sm font-semibold">{m.v}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{m.sub}</div>
             </div>
           ))}
         </div>
