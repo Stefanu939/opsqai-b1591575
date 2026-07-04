@@ -10,6 +10,8 @@ export const DEMO_COMPANY_ID = "00000000-0000-0000-0000-0000000d3110";
 export const DEMO_COMPANY_NAME = "Atlas Logistics GmbH";
 
 type Snapshot = { expiresAt: number | null };
+const SERVER_SNAPSHOT: Snapshot = { expiresAt: null };
+function getServerSnapshot(): Snapshot { return SERVER_SNAPSHOT; }
 
 const listeners = new Set<() => void>();
 let cached: Snapshot = { expiresAt: null };
