@@ -110,7 +110,8 @@ export const Route = createFileRoute("/api/academy-chat")({
           });
           return result.toUIMessageStreamResponse();
         } catch (e) {
-          return new Response((e as Error).message ?? "error", { status: 500 });
+          console.error("[academy-chat] internal error", e);
+          return new Response("AI service temporarily unavailable.", { status: 500 });
         }
       },
     },

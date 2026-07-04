@@ -59,6 +59,30 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           return Response.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
+        // Role gate — only platform admins/owners may trigger transactional
+        // email sends. Regular authenticated users must not be able to send
+        // arbitrary templates to arbitrary recipients from the OPSQAI domain.
+        const { data: roleRows, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+
+        if (roleError) {
+          console.error('Role lookup failed for transactional email caller', {
+            error: roleError,
+            user_id: user.id,
+          })
+          return Response.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
+        const isPlatformAdmin = (roleRows ?? []).some(
+          (r: { role: string }) =>
+            r.role === 'platform_admin' || r.role === 'platform_owner',
+        )
+        if (!isPlatformAdmin) {
+          return Response.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
         // Parse request body
         let templateName: string
         let recipientEmail: string
