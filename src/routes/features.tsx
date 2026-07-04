@@ -4,17 +4,21 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
+import { pageHead } from "@/lib/seo";
+
 export const Route = createFileRoute("/features")({
-  head: () => ({
-    meta: [
-      { title: "Features — OPSQAI" },
-      { name: "description", content: "Source-grounded RAG, SOP version control, multi-tenant RLS, multilingual EN/DE/RO, audit log, knowledge gaps, internal requests, PWA install." },
-      { property: "og:title", content: "Features — OPSQAI" },
-      { property: "og:description", content: "The full OPSQAI feature set for logistics operations." },
-      { property: "og:url", content: "https://opsqai.de/features" },
-    ],
-    links: [{ rel: "canonical", href: "https://opsqai.de/features" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Features — OPSQAI Enterprise AI Platform",
+      description:
+        "Source-grounded RAG, SOP version control, multi-tenant RLS, multilingual EN/DE/RO, audit log, knowledge gaps, internal requests, PWA install.",
+      path: "/features",
+      keywords: "enterprise AI features, RAG, SOP management, multilingual AI, audit log, RBAC, PWA",
+      breadcrumbs: [
+        { name: "Home", path: "/" },
+        { name: "Features", path: "/features" },
+      ],
+    }),
   component: FeaturesPage,
 });
 

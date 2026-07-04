@@ -4,17 +4,21 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Truck, Factory, ShoppingCart, Package, Pill, Plane } from "lucide-react";
 
+import { pageHead } from "@/lib/seo";
+
 export const Route = createFileRoute("/industries")({
-  head: () => ({
-    meta: [
-      { title: "Industries — OPSQAI" },
-      { name: "description", content: "OPSQAI for 3PL, e-commerce fulfilment, manufacturing logistics, pharma cold chain, retail DCs and air-cargo handlers." },
-      { property: "og:title", content: "Industries — OPSQAI" },
-      { property: "og:description", content: "Where OPSQAI fits in the supply chain." },
-      { property: "og:url", content: "https://opsqai.de/industries" },
-    ],
-    links: [{ rel: "canonical", href: "https://opsqai.de/industries" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Industries — OPSQAI for 3PL, E-commerce, Manufacturing & Pharma",
+      description:
+        "OPSQAI for 3PL, e-commerce fulfilment, manufacturing logistics, pharma cold chain, retail DCs and air-cargo handlers.",
+      path: "/industries",
+      keywords: "3PL AI, e-commerce fulfilment AI, manufacturing logistics AI, pharma cold chain AI, retail distribution centers, air cargo AI",
+      breadcrumbs: [
+        { name: "Home", path: "/" },
+        { name: "Industries", path: "/industries" },
+      ],
+    }),
   component: IndustriesPage,
 });
 

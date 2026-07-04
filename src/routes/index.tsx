@@ -14,17 +14,23 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 
+import { pageHead, softwareApplicationLd } from "@/lib/seo";
+
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "OPSQAI — Enterprise AI Knowledge & Operations Platform for Logistics" },
-      { name: "description", content: "OPSQAI is an Enterprise AI Knowledge Platform for logistics and warehouse teams. Centralize SOPs, manuals and FAQs; deliver source-backed answers, faster onboarding and standardized operations." },
-      { property: "og:title", content: "OPSQAI — Enterprise AI Knowledge Platform for Operations" },
-      { property: "og:description", content: "Turn company documentation into an intelligent operational assistant. Built for logistics, warehousing and supply chain teams." },
-      { property: "og:url", content: "https://opsqai.de/" },
-    ],
-    links: [{ rel: "canonical", href: "https://opsqai.de/" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "OPSQAI — Enterprise AI Knowledge & Operations Platform for Logistics",
+      description:
+        "OPSQAI is an Enterprise AI Knowledge Platform for logistics and warehouse teams. Centralize SOPs, manuals and FAQs; deliver source-backed answers, faster onboarding and standardized operations.",
+      path: "/",
+      keywords: "enterprise AI, knowledge management, warehouse AI, logistics AI, SOP software, operational knowledge platform",
+      jsonLd: [
+        softwareApplicationLd({
+          description:
+            "Enterprise AI knowledge platform for logistics and warehouse operations. Ingests SOPs, manuals and FAQs; delivers source-cited answers with multi-tenant isolation and audit logs.",
+        }),
+      ],
+    }),
   component: Home,
 });
 

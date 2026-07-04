@@ -3,17 +3,27 @@ import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+import { pageHead, softwareApplicationLd } from "@/lib/seo";
+
 export const Route = createFileRoute("/product")({
-  head: () => ({
-    meta: [
-      { title: "Product — OPSQAI" },
-      { name: "description", content: "How OPSQAI works: ingestion, retrieval, grounded generation, multi-tenant isolation and the operations-grade UX warehouse teams actually adopt." },
-      { property: "og:title", content: "Product — OPSQAI" },
-      { property: "og:description", content: "How OPSQAI works end-to-end for logistics operators." },
-      { property: "og:url", content: "https://opsqai.de/product" },
-    ],
-    links: [{ rel: "canonical", href: "https://opsqai.de/product" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Product — OPSQAI Enterprise AI Knowledge Platform",
+      description:
+        "How OPSQAI works: ingestion, retrieval, grounded generation, multi-tenant isolation and the operations-grade UX warehouse teams actually adopt.",
+      path: "/product",
+      keywords: "enterprise AI platform, RAG, retrieval augmented generation, source-backed AI, warehouse AI, multi-tenant AI",
+      breadcrumbs: [
+        { name: "Home", path: "/" },
+        { name: "Product", path: "/product" },
+      ],
+      jsonLd: [
+        softwareApplicationLd({
+          description:
+            "OPSQAI ingests SOPs and manuals, indexes them with multilingual embeddings, and answers questions with grounded, source-cited responses under multi-tenant isolation.",
+        }),
+      ],
+    }),
   component: ProductPage,
 });
 
