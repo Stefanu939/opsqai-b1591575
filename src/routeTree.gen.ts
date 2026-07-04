@@ -45,6 +45,7 @@ import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
+import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
 import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
@@ -276,6 +277,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
   path: '/api/workspace-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTtsRoute = ApiTtsRouteImport.update({
+  id: '/api/tts',
+  path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiInternalChatRoute = ApiInternalChatRouteImport.update({
@@ -593,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -680,6 +687,7 @@ export interface FileRoutesByTo {
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -769,6 +777,7 @@ export interface FileRoutesById {
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
+  '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
@@ -859,6 +868,7 @@ export interface FileRouteTypes {
     | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/internal-chat'
+    | '/api/tts'
     | '/api/workspace-chat'
     | '/email/unsubscribe'
     | '/legal/cookies'
@@ -946,6 +956,7 @@ export interface FileRouteTypes {
     | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/internal-chat'
+    | '/api/tts'
     | '/api/workspace-chat'
     | '/email/unsubscribe'
     | '/legal/cookies'
@@ -1034,6 +1045,7 @@ export interface FileRouteTypes {
     | '/api/customer-writer'
     | '/api/demo-chat'
     | '/api/internal-chat'
+    | '/api/tts'
     | '/api/workspace-chat'
     | '/email/unsubscribe'
     | '/legal/cookies'
@@ -1123,6 +1135,7 @@ export interface RootRouteChildren {
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
   ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiInternalChatRoute: typeof ApiInternalChatRoute
+  ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
@@ -1387,6 +1400,13 @@ declare module '@tanstack/react-router' {
       path: '/api/workspace-chat'
       fullPath: '/api/workspace-chat'
       preLoaderRoute: typeof ApiWorkspaceChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tts': {
+      id: '/api/tts'
+      path: '/api/tts'
+      fullPath: '/api/tts'
+      preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/internal-chat': {
@@ -1953,6 +1973,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
   ApiDemoChatRoute: ApiDemoChatRoute,
   ApiInternalChatRoute: ApiInternalChatRoute,
+  ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   VerifyCodeRoute: VerifyCodeRoute,

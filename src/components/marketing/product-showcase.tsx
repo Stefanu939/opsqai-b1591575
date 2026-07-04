@@ -22,7 +22,7 @@ interface SceneDef {
   captionDe: string;
   narrationEn: string;                 // slightly longer than caption, natural VO
   narrationDe: string;
-  render: (t: number) => JSX.Element;  // t = 0..1 progress within scene
+  render: (t: number) => React.ReactNode;  // t = 0..1 progress within scene
 }
 
 /* ---------------- Frame primitives (faithful to app tokens) --------------- */
