@@ -306,9 +306,9 @@ function buildHeuristicReport(input: any) {
       training: cats.training >= 70 ? "above_average" : cats.training >= 50 ? "average" : "below_average",
       ai_readiness: cats.ai_readiness >= 75 ? "top_20" : cats.ai_readiness >= 60 ? "above_average" : "average",
     },
-    passed: catList.filter((c) => c.score >= 70).length,
-    warnings: catList.filter((c) => c.score >= 40 && c.score < 70).length,
-    critical: catList.filter((c) => c.score < 40).length,
+    passedCount: catList.filter((c) => c.score >= 70).length,
+    warningsCount: catList.filter((c) => c.score >= 40 && c.score < 70).length,
+    criticalCount: catList.filter((c) => c.score < 40).length,
   };
 }
 
