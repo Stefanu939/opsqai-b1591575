@@ -45,7 +45,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "OPSQAI" },
+      { name: "format-detection", content: "telephone=no" },
       { name: "theme-color", content: "#020617" },
       { title: "OPSQAI — AI Knowledge Platform for Logistics & Supply Chain" },
       { name: "description", content: "OPSQAI turns your SOPs, manuals and FAQs into instant, grounded answers for every warehouse and operations team. Multilingual, auditable, GDPR-ready." },
