@@ -112,22 +112,14 @@ function TeacherChat({
   // Starts as null → AI Teacher greets in a trilingual prompt and asks the
   // learner to pick one. The learner can change it any time.
   const [learnLang, setLearnLang] = useState<string | null>(null);
-  const learnLangRef = useRef<string | null>(null);
-  learnLangRef.current = learnLang;
 
   const transport = useMemo(
     () => new DefaultChatTransport({
       api: "/api/academy-chat",
       headers: { Authorization: `Bearer ${token}` },
-      // language is read fresh from ref on every request so switching mid-lesson
-      // takes effect on the very next reply without re-mounting useChat.
-      prepareSendMessagesRequest: ({ api, headers, body, messages: msgs, id }) => ({
-        api,
-        headers,
-        body: { ...(body ?? {}), lessonId, language: learnLangRef.current ?? "ask", messages: msgs, id },
-      }),
+      body: { lessonId, language: learnLang ?? "ask" },
     }),
-    [token, lessonId],
+    [token, lessonId, learnLang],
   );
   const { messages, sendMessage, status, error: chatError } = useChat({ transport });
 
