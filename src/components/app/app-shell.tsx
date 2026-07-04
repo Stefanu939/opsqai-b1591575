@@ -66,6 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/app/internal", label: "OPSQAI Internal", icon: Sparkles },
         { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck },
         { to: "/app/admin/companies", label: "Companies", icon: Building2 },
+        { to: "/app/admin/subscriptions", label: "Subscriptions", icon: ShieldCheck },
         { to: "/app/admin/customers", label: "Enterprise Documents", icon: Building2 },
         { to: "/app/admin/support", label: "Support Inbox", icon: Inbox },
         { to: "/app/admin/email", label: "Email Settings", icon: Inbox },
