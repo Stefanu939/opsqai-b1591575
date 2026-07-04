@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Building2, Users, BookOpen, MessageSquare, Sparkles, Languages,
   GraduationCap, FileText, ShieldCheck, History, LayoutGrid,
@@ -22,7 +22,7 @@ interface SceneDef {
   captionDe: string;
   narrationEn: string;                 // slightly longer than caption, natural VO
   narrationDe: string;
-  render: (t: number) => React.ReactNode;  // t = 0..1 progress within scene
+  render: (t: number) => ReactNode;  // t = 0..1 progress within scene
 }
 
 /* ---------------- Frame primitives (faithful to app tokens) --------------- */
