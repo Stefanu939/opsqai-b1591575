@@ -55,7 +55,7 @@ function DemoAppLayout() {
               {MENU.map((i) => {
                 const isActive = i.exact ? pathname === i.to : pathname.startsWith(i.to);
                 return (
-                  <Link key={i.to} to={i.to} className={`px-3 py-1.5 rounded-md text-[13px] flex items-center gap-1.5 transition-colors ${isActive ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}>
+                  <Link key={i.to} to={i.to as "/demo/app"} className={`px-3 py-1.5 rounded-md text-[13px] flex items-center gap-1.5 transition-colors ${isActive ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}>
                     <i.icon className="h-3.5 w-3.5" />
                     {i.label}
                   </Link>
@@ -67,7 +67,7 @@ function DemoAppLayout() {
             {MENU.map((i) => {
               const isActive = i.exact ? pathname === i.to : pathname.startsWith(i.to);
               return (
-                <Link key={i.to} to={i.to} className={`px-2.5 py-1 rounded-md text-[12px] flex items-center gap-1 shrink-0 ${isActive ? "bg-muted text-foreground font-medium" : "text-muted-foreground"}`}>
+                <Link key={i.to} to={i.to as "/demo/app"} className={`px-2.5 py-1 rounded-md text-[12px] flex items-center gap-1 shrink-0 ${isActive ? "bg-muted text-foreground font-medium" : "text-muted-foreground"}`}>
                   <i.icon className="h-3.5 w-3.5" />
                   {i.label}
                 </Link>
