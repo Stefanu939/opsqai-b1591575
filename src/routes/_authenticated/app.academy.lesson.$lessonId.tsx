@@ -16,7 +16,7 @@ import {
   ArrowUp, Sparkles, CheckCircle2, XCircle, RotateCw, Award,
   GraduationCap, Target, Clock, ChevronLeft, ListChecks, BookOpenCheck, Lock,
 } from "lucide-react";
-import { useT } from "@/i18n";
+
 
 export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lessonId")({
   component: LessonPage,
@@ -29,6 +29,19 @@ export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lesson
 type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: string; options?: string[]; correct_answer: string; explanation: string };
 
 const COMPLETE_MARKER = "[LESSON_COMPLETE]";
+
+const LANG_OPTIONS: { code: string; label: string; short: string }[] = [
+  { code: "en", label: "English", short: "EN" },
+  { code: "de", label: "Deutsch", short: "DE" },
+  { code: "ro", label: "Română", short: "RO" },
+  { code: "fr", label: "Français", short: "FR" },
+  { code: "es", label: "Español", short: "ES" },
+  { code: "it", label: "Italiano", short: "IT" },
+  { code: "pt", label: "Português", short: "PT" },
+  { code: "pl", label: "Polski", short: "PL" },
+  { code: "uk", label: "Українська", short: "UK" },
+];
+const LANG_LABEL: Record<string, string> = Object.fromEntries(LANG_OPTIONS.map((o) => [o.code, o.label]));
 
 function LessonPage() {
   const { lessonId } = useParams({ from: Route.id });
@@ -94,7 +107,8 @@ function TeacherChat({
   lessonId: string; lesson: any; token: string; enrollmentId: string; initialQ: string;
 }) {
   const navigate = useNavigate();
-  const { lang } = useT();
+  // Note: lesson language is chosen explicitly by the learner (see LANG_OPTIONS)
+  // and is intentionally decoupled from the UI language.
   const genQuiz = useServerFn(generateAcademyQuiz);
   const submit = useServerFn(submitAcademyQuiz);
 
@@ -108,13 +122,18 @@ function TeacherChat({
   const begunRef = useRef(false);
   const initialQRef = useRef(initialQ);
 
+  // Learner-chosen language for BOTH the AI teacher's responses AND the quiz.
+  // Starts as null → AI Teacher greets in a trilingual prompt and asks the
+  // learner to pick one. The learner can change it any time.
+  const [learnLang, setLearnLang] = useState<string | null>(null);
+
   const transport = useMemo(
     () => new DefaultChatTransport({
       api: "/api/academy-chat",
       headers: { Authorization: `Bearer ${token}` },
-      body: { lessonId, language: lang },
+      body: { lessonId, language: learnLang ?? "ask" },
     }),
-    [token, lessonId, lang],
+    [token, lessonId, learnLang],
   );
   const { messages, sendMessage, status, error: chatError } = useChat({ transport });
 
@@ -162,14 +181,47 @@ function TeacherChat({
 
   const startQuiz = async () => {
     if (!lessonComplete) return;
+    if (!learnLang) {
+      alert("Please pick a language first (top-right selector) so the quiz can be generated in that language.");
+      return;
+    }
     setResult(null);
     try {
-      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lang } })) as { questions: Q[] };
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: learnLang } })) as { questions: Q[] };
       setQuiz(q.questions);
       setAnswers(Array(q.questions.length).fill(""));
     } catch (e: any) {
       // surface generation error so users aren't stuck
       alert(e?.message ?? "Could not generate the quiz. Please try again.");
+    }
+  };
+
+  // When the learner changes language mid-conversation, nudge the AI Teacher
+  // to switch on the next reply and (if a quiz is already on screen) regenerate
+  // it in the new language.
+  const handleLangChange = (next: string) => {
+    if (next === learnLang) return;
+    setLearnLang(next);
+    const label = LANG_LABEL[next] ?? next;
+    if (begunRef.current) {
+      void sendMessage({ text: `Please continue in ${label} from now on.` });
+    }
+    if (quiz && lessonComplete) {
+      // Regenerate quiz in the new language
+      setQuiz(null);
+      setAnswers([]);
+      setResult(null);
+      setTimeout(() => { void startQuizWithLang(next); }, 200);
+    }
+  };
+
+  const startQuizWithLang = async (lg: string) => {
+    try {
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lg } })) as { questions: Q[] };
+      setQuiz(q.questions);
+      setAnswers(Array(q.questions.length).fill(""));
+    } catch (e: any) {
+      alert(e?.message ?? "Could not regenerate the quiz.");
     }
   };
 
@@ -221,6 +273,18 @@ function TeacherChat({
         <div className="hidden md:flex items-center gap-2 text-[11px] text-muted-foreground">
           <Clock className="h-3.5 w-3.5" /> ~{remaining} min
         </div>
+        {/* Learner-chosen language for AI Teacher + quiz */}
+        <select
+          value={learnLang ?? ""}
+          onChange={(e) => e.target.value && handleLangChange(e.target.value)}
+          className="text-[11px] bg-background border border-border rounded-full px-2.5 py-1 hover:border-primary/50 focus:outline-none focus:border-primary cursor-pointer"
+          title={learnLang ? `Learning in ${LANG_LABEL[learnLang]}` : "Pick a language for the AI Teacher and quiz"}
+        >
+          <option value="" disabled>🌐 Language…</option>
+          {LANG_OPTIONS.map((o) => (
+            <option key={o.code} value={o.code}>🌐 {o.label}</option>
+          ))}
+        </select>
         <button onClick={() => setContextOpen((v) => !v)} className="text-[11px] text-muted-foreground hover:text-foreground border border-border rounded-full px-2.5 py-1">
           {contextOpen ? "Hide context" : "Show context"}
         </button>
