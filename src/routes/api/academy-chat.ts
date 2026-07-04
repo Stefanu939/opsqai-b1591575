@@ -104,7 +104,7 @@ export const Route = createFileRoute("/api/academy-chat")({
           const gateway = createLovableAiGatewayProvider(apiKey);
           const result = streamText({
             model: gateway(MODEL),
-            system: SYSTEM(block, language),
+            system: SYSTEM(block, chosen),
             messages: await convertToModelMessages(body.messages ?? []),
             temperature: 0.4,
           });
