@@ -2566,6 +2566,119 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempt: number
+          company_id: string
+          created_at: string
+          endpoint_id: string
+          error: string | null
+          event: string
+          id: string
+          latency_ms: number | null
+          ok: boolean
+          response_body: string | null
+          status_code: number | null
+        }
+        Insert: {
+          attempt?: number
+          company_id: string
+          created_at?: string
+          endpoint_id: string
+          error?: string | null
+          event: string
+          id?: string
+          latency_ms?: number | null
+          ok?: boolean
+          response_body?: string | null
+          status_code?: number | null
+        }
+        Update: {
+          attempt?: number
+          company_id?: string
+          created_at?: string
+          endpoint_id?: string
+          error?: string | null
+          event?: string
+          id?: string
+          latency_ms?: number | null
+          ok?: boolean
+          response_body?: string | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_deliveries_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_endpoints: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          created_by: string | null
+          events: string[]
+          failure_count: number
+          id: string
+          last_failure_at: string | null
+          last_success_at: string | null
+          name: string
+          secret: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          failure_count?: number
+          id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          name: string
+          secret: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          failure_count?: number
+          id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          name?: string
+          secret?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_endpoints_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_artifacts: {
         Row: {
           company_id: string

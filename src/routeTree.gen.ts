@@ -95,6 +95,7 @@ import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
+import { Route as AuthenticatedAppAdminWebhooksRouteImport } from './routes/_authenticated/app.admin.webhooks'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
 import { Route as AuthenticatedAppAdminSupportRouteImport } from './routes/_authenticated/app.admin.support'
 import { Route as AuthenticatedAppAdminSubscriptionsRouteImport } from './routes/_authenticated/app.admin.subscriptions'
@@ -569,6 +570,12 @@ const AuthenticatedAppChatThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedAppChatRoute,
   } as any)
+const AuthenticatedAppAdminWebhooksRoute =
+  AuthenticatedAppAdminWebhooksRouteImport.update({
+    id: '/admin/webhooks',
+    path: '/admin/webhooks',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminUsersRoute =
   AuthenticatedAppAdminUsersRouteImport.update({
     id: '/admin/users',
@@ -835,6 +842,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
   '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
+  '/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
@@ -946,6 +954,7 @@ export interface FileRoutesByTo {
   '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
   '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
+  '/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
@@ -1063,6 +1072,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
   '/_authenticated/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
+  '/_authenticated/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
@@ -1180,6 +1190,7 @@ export interface FileRouteTypes {
     | '/app/admin/subscriptions'
     | '/app/admin/support'
     | '/app/admin/users'
+    | '/app/admin/webhooks'
     | '/app/chat/$threadId'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
@@ -1291,6 +1302,7 @@ export interface FileRouteTypes {
     | '/app/admin/subscriptions'
     | '/app/admin/support'
     | '/app/admin/users'
+    | '/app/admin/webhooks'
     | '/app/chat/$threadId'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
@@ -1407,6 +1419,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/subscriptions'
     | '/_authenticated/app/admin/support'
     | '/_authenticated/app/admin/users'
+    | '/_authenticated/app/admin/webhooks'
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
@@ -2073,6 +2086,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedAppChatRoute
     }
+    '/_authenticated/app/admin/webhooks': {
+      id: '/_authenticated/app/admin/webhooks'
+      path: '/admin/webhooks'
+      fullPath: '/app/admin/webhooks'
+      preLoaderRoute: typeof AuthenticatedAppAdminWebhooksRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/users': {
       id: '/_authenticated/app/admin/users'
       path: '/admin/users'
@@ -2368,6 +2388,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminSubscriptionsRoute: typeof AuthenticatedAppAdminSubscriptionsRoute
   AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
+  AuthenticatedAppAdminWebhooksRoute: typeof AuthenticatedAppAdminWebhooksRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
   AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
@@ -2415,6 +2436,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAdminSubscriptionsRoute,
   AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
+  AuthenticatedAppAdminWebhooksRoute: AuthenticatedAppAdminWebhooksRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
   AuthenticatedAppAcademyIndexRoute: AuthenticatedAppAcademyIndexRoute,
