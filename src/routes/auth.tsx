@@ -103,6 +103,14 @@ function AuthPage() {
           <div className="mt-6 rounded-md border border-border bg-muted/40 px-4 py-3 text-center text-xs text-muted-foreground">
             {contactAdmin}
           </div>
+          <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-xs">
+            <p className="text-muted-foreground">
+              {lang === "de" ? "Kein Konto?" : lang === "ro" ? "Nu ai cont?" : "No account yet?"}
+            </p>
+            <Link to="/demo" className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline">
+              {lang === "de" ? "Interaktive Demo starten" : lang === "ro" ? "Lansează Demo Interactiv" : "Launch Interactive Demo"} →
+            </Link>
+          </div>
           <p className="mt-4 text-center text-xs text-muted-foreground">
             <Link to="/" className="hover:underline">← {lang === "de" ? "Zurück" : lang === "ro" ? "Înapoi" : "Back"}</Link>
           </p>
