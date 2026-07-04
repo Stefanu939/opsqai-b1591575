@@ -31,16 +31,18 @@ function Home() {
   return (
     <MarketingLayout>
       <Hero />
+      <TrustBar />
       <WhatIsOpsqai />
       <PlatformOverview />
       <WorkflowSection />
+      <MetricsBand />
       <Benefits />
       <Industries />
       <Enterprise />
       <Screenshots />
       <Comparison />
       <WhyChoose />
-      <Testimonials />
+      <FoundingCustomers />
       <FAQSection />
       <FinalCTA />
     </MarketingLayout>
