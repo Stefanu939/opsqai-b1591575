@@ -86,6 +86,7 @@ import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
 import { Route as AuthenticatedAppAdminSupportRouteImport } from './routes/_authenticated/app.admin.support'
+import { Route as AuthenticatedAppAdminSubscriptionsRouteImport } from './routes/_authenticated/app.admin.subscriptions'
 import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/_authenticated/app.admin.sop-generator'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
@@ -511,6 +512,12 @@ const AuthenticatedAppAdminSupportRoute =
     path: '/admin/support',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminSubscriptionsRoute =
+  AuthenticatedAppAdminSubscriptionsRouteImport.update({
+    id: '/admin/subscriptions',
+    path: '/admin/subscriptions',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminSopGeneratorRoute =
   AuthenticatedAppAdminSopGeneratorRouteImport.update({
     id: '/admin/sop-generator',
@@ -725,6 +732,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
+  '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
   '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -821,6 +829,7 @@ export interface FileRoutesByTo {
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
+  '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
   '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -923,6 +932,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/_authenticated/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
+  '/_authenticated/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
   '/_authenticated/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
@@ -1025,6 +1035,7 @@ export interface FileRouteTypes {
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/sop-generator'
+    | '/app/admin/subscriptions'
     | '/app/admin/support'
     | '/app/admin/users'
     | '/app/chat/$threadId'
@@ -1121,6 +1132,7 @@ export interface FileRouteTypes {
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/sop-generator'
+    | '/app/admin/subscriptions'
     | '/app/admin/support'
     | '/app/admin/users'
     | '/app/chat/$threadId'
@@ -1222,6 +1234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
     | '/_authenticated/app/admin/sop-generator'
+    | '/_authenticated/app/admin/subscriptions'
     | '/_authenticated/app/admin/support'
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/chat/$threadId'
@@ -1819,6 +1832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminSupportRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/subscriptions': {
+      id: '/_authenticated/app/admin/subscriptions'
+      path: '/admin/subscriptions'
+      fullPath: '/app/admin/subscriptions'
+      preLoaderRoute: typeof AuthenticatedAppAdminSubscriptionsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/sop-generator': {
       id: '/_authenticated/app/admin/sop-generator'
       path: '/admin/sop-generator'
@@ -2052,6 +2072,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
   AuthenticatedAppAdminSopGeneratorRoute: typeof AuthenticatedAppAdminSopGeneratorRoute
+  AuthenticatedAppAdminSubscriptionsRoute: typeof AuthenticatedAppAdminSubscriptionsRoute
   AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -2093,6 +2114,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAdminPlatformAdminsRoute,
   AuthenticatedAppAdminSopGeneratorRoute:
     AuthenticatedAppAdminSopGeneratorRoute,
+  AuthenticatedAppAdminSubscriptionsRoute:
+    AuthenticatedAppAdminSubscriptionsRoute,
   AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
