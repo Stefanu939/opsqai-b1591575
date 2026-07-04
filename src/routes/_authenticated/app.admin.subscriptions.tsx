@@ -245,9 +245,9 @@ function LifecycleDialog({ company, onClose }: { company: any | null; onClose: (
     qc.invalidateQueries({ queryKey: ["subscription-events", company?.id] });
   };
 
-  const action = <T,>(fn: (v: T) => Promise<any>, ok: string) =>
-    useMutation({
-      mutationFn: fn,
+  const action = <T = void>(fn: (v: T) => Promise<any>, ok: string) =>
+    useMutation<any, Error, T>({
+      mutationFn: fn as any,
       onSuccess: () => { toast.success(ok); refresh(); },
       onError: (e: Error) => toast.error(e.message),
     });
