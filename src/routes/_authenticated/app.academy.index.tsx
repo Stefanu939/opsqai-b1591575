@@ -43,7 +43,7 @@ function fmtDue(d?: string | null) {
 
 function MyTrainingHome() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { lang } = useT();
   const list = useServerFn(listMyTraining);
   const summary = useServerFn(getMyTrainingSummary);
@@ -52,6 +52,7 @@ function MyTrainingHome() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const name = (user?.user_metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
 
