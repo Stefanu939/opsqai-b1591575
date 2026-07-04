@@ -796,10 +796,10 @@ function FinalCTA() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3 justify-center">
           <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]">
-            <Link to="/auth">Start Free Trial <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <Link to="/demo">Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="border-border bg-background/40 backdrop-blur">
-            <Link to="/contact">Book a Demo</Link>
+            <Link to="/contact">Talk to Sales</Link>
           </Button>
         </div>
       </div>
