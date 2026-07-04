@@ -83,9 +83,9 @@ export const Route = createFileRoute("/api/academy-chat")({
           const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
           if (claimsErr || !claims?.claims?.sub) return new Response("Unauthorized", { status: 401 });
 
-          const body = await request.json() as { messages?: UIMessage[]; lessonId?: string; language?: string };
+          const body = await request.json() as { messages?: UIMessage[]; lessonId?: string; language?: string | null };
           if (!body.lessonId) return new Response("lessonId required", { status: 400 });
-          const language = body.language ?? "en";
+          const chosen = body.language && body.language !== "ask" ? body.language : null;
 
           const { data: lesson } = await (supabase as any).from("academy_lessons")
             .select("title, objectives, explanation, examples, best_practices, summary")
