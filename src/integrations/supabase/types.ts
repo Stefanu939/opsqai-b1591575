@@ -788,46 +788,79 @@ export type Database = {
       companies: {
         Row: {
           active: boolean
+          billing_override: boolean
+          cancelled_at: string | null
           created_at: string
           display_name: string | null
+          grace_period_days: number
+          grace_period_ends_at: string | null
           id: string
+          internal_notes: string | null
           is_demo_tenant: boolean
           is_system: boolean
+          last_payment_at: string | null
           max_users: number
           min_confidence: number
           name: string
+          next_invoice_due_at: string | null
+          renewal_date: string | null
           subscription_plan: string
           subscription_status: string
+          suspended_at: string | null
+          suspension_reason: string | null
+          trial_ends_at: string | null
           updated_at: string
           workspace_retention: string
         }
         Insert: {
           active?: boolean
+          billing_override?: boolean
+          cancelled_at?: string | null
           created_at?: string
           display_name?: string | null
+          grace_period_days?: number
+          grace_period_ends_at?: string | null
           id?: string
+          internal_notes?: string | null
           is_demo_tenant?: boolean
           is_system?: boolean
+          last_payment_at?: string | null
           max_users?: number
           min_confidence?: number
           name: string
+          next_invoice_due_at?: string | null
+          renewal_date?: string | null
           subscription_plan?: string
           subscription_status?: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
           workspace_retention?: string
         }
         Update: {
           active?: boolean
+          billing_override?: boolean
+          cancelled_at?: string | null
           created_at?: string
           display_name?: string | null
+          grace_period_days?: number
+          grace_period_ends_at?: string | null
           id?: string
+          internal_notes?: string | null
           is_demo_tenant?: boolean
           is_system?: boolean
+          last_payment_at?: string | null
           max_users?: number
           min_confidence?: number
           name?: string
+          next_invoice_due_at?: string | null
+          renewal_date?: string | null
           subscription_plan?: string
           subscription_status?: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
           workspace_retention?: string
         }
@@ -2189,6 +2222,53 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          actor_id: string | null
+          actor_kind: string
+          company_id: string
+          created_at: string
+          event_type: string
+          from_status: string | null
+          id: string
+          metadata: Json
+          reason: string | null
+          to_status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_kind?: string
+          company_id: string
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json
+          reason?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_kind?: string
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json
+          reason?: string | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_conversations: {
         Row: {
           assigned_to: string | null
@@ -2740,6 +2820,26 @@ export type Database = {
       }
       gap_users: { Args: { p_company: string }; Returns: Json }
       get_profile_phone: { Args: { _id: string }; Returns: string }
+      get_subscription_state: {
+        Args: { _company: string }
+        Returns: {
+          billing_override: boolean
+          cancelled_at: string
+          company_id: string
+          grace_period_days: number
+          grace_period_ends_at: string
+          is_read_only: boolean
+          last_payment_at: string
+          name: string
+          next_invoice_due_at: string
+          renewal_date: string
+          subscription_plan: string
+          subscription_status: string
+          suspended_at: string
+          suspension_reason: string
+          trial_ends_at: string
+        }[]
+      }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean
@@ -2751,9 +2851,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_workspace_write_access: {
+        Args: { _company: string }
+        Returns: boolean
+      }
       is_demo_company: { Args: { _company_id: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_platform_owner: { Args: { _user_id?: string }; Returns: boolean }
+      is_workspace_suspended: { Args: { _company: string }; Returns: boolean }
       knowledge_health: { Args: { p_company: string }; Returns: Json }
       log_workspace_switch: {
         Args: { p_next: string; p_previous: string }
@@ -2833,6 +2938,20 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      subscription_apply_status: {
+        Args: {
+          _actor_kind?: string
+          _company: string
+          _reason?: string
+          _to_status: string
+        }
+        Returns: undefined
+      }
+      subscription_lifecycle_tick: { Args: never; Returns: Json }
+      subscription_notify_admins: {
+        Args: { _body: string; _company: string; _kind: string; _title: string }
+        Returns: undefined
+      }
       system_company_id: { Args: never; Returns: string }
       user_belongs_to_company: {
         Args: { _company_id: string; _user_id: string }
