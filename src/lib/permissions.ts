@@ -68,10 +68,12 @@ export const ROLE_LABELS: Record<string, string> = {
   platform_admin: "Platform Super Admin",
   admin: "Company Admin",
   manager: "Manager",
-  supervisor: "Supervisor",
-  operator: "Operator",
-  viewer: "Viewer",
-  // legacy
-  team_leader: "Supervisor (legacy)",
-  employee: "Operator (legacy)",
+  // Renamed labels — DB role names are unchanged (supervisor/operator/viewer).
+  supervisor: "Team Leader",
+  operator: "Employee",
+  viewer: "Operator",
+  // legacy aliases still displayed with the new labels
+  team_leader: "Team Leader (legacy)",
+  employee: "Employee (legacy)",
 };
+

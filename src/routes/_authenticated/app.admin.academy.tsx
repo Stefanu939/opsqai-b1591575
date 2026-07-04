@@ -9,8 +9,9 @@ import {
   upsertAcademyLesson, deleteAcademyLesson,
   convertSopToLesson, generateAcademyCourse,
   academyDashboard, getAcademySettings, saveAcademySettings,
-  assignEnrollment,
+  assignEnrollment, listPathAssignments, listAssignablePathLearners, removeEnrollment,
 } from "@/lib/academy.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -401,46 +402,135 @@ function AiTab() {
 /* ---------------------------- Assignments ---------------------------- */
 function AssignTab() {
   const listPaths = useServerFn(listAcademyPaths);
+  const listLearners = useServerFn(listAssignablePathLearners);
+  const listAssignments = useServerFn(listPathAssignments);
   const assign = useServerFn(assignEnrollment);
+  const remove = useServerFn(removeEnrollment);
   const [paths, setPaths] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
   const [pathId, setPathId] = useState("");
+  const [learners, setLearners] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
   const [due, setDue] = useState("");
+  const [mandatory, setMandatory] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [out, setOut] = useState<string | null>(null);
-  useEffect(() => {
-    void (async () => {
-      setPaths((await listPaths({ data: {} })) as any[]);
-      const { data } = await supabase.from("profiles").select("id, full_name, email").order("full_name").limit(500);
-      setUsers(data ?? []);
-    })();
-  }, []);
+
+  useEffect(() => { void (async () => setPaths((await listPaths({ data: {} })) as any[]))(); }, []);
+
+  const refreshForPath = async (id: string) => {
+    const [ls, as] = await Promise.all([
+      listLearners({ data: { path_id: id } }) as Promise<any[]>,
+      listAssignments({ data: { path_id: id } }) as Promise<any[]>,
+    ]);
+    setLearners(ls ?? []); setAssignments(as ?? []); setSelected([]);
+  };
+  useEffect(() => { if (pathId) void refreshForPath(pathId); }, [pathId]);
+
+  const assignedIds = new Set(assignments.map((a) => a.user_id));
+  const filtered = learners.filter((u) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    const name = (u.full_name ?? `${u.first_name ?? ""} ${u.last_name ?? ""}`).toLowerCase();
+    return name.includes(q);
+  });
+  const toAssign = filtered.filter((u) => !assignedIds.has(u.id));
+
+  const nameOf = (u: any) => u.full_name ?? [u.first_name, u.last_name].filter(Boolean).join(" ") ?? u.id.slice(0, 6);
+
+  const doAssign = async () => {
+    setBusy(true); setOut(null);
+    try {
+      const r = await assign({ data: {
+        path_id: pathId, user_ids: selected,
+        due_at: due ? new Date(due).toISOString() : null, mandatory,
+      } });
+      setOut(`Assigned ${(r as any).count} learner${(r as any).count === 1 ? "" : "s"}.`);
+      await refreshForPath(pathId);
+    } catch (e: any) { setOut(`Error: ${e.message}`); }
+    finally { setBusy(false); }
+  };
+
+  const doRemove = async (enrollmentId: string) => {
+    if (!confirm("Remove this assignment?")) return;
+    try { await remove({ data: { enrollment_id: enrollmentId } }); await refreshForPath(pathId); }
+    catch (e: any) { setOut(`Error: ${e.message}`); }
+  };
+
   return (
-    <Card className="p-4 space-y-3 max-w-2xl">
-      <div className="font-medium text-sm">Assign a learning path</div>
-      <Select value={pathId} onValueChange={setPathId}>
-        <SelectTrigger><SelectValue placeholder="Path" /></SelectTrigger>
-        <SelectContent>{paths.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
-      </Select>
-      <Input type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} placeholder="Due date" />
-      <div className="max-h-60 overflow-y-auto border rounded p-2 space-y-1">
-        {users.map((u) => (
-          <label key={u.id} className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={selected.includes(u.id)} onChange={(e) => setSelected((s) => e.target.checked ? [...s, u.id] : s.filter((x) => x !== u.id))} />
-            <span>{u.full_name ?? u.email}</span>
-          </label>
-        ))}
-      </div>
-      <Button disabled={!pathId || selected.length === 0} onClick={async () => {
-        try {
-          const r = await assign({ data: { path_id: pathId, user_ids: selected, due_at: due ? new Date(due).toISOString() : null, mandatory: true } });
-          setOut(`Assigned ${(r as any).count} learners`); setSelected([]);
-        } catch (e: any) { setOut(`Error: ${e.message}`); }
-      }}><Users className="h-4 w-4 mr-1" /> Assign</Button>
-      {out && <div className="text-xs text-muted-foreground">{out}</div>}
-    </Card>
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <Card className="p-4 space-y-3">
+        <div className="font-medium text-sm flex items-center gap-2"><Users className="h-4 w-4" /> Assign a learning path</div>
+        <Select value={pathId} onValueChange={setPathId}>
+          <SelectTrigger><SelectValue placeholder="Select a path" /></SelectTrigger>
+          <SelectContent>{paths.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
+        </Select>
+        {pathId && (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-xs space-y-1">
+                <span className="text-muted-foreground">Due date (optional)</span>
+                <Input type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
+              </label>
+              <label className="text-xs flex items-end gap-2 pb-2">
+                <input type="checkbox" checked={mandatory} onChange={(e) => setMandatory(e.target.checked)} />
+                <span>Mandatory</span>
+              </label>
+            </div>
+            <Input placeholder="Search learners…" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <div className="text-[11px] text-muted-foreground flex justify-between">
+              <span>{toAssign.length} available · {selected.length} selected</span>
+              <button className="underline" onClick={() => setSelected(selected.length === toAssign.length ? [] : toAssign.map((u) => u.id))}>
+                {selected.length === toAssign.length && toAssign.length > 0 ? "Clear" : "Select all"}
+              </button>
+            </div>
+            <div className="max-h-72 overflow-y-auto border rounded p-2 space-y-1 bg-muted/20">
+              {toAssign.length === 0 && <div className="text-xs text-muted-foreground p-2">No learners available. Everyone in this workspace is already assigned or no users exist.</div>}
+              {toAssign.map((u) => (
+                <label key={u.id} className="flex items-center gap-2 text-sm p-1.5 rounded hover:bg-accent/40">
+                  <input type="checkbox" checked={selected.includes(u.id)} onChange={(e) => setSelected((s) => e.target.checked ? [...s, u.id] : s.filter((x) => x !== u.id))} />
+                  <span className="truncate">{nameOf(u)}</span>
+                  {u.is_active === false && <Badge variant="secondary" className="text-[10px]">inactive</Badge>}
+                </label>
+              ))}
+            </div>
+            <Button disabled={busy || selected.length === 0} onClick={doAssign}>
+              <Users className="h-4 w-4 mr-1" /> {busy ? "Assigning…" : `Assign ${selected.length || ""}`.trim()}
+            </Button>
+            {out && <div className="text-xs text-muted-foreground">{out}</div>}
+          </>
+        )}
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <div className="font-medium text-sm flex items-center gap-2"><GraduationCap className="h-4 w-4" /> Currently assigned</div>
+        {!pathId && <div className="text-xs text-muted-foreground">Select a path to see its learners.</div>}
+        {pathId && assignments.length === 0 && <div className="text-xs text-muted-foreground">No one is assigned to this path yet.</div>}
+        {pathId && assignments.length > 0 && (
+          <div className="space-y-1 max-h-[420px] overflow-y-auto">
+            {assignments.map((a) => (
+              <div key={a.id} className="flex items-center justify-between gap-2 rounded border px-2.5 py-1.5 text-sm">
+                <div className="min-w-0">
+                  <div className="truncate">{a.profile ? nameOf(a.profile) : a.user_id.slice(0, 8)}</div>
+                  <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                    <span>Status: {a.status}</span>
+                    {a.mandatory && <span>Mandatory</span>}
+                    {a.due_at && <span>Due {new Date(a.due_at).toLocaleDateString()}</span>}
+                  </div>
+                </div>
+                <Button size="icon" variant="ghost" onClick={() => doRemove(a.id)} title="Remove assignment">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }
+
 
 /* ------------------------------ Settings ----------------------------- */
 function SettingsTab() {
