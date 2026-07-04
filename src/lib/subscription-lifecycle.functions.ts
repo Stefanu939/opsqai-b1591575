@@ -170,7 +170,7 @@ export const adjustGracePeriod = createServerFn({ method: "POST" })
 
     const patch: Record<string, unknown> = { grace_period_ends_at: newEnds };
     if (cur.subscription_status !== "grace_period" && newEnds) patch.subscription_status = "grace_period";
-    const { error } = await supabaseAdmin.from("companies").update(patch).eq("id", data.company_id);
+    const { error } = await supabaseAdmin.from("companies").update(patch as any).eq("id", data.company_id);
     if (error) throw new Error(error.message);
 
     await logEvent(context, {
