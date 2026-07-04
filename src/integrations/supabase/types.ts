@@ -866,6 +866,53 @@ export type Database = {
         }
         Relationships: []
       }
+      company_integrations: {
+        Row: {
+          company_id: string
+          config: Json
+          connected_at: string | null
+          connected_by: string | null
+          created_at: string
+          id: string
+          last_error: string | null
+          provider: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          config?: Json
+          connected_at?: string | null
+          connected_by?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          provider: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          config?: Json
+          connected_at?: string | null
+          connected_by?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_integrations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           company: string | null
