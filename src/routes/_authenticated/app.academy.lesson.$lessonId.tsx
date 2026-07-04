@@ -272,6 +272,18 @@ function TeacherChat({
         <div className="hidden md:flex items-center gap-2 text-[11px] text-muted-foreground">
           <Clock className="h-3.5 w-3.5" /> ~{remaining} min
         </div>
+        {/* Learner-chosen language for AI Teacher + quiz */}
+        <select
+          value={learnLang ?? ""}
+          onChange={(e) => e.target.value && handleLangChange(e.target.value)}
+          className="text-[11px] bg-background border border-border rounded-full px-2.5 py-1 hover:border-primary/50 focus:outline-none focus:border-primary cursor-pointer"
+          title={learnLang ? `Learning in ${LANG_LABEL[learnLang]}` : "Pick a language for the AI Teacher and quiz"}
+        >
+          <option value="" disabled>🌐 Language…</option>
+          {LANG_OPTIONS.map((o) => (
+            <option key={o.code} value={o.code}>🌐 {o.label}</option>
+          ))}
+        </select>
         <button onClick={() => setContextOpen((v) => !v)} className="text-[11px] text-muted-foreground hover:text-foreground border border-border rounded-full px-2.5 py-1">
           {contextOpen ? "Hide context" : "Show context"}
         </button>
