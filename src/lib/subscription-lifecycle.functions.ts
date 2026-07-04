@@ -35,7 +35,7 @@ async function logEvent(
     reason: args.reason ?? null,
     actor_id: context.userId,
     actor_kind: args.actor_kind ?? "platform_admin",
-    metadata: args.metadata ?? {},
+    metadata: (args.metadata ?? {}) as any,
   });
 }
 
