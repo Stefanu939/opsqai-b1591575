@@ -56,7 +56,7 @@ const ACTION_ROUTES: Record<string, { label: string; to: string; icon: any }> = 
   run_new_audit: { label: "Run New Audit", to: "/app/admin/ai-audit", icon: ClipboardCheck },
 };
 
-function AiAuditPage() {
+export function AiAuditPage() {
   const { hasPermission } = useAuth();
   if (!hasPermission("ai_audit.run")) {
     return <div className="p-8 text-sm text-muted-foreground">You don't have permission to access this page.</div>;
