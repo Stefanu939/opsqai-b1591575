@@ -12,9 +12,10 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import {
   GraduationCap, Sparkles, Award, Clock, User as UserIcon, AlertTriangle, CheckCircle2,
-  Search, PlayCircle, BookOpen, ArrowRight, Timer, ListChecks,
+  Search, PlayCircle, BookOpen, ArrowRight, Timer, ListChecks, PlusCircle,
 } from "lucide-react";
 import { AcademySubnav } from "@/components/app/academy-subnav";
+import { AssignTrainingDialog } from "@/components/academy/assign-training-dialog";
 
 export const Route = createFileRoute("/_authenticated/app/academy/")({
   component: MyTrainingHome,
@@ -42,7 +43,7 @@ function fmtDue(d?: string | null) {
 
 function MyTrainingHome() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { lang } = useT();
   const list = useServerFn(listMyTraining);
   const summary = useServerFn(getMyTrainingSummary);
@@ -51,6 +52,7 @@ function MyTrainingHome() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const name = (user?.user_metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
 
@@ -113,11 +115,18 @@ function MyTrainingHome() {
               Your assigned learning, in one place. Continue where you left off, complete mandatory training and earn certificates.
             </p>
           </div>
-          <Button asChild variant="outline" className="gap-2">
-            <Link to="/app/academy/teacher">
-              <Sparkles className="h-4 w-4" /> AI Teacher
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasPermission("academy.assign") && (
+              <Button onClick={() => setAssignOpen(true)} className="gap-2">
+                <PlusCircle className="h-4 w-4" /> Assign training
+              </Button>
+            )}
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/app/academy/teacher">
+                <Sparkles className="h-4 w-4" /> AI Teacher
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Summary widget */}
@@ -173,6 +182,17 @@ function MyTrainingHome() {
           </div>
         )}
       </div>
+      <AssignTrainingDialog
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+        onAssigned={() => {
+          void (async () => {
+            const [enrolls, s] = await Promise.all([list(), summary()]);
+            setRows((enrolls as Enrollment[]) ?? []);
+            setStats(s as any);
+          })();
+        }}
+      />
     </div>
   );
 }
