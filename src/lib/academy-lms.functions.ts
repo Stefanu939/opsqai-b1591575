@@ -228,8 +228,8 @@ export const getMyTrainingSummary = createServerFn({ method: "POST" })
       learningPct = tot === 0 ? 0 : Math.round((done / tot) * 100);
     }
 
-    const scores = (quizzesRes.data ?? []).map((r: any) => Number(r.score)).filter((n) => !Number.isNaN(n));
-    const avgQuiz = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    const scores = (quizzesRes.data ?? []).map((r: any) => Number(r.score)).filter((n: number) => !Number.isNaN(n));
+    const avgQuiz = scores.length ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : null;
 
     return {
       mandatory_active: mandatoryActive.length,
@@ -446,7 +446,7 @@ export const listCourseAnalytics = createServerFn({ method: "POST" })
       const quizScores = (quizRes.data ?? [])
         .filter((q: any) => q.academy_enrollments?.path_id === p.id)
         .map((q: any) => Number(q.score))
-        .filter((n) => !Number.isNaN(n));
+        .filter((n: number) => !Number.isNaN(n));
       const avgQuiz = quizScores.length
         ? Math.round(quizScores.reduce((a: number, b: number) => a + b, 0) / quizScores.length)
         : null;
