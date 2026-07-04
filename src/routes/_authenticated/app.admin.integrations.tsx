@@ -18,8 +18,8 @@ export const Route = createFileRoute("/_authenticated/app/admin/integrations")({
 type IntegrationRow = { provider: string; status: string };
 
 function IntegrationsHub() {
-  const { isPlatformAdmin, isPlatformOwner, hasRole, activeCompanyId } = useAuth();
-  if (!isPlatformAdmin && !isPlatformOwner && !hasRole("admin")) {
+  const { isPlatformAdmin, isPlatformOwner, isAdmin, activeCompanyId } = useAuth();
+  if (!isPlatformAdmin && !isPlatformOwner && !isAdmin) {
     throw redirect({ to: "/app" });
   }
 
