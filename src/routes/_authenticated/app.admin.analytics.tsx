@@ -9,7 +9,7 @@ import { Download, FileSpreadsheet, FileText, ThumbsDown, ThumbsUp, AlertTriangl
 
 export const Route = createFileRoute("/_authenticated/app/admin/analytics")({
   head: () => ({ meta: [{ title: "Knowledge Analytics — OPSQAI" }] }),
-  component: Page,
+  component: KnowledgeAnalyticsPage,
 });
 
 type Data = Awaited<ReturnType<typeof getKnowledgeAnalytics>>;
