@@ -75,43 +75,144 @@ function Hero() {
   return (
     <section className="relative overflow-hidden bg-hero">
       <div className="absolute inset-0 -z-10 bg-grid-faint opacity-40" />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-16 pb-20 md:pt-24 md:pb-24">
-        <div className="max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs text-primary">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="font-medium uppercase tracking-wider text-[10px]">Enterprise AI Knowledge & Operations Platform</span>
-          </div>
-          <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05]">
-            Enterprise AI Platform for{" "}
-            <span className="text-gradient-primary">Logistics &amp; Warehouse Operations</span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Transform company knowledge into instant answers. OPSQAI centralizes procedures, SOPs,
-            manuals, FAQs and operational documentation into one secure AI-powered platform that
-            helps employees work faster, reduce mistakes and onboard more efficiently.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]">
-              <Link to="/auth">Start Free Trial <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-border bg-background/40 backdrop-blur">
-              <Link to="/contact">Book a Demo</Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-12 flex flex-wrap gap-2.5">
-          {TRUST_BADGES.map((b) => (
-            <div key={b.label} className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 backdrop-blur px-3.5 py-1.5 text-xs">
-              <b.icon className="h-3.5 w-3.5 text-primary" />
-              <span className="font-medium">{b.label}</span>
+      <div className="absolute -top-40 -right-40 h-[520px] w-[520px] rounded-full bg-primary/15 blur-[120px] -z-10" />
+      <div className="absolute -bottom-40 -left-20 h-[420px] w-[420px] rounded-full bg-accent/10 blur-[120px] -z-10" />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-14 pb-20 md:pt-20 md:pb-28">
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+          <div className="lg:col-span-7">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs text-primary">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="font-medium uppercase tracking-wider text-[10px]">Enterprise AI Knowledge &amp; Operations Platform</span>
             </div>
-          ))}
+            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-[3.75rem] font-semibold tracking-tight leading-[1.05]">
+              Enterprise AI Platform for{" "}
+              <span className="text-gradient-primary">Logistics &amp; Warehouse Operations</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-base sm:text-lg text-muted-foreground leading-relaxed">
+              OPSQAI turns your SOPs, manuals and FAQs into an intelligent operational assistant.
+              One governed platform for knowledge, people and AI — with source-backed answers your
+              teams and auditors can trust.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]">
+                <Link to="/auth">Start Free Trial <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="border-border bg-background/40 backdrop-blur">
+                <Link to="/contact">Book a Demo</Link>
+              </Button>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-2.5">
+              {TRUST_BADGES.map((b) => (
+                <div key={b.label} className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 backdrop-blur px-3.5 py-1.5 text-xs">
+                  <b.icon className="h-3.5 w-3.5 text-primary" />
+                  <span className="font-medium">{b.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-5">
+            <HeroProductMock />
+          </div>
         </div>
       </div>
     </section>
   );
 }
+
+function HeroProductMock() {
+  return (
+    <div className="relative">
+      {/* Glow behind the card */}
+      <div className="absolute -inset-6 rounded-3xl bg-gradient-to-br from-primary/25 via-primary/5 to-transparent blur-2xl -z-10" />
+      {/* Chat window */}
+      <div className="relative rounded-2xl border border-border/70 bg-background/80 backdrop-blur-xl shadow-2xl overflow-hidden">
+        {/* Titlebar */}
+        <div className="flex items-center gap-2 px-4 h-9 border-b border-border/60 bg-muted/40">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
+          <div className="ml-3 text-[11px] text-muted-foreground font-mono">app.opsqai.de / assistant</div>
+        </div>
+        <div className="p-5 space-y-4">
+          {/* User bubble */}
+          <div className="flex justify-end">
+            <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary/15 border border-primary/25 px-4 py-2.5 text-sm text-foreground">
+              What is the procedure for damaged pallets on inbound?
+            </div>
+          </div>
+          {/* AI bubble */}
+          <div className="flex justify-start">
+            <div className="max-w-[92%] rounded-2xl rounded-bl-sm bg-muted/60 border border-border/70 px-4 py-3 text-sm leading-relaxed">
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-primary font-semibold mb-2">
+                <Brain className="h-3 w-3" /> OPSQAI Assistant
+              </div>
+              Isolate the pallet in the <span className="text-primary font-medium">Quarantine zone Q-2</span>,
+              photograph the damage and create a non-conformity ticket within 30&nbsp;min.
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-md border border-primary/25 bg-primary/5 px-2 py-0.5 text-[10px] text-primary">
+                  <FileCheck2 className="h-2.5 w-2.5" /> SOP-INB-014 · §4.2
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md border border-primary/25 bg-primary/5 px-2 py-0.5 text-[10px] text-primary">
+                  <FileCheck2 className="h-2.5 w-2.5" /> QA-Manual · p. 27
+                </span>
+              </div>
+            </div>
+          </div>
+          {/* Input */}
+          <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3 py-2">
+            <Paperclip className="h-4 w-4 text-muted-foreground" />
+            <div className="flex-1 text-xs text-muted-foreground">Ask about a procedure, policy or manual…</div>
+            <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground grid place-items-center">
+              <Send className="h-3.5 w-3.5" />
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-border/60 bg-muted/30 px-4 py-2 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-1.5"><Activity className="h-3 w-3 text-primary" /> Confidence 96%</div>
+          <div className="flex items-center gap-1.5"><Lock className="h-3 w-3" /> Workspace-isolated</div>
+        </div>
+      </div>
+
+      {/* Floating stat card */}
+      <div className="hidden md:flex absolute -left-8 -bottom-8 items-center gap-3 rounded-xl border border-border/70 bg-background/90 backdrop-blur-xl shadow-xl px-4 py-3">
+        <div className="h-9 w-9 rounded-lg bg-primary/15 border border-primary/25 grid place-items-center text-primary">
+          <Clock className="h-4 w-4" />
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Answer time</div>
+          <div className="text-sm font-semibold">under 2 seconds</div>
+        </div>
+      </div>
+      <div className="hidden md:flex absolute -right-6 -top-6 items-center gap-3 rounded-xl border border-border/70 bg-background/90 backdrop-blur-xl shadow-xl px-4 py-3">
+        <div className="h-9 w-9 rounded-lg bg-primary/15 border border-primary/25 grid place-items-center text-primary">
+          <FileCheck2 className="h-4 w-4" />
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sources</div>
+          <div className="text-sm font-semibold">Always cited</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Trust bar ---------------- */
+
+function TrustBar() {
+  const items = ["Logistics", "Warehousing", "3PL", "Distribution", "Manufacturing", "Supply Chain"];
+  return (
+    <section className="border-y border-border/50 bg-muted/30">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Built for</span>
+        {items.map((i) => (
+          <span key={i} className="text-sm text-foreground/70 font-medium tracking-tight">{i}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 
 /* ---------------- What is OPSQAI ---------------- */
 
