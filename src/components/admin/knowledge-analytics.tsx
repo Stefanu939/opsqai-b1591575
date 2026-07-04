@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getKnowledgeAnalytics } from "@/lib/analytics.functions";
@@ -6,11 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, FileSpreadsheet, FileText, ThumbsDown, ThumbsUp, AlertTriangle } from "lucide-react";
-
-export const Route = createFileRoute("/_authenticated/app/admin/analytics")({
-  head: () => ({ meta: [{ title: "Knowledge Analytics — OPSQAI" }] }),
-  component: KnowledgeAnalyticsPage,
-});
 
 type Data = Awaited<ReturnType<typeof getKnowledgeAnalytics>>;
 
