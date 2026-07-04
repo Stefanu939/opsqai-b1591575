@@ -222,38 +222,86 @@ export function AppShell({ children }: { children: ReactNode }) {
     </div>
   );
 
+  // Primary tabs shown in the mobile bottom bar (up to 4 highest-priority items + "More")
+  const bottomTabs = nav.slice(0, 4);
+
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background overscroll-none">
       <aside className="hidden md:flex w-64 shrink-0 border-r border-sidebar-border">
         <SidebarContent />
       </aside>
 
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar text-sidebar-foreground px-4 h-14 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <LogoMark size={24} className="text-sidebar-foreground" />
-          <span className="font-semibold tracking-tight text-sm">{t("appName")}</span>
+      {/* Mobile top bar — safe-area aware, sticky, app-like */}
+      <div
+        className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar/95 backdrop-blur text-sidebar-foreground px-3 border-b border-sidebar-border"
+        style={{ paddingTop: "env(safe-area-inset-top)", height: "calc(3.5rem + env(safe-area-inset-top))" }}
+      >
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Open menu" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground -ml-1">
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[85vw] max-w-sm border-0">
+            <SidebarContent onNavigate={() => setMobileOpen(false)} />
+          </SheetContent>
+        </Sheet>
+        <div className="flex items-center gap-2 min-w-0">
+          <LogoMark size={22} className="text-sidebar-foreground shrink-0" />
+          <span className="font-semibold tracking-tight text-sm truncate">{t("appName")}</span>
         </div>
-        <div className="flex items-center gap-1">
-          <ThemeToggle className="h-8 w-8" />
+        <div className="flex items-center gap-0.5">
+          <ThemeToggle className="h-9 w-9" />
           <NotificationsBell />
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72 border-0">
-              <SidebarContent onNavigate={() => setMobileOpen(false)} />
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
 
-      <main className="flex-1 min-w-0 flex flex-col pt-14 md:pt-0">
-        <SubscriptionStatusBanner />
-        <WorkspaceContextBanner />
+      <main
+        className="flex-1 min-w-0 flex flex-col md:pt-0"
+        style={{
+          paddingTop: "calc(3.5rem + env(safe-area-inset-top))",
+          paddingBottom: "calc(4rem + env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="md:contents">
+          <SubscriptionStatusBanner />
+          <WorkspaceContextBanner />
+        </div>
         {children}
       </main>
+
+      {/* Mobile bottom tab bar — app-like primary navigation */}
+      <nav
+        aria-label="Primary"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-sidebar/95 backdrop-blur border-t border-sidebar-border"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <ul className="grid grid-cols-5 h-16">
+          {bottomTabs.map((item) => (
+            <li key={item.to} className="flex">
+              <Link
+                to={item.to}
+                activeOptions={{ exact: item.exact }}
+                className="group flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-sidebar-foreground/60 data-[status=active]:text-sidebar-primary transition-colors"
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="truncate max-w-[64px]">{item.label}</span>
+              </Link>
+            </li>
+          ))}
+          <li className="flex">
+            <button
+              onClick={() => setMobileOpen(true)}
+              aria-label="More"
+              className="flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-sidebar-foreground/60 active:text-sidebar-primary transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+              <span>More</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
       <SupportWidget />
     </div>
   );
