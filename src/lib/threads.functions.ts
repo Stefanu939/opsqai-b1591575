@@ -49,3 +49,35 @@ export const deleteThread = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const listThreads = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { companyId?: string | null }) =>
+    z.object({ companyId: optionalUiUuid }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    let q = context.supabase
+      .from("threads")
+      .select("id,title,created_at,updated_at,company_id")
+      .eq("user_id", context.userId)
+      .order("updated_at", { ascending: false })
+      .limit(200);
+    if (data.companyId) q = q.eq("company_id", data.companyId);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const renameThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; title: string }) =>
+    z.object({ id: z.string().uuid(), title: z.string().min(1).max(120) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("threads")
+      .update({ title: data.title })
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
