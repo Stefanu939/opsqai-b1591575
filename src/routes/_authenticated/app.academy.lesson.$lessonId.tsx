@@ -107,7 +107,8 @@ function TeacherChat({
   lessonId: string; lesson: any; token: string; enrollmentId: string; initialQ: string;
 }) {
   const navigate = useNavigate();
-  const { lang } = useT();
+  // Note: lesson language is chosen explicitly by the learner (see LANG_OPTIONS)
+  // and is intentionally decoupled from the UI language.
   const genQuiz = useServerFn(generateAcademyQuiz);
   const submit = useServerFn(submitAcademyQuiz);
 
