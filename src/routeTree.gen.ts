@@ -102,6 +102,7 @@ import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
+import { Route as AuthenticatedAppAdminIntegrationsRouteImport } from './routes/_authenticated/app.admin.integrations'
 import { Route as AuthenticatedAppAdminEmailLogsRouteImport } from './routes/_authenticated/app.admin.email-logs'
 import { Route as AuthenticatedAppAdminEmailRouteImport } from './routes/_authenticated/app.admin.email'
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
@@ -609,6 +610,12 @@ const AuthenticatedAppAdminKnowledgeGapsRoute =
     path: '/admin/knowledge-gaps',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminIntegrationsRoute =
+  AuthenticatedAppAdminIntegrationsRouteImport.update({
+    id: '/admin/integrations',
+    path: '/admin/integrations',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminEmailLogsRoute =
   AuthenticatedAppAdminEmailLogsRouteImport.update({
     id: '/admin/email-logs',
@@ -813,6 +820,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
+  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -922,6 +930,7 @@ export interface FileRoutesByTo {
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
+  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRoute
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -1037,6 +1046,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
   '/_authenticated/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/_authenticated/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
+  '/_authenticated/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRoute
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -1152,6 +1162,7 @@ export interface FileRouteTypes {
     | '/app/admin/dashboard'
     | '/app/admin/email'
     | '/app/admin/email-logs'
+    | '/app/admin/integrations'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
@@ -1261,6 +1272,7 @@ export interface FileRouteTypes {
     | '/app/admin/dashboard'
     | '/app/admin/email'
     | '/app/admin/email-logs'
+    | '/app/admin/integrations'
     | '/app/admin/knowledge-gaps'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
@@ -1375,6 +1387,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/dashboard'
     | '/_authenticated/app/admin/email'
     | '/_authenticated/app/admin/email-logs'
+    | '/_authenticated/app/admin/integrations'
     | '/_authenticated/app/admin/knowledge-gaps'
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
@@ -2096,6 +2109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminKnowledgeGapsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/integrations': {
+      id: '/_authenticated/app/admin/integrations'
+      path: '/admin/integrations'
+      fullPath: '/app/admin/integrations'
+      preLoaderRoute: typeof AuthenticatedAppAdminIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/email-logs': {
       id: '/_authenticated/app/admin/email-logs'
       path: '/admin/email-logs'
@@ -2305,6 +2325,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
   AuthenticatedAppAdminEmailRoute: typeof AuthenticatedAppAdminEmailRoute
   AuthenticatedAppAdminEmailLogsRoute: typeof AuthenticatedAppAdminEmailLogsRoute
+  AuthenticatedAppAdminIntegrationsRoute: typeof AuthenticatedAppAdminIntegrationsRoute
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
@@ -2346,6 +2367,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
   AuthenticatedAppAdminEmailRoute: AuthenticatedAppAdminEmailRoute,
   AuthenticatedAppAdminEmailLogsRoute: AuthenticatedAppAdminEmailLogsRoute,
+  AuthenticatedAppAdminIntegrationsRoute:
+    AuthenticatedAppAdminIntegrationsRoute,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
   AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
