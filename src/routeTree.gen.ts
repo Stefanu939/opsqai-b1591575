@@ -18,13 +18,13 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
-import { Route as DemoRouteImport } from './routes/demo'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoIndexRouteImport } from './routes/demo.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
 import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsible-ai'
@@ -153,11 +153,6 @@ const FeaturesRoute = FeaturesRouteImport.update({
   path: '/features',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -185,6 +180,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/demo/',
+  path: '/demo/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
@@ -285,9 +285,9 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoAppRoute = DemoAppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => DemoRoute,
+  id: '/demo/app',
+  path: '/demo/app',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
@@ -643,7 +643,6 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/demo': typeof DemoRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
@@ -681,6 +680,7 @@ export interface FileRoutesByFullPath {
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/demo/': typeof DemoIndexRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/faq': typeof AuthenticatedAppFaqRoute
@@ -742,7 +742,6 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/demo': typeof DemoRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
@@ -778,6 +777,7 @@ export interface FileRoutesByTo {
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/demo': typeof DemoIndexRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -839,7 +839,6 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/demo': typeof DemoRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
@@ -877,6 +876,7 @@ export interface FileRoutesById {
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/demo/': typeof DemoIndexRoute
   '/_authenticated/app/brand': typeof AuthenticatedAppBrandRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
@@ -940,7 +940,6 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/contact'
-    | '/demo'
     | '/features'
     | '/forgot-password'
     | '/industries'
@@ -978,6 +977,7 @@ export interface FileRouteTypes {
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/verify/$code'
+    | '/demo/'
     | '/app/brand'
     | '/app/chat'
     | '/app/faq'
@@ -1039,7 +1039,6 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/contact'
-    | '/demo'
     | '/features'
     | '/forgot-password'
     | '/industries'
@@ -1075,6 +1074,7 @@ export interface FileRouteTypes {
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/verify/$code'
+    | '/demo'
     | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
@@ -1135,7 +1135,6 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/contact'
-    | '/demo'
     | '/features'
     | '/forgot-password'
     | '/industries'
@@ -1173,6 +1172,7 @@ export interface FileRouteTypes {
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
     | '/verify/$code'
+    | '/demo/'
     | '/_authenticated/app/brand'
     | '/_authenticated/app/chat'
     | '/_authenticated/app/faq'
@@ -1236,7 +1236,6 @@ export interface RootRouteChildren {
   AcceptInviteRoute: typeof AcceptInviteRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
-  DemoRoute: typeof DemoRouteWithChildren
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IndustriesRoute: typeof IndustriesRoute
@@ -1253,8 +1252,10 @@ export interface RootRouteChildren {
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  DemoAppRoute: typeof DemoAppRouteWithChildren
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  DemoIndexRoute: typeof DemoIndexRoute
   ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -1329,13 +1330,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeaturesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -1376,6 +1370,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/': {
+      id: '/demo/'
+      path: '/demo'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify/$code': {
@@ -1513,10 +1514,10 @@ declare module '@tanstack/react-router' {
     }
     '/demo/app': {
       id: '/demo/app'
-      path: '/app'
+      path: '/demo/app'
       fullPath: '/demo/app'
       preLoaderRoute: typeof DemoAppRouteImport
-      parentRoute: typeof DemoRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/workspace-chat': {
       id: '/api/workspace-chat'
@@ -2118,41 +2119,6 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
-interface DemoAppRouteChildren {
-  DemoAppAcademyRoute: typeof DemoAppAcademyRoute
-  DemoAppAnalyticsRoute: typeof DemoAppAnalyticsRoute
-  DemoAppAuditRoute: typeof DemoAppAuditRoute
-  DemoAppChatRoute: typeof DemoAppChatRoute
-  DemoAppFaqRoute: typeof DemoAppFaqRoute
-  DemoAppKnowledgeRoute: typeof DemoAppKnowledgeRoute
-  DemoAppUsersRoute: typeof DemoAppUsersRoute
-  DemoAppIndexRoute: typeof DemoAppIndexRoute
-}
-
-const DemoAppRouteChildren: DemoAppRouteChildren = {
-  DemoAppAcademyRoute: DemoAppAcademyRoute,
-  DemoAppAnalyticsRoute: DemoAppAnalyticsRoute,
-  DemoAppAuditRoute: DemoAppAuditRoute,
-  DemoAppChatRoute: DemoAppChatRoute,
-  DemoAppFaqRoute: DemoAppFaqRoute,
-  DemoAppKnowledgeRoute: DemoAppKnowledgeRoute,
-  DemoAppUsersRoute: DemoAppUsersRoute,
-  DemoAppIndexRoute: DemoAppIndexRoute,
-}
-
-const DemoAppRouteWithChildren =
-  DemoAppRoute._addFileChildren(DemoAppRouteChildren)
-
-interface DemoRouteChildren {
-  DemoAppRoute: typeof DemoAppRouteWithChildren
-}
-
-const DemoRouteChildren: DemoRouteChildren = {
-  DemoAppRoute: DemoAppRouteWithChildren,
-}
-
-const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
-
 interface TrustRouteChildren {
   TrustAuditLogsRoute: typeof TrustAuditLogsRoute
   TrustAvailabilityRoute: typeof TrustAvailabilityRoute
@@ -2183,6 +2149,31 @@ const TrustRouteChildren: TrustRouteChildren = {
 
 const TrustRouteWithChildren = TrustRoute._addFileChildren(TrustRouteChildren)
 
+interface DemoAppRouteChildren {
+  DemoAppAcademyRoute: typeof DemoAppAcademyRoute
+  DemoAppAnalyticsRoute: typeof DemoAppAnalyticsRoute
+  DemoAppAuditRoute: typeof DemoAppAuditRoute
+  DemoAppChatRoute: typeof DemoAppChatRoute
+  DemoAppFaqRoute: typeof DemoAppFaqRoute
+  DemoAppKnowledgeRoute: typeof DemoAppKnowledgeRoute
+  DemoAppUsersRoute: typeof DemoAppUsersRoute
+  DemoAppIndexRoute: typeof DemoAppIndexRoute
+}
+
+const DemoAppRouteChildren: DemoAppRouteChildren = {
+  DemoAppAcademyRoute: DemoAppAcademyRoute,
+  DemoAppAnalyticsRoute: DemoAppAnalyticsRoute,
+  DemoAppAuditRoute: DemoAppAuditRoute,
+  DemoAppChatRoute: DemoAppChatRoute,
+  DemoAppFaqRoute: DemoAppFaqRoute,
+  DemoAppKnowledgeRoute: DemoAppKnowledgeRoute,
+  DemoAppUsersRoute: DemoAppUsersRoute,
+  DemoAppIndexRoute: DemoAppIndexRoute,
+}
+
+const DemoAppRouteWithChildren =
+  DemoAppRoute._addFileChildren(DemoAppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -2190,7 +2181,6 @@ const rootRouteChildren: RootRouteChildren = {
   AcceptInviteRoute: AcceptInviteRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
-  DemoRoute: DemoRouteWithChildren,
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IndustriesRoute: IndustriesRoute,
@@ -2207,8 +2197,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  DemoAppRoute: DemoAppRouteWithChildren,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  DemoIndexRoute: DemoIndexRoute,
   ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
@@ -2220,13 +2212,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
