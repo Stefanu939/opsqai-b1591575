@@ -30,6 +30,19 @@ type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: st
 
 const COMPLETE_MARKER = "[LESSON_COMPLETE]";
 
+const LANG_OPTIONS: { code: string; label: string; short: string }[] = [
+  { code: "en", label: "English", short: "EN" },
+  { code: "de", label: "Deutsch", short: "DE" },
+  { code: "ro", label: "Română", short: "RO" },
+  { code: "fr", label: "Français", short: "FR" },
+  { code: "es", label: "Español", short: "ES" },
+  { code: "it", label: "Italiano", short: "IT" },
+  { code: "pt", label: "Português", short: "PT" },
+  { code: "pl", label: "Polski", short: "PL" },
+  { code: "uk", label: "Українська", short: "UK" },
+];
+const LANG_LABEL: Record<string, string> = Object.fromEntries(LANG_OPTIONS.map((o) => [o.code, o.label]));
+
 function LessonPage() {
   const { lessonId } = useParams({ from: Route.id });
   const { enrollmentId, q: initialQ } = useSearch({ from: Route.id });
