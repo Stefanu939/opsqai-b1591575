@@ -247,6 +247,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <main className="flex-1 min-w-0 flex flex-col pt-14 md:pt-0">
+        <SubscriptionStatusBanner />
         <WorkspaceContextBanner />
         {children}
       </main>
