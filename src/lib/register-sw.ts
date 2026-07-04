@@ -1,33 +1,30 @@
-// Service worker registration wrapper. Refuses in dev, preview iframes,
-// Lovable preview hostnames, and when ?sw=off is set. Unregisters matching
-// /sw.js registrations in any refused context.
+// Service worker cleanup wrapper.
+//
+// The app does not currently ship an offline / app-shell service worker.
+// A previous build did register `/sw.js`, so some browsers still have a
+// stale registration that can serve outdated HTML/CSS from cache and cause
+// bugs like the mobile two-finger-scroll regression.
+//
+// This wrapper never registers a new SW. Instead it unregisters any
+// existing `/sw.js` on load; a matching kill-switch worker is shipped at
+// `public/sw.js` for one release cycle so that returning browsers pick it
+// up, clear their Workbox caches, and unregister themselves.
 export function registerServiceWorker() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
-  const host = window.location.hostname;
-  const inIframe = window.self !== window.top;
-  const swOff = new URL(window.location.href).searchParams.get("sw") === "off";
-  const previewHost =
-    host.startsWith("id-preview--") ||
-    host.startsWith("preview--") ||
-    host === "lovableproject.com" || host.endsWith(".lovableproject.com") ||
-    host === "lovableproject-dev.com" || host.endsWith(".lovableproject-dev.com") ||
-    host === "beta.lovable.dev" || host.endsWith(".beta.lovable.dev");
-
-  const refuse = !import.meta.env.PROD || inIframe || previewHost || swOff;
-
-  if (refuse) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((regs) => {
       for (const r of regs) {
-        if (r.active?.scriptURL.endsWith("/sw.js") || r.installing?.scriptURL.endsWith("/sw.js")) {
+        const url =
+          r.active?.scriptURL ||
+          r.waiting?.scriptURL ||
+          r.installing?.scriptURL ||
+          "";
+        if (url.endsWith("/sw.js") || url.endsWith("/service-worker.js")) {
           r.unregister().catch(() => {});
         }
       }
-    }).catch(() => {});
-    return;
-  }
-
-  navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((err) => {
-    console.warn("[opsqai] sw registration failed", err);
-  });
+    })
+    .catch(() => {});
 }
