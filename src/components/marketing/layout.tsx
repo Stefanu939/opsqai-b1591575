@@ -156,7 +156,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
                 ) : (
                   <>
                     <Button asChild variant="outline" size="sm" className="flex-1"><Link to="/auth">Sign in</Link></Button>
-                    <Button asChild size="sm" className="flex-1"><Link to="/contact">Book a demo</Link></Button>
+                    <Button asChild size="sm" className="flex-1"><Link to="/demo">Launch Demo</Link></Button>
                   </>
                 )}
               </div>
