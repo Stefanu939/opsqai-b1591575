@@ -11,7 +11,7 @@ import { ArrowUp, GraduationCap, Sparkles, PlayCircle, RotateCw, BookOpen } from
 import { AcademySubnav } from "@/components/app/academy-subnav";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/app/academy/")({
+export const Route = createFileRoute("/_authenticated/app/academy/teacher")({
   component: AcademyHome,
   head: () => ({ meta: [{ title: "Academy · OPSQAI" }] }),
 });
