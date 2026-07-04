@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/academy/teacher")({
   component: AcademyHome,
-  head: () => ({ meta: [{ title: "Academy · OPSQAI" }] }),
+  head: () => ({ meta: [{ title: "AI Teacher · OPSQAI Academy" }] }),
 });
 
 function greet(name?: string | null, lang?: string) {
