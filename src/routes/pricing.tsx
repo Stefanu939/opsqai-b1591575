@@ -6,17 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Check, Building2, Users, Sparkles, ShieldCheck } from "lucide-react";
 
+import { pageHead, faqLd } from "@/lib/seo";
+
+const PRICING_FAQS = [
+  { question: "How is OPSQAI priced?", answer: "Per user per month, with a volume-tiered rate that decreases as the deployment scales. A one-time implementation package covers onboarding, initial knowledge ingestion and workspace configuration." },
+  { question: "Is there a free trial?", answer: "OPSQAI offers a live, read-only interactive demo populated with real logistics operations data. Paid pilots are available on request for qualified enterprise buyers." },
+  { question: "Where is our data hosted?", answer: "OPSQAI hosts customer data in the EU. Data residency, retention and processing terms are covered in the DPA included with every enterprise contract." },
+  { question: "Do you support SSO?", answer: "Yes — SSO is available on request for enterprise plans, alongside role-based access control across departments and sites." },
+];
+
 export const Route = createFileRoute("/pricing")({
-  head: () => ({
-    meta: [
-      { title: "Pricing — OPSQAI" },
-      { name: "description", content: "Transparent per-user pricing for OPSQAI. From €30 per user per month, plus a one-time implementation package. EU hosting, SSO on request, DPA included." },
-      { property: "og:title", content: "Pricing — OPSQAI" },
-      { property: "og:url", content: "https://opsqai.de/pricing" },
-      { property: "og:description", content: "Transparent per-user pricing for OPSQAI. From €30 per user per month, plus a one-time implementation package." },
-    ],
-    links: [{ rel: "canonical", href: "https://opsqai.de/pricing" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Pricing — OPSQAI Enterprise AI Platform",
+      description:
+        "Transparent per-user pricing for OPSQAI. From €30 per user per month, plus a one-time implementation package. EU hosting, SSO on request, DPA included.",
+      path: "/pricing",
+      keywords: "OPSQAI pricing, enterprise AI pricing, per-user pricing, warehouse AI cost",
+      breadcrumbs: [
+        { name: "Home", path: "/" },
+        { name: "Pricing", path: "/pricing" },
+      ],
+      jsonLd: [faqLd(PRICING_FAQS)],
+    }),
   component: PricingPage,
 });
 
