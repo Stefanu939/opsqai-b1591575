@@ -23,6 +23,7 @@ type Tile = {
 // it is production-ready — a clean surface beats a cluttered "coming soon" page.
 const MODULES: Array<Tile> = [
   { to: "/app/admin/companies", title: "Companies", desc: "Create, suspend, restore and inspect every tenant.", icon: Building2 },
+  { to: "/app/admin/integrations", title: "Integrations", desc: "SSO, Microsoft 365, SharePoint, Teams, Slack and more.", icon: Plug },
   { to: "/app/admin/platform-admins", title: "Platform Super Admins", desc: "Grant and revoke unrestricted platform access.", icon: ShieldCheck },
   { to: "/app/admin/users", title: "Global Users", desc: "Browse and manage every user across all companies.", icon: Users },
   { to: "/app/admin/analytics", title: "Platform Analytics", desc: "Cross-tenant usage, AI confidence and adoption KPIs.", icon: BarChart3 },
