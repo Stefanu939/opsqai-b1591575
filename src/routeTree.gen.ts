@@ -44,6 +44,7 @@ import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as DemoAppRouteImport } from './routes/demo.app'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
@@ -52,8 +53,16 @@ import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-wri
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as DemoAppIndexRouteImport } from './routes/demo.app.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as DemoAppUsersRouteImport } from './routes/demo.app.users'
+import { Route as DemoAppKnowledgeRouteImport } from './routes/demo.app.knowledge'
+import { Route as DemoAppFaqRouteImport } from './routes/demo.app.faq'
+import { Route as DemoAppChatRouteImport } from './routes/demo.app.chat'
+import { Route as DemoAppAuditRouteImport } from './routes/demo.app.audit'
+import { Route as DemoAppAnalyticsRouteImport } from './routes/demo.app.analytics'
+import { Route as DemoAppAcademyRouteImport } from './routes/demo.app.academy'
 import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
@@ -275,6 +284,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoAppRoute = DemoAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => DemoRoute,
+} as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
   path: '/api/workspace-chat',
@@ -315,6 +329,11 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const DemoAppIndexRoute = DemoAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoAppRoute,
+} as any)
 const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -324,6 +343,41 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DemoAppUsersRoute = DemoAppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppKnowledgeRoute = DemoAppKnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppFaqRoute = DemoAppFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppChatRoute = DemoAppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppAuditRoute = DemoAppAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppAnalyticsRoute = DemoAppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppAcademyRoute = DemoAppAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => DemoAppRoute,
 } as any)
 const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
   id: '/api/public/contact-submit',
@@ -589,7 +643,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
@@ -607,6 +661,7 @@ export interface FileRoutesByFullPath {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/demo/app': typeof DemoAppRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -634,8 +689,16 @@ export interface FileRoutesByFullPath {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/demo/app/academy': typeof DemoAppAcademyRoute
+  '/demo/app/analytics': typeof DemoAppAnalyticsRoute
+  '/demo/app/audit': typeof DemoAppAuditRoute
+  '/demo/app/chat': typeof DemoAppChatRoute
+  '/demo/app/faq': typeof DemoAppFaqRoute
+  '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
+  '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/demo/app/': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
   '/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
@@ -679,7 +742,7 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
@@ -721,8 +784,16 @@ export interface FileRoutesByTo {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/demo/app/academy': typeof DemoAppAcademyRoute
+  '/demo/app/analytics': typeof DemoAppAnalyticsRoute
+  '/demo/app/audit': typeof DemoAppAuditRoute
+  '/demo/app/chat': typeof DemoAppChatRoute
+  '/demo/app/faq': typeof DemoAppFaqRoute
+  '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
+  '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/demo/app': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
   '/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
@@ -768,7 +839,7 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
@@ -786,6 +857,7 @@ export interface FileRoutesById {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/demo/app': typeof DemoAppRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -813,8 +885,16 @@ export interface FileRoutesById {
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/demo/app/academy': typeof DemoAppAcademyRoute
+  '/demo/app/analytics': typeof DemoAppAnalyticsRoute
+  '/demo/app/audit': typeof DemoAppAuditRoute
+  '/demo/app/chat': typeof DemoAppChatRoute
+  '/demo/app/faq': typeof DemoAppFaqRoute
+  '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
+  '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/demo/app/': typeof DemoAppIndexRoute
   '/_authenticated/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/_authenticated/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
   '/_authenticated/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
@@ -878,6 +958,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/demo/app'
     | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -905,8 +986,16 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/api/public/contact-submit'
+    | '/demo/app/academy'
+    | '/demo/app/analytics'
+    | '/demo/app/audit'
+    | '/demo/app/chat'
+    | '/demo/app/faq'
+    | '/demo/app/knowledge'
+    | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app/'
+    | '/demo/app/'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
     | '/app/academy/courses'
@@ -992,8 +1081,16 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/requests'
     | '/api/public/contact-submit'
+    | '/demo/app/academy'
+    | '/demo/app/analytics'
+    | '/demo/app/audit'
+    | '/demo/app/chat'
+    | '/demo/app/faq'
+    | '/demo/app/knowledge'
+    | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app'
+    | '/demo/app'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
     | '/app/academy/courses'
@@ -1056,6 +1153,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/demo/app'
     | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -1083,8 +1181,16 @@ export interface FileRouteTypes {
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/api/public/contact-submit'
+    | '/demo/app/academy'
+    | '/demo/app/analytics'
+    | '/demo/app/audit'
+    | '/demo/app/chat'
+    | '/demo/app/faq'
+    | '/demo/app/knowledge'
+    | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
+    | '/demo/app/'
     | '/_authenticated/app/academy/analytics'
     | '/_authenticated/app/academy/certificates'
     | '/_authenticated/app/academy/courses'
@@ -1130,7 +1236,7 @@ export interface RootRouteChildren {
   AcceptInviteRoute: typeof AcceptInviteRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
-  DemoRoute: typeof DemoRoute
+  DemoRoute: typeof DemoRouteWithChildren
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IndustriesRoute: typeof IndustriesRoute
@@ -1405,6 +1511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo/app': {
+      id: '/demo/app'
+      path: '/app'
+      fullPath: '/demo/app'
+      preLoaderRoute: typeof DemoAppRouteImport
+      parentRoute: typeof DemoRoute
+    }
     '/api/workspace-chat': {
       id: '/api/workspace-chat'
       path: '/api/workspace-chat'
@@ -1461,6 +1574,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/demo/app/': {
+      id: '/demo/app/'
+      path: '/'
+      fullPath: '/demo/app/'
+      preLoaderRoute: typeof DemoAppIndexRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
     '/_authenticated/app/': {
       id: '/_authenticated/app/'
       path: '/'
@@ -1474,6 +1594,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/demo/app/users': {
+      id: '/demo/app/users'
+      path: '/users'
+      fullPath: '/demo/app/users'
+      preLoaderRoute: typeof DemoAppUsersRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/app/knowledge': {
+      id: '/demo/app/knowledge'
+      path: '/knowledge'
+      fullPath: '/demo/app/knowledge'
+      preLoaderRoute: typeof DemoAppKnowledgeRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/app/faq': {
+      id: '/demo/app/faq'
+      path: '/faq'
+      fullPath: '/demo/app/faq'
+      preLoaderRoute: typeof DemoAppFaqRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/app/chat': {
+      id: '/demo/app/chat'
+      path: '/chat'
+      fullPath: '/demo/app/chat'
+      preLoaderRoute: typeof DemoAppChatRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/app/audit': {
+      id: '/demo/app/audit'
+      path: '/audit'
+      fullPath: '/demo/app/audit'
+      preLoaderRoute: typeof DemoAppAuditRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/app/analytics': {
+      id: '/demo/app/analytics'
+      path: '/analytics'
+      fullPath: '/demo/app/analytics'
+      preLoaderRoute: typeof DemoAppAnalyticsRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/app/academy': {
+      id: '/demo/app/academy'
+      path: '/academy'
+      fullPath: '/demo/app/academy'
+      preLoaderRoute: typeof DemoAppAcademyRouteImport
+      parentRoute: typeof DemoAppRoute
     }
     '/api/public/contact-submit': {
       id: '/api/public/contact-submit'
@@ -1949,6 +2118,41 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
+interface DemoAppRouteChildren {
+  DemoAppAcademyRoute: typeof DemoAppAcademyRoute
+  DemoAppAnalyticsRoute: typeof DemoAppAnalyticsRoute
+  DemoAppAuditRoute: typeof DemoAppAuditRoute
+  DemoAppChatRoute: typeof DemoAppChatRoute
+  DemoAppFaqRoute: typeof DemoAppFaqRoute
+  DemoAppKnowledgeRoute: typeof DemoAppKnowledgeRoute
+  DemoAppUsersRoute: typeof DemoAppUsersRoute
+  DemoAppIndexRoute: typeof DemoAppIndexRoute
+}
+
+const DemoAppRouteChildren: DemoAppRouteChildren = {
+  DemoAppAcademyRoute: DemoAppAcademyRoute,
+  DemoAppAnalyticsRoute: DemoAppAnalyticsRoute,
+  DemoAppAuditRoute: DemoAppAuditRoute,
+  DemoAppChatRoute: DemoAppChatRoute,
+  DemoAppFaqRoute: DemoAppFaqRoute,
+  DemoAppKnowledgeRoute: DemoAppKnowledgeRoute,
+  DemoAppUsersRoute: DemoAppUsersRoute,
+  DemoAppIndexRoute: DemoAppIndexRoute,
+}
+
+const DemoAppRouteWithChildren =
+  DemoAppRoute._addFileChildren(DemoAppRouteChildren)
+
+interface DemoRouteChildren {
+  DemoAppRoute: typeof DemoAppRouteWithChildren
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoAppRoute: DemoAppRouteWithChildren,
+}
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+
 interface TrustRouteChildren {
   TrustAuditLogsRoute: typeof TrustAuditLogsRoute
   TrustAvailabilityRoute: typeof TrustAvailabilityRoute
@@ -1986,7 +2190,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcceptInviteRoute: AcceptInviteRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
-  DemoRoute: DemoRoute,
+  DemoRoute: DemoRouteWithChildren,
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IndustriesRoute: IndustriesRoute,
