@@ -310,3 +310,58 @@
     animation: shimmer-line 2.4s ease-in-out infinite;
   }
 }
+
+/* =========================================================
+   Native-app feel on mobile / installed PWA
+   - Prevent pinch/zoom & iOS text auto-sizing
+   - Prevent horizontal overflow of app content
+   - Larger touch targets on coarse pointers
+   - 16px font on inputs prevents iOS focus-zoom
+   - Safe-area utilities for notched devices
+   ========================================================= */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+html, body {
+  overscroll-behavior-y: none;
+}
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+@media (display-mode: standalone) {
+  html, body { overscroll-behavior: none; }
+  body { user-select: none; -webkit-user-select: none; }
+  input, textarea, [contenteditable] { user-select: text; -webkit-user-select: text; }
+}
+@media (max-width: 767px) {
+  /* Prevent iOS auto-zoom when focusing form fields */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  /* Prevent accidental horizontal scroll from stray wide children */
+  html, body { max-width: 100vw; overflow-x: hidden; }
+}
+@media (pointer: coarse) {
+  /* Enterprise-friendly minimum touch targets */
+  button, [role="button"], a.btn, .btn,
+  [data-slot="button"], [data-slot="select-trigger"],
+  [data-slot="dropdown-menu-trigger"] {
+    min-height: 44px;
+  }
+  input:not([type="checkbox"]):not([type="radio"]),
+  select, textarea, [data-slot="input"] {
+    min-height: 44px;
+  }
+}
+
+@utility safe-top    { padding-top: env(safe-area-inset-top); }
+@utility safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+@utility safe-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
