@@ -200,7 +200,7 @@ export const updateRenewalDate = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: Record<string, unknown> = { renewal_date: data.renewal_date };
     if (data.next_invoice_due_at !== undefined) patch.next_invoice_due_at = data.next_invoice_due_at;
-    const { error } = await supabaseAdmin.from("companies").update(patch).eq("id", data.company_id);
+    const { error } = await supabaseAdmin.from("companies").update(patch as any).eq("id", data.company_id);
     if (error) throw new Error(error.message);
     await logEvent(context, {
       company_id: data.company_id,
