@@ -44,6 +44,7 @@ export const Route = createFileRoute("/trust/data-retention")({
           Before deletion, audit-log entries are <strong>anonymized and moved to a separate archive</strong>
           (<code>audit_log_terminated_archive</code>): only module, action, resource, severity, success and
           event timestamp are kept, under a hashed tenant label. User IDs and payloads are not archived.
+          The anonymized archive is retained for a <strong>rolling 24 months</strong>, then purged.
         </li>
         <li>
           Backups age out within the managed platform's rolling 30-day backup window after primary deletion,
