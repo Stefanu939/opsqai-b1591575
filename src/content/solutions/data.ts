@@ -150,7 +150,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
   },
   {
     slug: "operational-knowledge-platform",
-    title: "Operational Knowledge Platform — Enterprise Grade, Multi-Site",
+    title: "Operational Knowledge Platform — Governance-First, Multi-Site",
     h1: "The operational knowledge platform for enterprises",
     description:
       "OPSQAI unifies operational knowledge — SOPs, safety, exception playbooks, tribal know-how — into a single multi-tenant platform with strict isolation and enterprise governance.",
