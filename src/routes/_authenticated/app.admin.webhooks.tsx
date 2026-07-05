@@ -67,9 +67,13 @@ function WebhooksPage() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [emitOpen, setEmitOpen] = useState(false);
+  const [emitEvent, setEmitEvent] = useState("knowledge.published");
+  const [emitting, setEmitting] = useState(false);
 
   const testFn = useServerFn(testWebhook);
   const genSecretFn = useServerFn(generateWebhookSecret) as unknown as () => Promise<{ secret: string }>;
+  const emitFn = useServerFn(emitTestEvent);
 
   async function refresh() {
     if (!activeCompanyId) return;
