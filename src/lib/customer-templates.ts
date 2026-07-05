@@ -843,7 +843,7 @@ Compliance posture for ${v(ctx.companyName)}:
 - **Workspace isolation:** enforced via Row-Level Security
 - **Sub-processors:** Lovable Cloud (Supabase, EU), Cloudflare (edge), Google (Gemini via Lovable AI Gateway), OpenAI (embeddings/TTS/generation via Lovable AI Gateway) — disclosed in the Trust Center
 - **International transfers:** Standard Contractual Clauses (Art. 46 GDPR) for any processing outside the EEA
-- **Retention on termination:** customer data deleted within 30 days after termination, unless a longer period is required by law
+- **Retention on termination:** 30-day grace window (read-only, export on request, reversible by Platform Admin), then an automated pg_cron job permanently deletes the tenant (ON DELETE CASCADE); audit metadata is anonymized before archival — no user IDs, no payloads. Longer retention only where required by law.
 `,
   },
   data_protection_overview: {
