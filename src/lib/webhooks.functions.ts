@@ -145,6 +145,8 @@ export const testWebhook = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!ep) throw new Error("Endpoint not found");
+    // SSRF guard on the stored URL — protects against endpoints created before validation was in place.
+    assertSafeWebhookUrl(ep.url);
 
     const payload = {
       event: "webhook.test",
