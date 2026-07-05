@@ -192,7 +192,7 @@ function WebhooksPage() {
           setOpen={setCreateOpen}
           companyId={activeCompanyId}
           userId={user?.id ?? null}
-          genSecretFn={genSecretFn}
+          createFn={createFn}
           onCreated={refresh}
         />
       </div>
