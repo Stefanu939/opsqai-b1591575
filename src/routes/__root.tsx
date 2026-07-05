@@ -140,6 +140,7 @@ function RootComponent() {
       <LanguageProvider>
         <AuthProvider>
           <Outlet />
+          <SupportWidget />
           <Toaster />
         </AuthProvider>
       </LanguageProvider>
