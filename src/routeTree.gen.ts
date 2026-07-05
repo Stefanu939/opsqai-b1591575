@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrustRouteImport } from './routes/trust'
+import { Route as SsoSigninRouteImport } from './routes/sso-signin'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResourcesRouteImport } from './routes/resources'
@@ -130,6 +131,11 @@ import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './rou
 const TrustRoute = TrustRouteImport.update({
   id: '/trust',
   path: '/trust',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SsoSigninRoute = SsoSigninRouteImport.update({
+  id: '/sso-signin',
+  path: '/sso-signin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SolutionsRoute = SolutionsRouteImport.update({
@@ -780,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/resources': typeof ResourcesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solutions': typeof SolutionsRouteWithChildren
+  '/sso-signin': typeof SsoSigninRoute
   '/trust': typeof TrustRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
@@ -898,6 +905,7 @@ export interface FileRoutesByTo {
   '/resources': typeof ResourcesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solutions': typeof SolutionsRouteWithChildren
+  '/sso-signin': typeof SsoSigninRoute
   '/trust': typeof TrustRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
@@ -1014,6 +1022,7 @@ export interface FileRoutesById {
   '/resources': typeof ResourcesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solutions': typeof SolutionsRouteWithChildren
+  '/sso-signin': typeof SsoSigninRoute
   '/trust': typeof TrustRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
@@ -1134,6 +1143,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/sitemap.xml'
     | '/solutions'
+    | '/sso-signin'
     | '/trust'
     | '/app'
     | '/api/academy-chat'
@@ -1252,6 +1262,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/sitemap.xml'
     | '/solutions'
+    | '/sso-signin'
     | '/trust'
     | '/api/academy-chat'
     | '/api/chat'
@@ -1367,6 +1378,7 @@ export interface FileRouteTypes {
     | '/resources'
     | '/sitemap.xml'
     | '/solutions'
+    | '/sso-signin'
     | '/trust'
     | '/_authenticated/app'
     | '/api/academy-chat'
@@ -1487,6 +1499,7 @@ export interface RootRouteChildren {
   ResourcesRoute: typeof ResourcesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SolutionsRoute: typeof SolutionsRouteWithChildren
+  SsoSigninRoute: typeof SsoSigninRoute
   TrustRoute: typeof TrustRouteWithChildren
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -1515,6 +1528,13 @@ declare module '@tanstack/react-router' {
       path: '/trust'
       fullPath: '/trust'
       preLoaderRoute: typeof TrustRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sso-signin': {
+      id: '/sso-signin'
+      path: '/sso-signin'
+      fullPath: '/sso-signin'
+      preLoaderRoute: typeof SsoSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solutions': {
@@ -2650,6 +2670,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResourcesRoute: ResourcesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SolutionsRoute: SolutionsRouteWithChildren,
+  SsoSigninRoute: SsoSigninRoute,
   TrustRoute: TrustRouteWithChildren,
   ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
@@ -2673,13 +2694,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
