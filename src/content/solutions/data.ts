@@ -291,7 +291,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
   },
   {
     slug: "operational-ai-platform",
-    title: "Operational AI Platform — Enterprise Grade for Real Operations",
+    title: "Operational AI Platform — Built for Real Operations",
     h1: "The operational AI platform for asset-heavy industries",
     description:
       "OPSQAI is an operational AI platform for asset-heavy industries: retrieval-grounded, multi-tenant, auditable, and governed to enterprise standards.",
