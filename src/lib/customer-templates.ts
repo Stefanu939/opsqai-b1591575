@@ -390,10 +390,8 @@ OPSQAI gives every employee in ${v(ctx.companyName)} instant access to verified 
 
 ## Designed for the Enterprise
 - EU data residency: application DB in AWS eu-west-1 (Dublin, Ireland)
-- Infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II + ISO 27001:2022 certifications at the company level. Our current subscription is Lovable's Pro tier; Business-tier contractual coverage is being confirmed, documentation on request
+- Subprocessors (three certainty tiers): **Cloudflare, Inc. (USA)** — edge/DNS/DDoS, ISO/IEC 27001, ISO/IEC 27701, SOC 2 Type II and PCI DSS Level 1 certified; transfers under SCCs (Art. 46 GDPR) or the EU-U.S. Data Privacy Framework per Cloudflare's DPA (accepted by OPSQAI). **Lovable** — DB/auth/storage/AI gateway, SOC 2 Type II + ISO 27001:2022 at company level; current subscription Pro tier, Business-tier contractual DPA coverage being confirmed, documentation on request. **Google (gemini-3-flash-preview, gemini-2.5-flash) and OpenAI (gpt-5-mini, gpt-4o-mini-tts, text-embedding-3-small)** — indirect, via Lovable AI Gateway; OPSQAI does not contract directly with them; customer content not used to train foundation models per Lovable's Gateway terms; transfers under SCCs (Art. 46 GDPR) applied independently to Google and to OpenAI.
 - OPSQAI itself is not yet SOC 2 / ISO 27001 certified; DPA in draft, pending legal review
-- AI stack (routed via Lovable AI Gateway): Google Gemini (gemini-3-flash-preview, gemini-2.5-flash), OpenAI gpt-5-mini, gpt-4o-mini-tts, text-embedding-3-small — customer content not used to train foundation models
-- Transfers outside the EEA safeguarded by Standard Contractual Clauses (Art. 46 GDPR)
 - Row-Level Security workspace isolation
 - 30-day termination grace window → automated pg_cron purge (ON DELETE CASCADE); anonymized audit archive retained for a rolling 24 months
 
