@@ -75,6 +75,7 @@ function WebhooksPage() {
   const testFn = useServerFn(testWebhook);
   const genSecretFn = useServerFn(generateWebhookSecret) as unknown as () => Promise<{ secret: string }>;
   const emitFn = useServerFn(emitTestEvent);
+  const createFn = useServerFn(createWebhookEndpoint);
 
   async function refresh() {
     if (!activeCompanyId) return;
