@@ -92,6 +92,7 @@ function TrustPage() {
         <p className="mt-5 text-lg text-muted-foreground">
           This page is maintained by OPSQAI to summarize how we protect customer data, isolate tenants and operate the platform responsibly. It is informational and is not a substitute for independent certification.
         </p>
+        <DraftDisclaimer />
 
         <div className="mt-8 rounded-lg border border-border/60 bg-muted/30 p-5 text-sm leading-relaxed">
           <p className="font-semibold text-foreground">Certification status</p>
