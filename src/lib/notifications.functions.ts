@@ -126,8 +126,9 @@ export const saveNotificationConfig = createServerFn({ method: "POST" })
       throw new Error("Slack webhook must be on hooks.slack.com");
     }
     if (data.provider === "teams") {
-      const ok = /(\.)?(office|microsoft|webhook\.office)\.com$/.test(host)
-        || host.endsWith(".webhook.office.com");
+      const ok =
+        host === "webhook.office.com" ||
+        host.endsWith(".webhook.office.com");
       if (!ok) throw new Error("Teams webhook must be on *.webhook.office.com");
     }
 
