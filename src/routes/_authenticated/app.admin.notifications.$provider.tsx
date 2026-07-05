@@ -79,7 +79,8 @@ export const Route = createFileRoute("/_authenticated/app/admin/notifications/$p
 });
 
 function NotificationsSetup() {
-  const { provider } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
+  const provider = loaderData.provider as Provider;
   const { isPlatformAdmin, isPlatformOwner, isAdmin } = useAuth();
   if (!isPlatformAdmin && !isPlatformOwner && !isAdmin) {
     throw redirect({ to: "/app" });

@@ -122,6 +122,7 @@ import { Route as AuthenticatedAppAcademyCoursesRouteImport } from './routes/_au
 import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './routes/_authenticated/app.academy.certificates'
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
 import { Route as AuthenticatedAppInternalKnowledgeSlugRouteImport } from './routes/_authenticated/app.internal.knowledge.$slug'
+import { Route as AuthenticatedAppAdminNotificationsProviderRouteImport } from './routes/_authenticated/app.admin.notifications.$provider'
 import { Route as AuthenticatedAppAdminIntegrationsProviderRouteImport } from './routes/_authenticated/app.admin.integrations.$provider'
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
@@ -733,6 +734,12 @@ const AuthenticatedAppInternalKnowledgeSlugRoute =
     path: '/$slug',
     getParentRoute: () => AuthenticatedAppInternalKnowledgeRoute,
   } as any)
+const AuthenticatedAppAdminNotificationsProviderRoute =
+  AuthenticatedAppAdminNotificationsProviderRouteImport.update({
+    id: '/admin/notifications/$provider',
+    path: '/admin/notifications/$provider',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminIntegrationsProviderRoute =
   AuthenticatedAppAdminIntegrationsProviderRouteImport.update({
     id: '/$provider',
@@ -867,6 +874,7 @@ export interface FileRoutesByFullPath {
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
+  '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRoutesByTo {
@@ -980,6 +988,7 @@ export interface FileRoutesByTo {
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
+  '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRoutesById {
@@ -1099,6 +1108,7 @@ export interface FileRoutesById {
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/_authenticated/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
+  '/_authenticated/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/_authenticated/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
 }
 export interface FileRouteTypes {
@@ -1218,6 +1228,7 @@ export interface FileRouteTypes {
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
     | '/app/admin/integrations/$provider'
+    | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1331,6 +1342,7 @@ export interface FileRouteTypes {
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
     | '/app/admin/integrations/$provider'
+    | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
   id:
     | '__root__'
@@ -1449,6 +1461,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
     | '/_authenticated/app/admin/integrations/$provider'
+    | '/_authenticated/app/admin/notifications/$provider'
     | '/_authenticated/app/internal/knowledge/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -2288,6 +2301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppInternalKnowledgeSlugRouteImport
       parentRoute: typeof AuthenticatedAppInternalKnowledgeRoute
     }
+    '/_authenticated/app/admin/notifications/$provider': {
+      id: '/_authenticated/app/admin/notifications/$provider'
+      path: '/admin/notifications/$provider'
+      fullPath: '/app/admin/notifications/$provider'
+      preLoaderRoute: typeof AuthenticatedAppAdminNotificationsProviderRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/integrations/$provider': {
       id: '/_authenticated/app/admin/integrations/$provider'
       path: '/$provider'
@@ -2415,6 +2435,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
   AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
   AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
+  AuthenticatedAppAdminNotificationsProviderRoute: typeof AuthenticatedAppAdminNotificationsProviderRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -2467,6 +2488,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAcademyLessonLessonIdRoute,
   AuthenticatedAppAcademyPathPathIdRoute:
     AuthenticatedAppAcademyPathPathIdRoute,
+  AuthenticatedAppAdminNotificationsProviderRoute:
+    AuthenticatedAppAdminNotificationsProviderRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
