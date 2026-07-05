@@ -90,7 +90,7 @@ function SceneCompany(t: number) {
               ["Company name", "ACME Logistics"],
               ["Workspace slug", "acme-logistics"],
               ["Primary language", "English"],
-              ["Region", "EU · Frankfurt"],
+              ["Region", "EU · Dublin (eu-west-1)"],
             ].map(([k, v], i) => (
               <div key={k} className="space-y-1">
                 <div className="text-muted-foreground">{k}</div>
