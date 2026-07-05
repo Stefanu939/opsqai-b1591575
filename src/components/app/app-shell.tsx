@@ -219,6 +219,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DropdownMenuItem onClick={() => { navigate({ to: "/app/profile" }); onNavigate?.(); }}>
               <UserCircle className="h-4 w-4 mr-2" />{t("myProfile")}
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                onNavigate?.();
+                if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("opsqai:open-support"));
+              }}
+            >
+              <LifeBuoy className="h-4 w-4 mr-2" />Support &amp; Tickets
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
               <LogOut className="h-4 w-4 mr-2" />{t("signOut")}
             </DropdownMenuItem>
