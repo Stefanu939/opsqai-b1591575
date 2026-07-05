@@ -157,7 +157,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     keywords: "operational knowledge platform, multi-site knowledge base, enterprise ops",
     eyebrow: "Operational knowledge platform",
     lede:
-      "Operational knowledge is scattered — SharePoint folders, PDFs on shared drives, team-lead notebooks, group chats. OPSQAI collapses that surface into a single retrieval layer with strict tenant isolation and enterprise-grade governance.",
+      "Operational knowledge is scattered — SharePoint folders, PDFs on shared drives, team-lead notebooks, group chats. OPSQAI collapses that surface into a single retrieval layer with strict tenant isolation and enterprise-grade governance (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center).",
     sections: [
       {
         heading: "Governance and tenancy",
