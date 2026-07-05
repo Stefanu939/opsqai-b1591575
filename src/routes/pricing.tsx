@@ -20,7 +20,7 @@ export const Route = createFileRoute("/pricing")({
     pageHead({
       title: "Pricing — OPSQAI Enterprise AI Platform",
       description:
-        "Transparent per-user pricing for OPSQAI. From €30 per user per month, plus a one-time implementation package. EU hosting, SSO on request, DPA included.",
+        "Transparent per-user pricing for OPSQAI. From €8 per user per month, plus a one-time implementation package. EU hosting, SSO on request, DPA included.",
       path: "/pricing",
       keywords: "OPSQAI pricing, enterprise AI pricing, per-user pricing, warehouse AI cost",
       breadcrumbs: [
@@ -34,11 +34,24 @@ export const Route = createFileRoute("/pricing")({
 
 // Volume-tiered per-user monthly price. Larger organizations get a lower rate.
 function perUserRate(users: number): number {
-  if (users >= 2000) return 30;
-  if (users >= 500) return 36;
-  if (users >= 200) return 42;
-  if (users >= 50) return 50;
-  return 60;
+  if (users >= 2000) return 8;
+  if (users >= 500) return 9;
+  if (users >= 200) return 10;
+  if (users >= 50) return 11;
+  return 12;
+}
+
+const MIN_USERS = 25;
+const MAX_USERS = 8000;
+const SLIDER_MAX = 1000;
+
+function usersToSliderPos(u: number): number {
+  return (Math.log(u / MIN_USERS) / Math.log(MAX_USERS / MIN_USERS)) * SLIDER_MAX;
+}
+
+function sliderPosToUsers(p: number): number {
+  const raw = MIN_USERS * Math.pow(MAX_USERS / MIN_USERS, p / SLIDER_MAX);
+  return Math.round(raw / 25) * 25;
 }
 
 // One-time implementation fee scales with rollout complexity.
