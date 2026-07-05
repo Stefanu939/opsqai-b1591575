@@ -90,6 +90,36 @@ export function SupportWidget() {
   const [newPriority, setNewPriority] = useState<Priority>("normal");
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Scroll-hide behavior: on mobile, collapse to a slim edge tab when the
+  // user scrolls down; expand back on scroll-up / scroll-stop. Desktop
+  // always shows the full bubble.
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let last = window.scrollY;
+    let stopT: ReturnType<typeof setTimeout> | null = null;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const dy = y - last;
+      last = y;
+      if (y < 80) { setCollapsed(false); }
+      else if (dy > 6) { setCollapsed(true); }
+      else if (dy < -6) { setCollapsed(false); }
+      if (stopT) clearTimeout(stopT);
+      stopT = setTimeout(() => setCollapsed(false), 900);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); if (stopT) clearTimeout(stopT); };
+  }, []);
+  // Allow other UI (Profile menu, bottom nav "More", etc.) to open the widget.
+  useEffect(() => {
+    const h = () => setOpen(true);
+    window.addEventListener("opsqai:open-support", h);
+    return () => window.removeEventListener("opsqai:open-support", h);
+  }, []);
+  // Clear the bottom tab bar on authenticated app routes so the bubble
+  // never overlaps primary navigation.
+  const inApp = routeState.startsWith("/app");
 
   const listFn = useServerFn(listSupportConversations);
   const getFn = useServerFn(getSupportConversation);
@@ -228,23 +258,61 @@ export function SupportWidget() {
 
   if (hidden) return null;
 
+  // Position: on authenticated app routes, sit above the mobile bottom tab
+  // bar; on marketing pages, hug the edge. Collapsed state shrinks the
+  // bubble into a slim, semi-transparent tab pinned to the right edge so
+  // it never blocks page content on mobile.
+  const bottomOffset = inApp
+    ? "calc(env(safe-area-inset-bottom) + 5rem)"
+    : "calc(env(safe-area-inset-bottom) + 1.25rem)";
+
   return (
     <>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Open support"
-        className="fixed bottom-5 right-5 z-50 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform"
-      >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-        {!open && unread > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
-            {unread > 99 ? "99+" : unread}
-          </span>
-        )}
-      </button>
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Open support"
+          style={{ bottom: bottomOffset }}
+          className={[
+            "fixed right-0 md:right-5 z-40 flex items-center justify-center",
+            "text-primary-foreground bg-primary shadow-lg",
+            "transition-all duration-300 ease-out will-change-transform",
+            collapsed
+              ? "md:right-5 h-10 w-8 rounded-l-full md:rounded-full md:h-14 md:w-14 opacity-70 hover:opacity-100 translate-x-0"
+              : "mr-3 md:mr-0 h-14 w-14 rounded-full hover:scale-105",
+          ].join(" ")}
+        >
+          <MessageCircle className={collapsed ? "h-4 w-4 md:h-6 md:w-6" : "h-6 w-6"} />
+          {unread > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          )}
+        </button>
+      )}
 
       {open && (
-        <Card className="fixed bottom-24 right-5 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-7rem)] flex flex-col overflow-hidden shadow-2xl">
+        <>
+          {/* Mobile: full-screen bottom sheet with scrim. Desktop: floating card. */}
+          <div
+            className="md:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-fade-in"
+            onClick={() => setOpen(false)}
+            aria-hidden
+          />
+          <Card
+            className={[
+              "fixed z-50 flex flex-col overflow-hidden shadow-2xl",
+              // Mobile: bottom sheet up to 92dvh, rounded top, keyboard-safe via dvh
+              "inset-x-0 bottom-0 rounded-t-2xl rounded-b-none h-[92dvh] max-h-[92dvh] animate-slide-in-right md:animate-none",
+              // Desktop: floating card
+              "md:inset-auto md:bottom-24 md:right-5 md:w-[380px] md:max-w-[calc(100vw-2rem)] md:h-[560px] md:max-h-[calc(100vh-7rem)] md:rounded-xl",
+            ].join(" ")}
+          >
+            {/* Grabber for the mobile sheet */}
+            <div className="md:hidden pt-2 pb-1 flex justify-center">
+              <div className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+            </div>
+
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             {view !== "list" && (
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setView("list"); setActiveId(null); setMessages([]); }}>
@@ -407,6 +475,7 @@ export function SupportWidget() {
             </>
           )}
         </Card>
+        </>
       )}
     </>
   );

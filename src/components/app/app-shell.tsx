@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap, KeyRound,
+  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap, KeyRound, LifeBuoy,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
@@ -20,7 +20,9 @@ import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
-import { SupportWidget } from "@/components/support/support-widget";
+// SupportWidget is mounted globally in __root.tsx so it appears on marketing
+// pages too. Do not remount here or the bubble/badge will duplicate.
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
@@ -217,6 +219,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DropdownMenuItem onClick={() => { navigate({ to: "/app/profile" }); onNavigate?.(); }}>
               <UserCircle className="h-4 w-4 mr-2" />{t("myProfile")}
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                onNavigate?.();
+                if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("opsqai:open-support"));
+              }}
+            >
+              <LifeBuoy className="h-4 w-4 mr-2" />Support &amp; Tickets
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
               <LogOut className="h-4 w-4 mr-2" />{t("signOut")}
             </DropdownMenuItem>
@@ -306,7 +316,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </ul>
       </nav>
 
-      <SupportWidget />
+      {/* SupportWidget is mounted globally in __root.tsx */}
     </div>
   );
 }
