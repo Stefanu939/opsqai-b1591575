@@ -7,7 +7,7 @@ import { SOLUTION_PAGES } from "@/content/solutions/data";
 
 import { pageHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/solutions")({
+export const Route = createFileRoute("/solutions/")({
   head: () =>
     pageHead({
       title: "Solutions — OPSQAI for Warehouse & Logistics Operations",
