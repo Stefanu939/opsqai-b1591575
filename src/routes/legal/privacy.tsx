@@ -35,14 +35,44 @@ export const Route = createFileRoute("/legal/privacy")({
         <li>Consent (optional analytics or marketing communications).</li>
       </ul>
 
-      <h2>Sharing</h2>
-      <p>We share data only with the subprocessors listed in our Trust Center, under contract, and as required by law. We do not sell personal data.</p>
+      <h2>Sharing &amp; subprocessors</h2>
+      <p>
+        We share data only with the subprocessors listed in our Trust Center, under contract, and as required by law.
+        We do not sell personal data. OPSQAI's subprocessors are disclosed at three distinct certainty tiers:
+      </p>
+      <ul>
+        <li>
+          <strong>Cloudflare, Inc. (USA)</strong> — edge runtime, DNS, DDoS protection.
+          ISO/IEC 27001, ISO/IEC 27701, SOC 2 Type II and PCI DSS Level 1 certified. International transfers
+          safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or the EU-U.S. Data Privacy Framework, per
+          Cloudflare's Data Processing Addendum, accepted by OPSQAI. Cloudflare is headquartered in the USA and
+          traffic terminates at the closest Cloudflare point of presence.
+        </li>
+        <li>
+          <strong>Lovable</strong> — application database (Supabase infrastructure in AWS eu-west-1, Dublin,
+          Ireland), authentication, storage and AI gateway. Lovable holds SOC 2 Type II and ISO 27001:2022
+          certifications at the company level. Our current subscription is Lovable's Pro tier; Business-tier
+          contractual DPA coverage is being confirmed and documentation will be provided upon request. This
+          does not imply OPSQAI itself is certified.
+        </li>
+        <li>
+          <strong>Google</strong> (<code>gemini-3-flash-preview</code>, <code>gemini-2.5-flash</code>) and
+          <strong> OpenAI</strong> (<code>gpt-5-mini</code>, <code>gpt-4o-mini-tts</code>,
+          <code> text-embedding-3-small</code>) — AI model providers, accessed indirectly. OPSQAI does not
+          contract directly with Google or OpenAI; both are accessed via the Lovable AI Gateway under
+          Lovable's own agreements with these providers. Customer content is not used to train foundation
+          models, per Lovable's Gateway terms. International transfers safeguarded by Standard Contractual
+          Clauses (Art. 46 GDPR) or an equivalent adequacy mechanism, applied independently to Google and to
+          OpenAI.
+        </li>
+      </ul>
 
       <h2>Hosting region</h2>
       <p>
         The OPSQAI application database is hosted on managed Supabase infrastructure in
         <strong> AWS eu-west-1 (Dublin, Ireland)</strong>. Static assets and edge requests are served from
-        Cloudflare's global network; persistent storage of tenant data stays in the EU region above.
+        Cloudflare's global network (Cloudflare, Inc. is headquartered in the USA — see the subprocessor
+        list above); persistent storage of tenant data stays in the EU region above.
       </p>
 
       <h2>Retention</h2>
