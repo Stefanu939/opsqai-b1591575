@@ -3,7 +3,7 @@ import { pageHead } from "@/lib/seo";
 import { CASE_STUDIES, CONTENT_ROADMAP } from "@/content/manifest";
 import { ArrowRight } from "lucide-react";
 
-export const Route = createFileRoute("/case-studies")({
+export const Route = createFileRoute("/case-studies/")({
   head: () =>
     pageHead({
       title: "Case Studies — Enterprise AI in Logistics & Warehousing",

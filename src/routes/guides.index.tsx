@@ -3,7 +3,7 @@ import { pageHead } from "@/lib/seo";
 import { GUIDES, CONTENT_ROADMAP } from "@/content/manifest";
 import { ArrowRight, Clock } from "lucide-react";
 
-export const Route = createFileRoute("/guides")({
+export const Route = createFileRoute("/guides/")({
   head: () =>
     pageHead({
       title: "Guides — OPSQAI Enterprise AI & Operations Playbooks",
