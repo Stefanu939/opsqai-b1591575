@@ -9,8 +9,17 @@ import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand/logo";
 
+// Only allow same-origin relative paths as post-login redirect targets.
+function safeNext(raw: string | undefined): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/app";
+  return raw;
+}
+
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — OPSQAI" },
@@ -21,9 +30,12 @@ export const Route = createFileRoute("/auth")({
     ],
     links: [{ rel: "canonical", href: "https://opsqai.de/auth" }],
   }),
-  beforeLoad: async () => {
+  beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/app" });
+    if (data.session) {
+      const target = safeNext(search.next);
+      throw redirect({ href: target });
+    }
   },
   component: AuthPage,
 });
@@ -31,16 +43,24 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s) navigate({ to: "/app" });
+      if (s) {
+        const target = safeNext(next);
+        if (target === "/app") {
+          navigate({ to: "/app" });
+        } else {
+          window.location.href = target;
+        }
+      }
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, next]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
