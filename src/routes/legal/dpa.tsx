@@ -35,14 +35,39 @@ export const Route = createFileRoute("/legal/dpa")({
 
       <h2>Subprocessors</h2>
       <p>
-        Listed and kept current in the <a href="/trust">Trust Center</a>. As of the last update, OPSQAI relies on the
-        following subprocessors: Lovable Cloud (application database, authentication, storage, edge functions —
-        provided on Supabase infrastructure in <strong>AWS eu-west-1 (Dublin, Ireland)</strong>);
-        Cloudflare (edge runtime, DNS, DDoS protection);
-        Google (Gemini large-language models used for chat and retrieval responses, routed through the Lovable AI Gateway);
-        and OpenAI (models used for embeddings, text-to-speech and selected generation tasks, routed through the Lovable AI Gateway).
-        Customers are notified of material changes.
+        The current list is kept up to date in the <a href="/trust">Trust Center</a>. OPSQAI's subprocessors
+        differ materially in the level of contractual certainty and independent assurance OPSQAI can attest to.
+        We disclose them here at three distinct certainty tiers:
       </p>
+      <ul>
+        <li>
+          <strong>Cloudflare, Inc. (USA)</strong> — edge runtime, DNS, DDoS protection.
+          <strong> ISO/IEC 27001, ISO/IEC 27701, SOC 2 Type II and PCI DSS Level 1 certified.</strong>
+          International transfers safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or the EU-U.S.
+          Data Privacy Framework, per Cloudflare's Data Processing Addendum, accepted by OPSQAI.
+          Cloudflare is headquartered in the USA (San Francisco); traffic terminates at the closest
+          Cloudflare point of presence and is not guaranteed to stay in the EU at the edge layer.
+        </li>
+        <li>
+          <strong>Lovable</strong> — application database (Supabase infrastructure in AWS eu-west-1, Dublin,
+          Ireland), authentication, storage, edge functions and the AI gateway. Lovable holds
+          <strong> SOC 2 Type II</strong> and <strong>ISO 27001:2022</strong> certifications at the company
+          level. Our current subscription is <strong>Lovable's Pro tier</strong>;
+          <strong> Business-tier contractual DPA coverage is being confirmed</strong> and documentation
+          will be provided upon request. This does not imply OPSQAI itself is certified.
+        </li>
+        <li>
+          <strong>Google</strong> (<code>gemini-3-flash-preview</code>, <code>gemini-2.5-flash</code>) and
+          <strong> OpenAI</strong> (<code>gpt-5-mini</code>, <code>gpt-4o-mini-tts</code>,
+          <code> text-embedding-3-small</code>) — AI model providers.
+          <strong> OPSQAI does not contract directly with Google or OpenAI;</strong> both are accessed via
+          the Lovable AI Gateway under Lovable's own agreements with these providers. Customer content is
+          not used to train foundation models, per Lovable's Gateway terms. International transfers are
+          safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or an equivalent adequacy mechanism,
+          applied independently to Google and to OpenAI.
+        </li>
+      </ul>
+      <p>Customers are notified in advance of material changes to this list.</p>
 
       <h2>Security measures</h2>
       <p>Encryption in transit and at rest, row-level isolation per tenant, role-based access control, append-only audit logging, MFA-protected production access, and regular backups.</p>
