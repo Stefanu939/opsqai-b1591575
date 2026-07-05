@@ -73,7 +73,7 @@ function WebhooksPage() {
   const [emitting, setEmitting] = useState(false);
 
   const testFn = useServerFn(testWebhook);
-  const genSecretFn = useServerFn(generateWebhookSecret) as unknown as () => Promise<{ secret: string }>;
+  void generateWebhookSecret; // kept for API surface compatibility
   const emitFn = useServerFn(emitTestEvent);
   const createFn = useServerFn(createWebhookEndpoint);
 
