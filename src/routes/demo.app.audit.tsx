@@ -21,7 +21,7 @@ function DemoAuditPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("audit_log").select("*").eq("company_id", DEMO_COMPANY_ID).order("created_at", { ascending: false }).limit(100);
+      const { data } = await supabase.from("audit_log").select("id,user_id,module,action,resource,question,answer_preview,severity,created_at").eq("company_id", DEMO_COMPANY_ID).order("created_at", { ascending: false }).limit(100);
       setRows((data ?? []) as Row[]);
     })();
   }, []);
