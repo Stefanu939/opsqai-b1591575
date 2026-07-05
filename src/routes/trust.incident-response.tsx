@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/incident-response")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/incident-response")({
       title="Incident Response"
       intro="OPSQAI runs a documented incident-response process for security and availability incidents, with defined severity levels, communication channels and post-incident review."
     >
+      <DraftDisclaimer />
       <h2>Detection</h2>
       <ul>
         <li>Platform-level monitoring on the managed cloud (errors, latency, auth failures).</li>

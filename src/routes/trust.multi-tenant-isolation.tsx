@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/multi-tenant-isolation")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/multi-tenant-isolation")({
       title="Multi-Tenant Isolation"
       intro="OPSQAI is a shared multi-tenant SaaS. Every customer (tenant) is represented by a row in the companies table, and every other record carries a company_id foreign key."
     >
+      <DraftDisclaimer />
       <h2>How isolation is enforced</h2>
       <ul>
         <li><strong>Schema:</strong> <code>profiles</code>, <code>user_roles</code>, <code>threads</code>, <code>messages</code>, <code>knowledge_documents</code>, <code>document_chunks</code>, <code>faqs</code>, <code>internal_requests</code> and <code>audit_log</code> all carry <code>company_id</code>.</li>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/data-retention")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/data-retention")({
       title="Data Retention"
       intro="OPSQAI retains tenant data for as long as the subscription is active. On termination we provide a 30-day wind-down window, then automatically delete tenant data. Audit metadata is anonymized before archival."
     >
+      <DraftDisclaimer />
       <h2>Active subscription</h2>
       <ul>
         <li><strong>Knowledge base, threads, FAQs, audit logs:</strong> retained for the lifetime of the tenant.</li>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/backup-policy")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/backup-policy")({
       title="Backup Policy"
       intro="OPSQAI's primary data store uses managed automated backups with point-in-time recovery. Object storage and configuration are versioned independently."
     >
+      <DraftDisclaimer />
       <h2>Backup schedule</h2>
       <ul>
         <li><strong>Database:</strong> continuous WAL archiving + daily base backups, retained for a rolling 30-day window on the managed platform.</li>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/iso-27001-roadmap")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/iso-27001-roadmap")({
       title="ISO 27001 Roadmap"
       intro="OPSQAI (the product and company) is not currently ISO/IEC 27001 or SOC 2 certified, and no formal certification project has been started yet. This page tracks the controls already in place and the specific work that would need to happen before certification is realistic. We do not describe OPSQAI as 'audit-ready' or 'SOC 2 Type II ready' — those labels are reserved for a concrete, named, time-bound milestone we can point to."
     >
+      <DraftDisclaimer />
       <h2>Subprocessor certification (separate from OPSQAI's own status)</h2>
       <p>
         Our infrastructure subprocessor's platform (<strong>Lovable</strong>) holds <strong>SOC 2 Type II</strong>

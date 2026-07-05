@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/audit-logs")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/audit-logs")({
       title="Audit Logs"
       intro="OPSQAI maintains an append-only audit log per tenant. Admins can review what was asked, what sources were used and what changed in their workspace."
     >
+      <DraftDisclaimer />
       <h2>What is recorded</h2>
       <ul>
         <li>Questions asked in chat, the sources surfaced and which documents were cited.</li>

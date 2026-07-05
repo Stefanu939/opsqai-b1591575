@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/gdpr")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/gdpr")({
       title="GDPR"
       intro="OPSQAI is operated from the EU and processes customer data under the EU General Data Protection Regulation (GDPR). This page summarizes our posture; the binding terms are in our DPA."
     >
+      <DraftDisclaimer />
       <h2>Roles</h2>
       <p>Our customers are the <strong>data controllers</strong>. OPSQAI acts as a <strong>data processor</strong> for the SOPs, FAQs, questions and user accounts that customers store in their tenant.</p>
       <h2>Hosting region</h2>

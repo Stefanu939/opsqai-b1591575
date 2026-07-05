@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/encryption")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/encryption")({
       title="Encryption"
       intro="OPSQAI encrypts data both in transit and at rest using industry-standard algorithms provided by managed cloud platforms."
     >
+      <DraftDisclaimer />
       <h2>In transit</h2>
       <ul>
         <li>All public traffic to <code>opsqai.de</code>, <code>opsqai.de</code> and the application origin is served over <strong>TLS 1.2+</strong> with modern cipher suites.</li>
