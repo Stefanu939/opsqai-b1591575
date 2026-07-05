@@ -232,9 +232,52 @@ function WebhooksPage() {
 
       {/* Deliveries */}
       <section className="space-y-3">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Recent deliveries
-        </h2>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Recent deliveries
+          </h2>
+          <Dialog open={emitOpen} onOpenChange={setEmitOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <PlayCircle className="h-3.5 w-3.5 mr-2" />
+                Fire test event
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Fire a test event</DialogTitle>
+                <DialogDescription>
+                  Dispatches a real event through the outbound pipeline. Every active endpoint subscribed to the event receives a signed, marked-as-test delivery — great for validating that your consumer routes and verifies signatures correctly.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                <Label htmlFor="emit-event">Event</Label>
+                <Select value={emitEvent} onValueChange={setEmitEvent}>
+                  <SelectTrigger id="emit-event"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="knowledge.published">knowledge.published</SelectItem>
+                    <SelectItem value="faq.created">faq.created</SelectItem>
+                    <SelectItem value="faq.updated">faq.updated</SelectItem>
+                    <SelectItem value="sop.acknowledged">sop.acknowledged</SelectItem>
+                    <SelectItem value="gap.opened">gap.opened</SelectItem>
+                    <SelectItem value="gap.resolved">gap.resolved</SelectItem>
+                    <SelectItem value="audit.exported">audit.exported</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Payload will include <code className="font-mono">test: true</code> so consumers can ignore or route it separately.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEmitOpen(false)} disabled={emitting}>Cancel</Button>
+                <Button onClick={handleEmit} disabled={emitting}>
+                  {emitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  Fire event
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
         {deliveries.length === 0 ? (
           <Card className="p-4 text-sm text-muted-foreground text-center">
             No deliveries yet. Send a test to see them here.
