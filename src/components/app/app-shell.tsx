@@ -316,7 +316,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </ul>
       </nav>
 
-      <SupportWidget />
+      {/* SupportWidget is mounted globally in __root.tsx */}
     </div>
   );
 }
