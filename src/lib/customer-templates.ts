@@ -389,8 +389,10 @@ OPSQAI gives every employee in ${v(ctx.companyName)} instant access to verified 
 - OPSQAI Academy for onboarding and continuous learning
 
 ## Designed for the Enterprise
-- EU data residency, GDPR by design
-- ISO 27001 roadmap, SOC 2 Ready
+- EU data residency: application DB in AWS eu-west-1 (Dublin, Ireland)
+- Infrastructure subprocessor Lovable is SOC 2 Type II + ISO/IEC 27001:2022 certified (Aug 2025)
+- OPSQAI itself is not yet SOC 2 / ISO 27001 certified; DPA in draft, pending legal review
+- Transfers outside the EEA (Google / OpenAI as AI model providers) safeguarded by Standard Contractual Clauses (Art. 46 GDPR)
 - Row-Level Security workspace isolation
 
 ## How to Engage
