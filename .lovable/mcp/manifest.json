@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://klisqgrabmwqijbmjzsb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "opsqai-mcp",
+      "version": "0.1.0",
+      "title": "OPSQAI"
+    },
+    "tools": [
+      {
+        "name": "list_faqs",
+        "title": "List FAQs",
+        "description": "List frequently-asked questions the signed-in OPSQAI user has access to. Returns question and answer text in both English and German. Optionally filter by category.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "category": {
+              "description": "Optional category filter (exact match).",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows (default 50).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_knowledge_documents",
+        "title": "List knowledge documents",
+        "description": "List published OPSQAI knowledge documents (SOPs, policies, guides) that the signed-in user has access to. Filter by category or knowledge_type. Returns metadata only; use search_knowledge to retrieve content.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "category": {
+              "description": "Optional category filter.",
+              "type": "string"
+            },
+            "knowledge_type": {
+              "description": "Optional knowledge_type filter (e.g. sop, policy).",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows (default 50).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_knowledge",
+        "title": "Search knowledge base",
+        "description": "Keyword search across published OPSQAI knowledge documents (SOPs, policies, guides) that the signed-in user has access to. Returns matching document metadata. Set include_content=true to also return the full extracted text.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Free-text query matched against document title and text."
+            },
+            "category": {
+              "description": "Optional category filter.",
+              "type": "string"
+            },
+            "knowledge_type": {
+              "description": "Optional knowledge_type filter (e.g. sop, policy).",
+              "type": "string"
+            },
+            "include_content": {
+              "description": "Include full content_text (default false).",
+              "type": "boolean"
+            },
+            "limit": {
+              "description": "Max rows (default 20).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

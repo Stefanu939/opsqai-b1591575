@@ -17,6 +17,7 @@ import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as GuidesRouteImport } from './routes/guides'
@@ -65,6 +66,8 @@ import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-wri
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as DemoAppIndexRouteImport } from './routes/demo.app.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -83,6 +86,8 @@ import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticated/app.brand'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
 import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
@@ -170,6 +175,11 @@ const ProductRoute = ProductRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndustriesRoute = IndustriesRouteImport.update({
@@ -413,6 +423,18 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DemoAppIndexRoute = DemoAppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -505,6 +527,17 @@ const AuthenticatedAppBrandRoute = AuthenticatedAppBrandRouteImport.update({
   id: '/brand',
   path: '/brand',
   getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppWorkspaceIndexRoute =
   AuthenticatedAppWorkspaceIndexRouteImport.update({
@@ -806,6 +839,7 @@ export interface FileRoutesByFullPath {
   '/guides': typeof GuidesRouteWithChildren
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -814,6 +848,8 @@ export interface FileRoutesByFullPath {
   '/solutions': typeof SolutionsRouteWithChildren
   '/sso-signin': typeof SsoSigninRoute
   '/trust': typeof TrustRouteWithChildren
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
@@ -847,6 +883,8 @@ export interface FileRoutesByFullPath {
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/demo/': typeof DemoIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/faq': typeof AuthenticatedAppFaqRoute
@@ -929,6 +967,7 @@ export interface FileRoutesByTo {
   '/guides': typeof GuidesRouteWithChildren
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -937,6 +976,8 @@ export interface FileRoutesByTo {
   '/solutions': typeof SolutionsRouteWithChildren
   '/sso-signin': typeof SsoSigninRoute
   '/trust': typeof TrustRouteWithChildren
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
@@ -968,6 +1009,8 @@ export interface FileRoutesByTo {
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/demo': typeof DemoIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -1050,6 +1093,7 @@ export interface FileRoutesById {
   '/guides': typeof GuidesRouteWithChildren
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -1058,6 +1102,8 @@ export interface FileRoutesById {
   '/solutions': typeof SolutionsRouteWithChildren
   '/sso-signin': typeof SsoSigninRoute
   '/trust': typeof TrustRouteWithChildren
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
@@ -1091,6 +1137,8 @@ export interface FileRoutesById {
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/demo/': typeof DemoIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/app/brand': typeof AuthenticatedAppBrandRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
@@ -1175,6 +1223,7 @@ export interface FileRouteTypes {
     | '/guides'
     | '/help'
     | '/industries'
+    | '/mcp'
     | '/pricing'
     | '/product'
     | '/reset-password'
@@ -1183,6 +1232,8 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/sso-signin'
     | '/trust'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/app'
     | '/api/academy-chat'
     | '/api/chat'
@@ -1216,6 +1267,8 @@ export interface FileRouteTypes {
     | '/trust/security-architecture'
     | '/verify/$code'
     | '/demo/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/app/brand'
     | '/app/chat'
     | '/app/faq'
@@ -1298,6 +1351,7 @@ export interface FileRouteTypes {
     | '/guides'
     | '/help'
     | '/industries'
+    | '/mcp'
     | '/pricing'
     | '/product'
     | '/reset-password'
@@ -1306,6 +1360,8 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/sso-signin'
     | '/trust'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
@@ -1337,6 +1393,8 @@ export interface FileRouteTypes {
     | '/trust/security-architecture'
     | '/verify/$code'
     | '/demo'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
@@ -1418,6 +1476,7 @@ export interface FileRouteTypes {
     | '/guides'
     | '/help'
     | '/industries'
+    | '/mcp'
     | '/pricing'
     | '/product'
     | '/reset-password'
@@ -1426,6 +1485,8 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/sso-signin'
     | '/trust'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
     | '/api/academy-chat'
     | '/api/chat'
@@ -1459,6 +1520,8 @@ export interface FileRouteTypes {
     | '/trust/security-architecture'
     | '/verify/$code'
     | '/demo/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/app/brand'
     | '/_authenticated/app/chat'
     | '/_authenticated/app/faq'
@@ -1543,6 +1606,7 @@ export interface RootRouteChildren {
   GuidesRoute: typeof GuidesRouteWithChildren
   HelpRoute: typeof HelpRoute
   IndustriesRoute: typeof IndustriesRoute
+  McpRoute: typeof McpRoute
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -1551,6 +1615,8 @@ export interface RootRouteChildren {
   SolutionsRoute: typeof SolutionsRouteWithChildren
   SsoSigninRoute: typeof SsoSigninRoute
   TrustRoute: typeof TrustRouteWithChildren
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
@@ -1562,6 +1628,8 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   DemoIndexRoute: typeof DemoIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicV1FaqsRoute: typeof ApiPublicV1FaqsRoute
@@ -1629,6 +1697,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/industries': {
@@ -1967,6 +2042,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/app/': {
       id: '/demo/app/'
       path: '/'
@@ -2092,6 +2181,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/brand'
       preLoaderRoute: typeof AuthenticatedAppBrandRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app/workspace/': {
       id: '/_authenticated/app/workspace/'
@@ -2748,6 +2851,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuidesRoute: GuidesRouteWithChildren,
   HelpRoute: HelpRoute,
   IndustriesRoute: IndustriesRoute,
+  McpRoute: McpRoute,
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -2756,6 +2860,9 @@ const rootRouteChildren: RootRouteChildren = {
   SolutionsRoute: SolutionsRouteWithChildren,
   SsoSigninRoute: SsoSigninRoute,
   TrustRoute: TrustRouteWithChildren,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
@@ -2767,6 +2874,8 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   DemoIndexRoute: DemoIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicV1FaqsRoute: ApiPublicV1FaqsRoute,
@@ -2780,3 +2889,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
