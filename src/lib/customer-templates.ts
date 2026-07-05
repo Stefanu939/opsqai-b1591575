@@ -226,7 +226,7 @@ OPSQAI consolidates that knowledge into a single, source-grounded AI assistant â
 ## Expected Outcomes (12 months)
 - Reduction in time-to-answer for operational questions
 - Faster employee onboarding and certification
-- Demonstrable compliance posture (GDPR, ISO 27001, SOC 2 readiness)
+- Demonstrable compliance posture: GDPR alignment (EU hosting in AWS eu-west-1 Dublin); infrastructure subprocessor Lovable is SOC 2 Type II and ISO/IEC 27001:2022 certified (OPSQAI itself is not yet certified)
 - Measurable reduction in knowledge gaps and repeat questions
 `,
   },
