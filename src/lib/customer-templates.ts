@@ -493,11 +493,16 @@ Disclosed in the OPSQAI Trust Center. Material changes are communicated in advan
 ## Security Measures
 - TLS 1.2+ in transit, encryption at rest
 - Row-Level Security workspace isolation
-- Audit logging on sensitive actions
+- Append-only audit logging on sensitive actions
 - Daily managed backups with point-in-time recovery
+- 30-day termination grace window, then automated \`pg_cron\` purge (\`ON DELETE CASCADE\`); anonymized audit archive retained for a rolling 24 months (no user IDs, no payloads)
+- AI stack routed via Lovable AI Gateway: Google Gemini (\`gemini-3-flash-preview\`, \`gemini-2.5-flash\`); OpenAI \`gpt-5-mini\`, \`gpt-4o-mini-tts\`, \`text-embedding-3-small\` — customer content not used to train foundation models
+
+## Certification status
+OPSQAI is not yet SOC 2 or ISO/IEC 27001 certified. Our infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II and ISO 27001:2022 certifications at the company level. Our current subscription is Lovable's Pro tier; Business-tier contractual coverage is being confirmed, documentation on request.
 
 ## Notice
-> This document is a draft template. Final legal clauses must be reviewed and approved by qualified legal counsel.
+> **Draft — pending final legal review.** This document reflects our intended data protection posture and is pending final legal review. It does not yet constitute the binding agreement between the parties. Contact notify@opsqai.de for the current status before relying on it for procurement decisions.
 `,
   },
   statement_of_work: {
