@@ -3,7 +3,7 @@ import { pageHead } from "@/lib/seo";
 import { BLOG_POSTS, CONTENT_ROADMAP } from "@/content/manifest";
 import { ArrowRight, Clock } from "lucide-react";
 
-export const Route = createFileRoute("/blog")({
+export const Route = createFileRoute("/blog/")({
   head: () =>
     pageHead({
       title: "Blog — OPSQAI on Enterprise AI, Knowledge & Operations",
