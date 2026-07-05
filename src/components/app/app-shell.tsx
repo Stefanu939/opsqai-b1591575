@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap,
+  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap, KeyRound,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
@@ -64,6 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
     { to: "/app/admin/sso-setup", label: "SSO / Microsoft", icon: ShieldCheck, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
     { to: "/app/admin/webhooks", label: "Webhooks", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
+    { to: "/app/admin/api-keys", label: "API keys", icon: KeyRound, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
     { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner },
   ].filter((i) => i.show);
 

@@ -288,6 +288,21 @@ function IntegrationDetail() {
                     Manage endpoints
                   </Link>
                 </Button>
+              ) : def.provider === "api" ? (
+                <>
+                  <Button asChild variant="default" className="w-full sm:w-auto">
+                    <Link to="/app/admin/api-keys">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Manage API keys
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full sm:w-auto">
+                    <Link to="/app/admin/api-docs">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View docs
+                    </Link>
+                  </Button>
+                </>
               ) : (
                 <Button variant="ghost" className="w-full sm:w-auto" disabled>
                   <ExternalLink className="h-4 w-4 mr-2" />
