@@ -27,9 +27,11 @@ export const Route = createFileRoute("/trust/gdpr")({
       <h2>Certification status</h2>
       <p>
         OPSQAI itself is <strong>not currently SOC 2 or ISO/IEC 27001 certified</strong>. Our infrastructure
-        subprocessor Lovable is independently <strong>SOC 2 Type II</strong> and
-        <strong> ISO/IEC 27001:2022</strong> certified (confirmed August 2025). Subprocessor certification
-        reduces, but does not eliminate, OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
+        subprocessor's platform (<strong>Lovable</strong>) holds <strong>SOC 2 Type II</strong> and
+        <strong> ISO 27001:2022</strong> certifications at the company level. We are confirming the specific
+        contractual coverage applicable to our subscription tier and will provide the relevant documentation
+        upon request. Subprocessor certification reduces, but does not eliminate, OPSQAI's own responsibility
+        as a data processor under Art. 28 GDPR.
       </p>
       <h2>International data transfers</h2>
       <p>
