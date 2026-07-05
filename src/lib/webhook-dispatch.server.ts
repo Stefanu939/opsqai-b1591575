@@ -46,6 +46,20 @@ async function deliverOne(
   });
   const signature = signPayload(endpoint.secret, body, timestamp);
 
+  // SSRF guard — refuse to dispatch to private/loopback/metadata targets even if a row slipped through.
+  try {
+    const { assertSafeWebhookUrl } = await import("@/lib/webhooks.functions");
+    assertSafeWebhookUrl(endpoint.url);
+  } catch (err) {
+    return {
+      ok: false,
+      statusCode: null,
+      latencyMs: 0,
+      error: err instanceof Error ? err.message : "url_blocked",
+      responseBody: null,
+    };
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS);
   const start = Date.now();
