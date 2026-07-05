@@ -390,10 +390,12 @@ OPSQAI gives every employee in ${v(ctx.companyName)} instant access to verified 
 
 ## Designed for the Enterprise
 - EU data residency: application DB in AWS eu-west-1 (Dublin, Ireland)
-- Infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II + ISO 27001:2022 certifications at the company level; specific contractual coverage for our subscription tier is being confirmed, documentation on request
+- Infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II + ISO 27001:2022 certifications at the company level. Our current subscription is Lovable's Pro tier; Business-tier contractual coverage is being confirmed, documentation on request
 - OPSQAI itself is not yet SOC 2 / ISO 27001 certified; DPA in draft, pending legal review
-- Transfers outside the EEA (Google / OpenAI as AI model providers) safeguarded by Standard Contractual Clauses (Art. 46 GDPR)
+- AI stack (routed via Lovable AI Gateway): Google Gemini (gemini-3-flash-preview, gemini-2.5-flash), OpenAI gpt-5-mini, gpt-4o-mini-tts, text-embedding-3-small — customer content not used to train foundation models
+- Transfers outside the EEA safeguarded by Standard Contractual Clauses (Art. 46 GDPR)
 - Row-Level Security workspace isolation
+- 30-day termination grace window → automated pg_cron purge (ON DELETE CASCADE); anonymized audit archive retained for a rolling 24 months
 
 ## How to Engage
 Contact ${v(ctx.accountManager, "your OPSQAI account manager")} or visit https://opsqai.de.
