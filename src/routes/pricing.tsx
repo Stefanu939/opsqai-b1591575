@@ -116,14 +116,22 @@ function PricingPage() {
 
           <div className="mt-5">
             <Slider
-              value={[users]}
-              onValueChange={(v) => setUsers(v[0] ?? 25)}
-              min={25}
-              max={8000}
-              step={25}
+              value={[usersToSliderPos(users)]}
+              onValueChange={(v) => setUsers(Math.max(MIN_USERS, sliderPosToUsers(v[0] ?? 0)))}
+              min={0}
+              max={SLIDER_MAX}
+              step={1}
             />
-            <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
-              <span>25</span><span>500</span><span>2,000</span><span>8,000+</span>
+            <div className="relative mt-2 h-4 text-[11px] text-muted-foreground">
+              {[25, 500, 2000, 8000].map((v, i, arr) => (
+                <span
+                  key={v}
+                  className="absolute -translate-x-1/2 whitespace-nowrap"
+                  style={{ left: `${(usersToSliderPos(v) / SLIDER_MAX) * 100}%` }}
+                >
+                  {v.toLocaleString()}{i === arr.length - 1 ? "+" : ""}
+                </span>
+              ))}
             </div>
           </div>
 
