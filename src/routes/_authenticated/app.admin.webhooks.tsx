@@ -451,13 +451,13 @@ function EndpointCard({
 /* ---------- Create dialog ---------- */
 
 function CreateEndpointDialog({
-  open, setOpen, companyId, userId, genSecretFn, onCreated,
+  open, setOpen, companyId, userId, createFn, onCreated,
 }: {
   open: boolean;
   setOpen: (v: boolean) => void;
   companyId: string | null;
   userId: string | null;
-  genSecretFn: () => Promise<{ secret: string }>;
+  createFn: (opts: { data: { name: string; url: string; events: string[] } }) => Promise<{ id?: string; secret: string }>;
   onCreated: () => void;
 }) {
   const [name, setName] = useState("");
@@ -478,17 +478,7 @@ function CreateEndpointDialog({
     if (!companyId || !userId || !canSubmit) return;
     setBusy(true);
     try {
-      const { secret } = await genSecretFn();
-      const { error } = await supabase.from("webhook_endpoints").insert({
-        company_id: companyId,
-        name: name.trim(),
-        url: url.trim(),
-        secret,
-        events,
-        active: true,
-        created_by: userId,
-      });
-      if (error) throw new Error(error.message);
+      await createFn({ data: { name: name.trim(), url: url.trim(), events } });
       toast.success("Endpoint created");
       setName("");
       setUrl("");
