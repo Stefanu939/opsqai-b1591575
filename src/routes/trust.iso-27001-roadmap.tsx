@@ -18,11 +18,12 @@ export const Route = createFileRoute("/trust/iso-27001-roadmap")({
     >
       <h2>Subprocessor certification (separate from OPSQAI's own status)</h2>
       <p>
-        Our infrastructure subprocessor <strong>Lovable</strong> is independently
-        <strong> SOC 2 Type II</strong> and <strong>ISO/IEC 27001:2022</strong> certified (confirmed
-        August 2025). This applies to the underlying platform (database, authentication, storage, edge
-        functions) — it does <strong>not</strong> mean OPSQAI itself is certified, and it does not
-        eliminate OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
+        Our infrastructure subprocessor's platform (<strong>Lovable</strong>) holds <strong>SOC 2 Type II</strong>
+        and <strong> ISO 27001:2022</strong> certifications at the company level. We are confirming the specific
+        contractual coverage applicable to our subscription tier and will provide the relevant documentation upon
+        request. This coverage applies to the underlying platform (database, authentication, storage, edge
+        functions) — it does <strong>not</strong> mean OPSQAI itself is certified, and it does not eliminate
+        OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
       </p>
       <h2>Already in place</h2>
       <ul>
