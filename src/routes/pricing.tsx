@@ -93,7 +93,7 @@ function PricingPage() {
           One enterprise plan. Priced per user.
         </h1>
         <p className="mt-5 text-lg text-muted-foreground">
-          From <span className="font-semibold text-foreground">€30 / user / month</span>, plus a one-time
+          From <span className="font-semibold text-foreground">€8 / user / month</span>, plus a one-time
           implementation package sized to your rollout. Every feature is included from day one.
         </p>
       </section>
