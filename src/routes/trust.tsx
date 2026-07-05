@@ -55,11 +55,31 @@ const SECTIONS = [
   },
 ];
 
-const SUBPROCESSORS = [
-  { name: "Lovable Cloud (Supabase)", role: "Application database, authentication, storage, edge functions", region: "AWS eu-west-1 (Dublin, Ireland)" },
-  { name: "Cloudflare", role: "Edge runtime, DNS, DDoS protection", region: "Global with EU termination" },
-  { name: "Google (via Lovable AI Gateway)", role: "Gemini models (gemini-3-flash-preview, gemini-2.5-flash) for chat / retrieval responses", region: "Google Cloud; transfers outside EEA safeguarded by SCCs (Art. 46 GDPR). Not used to train foundation models." },
-  { name: "OpenAI (via Lovable AI Gateway)", role: "gpt-5-mini for generation, gpt-4o-mini-tts for text-to-speech, text-embedding-3-small for embeddings", region: "OpenAI infrastructure; transfers outside EEA safeguarded by SCCs (Art. 46 GDPR). Not used to train foundation models." },
+const SUBPROCESSORS: { name: string; role: string; region: string; certainty: "direct-audited" | "direct-pending" | "indirect" }[] = [
+  {
+    name: "Cloudflare, Inc. (USA)",
+    role: "Edge runtime, DNS, DDoS protection",
+    region: "Headquartered in the USA (San Francisco). ISO/IEC 27001, ISO/IEC 27701, SOC 2 Type II and PCI DSS Level 1 certified. International transfers safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or the EU-U.S. Data Privacy Framework, per Cloudflare's Data Processing Addendum, accepted by OPSQAI.",
+    certainty: "direct-audited",
+  },
+  {
+    name: "Lovable (Supabase infrastructure, auth, storage, AI gateway)",
+    role: "Application database, authentication, storage, edge functions, AI gateway",
+    region: "Application database in AWS eu-west-1 (Dublin, Ireland). Lovable holds SOC 2 Type II and ISO 27001:2022 certifications at the company level. Our current subscription is Lovable's Pro tier; Business-tier contractual DPA coverage is being confirmed and documentation will be provided upon request. This does not imply OPSQAI itself is certified.",
+    certainty: "direct-pending",
+  },
+  {
+    name: "Google (indirect, via Lovable AI Gateway)",
+    role: "Gemini models — gemini-3-flash-preview, gemini-2.5-flash — for chat / retrieval responses",
+    region: "OPSQAI does not contract directly with Google; access is via the Lovable AI Gateway under Lovable's own agreement with Google. Customer content is not used to train foundation models, per Lovable's Gateway terms. International transfers safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or an equivalent adequacy mechanism.",
+    certainty: "indirect",
+  },
+  {
+    name: "OpenAI (indirect, via Lovable AI Gateway)",
+    role: "gpt-5-mini (generation), gpt-4o-mini-tts (text-to-speech), text-embedding-3-small (embeddings)",
+    region: "OPSQAI does not contract directly with OpenAI; access is via the Lovable AI Gateway under Lovable's own agreement with OpenAI. Customer content is not used to train foundation models, per Lovable's Gateway terms. International transfers safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or an equivalent adequacy mechanism.",
+    certainty: "indirect",
+  },
 ];
 
 function TrustPage() {
