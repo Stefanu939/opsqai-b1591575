@@ -392,12 +392,12 @@ function SsoSetupPage() {
           <h2 className="text-sm font-semibold">Test sign-in</h2>
         </div>
         <p className="text-sm text-muted-foreground">
-          Once activated, open the sign-in page in a private window and enter an email at one of your configured domains. You'll be redirected to your IdP.
+          Open the dedicated SSO sign-in page in a private/incognito window and enter an email at one of your configured domains. You'll be routed to your IdP. If SSO isn't active yet for that domain, the page shows a clear message instead of falling back to the dashboard.
         </p>
         <Button asChild variant="outline" className="w-full sm:w-auto">
-          <a href="/auth" target="_blank" rel="noopener noreferrer">
+          <a href="/sso-signin" target="_blank" rel="noopener noreferrer">
             <ExternalLink className="h-4 w-4 mr-2" />
-            Open sign-in page
+            Open SSO sign-in page
           </a>
         </Button>
       </Card>
