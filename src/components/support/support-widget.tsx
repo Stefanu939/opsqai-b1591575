@@ -90,6 +90,36 @@ export function SupportWidget() {
   const [newPriority, setNewPriority] = useState<Priority>("normal");
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Scroll-hide behavior: on mobile, collapse to a slim edge tab when the
+  // user scrolls down; expand back on scroll-up / scroll-stop. Desktop
+  // always shows the full bubble.
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let last = window.scrollY;
+    let stopT: ReturnType<typeof setTimeout> | null = null;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const dy = y - last;
+      last = y;
+      if (y < 80) { setCollapsed(false); }
+      else if (dy > 6) { setCollapsed(true); }
+      else if (dy < -6) { setCollapsed(false); }
+      if (stopT) clearTimeout(stopT);
+      stopT = setTimeout(() => setCollapsed(false), 900);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); if (stopT) clearTimeout(stopT); };
+  }, []);
+  // Allow other UI (Profile menu, bottom nav "More", etc.) to open the widget.
+  useEffect(() => {
+    const h = () => setOpen(true);
+    window.addEventListener("opsqai:open-support", h);
+    return () => window.removeEventListener("opsqai:open-support", h);
+  }, []);
+  // Clear the bottom tab bar on authenticated app routes so the bubble
+  // never overlaps primary navigation.
+  const inApp = routeState.startsWith("/app");
 
   const listFn = useServerFn(listSupportConversations);
   const getFn = useServerFn(getSupportConversation);
