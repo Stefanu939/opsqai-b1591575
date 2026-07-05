@@ -832,6 +832,42 @@ export type Database = {
           },
         ]
       }
+      audit_log_terminated_archive: {
+        Row: {
+          action: string | null
+          archived_at: string
+          event_at: string
+          id: string
+          module: string | null
+          resource: string | null
+          severity: string | null
+          success: boolean | null
+          tenant_label: string
+        }
+        Insert: {
+          action?: string | null
+          archived_at?: string
+          event_at: string
+          id?: string
+          module?: string | null
+          resource?: string | null
+          severity?: string | null
+          success?: boolean | null
+          tenant_label: string
+        }
+        Update: {
+          action?: string | null
+          archived_at?: string
+          event_at?: string
+          id?: string
+          module?: string | null
+          resource?: string | null
+          severity?: string | null
+          success?: boolean | null
+          tenant_label?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           active: boolean
@@ -855,6 +891,9 @@ export type Database = {
           subscription_status: string
           suspended_at: string | null
           suspension_reason: string | null
+          terminated_at: string | null
+          terminated_by: string | null
+          termination_reason: string | null
           trial_ends_at: string | null
           updated_at: string
           workspace_retention: string
@@ -881,6 +920,9 @@ export type Database = {
           subscription_status?: string
           suspended_at?: string | null
           suspension_reason?: string | null
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           workspace_retention?: string
@@ -907,6 +949,9 @@ export type Database = {
           subscription_status?: string
           suspended_at?: string | null
           suspension_reason?: string | null
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           workspace_retention?: string
@@ -3136,6 +3181,10 @@ export type Database = {
         Args: { p_next: string; p_previous: string }
         Returns: undefined
       }
+      mark_tenant_terminated: {
+        Args: { _company: string; _reason?: string }
+        Returns: string
+      }
       match_document_chunks: {
         Args: {
           match_count?: number
@@ -3196,6 +3245,7 @@ export type Database = {
           permission: string
         }[]
       }
+      purge_terminated_tenants: { Args: never; Returns: Json }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3203,6 +3253,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      restore_terminated_tenant: {
+        Args: { _company: string }
+        Returns: boolean
       }
       search_everywhere: {
         Args: { p_company: string; p_limit?: number; p_q: string }
