@@ -3245,6 +3245,7 @@ export type Database = {
           permission: string
         }[]
       }
+      purge_archived_audit_log: { Args: never; Returns: Json }
       purge_terminated_tenants: { Args: never; Returns: Json }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
