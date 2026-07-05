@@ -50,28 +50,29 @@ export const Route = createFileRoute("/legal/privacy")({
         Account and content data are retained for the duration of the customer agreement.
         On termination the tenant enters a <strong>30-day grace window</strong> during which a full data
         export can be requested and termination can still be reversed by a Platform Administrator. After
-        the grace window a scheduled database job automatically and permanently deletes the tenant and all
-        related rows (<code>ON DELETE CASCADE</code>). Audit-log entries are anonymized before archival —
-        only module, action, resource, severity, success and event timestamp are kept under a hashed tenant
-        label; user IDs and payloads are not archived. Database backups follow a rolling 30-day retention
-        window on the managed platform. Server request/error logs use a short rolling retention (typically
-        14 days). Longer retention applies only where required by applicable law.
+        the grace window a scheduled database job (<code>purge_terminated_tenants</code>, daily via
+        <code> pg_cron</code>) automatically and permanently deletes the tenant and all related rows
+        (<code>ON DELETE CASCADE</code>). Audit-log entries are anonymized before archival — only module,
+        action, resource, severity, success and event timestamp are kept under a hashed tenant label
+        (no user IDs, no payloads). The anonymized audit archive is retained for a <strong>rolling
+        24 months</strong>, then purged. Database backups follow a rolling 30-day retention window on
+        the managed platform. Server request/error logs use a short rolling retention (typically 14 days).
+        Longer retention applies only where required by applicable law.
       </p>
 
       <h2>Your rights</h2>
       <p>Under the GDPR you have the right to access, rectify, erase, restrict, port or object to the processing of your personal data. Contact notify@opsqai.de to exercise these rights. You may also lodge a complaint with your local data protection authority.</p>
 
-      <h2>International transfers</h2>
+      <h2>International transfers &amp; AI model providers</h2>
       <p>
-        The OPSQAI application database is operated in the EU. Some subprocessors — in particular the
-        AI model providers <strong>Google</strong> (Gemini models, used for chat and retrieval responses)
-        and <strong>OpenAI</strong> (models used for embeddings, text-to-speech and selected generation
-        tasks), both routed through the Lovable AI Gateway — may process personal data outside the EEA.
-        Where personal data is transferred outside the EEA, transfers are safeguarded by the European
-        Commission's <strong>Standard Contractual Clauses (SCCs) under Article 46 GDPR</strong>, or an
-        equivalent adequacy mechanism where one applies. Whether customer content may be used to train
-        third-party foundation models is a separate legal question that is addressed independently under
-        our Data Processing Agreement and Responsible AI page: customer content is not used to train
+        The OPSQAI application database is operated in the EU. All AI calls are routed through the
+        <strong> Lovable AI Gateway</strong>. The explicit models processing customer content are:
+        <strong> Google Gemini</strong> — <code>gemini-3-flash-preview</code> and <code>gemini-2.5-flash</code>
+        (chat / retrieval responses); <strong>OpenAI</strong> — <code>gpt-5-mini</code> (generation),
+        <code> gpt-4o-mini-tts</code> (text-to-speech) and <code>text-embedding-3-small</code> (embeddings).
+        These providers may process personal data outside the EEA; such transfers are safeguarded by the
+        European Commission's <strong>Standard Contractual Clauses (SCCs) under Article 46 GDPR</strong>,
+        or an equivalent adequacy mechanism where one applies. Customer content is not used to train
         Google's or OpenAI's foundation models under the terms of the Lovable AI Gateway.
       </p>
 
