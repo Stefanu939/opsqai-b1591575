@@ -190,6 +190,27 @@ function IntegrationDetail() {
         <p className="text-sm leading-relaxed text-muted-foreground">{def.description}</p>
       </Card>
 
+      {/* Self-service setup shortcut for SSO providers */}
+      {(def.provider === "microsoft-sso" || def.provider === "saml-sso") && (
+        <Card className="p-5 sm:p-6 space-y-3 border-primary/20 bg-primary/5">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">Self-service configuration</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Configure SSO for your company: paste your IdP metadata URL, list the email domains, and we'll activate it. All Service Provider endpoints (ACS URL, Entity ID) are provided.
+          </p>
+          <Button asChild className="w-full sm:w-auto">
+            <Link to="/app/admin/sso-setup">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open SSO setup
+            </Link>
+          </Button>
+        </Card>
+      )}
+
+
+
       {/* Actions — sticky-feel row, full-width on mobile, inline on desktop */}
       <Card className="p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2">
