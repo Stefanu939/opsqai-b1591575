@@ -73,10 +73,15 @@ export const Route = createFileRoute("/legal/dpa")({
 
       <h2>Return &amp; deletion</h2>
       <p>
-        On termination, customer data is exported on request and then deleted within <strong>30 days after termination</strong>,
-        unless a longer period is required by applicable law. Backups age out within the platform's rolling
-        30-day backup window after primary deletion. Aggregated, non-identifying operational metrics may be retained
-        indefinitely.
+        On termination the tenant enters a <strong>30-day grace window</strong> during which the customer
+        may request a full data export and termination can be reversed by a Platform Administrator. After
+        the grace window, a scheduled database job (<code>purge_terminated_tenants</code>, executed daily
+        via <code>pg_cron</code>) permanently deletes the tenant record; all related rows are removed by
+        <code> ON DELETE CASCADE</code>. Audit-log entries are anonymized and moved to a separate archive
+        (module, action, resource, severity, success and event timestamp only — no user IDs, no payloads).
+        Backups age out within the managed platform's rolling 30-day backup window after primary deletion.
+        Longer retention applies only where required by applicable law; aggregated, non-identifying
+        operational metrics may be retained indefinitely.
       </p>
     </>
   ),

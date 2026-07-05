@@ -48,10 +48,14 @@ export const Route = createFileRoute("/legal/privacy")({
       <h2>Retention</h2>
       <p>
         Account and content data are retained for the duration of the customer agreement.
-        On termination, customer data is exported on request and then deleted within <strong>30 days after termination</strong>,
-        unless a longer period is required by applicable law. Audit logs are retained for up to
-        24 months. Database backups follow a rolling 30-day retention window on the managed platform.
-        Server request/error logs use a short rolling retention (typically 14 days).
+        On termination the tenant enters a <strong>30-day grace window</strong> during which a full data
+        export can be requested and termination can still be reversed by a Platform Administrator. After
+        the grace window a scheduled database job automatically and permanently deletes the tenant and all
+        related rows (<code>ON DELETE CASCADE</code>). Audit-log entries are anonymized before archival —
+        only module, action, resource, severity, success and event timestamp are kept under a hashed tenant
+        label; user IDs and payloads are not archived. Database backups follow a rolling 30-day retention
+        window on the managed platform. Server request/error logs use a short rolling retention (typically
+        14 days). Longer retention applies only where required by applicable law.
       </p>
 
       <h2>Your rights</h2>

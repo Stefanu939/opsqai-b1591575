@@ -36,7 +36,12 @@ export const Route = createFileRoute("/trust/audit-logs")({
         <li>Platform super-admins can review audit logs across tenants for incident response only; this access is itself logged.</li>
       </ul>
       <h2>Retention</h2>
-      <p>Audit logs are retained for the lifetime of the tenant subscription and for a defined wind-down window after termination (see <a href="/trust/data-retention">Data retention</a>).</p>
+      <p>
+        Audit logs are retained for the lifetime of the tenant subscription. When a tenant is terminated,
+        audit entries are anonymized on purge — module, action, resource, severity, success and event
+        timestamp are kept under a hashed tenant label in a separate archive; user IDs and payloads are not
+        archived. See <a href="/trust/data-retention">Data retention</a> for the full 30-day termination flow.
+      </p>
     </TrustTopic>
   ),
 });
