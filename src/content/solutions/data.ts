@@ -294,7 +294,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     title: "Operational AI Platform — Built for Real Operations",
     h1: "The operational AI platform for asset-heavy industries",
     description:
-      "OPSQAI is an operational AI platform for asset-heavy industries: retrieval-grounded, multi-tenant, auditable, and governed to enterprise standards.",
+      "OPSQAI is an operational AI platform for asset-heavy industries: retrieval-grounded, multi-tenant, auditable, governance-first (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center).",
     keywords: "operational AI platform, industrial AI, enterprise AI operations",
     eyebrow: "Operational AI platform",
     lede:
