@@ -33,6 +33,33 @@ export const Route = createFileRoute("/trust/gdpr")({
         and the relevant documentation will be provided upon request. Subprocessor certification reduces, but does
         not eliminate, OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
       </p>
+      <h2>Subprocessors (three certainty tiers)</h2>
+      <ul>
+        <li>
+          <strong>Cloudflare, Inc. (USA)</strong> — edge runtime, DNS, DDoS protection.
+          <strong> ISO/IEC 27001, ISO/IEC 27701, SOC 2 Type II and PCI DSS Level 1 certified.</strong>
+          International transfers safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or the
+          EU-U.S. Data Privacy Framework, per Cloudflare's Data Processing Addendum, accepted by OPSQAI.
+          Cloudflare is headquartered in the USA (San Francisco); traffic terminates at the closest
+          Cloudflare point of presence.
+        </li>
+        <li>
+          <strong>Lovable</strong> — application database, authentication, storage and AI gateway.
+          SOC 2 Type II and ISO 27001:2022 certifications at the company level. Our current subscription
+          is Lovable's Pro tier; <strong>Business-tier contractual DPA coverage is being confirmed</strong>
+          and documentation will be provided upon request. This does not imply OPSQAI itself is certified.
+        </li>
+        <li>
+          <strong>Google</strong> (<code>gemini-3-flash-preview</code>, <code>gemini-2.5-flash</code>) and
+          <strong> OpenAI</strong> (<code>gpt-5-mini</code>, <code>gpt-4o-mini-tts</code>,
+          <code> text-embedding-3-small</code>) — <strong>OPSQAI does not contract directly with Google
+          or OpenAI</strong>; both are accessed via the Lovable AI Gateway under Lovable's own agreements
+          with these providers. Customer content is not used to train foundation models, per Lovable's
+          Gateway terms. International transfers safeguarded by Standard Contractual Clauses
+          (Art. 46 GDPR) or an equivalent adequacy mechanism, applied independently to Google and to
+          OpenAI.
+        </li>
+      </ul>
       <h2>AI model stack (explicit models)</h2>
       <p>
         All AI calls are routed through the Lovable AI Gateway. The models in use are:
