@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/security-architecture")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/security-architecture")({
       title="Security Architecture"
       intro="OPSQAI is a single-page React application served from an edge runtime, talking to a managed PostgreSQL backend through a publishable API and to AI models through a server-side gateway."
     >
+      <DraftDisclaimer />
       <p className="mb-6 rounded-md border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary">
         Built on modern architecture: TanStack, Supabase, pgvector, RLS, PWA-ready. OPSQAI itself is not SOC 2 or ISO/IEC 27001 certified; the underlying Supabase / Lovable platform is (see the ISO 27001 Roadmap for scope).
       </p>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/availability")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/availability")({
       title="Availability"
       intro="OPSQAI runs on a global edge runtime with a managed regional database. We target high availability and design the application to degrade gracefully when upstream services are unhealthy."
     >
+      <DraftDisclaimer />
       <h2>Target</h2>
       <ul>
         <li><strong>Monthly availability target:</strong> 99.9% for the application surface (chat, knowledge base, FAQ).</li>

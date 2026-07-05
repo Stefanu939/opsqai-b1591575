@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TrustTopic } from "@/components/marketing/trust-topic";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/trust/responsible-ai")({
   head: () => ({ meta: [
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/trust/responsible-ai")({
       title="Responsible AI"
       intro="OPSQAI is a source-grounded assistant. The model is allowed to answer only from documents that belong to the asking user's tenant — and it must refuse when there is no matching source."
     >
+      <DraftDisclaimer />
       <h2>Grounding</h2>
       <ul>
         <li>Every chat turn runs retrieval against the tenant's <code>document_chunks</code> first; the LLM only sees chunks scoped to that tenant.</li>
