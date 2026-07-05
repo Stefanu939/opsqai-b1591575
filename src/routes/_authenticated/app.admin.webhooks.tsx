@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { testWebhook, generateWebhookSecret, emitTestEvent } from "@/lib/webhooks.functions";
+import { testWebhook, emitTestEvent, createWebhookEndpoint } from "@/lib/webhooks.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,8 +73,9 @@ function WebhooksPage() {
   const [emitting, setEmitting] = useState(false);
 
   const testFn = useServerFn(testWebhook);
-  const genSecretFn = useServerFn(generateWebhookSecret) as unknown as () => Promise<{ secret: string }>;
+  
   const emitFn = useServerFn(emitTestEvent);
+  const createFn = useServerFn(createWebhookEndpoint);
 
   async function refresh() {
     if (!activeCompanyId) return;
@@ -191,7 +192,7 @@ function WebhooksPage() {
           setOpen={setCreateOpen}
           companyId={activeCompanyId}
           userId={user?.id ?? null}
-          genSecretFn={genSecretFn}
+          createFn={createFn}
           onCreated={refresh}
         />
       </div>
@@ -450,13 +451,13 @@ function EndpointCard({
 /* ---------- Create dialog ---------- */
 
 function CreateEndpointDialog({
-  open, setOpen, companyId, userId, genSecretFn, onCreated,
+  open, setOpen, companyId, userId, createFn, onCreated,
 }: {
   open: boolean;
   setOpen: (v: boolean) => void;
   companyId: string | null;
   userId: string | null;
-  genSecretFn: () => Promise<{ secret: string }>;
+  createFn: (opts: { data: { name: string; url: string; events: string[] } }) => Promise<{ id?: string; secret: string }>;
   onCreated: () => void;
 }) {
   const [name, setName] = useState("");
@@ -477,17 +478,7 @@ function CreateEndpointDialog({
     if (!companyId || !userId || !canSubmit) return;
     setBusy(true);
     try {
-      const { secret } = await genSecretFn();
-      const { error } = await supabase.from("webhook_endpoints").insert({
-        company_id: companyId,
-        name: name.trim(),
-        url: url.trim(),
-        secret,
-        events,
-        active: true,
-        created_by: userId,
-      });
-      if (error) throw new Error(error.message);
+      await createFn({ data: { name: name.trim(), url: url.trim(), events } });
       toast.success("Endpoint created");
       setName("");
       setUrl("");
