@@ -51,11 +51,21 @@ export const Route = createFileRoute("/legal/dpa")({
       <p>
         OPSQAI itself is <strong>not currently SOC 2 or ISO/IEC 27001 certified</strong>. Our infrastructure
         subprocessor's platform (<strong>Lovable</strong>) holds <strong>SOC 2 Type II</strong> and
-        <strong> ISO 27001:2022</strong> certifications at the company level. We are confirming the specific
-        contractual coverage applicable to our subscription tier and will provide the relevant documentation
-        upon request. Certification of a subprocessor reduces, but does not eliminate, OPSQAI's own
-        responsibility as a data processor: we remain accountable to the controller under Art. 28 GDPR for the
-        processing we carry out and for the diligent selection and oversight of our subprocessors.
+        <strong> ISO 27001:2022</strong> certifications at the company level. Our current subscription is
+        <strong> Lovable's Pro tier</strong>; <strong>Business-tier contractual coverage is being confirmed</strong>
+        and the relevant documentation will be provided upon request. Certification of a subprocessor reduces, but
+        does not eliminate, OPSQAI's own responsibility as a data processor: we remain accountable to the
+        controller under Art. 28 GDPR for the processing we carry out and for the diligent selection and
+        oversight of our subprocessors.
+      </p>
+
+      <h2>AI model stack (explicit models)</h2>
+      <p>
+        All AI calls are routed through the Lovable AI Gateway. The models processed on customer content are:
+        <strong> Google Gemini</strong> — <code>gemini-3-flash-preview</code> and <code>gemini-2.5-flash</code>
+        (chat / retrieval responses); <strong>OpenAI</strong> — <code>gpt-5-mini</code> (generation),
+        <code> gpt-4o-mini-tts</code> (text-to-speech) and <code>text-embedding-3-small</code> (embeddings).
+        Customer content is not used to train these foundation models under the terms of the Lovable AI Gateway.
       </p>
 
       <h2>International data transfers</h2>
@@ -78,10 +88,12 @@ export const Route = createFileRoute("/legal/dpa")({
         the grace window, a scheduled database job (<code>purge_terminated_tenants</code>, executed daily
         via <code>pg_cron</code>) permanently deletes the tenant record; all related rows are removed by
         <code> ON DELETE CASCADE</code>. Audit-log entries are anonymized and moved to a separate archive
-        (module, action, resource, severity, success and event timestamp only — no user IDs, no payloads).
-        Backups age out within the managed platform's rolling 30-day backup window after primary deletion.
-        Longer retention applies only where required by applicable law; aggregated, non-identifying
-        operational metrics may be retained indefinitely.
+        (<code>audit_log_terminated_archive</code>) — module, action, resource, severity, success and event
+        timestamp only, under a hashed tenant label (no user IDs, no payloads). The anonymized archive is
+        retained for a <strong>rolling 24 months</strong>, after which it is purged. Backups age out within
+        the managed platform's rolling 30-day backup window after primary deletion. Longer retention applies
+        only where required by applicable law; aggregated, non-identifying operational metrics may be
+        retained indefinitely.
       </p>
     </>
   ),
