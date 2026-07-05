@@ -108,3 +108,45 @@ export const testWebhook = createServerFn({ method: "POST" })
 export const generateWebhookSecret = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => ({ secret: randomBytes(24).toString("hex") }));
+
+const EMIT_EVENTS = [
+  "knowledge.published",
+  "faq.created",
+  "faq.updated",
+  "sop.acknowledged",
+  "gap.opened",
+  "gap.resolved",
+  "audit.exported",
+] as const;
+const EmitInput = z.object({
+  event: z.enum(EMIT_EVENTS),
+});
+
+/**
+ * Emit a real event through the dispatcher so admins can verify routing
+ * (endpoint subscription, signature, delivery log) end-to-end.
+ */
+export const emitTestEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => EmitInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: profile } = await context.supabase
+      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!profile?.company_id) throw new Error("No company context");
+
+    const { data: matching } = await context.supabase
+      .from("webhook_endpoints")
+      .select("id")
+      .eq("company_id", profile.company_id)
+      .eq("active", true)
+      .contains("events", [data.event]);
+
+    const { emitWebhookEvent } = await import("@/lib/webhook-dispatch.server");
+    await emitWebhookEvent(profile.company_id as string, data.event as never, {
+      test: true,
+      note: "Test payload from OPSQAI admin — safe to ignore",
+      emitted_by: context.userId,
+    });
+    return { ok: true, dispatched_to: matching?.length ?? 0 };
+  });
+

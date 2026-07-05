@@ -3,15 +3,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { testWebhook, generateWebhookSecret } from "@/lib/webhooks.functions";
+import { testWebhook, generateWebhookSecret, emitTestEvent } from "@/lib/webhooks.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   ArrowLeft, Plus, Webhook, PlayCircle, Trash2, Copy, Loader2, CheckCircle2,
@@ -23,11 +24,12 @@ export const Route = createFileRoute("/_authenticated/app/admin/webhooks")({
 });
 
 const ALL_EVENTS = [
-  { id: "chat.answered", label: "Chat — answered" },
-  { id: "sop.published", label: "SOP — published" },
+  { id: "knowledge.published", label: "Knowledge — document published" },
+  { id: "faq.created", label: "FAQ — created" },
+  { id: "faq.updated", label: "FAQ — updated" },
   { id: "sop.acknowledged", label: "SOP — acknowledged" },
-  { id: "incident.opened", label: "Incident — opened" },
-  { id: "incident.resolved", label: "Incident — resolved" },
+  { id: "gap.opened", label: "Knowledge gap — opened" },
+  { id: "gap.resolved", label: "Knowledge gap — resolved" },
   { id: "user.provisioned", label: "User — provisioned" },
   { id: "user.deprovisioned", label: "User — de-provisioned" },
   { id: "audit.exported", label: "Audit — exported" },
@@ -66,9 +68,13 @@ function WebhooksPage() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [emitOpen, setEmitOpen] = useState(false);
+  const [emitEvent, setEmitEvent] = useState("knowledge.published");
+  const [emitting, setEmitting] = useState(false);
 
   const testFn = useServerFn(testWebhook);
   const genSecretFn = useServerFn(generateWebhookSecret) as unknown as () => Promise<{ secret: string }>;
+  const emitFn = useServerFn(emitTestEvent);
 
   async function refresh() {
     if (!activeCompanyId) return;
@@ -112,6 +118,25 @@ function WebhooksPage() {
       setTestingId(null);
     }
   }
+
+  async function handleEmit() {
+    setEmitting(true);
+    try {
+      const r = await emitFn({ data: { event: emitEvent as never } });
+      if (r.dispatched_to === 0) {
+        toast.warning(`No endpoint is subscribed to "${emitEvent}". Add it to an endpoint's events first.`);
+      } else {
+        toast.success(`Event "${emitEvent}" dispatched to ${r.dispatched_to} endpoint(s).`);
+      }
+      setEmitOpen(false);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Emit failed");
+    } finally {
+      setEmitting(false);
+    }
+  }
+
 
   async function handleDelete(id: string) {
     if (!confirm("Remove this webhook endpoint?")) return;
@@ -208,9 +233,52 @@ function WebhooksPage() {
 
       {/* Deliveries */}
       <section className="space-y-3">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Recent deliveries
-        </h2>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Recent deliveries
+          </h2>
+          <Dialog open={emitOpen} onOpenChange={setEmitOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <PlayCircle className="h-3.5 w-3.5 mr-2" />
+                Fire test event
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Fire a test event</DialogTitle>
+                <DialogDescription>
+                  Dispatches a real event through the outbound pipeline. Every active endpoint subscribed to the event receives a signed, marked-as-test delivery — great for validating that your consumer routes and verifies signatures correctly.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                <Label htmlFor="emit-event">Event</Label>
+                <Select value={emitEvent} onValueChange={setEmitEvent}>
+                  <SelectTrigger id="emit-event"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="knowledge.published">knowledge.published</SelectItem>
+                    <SelectItem value="faq.created">faq.created</SelectItem>
+                    <SelectItem value="faq.updated">faq.updated</SelectItem>
+                    <SelectItem value="sop.acknowledged">sop.acknowledged</SelectItem>
+                    <SelectItem value="gap.opened">gap.opened</SelectItem>
+                    <SelectItem value="gap.resolved">gap.resolved</SelectItem>
+                    <SelectItem value="audit.exported">audit.exported</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Payload will include <code className="font-mono">test: true</code> so consumers can ignore or route it separately.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEmitOpen(false)} disabled={emitting}>Cancel</Button>
+                <Button onClick={handleEmit} disabled={emitting}>
+                  {emitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  Fire event
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
         {deliveries.length === 0 ? (
           <Card className="p-4 text-sm text-muted-foreground text-center">
             No deliveries yet. Send a test to see them here.

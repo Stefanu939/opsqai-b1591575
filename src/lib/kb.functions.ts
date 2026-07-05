@@ -96,6 +96,16 @@ export const processDocument = createServerFn({ method: "POST" })
         })
         .eq("id", doc.id);
 
+      // Fire outbound webhook (fire-and-forget)
+      const { emitWebhookEvent } = await import("@/lib/webhook-dispatch.server");
+      void emitWebhookEvent(doc.company_id as string, "knowledge.published", {
+        id: doc.id,
+        title: data.title,
+        category: data.category,
+        doc_code: data.doc_code ?? null,
+        chunks: chunks.length,
+      });
+
       return { ok: true, id: doc.id, chunks: chunks.length };
     } catch (err) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
