@@ -31,7 +31,7 @@ export const OPSQAI_FACTS = {
   compliance: [
     "GDPR by design. Application database in AWS eu-west-1 (Dublin, Ireland).",
     "OPSQAI itself is not currently SOC 2 or ISO/IEC 27001 certified.",
-    "Infrastructure subprocessor Lovable is SOC 2 Type II and ISO/IEC 27001:2022 certified (confirmed August 2025).",
+    "Infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II and ISO 27001:2022 certifications at the company level; specific contractual coverage for our subscription tier is being confirmed and documentation is available on request.",
     "Transfers outside the EEA (e.g., to Google or OpenAI as AI model providers) are safeguarded by Standard Contractual Clauses under Art. 46 GDPR.",
   ],
   branding: {
