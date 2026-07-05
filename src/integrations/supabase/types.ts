@@ -2269,6 +2269,71 @@ export type Database = {
           },
         ]
       }
+      sso_configurations: {
+        Row: {
+          company_id: string
+          created_at: string
+          display_name: string | null
+          email_domains: string[]
+          id: string
+          idp_type: Database["public"]["Enums"]["sso_idp_type"]
+          metadata_url: string | null
+          notes: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["sso_config_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          display_name?: string | null
+          email_domains?: string[]
+          id?: string
+          idp_type?: Database["public"]["Enums"]["sso_idp_type"]
+          metadata_url?: string | null
+          notes?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["sso_config_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          display_name?: string | null
+          email_domains?: string[]
+          id?: string
+          idp_type?: Database["public"]["Enums"]["sso_idp_type"]
+          metadata_url?: string | null
+          notes?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["sso_config_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sso_configurations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_events: {
         Row: {
           actor_id: string | null
@@ -3163,6 +3228,14 @@ export type Database = {
         | "partnership"
         | "other"
       message_role: "user" | "assistant" | "system"
+      sso_config_status: "draft" | "pending_review" | "active" | "rejected"
+      sso_idp_type:
+        | "azure_ad"
+        | "okta"
+        | "onelogin"
+        | "ping"
+        | "google_workspace"
+        | "other"
       support_priority: "low" | "normal" | "high" | "critical"
       support_sender_kind: "customer" | "platform"
       support_status: "open" | "pending" | "resolved" | "closed"
@@ -3334,6 +3407,15 @@ export const Constants = {
         "other",
       ],
       message_role: ["user", "assistant", "system"],
+      sso_config_status: ["draft", "pending_review", "active", "rejected"],
+      sso_idp_type: [
+        "azure_ad",
+        "okta",
+        "onelogin",
+        "ping",
+        "google_workspace",
+        "other",
+      ],
       support_priority: ["low", "normal", "high", "critical"],
       support_sender_kind: ["customer", "platform"],
       support_status: ["open", "pending", "resolved", "closed"],
