@@ -475,6 +475,7 @@ export function SupportWidget() {
             </>
           )}
         </Card>
+        </>
       )}
     </>
   );
