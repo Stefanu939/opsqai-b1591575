@@ -209,6 +209,30 @@ function IntegrationDetail() {
         </Card>
       )}
 
+      {/* Live notifications setup for Slack / Teams */}
+      {(def.provider === "slack" || def.provider === "teams") && (
+        <Card className="p-5 sm:p-6 space-y-3 border-primary/20 bg-primary/5">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">Live notifications</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Paste your incoming-webhook URL and pick which OPSQAI events forward to your channel. No IT ticket required — {def.name} setup takes under two minutes.
+          </p>
+          <Button asChild className="w-full sm:w-auto">
+            <Link
+              to="/app/admin/notifications/$provider"
+              params={{ provider: def.provider }}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Configure {def.name} notifications
+            </Link>
+          </Button>
+        </Card>
+      )}
+
+
+
 
 
       {/* Actions — sticky-feel row, full-width on mobile, inline on desktop */}
