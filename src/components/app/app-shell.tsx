@@ -64,6 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
     { to: "/app/admin/sso-setup", label: "SSO / Microsoft", icon: ShieldCheck, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
     { to: "/app/admin/webhooks", label: "Webhooks", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
+    { to: "/app/admin/api-keys", label: "API keys", icon: KeyRound, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
     { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner },
   ].filter((i) => i.show);
 
