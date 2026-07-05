@@ -319,7 +319,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
   },
   {
     slug: "enterprise-knowledge-base",
-    title: "Enterprise Knowledge Base — Retrieval-Grounded and Audit-Ready",
+    title: "Enterprise Knowledge Base — Retrieval-Grounded, Built for Audits",
     h1: "The enterprise knowledge base with AI you can defend",
     description:
       "OPSQAI is an enterprise knowledge base with retrieval-grounded AI, immutable audit, multi-tenant isolation, and role-based governance — built for regulated operations.",
