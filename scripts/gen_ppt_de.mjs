@@ -347,10 +347,10 @@ function darkCard(s, x, y, w, h) {
   const items = [
     ["Row-Level Security", "RLS-Policies auf jeder Tabelle, gefiltert über current_company_id()."],
     ["Verschlüsselung", "TLS 1.2+ in Transit, Encryption at Rest, tägliche verschlüsselte Backups."],
-    ["EU-gehostet", "DSGVO-konforme Datenhaltung in der EU. AVV verfügbar. Kein Training mit Ihren Daten."],
+    ["EU-gehostet", "DB auf Supabase in AWS eu-west-1 (Dublin, IE). AVV im Entwurf. Kein Training mit Ihren Daten (Google/OpenAI über Lovable AI Gateway)."],
     ["Audit & Suppression", "Append-only Log pro Mandant. Suppression-Liste für E-Mail-Compliance."],
-    ["ISO 27001 Roadmap", "Ausrichtung an ISO 27001 und SOC 2 Type II ready."],
-    ["Responsible AI", "Explizite Ablehnung ohne Quelle. Keine Halluzinationen."],
+    ["Zertifizierungen", "OPSQAI ist nicht SOC 2 / ISO 27001 zertifiziert. Subprozessor Lovable: SOC 2 Type II + ISO 27001:2022 (Aug. 2025)."],
+    ["Responsible AI", "Explizite Ablehnung ohne Quelle. Drittlandtransfers: SCC (Art. 46 DSGVO)."],
   ];
   items.forEach((it, i) => {
     const col = i % 3, row = Math.floor(i / 3);

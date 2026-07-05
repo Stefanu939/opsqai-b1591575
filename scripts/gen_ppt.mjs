@@ -369,10 +369,10 @@ function darkCard(s, x, y, w, h) {
   const items = [
     ["Row-Level Security", "Politici RLS pe fiecare tabel, filtrate prin current_company_id()."],
     ["Encryption", "TLS 1.2+ în tranzit, encryption at rest, backup-uri criptate zilnic."],
-    ["EU-hosted", "Rezidență GDPR în UE. DPA disponibil. Fără antrenare pe datele tale."],
+    ["EU-hosted", "DB pe Supabase în AWS eu-west-1 (Dublin, IE). DPA în draft. Fără antrenare pe datele tale (Google/OpenAI via Lovable AI Gateway)."],
     ["Audit & suppression", "Log append-only per tenant. Suppression list pentru email compliance."],
-    ["ISO 27001 Roadmap", "Aliniere cu ISO 27001 și SOC 2 Type II ready."],
-    ["Responsible AI", "Refuz explicit când nu există sursă. Fără halucinații."],
+    ["Certificări", "OPSQAI nu e SOC 2 / ISO 27001 certificat. Subprocesor Lovable: SOC 2 Type II + ISO 27001:2022 (aug. 2025)."],
+    ["Responsible AI", "Refuz explicit când nu există sursă. Transferuri extra-UE: SCC (Art. 46 GDPR)."],
   ];
   items.forEach((it, i) => {
     const col = i % 3, row = Math.floor(i / 3);

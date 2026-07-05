@@ -29,9 +29,9 @@ export const Route = createFileRoute("/trust/data-retention")({
       </ul>
       <h2>On termination</h2>
       <ul>
-        <li>A 30-day wind-down window allows the customer to export data.</li>
-        <li>After the window, the tenant row is deleted; ON DELETE CASCADE removes all related rows.</li>
-        <li>Backups age out within the rolling 30-day backup window after primary deletion.</li>
+        <li>Customer data is exported on request and then deleted within <strong>30 days after termination</strong>, unless a longer period is required by applicable law.</li>
+        <li>After this window, the tenant row is deleted; ON DELETE CASCADE removes all related rows.</li>
+        <li>Backups age out within the platform's rolling 30-day backup window after primary deletion.</li>
       </ul>
       <h2>Aggregated metrics</h2>
       <p>OPSQAI may retain anonymous, non-identifying operational metrics (such as request counts and latency) indefinitely. These contain no tenant payload data.</p>

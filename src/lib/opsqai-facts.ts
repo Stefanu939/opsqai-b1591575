@@ -29,9 +29,10 @@ export const OPSQAI_FACTS = {
     "Daily managed backups and point-in-time recovery.",
   ],
   compliance: [
-    "GDPR by design (data residency in the EU).",
-    "ISO 27001 roadmap.",
-    "SOC 2 Type II ready.",
+    "GDPR by design. Application database in AWS eu-west-1 (Dublin, Ireland).",
+    "OPSQAI itself is not currently SOC 2 or ISO/IEC 27001 certified.",
+    "Infrastructure subprocessor Lovable is SOC 2 Type II and ISO/IEC 27001:2022 certified (confirmed August 2025).",
+    "Transfers outside the EEA (e.g., to Google or OpenAI as AI model providers) are safeguarded by Standard Contractual Clauses under Art. 46 GDPR.",
   ],
   branding: {
     primary: "#2563EB",

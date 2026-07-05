@@ -41,7 +41,7 @@ const SECTIONS = [
   {
     icon: FileCheck,
     title: "GDPR posture",
-    body: "OPSQAI is operated from the EU. Customer data is hosted in EU regions. Customers can request export or deletion of their tenant data; we support data portability and the right to be forgotten. A DPA is available on request.",
+    body: "OPSQAI is operated from the EU. Customer application data is hosted on managed Supabase infrastructure in AWS eu-west-1 (Dublin, Ireland). Customers can request export or deletion of their tenant data; we support data portability and the right to be forgotten. A DPA is available on request (currently in draft, pending final legal review).",
   },
   {
     icon: Server,
@@ -51,14 +51,15 @@ const SECTIONS = [
   {
     icon: AlertCircle,
     title: "Responsible AI",
-    body: "OPSQAI answers strictly from retrieved customer documents. When no source matches, the model returns a refusal — never a guess. Customer documents and questions are not used to train third-party foundation models.",
+    body: "OPSQAI answers strictly from retrieved customer documents. When no source matches, the model returns a refusal — never a guess. Customer documents and questions are not used to train Google's or OpenAI's foundation models under the terms of the Lovable AI Gateway.",
   },
 ];
 
 const SUBPROCESSORS = [
-  { name: "Lovable Cloud (Supabase)", role: "Application database, authentication, storage, edge functions", region: "EU" },
+  { name: "Lovable Cloud (Supabase)", role: "Application database, authentication, storage, edge functions", region: "AWS eu-west-1 (Dublin, Ireland)" },
   { name: "Cloudflare", role: "Edge runtime, DNS, DDoS protection", region: "Global with EU termination" },
-  { name: "AI model providers (via Lovable AI Gateway)", role: "LLM inference and embeddings", region: "EU / US (no training on customer data)" },
+  { name: "Google (via Lovable AI Gateway)", role: "Gemini models (gemini-3-flash-preview, gemini-2.5-flash) for chat / retrieval responses", region: "Google Cloud; transfers outside EEA safeguarded by SCCs (Art. 46 GDPR). Not used to train foundation models." },
+  { name: "OpenAI (via Lovable AI Gateway)", role: "gpt-5-mini for generation, gpt-4o-mini-tts for text-to-speech, text-embedding-3-small for embeddings", region: "OpenAI infrastructure; transfers outside EEA safeguarded by SCCs (Art. 46 GDPR). Not used to train foundation models." },
 ];
 
 function TrustPage() {
@@ -70,6 +71,18 @@ function TrustPage() {
         <p className="mt-5 text-lg text-muted-foreground">
           This page is maintained by OPSQAI to summarize how we protect customer data, isolate tenants and operate the platform responsibly. It is informational and is not a substitute for independent certification.
         </p>
+
+        <div className="mt-8 rounded-lg border border-border/60 bg-muted/30 p-5 text-sm leading-relaxed">
+          <p className="font-semibold text-foreground">Certification status</p>
+          <p className="mt-2 text-muted-foreground">
+            OPSQAI (the product and company) is <strong className="text-foreground">not currently SOC 2 or ISO/IEC 27001 certified</strong>.
+            Our infrastructure subprocessor <strong className="text-foreground">Lovable</strong> is independently
+            <strong className="text-foreground"> SOC 2 Type II</strong> and
+            <strong className="text-foreground"> ISO/IEC 27001:2022</strong> certified (confirmed August 2025).
+            Certification of a subprocessor reduces, but does not eliminate, OPSQAI's own responsibility as a data
+            processor under Art. 28 GDPR.
+          </p>
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16">

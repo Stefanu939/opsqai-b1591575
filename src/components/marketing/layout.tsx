@@ -221,8 +221,8 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
               <span>© {new Date().getFullYear()} OPSQAI. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="chip border-primary/30 !bg-primary/5 !text-primary">ISO 27001 Roadmap</span>
-              <span className="chip border-primary/30 !bg-primary/5 !text-primary">GDPR Compliant</span>
+              <span className="chip border-primary/30 !bg-primary/5 !text-primary">EU hosted · Dublin</span>
+              <span className="chip border-primary/30 !bg-primary/5 !text-primary">GDPR aligned</span>
             </div>
           </div>
         </div>
