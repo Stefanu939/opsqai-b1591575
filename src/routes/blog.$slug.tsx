@@ -78,16 +78,19 @@ function BlogPostPage() {
           </section>
         ))}
       </article>
-      {(post.relatedLandingPages?.length || post.relatedPosts?.length) && (
+      {(post.relatedLandingPages?.length ?? 0) + (post.relatedPosts?.length ?? 0) > 0 ? (
         <footer className="mt-16 rounded-2xl border border-border/60 bg-card/50 p-6">
           <h2 className="text-sm font-medium uppercase tracking-widest text-primary">Related reading</h2>
           <ul className="mt-4 space-y-2 text-sm">
             {post.relatedLandingPages?.map((p) => (
               <li key={p}><a href={p} className="text-foreground hover:text-primary">{p}</a></li>
             ))}
+            {post.relatedPosts?.map((s) => (
+              <li key={s}><a href={`/blog/${s}`} className="text-foreground hover:text-primary">/blog/{s}</a></li>
+            ))}
           </ul>
         </footer>
-      )}
+      ) : null}
     </main>
   );
 }
