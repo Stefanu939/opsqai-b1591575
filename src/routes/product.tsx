@@ -67,7 +67,7 @@ function ProductPage() {
             </p>
           </div>
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Enterprise-grade backend</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">Governance-first backend</h2>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
               Per-tenant row-level security, role-based access (admin / manager / team leader / employee), append-only audit logs, invite-only onboarding and EU hosting.
             </p>
