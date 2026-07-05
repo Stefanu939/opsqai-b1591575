@@ -434,8 +434,8 @@ function Enterprise() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <SectionHead
           eyebrow="Enterprise"
-          title="Enterprise-grade from day one"
-          intro="Multi-tenant architecture, governance and security engineered for organizations that cannot afford shortcuts."
+          title="Built for enterprise operations from day one"
+          intro="Multi-tenant architecture, governance and security engineered for organizations that cannot afford shortcuts. OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center."
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ENTERPRISE_FEATURES.map((e) => (
