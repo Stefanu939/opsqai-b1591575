@@ -24,11 +24,12 @@ export const Route = createFileRoute("/_authenticated/app/admin/webhooks")({
 });
 
 const ALL_EVENTS = [
-  { id: "chat.answered", label: "Chat — answered" },
-  { id: "sop.published", label: "SOP — published" },
+  { id: "knowledge.published", label: "Knowledge — document published" },
+  { id: "faq.created", label: "FAQ — created" },
+  { id: "faq.updated", label: "FAQ — updated" },
   { id: "sop.acknowledged", label: "SOP — acknowledged" },
-  { id: "incident.opened", label: "Incident — opened" },
-  { id: "incident.resolved", label: "Incident — resolved" },
+  { id: "gap.opened", label: "Knowledge gap — opened" },
+  { id: "gap.resolved", label: "Knowledge gap — resolved" },
   { id: "user.provisioned", label: "User — provisioned" },
   { id: "user.deprovisioned", label: "User — de-provisioned" },
   { id: "audit.exported", label: "Audit — exported" },
