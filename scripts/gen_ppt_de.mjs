@@ -560,5 +560,5 @@ function darkCard(s, x, y, w, h) {
   });
 }
 
-await pres.writeFile({ fileName: "/tmp/OPSQAI-Praesentation-DE.pptx" });
+await pres.writeFile({ fileName: "/mnt/documents/OPSQAI-Praesentation-DE.pptx" });
 console.log("done");
