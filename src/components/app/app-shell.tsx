@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap, KeyRound,
+  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap, KeyRound, LifeBuoy,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
