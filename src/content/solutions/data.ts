@@ -36,7 +36,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     keywords: "enterprise AI logistics, AI for supply chain, warehouse AI platform, grounded AI, auditable AI",
     eyebrow: "Enterprise AI · Logistics",
     lede:
-      "Logistics operations run on institutional knowledge — SOPs, safety rules, exception playbooks, tribal knowledge on the floor. OPSQAI operationalises that knowledge as an enterprise-grade AI layer: every answer is grounded in your own documents, cited to the source, and captured in an append-only audit log.",
+      "Logistics operations run on institutional knowledge — SOPs, safety rules, exception playbooks, tribal knowledge on the floor. OPSQAI operationalises that knowledge as an enterprise-grade AI layer (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center): every answer is grounded in your own documents, cited to the source, and captured in an append-only audit log.",
     sections: [
       {
         heading: "Why generic AI fails on the warehouse floor",
