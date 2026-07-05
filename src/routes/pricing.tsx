@@ -20,7 +20,7 @@ export const Route = createFileRoute("/pricing")({
     pageHead({
       title: "Pricing — OPSQAI Enterprise AI Platform",
       description:
-        "Transparent per-user pricing for OPSQAI. From €30 per user per month, plus a one-time implementation package. EU hosting, SSO on request, DPA included.",
+        "Transparent per-user pricing for OPSQAI. From €8 per user per month, plus a one-time implementation package. EU hosting, SSO on request, DPA included.",
       path: "/pricing",
       keywords: "OPSQAI pricing, enterprise AI pricing, per-user pricing, warehouse AI cost",
       breadcrumbs: [
@@ -34,11 +34,24 @@ export const Route = createFileRoute("/pricing")({
 
 // Volume-tiered per-user monthly price. Larger organizations get a lower rate.
 function perUserRate(users: number): number {
-  if (users >= 2000) return 30;
-  if (users >= 500) return 36;
-  if (users >= 200) return 42;
-  if (users >= 50) return 50;
-  return 60;
+  if (users >= 2000) return 8;
+  if (users >= 500) return 9;
+  if (users >= 200) return 10;
+  if (users >= 50) return 11;
+  return 12;
+}
+
+const MIN_USERS = 25;
+const MAX_USERS = 8000;
+const SLIDER_MAX = 1000;
+
+function usersToSliderPos(u: number): number {
+  return (Math.log(u / MIN_USERS) / Math.log(MAX_USERS / MIN_USERS)) * SLIDER_MAX;
+}
+
+function sliderPosToUsers(p: number): number {
+  const raw = MIN_USERS * Math.pow(MAX_USERS / MIN_USERS, p / SLIDER_MAX);
+  return Math.round(raw / 25) * 25;
 }
 
 // One-time implementation fee scales with rollout complexity.
@@ -80,7 +93,7 @@ function PricingPage() {
           One enterprise plan. Priced per user.
         </h1>
         <p className="mt-5 text-lg text-muted-foreground">
-          From <span className="font-semibold text-foreground">€30 / user / month</span>, plus a one-time
+          From <span className="font-semibold text-foreground">€8 / user / month</span>, plus a one-time
           implementation package sized to your rollout. Every feature is included from day one.
         </p>
       </section>
@@ -103,14 +116,22 @@ function PricingPage() {
 
           <div className="mt-5">
             <Slider
-              value={[users]}
-              onValueChange={(v) => setUsers(v[0] ?? 25)}
-              min={25}
-              max={8000}
-              step={25}
+              value={[usersToSliderPos(users)]}
+              onValueChange={(v) => setUsers(Math.max(MIN_USERS, sliderPosToUsers(v[0] ?? 0)))}
+              min={0}
+              max={SLIDER_MAX}
+              step={1}
             />
-            <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
-              <span>25</span><span>500</span><span>2,000</span><span>8,000+</span>
+            <div className="relative mt-2 h-4 text-[11px] text-muted-foreground">
+              {[25, 500, 2000, 8000].map((v, i, arr) => (
+                <span
+                  key={v}
+                  className="absolute -translate-x-1/2 whitespace-nowrap"
+                  style={{ left: `${(usersToSliderPos(v) / SLIDER_MAX) * 100}%` }}
+                >
+                  {v.toLocaleString()}{i === arr.length - 1 ? "+" : ""}
+                </span>
+              ))}
             </div>
           </div>
 
