@@ -860,10 +860,13 @@ Compliance posture for ${v(ctx.companyName)}:
 - **Processor:** OPSQAI
 - **Application DB region:** AWS eu-west-1 (Dublin, Ireland)
 - **Workspace isolation:** enforced via Row-Level Security
-- **Sub-processors:** Lovable Cloud (Supabase, EU), Cloudflare (edge), Google (Gemini via Lovable AI Gateway), OpenAI (embeddings/TTS/generation via Lovable AI Gateway) — disclosed in the Trust Center
+- **Sub-processors (three certainty tiers):**
+  - *Cloudflare, Inc. (USA)* — edge runtime, DNS, DDoS protection. ISO/IEC 27001, ISO/IEC 27701, SOC 2 Type II and PCI DSS Level 1 certified. International transfers safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or the EU-U.S. Data Privacy Framework, per Cloudflare's Data Processing Addendum, accepted by OPSQAI. Cloudflare is headquartered in the USA (San Francisco).
+  - *Lovable* — application database (Supabase, EU), auth, storage, AI gateway. SOC 2 Type II + ISO 27001:2022 at company level. Our current subscription is Lovable's Pro tier; Business-tier contractual DPA coverage is being confirmed, documentation on request. This does not imply OPSQAI itself is certified.
+  - *Google (\`gemini-3-flash-preview\`, \`gemini-2.5-flash\`) and OpenAI (\`gpt-5-mini\`, \`gpt-4o-mini-tts\`, \`text-embedding-3-small\`) — indirect, via Lovable AI Gateway.* OPSQAI does not contract directly with Google or OpenAI; both are accessed via the Lovable AI Gateway under Lovable's own agreements with these providers. Customer content is not used to train foundation models, per Lovable's Gateway terms.
 - **AI model stack (explicit):** Google \`gemini-3-flash-preview\`, \`gemini-2.5-flash\`; OpenAI \`gpt-5-mini\`, \`gpt-4o-mini-tts\`, \`text-embedding-3-small\`. Customer content is not used to train foundation models.
-- **Certification status:** OPSQAI is not yet SOC 2 / ISO 27001 certified. Infrastructure subprocessor (Lovable) holds SOC 2 Type II + ISO 27001:2022 at company level; our current subscription is Lovable's Pro tier; Business-tier contractual coverage is being confirmed, documentation on request.
-- **International transfers:** Standard Contractual Clauses (Art. 46 GDPR) for any processing outside the EEA
+- **Certification status:** OPSQAI itself is not yet SOC 2 / ISO 27001 certified.
+- **International transfers:** Standard Contractual Clauses (Art. 46 GDPR) — or the EU-U.S. Data Privacy Framework for Cloudflare specifically — for any processing outside the EEA. Applied independently to each subprocessor.
 - **Retention on termination:** 30-day grace window (read-only, export on request, reversible by Platform Admin), then an automated \`pg_cron\` job permanently deletes the tenant (\`ON DELETE CASCADE\`); audit metadata is anonymized before archival — no user IDs, no payloads — and retained for a **rolling 24 months**. Longer retention only where required by law.
 `,
   },
