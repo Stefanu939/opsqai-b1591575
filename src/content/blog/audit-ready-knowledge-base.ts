@@ -2,9 +2,9 @@ import type { BlogPost } from "./_types";
 
 export const post: BlogPost = {
   slug: "audit-ready-knowledge-base",
-  title: "Building an Audit-Ready Knowledge Base",
+  title: "Building an Audit-Ready Knowledge Base (Architectural Readiness, Not a Certification)",
   description:
-    "An audit-ready knowledge base is not a wiki with a policy PDF attached. Here is the minimum architecture.",
+    "An audit-ready knowledge base is not a wiki with a policy PDF attached. Here is the minimum architecture. Note: OPSQAI itself is not yet SOC 2 or ISO 27001 certified — this is about architecture, not certification.",
   pillar: "Compliance",
   keywords: "audit-ready knowledge base, ISO knowledge management, compliance knowledge base",
   datePublished: "2026-07-03",

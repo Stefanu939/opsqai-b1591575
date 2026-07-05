@@ -150,7 +150,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
   },
   {
     slug: "operational-knowledge-platform",
-    title: "Operational Knowledge Platform — Enterprise Grade, Multi-Site",
+    title: "Operational Knowledge Platform — Governance-First, Multi-Site",
     h1: "The operational knowledge platform for enterprises",
     description:
       "OPSQAI unifies operational knowledge — SOPs, safety, exception playbooks, tribal know-how — into a single multi-tenant platform with strict isolation and enterprise governance.",
@@ -291,10 +291,10 @@ export const SOLUTION_PAGES: SolutionPage[] = [
   },
   {
     slug: "operational-ai-platform",
-    title: "Operational AI Platform — Enterprise Grade for Real Operations",
+    title: "Operational AI Platform — Built for Real Operations",
     h1: "The operational AI platform for asset-heavy industries",
     description:
-      "OPSQAI is an operational AI platform for asset-heavy industries: retrieval-grounded, multi-tenant, auditable, and governed to enterprise standards.",
+      "OPSQAI is an operational AI platform for asset-heavy industries: retrieval-grounded, multi-tenant, auditable, governance-first (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center).",
     keywords: "operational AI platform, industrial AI, enterprise AI operations",
     eyebrow: "Operational AI platform",
     lede:
@@ -319,7 +319,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
   },
   {
     slug: "enterprise-knowledge-base",
-    title: "Enterprise Knowledge Base — Retrieval-Grounded and Audit-Ready",
+    title: "Enterprise Knowledge Base — Retrieval-Grounded, Built for Audits",
     h1: "The enterprise knowledge base with AI you can defend",
     description:
       "OPSQAI is an enterprise knowledge base with retrieval-grounded AI, immutable audit, multi-tenant isolation, and role-based governance — built for regulated operations.",
