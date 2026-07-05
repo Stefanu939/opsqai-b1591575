@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/layout";
+import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 import { Card } from "@/components/ui/card";
 import { ShieldCheck, Lock, FileCheck, Server, Eye, Users, AlertCircle } from "lucide-react";
 
