@@ -144,14 +144,17 @@ export const listPlatformAdmins = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: roleRows, error } = await supabaseAdmin
+    // Data API reads use the user-scoped client (platform admin has RLS access).
+    // supabaseAdmin is reserved for Auth Admin API calls only, since Lovable Cloud
+    // service-role keys can be non-JWT and break PostgREST reads.
+    const { data: roleRows, error } = await context.supabase
       .from("user_roles").select("user_id, created_at").eq("role", "platform_admin");
     if (error) throw new Error(error.message);
     if (!roleRows?.length) return [];
     const ids = roleRows.map((r) => r.user_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: profiles }, usersResp] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id, full_name, first_name, last_name").in("id", ids),
+      context.supabase.from("profiles").select("id, full_name, first_name, last_name").in("id", ids),
       supabaseAdmin.auth.admin.listUsers({ perPage: 1000 }),
     ]);
     const emailById = new Map(usersResp.data.users.map((u) => [u.id, u.email ?? ""]));
@@ -175,10 +178,18 @@ export const promotePlatformAdmin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: usersResp } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-    const target = usersResp.users.find((u) => (u.email ?? "").toLowerCase() === data.email.toLowerCase());
+    // Auth Admin API is fine with the service-role key; Data API reads go
+    // through the user-scoped client (RLS allows platform admins).
+    let target: { id: string } | undefined;
+    const needle = data.email.toLowerCase();
+    for (let page = 1; page <= 20 && !target; page++) {
+      const { data: usersResp, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      if (listErr) throw new Error(listErr.message);
+      target = usersResp.users.find((u) => (u.email ?? "").toLowerCase() === needle);
+      if (usersResp.users.length < 200) break;
+    }
     if (!target) throw new Error("User not found. Ask them to sign up first.");
-    const { error } = await supabaseAdmin.from("user_roles")
+    const { error } = await context.supabase.from("user_roles")
       .upsert({ user_id: target.id, role: "platform_admin", company_id: null }, { onConflict: "user_id,role" });
     if (error) throw new Error(error.message);
     return { ok: true, user_id: target.id };
@@ -190,11 +201,10 @@ export const demotePlatformAdmin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     if (data.user_id === context.userId) throw new Error("You cannot demote yourself");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { count } = await supabaseAdmin
+    const { count } = await context.supabase
       .from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "platform_admin");
     if ((count ?? 0) <= 1) throw new Error("At least one Platform Super Admin must remain");
-    const { error } = await supabaseAdmin.from("user_roles")
+    const { error } = await context.supabase.from("user_roles")
       .delete().eq("user_id", data.user_id).eq("role", "platform_admin");
     if (error) throw new Error(error.message);
     return { ok: true };
