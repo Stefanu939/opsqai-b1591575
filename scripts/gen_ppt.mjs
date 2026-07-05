@@ -371,7 +371,7 @@ function darkCard(s, x, y, w, h) {
     ["Encryption", "TLS 1.2+ în tranzit, encryption at rest, backup-uri criptate zilnic."],
     ["EU-hosted", "DB pe Supabase în AWS eu-west-1 (Dublin, IE). DPA în draft. Fără antrenare pe datele tale (Google/OpenAI via Lovable AI Gateway)."],
     ["Audit & suppression", "Log append-only per tenant. Suppression list pentru email compliance."],
-    ["Certificări", "OPSQAI nu e SOC 2 / ISO 27001 certificat. Subprocesor Lovable: SOC 2 Type II + ISO 27001:2022 (aug. 2025)."],
+    ["Certificări", "OPSQAI nu e SOC 2 / ISO 27001 certificat. Platforma subprocesorului nostru (Lovable) deține certificări SOC 2 Type II și ISO 27001:2022 la nivel de companie; confirmăm acoperirea contractuală pentru abonamentul nostru, documentație la cerere."],
     ["Responsible AI", "Refuz explicit când nu există sursă. Transferuri extra-UE: SCC (Art. 46 GDPR)."],
   ];
   items.forEach((it, i) => {

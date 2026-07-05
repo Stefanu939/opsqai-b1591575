@@ -349,7 +349,7 @@ function darkCard(s, x, y, w, h) {
     ["Verschlüsselung", "TLS 1.2+ in Transit, Encryption at Rest, tägliche verschlüsselte Backups."],
     ["EU-gehostet", "DB auf Supabase in AWS eu-west-1 (Dublin, IE). AVV im Entwurf. Kein Training mit Ihren Daten (Google/OpenAI über Lovable AI Gateway)."],
     ["Audit & Suppression", "Append-only Log pro Mandant. Suppression-Liste für E-Mail-Compliance."],
-    ["Zertifizierungen", "OPSQAI ist nicht SOC 2 / ISO 27001 zertifiziert. Subprozessor Lovable: SOC 2 Type II + ISO 27001:2022 (Aug. 2025)."],
+    ["Zertifizierungen", "OPSQAI ist nicht SOC 2 / ISO 27001 zertifiziert. Die Plattform unseres Subprozessors (Lovable) hält SOC 2 Type II- und ISO 27001:2022-Zertifizierungen auf Unternehmensebene; die vertragliche Abdeckung für unseren Tarif wird bestätigt, Dokumentation auf Anfrage."],
     ["Responsible AI", "Explizite Ablehnung ohne Quelle. Drittlandtransfers: SCC (Art. 46 DSGVO)."],
   ];
   items.forEach((it, i) => {

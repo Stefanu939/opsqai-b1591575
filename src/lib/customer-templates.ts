@@ -226,7 +226,7 @@ OPSQAI consolidates that knowledge into a single, source-grounded AI assistant �
 ## Expected Outcomes (12 months)
 - Reduction in time-to-answer for operational questions
 - Faster employee onboarding and certification
-- Demonstrable compliance posture: GDPR alignment (EU hosting in AWS eu-west-1 Dublin); infrastructure subprocessor Lovable is SOC 2 Type II and ISO/IEC 27001:2022 certified (OPSQAI itself is not yet certified)
+- Demonstrable compliance posture: GDPR alignment (EU hosting in AWS eu-west-1 Dublin); our infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II and ISO 27001:2022 certifications at the company level — specific contractual coverage for our subscription tier is being confirmed, documentation on request (OPSQAI itself is not yet certified)
 - Measurable reduction in knowledge gaps and repeat questions
 `,
   },
@@ -390,7 +390,7 @@ OPSQAI gives every employee in ${v(ctx.companyName)} instant access to verified 
 
 ## Designed for the Enterprise
 - EU data residency: application DB in AWS eu-west-1 (Dublin, Ireland)
-- Infrastructure subprocessor Lovable is SOC 2 Type II + ISO/IEC 27001:2022 certified (Aug 2025)
+- Infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II + ISO 27001:2022 certifications at the company level; specific contractual coverage for our subscription tier is being confirmed, documentation on request
 - OPSQAI itself is not yet SOC 2 / ISO 27001 certified; DPA in draft, pending legal review
 - Transfers outside the EEA (Google / OpenAI as AI model providers) safeguarded by Standard Contractual Clauses (Art. 46 GDPR)
 - Row-Level Security workspace isolation
@@ -823,7 +823,7 @@ Detailed controls are maintained in the OPSQAI Trust Center.
 Compliance posture for ${v(ctx.companyName)}:
 - **GDPR:** by design. Application database hosted on Supabase in AWS eu-west-1 (Dublin, Ireland).
 - **OPSQAI certification status:** OPSQAI itself is **not currently SOC 2 or ISO/IEC 27001 certified**. No formal certification project has been started yet.
-- **Subprocessor certification:** Infrastructure subprocessor **Lovable** is independently **SOC 2 Type II** and **ISO/IEC 27001:2022** certified (confirmed August 2025). This does not eliminate OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
+- **Subprocessor certification:** Our infrastructure subprocessor's platform (**Lovable**) holds **SOC 2 Type II** and **ISO 27001:2022** certifications at the company level. We are confirming the specific contractual coverage applicable to our subscription tier and will provide the relevant documentation upon request. This does not eliminate OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
 - **International transfers:** Where personal data is processed outside the EEA (e.g., by Google or OpenAI as AI model providers), transfers are safeguarded by **Standard Contractual Clauses (Art. 46 GDPR)** or an equivalent adequacy mechanism.
 - **AI model providers:** Google (Gemini) and OpenAI (embeddings, TTS, generation) — both routed through the Lovable AI Gateway. Customer content is not used to train their foundation models.
 - **Audit log:** sensitive actions logged with actor and timestamp.
