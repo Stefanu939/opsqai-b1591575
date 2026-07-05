@@ -50,8 +50,11 @@ export const FEATURE_CATALOG: FeatureDef[] = [
   { key: "notifications",       label: "Notifications",        category: "Experience", defaultState: "enabled" },
 ];
 
+// Compliance topics the OPSQAI platform touches. Note: labels here describe
+// areas of coverage, not that OPSQAI itself is certified. OPSQAI is NOT
+// currently SOC 2 or ISO/IEC 27001 certified — see /trust/iso-27001-roadmap.
 export const COMPLIANCE_AREAS = [
-  "GDPR", "ISO 27001", "ISO 9001", "SOC 2 Ready",
+  "GDPR", "ISO 27001 (not yet certified)", "ISO 9001",
   "Role-Based Access Control", "Workspace Isolation", "Encryption", "Backups",
   "Audit Logging", "Data Retention", "Password Policies", "Multi-Factor Authentication",
   "Disaster Recovery", "Business Continuity", "Data Residency",
