@@ -3208,8 +3208,6 @@ export type Database = {
         Args: { p_company: string; p_limit?: number; p_q: string }
         Returns: Json
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       subscription_apply_status: {
         Args: {
           _actor_kind?: string
