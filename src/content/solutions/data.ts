@@ -326,12 +326,12 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     keywords: "enterprise knowledge base, audit-ready knowledge, retrieval-grounded AI",
     eyebrow: "Enterprise knowledge base",
     lede:
-      "OPSQAI is designed for enterprises whose knowledge base has to hold up under an audit: retrieval-grounded answers, immutable logs, versioned sources, and role-based access control from day one.",
+      "OPSQAI is designed for enterprises whose knowledge base has to hold up under an audit (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center): retrieval-grounded answers, immutable logs, versioned sources, and role-based access control from day one.",
     sections: [
       {
-        heading: "What 'audit-ready' actually means",
+        heading: "What 'audit-ready' actually means (OPSQAI is not yet certified)",
         paragraphs: [
-          "OPSQAI's audit log records the prompt, the retrieved passages, the AI response and the operator who received it — with tamper-evident append-only semantics. External auditors can reconstruct what the system told a specific role on a specific day.",
+          "OPSQAI is not currently SOC 2 or ISO/IEC 27001 certified — we do not label the product 'audit-ready' as a certification claim. What the platform gives you is the substrate an audit expects: OPSQAI's audit log records the prompt, the retrieved passages, the AI response and the operator who received it — with tamper-evident append-only semantics. External auditors can reconstruct what the system told a specific role on a specific day.",
         ],
       },
     ],
