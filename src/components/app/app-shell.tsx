@@ -20,7 +20,9 @@ import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
-import { SupportWidget } from "@/components/support/support-widget";
+// SupportWidget is mounted globally in __root.tsx so it appears on marketing
+// pages too. Do not remount here or the bubble/badge will duplicate.
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
