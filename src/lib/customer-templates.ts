@@ -802,13 +802,18 @@ Your company's AI assistant for SOPs, policies and operational know-how.
     description: "Security posture summary.",
     build: (ctx) => `${header(ctx, "Security Overview")}
 
-OPSQAI is delivered with security controls suitable for enterprise operations at ${v(ctx.companyName)}:
+> **Draft — pending final legal review.** This document reflects our intended data protection posture and is pending final legal review. It does not yet constitute the binding agreement between the parties. Contact notify@opsqai.de for the current status before relying on it for procurement decisions.
+
+OPSQAI is delivered with security controls designed for enterprise operations at ${v(ctx.companyName)} (OPSQAI itself is not yet SOC 2 or ISO/IEC 27001 certified — see /trust):
 - TLS 1.2+ in transit
 - Encryption at rest
 - Row-Level Security workspace isolation
 - Enterprise RBAC across 7 roles
-- Audit log for sensitive actions
+- Append-only audit log for sensitive actions
 - Daily managed backups with point-in-time recovery
+- Application database in AWS eu-west-1 (Dublin, Ireland)
+- AI stack (routed via Lovable AI Gateway): Google Gemini (\`gemini-3-flash-preview\`, \`gemini-2.5-flash\`), OpenAI \`gpt-5-mini\`, \`gpt-4o-mini-tts\`, \`text-embedding-3-small\` — customer content not used to train foundation models
+- 30-day termination grace window → automated \`pg_cron\` purge (\`ON DELETE CASCADE\`); anonymized audit metadata (no user IDs, no payloads) retained for a rolling 24 months
 
 Detailed controls are maintained in the OPSQAI Trust Center.
 `,
@@ -820,15 +825,16 @@ Detailed controls are maintained in the OPSQAI Trust Center.
     description: "All compliance areas with status.",
     build: (ctx) => `${header(ctx, "Compliance Overview")}
 
-> **Draft — pending final legal review.** This overview reflects OPSQAI's intended data protection posture and does not yet constitute a binding agreement. Contact notify@opsqai.de for the current status before relying on it for procurement decisions.
+> **Draft — pending final legal review.** This document reflects our intended data protection posture and is pending final legal review. It does not yet constitute the binding agreement between the parties. Contact notify@opsqai.de for the current status before relying on it for procurement decisions.
 
 Compliance posture for ${v(ctx.companyName)}:
 - **GDPR:** by design. Application database hosted on Supabase in AWS eu-west-1 (Dublin, Ireland).
 - **OPSQAI certification status:** OPSQAI itself is **not currently SOC 2 or ISO/IEC 27001 certified**. No formal certification project has been started yet.
-- **Subprocessor certification:** Our infrastructure subprocessor's platform (**Lovable**) holds **SOC 2 Type II** and **ISO 27001:2022** certifications at the company level. We are confirming the specific contractual coverage applicable to our subscription tier and will provide the relevant documentation upon request. This does not eliminate OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
+- **Subprocessor certification:** Our infrastructure subprocessor's platform (**Lovable**) holds **SOC 2 Type II** and **ISO 27001:2022** certifications at the company level. Our current subscription is **Lovable's Pro tier**; **Business-tier contractual coverage is being confirmed** and the relevant documentation will be provided upon request. This does not eliminate OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
 - **International transfers:** Where personal data is processed outside the EEA (e.g., by Google or OpenAI as AI model providers), transfers are safeguarded by **Standard Contractual Clauses (Art. 46 GDPR)** or an equivalent adequacy mechanism.
-- **AI model providers:** Google (Gemini) and OpenAI (embeddings, TTS, generation) — both routed through the Lovable AI Gateway. Customer content is not used to train their foundation models.
-- **Audit log:** sensitive actions logged with actor and timestamp.
+- **AI model stack (explicit models, via Lovable AI Gateway):** Google Gemini (\`gemini-3-flash-preview\`, \`gemini-2.5-flash\`) for chat / retrieval; OpenAI \`gpt-5-mini\` for generation, \`gpt-4o-mini-tts\` for text-to-speech, \`text-embedding-3-small\` for embeddings. Customer content is not used to train their foundation models.
+- **Audit log:** sensitive actions logged with actor and timestamp. Anonymized archive on termination retained for a **rolling 24 months** (module, action, resource, severity, success, event timestamp only — no user IDs, no payloads).
+- **Retention on termination:** 30-day grace window (read-only, export on request, reversible by Platform Admin), then automated \`pg_cron\` purge (\`ON DELETE CASCADE\`).
 `,
   },
   gdpr_overview: {
@@ -836,7 +842,7 @@ Compliance posture for ${v(ctx.companyName)}:
     description: "GDPR-specific overview.",
     build: (ctx) => `${header(ctx, "GDPR Overview")}
 
-> **Draft — pending final legal review.** Contact notify@opsqai.de for the current status before relying on this document for procurement decisions.
+> **Draft — pending final legal review.** This document reflects our intended data protection posture and is pending final legal review. It does not yet constitute the binding agreement between the parties. Contact notify@opsqai.de for the current status before relying on it for procurement decisions.
 
 ## Data Processing
 - **Controller:** ${v(ctx.legalName, v(ctx.companyName))}
@@ -844,8 +850,10 @@ Compliance posture for ${v(ctx.companyName)}:
 - **Application DB region:** AWS eu-west-1 (Dublin, Ireland)
 - **Workspace isolation:** enforced via Row-Level Security
 - **Sub-processors:** Lovable Cloud (Supabase, EU), Cloudflare (edge), Google (Gemini via Lovable AI Gateway), OpenAI (embeddings/TTS/generation via Lovable AI Gateway) — disclosed in the Trust Center
+- **AI model stack (explicit):** Google \`gemini-3-flash-preview\`, \`gemini-2.5-flash\`; OpenAI \`gpt-5-mini\`, \`gpt-4o-mini-tts\`, \`text-embedding-3-small\`. Customer content is not used to train foundation models.
+- **Certification status:** OPSQAI is not yet SOC 2 / ISO 27001 certified. Infrastructure subprocessor (Lovable) holds SOC 2 Type II + ISO 27001:2022 at company level; our current subscription is Lovable's Pro tier; Business-tier contractual coverage is being confirmed, documentation on request.
 - **International transfers:** Standard Contractual Clauses (Art. 46 GDPR) for any processing outside the EEA
-- **Retention on termination:** 30-day grace window (read-only, export on request, reversible by Platform Admin), then an automated pg_cron job permanently deletes the tenant (ON DELETE CASCADE); audit metadata is anonymized before archival — no user IDs, no payloads. Longer retention only where required by law.
+- **Retention on termination:** 30-day grace window (read-only, export on request, reversible by Platform Admin), then an automated \`pg_cron\` job permanently deletes the tenant (\`ON DELETE CASCADE\`); audit metadata is anonymized before archival — no user IDs, no payloads — and retained for a **rolling 24 months**. Longer retention only where required by law.
 `,
   },
   data_protection_overview: {
