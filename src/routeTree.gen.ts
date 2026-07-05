@@ -92,6 +92,8 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1/knowledge'
+import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
@@ -554,6 +556,16 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1KnowledgeRoute = ApiPublicV1KnowledgeRouteImport.update({
+  id: '/api/public/v1/knowledge',
+  path: '/api/public/v1/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1FaqsRoute = ApiPublicV1FaqsRouteImport.update({
+  id: '/api/public/v1/faqs',
+  path: '/api/public/v1/faqs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppWorkspaceSessionIdRoute =
   AuthenticatedAppWorkspaceSessionIdRouteImport.update({
     id: '/workspace/$sessionId',
@@ -869,6 +881,8 @@ export interface FileRoutesByFullPath {
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
+  '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -984,6 +998,8 @@ export interface FileRoutesByTo {
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
+  '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1105,6 +1121,8 @@ export interface FileRoutesById {
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
+  '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1226,6 +1244,8 @@ export interface FileRouteTypes {
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
+    | '/api/public/v1/faqs'
+    | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1341,6 +1361,8 @@ export interface FileRouteTypes {
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/workspace/$sessionId'
+    | '/api/public/v1/faqs'
+    | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1461,6 +1483,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
     | '/_authenticated/app/workspace/$sessionId'
+    | '/api/public/v1/faqs'
+    | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1514,6 +1538,8 @@ export interface RootRouteChildren {
   DemoIndexRoute: typeof DemoIndexRoute
   ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicV1FaqsRoute: typeof ApiPublicV1FaqsRoute
+  ApiPublicV1KnowledgeRoute: typeof ApiPublicV1KnowledgeRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -2104,6 +2130,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/knowledge': {
+      id: '/api/public/v1/knowledge'
+      path: '/api/public/v1/knowledge'
+      fullPath: '/api/public/v1/knowledge'
+      preLoaderRoute: typeof ApiPublicV1KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/faqs': {
+      id: '/api/public/v1/faqs'
+      path: '/api/public/v1/faqs'
+      fullPath: '/api/public/v1/faqs'
+      preLoaderRoute: typeof ApiPublicV1FaqsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/workspace/$sessionId': {
       id: '/_authenticated/app/workspace/$sessionId'
       path: '/workspace/$sessionId'
@@ -2685,6 +2725,8 @@ const rootRouteChildren: RootRouteChildren = {
   DemoIndexRoute: DemoIndexRoute,
   ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicV1FaqsRoute: ApiPublicV1FaqsRoute,
+  ApiPublicV1KnowledgeRoute: ApiPublicV1KnowledgeRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
