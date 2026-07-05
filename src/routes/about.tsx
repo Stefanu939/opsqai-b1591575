@@ -7,7 +7,7 @@ export const Route = createFileRoute("/about")({
     pageHead({
       title: "About OPSQAI — Enterprise AI for Operational Knowledge",
       description:
-        "OPSQAI builds enterprise AI infrastructure for logistics, warehousing and supply chain — engineered for source-backed answers, multi-tenant isolation and audit-ready governance.",
+        "OPSQAI builds AI infrastructure for logistics, warehousing and supply chain — engineered for source-backed answers, multi-tenant isolation and audit-oriented governance (OPSQAI itself is not yet SOC 2 / ISO 27001 certified — see /trust).",
       path: "/about",
       breadcrumbs: [
         { name: "Home", path: "/" },
