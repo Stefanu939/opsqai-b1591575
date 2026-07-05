@@ -118,6 +118,25 @@ function WebhooksPage() {
     }
   }
 
+  async function handleEmit() {
+    setEmitting(true);
+    try {
+      const r = await emitFn({ data: { event: emitEvent as never } });
+      if (r.dispatched_to === 0) {
+        toast.warning(`No endpoint is subscribed to "${emitEvent}". Add it to an endpoint's events first.`);
+      } else {
+        toast.success(`Event "${emitEvent}" dispatched to ${r.dispatched_to} endpoint(s).`);
+      }
+      setEmitOpen(false);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Emit failed");
+    } finally {
+      setEmitting(false);
+    }
+  }
+
+
   async function handleDelete(id: string) {
     if (!confirm("Remove this webhook endpoint?")) return;
     const { error } = await supabase.from("webhook_endpoints").delete().eq("id", id);
