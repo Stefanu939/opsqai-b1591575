@@ -4,7 +4,7 @@ export const post: BlogPost = {
   slug: "what-is-enterprise-knowledge-management-2026",
   title: "What Is Enterprise Knowledge Management in 2026?",
   description:
-    "A working definition of enterprise knowledge management for 2026 — grounded AI, retrieval-first architecture, and audit-ready governance.",
+    "A working definition of enterprise knowledge management for 2026 — grounded AI, retrieval-first architecture, and audit-oriented governance (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see Trust).",
   pillar: "Knowledge Management",
   keywords: "enterprise knowledge management, EKM 2026, retrieval-grounded AI, KM strategy",
   datePublished: "2026-06-15",

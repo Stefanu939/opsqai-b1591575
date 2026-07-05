@@ -78,10 +78,11 @@ function TrustPage() {
             OPSQAI (the product and company) is <strong className="text-foreground">not currently SOC 2 or ISO/IEC 27001 certified</strong>.
             Our infrastructure subprocessor's platform (<strong className="text-foreground">Lovable</strong>) holds
             <strong className="text-foreground"> SOC 2 Type II</strong> and
-            <strong className="text-foreground"> ISO 27001:2022</strong> certifications at the company level. We are
-            confirming the specific contractual coverage applicable to our subscription tier and will provide the
-            relevant documentation upon request. Certification of a subprocessor reduces, but does not eliminate,
-            OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
+            <strong className="text-foreground"> ISO 27001:2022</strong> certifications at the company level.
+            Our current subscription is <strong className="text-foreground">Lovable's Pro tier</strong>;
+            <strong className="text-foreground"> Business-tier contractual coverage is being confirmed</strong> and
+            the relevant documentation will be provided upon request. Certification of a subprocessor reduces, but
+            does not eliminate, OPSQAI's own responsibility as a data processor under Art. 28 GDPR.
           </p>
         </div>
       </section>

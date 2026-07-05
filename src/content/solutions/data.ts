@@ -36,7 +36,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     keywords: "enterprise AI logistics, AI for supply chain, warehouse AI platform, grounded AI, auditable AI",
     eyebrow: "Enterprise AI · Logistics",
     lede:
-      "Logistics operations run on institutional knowledge — SOPs, safety rules, exception playbooks, tribal knowledge on the floor. OPSQAI operationalises that knowledge as an enterprise-grade AI layer: every answer is grounded in your own documents, cited to the source, and captured in an append-only audit log.",
+      "Logistics operations run on institutional knowledge — SOPs, safety rules, exception playbooks, tribal knowledge on the floor. OPSQAI operationalises that knowledge as an enterprise-grade AI layer (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center): every answer is grounded in your own documents, cited to the source, and captured in an append-only audit log.",
     sections: [
       {
         heading: "Why generic AI fails on the warehouse floor",
@@ -157,7 +157,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     keywords: "operational knowledge platform, multi-site knowledge base, enterprise ops",
     eyebrow: "Operational knowledge platform",
     lede:
-      "Operational knowledge is scattered — SharePoint folders, PDFs on shared drives, team-lead notebooks, group chats. OPSQAI collapses that surface into a single retrieval layer with strict tenant isolation and enterprise-grade governance.",
+      "Operational knowledge is scattered — SharePoint folders, PDFs on shared drives, team-lead notebooks, group chats. OPSQAI collapses that surface into a single retrieval layer with strict tenant isolation and enterprise-grade governance (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center).",
     sections: [
       {
         heading: "Governance and tenancy",
@@ -326,12 +326,12 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     keywords: "enterprise knowledge base, audit-ready knowledge, retrieval-grounded AI",
     eyebrow: "Enterprise knowledge base",
     lede:
-      "OPSQAI is designed for enterprises whose knowledge base has to hold up under an audit: retrieval-grounded answers, immutable logs, versioned sources, and role-based access control from day one.",
+      "OPSQAI is designed for enterprises whose knowledge base has to hold up under an audit (OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center): retrieval-grounded answers, immutable logs, versioned sources, and role-based access control from day one.",
     sections: [
       {
-        heading: "What 'audit-ready' actually means",
+        heading: "What 'audit-ready' actually means (OPSQAI is not yet certified)",
         paragraphs: [
-          "OPSQAI's audit log records the prompt, the retrieved passages, the AI response and the operator who received it — with tamper-evident append-only semantics. External auditors can reconstruct what the system told a specific role on a specific day.",
+          "OPSQAI is not currently SOC 2 or ISO/IEC 27001 certified — we do not label the product 'audit-ready' as a certification claim. What the platform gives you is the substrate an audit expects: OPSQAI's audit log records the prompt, the retrieved passages, the AI response and the operator who received it — with tamper-evident append-only semantics. External auditors can reconstruct what the system told a specific role on a specific day.",
         ],
       },
     ],

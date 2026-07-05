@@ -349,7 +349,7 @@ function darkCard(s, x, y, w, h) {
     ["Verschlüsselung", "TLS 1.2+ in Transit, Encryption at Rest, tägliche verschlüsselte Backups."],
     ["EU-gehostet", "DB auf Supabase in AWS eu-west-1 (Dublin, IE). AVV im Entwurf. Kein Training mit Ihren Daten (Google/OpenAI über Lovable AI Gateway)."],
     ["Audit & Suppression", "Append-only Log pro Mandant. Suppression-Liste für E-Mail-Compliance."],
-    ["Zertifizierungen", "OPSQAI ist nicht SOC 2 / ISO 27001 zertifiziert. Die Plattform unseres Subprozessors (Lovable) hält SOC 2 Type II- und ISO 27001:2022-Zertifizierungen auf Unternehmensebene; die vertragliche Abdeckung für unseren Tarif wird bestätigt, Dokumentation auf Anfrage."],
+    ["Zertifizierungen", "OPSQAI ist nicht SOC 2 / ISO 27001 zertifiziert. Die Plattform unseres Subprozessors (Lovable) hält SOC 2 Type II- und ISO 27001:2022-Zertifizierungen auf Unternehmensebene; unser aktuelles Abonnement ist der Pro-Tarif — die vertragliche Abdeckung des Business-Tarifs wird bestätigt, Dokumentation auf Anfrage. KI-Modelle (via Lovable AI Gateway): gemini-3-flash-preview, gemini-2.5-flash, gpt-5-mini, gpt-4o-mini-tts, text-embedding-3-small. Aufbewahrung: 30-Tage-Fenster → automatischer pg_cron-Purge (ON DELETE CASCADE); anonymisiertes Audit-Archiv 24 Monate."],
     ["Responsible AI", "Explizite Ablehnung ohne Quelle. Drittlandtransfers: SCC (Art. 46 DSGVO)."],
   ];
   items.forEach((it, i) => {
@@ -560,5 +560,5 @@ function darkCard(s, x, y, w, h) {
   });
 }
 
-await pres.writeFile({ fileName: "/tmp/OPSQAI-Praesentation-DE.pptx" });
+await pres.writeFile({ fileName: "/mnt/documents/OPSQAI-Praesentation-DE.pptx" });
 console.log("done");

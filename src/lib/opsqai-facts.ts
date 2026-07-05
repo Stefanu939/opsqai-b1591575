@@ -31,8 +31,10 @@ export const OPSQAI_FACTS = {
   compliance: [
     "GDPR by design. Application database in AWS eu-west-1 (Dublin, Ireland).",
     "OPSQAI itself is not currently SOC 2 or ISO/IEC 27001 certified.",
-    "Infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II and ISO 27001:2022 certifications at the company level; specific contractual coverage for our subscription tier is being confirmed and documentation is available on request.",
-    "Transfers outside the EEA (e.g., to Google or OpenAI as AI model providers) are safeguarded by Standard Contractual Clauses under Art. 46 GDPR.",
+    "Infrastructure subprocessor's platform (Lovable) holds SOC 2 Type II and ISO 27001:2022 certifications at the company level. Our current subscription is Lovable's Pro tier; Business-tier contractual coverage is being confirmed and documentation is available on request.",
+    "AI model providers routed through the Lovable AI Gateway — explicit models in use: Google Gemini (gemini-3-flash-preview, gemini-2.5-flash) for chat/retrieval, OpenAI gpt-5-mini for generation, gpt-4o-mini-tts for text-to-speech, text-embedding-3-small for embeddings.",
+    "Transfers outside the EEA (e.g., to Google or OpenAI) are safeguarded by Standard Contractual Clauses under Art. 46 GDPR. Customer content is not used to train foundation models.",
+    "Retention on termination: 30-day grace window, then automated pg_cron purge (ON DELETE CASCADE). Anonymized audit metadata (no user IDs, no payloads) is retained for a rolling 24 months in audit_log_terminated_archive.",
   ],
   branding: {
     primary: "#2563EB",

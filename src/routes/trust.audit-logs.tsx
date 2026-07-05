@@ -40,7 +40,8 @@ export const Route = createFileRoute("/trust/audit-logs")({
         Audit logs are retained for the lifetime of the tenant subscription. When a tenant is terminated,
         audit entries are anonymized on purge — module, action, resource, severity, success and event
         timestamp are kept under a hashed tenant label in a separate archive; user IDs and payloads are not
-        archived. See <a href="/trust/data-retention">Data retention</a> for the full 30-day termination flow.
+        archived. The anonymized archive is retained for a <strong>rolling 24 months</strong>, then purged.
+        See <a href="/trust/data-retention">Data retention</a> for the full 30-day termination flow.
       </p>
     </TrustTopic>
   ),
