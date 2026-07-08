@@ -131,6 +131,7 @@ import { Route as AuthenticatedAppAcademyKbRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppAcademyCoursesRouteImport } from './routes/_authenticated/app.academy.courses'
 import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './routes/_authenticated/app.academy.certificates'
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
+import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
 import { Route as AuthenticatedAppInternalKnowledgeSlugRouteImport } from './routes/_authenticated/app.internal.knowledge.$slug'
 import { Route as AuthenticatedAppAdminNotificationsProviderRouteImport } from './routes/_authenticated/app.admin.notifications.$provider'
 import { Route as AuthenticatedAppAdminIntegrationsProviderRouteImport } from './routes/_authenticated/app.admin.integrations.$provider'
@@ -793,6 +794,12 @@ const AuthenticatedAppAcademyAnalyticsRoute =
     path: '/academy/analytics',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const ApiPublicV1LicenseHeartbeatRoute =
+  ApiPublicV1LicenseHeartbeatRouteImport.update({
+    id: '/api/public/v1/license/heartbeat',
+    path: '/api/public/v1/license/heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAppInternalKnowledgeSlugRoute =
   AuthenticatedAppInternalKnowledgeSlugRouteImport.update({
     id: '/$slug',
@@ -951,6 +958,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1075,6 +1083,7 @@ export interface FileRoutesByTo {
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1205,6 +1214,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/_authenticated/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/_authenticated/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1335,6 +1345,7 @@ export interface FileRouteTypes {
     | '/app/admin/integrations/$provider'
     | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
+    | '/api/public/v1/license/heartbeat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1459,6 +1470,7 @@ export interface FileRouteTypes {
     | '/app/admin/integrations/$provider'
     | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
+    | '/api/public/v1/license/heartbeat'
   id:
     | '__root__'
     | '/'
@@ -1588,6 +1600,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/integrations/$provider'
     | '/_authenticated/app/admin/notifications/$provider'
     | '/_authenticated/app/internal/knowledge/$slug'
+    | '/api/public/v1/license/heartbeat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1643,6 +1656,7 @@ export interface RootRouteChildren {
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
+  ApiPublicV1LicenseHeartbeatRoute: typeof ApiPublicV1LicenseHeartbeatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2501,6 +2515,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/v1/license/heartbeat': {
+      id: '/api/public/v1/license/heartbeat'
+      path: '/api/public/v1/license/heartbeat'
+      fullPath: '/api/public/v1/license/heartbeat'
+      preLoaderRoute: typeof ApiPublicV1LicenseHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/internal/knowledge/$slug': {
       id: '/_authenticated/app/internal/knowledge/$slug'
       path: '/$slug'
@@ -2848,6 +2869,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
+  ApiPublicV1LicenseHeartbeatRoute: ApiPublicV1LicenseHeartbeatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
