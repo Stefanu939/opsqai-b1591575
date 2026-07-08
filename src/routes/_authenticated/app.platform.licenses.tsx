@@ -209,7 +209,6 @@ function LicensesPage() {
                   {l.revoked ? <Badge variant="destructive">Revoked</Badge> : <Badge>Active</Badge>}
                 </td>
                 <td className="px-4 py-3 text-right space-x-1">
-                  {l.signed_token ? null : null}
                   {!l.revoked && (
                     <Button size="sm" variant="ghost" className="text-destructive"
                       onClick={() => { if (confirm(`Revoke ${l.install_id}?`)) revokeMut.mutate(l.install_id); }}>
