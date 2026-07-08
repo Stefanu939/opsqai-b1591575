@@ -2159,6 +2159,36 @@ export type Database = {
         }
         Relationships: []
       }
+      license_signing_keys: {
+        Row: {
+          active: boolean
+          algorithm: string
+          created_at: string
+          id: string
+          key_id: string
+          private_key_pem: string
+          public_key_pem: string
+        }
+        Insert: {
+          active?: boolean
+          algorithm?: string
+          created_at?: string
+          id?: string
+          key_id: string
+          private_key_pem: string
+          public_key_pem: string
+        }
+        Update: {
+          active?: boolean
+          algorithm?: string
+          created_at?: string
+          id?: string
+          key_id?: string
+          private_key_pem?: string
+          public_key_pem?: string
+        }
+        Relationships: []
+      }
       licenses: {
         Row: {
           company_name: string
