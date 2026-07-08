@@ -2014,6 +2014,244 @@ export type Database = {
           },
         ]
       }
+      license_installs: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          host_info: Json | null
+          id: string
+          install_id: string
+          ip_address: string | null
+          last_heartbeat_at: string | null
+          updated_at: string
+          user_count: number | null
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          host_info?: Json | null
+          id?: string
+          install_id: string
+          ip_address?: string | null
+          last_heartbeat_at?: string | null
+          updated_at?: string
+          user_count?: number | null
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          host_info?: Json | null
+          id?: string
+          install_id?: string
+          ip_address?: string | null
+          last_heartbeat_at?: string | null
+          updated_at?: string
+          user_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_installs_install_id_fkey"
+            columns: ["install_id"]
+            isOneToOne: true
+            referencedRelation: "licenses"
+            referencedColumns: ["install_id"]
+          },
+        ]
+      }
+      license_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          install_id: string
+          invoice_url: string | null
+          module_key: string
+          notes: string | null
+          paid_at: string | null
+          status: string
+          stripe_payment_intent: string | null
+          unit_price_cents: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          install_id: string
+          invoice_url?: string | null
+          module_key: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          stripe_payment_intent?: string | null
+          unit_price_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          install_id?: string
+          invoice_url?: string | null
+          module_key?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          stripe_payment_intent?: string | null
+          unit_price_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_orders_install_id_fkey"
+            columns: ["install_id"]
+            isOneToOne: false
+            referencedRelation: "licenses"
+            referencedColumns: ["install_id"]
+          },
+        ]
+      }
+      license_releases: {
+        Row: {
+          channel: string
+          checksum: string | null
+          created_at: string
+          created_by: string | null
+          docker_image: string
+          id: string
+          is_current: boolean
+          min_supported: string | null
+          published_at: string
+          release_notes_url: string | null
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          channel?: string
+          checksum?: string | null
+          created_at?: string
+          created_by?: string | null
+          docker_image: string
+          id?: string
+          is_current?: boolean
+          min_supported?: string | null
+          published_at?: string
+          release_notes_url?: string | null
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          channel?: string
+          checksum?: string | null
+          created_at?: string
+          created_by?: string | null
+          docker_image?: string
+          id?: string
+          is_current?: boolean
+          min_supported?: string | null
+          published_at?: string
+          release_notes_url?: string | null
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      license_signing_keys: {
+        Row: {
+          active: boolean
+          algorithm: string
+          created_at: string
+          id: string
+          key_id: string
+          private_key_pem: string
+          public_key_pem: string
+        }
+        Insert: {
+          active?: boolean
+          algorithm?: string
+          created_at?: string
+          id?: string
+          key_id: string
+          private_key_pem: string
+          public_key_pem: string
+        }
+        Update: {
+          active?: boolean
+          algorithm?: string
+          created_at?: string
+          id?: string
+          key_id?: string
+          private_key_pem?: string
+          public_key_pem?: string
+        }
+        Relationships: []
+      }
+      licenses: {
+        Row: {
+          company_name: string
+          contact_email: string | null
+          created_at: string
+          expires_at: string | null
+          hard_expiry: boolean
+          id: string
+          install_id: string
+          issued_at: string
+          issued_by: string | null
+          max_users: number
+          modules: Json
+          notes: string | null
+          revoked: boolean
+          revoked_at: string | null
+          revoked_reason: string | null
+          signed_token: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          contact_email?: string | null
+          created_at?: string
+          expires_at?: string | null
+          hard_expiry?: boolean
+          id?: string
+          install_id: string
+          issued_at?: string
+          issued_by?: string | null
+          max_users?: number
+          modules?: Json
+          notes?: string | null
+          revoked?: boolean
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          signed_token?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string | null
+          created_at?: string
+          expires_at?: string | null
+          hard_expiry?: boolean
+          id?: string
+          install_id?: string
+          issued_at?: string
+          issued_by?: string | null
+          max_users?: number
+          modules?: Json
+          notes?: string | null
+          revoked?: boolean
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          signed_token?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_feedback: {
         Row: {
           comment: string | null

@@ -100,6 +100,7 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1/knowledge'
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
+import { Route as AuthenticatedAppPlatformLicensesRouteImport } from './routes/_authenticated/app.platform.licenses'
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
@@ -131,6 +132,8 @@ import { Route as AuthenticatedAppAcademyKbRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppAcademyCoursesRouteImport } from './routes/_authenticated/app.academy.courses'
 import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './routes/_authenticated/app.academy.certificates'
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
+import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
+import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
 import { Route as AuthenticatedAppInternalKnowledgeSlugRouteImport } from './routes/_authenticated/app.internal.knowledge.$slug'
 import { Route as AuthenticatedAppAdminNotificationsProviderRouteImport } from './routes/_authenticated/app.admin.notifications.$provider'
 import { Route as AuthenticatedAppAdminIntegrationsProviderRouteImport } from './routes/_authenticated/app.admin.integrations.$provider'
@@ -607,6 +610,12 @@ const AuthenticatedAppWorkspaceSessionIdRoute =
     path: '/workspace/$sessionId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPlatformLicensesRoute =
+  AuthenticatedAppPlatformLicensesRouteImport.update({
+    id: '/platform/licenses',
+    path: '/platform/licenses',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppInternalKnowledgeRoute =
   AuthenticatedAppInternalKnowledgeRouteImport.update({
     id: '/knowledge',
@@ -793,6 +802,18 @@ const AuthenticatedAppAcademyAnalyticsRoute =
     path: '/academy/analytics',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const ApiPublicV1LicenseReleasesRoute =
+  ApiPublicV1LicenseReleasesRouteImport.update({
+    id: '/api/public/v1/license/releases',
+    path: '/api/public/v1/license/releases',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicV1LicenseHeartbeatRoute =
+  ApiPublicV1LicenseHeartbeatRouteImport.update({
+    id: '/api/public/v1/license/heartbeat',
+    path: '/api/public/v1/license/heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAppInternalKnowledgeSlugRoute =
   AuthenticatedAppInternalKnowledgeSlugRouteImport.update({
     id: '/$slug',
@@ -934,6 +955,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
@@ -951,6 +973,8 @@ export interface FileRoutesByFullPath {
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
+  '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1058,6 +1082,7 @@ export interface FileRoutesByTo {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
@@ -1075,6 +1100,8 @@ export interface FileRoutesByTo {
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
+  '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1188,6 +1215,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/_authenticated/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
@@ -1205,6 +1233,8 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/_authenticated/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/_authenticated/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
+  '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1318,6 +1348,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
+    | '/app/platform/licenses'
     | '/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
@@ -1335,6 +1366,8 @@ export interface FileRouteTypes {
     | '/app/admin/integrations/$provider'
     | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
+    | '/api/public/v1/license/heartbeat'
+    | '/api/public/v1/license/releases'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1442,6 +1475,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
+    | '/app/platform/licenses'
     | '/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
@@ -1459,6 +1493,8 @@ export interface FileRouteTypes {
     | '/app/admin/integrations/$provider'
     | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
+    | '/api/public/v1/license/heartbeat'
+    | '/api/public/v1/license/releases'
   id:
     | '__root__'
     | '/'
@@ -1571,6 +1607,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
+    | '/_authenticated/app/platform/licenses'
     | '/_authenticated/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
@@ -1588,6 +1625,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/integrations/$provider'
     | '/_authenticated/app/admin/notifications/$provider'
     | '/_authenticated/app/internal/knowledge/$slug'
+    | '/api/public/v1/license/heartbeat'
+    | '/api/public/v1/license/releases'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1643,6 +1682,8 @@ export interface RootRouteChildren {
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
+  ApiPublicV1LicenseHeartbeatRoute: typeof ApiPublicV1LicenseHeartbeatRoute
+  ApiPublicV1LicenseReleasesRoute: typeof ApiPublicV1LicenseReleasesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2284,6 +2325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppWorkspaceSessionIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/platform/licenses': {
+      id: '/_authenticated/app/platform/licenses'
+      path: '/platform/licenses'
+      fullPath: '/app/platform/licenses'
+      preLoaderRoute: typeof AuthenticatedAppPlatformLicensesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/internal/knowledge': {
       id: '/_authenticated/app/internal/knowledge'
       path: '/knowledge'
@@ -2501,6 +2549,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/v1/license/releases': {
+      id: '/api/public/v1/license/releases'
+      path: '/api/public/v1/license/releases'
+      fullPath: '/api/public/v1/license/releases'
+      preLoaderRoute: typeof ApiPublicV1LicenseReleasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/license/heartbeat': {
+      id: '/api/public/v1/license/heartbeat'
+      path: '/api/public/v1/license/heartbeat'
+      fullPath: '/api/public/v1/license/heartbeat'
+      preLoaderRoute: typeof ApiPublicV1LicenseHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/internal/knowledge/$slug': {
       id: '/_authenticated/app/internal/knowledge/$slug'
       path: '/$slug'
@@ -2639,6 +2701,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppAdminWebhooksRoute: typeof AuthenticatedAppAdminWebhooksRoute
+  AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
   AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
@@ -2691,6 +2754,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppAdminWebhooksRoute: AuthenticatedAppAdminWebhooksRoute,
+  AuthenticatedAppPlatformLicensesRoute: AuthenticatedAppPlatformLicensesRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
   AuthenticatedAppAcademyIndexRoute: AuthenticatedAppAcademyIndexRoute,
@@ -2848,6 +2912,8 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
+  ApiPublicV1LicenseHeartbeatRoute: ApiPublicV1LicenseHeartbeatRoute,
+  ApiPublicV1LicenseReleasesRoute: ApiPublicV1LicenseReleasesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
