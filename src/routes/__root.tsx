@@ -15,6 +15,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SupportWidget } from "@/components/support/support-widget";
+import { LicenseProvider } from "@/lib/license";
 
 function NotFoundComponent() {
   return (
@@ -139,9 +140,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthProvider>
-          <Outlet />
-          <SupportWidget />
-          <Toaster />
+          <LicenseProvider>
+            <Outlet />
+            <SupportWidget />
+            <Toaster />
+          </LicenseProvider>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
