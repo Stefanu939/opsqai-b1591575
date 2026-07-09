@@ -20,6 +20,8 @@ import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
+import { useLicense, hasModule } from "@/lib/license";
+import type { ModuleKey } from "@/lib/license-modules";
 // SupportWidget is mounted globally in __root.tsx so it appears on marketing
 // pages too. Do not remount here or the bubble/badge will duplicate.
 
