@@ -20,6 +20,8 @@ import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
+import { useLicense, hasModule } from "@/lib/license";
+import type { ModuleKey } from "@/lib/license-modules";
 // SupportWidget is mounted globally in __root.tsx so it appears on marketing
 // pages too. Do not remount here or the bubble/badge will duplicate.
 
@@ -29,6 +31,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { isPlatformAdmin, isPlatformOwner, signOut, user, companyName, activeCompanyId, setActiveCompanyId, hasPermission, hasAnyPermission } = auth;
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
+  const license = useLicense();
+  const gate = (m: ModuleKey | null) => (m === null ? true : hasModule(license, m));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string; is_system?: boolean }>>([]);
 
@@ -42,14 +46,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 
   const nav = [
-    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true, show: true },
-    { to: "/app/chat", label: t("chat"), icon: MessageSquare, show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage") },
-    { to: "/app/workspace", label: t("workspace"), icon: Sparkles, show: hasPermission("workspace.use") || hasPermission("workspace.manage") },
-    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit") },
-    { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit") },
-    { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true },
-    { to: "/app/academy", label: "My Training", icon: GraduationCap, show: hasPermission("academy.learn") },
-  ].filter((i) => i.show);
+    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true, show: true, module: null as ModuleKey | null },
+    { to: "/app/chat", label: t("chat"), icon: MessageSquare, show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"), module: "chat" as ModuleKey },
+    { to: "/app/workspace", label: t("workspace"), icon: Sparkles, show: hasPermission("workspace.use") || hasPermission("workspace.manage"), module: null as ModuleKey | null },
+    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"), module: "kb" as ModuleKey },
+    { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit"), module: "faq" as ModuleKey },
+    { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true, module: "internal_requests" as ModuleKey },
+    { to: "/app/academy", label: "My Training", icon: GraduationCap, show: hasPermission("academy.learn"), module: "academy" as ModuleKey },
+  ].filter((i) => i.show && gate(i.module));
 
   const adminNav = [
     {
@@ -57,18 +61,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: "Command Center",
       icon: LayoutDashboard,
       show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"),
+      module: "executive_dashboard" as ModuleKey,
     },
-    { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view") },
-    { to: "/app/admin/sop-generator", label: "AI SOP Generator", icon: Sparkles, show: hasPermission("sop.generate") },
-    { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage") },
-    { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete") },
-    { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view") },
-    { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
-    { to: "/app/admin/sso-setup", label: "SSO / Microsoft", icon: ShieldCheck, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
-    { to: "/app/admin/webhooks", label: "Webhooks", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
-    { to: "/app/admin/api-keys", label: "API keys", icon: KeyRound, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update") },
-    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner },
-  ].filter((i) => i.show);
+    { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view"), module: "knowledge_gaps" as ModuleKey },
+    { to: "/app/admin/sop-generator", label: "AI SOP Generator", icon: Sparkles, show: hasPermission("sop.generate"), module: "ai_sop_generator" as ModuleKey },
+    { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage"), module: "academy" as ModuleKey },
+    { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete"), module: null as ModuleKey | null },
+    { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view"), module: "audit_log" as ModuleKey },
+    { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null as ModuleKey | null },
+    { to: "/app/admin/sso-setup", label: "SSO / Microsoft", icon: ShieldCheck, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: "rbac" as ModuleKey },
+    { to: "/app/admin/webhooks", label: "Webhooks", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null as ModuleKey | null },
+    { to: "/app/admin/api-keys", label: "API keys", icon: KeyRound, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null as ModuleKey | null },
+    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner, module: "brand_center" as ModuleKey },
+  ].filter((i) => i.show && gate(i.module));
 
   const platformNav = (isPlatformAdmin || isPlatformOwner)
     ? [
