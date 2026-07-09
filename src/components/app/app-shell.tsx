@@ -31,6 +31,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { isPlatformAdmin, isPlatformOwner, signOut, user, companyName, activeCompanyId, setActiveCompanyId, hasPermission, hasAnyPermission } = auth;
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
+  const license = useLicense();
+  const gate = (m: ModuleKey | null) => (m === null ? true : hasModule(license, m));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string; is_system?: boolean }>>([]);
 
