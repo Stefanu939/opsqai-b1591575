@@ -8,8 +8,9 @@ import {
   revokeLicense,
   issueModuleLicense,
   getLicensePublicKey,
+  getModuleToken,
 } from "@/lib/licenses.functions";
-import { ADDON_MODULES, BASIC_MODULES } from "@/lib/license-modules";
+import { ADDON_MODULES, BASIC_MODULES, type ModuleKey } from "@/lib/license-modules";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { KeyRound, Plus, ShieldOff, Copy, Package } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import { KeyRound, Plus, ShieldOff, Copy, Package, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
