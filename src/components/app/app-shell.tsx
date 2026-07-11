@@ -201,58 +201,34 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">Workspace</div>
-        {nav.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            onClick={onNavigate}
-            activeOptions={{ exact: item.exact }}
-            className={linkCls}
-          >
-            <ActiveIndicator />
-            <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
-            <span className="truncate">{item.label}</span>
-          </Link>
-        ))}
-        {adminNav.length > 0 && (
-          <>
-            <div className="pt-5 pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-              {t("admin")}
+        {sections.map((section, sIdx) =>
+          section.items.length > 0 ? (
+            <div key={section.label}>
+              <div className={`${sIdx === 0 ? "" : "pt-5"} pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40`}>
+                {section.label}
+              </div>
+              {section.items.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={onNavigate}
+                  activeOptions={item.exact ? { exact: true } : undefined}
+                  className={linkCls}
+                >
+                  <ActiveIndicator />
+                  <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              ))}
             </div>
-            {adminNav.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={onNavigate}
-                className={linkCls}
-              >
-                <ActiveIndicator />
-                <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            ))}
-          </>
+          ) : null,
         )}
-        {platformNav.length > 0 && (
-          <>
-            <div className="pt-5 pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-              Platform
-            </div>
-            {platformNav.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={onNavigate}
-                className={linkCls}
-              >
-                <ActiveIndicator />
-                <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            ))}
-          </>
-        )}
+        <div className="pt-5 pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+          Deployment
+        </div>
+        <div className="px-3 py-1 text-[10px] text-sidebar-foreground/50">
+          Mode: <span className="font-mono uppercase">{mode}</span>
+        </div>
       </nav>
       <div className="border-t border-sidebar-border p-3 space-y-1">
         <button
