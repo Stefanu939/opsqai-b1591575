@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lesson
   }),
 });
 
-type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: string; options?: string[]; correct_answer: string; explanation: string };
+type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: string; options?: string[]; correct_answer?: string; explanation: string };
 
 const COMPLETE_MARKER = "[LESSON_COMPLETE]";
 
@@ -113,6 +113,7 @@ function TeacherChat({
   const submit = useServerFn(submitAcademyQuiz);
 
   const [quiz, setQuiz] = useState<Q[] | null>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
   const [result, setResult] = useState<any>(null);
   const [contextOpen, setContextOpen] = useState(true);
@@ -187,7 +188,8 @@ function TeacherChat({
     }
     setResult(null);
     try {
-      const q = (await genQuiz({ data: { lesson_id: lessonId, language: learnLang } })) as { questions: Q[] };
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: learnLang } })) as { attempt_id: string; questions: Q[] };
+      setAttemptId(q.attempt_id);
       setQuiz(q.questions);
       setAnswers(Array(q.questions.length).fill(""));
     } catch (e: any) {
@@ -209,6 +211,7 @@ function TeacherChat({
     if (quiz && lessonComplete) {
       // Regenerate quiz in the new language
       setQuiz(null);
+      setAttemptId(null);
       setAnswers([]);
       setResult(null);
       setTimeout(() => { void startQuizWithLang(next); }, 200);
@@ -217,7 +220,8 @@ function TeacherChat({
 
   const startQuizWithLang = async (lg: string) => {
     try {
-      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lg } })) as { questions: Q[] };
+      const q = (await genQuiz({ data: { lesson_id: lessonId, language: lg } })) as { attempt_id: string; questions: Q[] };
+      setAttemptId(q.attempt_id);
       setQuiz(q.questions);
       setAnswers(Array(q.questions.length).fill(""));
     } catch (e: any) {
@@ -226,13 +230,13 @@ function TeacherChat({
   };
 
   const finishQuiz = async () => {
-    if (!quiz) return;
+    if (!quiz || !attemptId) return;
     try {
       const r = await submit({
         data: {
-          lesson_id: lessonId,
+          attempt_id: attemptId,
           enrollment_id: enrollmentId || null,
-          questions: quiz, answers,
+          answers,
           time_spent_seconds: Math.floor((Date.now() - start.current) / 1000),
         },
       });

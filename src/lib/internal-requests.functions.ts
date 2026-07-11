@@ -135,6 +135,21 @@ export const updateInternalRequest = createServerFn({ method: "POST" })
     answer: z.string().max(8000).optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    // SECURITY: only staff (admin/manager/team_leader/platform_admin) may
+    // answer a request or mark it as "answered"/"in_review". Regular
+    // employees can only close their own request.
+    const staff = await isStaff(context.supabase, context.userId);
+
+    // Fetch the row so we can verify ownership and enforce role-scoped writes.
+    const { data: existing, error: fetchErr } = await context.supabase
+      .from("internal_requests")
+      .select("user_id, status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (!existing) throw new Error("Request not found");
+    const isOwner = existing.user_id === context.userId;
+
     const patch: {
       status?: "open" | "in_review" | "answered" | "closed";
       priority?: "low" | "normal" | "high";
@@ -142,14 +157,37 @@ export const updateInternalRequest = createServerFn({ method: "POST" })
       answered_by?: string | null;
       answered_at?: string | null;
     } = {};
-    if (data.status !== undefined) patch.status = data.status;
-    if (data.priority !== undefined) patch.priority = data.priority;
+
     if (data.answer !== undefined) {
+      if (!staff.isStaff) throw new Error("Forbidden: staff role required to answer requests");
       patch.answer = data.answer;
       patch.answered_by = context.userId;
       patch.answered_at = new Date().toISOString();
       if (!data.status) patch.status = "answered";
     }
+
+    if (data.status !== undefined) {
+      const staffOnlyStatuses = new Set(["answered", "in_review", "open"]);
+      if (staffOnlyStatuses.has(data.status) && !staff.isStaff) {
+        // Non-staff (including the request owner) may only close their own request.
+        if (!(data.status === "closed" && isOwner)) {
+          throw new Error("Forbidden: only staff can set that status");
+        }
+      }
+      // "closed" is allowed for staff on any row, and for the owner of the row.
+      if (data.status === "closed" && !staff.isStaff && !isOwner) {
+        throw new Error("Forbidden");
+      }
+      patch.status = data.status;
+    }
+
+    if (data.priority !== undefined) {
+      if (!staff.isStaff) throw new Error("Forbidden: only staff can change priority");
+      patch.priority = data.priority;
+    }
+
+    if (Object.keys(patch).length === 0) return { ok: true };
+
     const { error } = await context.supabase.from("internal_requests").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

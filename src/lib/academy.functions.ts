@@ -633,26 +633,47 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     });
     try {
       const parsed = parseJsonObject(text) as any;
-      const questions = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q: any) => ({
+      const mapped = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q: any) => ({
         type: ["multiple_choice", "true_false", "short_answer"].includes(q?.type) ? q.type : "short_answer",
         question: coerceString(q?.question, `What is a key point from ${lesson.title}?`),
         options: Array.isArray(q?.options) ? q.options.map((option: unknown) => coerceString(option)).filter(Boolean).slice(0, 4) : undefined,
         correct_answer: coerceString(q?.correct_answer, "See lesson content"),
         explanation: coerceString(q?.explanation, "This answer is based on the lesson content."),
       })).slice(0, data.count);
-      return QuizSchema.parse({ questions });
+      const questions = QuizSchema.parse({ questions: mapped }).questions;
+
+      // SECURITY: persist the graded questions (including correct_answer)
+      // server-side so submission can be graded against a trusted source
+      // rather than a client-supplied correct_answer field.
+      const { data: attempt, error: attemptErr } = await (context.supabase as any)
+        .from("academy_quiz_attempts")
+        .insert({
+          company_id: (lesson as any).company_id ?? null,
+          lesson_id: data.lesson_id,
+          user_id: context.userId,
+          questions,
+          answers: [],
+          score: 0,
+          passed: false,
+        })
+        .select("id").single();
+      if (attemptErr || !attempt) throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
+
+      // Client-safe questions — strip correct_answer so it cannot be replayed.
+      const clientQuestions = questions.map(({ correct_answer: _ca, ...rest }) => rest);
+      return { attempt_id: attempt.id as string, questions: clientQuestions };
     } catch (error) {
       console.warn("Academy quiz JSON parse failed; using source-based fallback", error);
-      return QuizSchema.parse({
+      const fallback = QuizSchema.parse({
         questions: [
           {
-            type: "short_answer",
+            type: "short_answer" as const,
             question: `What is the main operational purpose of ${lesson.title}?`,
             correct_answer: "The answer should reflect the documented lesson purpose.",
             explanation: "This fallback question is grounded in the lesson title and body.",
           },
           {
-            type: "true_false",
+            type: "true_false" as const,
             question: "Learners should follow the approved procedure described in the lesson.",
             options: ["True", "False"],
             correct_answer: "True",
@@ -660,36 +681,67 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
           },
         ].slice(0, Math.max(2, data.count)),
       });
+      const { data: attempt, error: attemptErr } = await (context.supabase as any)
+        .from("academy_quiz_attempts")
+        .insert({
+          company_id: (lesson as any).company_id ?? null,
+          lesson_id: data.lesson_id,
+          user_id: context.userId,
+          questions: fallback.questions,
+          answers: [],
+          score: 0,
+          passed: false,
+        })
+        .select("id").single();
+      if (attemptErr || !attempt) throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
+      const clientQuestions = fallback.questions.map(({ correct_answer: _ca, ...rest }) => rest);
+      return { attempt_id: attempt.id as string, questions: clientQuestions };
     }
   });
 
 const SubmitSchema = z.object({
-  lesson_id: z.string().uuid(),
+  attempt_id: z.string().uuid(),
   enrollment_id: z.string().uuid().optional().nullable(),
-  questions: z.array(QuestionSchema),
   answers: z.array(z.string()),
   duration_seconds: z.number().int().optional(),
   time_spent_seconds: z.number().int().optional(),
 });
 
+type StoredQuestion = z.infer<typeof QuestionSchema>;
+
 export const submitAcademyQuiz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SubmitSchema.parse(d))
   .handler(async ({ data, context }) => {
-    if (data.answers.length !== data.questions.length) throw new Error("Answer count mismatch");
+    // SECURITY: load the stored attempt and grade against the trusted
+    // server-side questions. The client no longer supplies correct_answer.
+    const { data: attempt, error: attemptErr } = await (context.supabase as any)
+      .from("academy_quiz_attempts")
+      .select("id, user_id, lesson_id, company_id, questions, passed, score")
+      .eq("id", data.attempt_id)
+      .maybeSingle();
+    if (attemptErr) throw new Error(attemptErr.message);
+    if (!attempt) throw new Error("Quiz attempt not found");
+    if (attempt.user_id !== context.userId) throw new Error("Forbidden");
+
+    const parsedQuestions = z.array(QuestionSchema).parse(attempt.questions ?? []);
+    if (data.answers.length !== parsedQuestions.length) {
+      throw new Error("Answer count mismatch");
+    }
 
     const { data: lesson } = await (context.supabase as any)
       .from("academy_lessons")
       .select("company_id, chapter_id, academy_chapters!inner(path_id, academy_learning_paths!inner(passing_score))")
-      .eq("id", data.lesson_id).maybeSingle();
+      .eq("id", attempt.lesson_id).maybeSingle();
     if (!lesson) throw new Error("Lesson not found");
     const passingScore: number = (lesson as any).academy_chapters?.academy_learning_paths?.passing_score ?? 70;
 
-    // Local grading for objective questions; use AI for short_answer.
+    // Grade using stored, trusted correct_answer values.
     const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
     const gateway = await ai();
-    for (let i = 0; i < data.questions.length; i++) {
-      const q = data.questions[i]; const a = (data.answers[i] ?? "").trim();
+    for (let i = 0; i < parsedQuestions.length; i++) {
+      const q: StoredQuestion = parsedQuestions[i];
+      const a = (data.answers[i] ?? "").trim();
       if (q.type === "multiple_choice" || q.type === "true_false") {
         const correct = a.toLowerCase() === q.correct_answer.trim().toLowerCase();
         results.push({ correct, explanation: q.explanation, correct_answer: q.correct_answer });
@@ -709,15 +761,16 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
     const score = Math.round((correctCount / results.length) * 100);
     const passed = score >= passingScore;
 
-    await (context.supabase as any).from("academy_quiz_attempts").insert({
-      company_id: (lesson as any).company_id,
-      lesson_id: data.lesson_id,
-      user_id: context.userId,
-      questions: data.questions,
-      answers: data.answers,
-      score, passed,
-      duration_seconds: data.duration_seconds ?? null,
-    });
+    // Finalize the pending attempt row rather than inserting a new one.
+    await (context.supabase as any)
+      .from("academy_quiz_attempts")
+      .update({
+        answers: data.answers,
+        score,
+        passed,
+        duration_seconds: data.duration_seconds ?? null,
+      })
+      .eq("id", attempt.id);
 
     // Update progress
     if (data.enrollment_id) {
@@ -725,7 +778,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
         .from("academy_lesson_progress")
         .select("id, attempts, time_spent_seconds")
         .eq("enrollment_id", data.enrollment_id)
-        .eq("lesson_id", data.lesson_id).maybeSingle();
+        .eq("lesson_id", attempt.lesson_id).maybeSingle();
       const baseAttempts = (existing?.attempts ?? 0) + 1;
       const baseTime = (existing?.time_spent_seconds ?? 0) + (data.time_spent_seconds ?? 0);
       if (existing) {
@@ -740,7 +793,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
         await (context.supabase as any).from("academy_lesson_progress").insert({
           company_id: (lesson as any).company_id,
           enrollment_id: data.enrollment_id,
-          lesson_id: data.lesson_id,
+          lesson_id: attempt.lesson_id,
           user_id: context.userId,
           attempts: 1, last_score: score, time_spent_seconds: data.time_spent_seconds ?? 0,
           status: passed ? "completed" : "in_progress",
