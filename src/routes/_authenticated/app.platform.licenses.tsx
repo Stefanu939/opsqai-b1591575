@@ -95,7 +95,6 @@ function LicensesPage() {
     module_key: ModuleKey;
     expires_at: string;
     maintenance_expires_at: string;
-    hard_expiry: boolean;
     unit_price_cents: number;
   } | null>(null);
 
@@ -106,7 +105,6 @@ function LicensesPage() {
     seats: 50,
     expires_at: "",
     maintenance_expires_at: "",
-    hard_expiry: false,
     notes: "",
   });
 
@@ -121,7 +119,6 @@ function LicensesPage() {
           seats: form.seats,
           expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
           maintenance_expires_at: form.maintenance_expires_at ? new Date(form.maintenance_expires_at).toISOString() : null,
-          hard_expiry: form.hard_expiry,
           notes: form.notes || undefined,
         },
       }),
@@ -129,7 +126,7 @@ function LicensesPage() {
       toast.success("Installation License issued — token copied");
       navigator.clipboard?.writeText(res.token).catch(() => {});
       qc.invalidateQueries({ queryKey: ["licenses"] });
-      setForm({ install_id: "", company_name: "", contact_email: "", seats: 50, expires_at: "", maintenance_expires_at: "", hard_expiry: false, notes: "" });
+      setForm({ install_id: "", company_name: "", contact_email: "", seats: 50, expires_at: "", maintenance_expires_at: "", notes: "" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -147,7 +144,6 @@ function LicensesPage() {
       module_key: string;
       expires_at?: string | null;
       maintenance_expires_at?: string | null;
-      hard_expiry?: boolean;
       unit_price_cents?: number;
     }) => issueModule({ data: { unit_price_cents: 0, ...v } }),
     onSuccess: (res: { token: string; module_key: string }) => {
