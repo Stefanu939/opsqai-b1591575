@@ -10,6 +10,7 @@ import {
   getLicensePublicKey,
   getModuleToken,
 } from "@/lib/licenses.functions";
+import { exportActivationBundle, exportRevocationList } from "@/lib/license-activation.functions";
 import { ADDON_MODULES, BASIC_MODULES, type ModuleKey } from "@/lib/license-modules";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,28 @@ function LicensesPage() {
   const issueModule = useServerFn(issueModuleLicense);
   const getPubKey = useServerFn(getLicensePublicKey);
   const fetchModuleToken = useServerFn(getModuleToken);
+  const exportBundle = useServerFn(exportActivationBundle);
+  const exportCrl = useServerFn(exportRevocationList);
+
+  async function downloadBundle(install_id: string) {
+    try {
+      const bundle = await exportBundle({ data: { install_id } });
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `opsqai-activation-${install_id}.json`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Activation bundle downloaded");
+    } catch (e) { toast.error((e as Error).message); }
+  }
+
+  async function downloadCrl() {
+    try {
+      const res = await exportCrl({ data: {} } as never);
+      await navigator.clipboard?.writeText(res.token);
+      toast.success(`CRL copied — ${res.entries} entries, key ${res.key_id}`);
+    } catch (e) { toast.error((e as Error).message); }
+  }
 
   const { data: rows } = useQuery({ queryKey: ["licenses"], queryFn: () => list({ data: {} } as never) });
   const { data: pubKey } = useQuery({ queryKey: ["license-public-key"], queryFn: () => getPubKey({ data: {} } as never) });
@@ -173,12 +196,17 @@ function LicensesPage() {
             Ship this PEM with every Self-Hosted build so installs can verify license tokens offline.
           </p>
           <pre className="text-xs bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">{pubKey.public_key_pem}</pre>
-          <Button
-            variant="outline" size="sm" className="mt-2"
-            onClick={() => { navigator.clipboard?.writeText(pubKey.public_key_pem); toast.success("Copied"); }}
-          >
-            <Copy className="h-4 w-4 mr-1" /> Copy PEM
-          </Button>
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="outline" size="sm"
+              onClick={() => { navigator.clipboard?.writeText(pubKey.public_key_pem); toast.success("Copied"); }}
+            >
+              <Copy className="h-4 w-4 mr-1" /> Copy PEM
+            </Button>
+            <Button variant="outline" size="sm" onClick={downloadCrl}>
+              <ShieldOff className="h-4 w-4 mr-1" /> Export revocation list
+            </Button>
+          </div>
         </Card>
       )}
 
@@ -294,6 +322,9 @@ function LicensesPage() {
                     {l.revoked ? <Badge variant="destructive">Revoked</Badge> : l.suspended ? <Badge variant="outline">Suspended</Badge> : <Badge>Active</Badge>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
+                    <Button size="sm" variant="ghost" onClick={() => downloadBundle(l.install_id)} title="Download offline activation bundle">
+                      <Package className="h-4 w-4 mr-1" /> Bundle
+                    </Button>
                     {!l.revoked && (
                       <Button size="sm" variant="ghost" className="text-destructive"
                         onClick={() => { if (confirm(`Revoke Installation License for ${l.install_id}?`)) revokeMut.mutate({ install_id: l.install_id, kind: "install" }); }}>
