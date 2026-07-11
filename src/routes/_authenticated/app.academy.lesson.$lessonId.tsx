@@ -113,6 +113,7 @@ function TeacherChat({
   const submit = useServerFn(submitAcademyQuiz);
 
   const [quiz, setQuiz] = useState<Q[] | null>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
   const [result, setResult] = useState<any>(null);
   const [contextOpen, setContextOpen] = useState(true);
