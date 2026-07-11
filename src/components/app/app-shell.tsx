@@ -39,58 +39,110 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string; is_system?: boolean }>>([]);
 
+  const deploymentQuery = useDeploymentInfo();
+  const mode = deploymentQuery.data?.mode ?? getClientDeploymentMode();
+  const isMC = mode === "mc";
+
   useEffect(() => {
     if (!isPlatformAdmin) return;
     supabase.from("companies").select("id, name, is_system").order("is_system", { ascending: false }).order("name").then(({ data }) => {
-      // Include OPSQAI Internal for platform admins so it is switchable from the sidebar.
       setCompanies((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>);
     });
   }, [isPlatformAdmin]);
 
+  type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; show: boolean; module?: ModuleKey | null };
 
-  const nav = [
-    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true, show: true, module: null as ModuleKey | null },
-    { to: "/app/chat", label: t("chat"), icon: MessageSquare, show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"), module: "chat" as ModuleKey },
-    { to: "/app/workspace", label: t("workspace"), icon: Sparkles, show: hasPermission("workspace.use") || hasPermission("workspace.manage"), module: null as ModuleKey | null },
-    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"), module: "kb" as ModuleKey },
-    { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit"), module: "faq" as ModuleKey },
-    { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true, module: "internal_requests" as ModuleKey },
-    { to: "/app/academy", label: "My Training", icon: GraduationCap, show: hasPermission("academy.learn"), module: "academy" as ModuleKey },
-  ].filter((i) => i.show && gate(i.module));
+  // ---- Self-hosted (customer operational) navigation ----
+  const selfhostWorkspace: NavItem[] = [
+    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true, show: true, module: null },
+    { to: "/app/chat", label: t("chat"), icon: MessageSquare, show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"), module: "chat" },
+    { to: "/app/workspace", label: t("workspace"), icon: Sparkles, show: hasPermission("workspace.use") || hasPermission("workspace.manage"), module: null },
+    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"), module: "kb" },
+    { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit"), module: "faq" },
+    { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true, module: "internal_requests" },
+    { to: "/app/academy", label: "My Training", icon: GraduationCap, show: hasPermission("academy.learn"), module: "academy" },
+  ];
 
-  const adminNav = [
-    {
-      to: "/app/admin/command-center",
-      label: "Command Center",
-      icon: LayoutDashboard,
-      show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"),
-      module: "executive_dashboard" as ModuleKey,
-    },
-    { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view"), module: "knowledge_gaps" as ModuleKey },
-    { to: "/app/admin/sop-generator", label: "AI SOP Generator", icon: Sparkles, show: hasPermission("sop.generate"), module: "ai_sop_generator" as ModuleKey },
-    { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage"), module: "academy" as ModuleKey },
-    { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete"), module: null as ModuleKey | null },
-    { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view"), module: "audit_log" as ModuleKey },
-    { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null as ModuleKey | null },
-    { to: "/app/admin/sso-setup", label: "SSO / Microsoft", icon: ShieldCheck, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: "rbac" as ModuleKey },
-    { to: "/app/admin/webhooks", label: "Webhooks", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null as ModuleKey | null },
-    { to: "/app/admin/api-keys", label: "API keys", icon: KeyRound, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null as ModuleKey | null },
-    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner, module: "brand_center" as ModuleKey },
-  ].filter((i) => i.show && gate(i.module));
+  const selfhostAdmin: NavItem[] = [
+    { to: "/app/admin/command-center", label: "Command Center", icon: LayoutDashboard, show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"), module: "executive_dashboard" },
+    { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view"), module: "knowledge_gaps" },
+    { to: "/app/admin/sop-generator", label: "AI SOP Generator", icon: Sparkles, show: hasPermission("sop.generate"), module: "ai_sop_generator" },
+    { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage"), module: "academy" },
+    { to: "/app/admin/analytics", label: "Analytics", icon: BarChart3, show: hasPermission("analytics.view"), module: null },
+    { to: "/app/admin/ai-audit", label: "AI Audit", icon: LineChart, show: hasPermission("ai_audit.run"), module: "audit_log" },
+    { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete"), module: null },
+    { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null },
+    { to: "/app/admin/sso-setup", label: "SSO / Microsoft", icon: ShieldCheck, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: "rbac" },
+    { to: "/app/admin/webhooks", label: "Webhooks", icon: Webhook, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null },
+    { to: "/app/admin/api-keys", label: "API keys", icon: KeyRound, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null },
+    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner, module: "brand_center" },
+  ];
 
-  const platformNav = (isPlatformAdmin || isPlatformOwner)
+  const selfhostPlatform: NavItem[] = (isPlatformAdmin || isPlatformOwner)
     ? [
-        { to: "/app/internal", label: "OPSQAI Internal", icon: Sparkles },
-        { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck },
-        { to: "/app/admin/companies", label: "Companies", icon: Building2 },
-        { to: "/app/admin/subscriptions", label: "Subscriptions", icon: ShieldCheck },
-        { to: "/app/admin/customers", label: "Enterprise Documents", icon: Building2 },
-        { to: "/app/admin/support", label: "Support Inbox", icon: Inbox },
-        { to: "/app/admin/email", label: "Email Settings", icon: Inbox },
-        { to: "/app/admin/email-logs", label: "Email Logs", icon: ScrollText },
-        { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck },
+        { to: "/app/platform/setup", label: "Setup Wizard", icon: Rocket, show: true, module: null },
+        { to: "/app/platform/doctor", label: "System Doctor", icon: Wrench, show: true, module: null },
+        { to: "/app/platform/recovery", label: "Disaster Recovery", icon: ShieldAlert, show: true, module: null },
+        { to: "/app/platform/license-activation", label: "License Activation", icon: KeyRound, show: true, module: null },
       ]
     : [];
+
+  // ---- Management Center (platform management ONLY) navigation ----
+  const mcOverview: NavItem[] = [
+    { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: null },
+    { to: "/app/admin/dashboard", label: "Executive Dashboard", icon: BarChart3, show: isPlatformAdmin || isPlatformOwner, module: null },
+  ];
+
+  const mcCommercial: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+    ? [
+        { to: "/app/admin/companies", label: "Companies", icon: Building2, show: true, module: null },
+        { to: "/app/admin/customers", label: "Enterprise Documents", icon: FileText, show: true, module: null },
+        { to: "/app/admin/subscriptions", label: "Orders & Subscriptions", icon: Package, show: true, module: null },
+        { to: "/portal", label: "Customer Portal", icon: LifeBuoy, show: true, module: null },
+      ]
+    : [];
+
+  const mcLicensing: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+    ? [
+        { to: "/app/platform/licenses", label: "Licenses & Releases", icon: KeyRound, show: true, module: null },
+      ]
+    : [];
+
+  const mcOperations: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+    ? [
+        { to: "/app/admin/support", label: "Support Inbox", icon: Inbox, show: true, module: null },
+        { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view"), module: null },
+        { to: "/app/admin/email", label: "Email Settings", icon: Mail, show: true, module: null },
+        { to: "/app/admin/email-logs", label: "Email Logs", icon: ScrollText, show: true, module: null },
+      ]
+    : [];
+
+  const mcPlatformAdmin: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+    ? [
+        { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck, show: true, module: null },
+        { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck, show: true, module: null },
+      ]
+    : [];
+
+  const filterNav = (items: NavItem[]) => items.filter((i) => i.show && gate(i.module ?? null));
+
+  // Assemble grouped nav sections based on deployment mode.
+  const sections: Array<{ label: string; items: NavItem[] }> = isMC
+    ? [
+        { label: "Overview", items: filterNav(mcOverview) },
+        { label: "Commercial", items: filterNav(mcCommercial) },
+        { label: "Licensing & Releases", items: filterNav(mcLicensing) },
+        { label: "Operations", items: filterNav(mcOperations) },
+        { label: "Platform", items: filterNav(mcPlatformAdmin) },
+      ]
+    : [
+        { label: "Workspace", items: filterNav(selfhostWorkspace) },
+        { label: t("admin"), items: filterNav(selfhostAdmin) },
+        { label: "Platform", items: filterNav(selfhostPlatform) },
+      ];
+
+  // Legacy flat `nav` kept for the mobile bottom-tab bar — primary items only.
+  const nav = sections[0]?.items ?? [];
 
   const cycleLang = () => {
     const order: Array<"de" | "en" | "ro"> = ["en", "de", "ro"];
