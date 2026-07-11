@@ -94,7 +94,6 @@ export const OPERATIONAL_PREFIXES: readonly string[] = [
   "/app/requests",
   "/app/academy",
   "/app/internal",
-  "/app/brand",
   "/app/admin/academy",
   "/app/admin/knowledge-gaps",
   "/app/admin/sop-generator",
