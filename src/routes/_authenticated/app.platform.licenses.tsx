@@ -61,9 +61,20 @@ function LicensesPage() {
   const revoke = useServerFn(revokeLicense);
   const issueModule = useServerFn(issueModuleLicense);
   const getPubKey = useServerFn(getLicensePublicKey);
+  const fetchModuleToken = useServerFn(getModuleToken);
 
   const { data: rows } = useQuery({ queryKey: ["licenses"], queryFn: () => list({ data: {} } as never) });
   const { data: pubKey } = useQuery({ queryKey: ["license-public-key"], queryFn: () => getPubKey({ data: {} } as never) });
+
+  // Per-module issue dialog state
+  const [moduleDialog, setModuleDialog] = useState<{
+    install_id: string;
+    module_key: ModuleKey;
+    expires_at: string;
+    maintenance_expires_at: string;
+    hard_expiry: boolean;
+    unit_price_cents: number;
+  } | null>(null);
 
   const [form, setForm] = useState({
     install_id: "",
@@ -108,15 +119,36 @@ function LicensesPage() {
   });
 
   const issueModuleMut = useMutation({
-    mutationFn: ({ install_id, module_key }: { install_id: string; module_key: string }) =>
-      issueModule({ data: { install_id, module_key, unit_price_cents: 0 } }),
+    mutationFn: (v: {
+      install_id: string;
+      module_key: string;
+      expires_at?: string | null;
+      maintenance_expires_at?: string | null;
+      hard_expiry?: boolean;
+      unit_price_cents?: number;
+    }) => issueModule({ data: { unit_price_cents: 0, ...v } }),
     onSuccess: (res: { token: string; module_key: string }) => {
       toast.success(`Module License issued (${res.module_key}) — token copied`);
       if (res.token) navigator.clipboard?.writeText(res.token).catch(() => {});
       qc.invalidateQueries({ queryKey: ["licenses"] });
+      setModuleDialog(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  async function viewModuleToken(install_id: string, module_key: string) {
+    try {
+      const row = await fetchModuleToken({ data: { install_id, module_key } });
+      if (row?.signed_token) {
+        await navigator.clipboard?.writeText(row.signed_token);
+        toast.success(`Token for ${module_key} copied to clipboard`);
+      } else {
+        toast.error("Token not available");
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   const licenses = (rows ?? []) as LicenseRow[];
 
