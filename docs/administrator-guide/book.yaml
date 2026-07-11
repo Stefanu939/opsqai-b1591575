@@ -1,0 +1,19 @@
+title: "OPSQAI Administrator Guide"
+version: "1.0"
+audience: "Customer IT administrator"
+chapters:
+  - 01-prerequisites.md
+  - 02-installation.md
+  - 03-setup-wizard.md
+  - 04-postgres.md
+  - 05-object-storage.md
+  - 06-smtp.md
+  - 07-sso.md
+  - 08-ai-provider.md
+  - 09-license-management.md
+  - 10-backups.md
+  - 11-restore.md
+  - 12-updates.md
+  - 13-modules.md
+  - 14-health-doctor.md
+  - 15-troubleshooting.md

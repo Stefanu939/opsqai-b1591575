@@ -1,0 +1,27 @@
+version: "1.0.0"
+cut_date: "2026-07-11"
+books:
+  - slug: product-documentation
+    title: "Product Documentation"
+    audience: "Customer CTO / decision maker"
+    public: true
+  - slug: administrator-guide
+    title: "Administrator Guide"
+    audience: "Customer IT admin"
+    public: true
+  - slug: technical-documentation
+    title: "Technical Documentation"
+    audience: "OPSQAI engineers + advanced customer engineers"
+    public: true
+  - slug: security-documentation
+    title: "Security Documentation"
+    audience: "Customer CISO / security architect"
+    public: true
+  - slug: architecture-book
+    title: "OPSQAI Architecture Book"
+    audience: "Technical decision makers + engineers"
+    public: true
+  - slug: engineering
+    title: "Engineering Handbook"
+    audience: "Internal — OPSQAI engineering"
+    public: false
