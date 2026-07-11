@@ -13,6 +13,7 @@ import { z } from "zod";
 const Body = z.object({
   install_id: z.string().min(3).max(64),
   app_version: z.string().max(32).optional(),
+  installer_version: z.string().max(32).optional(),
   user_count: z.number().int().min(0).max(1_000_000).optional(),
   host_info: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
@@ -47,7 +48,7 @@ export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
 
         const { data: lic } = await supabaseAdmin
           .from("licenses")
-          .select("install_id, signed_token, revoked, revoked_reason, expires_at, hard_expiry")
+          .select("install_id, signed_token, revoked, revoked_reason, expires_at, maintenance_expires_at")
           .eq("install_id", parsed.install_id)
           .maybeSingle();
 
@@ -60,6 +61,7 @@ export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
             install_id: parsed.install_id,
             last_heartbeat_at: new Date().toISOString(),
             app_version: parsed.app_version ?? null,
+            installer_version: parsed.installer_version ?? null,
             user_count: parsed.user_count ?? null,
             host_info: parsed.host_info ?? null,
             ip_address: ipHeader.split(",")[0].trim() || null,
@@ -81,7 +83,7 @@ export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
           revoked: lic.revoked,
           revoked_reason: lic.revoked_reason,
           expires_at: lic.expires_at,
-          hard_expiry: lic.hard_expiry,
+          maintenance_expires_at: lic.maintenance_expires_at,
           latest_token: lic.revoked ? null : lic.signed_token,
           latest_release: rel ?? null,
         });

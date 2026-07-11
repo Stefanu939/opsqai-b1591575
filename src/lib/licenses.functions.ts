@@ -21,7 +21,6 @@ const IssueInstallInput = z.object({
   seats: z.number().int().positive().default(50),
   expires_at: z.string().datetime().nullable().optional(),
   maintenance_expires_at: z.string().datetime().nullable().optional(),
-  hard_expiry: z.boolean().default(false),
   notes: z.string().optional(),
 });
 
@@ -30,7 +29,6 @@ const IssueModuleInput = z.object({
   module_key: z.string().refine(isValidModuleKey, "unknown module"),
   expires_at: z.string().datetime().nullable().optional(),
   maintenance_expires_at: z.string().datetime().nullable().optional(),
-  hard_expiry: z.boolean().default(false),
   unit_price_cents: z.number().int().min(0).default(0),
 });
 
@@ -50,7 +48,7 @@ export const listLicenses = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("licenses")
       .select(
-        "id, install_id, kind, module_key, company_name, contact_email, tier, seats, max_users, issued_at, expires_at, maintenance_expires_at, hard_expiry, revoked, revoked_at, suspended, suspended_at, notes, created_at",
+        "id, install_id, kind, module_key, company_name, contact_email, tier, seats, max_users, issued_at, expires_at, maintenance_expires_at, revoked, revoked_at, suspended, suspended_at, notes, created_at, owner_type, owner_since, handed_over_at, handover_notes",
       )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -69,13 +67,14 @@ export const listLicenses = createServerFn({ method: "POST" })
     const { data: installMeta } = ids.length
       ? await context.supabase
           .from("license_installs")
-          .select("install_id, last_heartbeat_at, app_version, user_count")
+          .select("install_id, last_heartbeat_at, app_version, installer_version, user_count")
           .in("install_id", ids)
       : {
           data: [] as Array<{
             install_id: string;
             last_heartbeat_at: string | null;
             app_version: string | null;
+            installer_version: string | null;
             user_count: number | null;
           }>,
         };
@@ -126,7 +125,6 @@ export const issueLicense = createServerFn({ method: "POST" })
       max_users: data.seats,
       expires_at: data.expires_at ?? null,
       maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
-      hard_expiry: data.hard_expiry,
       signed_token: token,
       notes: data.notes ?? null,
       issued_by: context.userId,
@@ -149,7 +147,7 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
     // Installation License must exist first.
     const { data: install } = await supabaseAdmin
       .from("licenses")
-      .select("install_id, expires_at, hard_expiry")
+      .select("install_id, expires_at")
       .eq("install_id", data.install_id)
       .eq("kind", "install")
       .maybeSingle();
@@ -186,7 +184,6 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
           signed_token: token,
           expires_at: data.expires_at ?? null,
           maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
-          hard_expiry: data.hard_expiry,
           revoked: false,
           revoked_at: null,
           revoked_reason: null,
@@ -208,7 +205,6 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
         max_users: 0,
         expires_at: data.expires_at ?? null,
         maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
-        hard_expiry: data.hard_expiry,
         signed_token: token,
         issued_by: context.userId,
         license_version: 1,
@@ -292,4 +288,59 @@ export const getModuleToken = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Module License not found");
     return row;
+  });
+
+// ─── Ownership transfer (Phase 4.5) ─────────────────────────────────────
+//
+// Records that an install has been handed over from OPSQAI to the customer
+// (or reverted). MC MUST NOT store any customer infrastructure secrets —
+// the input is passed through the secrets-blacklist gate. Only metadata:
+// who owns the install and free-text (non-secret) notes.
+
+const TransferOwnershipInput = z.object({
+  install_id: InstallIdSchema,
+  to: z.enum(["opsqai", "customer"]),
+  notes: z.string().max(2000).optional(),
+});
+
+export const transferOwnership = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => TransferOwnershipInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    assertNoBlacklistedSecrets(data, "transferOwnership input");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: current } = await supabaseAdmin
+      .from("licenses")
+      .select("id, owner_type, handed_over_at")
+      .eq("install_id", data.install_id)
+      .eq("kind", "install")
+      .maybeSingle();
+    if (!current) throw new Error("No Installation License for this install_id.");
+    if (current.owner_type === data.to) {
+      return { ok: true, install_id: data.install_id, owner_type: data.to, unchanged: true };
+    }
+
+    const nowIso = new Date().toISOString();
+    const patch: {
+      owner_type: "opsqai" | "customer";
+      owner_since: string;
+      handover_notes: string | null;
+      handed_over_at?: string;
+    } = {
+      owner_type: data.to,
+      owner_since: nowIso,
+      handover_notes: data.notes ?? null,
+    };
+    if (data.to === "customer" && !current.handed_over_at) {
+      patch.handed_over_at = nowIso;
+    }
+
+    const { error } = await supabaseAdmin
+      .from("licenses")
+      .update(patch)
+      .eq("id", current.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, install_id: data.install_id, owner_type: data.to, unchanged: false };
   });

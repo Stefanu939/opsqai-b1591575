@@ -28,8 +28,8 @@ export interface LicenseState {
   tier: "basic" | "standard" | "business" | "enterprise";
   modules: ModuleKey[];
   max_users: number | null;
-  expires_at: number | null; // unix seconds
-  hard_expiry: boolean;
+  expires_at: number | null; // unix seconds — after this, modules are blocked
+  maintenance_expires_at: number | null; // unix seconds — after this, no updates/support
   revoked: boolean;
   /** true when every module in the catalog is available (cloud mode). */
   unlimited: boolean;
@@ -43,7 +43,7 @@ const CLOUD_STATE: LicenseState = {
   modules: [],
   max_users: null,
   expires_at: null,
-  hard_expiry: false,
+  maintenance_expires_at: null,
   revoked: false,
   unlimited: true,
 };
@@ -56,7 +56,7 @@ interface RawPayload {
   max_users?: number;
   issued_at?: number;
   expires_at?: number | null;
-  hard_expiry?: boolean;
+  maintenance_expires_at?: number | null;
 }
 
 function base64UrlDecode(s: string): string {
@@ -116,7 +116,7 @@ function buildSelfHostState(): LicenseState {
       modules: [...BASIC_MODULES],
       max_users: null,
       expires_at: null,
-      hard_expiry: false,
+      maintenance_expires_at: null,
       revoked: false,
       unlimited: false,
     };
@@ -131,15 +131,16 @@ function buildSelfHostState(): LicenseState {
       modules: [...BASIC_MODULES],
       max_users: null,
       expires_at: null,
-      hard_expiry: false,
+      maintenance_expires_at: null,
       revoked: true,
       unlimited: false,
     };
   }
   const now = Math.floor(Date.now() / 1000);
+  // Availability is controlled solely by expires_at — once past, add-on
+  // modules are blocked (basic bundle stays available via hasModule()).
   const expired =
     typeof payload.expires_at === "number" && payload.expires_at < now;
-  const revoked = expired && !!payload.hard_expiry;
   return {
     mode: "selfhost",
     install_id: payload.install_id ?? null,
@@ -148,8 +149,8 @@ function buildSelfHostState(): LicenseState {
     modules: effectiveModules(payload.modules ?? []),
     max_users: payload.max_users ?? null,
     expires_at: payload.expires_at ?? null,
-    hard_expiry: !!payload.hard_expiry,
-    revoked,
+    maintenance_expires_at: payload.maintenance_expires_at ?? null,
+    revoked: expired,
     unlimited: false,
   };
 }

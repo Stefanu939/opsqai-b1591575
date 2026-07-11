@@ -9,6 +9,7 @@ import {
   issueModuleLicense,
   getLicensePublicKey,
   getModuleToken,
+  transferOwnership,
 } from "@/lib/licenses.functions";
 import { exportActivationBundle, exportRevocationList } from "@/lib/license-activation.functions";
 import { ADDON_MODULES, BASIC_MODULES, type ModuleKey } from "@/lib/license-modules";
@@ -22,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { KeyRound, Plus, ShieldOff, Copy, Package, Eye } from "lucide-react";
+import { KeyRound, Plus, ShieldOff, Copy, Package, Eye, ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
@@ -48,8 +49,15 @@ interface LicenseRow {
   maintenance_expires_at: string | null;
   revoked: boolean;
   suspended: boolean;
+  owner_type: "opsqai" | "customer";
+  handed_over_at: string | null;
   modules: ModuleRow[];
-  install: { user_count: number | null; last_heartbeat_at: string | null } | null;
+  install: {
+    user_count: number | null;
+    last_heartbeat_at: string | null;
+    app_version: string | null;
+    installer_version: string | null;
+  } | null;
 }
 
 function LicensesPage() {
@@ -65,6 +73,30 @@ function LicensesPage() {
   const fetchModuleToken = useServerFn(getModuleToken);
   const exportBundle = useServerFn(exportActivationBundle);
   const exportCrl = useServerFn(exportRevocationList);
+  const transfer = useServerFn(transferOwnership);
+
+  const transferMut = useMutation({
+    mutationFn: (v: { install_id: string; to: "opsqai" | "customer"; notes?: string }) =>
+      transfer({ data: v }),
+    onSuccess: (res: { install_id: string; owner_type: string; unchanged?: boolean }) => {
+      toast.success(
+        res.unchanged
+          ? `Ownership unchanged (${res.owner_type})`
+          : `Ownership → ${res.owner_type} for ${res.install_id}`,
+      );
+      qc.invalidateQueries({ queryKey: ["licenses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function handleTransfer(l: LicenseRow) {
+    const to: "opsqai" | "customer" = l.owner_type === "customer" ? "opsqai" : "customer";
+    const verb = to === "customer" ? "Hand over to customer" : "Revert ownership to OPSQAI";
+    const notes = prompt(`${verb} for ${l.install_id}. Optional notes (no secrets):`, "") ?? undefined;
+    if (!confirm(`${verb} for ${l.install_id}?`)) return;
+    transferMut.mutate({ install_id: l.install_id, to, notes: notes || undefined });
+  }
+
 
   async function downloadBundle(install_id: string) {
     try {
@@ -95,7 +127,6 @@ function LicensesPage() {
     module_key: ModuleKey;
     expires_at: string;
     maintenance_expires_at: string;
-    hard_expiry: boolean;
     unit_price_cents: number;
   } | null>(null);
 
@@ -106,7 +137,6 @@ function LicensesPage() {
     seats: 50,
     expires_at: "",
     maintenance_expires_at: "",
-    hard_expiry: false,
     notes: "",
   });
 
@@ -121,7 +151,6 @@ function LicensesPage() {
           seats: form.seats,
           expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
           maintenance_expires_at: form.maintenance_expires_at ? new Date(form.maintenance_expires_at).toISOString() : null,
-          hard_expiry: form.hard_expiry,
           notes: form.notes || undefined,
         },
       }),
@@ -129,7 +158,7 @@ function LicensesPage() {
       toast.success("Installation License issued — token copied");
       navigator.clipboard?.writeText(res.token).catch(() => {});
       qc.invalidateQueries({ queryKey: ["licenses"] });
-      setForm({ install_id: "", company_name: "", contact_email: "", seats: 50, expires_at: "", maintenance_expires_at: "", hard_expiry: false, notes: "" });
+      setForm({ install_id: "", company_name: "", contact_email: "", seats: 50, expires_at: "", maintenance_expires_at: "", notes: "" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -147,7 +176,6 @@ function LicensesPage() {
       module_key: string;
       expires_at?: string | null;
       maintenance_expires_at?: string | null;
-      hard_expiry?: boolean;
       unit_price_cents?: number;
     }) => issueModule({ data: { unit_price_cents: 0, ...v } }),
     onSuccess: (res: { token: string; module_key: string }) => {
@@ -225,10 +253,10 @@ function LicensesPage() {
             onChange={(e) => setForm({ ...form, expires_at: e.target.value })} />
           <Input type="date" placeholder="Maintenance expires at (optional)" value={form.maintenance_expires_at}
             onChange={(e) => setForm({ ...form, maintenance_expires_at: e.target.value })} />
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox checked={form.hard_expiry} onCheckedChange={(v) => setForm({ ...form, hard_expiry: v === true })} />
-            Hard expiry (block app after expiration)
-          </label>
+          <p className="text-xs text-muted-foreground md:col-span-2">
+            <strong>expires_at</strong> controls module availability (add-ons stop working after this date).
+            <strong className="ml-2">maintenance_expires_at</strong> controls the updates &amp; support window.
+          </p>
         </div>
         <Textarea placeholder="Notes (internal)" value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })} />
@@ -251,7 +279,8 @@ function LicensesPage() {
               <th className="px-4 py-3 font-medium">Company</th>
               <th className="px-4 py-3 font-medium">Module Licenses</th>
               <th className="px-4 py-3 font-medium">Seats</th>
-              <th className="px-4 py-3 font-medium">Last heartbeat</th>
+              <th className="px-4 py-3 font-medium">Versions</th>
+              <th className="px-4 py-3 font-medium">Owner</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
@@ -307,7 +336,6 @@ function LicensesPage() {
                               module_key: m.key,
                               expires_at: "",
                               maintenance_expires_at: "",
-                              hard_expiry: false,
                               unit_price_cents: 0,
                             })}>
                             + {m.label}
@@ -317,13 +345,34 @@ function LicensesPage() {
                     </details>
                   </td>
                   <td className="px-4 py-3">{l.install?.user_count ?? "—"} / {l.seats ?? l.max_users}</td>
-                  <td className="px-4 py-3 text-xs">{l.install?.last_heartbeat_at ? new Date(l.install.last_heartbeat_at).toLocaleString() : "—"}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
+                    <div>Installer: <span className="font-mono">{l.install?.installer_version ?? "—"}</span></div>
+                    <div>App: <span className="font-mono">{l.install?.app_version ?? "—"}</span></div>
+                    <div className="text-muted-foreground">
+                      {l.install?.last_heartbeat_at ? new Date(l.install.last_heartbeat_at).toLocaleString() : "no heartbeat"}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    <Badge variant={l.owner_type === "customer" ? "default" : "outline"}>
+                      {l.owner_type === "customer" ? "Customer" : "OPSQAI"}
+                    </Badge>
+                    {l.handed_over_at && (
+                      <div className="text-[10px] text-muted-foreground mt-1">
+                        handed over {new Date(l.handed_over_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     {l.revoked ? <Badge variant="destructive">Revoked</Badge> : l.suspended ? <Badge variant="outline">Suspended</Badge> : <Badge>Active</Badge>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
                     <Button size="sm" variant="ghost" onClick={() => downloadBundle(l.install_id)} title="Download offline activation bundle">
                       <Package className="h-4 w-4 mr-1" /> Bundle
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleTransfer(l)}
+                      title={l.owner_type === "customer" ? "Revert to OPSQAI ownership" : "Hand over to customer"}>
+                      <ArrowLeftRight className="h-4 w-4 mr-1" />
+                      {l.owner_type === "customer" ? "Revert" : "Hand over"}
                     </Button>
                     {!l.revoked && (
                       <Button size="sm" variant="ghost" className="text-destructive"
@@ -336,7 +385,7 @@ function LicensesPage() {
               );
             })}
             {!licenses.length && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No licenses yet.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No licenses yet.</td></tr>
             )}
           </tbody>
         </table>
@@ -370,11 +419,6 @@ function LicensesPage() {
                 <Input type="number" min={0} value={moduleDialog.unit_price_cents}
                   onChange={(e) => setModuleDialog({ ...moduleDialog, unit_price_cents: parseInt(e.target.value) || 0 })} />
               </label>
-              <label className="flex items-center gap-2 text-sm col-span-2">
-                <Checkbox checked={moduleDialog.hard_expiry}
-                  onCheckedChange={(v) => setModuleDialog({ ...moduleDialog, hard_expiry: v === true })} />
-                Hard expiry (module blocked after expiration)
-              </label>
             </div>
           )}
           <DialogFooter>
@@ -390,7 +434,6 @@ function LicensesPage() {
                   maintenance_expires_at: moduleDialog.maintenance_expires_at
                     ? new Date(moduleDialog.maintenance_expires_at).toISOString()
                     : null,
-                  hard_expiry: moduleDialog.hard_expiry,
                   unit_price_cents: moduleDialog.unit_price_cents,
                 });
               }}>

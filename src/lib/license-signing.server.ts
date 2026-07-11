@@ -60,7 +60,6 @@ export interface LicensePayload {
   max_users: number;
   issued_at: number;
   expires_at: number | null;
-  hard_expiry: boolean;
   key_id: string;
 }
 
