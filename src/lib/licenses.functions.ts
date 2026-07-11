@@ -48,7 +48,7 @@ export const listLicenses = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("licenses")
       .select(
-        "id, install_id, kind, module_key, company_name, contact_email, tier, seats, max_users, issued_at, expires_at, maintenance_expires_at, revoked, revoked_at, suspended, suspended_at, notes, created_at",
+        "id, install_id, kind, module_key, company_name, contact_email, tier, seats, max_users, issued_at, expires_at, maintenance_expires_at, revoked, revoked_at, suspended, suspended_at, notes, created_at, owner_type, owner_since, handed_over_at, handover_notes",
       )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -67,13 +67,14 @@ export const listLicenses = createServerFn({ method: "POST" })
     const { data: installMeta } = ids.length
       ? await context.supabase
           .from("license_installs")
-          .select("install_id, last_heartbeat_at, app_version, user_count")
+          .select("install_id, last_heartbeat_at, app_version, installer_version, user_count")
           .in("install_id", ids)
       : {
           data: [] as Array<{
             install_id: string;
             last_heartbeat_at: string | null;
             app_version: string | null;
+            installer_version: string | null;
             user_count: number | null;
           }>,
         };
