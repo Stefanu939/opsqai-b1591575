@@ -289,3 +289,58 @@ export const getModuleToken = createServerFn({ method: "POST" })
     if (!row) throw new Error("Module License not found");
     return row;
   });
+
+// ─── Ownership transfer (Phase 4.5) ─────────────────────────────────────
+//
+// Records that an install has been handed over from OPSQAI to the customer
+// (or reverted). MC MUST NOT store any customer infrastructure secrets —
+// the input is passed through the secrets-blacklist gate. Only metadata:
+// who owns the install and free-text (non-secret) notes.
+
+const TransferOwnershipInput = z.object({
+  install_id: InstallIdSchema,
+  to: z.enum(["opsqai", "customer"]),
+  notes: z.string().max(2000).optional(),
+});
+
+export const transferOwnership = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => TransferOwnershipInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    assertNoBlacklistedSecrets(data, "transferOwnership input");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: current } = await supabaseAdmin
+      .from("licenses")
+      .select("id, owner_type, handed_over_at")
+      .eq("install_id", data.install_id)
+      .eq("kind", "install")
+      .maybeSingle();
+    if (!current) throw new Error("No Installation License for this install_id.");
+    if (current.owner_type === data.to) {
+      return { ok: true, install_id: data.install_id, owner_type: data.to, unchanged: true };
+    }
+
+    const nowIso = new Date().toISOString();
+    const patch: {
+      owner_type: "opsqai" | "customer";
+      owner_since: string;
+      handover_notes: string | null;
+      handed_over_at?: string;
+    } = {
+      owner_type: data.to,
+      owner_since: nowIso,
+      handover_notes: data.notes ?? null,
+    };
+    if (data.to === "customer" && !current.handed_over_at) {
+      patch.handed_over_at = nowIso;
+    }
+
+    const { error } = await supabaseAdmin
+      .from("licenses")
+      .update(patch)
+      .eq("id", current.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, install_id: data.install_id, owner_type: data.to, unchanged: false };
+  });
