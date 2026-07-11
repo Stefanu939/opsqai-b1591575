@@ -5,7 +5,7 @@ import {
   jsonResponse,
   parsePagination,
   requireScope,
-} from "./_auth";
+} from "./-_auth";
 
 export const Route = createFileRoute("/api/public/v1/faqs")({
   server: {
