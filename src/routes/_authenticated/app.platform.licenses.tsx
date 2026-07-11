@@ -10,6 +10,7 @@ import {
   getLicensePublicKey,
   getModuleToken,
 } from "@/lib/licenses.functions";
+import { exportActivationBundle, exportRevocationList } from "@/lib/license-activation.functions";
 import { ADDON_MODULES, BASIC_MODULES, type ModuleKey } from "@/lib/license-modules";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
