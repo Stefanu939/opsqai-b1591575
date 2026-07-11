@@ -2200,13 +2200,21 @@ export type Database = {
           install_id: string
           issued_at: string
           issued_by: string | null
+          kind: string
+          license_version: number
+          maintenance_expires_at: string | null
           max_users: number
+          module_key: string | null
           modules: Json
           notes: string | null
           revoked: boolean
           revoked_at: string | null
           revoked_reason: string | null
+          seats: number | null
           signed_token: string | null
+          suspended: boolean
+          suspended_at: string | null
+          suspended_reason: string | null
           tier: string
           updated_at: string
         }
@@ -2220,13 +2228,21 @@ export type Database = {
           install_id: string
           issued_at?: string
           issued_by?: string | null
+          kind?: string
+          license_version?: number
+          maintenance_expires_at?: string | null
           max_users?: number
+          module_key?: string | null
           modules?: Json
           notes?: string | null
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null
+          seats?: number | null
           signed_token?: string | null
+          suspended?: boolean
+          suspended_at?: string | null
+          suspended_reason?: string | null
           tier?: string
           updated_at?: string
         }
@@ -2240,13 +2256,21 @@ export type Database = {
           install_id?: string
           issued_at?: string
           issued_by?: string | null
+          kind?: string
+          license_version?: number
+          maintenance_expires_at?: string | null
           max_users?: number
+          module_key?: string | null
           modules?: Json
           notes?: string | null
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null
+          seats?: number | null
           signed_token?: string | null
+          suspended?: boolean
+          suspended_at?: string | null
+          suspended_reason?: string | null
           tier?: string
           updated_at?: string
         }
