@@ -61,6 +61,7 @@ export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
             install_id: parsed.install_id,
             last_heartbeat_at: new Date().toISOString(),
             app_version: parsed.app_version ?? null,
+            installer_version: parsed.installer_version ?? null,
             user_count: parsed.user_count ?? null,
             host_info: parsed.host_info ?? null,
             ip_address: ipHeader.split(",")[0].trim() || null,
