@@ -88,12 +88,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     : [];
 
   // ---- Management Center (platform management ONLY) navigation ----
+  const mcAdmin = isPlatformAdmin || isPlatformOwner;
+
   const mcOverview: NavItem[] = [
     { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: null },
-    { to: "/app/admin/dashboard", label: "Executive Dashboard", icon: BarChart3, show: isPlatformAdmin || isPlatformOwner, module: null },
+    { to: "/app/admin/dashboard", label: "Executive Dashboard", icon: BarChart3, show: mcAdmin, module: null },
+    { to: "/app/admin/analytics", label: "Analytics", icon: LineChart, show: mcAdmin, module: null },
   ];
 
-  const mcCommercial: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+  const mcCommercial: NavItem[] = mcAdmin
     ? [
         { to: "/app/admin/companies", label: "Companies", icon: Building2, show: true, module: null },
         { to: "/app/admin/customers", label: "Enterprise Documents", icon: FileText, show: true, module: null },
@@ -102,13 +105,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       ]
     : [];
 
-  const mcLicensing: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+  const mcLicensing: NavItem[] = mcAdmin
     ? [
         { to: "/app/platform/licenses", label: "Licenses & Releases", icon: KeyRound, show: true, module: null },
+        { to: "/app/platform/license-activation", label: "Activation Bundles", icon: Package, show: true, module: null },
       ]
     : [];
 
-  const mcOperations: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+  const mcOperations: NavItem[] = mcAdmin
     ? [
         { to: "/app/admin/support", label: "Support Inbox", icon: Inbox, show: true, module: null },
         { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view"), module: null },
@@ -117,10 +121,25 @@ export function AppShell({ children }: { children: ReactNode }) {
       ]
     : [];
 
-  const mcPlatformAdmin: NavItem[] = (isPlatformAdmin || isPlatformOwner)
+  const mcIntegrations: NavItem[] = mcAdmin
+    ? [
+        { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: true, module: null },
+        { to: "/app/admin/sso-setup", label: "SSO / SAML / OAuth", icon: ShieldCheck, show: true, module: null },
+        { to: "/app/admin/webhooks", label: "Webhooks", icon: Webhook, show: true, module: null },
+        { to: "/app/admin/api-keys", label: "API Keys", icon: KeyRound, show: true, module: null },
+        { to: "/app/admin/api-docs", label: "API Docs", icon: FileText, show: true, module: null },
+      ]
+    : [];
+
+  const mcPlatformAdmin: NavItem[] = mcAdmin
     ? [
         { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck, show: true, module: null },
-        { to: "/app/admin/platform-admins", label: "Super Admins", icon: ShieldCheck, show: true, module: null },
+        { to: "/app/admin/platform-admins", label: "Users & Roles", icon: Users, show: true, module: null },
+        { to: "/app/admin/users", label: "Directory", icon: Users, show: true, module: null },
+        { to: "/app/brand", label: "Branding", icon: Sparkles, show: true, module: null },
+        { to: "/app/platform/setup", label: "Setup Wizard", icon: Rocket, show: true, module: null },
+        { to: "/app/platform/doctor", label: "System Doctor", icon: Wrench, show: true, module: null },
+        { to: "/app/platform/recovery", label: "Disaster Recovery", icon: ShieldAlert, show: true, module: null },
       ]
     : [];
 
@@ -133,6 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { label: "Commercial", items: filterNav(mcCommercial) },
         { label: "Licensing & Releases", items: filterNav(mcLicensing) },
         { label: "Operations", items: filterNav(mcOperations) },
+        { label: "Integrations & API", items: filterNav(mcIntegrations) },
         { label: "Platform", items: filterNav(mcPlatformAdmin) },
       ]
     : [

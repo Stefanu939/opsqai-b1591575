@@ -27,6 +27,20 @@ export const SHARED_PREFIXES: readonly string[] = [
   "/app",                 // /app landing — dashboard root (each mode renders its own content)
   "/app/profile",
   "/app/docs",
+  // Platform surfaces that exist in BOTH deployments (MC = platform-wide,
+  // self-host = local install). The page content differentiates internally.
+  "/app/admin/analytics",
+  "/app/admin/integrations",
+  "/app/admin/sso-setup",
+  "/app/admin/webhooks",
+  "/app/admin/api-keys",
+  "/app/admin/api-docs",
+  "/app/admin/users",
+  "/app/brand",
+  "/app/platform/setup",
+  "/app/platform/doctor",
+  "/app/platform/recovery",
+  "/app/platform/license-activation",
 ];
 
 /**
@@ -48,8 +62,7 @@ export const MC_ONLY_PREFIXES: readonly string[] = [
 ];
 
 /**
- * Self-hosted-only routes. Blocked on MC.
- * Includes every operational module AND the local install surfaces.
+ * Self-hosted-only routes. Blocked on MC. Only customer operational modules.
  */
 export const SELFHOST_ONLY_PREFIXES: readonly string[] = [
   // Operational — workspace
@@ -60,26 +73,13 @@ export const SELFHOST_ONLY_PREFIXES: readonly string[] = [
   "/app/requests",
   "/app/academy",
   "/app/internal",
-  "/app/brand",
   // Operational — admin
   "/app/admin/academy",
   "/app/admin/knowledge-gaps",
   "/app/admin/sop-generator",
   "/app/admin/command-center",
   "/app/admin/ai-audit",
-  "/app/admin/analytics",
-  "/app/admin/users",
-  "/app/admin/integrations",
-  "/app/admin/sso-setup",
   "/app/admin/notifications",
-  "/app/admin/webhooks",
-  "/app/admin/api-keys",
-  "/app/admin/api-docs",
-  // Local install surfaces
-  "/app/platform/setup",
-  "/app/platform/doctor",
-  "/app/platform/recovery",
-  "/app/platform/license-activation",
 ];
 
 /**
@@ -94,7 +94,6 @@ export const OPERATIONAL_PREFIXES: readonly string[] = [
   "/app/requests",
   "/app/academy",
   "/app/internal",
-  "/app/brand",
   "/app/admin/academy",
   "/app/admin/knowledge-gaps",
   "/app/admin/sop-generator",
