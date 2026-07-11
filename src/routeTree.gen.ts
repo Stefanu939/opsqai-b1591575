@@ -101,6 +101,7 @@ import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppPlatformSetupRouteImport } from './routes/_authenticated/app.platform.setup'
+import { Route as AuthenticatedAppPlatformRecoveryRouteImport } from './routes/_authenticated/app.platform.recovery'
 import { Route as AuthenticatedAppPlatformLicensesRouteImport } from './routes/_authenticated/app.platform.licenses'
 import { Route as AuthenticatedAppPlatformLicenseActivationRouteImport } from './routes/_authenticated/app.platform.license-activation'
 import { Route as AuthenticatedAppPlatformDoctorRouteImport } from './routes/_authenticated/app.platform.doctor'
@@ -619,6 +620,12 @@ const AuthenticatedAppPlatformSetupRoute =
     path: '/platform/setup',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPlatformRecoveryRoute =
+  AuthenticatedAppPlatformRecoveryRouteImport.update({
+    id: '/platform/recovery',
+    path: '/platform/recovery',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppPlatformLicensesRoute =
   AuthenticatedAppPlatformLicensesRouteImport.update({
     id: '/platform/licenses',
@@ -979,6 +986,7 @@ export interface FileRoutesByFullPath {
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
+  '/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
   '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1109,6 +1117,7 @@ export interface FileRoutesByTo {
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
+  '/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
   '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1245,6 +1254,7 @@ export interface FileRoutesById {
   '/_authenticated/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/_authenticated/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/_authenticated/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
+  '/_authenticated/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
   '/_authenticated/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1381,6 +1391,7 @@ export interface FileRouteTypes {
     | '/app/platform/doctor'
     | '/app/platform/license-activation'
     | '/app/platform/licenses'
+    | '/app/platform/recovery'
     | '/app/platform/setup'
     | '/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
@@ -1511,6 +1522,7 @@ export interface FileRouteTypes {
     | '/app/platform/doctor'
     | '/app/platform/license-activation'
     | '/app/platform/licenses'
+    | '/app/platform/recovery'
     | '/app/platform/setup'
     | '/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
@@ -1646,6 +1658,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/platform/doctor'
     | '/_authenticated/app/platform/license-activation'
     | '/_authenticated/app/platform/licenses'
+    | '/_authenticated/app/platform/recovery'
     | '/_authenticated/app/platform/setup'
     | '/_authenticated/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
@@ -2371,6 +2384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppPlatformSetupRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/platform/recovery': {
+      id: '/_authenticated/app/platform/recovery'
+      path: '/platform/recovery'
+      fullPath: '/app/platform/recovery'
+      preLoaderRoute: typeof AuthenticatedAppPlatformRecoveryRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/platform/licenses': {
       id: '/_authenticated/app/platform/licenses'
       path: '/platform/licenses'
@@ -2764,6 +2784,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPlatformDoctorRoute: typeof AuthenticatedAppPlatformDoctorRoute
   AuthenticatedAppPlatformLicenseActivationRoute: typeof AuthenticatedAppPlatformLicenseActivationRoute
   AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
+  AuthenticatedAppPlatformRecoveryRoute: typeof AuthenticatedAppPlatformRecoveryRoute
   AuthenticatedAppPlatformSetupRoute: typeof AuthenticatedAppPlatformSetupRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
@@ -2821,6 +2842,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPlatformLicenseActivationRoute:
     AuthenticatedAppPlatformLicenseActivationRoute,
   AuthenticatedAppPlatformLicensesRoute: AuthenticatedAppPlatformLicensesRoute,
+  AuthenticatedAppPlatformRecoveryRoute: AuthenticatedAppPlatformRecoveryRoute,
   AuthenticatedAppPlatformSetupRoute: AuthenticatedAppPlatformSetupRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
