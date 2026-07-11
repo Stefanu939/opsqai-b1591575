@@ -23,10 +23,12 @@ describe("deployment-mode route gate", () => {
   });
 
   it("denies self-host-only routes when running as mc", () => {
+    const operational = new Set(OPERATIONAL_PREFIXES);
     for (const prefix of SELFHOST_ONLY_PREFIXES) {
       const verdict = isRouteAllowedInMode(prefix, "mc");
       expect(verdict.allowed).toBe(false);
-      expect(verdict.reason).toBe("selfhost_only_route_on_mc");
+      const expected = operational.has(prefix) ? "operational_on_mc" : "selfhost_only_route_on_mc";
+      expect(verdict.reason).toBe(expected);
     }
   });
 
