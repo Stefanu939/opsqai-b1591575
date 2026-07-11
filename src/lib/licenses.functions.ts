@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
+import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 
 // ─── Input schemas ──────────────────────────────────────────────────────
 
