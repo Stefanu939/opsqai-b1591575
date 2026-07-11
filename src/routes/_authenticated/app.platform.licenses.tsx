@@ -221,10 +221,10 @@ function LicensesPage() {
             onChange={(e) => setForm({ ...form, expires_at: e.target.value })} />
           <Input type="date" placeholder="Maintenance expires at (optional)" value={form.maintenance_expires_at}
             onChange={(e) => setForm({ ...form, maintenance_expires_at: e.target.value })} />
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox checked={form.hard_expiry} onCheckedChange={(v) => setForm({ ...form, hard_expiry: v === true })} />
-            Hard expiry (block app after expiration)
-          </label>
+          <p className="text-xs text-muted-foreground md:col-span-2">
+            <strong>expires_at</strong> controls module availability (add-ons stop working after this date).
+            <strong className="ml-2">maintenance_expires_at</strong> controls the updates &amp; support window.
+          </p>
         </div>
         <Textarea placeholder="Notes (internal)" value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })} />
@@ -303,7 +303,6 @@ function LicensesPage() {
                               module_key: m.key,
                               expires_at: "",
                               maintenance_expires_at: "",
-                              hard_expiry: false,
                               unit_price_cents: 0,
                             })}>
                             + {m.label}
@@ -366,11 +365,6 @@ function LicensesPage() {
                 <Input type="number" min={0} value={moduleDialog.unit_price_cents}
                   onChange={(e) => setModuleDialog({ ...moduleDialog, unit_price_cents: parseInt(e.target.value) || 0 })} />
               </label>
-              <label className="flex items-center gap-2 text-sm col-span-2">
-                <Checkbox checked={moduleDialog.hard_expiry}
-                  onCheckedChange={(v) => setModuleDialog({ ...moduleDialog, hard_expiry: v === true })} />
-                Hard expiry (module blocked after expiration)
-              </label>
             </div>
           )}
           <DialogFooter>
@@ -386,7 +380,6 @@ function LicensesPage() {
                   maintenance_expires_at: moduleDialog.maintenance_expires_at
                     ? new Date(moduleDialog.maintenance_expires_at).toISOString()
                     : null,
-                  hard_expiry: moduleDialog.hard_expiry,
                   unit_price_cents: moduleDialog.unit_price_cents,
                 });
               }}>
