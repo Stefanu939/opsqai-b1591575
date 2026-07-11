@@ -30,7 +30,7 @@ All prior decisions preserved. This revision folds in the last two rounds of ame
 - **Phase 4.5** — Installation & Ownership Transfer (`installer_version`, no-secrets-in-MC). ✅ done
 - **Phase 5** — Self-Hosted packaging + resumable Setup Wizard + `opsqai doctor`. ✅ done
 - **Phase 5.5** — Disaster Recovery (7 scenarios, break-glass + Bootstrap Recovery Token). ✅ done
-- **Phase 6** — Access lockdown + operational-module removal from MC.
+- **Phase 6** — Access lockdown + operational-module removal from MC. ✅ done
 - **Phase 6.5** — Customer Portal.
 - **Phase 7** — **Documentation suite + site refresh + release engineering** (expanded, see below).
 
