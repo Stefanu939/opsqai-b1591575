@@ -14,6 +14,8 @@ const SCRYPT_N = 1 << 15;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LEN = 32;
+// 128 * N * r ≈ 32 MB; give scryptSync headroom above the 32 MB Node default.
+const SCRYPT_MAXMEM = 64 * 1024 * 1024;
 
 /** Human-friendly base32 (Crockford, no I/L/O/U) for readability. */
 const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
