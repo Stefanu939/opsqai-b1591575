@@ -75,6 +75,24 @@ function LicensesPage() {
   const exportBundle = useServerFn(exportActivationBundle);
   const exportCrl = useServerFn(exportRevocationList);
   const transfer = useServerFn(transferOwnership);
+  const issueDr = useServerFn(issueBootstrapToken);
+
+  async function issueDrToken(install_id: string) {
+    const reasonRaw = prompt(`Issue Bootstrap Recovery Token for ${install_id}. Reason (audit, no secrets):`, "");
+    if (reasonRaw === null) return;
+    const ttlStr = prompt("TTL in hours (1–168, default 24):", "24");
+    const ttl_hours = Math.max(1, Math.min(168, Number(ttlStr) || 24));
+    try {
+      const { token } = await issueDr({ data: { install_id, ttl_hours, reason: reasonRaw || undefined } });
+      await navigator.clipboard.writeText(token).catch(() => {});
+      const blob = new Blob([token], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `opsqai-dr-token-${install_id}.txt`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success("DR token issued (copied + downloaded)");
+    } catch (e) { toast.error((e as Error).message); }
+  }
 
   const transferMut = useMutation({
     mutationFn: (v: { install_id: string; to: "opsqai" | "customer"; notes?: string }) =>
