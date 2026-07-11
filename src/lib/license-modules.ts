@@ -1,7 +1,16 @@
 // Catalog of modules sellable as separate license add-ons.
 // The "basic" bundle is always included in every license; add-on modules
-// unlock additional routes/features when their key is present in
-// the license `modules` array.
+// unlock additional routes/features when a signed **Module License** for
+// that key exists for the install.
+//
+// Phase 1: frozen catalog. `MODULE_CATALOG_VERSION` bumps only when a
+// module is added, removed, or renamed. The version is embedded in
+// installer manifests + `opsqai doctor` output so a Self-Hosted install
+// and the Management Center that issued its licenses can prove they agree
+// on the module vocabulary.
+export const MODULE_CATALOG_VERSION = "2026.07.1" as const;
+
+
 
 export type ModuleKey =
   | "chat" | "kb" | "faq" | "notifications" | "bilingual_ui" | "pwa"
