@@ -23,7 +23,7 @@ function PortalLayout() {
           <span className="font-medium">Customer Portal</span>
         </div>
         {NAV.map((item) => {
-          const active = item.exact ? path === item.to : path.startsWith(item.to);
+          const active = "exact" in item && item.exact ? path === item.to : path.startsWith(item.to);
           const Icon = item.icon;
           return (
             <Link
