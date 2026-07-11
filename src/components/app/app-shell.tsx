@@ -4,9 +4,12 @@ import {
   LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
   Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
   AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap, KeyRound, LifeBuoy,
+  Package, FileText, Mail, Wrench, Rocket, ShieldAlert, Webhook,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
+import { useDeploymentInfo } from "@/components/app/deployment-mode-gate";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
