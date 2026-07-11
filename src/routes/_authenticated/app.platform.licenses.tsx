@@ -322,6 +322,9 @@ function LicensesPage() {
                     {l.revoked ? <Badge variant="destructive">Revoked</Badge> : l.suspended ? <Badge variant="outline">Suspended</Badge> : <Badge>Active</Badge>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
+                    <Button size="sm" variant="ghost" onClick={() => downloadBundle(l.install_id)} title="Download offline activation bundle">
+                      <Package className="h-4 w-4 mr-1" /> Bundle
+                    </Button>
                     {!l.revoked && (
                       <Button size="sm" variant="ghost" className="text-destructive"
                         onClick={() => { if (confirm(`Revoke Installation License for ${l.install_id}?`)) revokeMut.mutate({ install_id: l.install_id, kind: "install" }); }}>
