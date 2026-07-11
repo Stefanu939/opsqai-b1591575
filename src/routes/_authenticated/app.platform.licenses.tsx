@@ -196,12 +196,17 @@ function LicensesPage() {
             Ship this PEM with every Self-Hosted build so installs can verify license tokens offline.
           </p>
           <pre className="text-xs bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">{pubKey.public_key_pem}</pre>
-          <Button
-            variant="outline" size="sm" className="mt-2"
-            onClick={() => { navigator.clipboard?.writeText(pubKey.public_key_pem); toast.success("Copied"); }}
-          >
-            <Copy className="h-4 w-4 mr-1" /> Copy PEM
-          </Button>
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="outline" size="sm"
+              onClick={() => { navigator.clipboard?.writeText(pubKey.public_key_pem); toast.success("Copied"); }}
+            >
+              <Copy className="h-4 w-4 mr-1" /> Copy PEM
+            </Button>
+            <Button variant="outline" size="sm" onClick={downloadCrl}>
+              <ShieldOff className="h-4 w-4 mr-1" /> Export revocation list
+            </Button>
+          </div>
         </Card>
       )}
 
