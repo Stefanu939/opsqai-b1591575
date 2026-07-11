@@ -120,13 +120,6 @@ export const downloadMyActivationBundle = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!owner) throw new Error("Not authorized for this install_id");
 
-    const { exportActivationBundle } = await import("@/lib/license-activation.functions");
-    // Reuse the MC exporter's underlying implementation — this ensures the
-    // Portal cannot bypass whatever pinning the MC applies.
-    // The imported server fn is guarded by platform-admin; we call the
-    // internal helper instead of the exported createServerFn to keep the
-    // ownership check as the single authorization source here.
-    void exportActivationBundle;
     const { buildActivationBundle } = await import("@/lib/license-activation-core.server");
     return buildActivationBundle(data.install_id);
   });
