@@ -2440,6 +2440,36 @@ export type Database = {
           },
         ]
       }
+      platform_config: {
+        Row: {
+          created_at: string
+          id: boolean
+          install_id: string | null
+          installer_version: string | null
+          setup_completed_at: string | null
+          setup_progress: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          install_id?: string | null
+          installer_version?: string | null
+          setup_completed_at?: string | null
+          setup_progress?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          install_id?: string | null
+          installer_version?: string | null
+          setup_completed_at?: string | null
+          setup_progress?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_email_settings: {
         Row: {
           company_name: string
