@@ -2195,7 +2195,6 @@ export type Database = {
           contact_email: string | null
           created_at: string
           expires_at: string | null
-          hard_expiry: boolean
           id: string
           install_id: string
           issued_at: string
@@ -2223,7 +2222,6 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           expires_at?: string | null
-          hard_expiry?: boolean
           id?: string
           install_id: string
           issued_at?: string
@@ -2251,7 +2249,6 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           expires_at?: string | null
-          hard_expiry?: boolean
           id?: string
           install_id?: string
           issued_at?: string
