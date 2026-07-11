@@ -95,6 +95,7 @@ export const issueLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => IssueInstallInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    assertNoBlacklistedSecrets(data, "issueLicense input");
 
     const { signInstallLicense } = await import("@/lib/license-signing.server");
     const issuedAt = Math.floor(Date.now() / 1000);
@@ -142,6 +143,7 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => IssueModuleInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    assertNoBlacklistedSecrets(data, "issueModuleLicense input");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Installation License must exist first.
