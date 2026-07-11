@@ -236,11 +236,36 @@ function LicensesPage() {
                   <td className="px-4 py-3 font-mono text-xs">{l.install_id}</td>
                   <td className="px-4 py-3">{l.company_name}</td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1 max-w-xs">
+                    <div className="flex flex-col gap-1 max-w-xs">
                       {l.modules.map((m) => (
-                        <Badge key={m.id} variant={m.revoked ? "destructive" : "outline"} className="text-[10px]">
-                          {m.module_key}{m.revoked ? " · revoked" : ""}
-                        </Badge>
+                        <div key={m.id} className="flex items-center gap-1 text-[10px]">
+                          <Badge variant={m.revoked ? "destructive" : "outline"} className="text-[10px]">
+                            {m.module_key}
+                            {m.expires_at ? ` · exp ${new Date(m.expires_at).toLocaleDateString()}` : ""}
+                            {m.revoked ? " · revoked" : ""}
+                          </Badge>
+                          {!m.revoked && m.module_key && (
+                            <>
+                              <button
+                                type="button"
+                                title="View / copy module token"
+                                className="text-muted-foreground hover:text-foreground"
+                                onClick={() => viewModuleToken(l.install_id, m.module_key!)}>
+                                <Eye className="h-3 w-3" />
+                              </button>
+                              <button
+                                type="button"
+                                title="Revoke this module"
+                                className="text-destructive/70 hover:text-destructive"
+                                onClick={() => {
+                                  if (confirm(`Revoke ${m.module_key} for ${l.install_id}?`))
+                                    revokeMut.mutate({ install_id: l.install_id, kind: "module", module_key: m.module_key! });
+                                }}>
+                                <ShieldOff className="h-3 w-3" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       ))}
                       {!l.modules.length && <span className="text-xs text-muted-foreground">Basic only</span>}
                     </div>
@@ -249,8 +274,14 @@ function LicensesPage() {
                       <div className="flex flex-wrap gap-1 mt-1">
                         {ADDON_MODULES.filter((m) => !licensedModuleKeys.has(m.key)).map((m) => (
                           <Button key={m.key} size="sm" variant="outline" className="h-6 text-[10px]"
-                            disabled={issueModuleMut.isPending}
-                            onClick={() => issueModuleMut.mutate({ install_id: l.install_id, module_key: m.key })}>
+                            onClick={() => setModuleDialog({
+                              install_id: l.install_id,
+                              module_key: m.key,
+                              expires_at: "",
+                              maintenance_expires_at: "",
+                              hard_expiry: false,
+                              unit_price_cents: 0,
+                            })}>
                             + {m.label}
                           </Button>
                         ))}
