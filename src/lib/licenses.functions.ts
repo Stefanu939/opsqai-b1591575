@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
+import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 
 // ─── Input schemas ──────────────────────────────────────────────────────
 
@@ -94,6 +95,7 @@ export const issueLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => IssueInstallInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    assertNoBlacklistedSecrets(data, "issueLicense input");
 
     const { signInstallLicense } = await import("@/lib/license-signing.server");
     const issuedAt = Math.floor(Date.now() / 1000);
@@ -141,6 +143,7 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => IssueModuleInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    assertNoBlacklistedSecrets(data, "issueModuleLicense input");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Installation License must exist first.
@@ -265,4 +268,28 @@ export const getLicensePublicKey = createServerFn({ method: "POST" })
       return { public_key_pem: k.publicPem, key_id: k.keyId, algorithm: "ed25519" };
     }
     return data;
+  });
+
+// ─── View a module token (re-copy from admin UI) ────────────────────────
+
+export const getModuleToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      install_id: InstallIdSchema,
+      module_key: z.string().refine(isValidModuleKey, "unknown module"),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    const { data: row, error } = await context.supabase
+      .from("licenses")
+      .select("signed_token, revoked, suspended, expires_at, maintenance_expires_at")
+      .eq("install_id", data.install_id)
+      .eq("kind", "module")
+      .eq("module_key", data.module_key)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Module License not found");
+    return row;
   });

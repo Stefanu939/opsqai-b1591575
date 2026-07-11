@@ -8,8 +8,9 @@ import {
   revokeLicense,
   issueModuleLicense,
   getLicensePublicKey,
+  getModuleToken,
 } from "@/lib/licenses.functions";
-import { ADDON_MODULES, BASIC_MODULES } from "@/lib/license-modules";
+import { ADDON_MODULES, BASIC_MODULES, type ModuleKey } from "@/lib/license-modules";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { KeyRound, Plus, ShieldOff, Copy, Package } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import { KeyRound, Plus, ShieldOff, Copy, Package, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
@@ -57,9 +61,20 @@ function LicensesPage() {
   const revoke = useServerFn(revokeLicense);
   const issueModule = useServerFn(issueModuleLicense);
   const getPubKey = useServerFn(getLicensePublicKey);
+  const fetchModuleToken = useServerFn(getModuleToken);
 
   const { data: rows } = useQuery({ queryKey: ["licenses"], queryFn: () => list({ data: {} } as never) });
   const { data: pubKey } = useQuery({ queryKey: ["license-public-key"], queryFn: () => getPubKey({ data: {} } as never) });
+
+  // Per-module issue dialog state
+  const [moduleDialog, setModuleDialog] = useState<{
+    install_id: string;
+    module_key: ModuleKey;
+    expires_at: string;
+    maintenance_expires_at: string;
+    hard_expiry: boolean;
+    unit_price_cents: number;
+  } | null>(null);
 
   const [form, setForm] = useState({
     install_id: "",
@@ -104,15 +119,36 @@ function LicensesPage() {
   });
 
   const issueModuleMut = useMutation({
-    mutationFn: ({ install_id, module_key }: { install_id: string; module_key: string }) =>
-      issueModule({ data: { install_id, module_key, unit_price_cents: 0 } }),
+    mutationFn: (v: {
+      install_id: string;
+      module_key: string;
+      expires_at?: string | null;
+      maintenance_expires_at?: string | null;
+      hard_expiry?: boolean;
+      unit_price_cents?: number;
+    }) => issueModule({ data: { unit_price_cents: 0, ...v } }),
     onSuccess: (res: { token: string; module_key: string }) => {
       toast.success(`Module License issued (${res.module_key}) — token copied`);
       if (res.token) navigator.clipboard?.writeText(res.token).catch(() => {});
       qc.invalidateQueries({ queryKey: ["licenses"] });
+      setModuleDialog(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  async function viewModuleToken(install_id: string, module_key: string) {
+    try {
+      const row = await fetchModuleToken({ data: { install_id, module_key } });
+      if (row?.signed_token) {
+        await navigator.clipboard?.writeText(row.signed_token);
+        toast.success(`Token for ${module_key} copied to clipboard`);
+      } else {
+        toast.error("Token not available");
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   const licenses = (rows ?? []) as LicenseRow[];
 
@@ -200,11 +236,36 @@ function LicensesPage() {
                   <td className="px-4 py-3 font-mono text-xs">{l.install_id}</td>
                   <td className="px-4 py-3">{l.company_name}</td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1 max-w-xs">
+                    <div className="flex flex-col gap-1 max-w-xs">
                       {l.modules.map((m) => (
-                        <Badge key={m.id} variant={m.revoked ? "destructive" : "outline"} className="text-[10px]">
-                          {m.module_key}{m.revoked ? " · revoked" : ""}
-                        </Badge>
+                        <div key={m.id} className="flex items-center gap-1 text-[10px]">
+                          <Badge variant={m.revoked ? "destructive" : "outline"} className="text-[10px]">
+                            {m.module_key}
+                            {m.expires_at ? ` · exp ${new Date(m.expires_at).toLocaleDateString()}` : ""}
+                            {m.revoked ? " · revoked" : ""}
+                          </Badge>
+                          {!m.revoked && m.module_key && (
+                            <>
+                              <button
+                                type="button"
+                                title="View / copy module token"
+                                className="text-muted-foreground hover:text-foreground"
+                                onClick={() => viewModuleToken(l.install_id, m.module_key!)}>
+                                <Eye className="h-3 w-3" />
+                              </button>
+                              <button
+                                type="button"
+                                title="Revoke this module"
+                                className="text-destructive/70 hover:text-destructive"
+                                onClick={() => {
+                                  if (confirm(`Revoke ${m.module_key} for ${l.install_id}?`))
+                                    revokeMut.mutate({ install_id: l.install_id, kind: "module", module_key: m.module_key! });
+                                }}>
+                                <ShieldOff className="h-3 w-3" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       ))}
                       {!l.modules.length && <span className="text-xs text-muted-foreground">Basic only</span>}
                     </div>
@@ -213,8 +274,14 @@ function LicensesPage() {
                       <div className="flex flex-wrap gap-1 mt-1">
                         {ADDON_MODULES.filter((m) => !licensedModuleKeys.has(m.key)).map((m) => (
                           <Button key={m.key} size="sm" variant="outline" className="h-6 text-[10px]"
-                            disabled={issueModuleMut.isPending}
-                            onClick={() => issueModuleMut.mutate({ install_id: l.install_id, module_key: m.key })}>
+                            onClick={() => setModuleDialog({
+                              install_id: l.install_id,
+                              module_key: m.key,
+                              expires_at: "",
+                              maintenance_expires_at: "",
+                              hard_expiry: false,
+                              unit_price_cents: 0,
+                            })}>
                             + {m.label}
                           </Button>
                         ))}
@@ -243,6 +310,64 @@ function LicensesPage() {
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!moduleDialog} onOpenChange={(open) => !open && setModuleDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Issue Module License</DialogTitle>
+            <DialogDescription>
+              {moduleDialog && (
+                <>Signing a token for <span className="font-mono">{moduleDialog.module_key}</span> on install{" "}
+                <span className="font-mono">{moduleDialog.install_id}</span>. Leave dates blank for a perpetual license.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {moduleDialog && (
+            <div className="grid grid-cols-2 gap-3">
+              <label className="text-sm space-y-1">
+                <div>Expires at</div>
+                <Input type="date" value={moduleDialog.expires_at}
+                  onChange={(e) => setModuleDialog({ ...moduleDialog, expires_at: e.target.value })} />
+              </label>
+              <label className="text-sm space-y-1">
+                <div>Maintenance expires at</div>
+                <Input type="date" value={moduleDialog.maintenance_expires_at}
+                  onChange={(e) => setModuleDialog({ ...moduleDialog, maintenance_expires_at: e.target.value })} />
+              </label>
+              <label className="text-sm space-y-1 col-span-2">
+                <div>Unit price (cents, informational)</div>
+                <Input type="number" min={0} value={moduleDialog.unit_price_cents}
+                  onChange={(e) => setModuleDialog({ ...moduleDialog, unit_price_cents: parseInt(e.target.value) || 0 })} />
+              </label>
+              <label className="flex items-center gap-2 text-sm col-span-2">
+                <Checkbox checked={moduleDialog.hard_expiry}
+                  onCheckedChange={(v) => setModuleDialog({ ...moduleDialog, hard_expiry: v === true })} />
+                Hard expiry (module blocked after expiration)
+              </label>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModuleDialog(null)}>Cancel</Button>
+            <Button
+              disabled={!moduleDialog || issueModuleMut.isPending}
+              onClick={() => {
+                if (!moduleDialog) return;
+                issueModuleMut.mutate({
+                  install_id: moduleDialog.install_id,
+                  module_key: moduleDialog.module_key,
+                  expires_at: moduleDialog.expires_at ? new Date(moduleDialog.expires_at).toISOString() : null,
+                  maintenance_expires_at: moduleDialog.maintenance_expires_at
+                    ? new Date(moduleDialog.maintenance_expires_at).toISOString()
+                    : null,
+                  hard_expiry: moduleDialog.hard_expiry,
+                  unit_price_cents: moduleDialog.unit_price_cents,
+                });
+              }}>
+              <Plus className="h-4 w-4 mr-1" /> Issue & copy token
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
