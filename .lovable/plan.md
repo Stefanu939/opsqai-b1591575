@@ -1,160 +1,114 @@
+# OPSQAI v2.3 — Final plan (with hardening amendments + full documentation & site refresh)
 
-# Plan: Model "Self-Hosted OPSQAI + License Server"
-
-## Obiectivul tău
-- Tu nu mai ești owner al datelor. Fiecare firmă rulează OPSQAI pe infrastructura ei (self-hosted, Docker).
-- Tu vinzi doar **licențe pe module**. Basic = Chat + KB + FAQ. Restul modulelor (Academy, Analytics, Audit, Brand, Compliance, etc.) se deblochează cu chei separate, plată unică per modul.
-- Tu păstrezi controlul asupra codului (release `opsqai 1.2` din Lovable) și emiterii de licențe.
-- Clientul are wizard de instalare + updates automate (pull imagine Docker nouă).
+All prior decisions preserved. This revision folds in the last two rounds of amendments and expands **Phase 7** into a full documentation + marketing-site refresh track ("de la A la Z"), executed after Phase 6.5.
 
 ---
 
-## Arhitectura (2 aplicații distincte)
+## Carried-forward invariants (unchanged)
 
-```text
-┌─────────────────────────────────┐        ┌────────────────────────────────┐
-│  LICENSE SERVER (Lovable Cloud) │        │  OPSQAI SELF-HOSTED (client)   │
-│  = aplicația ta actuală, redusă │        │  = Docker Compose la client    │
-│                                 │        │                                │
-│  • Emitere licențe (per firmă)  │◄──────►│  • App OPSQAI (Node/Vite)      │
-│  • Portal admin (tu)            │  HTTPS │  • Postgres local              │
-│  • Portal client (firma)        │        │  • Storage local (MinIO/FS)    │
-│  • Facturare module unice       │        │  • License Client (verifică)   │
-│  • Update feed (versiuni)       │        │  • Update Agent (Watchtower)   │
-│  • Distribuie release notes     │        │  • Setup Wizard (prima rulare) │
-└─────────────────────────────────┘        └────────────────────────────────┘
-```
-
-**Regula de aur**: License Server nu vede niciodată datele operaționale ale clientului. Doar `install_id`, `licensed_modules`, `expiry`, `heartbeat`.
+- **Two license kinds.** Installation License (mandatory, one per `install_id`, carries `seats` + `maintenance_expires_at`) + optional per-Module Licenses. No `modules: []` array. Basic modules always granted.
+- **Token payload versioned from day 1.** `license_version: 1` + `kind` + `key_id` on every token. Verifier rejects unknown versions.
+- **MC holds no customer infrastructure secrets.** No PG passwords, SMTP, AI keys, MinIO, SSH, OS creds. Enforced by schema review gate + recorded in security memory.
+- **Extend-first schema rule.** No new MC table without a demonstrated architectural need.
+- **`installer_version`** on the Installation Package, independent from app version.
+- **Resumable Setup Wizard.** `platform_config.setup_progress` (step ids only, never secrets).
+- **`opsqai doctor`** CLI + Admin → System → Doctor panel, ships in Phase 5, reused in DR.
+- **DR anchor** = `install_id`. DB backup includes signed `licenses.token` bodies. Recovery paths: local break-glass secret (offline) or MC-issued Bootstrap Recovery Token (online).
+- **Customer Portal ≠ Management Center.** Portal is downloads + contract + tickets + release notes only.
+- **Marketplace / Partner** reserved as forward-compat hooks only.
 
 ---
 
-## Modelul de licențiere
+## Phase list
 
-**Licență = JWT semnat offline** cu cheia privată OPSQAI (Ed25519). Clientul îl verifică local cu cheia publică inclusă în build. Nu depinde de rețea pentru operare zilnică, doar pentru refresh periodic (heartbeat 7 zile).
+- **Phase 0** — License foundation fix (blocking): versioned tokens, Installation + Module kinds, tests.
+- **Phase 1** — Centralized enforcement, frozen module catalog, `licenses` schema split.
+- **Phase 2** — AI provider adapter registry.
+- **Phase 3** — Management Center UI + per-module issue flow (secrets-blacklist gate active).
+- **Phase 4** — Offline activation + revocation + Add License import.
+- **Phase 4.5** — Installation & Ownership Transfer (`installer_version`, no-secrets-in-MC).
+- **Phase 5** — Self-Hosted packaging + resumable Setup Wizard + `opsqai doctor`.
+- **Phase 5.5** — Disaster Recovery.
+- **Phase 6** — Access lockdown + operational-module removal from MC.
+- **Phase 6.5** — Customer Portal.
+- **Phase 7** — **Documentation suite + site refresh + release engineering** (expanded, see below).
 
-Payload licență:
-```json
-{
-  "install_id": "acme-prod-01",
-  "company_name": "ACME GmbH",
-  "tier": "basic",
-  "modules": ["chat", "kb", "faq", "academy"],
-  "issued_at": 1720000000,
-  "expires_at": 1751536000,
-  "max_users": 100,
-  "hard_expiry": false
-}
-```
-
-- **Basic (inclus mereu)**: `chat`, `kb`, `faq`, `notifications`, `bilingual_ui`, `pwa`
-- **Add-on module** (plată unică per modul, cheie separată):
-  `academy`, `analytics`, `ai_sop_generator`, `audit_log`, `rbac`, `compliance_center`, `brand_center`, `executive_dashboard`, `enterprise_export`, `sop_versioning`, `knowledge_gaps`, `internal_requests`
-
-Când clientul spune "vreau Academy", tu:
-1. Emiți în portal o licență nouă care include `"academy"` în array-ul `modules`.
-2. Clientul o lipește în UI → app-ul verifică semnătura → deblochează ruta `/academy`.
+All phases remain additive until Phase 6.
 
 ---
 
-## Ce construim (în ordine, 4 faze)
+## Phase 7 — Documentation & Site refresh (expanded)
 
-### Faza 1 — License Server (aplicația curentă rămâne, dar se schimbă rolul)
-Pe aplicația existentă (Lovable Cloud):
-- Tabel nou `licenses` (install_id, company, modules jsonb, issued_at, expires_at, revoked, signature).
-- Tabel `license_installs` (install_id, last_heartbeat_at, app_version, user_count).
-- Tabel `license_orders` (facturi module, unit_price, paid_at) — plată unică prin Stripe.
-- Server function `issueLicense(install_id, modules, expires_at)` → semnează JWT cu Ed25519 (private key ca secret `LICENSE_SIGNING_KEY`).
-- Server function `revokeLicense(install_id)`.
-- Server route public `/api/public/v1/license/heartbeat` (client-ul face POST cu `install_id + version`; primește înapoi ultima licență validă + latest_version).
-- UI Platform Admin:
-  - "Licenses" — listă instalări, modulele active, expiry, revoke.
-  - "Issue license" — form: firmă + module bifate + expiry → generează token, buton copy.
-  - "Add-on order" — vânzare modul nou pentru instalare existentă (extinde `modules[]`).
+Delivered as the final phase, once the product surface is frozen by Phases 0–6.5. Every document is versioned (`v1.0` at cut), lives in-repo under `docs/`, is rendered inside the app at `/docs/*` (Basic module, always available), and — for customer-facing docs — is also exposed via the Customer Portal (Phase 6.5) for download as PDF.
 
-### Faza 2 — Feature gating în app (funcționează în ambele moduri)
-- `src/lib/license.ts` — `useLicense()` hook + `hasModule(key)` — citește licența din:
-  - Cloud/Edeka mode: hardcoded `["*"]` (toate modulele).
-  - Self-hosted mode: din `licenses` table locală (tabel nou) sau din env `OPSQAI_LICENSE_JWT`.
-- `<ModuleGate module="academy">` — wrapper care ascunde ruta / afișează "Upgrade to unlock".
-- Aplicat pe: rutele `/app/academy/*`, `/app/admin/dashboard`, `/app/admin/audit`, `/app/analytics`, `/app/brand`, `/app/compliance`.
-- Nav-ul (`app-shell`) filtrează item-urile după `hasModule`.
+### 7.A — Documentation suite (6 documents)
 
-### Faza 3 — Self-Hosted Build (Docker)
-Fișiere noi în repo:
-- `Dockerfile` — multi-stage: Node build → runtime slim.
-- `docker-compose.yml` — servicii: `app`, `postgres`, `minio` (S3-compat), `caddy` (reverse proxy + auto-TLS).
-- `docker/entrypoint.sh` — verifică `LICENSE_JWT`, rulează migrări, pornește app.
-- `docker/setup-wizard/` — rută `/setup` care rulează doar la prima pornire (când `licenses` e goală):
-  1. Paste license token → verificare semnătură.
-  2. Config Postgres URL, admin email/parolă.
-  3. Config SMTP + AI provider (folosim `ai-provider.server.ts` deja creat — AZURE / OPENAI_COMPATIBLE / OLLAMA).
-  4. Test conexiuni → salvează `.env` local → redirect `/app`.
-- `README.SELFHOST.md` — instrucțiuni: `curl install.sh | sh` sau `docker compose up`.
+Structure, audience, tooling and source-of-truth are fixed up front so the docs stay consistent and never drift from code.
 
-### Faza 4 — Update Feed & Release Channel
-- Server route pe License Server: `/api/public/v1/releases/latest` → `{ version, docker_image, checksum, release_notes_url, min_supported }`.
-- În setup-wizard-ul clientului, "Update" button → pull imagine nouă + `docker compose up -d`.
-- Optional: **Watchtower** container inclus în compose care face auto-pull pe canal (`stable` / `beta`).
-- Tu faci release din Lovable: build imagine (GitHub Actions declanșat de tag `v1.2.0`) → push în GHCR sau Docker Hub → update record în `releases` table pe License Server → toți clienții primesc notificare "Update disponibil".
+**Shared conventions**
+- Source format: Markdown in `docs/<doc-slug>/*.md` with a `book.yaml` manifest (title, audience, chapter order, version).
+- Rendering: in-app viewer at `/_authenticated/app/docs/<slug>` (extends the existing `system_doc_catalog` infrastructure, no new table); PDF export via existing `src/lib/generators/pdf.server.ts`.
+- Every doc opens with: audience, scope, non-goals, version, last-updated, "how to report an error in this doc".
+- Diagrams: Mermaid in Markdown, rendered client-side; PDF export bakes them as SVG.
+- Every claim traceable: code refs (`src/…`), migration refs, or "product decision — see Architecture Book Ch. X".
+- No new marketing claims. Compliance wording gated to what's already in `src/lib/opsqai-facts.ts` + `security-memory.md`.
 
----
+**Doc 1 — Product Documentation** _(audience: customer CTO / decision maker)_
+Chapters: What is OPSQAI · Why it exists · Problems it solves · High-level architecture · Modules (Basic + paid catalog) · Licensing model (Installation + Module, seats, maintenance) · How the AI works (adapter registry, providers, no training on customer data) · How updates work (channel, installer_version, application version) · Backup · Disaster Recovery · Ownership model (OPSQAI vs customer responsibilities post-handover) · Security overview (link to Doc 4) · FAQ.
 
-## Ce se schimbă în aplicația actuală (Cloud)
+**Doc 2 — Administrator Guide** _(audience: customer IT admin)_
+Chapters: Prerequisites · Installation (bare-metal + Docker) · Setup Wizard walkthrough (resumable) · PostgreSQL configuration · MinIO / object storage · SMTP · SSO (SAML/OIDC, Enterprise) · AI Provider configuration · Backups (schedule, verification, off-site) · Restore · Updates (channel, rollback) · License management (Installation + Add License) · Modules (enable/disable, effect of expiry) · Health Check (`opsqai doctor`) · Troubleshooting (top 20 issues cross-referenced with error codes).
 
-Aplicația ta actuală devine **License Server + demo public**:
-- Rutele `/app/*` (workspace-ul operațional) rămân doar pentru **demo / Edeka evaluation**.
-- Se adaugă zona nouă `/app/platform/licenses` (doar `platform_admin`).
-- Pricing page reflectă noul model: "Basic license €X unic + module €Y fiecare, self-hosted".
-- Marketing pages: adăugăm secțiune "Self-hosted, own your data" + link download.
+**Doc 3 — Technical Documentation** _(audience: OPSQAI engineers + advanced customer engineers)_
+Chapters: Project structure · Authentication flow (Supabase Auth + `user_roles` + `has_role`) · License flow (issue → verify → revoke → import → DR) · AI provider adapter contract · RAG pipeline · Embeddings · pgvector configuration · Storage adapters · Public API (`/api/public/v1/*`) · Background jobs (pg_cron, email queue, purge) · Database schema reference (generated from migrations) · Security controls · Docker architecture (compose topology, volumes, network).
 
-**Ce NU strică**:
-- Modulul `ai-provider.server.ts` deja există și e pregătit pentru Azure / self-hosted OpenAI-compat / Ollama. Perfect pentru clienți care rulează cu propriul LLM.
-- `feature-catalog.ts` și `subscription-plans.ts` rămân — devin **surse pentru catalog de module vândabile**.
+**Doc 4 — Security Documentation** _(audience: customer CISO / security architect)_
+Chapters: Security overview · Encryption (in transit, at rest) · Authentication · Authorization (RBAC + `has_role`) · License security (Ed25519, key rotation, `key_id`) · Update security (signed manifests) · Backup security (encryption, off-site, restore-to-scratch) · Data isolation (multi-tenant RLS, definer functions inventory) · GDPR (subprocessors, transfers, DPA) · Logging · Audit log (schema, retention, anonymized archive) · Incident response · Disaster recovery · Business continuity. Aligned with security memory; no absolute claims.
 
----
+**Doc 5 — OPSQAI Architecture Book** _(audience: technical decision maker + engineers; explains **why**, not just how)_
+13 chapters: Vision · Architecture · Data Flow · License System · Security · AI · Knowledge Base · Administration · Deployment · Updates · Maintenance · Recovery · Future Roadmap. Each chapter closes with an **Architecture Decisions** section documenting the choices made (e.g. "Why per-module signed tokens instead of a single `modules[]` array", "Why `install_id` as DR anchor", "Why MC never holds customer secrets") in ADR-style: context → decision → consequences.
 
-## Detalii tehnice cheie
+**Doc 6 — OPSQAI Engineering Handbook** _(audience: internal — OPSQAI engineering)_
+Not shipped to customers. Lives in-repo under `docs/engineering/`. Chapters: Code conventions · Branching + release process · Adding a new module (catalog entry, license key, enforcement, UI gate, doc entry) · Issuing a license (from MC, offline, CLI) · Adding an AI provider adapter · Publishing a Docker image (versioning, signing, release manifest) · Database migrations (rules, GRANTs, RLS, review checklist) · **Pre-release checklist** (build green, `opsqai doctor` clean on reference install, migration dry-run, DR-Verify pass, docs updated, changelog cut).
 
-**Semnare licențe (Ed25519, offline, fără dependență de rețea):**
-```ts
-// server: emitere
-import { sign } from '@noble/ed25519';
-const jwt = await signLicensePayload(payload, process.env.LICENSE_SIGNING_KEY_PRIVATE);
+### 7.B — Marketing & product-site refresh
 
-// client (self-hosted): verificare la fiecare pornire + la fiecare acces la modul
-import { verify } from '@noble/ed25519';
-const ok = await verifyLicenseJwt(token, PUBLIC_KEY_BUILT_IN);
-```
+Everything user-visible on `opsqai.de` re-aligned with the final product model. Concrete edits (route → change):
 
-**Heartbeat opțional** (soft-enforcement): app-ul face POST săptămânal către License Server cu `install_id + version + user_count`. Dacă lipsește 30 zile → warning banner, nu blocare. Dacă `revoked=true` la ultimul heartbeat → licența devine invalidă la următoarea verificare locală.
+| Route | Change |
+|---|---|
+| `/` (index) | Hero copy aligned with "Self-Hosted first, evaluation environment is temporary". New module section reflecting Basic + paid modules. |
+| `/product` | Rewrite around Basic vs paid modules; per-module value props; Installation + Module licensing model. |
+| `/pricing` | Two-axis model: Installation License (seats + maintenance) + Modules (per-module). Remove tier bundling. Add "per-module add-on" cards. |
+| `/features` | Refactor into Basic modules vs paid modules; each module links to a solution page. |
+| `/solutions/*` | Update to reference module structure, not bundled tiers. |
+| `/trust` + `/trust/*` | Add: `/trust/self-hosted` (data stays in customer install), `/trust/licensing` (per-module, Ed25519, offline), `/trust/disaster-recovery` (customer-owned backups, dual recovery paths). Update `/trust/multi-tenant-isolation` note: Self-Hosted is single-tenant per install. |
+| `/legal/dpa` | Update subprocessors section to reflect Self-Hosted model (customer's own infrastructure not a subprocessor of OPSQAI). Reviewed by counsel gate. |
+| `/legal/responsible-ai` | Reflect AI Provider adapter registry: customer picks provider, no training on customer data (unchanged claim). |
+| `/docs` | Public landing page for the 5 customer-facing docs (Docs 1–5). PDF download links wired to Customer Portal login for authenticated versions. |
+| `/blog` | New post: "Introducing per-module licensing" + "Disaster Recovery in a Self-Hosted world". |
+| Global SEO | Title/description/og for every changed route. `/docs` gets its own leaf og:image. |
+| `sitemap.xml` | Regenerated. |
+| `llms.txt` | Refreshed with the new module catalog + doc index. |
+| `ROADMAP.md` | Public roadmap updated to reflect completed Sprint 0–6.5; future sprints reordered around the new architecture. |
 
-**Migrări DB pe self-host**: pornirea containerului rulează `bun run migrate` care aplică toate migrările Supabase pe Postgres-ul local. Migrările tale există deja — trebuie doar să nu depindă de `auth.*` schema Supabase → înlocuim cu tabel `users` propriu + hash bcrypt, sau folosim GoTrue open-source ca container separat (recomand GoTrue — 0 refactor pe auth).
+### 7.C — Release engineering
 
-**Storage**: MinIO local (S3-compatible) → codul folosește deja `supabase.storage` care merge peste orice S3-compat cu env-vars corecte.
+- **Changelog + release notes**: `CHANGELOG.md` + `RELEASE_NOTES.md` cut for `v1.0.0` (the version that ships with all phases merged).
+- **Versioning**: `installer_version` starts at `1.0.0`; application version `1.0.0`; docs `v1.0`.
+- **Signed release manifest** consumed by `opsqai doctor` version check.
+- **Reference installation** run end-to-end on a clean host as final acceptance: install → wizard → doctor green → issue Installation License + 2 Module Licenses → import → run all 7 DR scenarios → verify docs render in-app and export as PDF.
+- **Publish**: only after all of the above are green.
 
 ---
 
-## Ce NU e în acest plan (îl clarificăm după)
-- Cum arată contractul comercial / EULA (Legal, nu tech).
-- Suport SSO enterprise (SAML) în self-host — există deja `sso_configurations`, îl păstrăm.
-- Multi-tenancy pe același self-host — presupun 1 firmă = 1 install. Confirmă dacă vrei multi-tenant.
+## Deliverables at end of Phase 7
+
+- 5 customer-facing docs (`docs/product-documentation/`, `docs/administrator-guide/`, `docs/technical-documentation/`, `docs/security-documentation/`, `docs/architecture-book/`) — Markdown + Mermaid, rendered in-app, exportable as PDF.
+- 1 internal Engineering Handbook (`docs/engineering/`).
+- Updated marketing site with every route above aligned to the final model.
+- `v1.0.0` release with signed manifest, Docker images, installer artifacts, and reference-install verification.
 
 ---
 
-## Estimare (ordin de mărime)
-- Faza 1 (License Server + emitere/revoke + UI admin): ~4-6 iterații.
-- Faza 2 (Feature gating în app): ~2-3 iterații.
-- Faza 3 (Docker + wizard + GoTrue + MinIO): ~5-7 iterații.
-- Faza 4 (Release feed + Watchtower): ~2 iterații.
-
-Începem cu **Faza 1** (License Server + tabelele + emitere JWT + UI admin) — e independent și îl poți folosi imediat ca să emiți licențe pentru primii clienți self-hosted, chiar înainte ca partea de Docker să fie gata.
-
----
-
-## Întrebări înainte să pornesc
-
-1. **Auth în self-host**: OK cu GoTrue containerizat (open-source Supabase Auth, 0 refactor pe codul actual), sau vrei ceva simplu tip email+parolă intern?
-2. **Multi-tenant per install**: 1 install = 1 firmă (simplu) sau 1 install = mai multe workspaces (ca acum)?
-3. **Distribuția imaginii Docker**: GHCR public, Docker Hub public, sau private registry cu login (mai control)?
-4. **Începem cu Faza 1 acum**? Confirmă și pornesc migrațiile + UI-ul de emitere licențe.
+**Confirm and I start Phase 0.**
