@@ -63,6 +63,28 @@ function LicensesPage() {
   const issueModule = useServerFn(issueModuleLicense);
   const getPubKey = useServerFn(getLicensePublicKey);
   const fetchModuleToken = useServerFn(getModuleToken);
+  const exportBundle = useServerFn(exportActivationBundle);
+  const exportCrl = useServerFn(exportRevocationList);
+
+  async function downloadBundle(install_id: string) {
+    try {
+      const bundle = await exportBundle({ data: { install_id } });
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `opsqai-activation-${install_id}.json`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Activation bundle downloaded");
+    } catch (e) { toast.error((e as Error).message); }
+  }
+
+  async function downloadCrl() {
+    try {
+      const res = await exportCrl({ data: {} } as never);
+      await navigator.clipboard?.writeText(res.token);
+      toast.success(`CRL copied — ${res.entries} entries, key ${res.key_id}`);
+    } catch (e) { toast.error((e as Error).message); }
+  }
 
   const { data: rows } = useQuery({ queryKey: ["licenses"], queryFn: () => list({ data: {} } as never) });
   const { data: pubKey } = useQuery({ queryKey: ["license-public-key"], queryFn: () => getPubKey({ data: {} } as never) });
