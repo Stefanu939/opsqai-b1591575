@@ -41,7 +41,7 @@ export function generateBreakGlassSecret(): { plaintext: string; hash: string } 
   const plaintext = toBase32(raw);
   const salt = randomBytes(16);
   const derived = scryptSync(plaintext, salt, KEY_LEN, {
-    N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P,
+    N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P, maxmem: SCRYPT_MAXMEM,
   });
   const hash = `scrypt$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${salt.toString("base64")}$${derived.toString("base64")}`;
   return { plaintext, hash };
@@ -59,7 +59,7 @@ export function verifyBreakGlassSecret(candidate: string, hash: string | null | 
   const expected = Buffer.from(derivedB64, "base64");
   let candidateDerived: Buffer;
   try {
-    candidateDerived = scryptSync(candidate.trim().toUpperCase(), salt, expected.length, { N, r, p });
+    candidateDerived = scryptSync(candidate.trim().toUpperCase(), salt, expected.length, { N, r, p, maxmem: SCRYPT_MAXMEM });
   } catch {
     return false;
   }
