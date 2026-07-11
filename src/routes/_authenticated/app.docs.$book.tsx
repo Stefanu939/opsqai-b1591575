@@ -41,7 +41,7 @@ function BookView() {
         <p className="mt-2 text-muted-foreground">{book.summary}</p>
       </header>
       <ol className="space-y-2">
-        {book.chapters.map((ch, i) => (
+        {book.chapters.map((ch: { slug: string; title: string }, i: number) => (
           <li
             key={ch.slug}
             className="flex items-baseline gap-3 rounded-lg border border-border/40 bg-card/40 px-4 py-3"
