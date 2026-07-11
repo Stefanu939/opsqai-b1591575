@@ -13,6 +13,7 @@ import { z } from "zod";
 const Body = z.object({
   install_id: z.string().min(3).max(64),
   app_version: z.string().max(32).optional(),
+  installer_version: z.string().max(32).optional(),
   user_count: z.number().int().min(0).max(1_000_000).optional(),
   host_info: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
