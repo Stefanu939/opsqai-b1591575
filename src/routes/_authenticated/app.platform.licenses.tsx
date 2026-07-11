@@ -9,6 +9,7 @@ import {
   issueModuleLicense,
   getLicensePublicKey,
   getModuleToken,
+  transferOwnership,
 } from "@/lib/licenses.functions";
 import { exportActivationBundle, exportRevocationList } from "@/lib/license-activation.functions";
 import { ADDON_MODULES, BASIC_MODULES, type ModuleKey } from "@/lib/license-modules";
@@ -22,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { KeyRound, Plus, ShieldOff, Copy, Package, Eye } from "lucide-react";
+import { KeyRound, Plus, ShieldOff, Copy, Package, Eye, ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
@@ -48,8 +49,15 @@ interface LicenseRow {
   maintenance_expires_at: string | null;
   revoked: boolean;
   suspended: boolean;
+  owner_type: "opsqai" | "customer";
+  handed_over_at: string | null;
   modules: ModuleRow[];
-  install: { user_count: number | null; last_heartbeat_at: string | null } | null;
+  install: {
+    user_count: number | null;
+    last_heartbeat_at: string | null;
+    app_version: string | null;
+    installer_version: string | null;
+  } | null;
 }
 
 function LicensesPage() {
