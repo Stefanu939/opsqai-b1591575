@@ -279,7 +279,8 @@ function LicensesPage() {
               <th className="px-4 py-3 font-medium">Company</th>
               <th className="px-4 py-3 font-medium">Module Licenses</th>
               <th className="px-4 py-3 font-medium">Seats</th>
-              <th className="px-4 py-3 font-medium">Last heartbeat</th>
+              <th className="px-4 py-3 font-medium">Versions</th>
+              <th className="px-4 py-3 font-medium">Owner</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
@@ -344,13 +345,34 @@ function LicensesPage() {
                     </details>
                   </td>
                   <td className="px-4 py-3">{l.install?.user_count ?? "—"} / {l.seats ?? l.max_users}</td>
-                  <td className="px-4 py-3 text-xs">{l.install?.last_heartbeat_at ? new Date(l.install.last_heartbeat_at).toLocaleString() : "—"}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
+                    <div>Installer: <span className="font-mono">{l.install?.installer_version ?? "—"}</span></div>
+                    <div>App: <span className="font-mono">{l.install?.app_version ?? "—"}</span></div>
+                    <div className="text-muted-foreground">
+                      {l.install?.last_heartbeat_at ? new Date(l.install.last_heartbeat_at).toLocaleString() : "no heartbeat"}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    <Badge variant={l.owner_type === "customer" ? "default" : "outline"}>
+                      {l.owner_type === "customer" ? "Customer" : "OPSQAI"}
+                    </Badge>
+                    {l.handed_over_at && (
+                      <div className="text-[10px] text-muted-foreground mt-1">
+                        handed over {new Date(l.handed_over_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     {l.revoked ? <Badge variant="destructive">Revoked</Badge> : l.suspended ? <Badge variant="outline">Suspended</Badge> : <Badge>Active</Badge>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
                     <Button size="sm" variant="ghost" onClick={() => downloadBundle(l.install_id)} title="Download offline activation bundle">
                       <Package className="h-4 w-4 mr-1" /> Bundle
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleTransfer(l)}
+                      title={l.owner_type === "customer" ? "Revert to OPSQAI ownership" : "Hand over to customer"}>
+                      <ArrowLeftRight className="h-4 w-4 mr-1" />
+                      {l.owner_type === "customer" ? "Revert" : "Hand over"}
                     </Button>
                     {!l.revoked && (
                       <Button size="sm" variant="ghost" className="text-destructive"
