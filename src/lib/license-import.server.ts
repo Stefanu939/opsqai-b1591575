@@ -232,8 +232,8 @@ export async function importRevocationList(token: string): Promise<CrlImportSumm
       .eq("install_id", e.install_id)
       .eq("kind", e.kind);
     if (e.kind === "module" && e.module_key) q = q.eq("module_key", e.module_key);
-    const { error, count } = await q.select("id", { count: "exact", head: true });
-    if (!error) applied += count ?? 0;
+    const { data: updated, error } = await q.select("id");
+    if (!error) applied += updated?.length ?? 0;
   }
 
   return { ok: true, applied, entries: res.payload.entries.length, issued_at: res.payload.issued_at };
