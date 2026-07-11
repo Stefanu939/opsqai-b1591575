@@ -28,6 +28,7 @@ export const MC_ONLY_PREFIXES: readonly string[] = [
   "/app/admin/customers",        // customer registry
   "/app/admin/subscriptions",    // subscription lifecycle
   "/app/platform/licenses",      // issue / revoke licenses
+  "/portal",                     // customer portal (hosted MC only)
 ];
 
 /**

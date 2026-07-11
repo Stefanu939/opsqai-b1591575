@@ -65,10 +65,12 @@ import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as DemoAppIndexRouteImport } from './routes/demo.app.index'
+import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DemoAppUsersRouteImport } from './routes/demo.app.users'
@@ -79,6 +81,10 @@ import { Route as DemoAppAuditRouteImport } from './routes/demo.app.audit'
 import { Route as DemoAppAnalyticsRouteImport } from './routes/demo.app.analytics'
 import { Route as DemoAppAcademyRouteImport } from './routes/demo.app.academy'
 import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
+import { Route as AuthenticatedPortalTicketsRouteImport } from './routes/_authenticated/portal.tickets'
+import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
+import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
+import { Route as AuthenticatedPortalContractRouteImport } from './routes/_authenticated/portal.contract'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
@@ -425,6 +431,11 @@ const ApiAcademyChatRoute = ApiAcademyChatRouteImport.update({
   path: '/api/academy-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -447,6 +458,12 @@ const DemoAppIndexRoute = DemoAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DemoAppRoute,
 } as any)
+const AuthenticatedPortalIndexRoute =
+  AuthenticatedPortalIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -497,6 +514,30 @@ const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
   path: '/api/public/contact-submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPortalTicketsRoute =
+  AuthenticatedPortalTicketsRouteImport.update({
+    id: '/tickets',
+    path: '/tickets',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedPortalReleaseNotesRoute =
+  AuthenticatedPortalReleaseNotesRouteImport.update({
+    id: '/release-notes',
+    path: '/release-notes',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedPortalDownloadsRoute =
+  AuthenticatedPortalDownloadsRouteImport.update({
+    id: '/downloads',
+    path: '/downloads',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedPortalContractRoute =
+  AuthenticatedPortalContractRouteImport.update({
+    id: '/contract',
+    path: '/contract',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedAppRequestsRoute =
   AuthenticatedAppRequestsRouteImport.update({
     id: '/requests',
@@ -896,6 +937,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/portal': typeof AuthenticatedPortalRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
@@ -941,6 +983,10 @@ export interface FileRoutesByFullPath {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/portal/contract': typeof AuthenticatedPortalContractRoute
+  '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
+  '/portal/tickets': typeof AuthenticatedPortalTicketsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -951,6 +997,7 @@ export interface FileRoutesByFullPath {
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/portal/': typeof AuthenticatedPortalIndexRoute
   '/demo/app/': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
@@ -1072,6 +1119,10 @@ export interface FileRoutesByTo {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/portal/contract': typeof AuthenticatedPortalContractRoute
+  '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
+  '/portal/tickets': typeof AuthenticatedPortalTicketsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1082,6 +1133,7 @@ export interface FileRoutesByTo {
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/portal': typeof AuthenticatedPortalIndexRoute
   '/demo/app': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
@@ -1164,6 +1216,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/portal': typeof AuthenticatedPortalRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
@@ -1209,6 +1262,10 @@ export interface FileRoutesById {
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/_authenticated/portal/contract': typeof AuthenticatedPortalContractRoute
+  '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
+  '/_authenticated/portal/tickets': typeof AuthenticatedPortalTicketsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1219,6 +1276,7 @@ export interface FileRoutesById {
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
   '/demo/app/': typeof DemoAppIndexRoute
   '/_authenticated/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/_authenticated/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
@@ -1301,6 +1359,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/app'
+    | '/portal'
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
@@ -1346,6 +1405,10 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
+    | '/portal/contract'
+    | '/portal/downloads'
+    | '/portal/release-notes'
+    | '/portal/tickets'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -1356,6 +1419,7 @@ export interface FileRouteTypes {
     | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app/'
+    | '/portal/'
     | '/demo/app/'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
@@ -1477,6 +1541,10 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
+    | '/portal/contract'
+    | '/portal/downloads'
+    | '/portal/release-notes'
+    | '/portal/tickets'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -1487,6 +1555,7 @@ export interface FileRouteTypes {
     | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app'
+    | '/portal'
     | '/demo/app'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
@@ -1568,6 +1637,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
+    | '/_authenticated/portal'
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
@@ -1613,6 +1683,10 @@ export interface FileRouteTypes {
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
+    | '/_authenticated/portal/contract'
+    | '/_authenticated/portal/downloads'
+    | '/_authenticated/portal/release-notes'
+    | '/_authenticated/portal/tickets'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -1623,6 +1697,7 @@ export interface FileRouteTypes {
     | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
+    | '/_authenticated/portal/'
     | '/demo/app/'
     | '/_authenticated/app/academy/analytics'
     | '/_authenticated/app/academy/certificates'
@@ -2132,6 +2207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAcademyChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app': {
       id: '/_authenticated/app'
       path: '/app'
@@ -2159,6 +2241,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/app/'
       preLoaderRoute: typeof DemoAppIndexRouteImport
       parentRoute: typeof DemoAppRoute
+    }
+    '/_authenticated/portal/': {
+      id: '/_authenticated/portal/'
+      path: '/'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof AuthenticatedPortalIndexRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
     }
     '/_authenticated/app/': {
       id: '/_authenticated/app/'
@@ -2229,6 +2318,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/contact-submit'
       preLoaderRoute: typeof ApiPublicContactSubmitRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/portal/tickets': {
+      id: '/_authenticated/portal/tickets'
+      path: '/tickets'
+      fullPath: '/portal/tickets'
+      preLoaderRoute: typeof AuthenticatedPortalTicketsRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/portal/release-notes': {
+      id: '/_authenticated/portal/release-notes'
+      path: '/release-notes'
+      fullPath: '/portal/release-notes'
+      preLoaderRoute: typeof AuthenticatedPortalReleaseNotesRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/portal/downloads': {
+      id: '/_authenticated/portal/downloads'
+      path: '/downloads'
+      fullPath: '/portal/downloads'
+      preLoaderRoute: typeof AuthenticatedPortalDownloadsRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/portal/contract': {
+      id: '/_authenticated/portal/contract'
+      path: '/contract'
+      fullPath: '/portal/contract'
+      preLoaderRoute: typeof AuthenticatedPortalContractRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
     }
     '/_authenticated/app/requests': {
       id: '/_authenticated/app/requests'
@@ -2859,12 +2976,33 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
 const AuthenticatedAppRouteWithChildren =
   AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
 
+interface AuthenticatedPortalRouteChildren {
+  AuthenticatedPortalContractRoute: typeof AuthenticatedPortalContractRoute
+  AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
+  AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
+  AuthenticatedPortalTicketsRoute: typeof AuthenticatedPortalTicketsRoute
+  AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
+}
+
+const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
+  AuthenticatedPortalContractRoute: AuthenticatedPortalContractRoute,
+  AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
+  AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
+  AuthenticatedPortalTicketsRoute: AuthenticatedPortalTicketsRoute,
+  AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
+}
+
+const AuthenticatedPortalRouteWithChildren =
+  AuthenticatedPortalRoute._addFileChildren(AuthenticatedPortalRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
+  AuthenticatedPortalRoute: AuthenticatedPortalRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
