@@ -1,0 +1,16 @@
+title: "OPSQAI Technical Documentation"
+version: "1.0"
+audience: "OPSQAI engineers + advanced customer engineers"
+chapters:
+  - 01-project-structure.md
+  - 02-auth-flow.md
+  - 03-license-flow.md
+  - 04-ai-adapter-contract.md
+  - 05-rag-pipeline.md
+  - 06-embeddings.md
+  - 07-storage-adapters.md
+  - 08-public-api.md
+  - 09-deployment.md
+  - 10-background-jobs.md
+  - 11-security-controls.md
+  - 12-database-schema-reference.md

@@ -1,0 +1,17 @@
+title: "OPSQAI Architecture Book"
+version: "1.0"
+audience: "Technical decision makers and engineers"
+chapters:
+  - 01-vision.md
+  - 02-architecture.md
+  - 03-data-flow.md
+  - 04-license-system.md
+  - 05-security.md
+  - 06-ai.md
+  - 07-knowledge-base.md
+  - 08-administration.md
+  - 09-deployment.md
+  - 10-updates.md
+  - 11-maintenance.md
+  - 12-recovery.md
+  - 13-future-roadmap.md

@@ -1,0 +1,17 @@
+title: "OPSQAI Security Documentation"
+version: "1.0"
+audience: "Customer CISO / security architect"
+chapters:
+  - 01-overview.md
+  - 02-encryption.md
+  - 03-authentication.md
+  - 04-authorization.md
+  - 05-license-security.md
+  - 06-update-security.md
+  - 07-backup-security.md
+  - 08-data-isolation.md
+  - 09-privacy-gdpr.md
+  - 10-logging-audit.md
+  - 11-incident-response.md
+  - 12-dr-bc.md
+  - 13-threat-model.md
