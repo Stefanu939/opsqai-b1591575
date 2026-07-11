@@ -73,6 +73,30 @@ function LicensesPage() {
   const fetchModuleToken = useServerFn(getModuleToken);
   const exportBundle = useServerFn(exportActivationBundle);
   const exportCrl = useServerFn(exportRevocationList);
+  const transfer = useServerFn(transferOwnership);
+
+  const transferMut = useMutation({
+    mutationFn: (v: { install_id: string; to: "opsqai" | "customer"; notes?: string }) =>
+      transfer({ data: v }),
+    onSuccess: (res: { install_id: string; owner_type: string; unchanged?: boolean }) => {
+      toast.success(
+        res.unchanged
+          ? `Ownership unchanged (${res.owner_type})`
+          : `Ownership → ${res.owner_type} for ${res.install_id}`,
+      );
+      qc.invalidateQueries({ queryKey: ["licenses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function handleTransfer(l: LicenseRow) {
+    const to: "opsqai" | "customer" = l.owner_type === "customer" ? "opsqai" : "customer";
+    const verb = to === "customer" ? "Hand over to customer" : "Revert ownership to OPSQAI";
+    const notes = prompt(`${verb} for ${l.install_id}. Optional notes (no secrets):`, "") ?? undefined;
+    if (!confirm(`${verb} for ${l.install_id}?`)) return;
+    transferMut.mutate({ install_id: l.install_id, to, notes: notes || undefined });
+  }
+
 
   async function downloadBundle(install_id: string) {
     try {
