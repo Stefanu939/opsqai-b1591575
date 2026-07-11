@@ -2021,6 +2021,7 @@ export type Database = {
           host_info: Json | null
           id: string
           install_id: string
+          installer_version: string | null
           ip_address: string | null
           last_heartbeat_at: string | null
           updated_at: string
@@ -2032,6 +2033,7 @@ export type Database = {
           host_info?: Json | null
           id?: string
           install_id: string
+          installer_version?: string | null
           ip_address?: string | null
           last_heartbeat_at?: string | null
           updated_at?: string
@@ -2043,6 +2045,7 @@ export type Database = {
           host_info?: Json | null
           id?: string
           install_id?: string
+          installer_version?: string | null
           ip_address?: string | null
           last_heartbeat_at?: string | null
           updated_at?: string
@@ -2195,6 +2198,8 @@ export type Database = {
           contact_email: string | null
           created_at: string
           expires_at: string | null
+          handed_over_at: string | null
+          handover_notes: string | null
           id: string
           install_id: string
           issued_at: string
@@ -2206,6 +2211,8 @@ export type Database = {
           module_key: string | null
           modules: Json
           notes: string | null
+          owner_since: string
+          owner_type: string
           revoked: boolean
           revoked_at: string | null
           revoked_reason: string | null
@@ -2222,6 +2229,8 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           expires_at?: string | null
+          handed_over_at?: string | null
+          handover_notes?: string | null
           id?: string
           install_id: string
           issued_at?: string
@@ -2233,6 +2242,8 @@ export type Database = {
           module_key?: string | null
           modules?: Json
           notes?: string | null
+          owner_since?: string
+          owner_type?: string
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null
@@ -2249,6 +2260,8 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           expires_at?: string | null
+          handed_over_at?: string | null
+          handover_notes?: string | null
           id?: string
           install_id?: string
           issued_at?: string
@@ -2260,6 +2273,8 @@ export type Database = {
           module_key?: string | null
           modules?: Json
           notes?: string | null
+          owner_since?: string
+          owner_type?: string
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null
