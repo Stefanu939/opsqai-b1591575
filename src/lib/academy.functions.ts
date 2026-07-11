@@ -640,19 +640,40 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
         correct_answer: coerceString(q?.correct_answer, "See lesson content"),
         explanation: coerceString(q?.explanation, "This answer is based on the lesson content."),
       })).slice(0, data.count);
-      return QuizSchema.parse({ questions });
+      const questions = QuizSchema.parse({ questions: mapped }).questions;
+
+      // SECURITY: persist the graded questions (including correct_answer)
+      // server-side so submission can be graded against a trusted source
+      // rather than a client-supplied correct_answer field.
+      const { data: attempt, error: attemptErr } = await (context.supabase as any)
+        .from("academy_quiz_attempts")
+        .insert({
+          company_id: (lesson as any).company_id ?? null,
+          lesson_id: data.lesson_id,
+          user_id: context.userId,
+          questions,
+          answers: [],
+          score: 0,
+          passed: false,
+        })
+        .select("id").single();
+      if (attemptErr || !attempt) throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
+
+      // Client-safe questions — strip correct_answer so it cannot be replayed.
+      const clientQuestions = questions.map(({ correct_answer: _ca, ...rest }) => rest);
+      return { attempt_id: attempt.id as string, questions: clientQuestions };
     } catch (error) {
       console.warn("Academy quiz JSON parse failed; using source-based fallback", error);
-      return QuizSchema.parse({
+      const fallback = QuizSchema.parse({
         questions: [
           {
-            type: "short_answer",
+            type: "short_answer" as const,
             question: `What is the main operational purpose of ${lesson.title}?`,
             correct_answer: "The answer should reflect the documented lesson purpose.",
             explanation: "This fallback question is grounded in the lesson title and body.",
           },
           {
-            type: "true_false",
+            type: "true_false" as const,
             question: "Learners should follow the approved procedure described in the lesson.",
             options: ["True", "False"],
             correct_answer: "True",
@@ -660,6 +681,21 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
           },
         ].slice(0, Math.max(2, data.count)),
       });
+      const { data: attempt, error: attemptErr } = await (context.supabase as any)
+        .from("academy_quiz_attempts")
+        .insert({
+          company_id: (lesson as any).company_id ?? null,
+          lesson_id: data.lesson_id,
+          user_id: context.userId,
+          questions: fallback.questions,
+          answers: [],
+          score: 0,
+          passed: false,
+        })
+        .select("id").single();
+      if (attemptErr || !attempt) throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
+      const clientQuestions = fallback.questions.map(({ correct_answer: _ca, ...rest }) => rest);
+      return { attempt_id: attempt.id as string, questions: clientQuestions };
     }
   });
 
