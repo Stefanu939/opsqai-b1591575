@@ -633,7 +633,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     });
     try {
       const parsed = parseJsonObject(text) as any;
-      const questions = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q: any) => ({
+      const mapped = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q: any) => ({
         type: ["multiple_choice", "true_false", "short_answer"].includes(q?.type) ? q.type : "short_answer",
         question: coerceString(q?.question, `What is a key point from ${lesson.title}?`),
         options: Array.isArray(q?.options) ? q.options.map((option: unknown) => coerceString(option)).filter(Boolean).slice(0, 4) : undefined,
