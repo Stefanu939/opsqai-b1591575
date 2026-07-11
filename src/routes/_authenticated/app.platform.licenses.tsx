@@ -310,6 +310,64 @@ function LicensesPage() {
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!moduleDialog} onOpenChange={(open) => !open && setModuleDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Issue Module License</DialogTitle>
+            <DialogDescription>
+              {moduleDialog && (
+                <>Signing a token for <span className="font-mono">{moduleDialog.module_key}</span> on install{" "}
+                <span className="font-mono">{moduleDialog.install_id}</span>. Leave dates blank for a perpetual license.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {moduleDialog && (
+            <div className="grid grid-cols-2 gap-3">
+              <label className="text-sm space-y-1">
+                <div>Expires at</div>
+                <Input type="date" value={moduleDialog.expires_at}
+                  onChange={(e) => setModuleDialog({ ...moduleDialog, expires_at: e.target.value })} />
+              </label>
+              <label className="text-sm space-y-1">
+                <div>Maintenance expires at</div>
+                <Input type="date" value={moduleDialog.maintenance_expires_at}
+                  onChange={(e) => setModuleDialog({ ...moduleDialog, maintenance_expires_at: e.target.value })} />
+              </label>
+              <label className="text-sm space-y-1 col-span-2">
+                <div>Unit price (cents, informational)</div>
+                <Input type="number" min={0} value={moduleDialog.unit_price_cents}
+                  onChange={(e) => setModuleDialog({ ...moduleDialog, unit_price_cents: parseInt(e.target.value) || 0 })} />
+              </label>
+              <label className="flex items-center gap-2 text-sm col-span-2">
+                <Checkbox checked={moduleDialog.hard_expiry}
+                  onCheckedChange={(v) => setModuleDialog({ ...moduleDialog, hard_expiry: v === true })} />
+                Hard expiry (module blocked after expiration)
+              </label>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModuleDialog(null)}>Cancel</Button>
+            <Button
+              disabled={!moduleDialog || issueModuleMut.isPending}
+              onClick={() => {
+                if (!moduleDialog) return;
+                issueModuleMut.mutate({
+                  install_id: moduleDialog.install_id,
+                  module_key: moduleDialog.module_key,
+                  expires_at: moduleDialog.expires_at ? new Date(moduleDialog.expires_at).toISOString() : null,
+                  maintenance_expires_at: moduleDialog.maintenance_expires_at
+                    ? new Date(moduleDialog.maintenance_expires_at).toISOString()
+                    : null,
+                  hard_expiry: moduleDialog.hard_expiry,
+                  unit_price_cents: moduleDialog.unit_price_cents,
+                });
+              }}>
+              <Plus className="h-4 w-4 mr-1" /> Issue & copy token
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
