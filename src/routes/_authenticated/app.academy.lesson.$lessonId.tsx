@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lesson
   }),
 });
 
-type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: string; options?: string[]; correct_answer: string; explanation: string };
+type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: string; options?: string[]; correct_answer?: string; explanation: string };
 
 const COMPLETE_MARKER = "[LESSON_COMPLETE]";
 
