@@ -1,42 +1,81 @@
-// Phase 6 — Deployment mode & access lockdown.
+// Phase 6 / RC-blocker fix — Deployment mode & route lockdown.
 //
 // OPSQAI ships as two deployments from the same codebase:
 //
-//   * "mc"       — the Management Center (this hosted app, opsqai.de).
-//                  Owns licensing, customers, orders, subscription lifecycle,
-//                  platform admins. MUST NOT expose operational modules.
-//   * "selfhost" — the customer's own install (Docker or bare metal).
-//                  Owns operational modules (knowledge base, academy, chat,
-//                  faq, sops, brand, requests, workspace). MUST NOT expose
-//                  MC surfaces (issuing licenses, customer registry, etc.).
+//   * "mc"       — Management Center (hosted, opsqai.de).
+//                  ONLY platform management: companies, customers, licenses,
+//                  orders/subscriptions, activation bundles, releases,
+//                  installations, signing keys, enterprise documents, audit,
+//                  support, platform administration, customer portal.
+//   * "selfhost" — Customer install (Docker / bare metal).
+//                  ONLY operational modules: chat, workspace, knowledge base,
+//                  FAQ, internal requests, academy, command center, SOP
+//                  generator, knowledge gaps, brand center, users, SSO,
+//                  integrations, webhooks, API keys, and the local platform
+//                  setup / doctor / recovery / license-activation surfaces.
 //
-// Both deployments still render a shared shell — routes are gated at
-// runtime by matching the current path against the two allow-lists below.
-//
-// This module is pure (no server-only imports) so it can be used both in
-// route components and in tests.
+// Navigation is generated from these lists — nothing outside them ever
+// shows up in the sidebar. Deep links are blocked at render time by the
+// DeploymentModeGate.
 
 export type DeploymentMode = "mc" | "selfhost";
 
 /**
- * Route path prefixes that are allowed ONLY when the app runs as the
- * Management Center. Matched with startsWith().
+ * Routes that render in BOTH deployments (dashboard shell, profile, docs).
  */
-export const MC_ONLY_PREFIXES: readonly string[] = [
-  "/app/admin/platform",         // platform admin listing
-  "/app/admin/platform-admins",  // platform-admin management
-  "/app/admin/customers",        // customer registry
-  "/app/admin/subscriptions",    // subscription lifecycle
-  "/app/platform/licenses",      // issue / revoke licenses
-  "/portal",                     // customer portal (hosted MC only)
+export const SHARED_PREFIXES: readonly string[] = [
+  "/app",                 // /app landing — dashboard root (each mode renders its own content)
+  "/app/profile",
+  "/app/docs",
 ];
 
 /**
- * Route path prefixes that are allowed ONLY when the app runs Self-Hosted.
- * The setup wizard, doctor, recovery and license-activation UIs configure
- * a *local* install and have no meaning inside the MC.
+ * MC-only routes. Blocked on self-hosted.
+ */
+export const MC_ONLY_PREFIXES: readonly string[] = [
+  "/app/admin/dashboard",
+  "/app/admin/companies",
+  "/app/admin/customers",           // Enterprise Documents / customer registry
+  "/app/admin/subscriptions",       // Orders / Subscriptions
+  "/app/admin/support",             // Support Inbox
+  "/app/admin/email",
+  "/app/admin/email-logs",
+  "/app/admin/platform",            // Platform Administration
+  "/app/admin/platform-admins",     // Super Admins
+  "/app/admin/audit",               // Platform audit (MC-only per spec)
+  "/app/platform/licenses",         // Licenses, Activation Bundles, Releases, Installations, Signing Keys
+  "/portal",                        // Customer Portal (hosted MC)
+];
+
+/**
+ * Self-hosted-only routes. Blocked on MC.
+ * Includes every operational module AND the local install surfaces.
  */
 export const SELFHOST_ONLY_PREFIXES: readonly string[] = [
+  // Operational — workspace
+  "/app/chat",
+  "/app/workspace",
+  "/app/knowledge",
+  "/app/faq",
+  "/app/requests",
+  "/app/academy",
+  "/app/internal",
+  "/app/brand",
+  // Operational — admin
+  "/app/admin/academy",
+  "/app/admin/knowledge-gaps",
+  "/app/admin/sop-generator",
+  "/app/admin/command-center",
+  "/app/admin/ai-audit",
+  "/app/admin/analytics",
+  "/app/admin/users",
+  "/app/admin/integrations",
+  "/app/admin/sso-setup",
+  "/app/admin/notifications",
+  "/app/admin/webhooks",
+  "/app/admin/api-keys",
+  "/app/admin/api-docs",
+  // Local install surfaces
   "/app/platform/setup",
   "/app/platform/doctor",
   "/app/platform/recovery",
@@ -44,18 +83,18 @@ export const SELFHOST_ONLY_PREFIXES: readonly string[] = [
 ];
 
 /**
- * Route path prefixes that carry customer operational data. MC deployments
- * MUST NOT expose these — they only exist inside a customer install.
+ * Kept for backward compatibility with existing tests. Subset of
+ * SELFHOST_ONLY_PREFIXES that represents customer operational data.
  */
 export const OPERATIONAL_PREFIXES: readonly string[] = [
-  "/app/knowledge",
-  "/app/academy",
   "/app/chat",
-  "/app/faq",
   "/app/workspace",
-  "/app/brand",
+  "/app/knowledge",
+  "/app/faq",
   "/app/requests",
+  "/app/academy",
   "/app/internal",
+  "/app/brand",
   "/app/admin/academy",
   "/app/admin/knowledge-gaps",
   "/app/admin/sop-generator",
@@ -68,39 +107,33 @@ function anyPrefix(path: string, prefixes: readonly string[]): boolean {
 
 export interface RouteGateVerdict {
   allowed: boolean;
-  reason?: "mc_only_route_on_selfhost" | "selfhost_only_route_on_mc" | "operational_on_mc";
+  reason?:
+    | "mc_only_route_on_selfhost"
+    | "selfhost_only_route_on_mc"
+    | "operational_on_mc";
 }
 
 /**
- * Pure route gate. Given a path and the current deployment mode, decide
- * whether the route is allowed to render.
- *
- * Rules:
- *   - MC-only route + mode=selfhost  → deny
- *   - Self-host-only route + mode=mc → deny
- *   - Operational route + mode=mc    → deny
- *   - Everything else                → allow
+ * Pure route gate. More specific prefixes win — an MC-only path on a
+ * self-host install is denied; a self-host-only path on MC is denied
+ * (and reported as "operational_on_mc" when it's a customer operational
+ * surface, to preserve the existing UX copy).
  */
 export function isRouteAllowedInMode(path: string, mode: DeploymentMode): RouteGateVerdict {
   if (mode === "selfhost" && anyPrefix(path, MC_ONLY_PREFIXES)) {
     return { allowed: false, reason: "mc_only_route_on_selfhost" };
   }
-  if (mode === "mc") {
-    if (anyPrefix(path, SELFHOST_ONLY_PREFIXES)) {
-      return { allowed: false, reason: "selfhost_only_route_on_mc" };
-    }
-    if (anyPrefix(path, OPERATIONAL_PREFIXES)) {
-      return { allowed: false, reason: "operational_on_mc" };
-    }
+  if (mode === "mc" && anyPrefix(path, SELFHOST_ONLY_PREFIXES)) {
+    const reason = anyPrefix(path, OPERATIONAL_PREFIXES)
+      ? "operational_on_mc"
+      : "selfhost_only_route_on_mc";
+    return { allowed: false, reason };
   }
   return { allowed: true };
 }
 
 /**
- * Client-visible deployment mode. Reads, in order:
- *   1. `window.__OPSQAI_MODE__` (set by SSR bootstrap)
- *   2. `VITE_OPSQAI_MODE` build-time env
- *   3. Fallback: "mc" (the hosted deployment is the default runtime).
+ * Client-visible deployment mode.
  */
 export function getClientDeploymentMode(): DeploymentMode {
   if (typeof window !== "undefined") {
