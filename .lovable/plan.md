@@ -21,8 +21,9 @@ All prior decisions preserved. This revision folds in the last two rounds of ame
 
 ## Phase list
 
-- **Phase 0** — License foundation fix (blocking): versioned tokens, Installation + Module kinds, tests.
-- **Phase 1** — Centralized enforcement, frozen module catalog, `licenses` schema split.
+- **Phase 0** — License foundation fix (blocking): versioned tokens, Installation + Module kinds, tests. ✅ done
+- **Phase 1** — Centralized enforcement, frozen module catalog, `licenses` schema split. ✅ done
+
 - **Phase 2** — AI provider adapter registry.
 - **Phase 3** — Management Center UI + per-module issue flow (secrets-blacklist gate active).
 - **Phase 4** — Offline activation + revocation + Add License import.

@@ -6,7 +6,7 @@ import {
   listLicenses,
   issueLicense,
   revokeLicense,
-  addModuleToLicense,
+  issueModuleLicense,
   getLicensePublicKey,
 } from "@/lib/licenses.functions";
 import { ADDON_MODULES, BASIC_MODULES } from "@/lib/license-modules";
@@ -24,6 +24,29 @@ export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
   component: LicensesPage,
 });
 
+interface ModuleRow {
+  id: string;
+  module_key: string | null;
+  signed_token?: string | null;
+  expires_at: string | null;
+  revoked: boolean;
+  suspended: boolean;
+}
+
+interface LicenseRow {
+  id: string;
+  install_id: string;
+  company_name: string;
+  seats: number | null;
+  max_users: number;
+  expires_at: string | null;
+  maintenance_expires_at: string | null;
+  revoked: boolean;
+  suspended: boolean;
+  modules: ModuleRow[];
+  install: { user_count: number | null; last_heartbeat_at: string | null } | null;
+}
+
 function LicensesPage() {
   const { isPlatformAdmin } = useAuth();
   if (!isPlatformAdmin) throw redirect({ to: "/app" });
@@ -32,7 +55,7 @@ function LicensesPage() {
   const list = useServerFn(listLicenses);
   const issue = useServerFn(issueLicense);
   const revoke = useServerFn(revokeLicense);
-  const addModule = useServerFn(addModuleToLicense);
+  const issueModule = useServerFn(issueModuleLicense);
   const getPubKey = useServerFn(getLicensePublicKey);
 
   const { data: rows } = useQuery({ queryKey: ["licenses"], queryFn: () => list({ data: {} } as never) });
@@ -42,58 +65,56 @@ function LicensesPage() {
     install_id: "",
     company_name: "",
     contact_email: "",
-    max_users: 50,
+    seats: 50,
     expires_at: "",
+    maintenance_expires_at: "",
     hard_expiry: false,
     notes: "",
-    addons: [] as string[],
   });
 
   const issueMut = useMutation({
-    mutationFn: () => issue({
-      data: {
-        install_id: form.install_id.trim().toLowerCase(),
-        company_name: form.company_name.trim(),
-        contact_email: form.contact_email.trim() || undefined,
-        tier: "basic",
-        add_on_modules: form.addons,
-        max_users: form.max_users,
-        expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
-        hard_expiry: form.hard_expiry,
-        notes: form.notes || undefined,
-      },
-    }),
-    onSuccess: (res: { token: string; install_id: string }) => {
-      toast.success("License issued");
+    mutationFn: () =>
+      issue({
+        data: {
+          install_id: form.install_id.trim().toLowerCase(),
+          company_name: form.company_name.trim(),
+          contact_email: form.contact_email.trim() || undefined,
+          tier: "basic",
+          seats: form.seats,
+          expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
+          maintenance_expires_at: form.maintenance_expires_at ? new Date(form.maintenance_expires_at).toISOString() : null,
+          hard_expiry: form.hard_expiry,
+          notes: form.notes || undefined,
+        },
+      }),
+    onSuccess: (res: { token: string }) => {
+      toast.success("Installation License issued — token copied");
       navigator.clipboard?.writeText(res.token).catch(() => {});
       qc.invalidateQueries({ queryKey: ["licenses"] });
-      setForm({ install_id: "", company_name: "", contact_email: "", max_users: 50, expires_at: "", hard_expiry: false, notes: "", addons: [] });
+      setForm({ install_id: "", company_name: "", contact_email: "", seats: 50, expires_at: "", maintenance_expires_at: "", hard_expiry: false, notes: "" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const revokeMut = useMutation({
-    mutationFn: (install_id: string) => revoke({ data: { install_id, reason: "revoked from admin panel" } }),
+    mutationFn: (v: { install_id: string; kind: "install" | "module"; module_key?: string }) =>
+      revoke({ data: { ...v, reason: "revoked from admin panel" } }),
     onSuccess: () => { toast.success("Revoked"); qc.invalidateQueries({ queryKey: ["licenses"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const addModuleMut = useMutation({
+  const issueModuleMut = useMutation({
     mutationFn: ({ install_id, module_key }: { install_id: string; module_key: string }) =>
-      addModule({ data: { install_id, module_key, unit_price_cents: 0 } }),
-    onSuccess: (res: { token: string | null; already_included: boolean }) => {
-      if (res.already_included) toast.info("Module already included");
-      else {
-        toast.success("Module added — new token copied to clipboard");
-        if (res.token) navigator.clipboard?.writeText(res.token).catch(() => {});
-      }
+      issueModule({ data: { install_id, module_key, unit_price_cents: 0 } }),
+    onSuccess: (res: { token: string; module_key: string }) => {
+      toast.success(`Module License issued (${res.module_key}) — token copied`);
+      if (res.token) navigator.clipboard?.writeText(res.token).catch(() => {});
       qc.invalidateQueries({ queryKey: ["licenses"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const toggleAddon = (key: string) =>
-    setForm((f) => f.addons.includes(key) ? { ...f, addons: f.addons.filter((k) => k !== key) } : { ...f, addons: [...f.addons, key] });
+  const licenses = (rows ?? []) as LicenseRow[];
 
   return (
     <div className="flex-1 p-6 md:p-10 space-y-6 max-w-6xl">
@@ -102,7 +123,8 @@ function LicensesPage() {
           <KeyRound className="h-7 w-7" /> Licenses
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Issue and manage OPSQAI self-hosted licenses. Basic modules (Chat, KB, FAQ) are always included; add-on modules are sold per install.
+          Two license kinds: one <strong>Installation License</strong> per install (mandatory, carries seats + maintenance),
+          and one <strong>Module License</strong> per paid add-on module. Basic modules are always included.
         </p>
       </header>
 
@@ -112,7 +134,7 @@ function LicensesPage() {
             <Package className="h-4 w-4" /> Signing public key <Badge variant="outline">{pubKey.algorithm} · {pubKey.key_id}</Badge>
           </div>
           <p className="text-xs text-muted-foreground mb-2">
-            Ship this PEM with every self-hosted build so clients can verify license tokens offline.
+            Ship this PEM with every Self-Hosted build so installs can verify license tokens offline.
           </p>
           <pre className="text-xs bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">{pubKey.public_key_pem}</pre>
           <Button
@@ -125,7 +147,7 @@ function LicensesPage() {
       )}
 
       <Card className="p-4 space-y-4">
-        <div className="text-sm font-medium">Issue new license</div>
+        <div className="text-sm font-medium">Issue Installation License</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Input placeholder="install_id (e.g. acme-prod-01)" value={form.install_id}
             onChange={(e) => setForm({ ...form, install_id: e.target.value })} />
@@ -133,10 +155,12 @@ function LicensesPage() {
             onChange={(e) => setForm({ ...form, company_name: e.target.value })} />
           <Input type="email" placeholder="Contact email (optional)" value={form.contact_email}
             onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
-          <Input type="number" min={1} placeholder="Max users" value={form.max_users}
-            onChange={(e) => setForm({ ...form, max_users: parseInt(e.target.value) || 50 })} />
+          <Input type="number" min={1} placeholder="Seats" value={form.seats}
+            onChange={(e) => setForm({ ...form, seats: parseInt(e.target.value) || 50 })} />
           <Input type="date" placeholder="Expires at (optional)" value={form.expires_at}
             onChange={(e) => setForm({ ...form, expires_at: e.target.value })} />
+          <Input type="date" placeholder="Maintenance expires at (optional)" value={form.maintenance_expires_at}
+            onChange={(e) => setForm({ ...form, maintenance_expires_at: e.target.value })} />
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={form.hard_expiry} onCheckedChange={(v) => setForm({ ...form, hard_expiry: v === true })} />
             Hard expiry (block app after expiration)
@@ -145,26 +169,13 @@ function LicensesPage() {
         <Textarea placeholder="Notes (internal)" value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         <div>
-          <div className="text-sm font-medium mb-2">Basic modules (included)</div>
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="text-sm font-medium mb-2">Basic modules (always included)</div>
+          <div className="flex flex-wrap gap-1">
             {BASIC_MODULES.map((k) => <Badge key={k} variant="secondary">{k}</Badge>)}
-          </div>
-          <div className="text-sm font-medium mb-2">Add-on modules</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {ADDON_MODULES.map((m) => (
-              <label key={m.key} className="flex items-start gap-2 text-sm border rounded p-2 cursor-pointer">
-                <Checkbox checked={form.addons.includes(m.key)} onCheckedChange={() => toggleAddon(m.key)} />
-                <div className="flex-1">
-                  <div className="font-medium">{m.label} <span className="text-xs text-muted-foreground">· {m.category}</span></div>
-                  <div className="text-xs text-muted-foreground">{m.description}</div>
-                  <div className="text-xs mt-1">Default price: €{(m.defaultPriceCents / 100).toFixed(0)}</div>
-                </div>
-              </label>
-            ))}
           </div>
         </div>
         <Button onClick={() => issueMut.mutate()} disabled={!form.install_id || !form.company_name || issueMut.isPending}>
-          <Plus className="h-4 w-4 mr-1" /> Issue license & copy token
+          <Plus className="h-4 w-4 mr-1" /> Issue Installation License & copy token
         </Button>
       </Card>
 
@@ -174,51 +185,59 @@ function LicensesPage() {
             <tr className="text-left">
               <th className="px-4 py-3 font-medium">Install</th>
               <th className="px-4 py-3 font-medium">Company</th>
-              <th className="px-4 py-3 font-medium">Modules</th>
-              <th className="px-4 py-3 font-medium">Users</th>
+              <th className="px-4 py-3 font-medium">Module Licenses</th>
+              <th className="px-4 py-3 font-medium">Seats</th>
               <th className="px-4 py-3 font-medium">Last heartbeat</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {(rows ?? []).map((l) => (
-              <tr key={l.id} className="border-t align-top">
-                <td className="px-4 py-3 font-mono text-xs">{l.install_id}</td>
-                <td className="px-4 py-3">{l.company_name}</td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1 max-w-xs">
-                    {(l.modules as string[]).map((k) => <Badge key={k} variant="outline" className="text-[10px]">{k}</Badge>)}
-                  </div>
-                  <details className="mt-2">
-                    <summary className="text-xs text-muted-foreground cursor-pointer">Add module…</summary>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {ADDON_MODULES.filter((m) => !(l.modules as string[]).includes(m.key)).map((m) => (
-                        <Button key={m.key} size="sm" variant="outline" className="h-6 text-[10px]"
-                          disabled={addModuleMut.isPending}
-                          onClick={() => addModuleMut.mutate({ install_id: l.install_id, module_key: m.key })}>
-                          + {m.label}
-                        </Button>
+            {licenses.map((l) => {
+              const licensedModuleKeys = new Set(l.modules.filter((m) => !m.revoked).map((m) => m.module_key));
+              return (
+                <tr key={l.id} className="border-t align-top">
+                  <td className="px-4 py-3 font-mono text-xs">{l.install_id}</td>
+                  <td className="px-4 py-3">{l.company_name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1 max-w-xs">
+                      {l.modules.map((m) => (
+                        <Badge key={m.id} variant={m.revoked ? "destructive" : "outline"} className="text-[10px]">
+                          {m.module_key}{m.revoked ? " · revoked" : ""}
+                        </Badge>
                       ))}
+                      {!l.modules.length && <span className="text-xs text-muted-foreground">Basic only</span>}
                     </div>
-                  </details>
-                </td>
-                <td className="px-4 py-3">{l.install?.user_count ?? "—"} / {l.max_users}</td>
-                <td className="px-4 py-3 text-xs">{l.install?.last_heartbeat_at ? new Date(l.install.last_heartbeat_at).toLocaleString() : "—"}</td>
-                <td className="px-4 py-3">
-                  {l.revoked ? <Badge variant="destructive">Revoked</Badge> : <Badge>Active</Badge>}
-                </td>
-                <td className="px-4 py-3 text-right space-x-1">
-                  {!l.revoked && (
-                    <Button size="sm" variant="ghost" className="text-destructive"
-                      onClick={() => { if (confirm(`Revoke ${l.install_id}?`)) revokeMut.mutate(l.install_id); }}>
-                      <ShieldOff className="h-4 w-4 mr-1" /> Revoke
-                    </Button>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {!rows?.length && (
+                    <details className="mt-2">
+                      <summary className="text-xs text-muted-foreground cursor-pointer">Add module licence…</summary>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {ADDON_MODULES.filter((m) => !licensedModuleKeys.has(m.key)).map((m) => (
+                          <Button key={m.key} size="sm" variant="outline" className="h-6 text-[10px]"
+                            disabled={issueModuleMut.isPending}
+                            onClick={() => issueModuleMut.mutate({ install_id: l.install_id, module_key: m.key })}>
+                            + {m.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </details>
+                  </td>
+                  <td className="px-4 py-3">{l.install?.user_count ?? "—"} / {l.seats ?? l.max_users}</td>
+                  <td className="px-4 py-3 text-xs">{l.install?.last_heartbeat_at ? new Date(l.install.last_heartbeat_at).toLocaleString() : "—"}</td>
+                  <td className="px-4 py-3">
+                    {l.revoked ? <Badge variant="destructive">Revoked</Badge> : l.suspended ? <Badge variant="outline">Suspended</Badge> : <Badge>Active</Badge>}
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-1">
+                    {!l.revoked && (
+                      <Button size="sm" variant="ghost" className="text-destructive"
+                        onClick={() => { if (confirm(`Revoke Installation License for ${l.install_id}?`)) revokeMut.mutate({ install_id: l.install_id, kind: "install" }); }}>
+                        <ShieldOff className="h-4 w-4 mr-1" /> Revoke
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+            {!licenses.length && (
               <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No licenses yet.</td></tr>
             )}
           </tbody>
