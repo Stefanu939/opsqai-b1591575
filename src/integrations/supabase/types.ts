@@ -1492,6 +1492,42 @@ export type Database = {
           },
         ]
       }
+      dr_bootstrap_tokens: {
+        Row: {
+          expires_at: string
+          id: string
+          install_id: string
+          issued_at: string
+          issued_by: string | null
+          key_id: string
+          nonce: string
+          reason: string | null
+          redeemed_at: string | null
+        }
+        Insert: {
+          expires_at: string
+          id?: string
+          install_id: string
+          issued_at?: string
+          issued_by?: string | null
+          key_id: string
+          nonce: string
+          reason?: string | null
+          redeemed_at?: string | null
+        }
+        Update: {
+          expires_at?: string
+          id?: string
+          install_id?: string
+          issued_at?: string
+          issued_by?: string | null
+          key_id?: string
+          nonce?: string
+          reason?: string | null
+          redeemed_at?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -2442,28 +2478,46 @@ export type Database = {
       }
       platform_config: {
         Row: {
+          break_glass_created_at: string | null
+          break_glass_hash: string | null
+          break_glass_used_at: string | null
           created_at: string
           id: boolean
           install_id: string | null
           installer_version: string | null
+          recovery_mode: boolean
+          recovery_mode_reason: string | null
+          recovery_mode_since: string | null
           setup_completed_at: string | null
           setup_progress: Json
           updated_at: string
         }
         Insert: {
+          break_glass_created_at?: string | null
+          break_glass_hash?: string | null
+          break_glass_used_at?: string | null
           created_at?: string
           id?: boolean
           install_id?: string | null
           installer_version?: string | null
+          recovery_mode?: boolean
+          recovery_mode_reason?: string | null
+          recovery_mode_since?: string | null
           setup_completed_at?: string | null
           setup_progress?: Json
           updated_at?: string
         }
         Update: {
+          break_glass_created_at?: string | null
+          break_glass_hash?: string | null
+          break_glass_used_at?: string | null
           created_at?: string
           id?: boolean
           install_id?: string | null
           installer_version?: string | null
+          recovery_mode?: boolean
+          recovery_mode_reason?: string | null
+          recovery_mode_since?: string | null
           setup_completed_at?: string | null
           setup_progress?: Json
           updated_at?: string

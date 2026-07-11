@@ -12,6 +12,7 @@ import {
   transferOwnership,
 } from "@/lib/licenses.functions";
 import { exportActivationBundle, exportRevocationList } from "@/lib/license-activation.functions";
+import { issueBootstrapToken } from "@/lib/dr.functions";
 import { ADDON_MODULES, BASIC_MODULES, type ModuleKey } from "@/lib/license-modules";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { KeyRound, Plus, ShieldOff, Copy, Package, Eye, ArrowLeftRight } from "lucide-react";
+import { KeyRound, Plus, ShieldOff, Copy, Package, Eye, ArrowLeftRight, LifeBuoy } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
@@ -74,6 +75,24 @@ function LicensesPage() {
   const exportBundle = useServerFn(exportActivationBundle);
   const exportCrl = useServerFn(exportRevocationList);
   const transfer = useServerFn(transferOwnership);
+  const issueDr = useServerFn(issueBootstrapToken);
+
+  async function issueDrToken(install_id: string) {
+    const reasonRaw = prompt(`Issue Bootstrap Recovery Token for ${install_id}. Reason (audit, no secrets):`, "");
+    if (reasonRaw === null) return;
+    const ttlStr = prompt("TTL in hours (1–168, default 24):", "24");
+    const ttl_hours = Math.max(1, Math.min(168, Number(ttlStr) || 24));
+    try {
+      const { token } = await issueDr({ data: { install_id, ttl_hours, reason: reasonRaw || undefined } });
+      await navigator.clipboard.writeText(token).catch(() => {});
+      const blob = new Blob([token], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `opsqai-dr-token-${install_id}.txt`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success("DR token issued (copied + downloaded)");
+    } catch (e) { toast.error((e as Error).message); }
+  }
 
   const transferMut = useMutation({
     mutationFn: (v: { install_id: string; to: "opsqai" | "customer"; notes?: string }) =>
@@ -368,6 +387,9 @@ function LicensesPage() {
                   <td className="px-4 py-3 text-right space-x-1">
                     <Button size="sm" variant="ghost" onClick={() => downloadBundle(l.install_id)} title="Download offline activation bundle">
                       <Package className="h-4 w-4 mr-1" /> Bundle
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => issueDrToken(l.install_id)} title="Issue Bootstrap Recovery Token (DR)">
+                      <LifeBuoy className="h-4 w-4 mr-1" /> DR Token
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => handleTransfer(l)}
                       title={l.owner_type === "customer" ? "Revert to OPSQAI ownership" : "Hand over to customer"}>
