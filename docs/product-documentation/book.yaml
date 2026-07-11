@@ -1,0 +1,15 @@
+title: "OPSQAI Product Documentation"
+version: "1.0"
+audience: "Customer CTO / decision maker"
+chapters:
+  - 01-what-is-opsqai.md
+  - 02-why-it-exists.md
+  - 03-architecture.md
+  - 04-modules.md
+  - 05-licensing.md
+  - 06-how-ai-works.md
+  - 07-updates.md
+  - 08-backup-and-dr.md
+  - 09-ownership.md
+  - 10-security-overview.md
+  - 11-faq.md

@@ -1,0 +1,12 @@
+title: "OPSQAI Engineering Handbook"
+version: "1.0"
+audience: "Internal — OPSQAI engineering (not shipped to customers)"
+chapters:
+  - 01-conventions.md
+  - 02-release-process.md
+  - 03-add-a-module.md
+  - 04-issue-a-license.md
+  - 05-add-ai-adapter.md
+  - 06-publish-docker.md
+  - 07-migrations.md
+  - 08-pre-release-checklist.md

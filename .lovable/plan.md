@@ -32,7 +32,7 @@ All prior decisions preserved. This revision folds in the last two rounds of ame
 - **Phase 5.5** — Disaster Recovery (7 scenarios, break-glass + Bootstrap Recovery Token). ✅ done
 - **Phase 6** — Access lockdown + operational-module removal from MC. ✅ done
 - **Phase 6.5** — Customer Portal. ✅ done
-- **Phase 7** — **Documentation suite + site refresh + release engineering** (expanded, see below).
+- **Phase 7** — **Documentation suite + site refresh + release engineering** — ✅ RC done (6 books shipped under `docs/`, `/docs` refreshed, in-app viewer at `/app/docs`, trust pages for self-hosted/licensing/DR, `SECURITY.md`, `CHANGELOG.md`, `RELEASE_NOTES.md`, `ROADMAP.md`, DR-Verify + reference-install runbooks, server-side `assertMode` helper with tests).
 
 All phases remain additive until Phase 6.
 
