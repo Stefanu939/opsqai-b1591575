@@ -101,6 +101,7 @@ import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppPlatformLicensesRouteImport } from './routes/_authenticated/app.platform.licenses'
+import { Route as AuthenticatedAppPlatformLicenseActivationRouteImport } from './routes/_authenticated/app.platform.license-activation'
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
@@ -616,6 +617,12 @@ const AuthenticatedAppPlatformLicensesRoute =
     path: '/platform/licenses',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPlatformLicenseActivationRoute =
+  AuthenticatedAppPlatformLicenseActivationRouteImport.update({
+    id: '/platform/license-activation',
+    path: '/platform/license-activation',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppInternalKnowledgeRoute =
   AuthenticatedAppInternalKnowledgeRouteImport.update({
     id: '/knowledge',
@@ -955,6 +962,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1082,6 +1090,7 @@ export interface FileRoutesByTo {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1215,6 +1224,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/_authenticated/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/_authenticated/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
@@ -1348,6 +1358,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
+    | '/app/platform/license-activation'
     | '/app/platform/licenses'
     | '/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
@@ -1475,6 +1486,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
+    | '/app/platform/license-activation'
     | '/app/platform/licenses'
     | '/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
@@ -1607,6 +1619,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
+    | '/_authenticated/app/platform/license-activation'
     | '/_authenticated/app/platform/licenses'
     | '/_authenticated/app/workspace/$sessionId'
     | '/api/public/v1/faqs'
@@ -2332,6 +2345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppPlatformLicensesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/platform/license-activation': {
+      id: '/_authenticated/app/platform/license-activation'
+      path: '/platform/license-activation'
+      fullPath: '/app/platform/license-activation'
+      preLoaderRoute: typeof AuthenticatedAppPlatformLicenseActivationRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/internal/knowledge': {
       id: '/_authenticated/app/internal/knowledge'
       path: '/knowledge'
@@ -2701,6 +2721,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppAdminWebhooksRoute: typeof AuthenticatedAppAdminWebhooksRoute
+  AuthenticatedAppPlatformLicenseActivationRoute: typeof AuthenticatedAppPlatformLicenseActivationRoute
   AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
@@ -2754,6 +2775,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppAdminWebhooksRoute: AuthenticatedAppAdminWebhooksRoute,
+  AuthenticatedAppPlatformLicenseActivationRoute:
+    AuthenticatedAppPlatformLicenseActivationRoute,
   AuthenticatedAppPlatformLicensesRoute: AuthenticatedAppPlatformLicensesRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
