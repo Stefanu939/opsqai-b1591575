@@ -35,13 +35,16 @@ import { Route as DemoIndexRouteImport } from './routes/demo.index'
 import { Route as CaseStudiesIndexRouteImport } from './routes/case-studies.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as TrustSelfHostedRouteImport } from './routes/trust.self-hosted'
 import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
 import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsible-ai'
 import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
+import { Route as TrustLicensingRouteImport } from './routes/trust.licensing'
 import { Route as TrustIso27001RoadmapRouteImport } from './routes/trust.iso-27001-roadmap'
 import { Route as TrustIncidentResponseRouteImport } from './routes/trust.incident-response'
 import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
 import { Route as TrustEncryptionRouteImport } from './routes/trust.encryption'
+import { Route as TrustDisasterRecoveryRouteImport } from './routes/trust.disaster-recovery'
 import { Route as TrustDataRetentionRouteImport } from './routes/trust.data-retention'
 import { Route as TrustBackupPolicyRouteImport } from './routes/trust.backup-policy'
 import { Route as TrustAvailabilityRouteImport } from './routes/trust.availability'
@@ -96,6 +99,7 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
 import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
+import { Route as AuthenticatedAppDocsIndexRouteImport } from './routes/_authenticated/app.docs.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -113,6 +117,7 @@ import { Route as AuthenticatedAppPlatformLicenseActivationRouteImport } from '.
 import { Route as AuthenticatedAppPlatformDoctorRouteImport } from './routes/_authenticated/app.platform.doctor'
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
+import { Route as AuthenticatedAppDocsBookRouteImport } from './routes/_authenticated/app.docs.$book'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAdminWebhooksRouteImport } from './routes/_authenticated/app.admin.webhooks'
 import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
@@ -279,6 +284,11 @@ const VerifyCodeRoute = VerifyCodeRouteImport.update({
   path: '/verify/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrustSelfHostedRoute = TrustSelfHostedRouteImport.update({
+  id: '/self-hosted',
+  path: '/self-hosted',
+  getParentRoute: () => TrustRoute,
+} as any)
 const TrustSecurityArchitectureRoute =
   TrustSecurityArchitectureRouteImport.update({
     id: '/security-architecture',
@@ -296,6 +306,11 @@ const TrustMultiTenantIsolationRoute =
     path: '/multi-tenant-isolation',
     getParentRoute: () => TrustRoute,
   } as any)
+const TrustLicensingRoute = TrustLicensingRouteImport.update({
+  id: '/licensing',
+  path: '/licensing',
+  getParentRoute: () => TrustRoute,
+} as any)
 const TrustIso27001RoadmapRoute = TrustIso27001RoadmapRouteImport.update({
   id: '/iso-27001-roadmap',
   path: '/iso-27001-roadmap',
@@ -314,6 +329,11 @@ const TrustGdprRoute = TrustGdprRouteImport.update({
 const TrustEncryptionRoute = TrustEncryptionRouteImport.update({
   id: '/encryption',
   path: '/encryption',
+  getParentRoute: () => TrustRoute,
+} as any)
+const TrustDisasterRecoveryRoute = TrustDisasterRecoveryRouteImport.update({
+  id: '/disaster-recovery',
+  path: '/disaster-recovery',
   getParentRoute: () => TrustRoute,
 } as any)
 const TrustDataRetentionRoute = TrustDataRetentionRouteImport.update({
@@ -599,6 +619,12 @@ const AuthenticatedAppInternalIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedAppInternalRoute,
   } as any)
+const AuthenticatedAppDocsIndexRoute =
+  AuthenticatedAppDocsIndexRouteImport.update({
+    id: '/docs/',
+    path: '/docs/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
     id: '/',
@@ -696,6 +722,12 @@ const AuthenticatedAppInternalAssistantRoute =
     id: '/assistant',
     path: '/assistant',
     getParentRoute: () => AuthenticatedAppInternalRoute,
+  } as any)
+const AuthenticatedAppDocsBookRoute =
+  AuthenticatedAppDocsBookRouteImport.update({
+    id: '/docs/$book',
+    path: '/docs/$book',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppChatThreadIdRoute =
   AuthenticatedAppChatThreadIdRouteImport.update({
@@ -961,13 +993,16 @@ export interface FileRoutesByFullPath {
   '/trust/availability': typeof TrustAvailabilityRoute
   '/trust/backup-policy': typeof TrustBackupPolicyRoute
   '/trust/data-retention': typeof TrustDataRetentionRoute
+  '/trust/disaster-recovery': typeof TrustDisasterRecoveryRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/incident-response': typeof TrustIncidentResponseRoute
   '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
+  '/trust/licensing': typeof TrustLicensingRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/trust/self-hosted': typeof TrustSelfHostedRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/case-studies/': typeof CaseStudiesIndexRoute
@@ -1028,6 +1063,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
@@ -1045,6 +1081,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/app/docs/': typeof AuthenticatedAppDocsIndexRoute
   '/app/internal/': typeof AuthenticatedAppInternalIndexRoute
   '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
@@ -1099,13 +1136,16 @@ export interface FileRoutesByTo {
   '/trust/availability': typeof TrustAvailabilityRoute
   '/trust/backup-policy': typeof TrustBackupPolicyRoute
   '/trust/data-retention': typeof TrustDataRetentionRoute
+  '/trust/disaster-recovery': typeof TrustDisasterRecoveryRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/incident-response': typeof TrustIncidentResponseRoute
   '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
+  '/trust/licensing': typeof TrustLicensingRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/trust/self-hosted': typeof TrustSelfHostedRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog': typeof BlogIndexRoute
   '/case-studies': typeof CaseStudiesIndexRoute
@@ -1164,6 +1204,7 @@ export interface FileRoutesByTo {
   '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
@@ -1181,6 +1222,7 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
+  '/app/docs': typeof AuthenticatedAppDocsIndexRoute
   '/app/internal': typeof AuthenticatedAppInternalIndexRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
@@ -1240,13 +1282,16 @@ export interface FileRoutesById {
   '/trust/availability': typeof TrustAvailabilityRoute
   '/trust/backup-policy': typeof TrustBackupPolicyRoute
   '/trust/data-retention': typeof TrustDataRetentionRoute
+  '/trust/disaster-recovery': typeof TrustDisasterRecoveryRoute
   '/trust/encryption': typeof TrustEncryptionRoute
   '/trust/gdpr': typeof TrustGdprRoute
   '/trust/incident-response': typeof TrustIncidentResponseRoute
   '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
+  '/trust/licensing': typeof TrustLicensingRoute
   '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
   '/trust/responsible-ai': typeof TrustResponsibleAiRoute
   '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
+  '/trust/self-hosted': typeof TrustSelfHostedRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/case-studies/': typeof CaseStudiesIndexRoute
@@ -1307,6 +1352,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
   '/_authenticated/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/_authenticated/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
   '/_authenticated/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
@@ -1324,6 +1370,7 @@ export interface FileRoutesById {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/_authenticated/app/docs/': typeof AuthenticatedAppDocsIndexRoute
   '/_authenticated/app/internal/': typeof AuthenticatedAppInternalIndexRoute
   '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
@@ -1383,13 +1430,16 @@ export interface FileRouteTypes {
     | '/trust/availability'
     | '/trust/backup-policy'
     | '/trust/data-retention'
+    | '/trust/disaster-recovery'
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/incident-response'
     | '/trust/iso-27001-roadmap'
+    | '/trust/licensing'
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/trust/self-hosted'
     | '/verify/$code'
     | '/blog/'
     | '/case-studies/'
@@ -1450,6 +1500,7 @@ export interface FileRouteTypes {
     | '/app/admin/users'
     | '/app/admin/webhooks'
     | '/app/chat/$threadId'
+    | '/app/docs/$book'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/platform/doctor'
@@ -1467,6 +1518,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/app/academy/'
     | '/app/chat/'
+    | '/app/docs/'
     | '/app/internal/'
     | '/app/workspace/'
     | '/app/academy/lesson/$lessonId'
@@ -1521,13 +1573,16 @@ export interface FileRouteTypes {
     | '/trust/availability'
     | '/trust/backup-policy'
     | '/trust/data-retention'
+    | '/trust/disaster-recovery'
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/incident-response'
     | '/trust/iso-27001-roadmap'
+    | '/trust/licensing'
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/trust/self-hosted'
     | '/verify/$code'
     | '/blog'
     | '/case-studies'
@@ -1586,6 +1641,7 @@ export interface FileRouteTypes {
     | '/app/admin/users'
     | '/app/admin/webhooks'
     | '/app/chat/$threadId'
+    | '/app/docs/$book'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
     | '/app/platform/doctor'
@@ -1603,6 +1659,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/app/academy'
     | '/app/chat'
+    | '/app/docs'
     | '/app/internal'
     | '/app/workspace'
     | '/app/academy/lesson/$lessonId'
@@ -1661,13 +1718,16 @@ export interface FileRouteTypes {
     | '/trust/availability'
     | '/trust/backup-policy'
     | '/trust/data-retention'
+    | '/trust/disaster-recovery'
     | '/trust/encryption'
     | '/trust/gdpr'
     | '/trust/incident-response'
     | '/trust/iso-27001-roadmap'
+    | '/trust/licensing'
     | '/trust/multi-tenant-isolation'
     | '/trust/responsible-ai'
     | '/trust/security-architecture'
+    | '/trust/self-hosted'
     | '/verify/$code'
     | '/blog/'
     | '/case-studies/'
@@ -1728,6 +1788,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/users'
     | '/_authenticated/app/admin/webhooks'
     | '/_authenticated/app/chat/$threadId'
+    | '/_authenticated/app/docs/$book'
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
     | '/_authenticated/app/platform/doctor'
@@ -1745,6 +1806,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
+    | '/_authenticated/app/docs/'
     | '/_authenticated/app/internal/'
     | '/_authenticated/app/workspace/'
     | '/_authenticated/app/academy/lesson/$lessonId'
@@ -1997,6 +2059,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trust/self-hosted': {
+      id: '/trust/self-hosted'
+      path: '/self-hosted'
+      fullPath: '/trust/self-hosted'
+      preLoaderRoute: typeof TrustSelfHostedRouteImport
+      parentRoute: typeof TrustRoute
+    }
     '/trust/security-architecture': {
       id: '/trust/security-architecture'
       path: '/security-architecture'
@@ -2016,6 +2085,13 @@ declare module '@tanstack/react-router' {
       path: '/multi-tenant-isolation'
       fullPath: '/trust/multi-tenant-isolation'
       preLoaderRoute: typeof TrustMultiTenantIsolationRouteImport
+      parentRoute: typeof TrustRoute
+    }
+    '/trust/licensing': {
+      id: '/trust/licensing'
+      path: '/licensing'
+      fullPath: '/trust/licensing'
+      preLoaderRoute: typeof TrustLicensingRouteImport
       parentRoute: typeof TrustRoute
     }
     '/trust/iso-27001-roadmap': {
@@ -2044,6 +2120,13 @@ declare module '@tanstack/react-router' {
       path: '/encryption'
       fullPath: '/trust/encryption'
       preLoaderRoute: typeof TrustEncryptionRouteImport
+      parentRoute: typeof TrustRoute
+    }
+    '/trust/disaster-recovery': {
+      id: '/trust/disaster-recovery'
+      path: '/disaster-recovery'
+      fullPath: '/trust/disaster-recovery'
+      preLoaderRoute: typeof TrustDisasterRecoveryRouteImport
       parentRoute: typeof TrustRoute
     }
     '/trust/data-retention': {
@@ -2424,6 +2507,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppInternalIndexRouteImport
       parentRoute: typeof AuthenticatedAppInternalRoute
     }
+    '/_authenticated/app/docs/': {
+      id: '/_authenticated/app/docs/'
+      path: '/docs'
+      fullPath: '/app/docs/'
+      preLoaderRoute: typeof AuthenticatedAppDocsIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
       path: '/'
@@ -2542,6 +2632,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/internal/assistant'
       preLoaderRoute: typeof AuthenticatedAppInternalAssistantRouteImport
       parentRoute: typeof AuthenticatedAppInternalRoute
+    }
+    '/_authenticated/app/docs/$book': {
+      id: '/_authenticated/app/docs/$book'
+      path: '/docs/$book'
+      fullPath: '/app/docs/$book'
+      preLoaderRoute: typeof AuthenticatedAppDocsBookRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/chat/$threadId': {
       id: '/_authenticated/app/chat/$threadId'
@@ -2898,6 +2995,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppAdminWebhooksRoute: typeof AuthenticatedAppAdminWebhooksRoute
+  AuthenticatedAppDocsBookRoute: typeof AuthenticatedAppDocsBookRoute
   AuthenticatedAppPlatformDoctorRoute: typeof AuthenticatedAppPlatformDoctorRoute
   AuthenticatedAppPlatformLicenseActivationRoute: typeof AuthenticatedAppPlatformLicenseActivationRoute
   AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
@@ -2905,6 +3003,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPlatformSetupRoute: typeof AuthenticatedAppPlatformSetupRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
+  AuthenticatedAppDocsIndexRoute: typeof AuthenticatedAppDocsIndexRoute
   AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
   AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
   AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -2955,6 +3054,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppAdminWebhooksRoute: AuthenticatedAppAdminWebhooksRoute,
+  AuthenticatedAppDocsBookRoute: AuthenticatedAppDocsBookRoute,
   AuthenticatedAppPlatformDoctorRoute: AuthenticatedAppPlatformDoctorRoute,
   AuthenticatedAppPlatformLicenseActivationRoute:
     AuthenticatedAppPlatformLicenseActivationRoute,
@@ -2964,6 +3064,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
   AuthenticatedAppAcademyIndexRoute: AuthenticatedAppAcademyIndexRoute,
+  AuthenticatedAppDocsIndexRoute: AuthenticatedAppDocsIndexRoute,
   AuthenticatedAppWorkspaceIndexRoute: AuthenticatedAppWorkspaceIndexRoute,
   AuthenticatedAppAcademyLessonLessonIdRoute:
     AuthenticatedAppAcademyLessonLessonIdRoute,
@@ -3035,13 +3136,16 @@ interface TrustRouteChildren {
   TrustAvailabilityRoute: typeof TrustAvailabilityRoute
   TrustBackupPolicyRoute: typeof TrustBackupPolicyRoute
   TrustDataRetentionRoute: typeof TrustDataRetentionRoute
+  TrustDisasterRecoveryRoute: typeof TrustDisasterRecoveryRoute
   TrustEncryptionRoute: typeof TrustEncryptionRoute
   TrustGdprRoute: typeof TrustGdprRoute
   TrustIncidentResponseRoute: typeof TrustIncidentResponseRoute
   TrustIso27001RoadmapRoute: typeof TrustIso27001RoadmapRoute
+  TrustLicensingRoute: typeof TrustLicensingRoute
   TrustMultiTenantIsolationRoute: typeof TrustMultiTenantIsolationRoute
   TrustResponsibleAiRoute: typeof TrustResponsibleAiRoute
   TrustSecurityArchitectureRoute: typeof TrustSecurityArchitectureRoute
+  TrustSelfHostedRoute: typeof TrustSelfHostedRoute
 }
 
 const TrustRouteChildren: TrustRouteChildren = {
@@ -3049,13 +3153,16 @@ const TrustRouteChildren: TrustRouteChildren = {
   TrustAvailabilityRoute: TrustAvailabilityRoute,
   TrustBackupPolicyRoute: TrustBackupPolicyRoute,
   TrustDataRetentionRoute: TrustDataRetentionRoute,
+  TrustDisasterRecoveryRoute: TrustDisasterRecoveryRoute,
   TrustEncryptionRoute: TrustEncryptionRoute,
   TrustGdprRoute: TrustGdprRoute,
   TrustIncidentResponseRoute: TrustIncidentResponseRoute,
   TrustIso27001RoadmapRoute: TrustIso27001RoadmapRoute,
+  TrustLicensingRoute: TrustLicensingRoute,
   TrustMultiTenantIsolationRoute: TrustMultiTenantIsolationRoute,
   TrustResponsibleAiRoute: TrustResponsibleAiRoute,
   TrustSecurityArchitectureRoute: TrustSecurityArchitectureRoute,
+  TrustSelfHostedRoute: TrustSelfHostedRoute,
 }
 
 const TrustRouteWithChildren = TrustRoute._addFileChildren(TrustRouteChildren)

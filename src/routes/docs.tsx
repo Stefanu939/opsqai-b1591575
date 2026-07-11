@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { pageHead } from "@/lib/seo";
-import { ArrowRight, BookOpen, Users, Settings, ShieldCheck } from "lucide-react";
+import { DOC_BOOKS, DOC_VERSION, DOC_CUT_DATE } from "@/lib/docs-catalog";
+import { BookOpen, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/docs")({
   head: () =>
     pageHead({
       title: "Documentation — OPSQAI Enterprise AI Platform",
       description:
-        "Product references and administrator guides for OPSQAI: knowledge ingestion, RAG configuration, role-based access, audit logs and multi-tenant governance.",
+        "The five OPSQAI books for v1.0: Product, Administrator, Technical, Security, and the Architecture Book. Rendered in-app and exportable as PDF for authenticated customers.",
       path: "/docs",
       breadcrumbs: [
         { name: "Home", path: "/" },
@@ -18,35 +19,55 @@ export const Route = createFileRoute("/docs")({
   component: DocsIndex,
 });
 
-const sections = [
-  { icon: BookOpen, title: "Getting Started", body: "Onboard your first workspace, ingest documents and validate answers.", link: "/product" },
-  { icon: Users, title: "User & Role Management", body: "Permissions across departments and sites, scoped by row-level security.", link: "/features" },
-  { icon: Settings, title: "Knowledge & Ingestion", body: "Supported formats, chunking strategy, refresh cadence and versioning.", link: "/product" },
-  { icon: ShieldCheck, title: "Security & Governance", body: "Encryption, audit logs, multi-tenant isolation and GDPR posture.", link: "/trust" },
-] as const;
+const publicBooks = DOC_BOOKS.filter((b) => b.public);
 
 function DocsIndex() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-20">
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">
-        <Link to="/resources" className="hover:text-foreground">Resources</Link> <span className="mx-2">/</span>
+        <Link to="/" className="hover:text-foreground">Home</Link> <span className="mx-2">/</span>
         <span className="text-foreground">Documentation</span>
       </nav>
       <header className="mb-14 max-w-3xl">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-primary">Documentation</p>
-        <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">Everything a workspace admin needs to run OPSQAI in production.</h1>
-        <p className="mt-5 text-lg text-muted-foreground">The documentation surface is being consolidated. In the meantime, the sections below point to the current authoritative pages.</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-primary">
+          Documentation · v{DOC_VERSION} · {DOC_CUT_DATE}
+        </p>
+        <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+          Five books that describe OPSQAI end to end.
+        </h1>
+        <p className="mt-5 text-lg text-muted-foreground">
+          Every book is versioned with the release. Authenticated customers can download each as a
+          signed PDF from the Customer Portal. The public web renderings below are always current.
+        </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2">
-        {sections.map((s) => (
-          <Link key={s.title} to={s.link} className="group rounded-2xl border border-border/60 bg-card/50 p-6 transition hover:border-primary/50 hover:bg-card">
-            <s.icon className="h-6 w-6 text-primary" />
-            <h2 className="mt-4 text-lg font-semibold text-foreground">{s.title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{s.body}</p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">Read <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
-          </Link>
+        {publicBooks.map((book) => (
+          <article
+            key={book.slug}
+            className="rounded-2xl border border-border/60 bg-card/50 p-6 transition hover:border-primary/50 hover:bg-card"
+          >
+            <BookOpen className="h-6 w-6 text-primary" />
+            <h2 className="mt-4 text-lg font-semibold text-foreground">{book.title}</h2>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+              For {book.audience}
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground">{book.summary}</p>
+            <p className="mt-4 text-xs text-muted-foreground">{book.chapters.length} chapters</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
+              Preview via the app <ArrowRight className="h-4 w-4" />
+            </span>
+          </article>
         ))}
       </div>
+      <section className="mt-14 rounded-2xl border border-border/60 bg-muted/20 p-6">
+        <h2 className="text-lg font-semibold text-foreground">Customers</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Authenticated customers see the full docs rendered in-app at{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-xs">/app/docs</code>, and can download
+          PDF versions from the{" "}
+          <Link to="/portal" className="text-primary hover:underline">Customer Portal</Link>.
+        </p>
+      </section>
     </main>
   );
 }
