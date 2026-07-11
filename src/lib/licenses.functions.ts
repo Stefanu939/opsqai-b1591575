@@ -21,7 +21,6 @@ const IssueInstallInput = z.object({
   seats: z.number().int().positive().default(50),
   expires_at: z.string().datetime().nullable().optional(),
   maintenance_expires_at: z.string().datetime().nullable().optional(),
-  hard_expiry: z.boolean().default(false),
   notes: z.string().optional(),
 });
 
@@ -30,7 +29,6 @@ const IssueModuleInput = z.object({
   module_key: z.string().refine(isValidModuleKey, "unknown module"),
   expires_at: z.string().datetime().nullable().optional(),
   maintenance_expires_at: z.string().datetime().nullable().optional(),
-  hard_expiry: z.boolean().default(false),
   unit_price_cents: z.number().int().min(0).default(0),
 });
 
@@ -50,7 +48,7 @@ export const listLicenses = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("licenses")
       .select(
-        "id, install_id, kind, module_key, company_name, contact_email, tier, seats, max_users, issued_at, expires_at, maintenance_expires_at, hard_expiry, revoked, revoked_at, suspended, suspended_at, notes, created_at",
+        "id, install_id, kind, module_key, company_name, contact_email, tier, seats, max_users, issued_at, expires_at, maintenance_expires_at, revoked, revoked_at, suspended, suspended_at, notes, created_at",
       )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -126,7 +124,6 @@ export const issueLicense = createServerFn({ method: "POST" })
       max_users: data.seats,
       expires_at: data.expires_at ?? null,
       maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
-      hard_expiry: data.hard_expiry,
       signed_token: token,
       notes: data.notes ?? null,
       issued_by: context.userId,
@@ -149,7 +146,7 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
     // Installation License must exist first.
     const { data: install } = await supabaseAdmin
       .from("licenses")
-      .select("install_id, expires_at, hard_expiry")
+      .select("install_id, expires_at")
       .eq("install_id", data.install_id)
       .eq("kind", "install")
       .maybeSingle();
@@ -186,7 +183,6 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
           signed_token: token,
           expires_at: data.expires_at ?? null,
           maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
-          hard_expiry: data.hard_expiry,
           revoked: false,
           revoked_at: null,
           revoked_reason: null,
@@ -208,7 +204,6 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
         max_users: 0,
         expires_at: data.expires_at ?? null,
         maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
-        hard_expiry: data.hard_expiry,
         signed_token: token,
         issued_by: context.userId,
         license_version: 1,

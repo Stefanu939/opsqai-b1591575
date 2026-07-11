@@ -35,11 +35,9 @@ interface LicenseRow {
   revoked: boolean;
   suspended: boolean;
   expires_at: string | null;
-  hard_expiry: boolean;
 }
 
-function isExpired(row: Pick<LicenseRow, "expires_at" | "hard_expiry">, now: Date): boolean {
-  if (!row.hard_expiry) return false;
+function isExpired(row: Pick<LicenseRow, "expires_at">, now: Date): boolean {
   if (!row.expires_at) return false;
   return new Date(row.expires_at).getTime() < now.getTime();
 }
@@ -62,7 +60,7 @@ export async function requireModule(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("licenses")
-    .select("kind, module_key, revoked, suspended, expires_at, hard_expiry")
+    .select("kind, module_key, revoked, suspended, expires_at")
     .eq("install_id", install_id);
 
   if (error) throw new Error(error.message);

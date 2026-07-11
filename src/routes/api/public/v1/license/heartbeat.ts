@@ -47,7 +47,7 @@ export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
 
         const { data: lic } = await supabaseAdmin
           .from("licenses")
-          .select("install_id, signed_token, revoked, revoked_reason, expires_at, hard_expiry")
+          .select("install_id, signed_token, revoked, revoked_reason, expires_at, maintenance_expires_at")
           .eq("install_id", parsed.install_id)
           .maybeSingle();
 
@@ -81,7 +81,7 @@ export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
           revoked: lic.revoked,
           revoked_reason: lic.revoked_reason,
           expires_at: lic.expires_at,
-          hard_expiry: lic.hard_expiry,
+          maintenance_expires_at: lic.maintenance_expires_at,
           latest_token: lic.revoked ? null : lic.signed_token,
           latest_release: rel ?? null,
         });
