@@ -67,12 +67,12 @@ function base64UrlDecode(s: string): string {
   return Buffer.from(b64, "base64").toString("binary");
 }
 
-function decodeTokenPayload(token: string): RawPayload | null {
+export function decodeTokenPayload(token: string): RawPayload | null {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return null;
+    if (parts.length !== 4 || parts[0] !== "opsqai" || parts[1] !== "v1") return null;
     const json = decodeURIComponent(
-      Array.from(base64UrlDecode(parts[1]))
+      Array.from(base64UrlDecode(parts[2]))
         .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
         .join(""),
     );
