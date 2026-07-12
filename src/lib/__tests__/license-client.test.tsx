@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import { generateKeyPairSync } from "node:crypto";
 import { decodeTokenPayload } from "../license";
 import { signLicense } from "../license-signing.server";
 
 const signingKeys = vi.hoisted(() => {
-  const { privateKey, publicKey } = generateKeyPairSync("ed25519");
   return {
-    privatePem: privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
-    publicPem: publicKey.export({ type: "spki", format: "pem" }).toString(),
+    privatePem:
+      "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIDfpr2chqUi9fOL0H6vS/jnlxXzaIbqHUsXNWbrxWrGI\n-----END PRIVATE KEY-----\n",
+    publicPem:
+      "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA7175M9mB53aR4Xf+why0cb/eyQL0DSbkz+C0XbjAeFs=\n-----END PUBLIC KEY-----\n",
     keyId: "ed25519-client-test",
   };
 });
