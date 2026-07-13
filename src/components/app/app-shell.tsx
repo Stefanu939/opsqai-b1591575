@@ -569,19 +569,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Legacy flat `nav` kept for the mobile bottom-tab bar — primary items only.
   const nav = sections[0]?.items ?? [];
 
-  const cycleLang = () => {
-    const order: Array<"de" | "en" | "ro"> = ["en", "de", "ro"];
-    const idx = order.indexOf(lang);
-    setLang(order[(idx + 1) % order.length]);
-  };
-  const nextLangLabel = (() => {
-    const order: Array<"de" | "en" | "ro"> = ["en", "de", "ro"];
-    return order[(order.indexOf(lang) + 1) % order.length].toUpperCase();
-  })();
-
   const handleSignOut = async () => {
-    await signOut();
-    navigate({ to: "/auth", replace: true });
+    try {
+      await signOut();
+    } finally {
+      setMobileOpen(false);
+      navigate({ to: "/auth", replace: true });
+    }
+  };
+
+  const handleProfile = () => {
+    setMobileOpen(false);
+    navigate({ to: "/app/profile" });
   };
 
   const linkCls =
