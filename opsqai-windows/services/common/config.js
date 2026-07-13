@@ -1,7 +1,7 @@
-// Shared config loader for all OPSQAI services.
-// Reads %ProgramData%\OPSQAI\config\config.json, resolves secrets via
-// Windows Credential Manager (added in Phase 3 wizard). Phase 2 supports
-// plaintext fallback in the same file to keep the smoke test working.
+// Shared config loader / saver for all OPSQAI services.
+// Reads/writes %ProgramData%\OPSQAI\config\config.json atomically.
+// Phase 2: password fields live inline; Phase 3 wizard moves secrets to
+// Windows Credential Manager (DPAPI-encrypted via `wincred`).
 
 'use strict';
 const fs = require('fs');
@@ -15,11 +15,18 @@ function loadConfig(p = DEFAULT_PATH) {
     throw new Error(`OPSQAI config not found at ${p}. Run the installer.`);
   }
   const raw = JSON.parse(fs.readFileSync(p, 'utf8'));
-  // Structural defaults for Phase 2 smoke tests
   raw.database ??= { mode: 'embedded', embedded: { port: 55432 } };
-  raw.storage  ??= { mode: 'local', local: { path: path.join(process.env.ProgramData, 'OPSQAI', 'data', 'storage') } };
+  raw.database.embedded ??= { port: 55432 };
+  raw.storage  ??= { mode: 'local', local: { path: path.join(process.env.ProgramData || 'C:\\ProgramData', 'OPSQAI', 'data', 'storage') } };
   raw.updates  ??= { channel: 'stable', manifestUrl: 'https://updates.opsqai.de/channel/stable/manifest.json' };
   return raw;
+}
+
+function saveConfig(cfg, p = DEFAULT_PATH) {
+  const tmp = p + '.tmp';
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2), { mode: 0o600 });
+  fs.renameSync(tmp, p);
 }
 
 function programData(...parts) {
@@ -30,4 +37,4 @@ function programFiles(...parts) {
   return path.join(base, 'OPSQAI', ...parts);
 }
 
-module.exports = { loadConfig, programData, programFiles, DEFAULT_PATH };
+module.exports = { loadConfig, saveConfig, programData, programFiles, DEFAULT_PATH };
