@@ -167,8 +167,8 @@ function spacer(ctx: Ctx, h: number): void {
 function metaRow(ctx: Ctx, label: string, value: string): void {
   const size = 10;
   ensureSpace(ctx, size + 4);
-  ctx.page.drawText(label, { x: MARGIN_X, y: ctx.y - size, size, font: ctx.bold, color: MUTED });
-  ctx.page.drawText(value, {
+  ctx.page.drawText(ascii(label), { x: MARGIN_X, y: ctx.y - size, size, font: ctx.bold, color: MUTED });
+  ctx.page.drawText(ascii(value), {
     x: MARGIN_X + 90,
     y: ctx.y - size,
     size,
