@@ -1,206 +1,76 @@
-Approved, with one addition before you switch to build mode.
+One small addition to point 4 of the recovery procedure, before applying:
 
-AMENDMENT — Regeneration warning for backup-restore collision
+Clarify explicitly that a "hard reset" also requires the customer to 
 
-Scenario: a customer restores their own installation from their own local 
+manually reconfigure their existing running installation with the new 
 
-backup (DR scenario #1/#3), using the license bundle that was valid at 
+install_id (update .env, replace the local activation bundle) — the old 
 
-backup time. Separately, an MC admin regenerates the installation package 
+running instance will not automatically recognize the newly issued slug. 
 
-for the same order (e.g. requested by someone else at the customer who 
+This is not just an MC-side action; note it as a two-sided step (MC 
 
-wasn't aware a backup-restore was already in progress). With the current 
+issues new identity + customer applies it locally) in the doc, so support 
 
-default (previous bundle revoked on regenerate), the customer's 
+doesn't assume "regenerate = done" when a hard reset actually requires 
 
-legitimately-restored installation will silently lose its modules on next 
+customer-side action too.  
+  
+Goal
 
-reconnect — with no warning given at the point of regeneration.
+Close Phase 4.5 cleanly by making the documentation match what was actually built: `install_id` is a human-readable slug (validated by `InstallIdSchema`), manually assigned once per install and reused by every subsequent regeneration — **not** a `uuidv5(namespace, "order:"+orderId)` value.
 
-Add an explicit warning on the MC "Regenerate Package" button/dialog, 
+No code changes. Docs and one plan-artifact update only.
 
-shown whenever "keep previous bundle valid" is left unchecked (the 
+## Changes
 
-default):
+### 1. `docs/security-documentation/05-license-security.md`
 
-"This will revoke the previous bundle. If the customer is already running 
+In the "Installation package regeneration" section, replace the current sentence:
 
-a restored installation using the previous license (e.g. from their own 
+> Regeneration is idempotent for `install_id`: the same order always produces the same identity, so a customer that regenerates the package does not fork into a new install.
 
-backup), it will lose access to paid modules on next reconnect. Check 
+with an explicit description of the real mechanism:
 
-'keep previous bundle valid' if you're unsure whether an older bundle 
+- `install_id` is a human-readable slug (e.g. `edeka-prod-01`), assigned once when the `license_installs` row is created and validated by `InstallIdSchema`.
+- It is **not** derived from `order_id` or any other field; it is stored, not computed.
+- Regeneration is idempotent because `generateInstallationPackage` reads the existing `install_id` from `license_installs` and reuses it — the same order always produces the same identity as long as the row exists.
+- This is the same slug already used by `licenses`, heartbeat, CRL, and the activation bundle across earlier phases; Phase 4.5 intentionally does **not** introduce a second identity scheme.
 
-might still be in active use."
+### 2. Same file — new subsection "Recovery if the `license_installs` row is lost"
 
-This doesn't change the underlying logic — CRL-on-regenerate stays the 
+Document the manual DR step, since the value can no longer be recomputed automatically:
 
-default — it just prevents an avoidable support incident by making the 
+1. Platform admin retrieves the original slug from one of: the audit log (`installation_package.generated` entries carry `install_id`), the customer's own copy of the installation ZIP (`.env.template` and the signed activation bundle both embed it), or the customer portal audit trail.
+2. Admin re-creates the `license_installs` row with the **exact same** `install_id` slug via the standard install-provisioning flow.
+3. Regenerate the installation package; the customer's existing deployment continues to validate against the same identity.
+4. If the slug cannot be recovered from any of the above sources, a new slug must be issued and the customer's install must be re-activated with a fresh bundle — this is a hard reset and must be logged as such.
 
-tradeoff visible at the moment of the decision.
+### 3. `docs/engineering/04-issue-a-license.md`
 
-CLARIFICATION — please confirm before building
+Add a one-line note under "Generating the installation package" pointing at the new recovery subsection, and clarify that the slug is chosen at install-provisioning time, not at package-generation time.
 
-"installer_version... latest GA by default" — confirm this means "latest 
+### 4. `.lovable/plan.md`
 
-version currently published on the Stable channel" (per the existing 
+Remove or strike through the `uuidv5(namespace, "order:"+orderId)` line in the Phase 4.5 entry and replace with a one-liner: *"install_id reuses the existing manual-slug convention (`InstallIdSchema`); no second identity scheme was introduced."* This keeps the artifact honest about what shipped.
 
-Release Management model: Stable / LTS / Beta), not a separate fourth 
+## Out of scope
 
-category. If "GA" and "Stable" are meant to be synonyms here, use 
+- No changes to `installation-package.server.ts`, `installation-package.functions.ts`, or any migration.
+- No change to `InstallIdSchema` or the provisioning flow.
+- No new DR tooling; recovery remains a documented manual admin step, consistent with AD-009 (MC holds no customer infra secrets and no derivable-from-nothing identity).
 
-"Stable" consistently in code, UI labels, and docs to avoid introducing 
+## Verification
 
-ambiguous terminology alongside the already-established channel names.
+- Grep `docs/` and `.lovable/plan.md` for `uuidv5` and `order:${` — should return zero hits after the edit (except possibly historical changelog entries, which stay as-is).
+- Re-read `05-license-security.md` end-to-end to confirm the "regeneration is idempotent" claim now matches the code path in `generateInstallationPackage`.
+---
 
-Also, once this phase is complete, update the DR runbook (5.5.4, 
+POST-BUILD CLARIFICATION (Phase 4.5 closeout)
 
-"Installer reissue" scenario) to reference this concrete screen/flow by 
-
-name, instead of describing it abstractly — the runbook should point 
-
-directly at "Management Center → Orders → Installation Package → 
-
-Regenerate."
-
-Proceed to build mode with this amendment included.  
-Phase 4.5 — Part 2: Installation Package Generation
-
-Scope: build the full package generation flow in Management Center for paid + trial orders, on top of the Part 1 decoder fix that already landed.
-
-## Resolved decisions (from your answers)
-
-1. **Secrets in `.env**` — hybrid. MC generates only `OPSQAI_INSTALL_ID` and embeds the signed activation bundle. `POSTGRES_PASSWORD`, `MINIO_ROOT_USER/PASSWORD`, `OPSQAI_PUBLIC_URL`, SMTP creds → left as placeholders; `entrypoint.sh` generates strong random values on first boot when unset and writes them to a customer-owned volume. Complies with **AD-009** (MC holds no customer infra secrets).
-2. **Delivery** — 24h signed URL delivered in email + persisted in Customer Portal (Portal button re-mints a fresh 24h URL on click; every download logged in `audit_log`).
-3. **Regeneration semantics** — configurable per-order. Default: **invalidate previous bundle** by adding its per-license tokens to the CRL and pushing CRL to heartbeat. Escape hatch checkbox "keep previous bundle valid" for admins.
-4. **installer_version** — latest GA by default; per-order `pinned_installer_version` column, editable by platform_admin.
-
-## Deliverables
-
-### 1. Database (migration)
-
-- `license_installs` — add columns (nullable, backward-compatible):
-  - `install_id uuid unique` (deterministic; see §2)
-  - `installer_version text`
-  - `package_generated_at timestamptz`
-  - `package_generation_count integer default 0`
-  - `package_storage_path text`
-  - `package_checksum_sha256 text`
-  - `previous_bundle_revoked boolean default true`
-- `license_orders` — add `pinned_installer_version text null`, `technical_contact_email text null`.
-- New table `installation_package_downloads` (audit-grade): `id`, `install_id`, `actor_user_id`, `actor_ip`, `signed_url_expires_at`, `downloaded_at`, `user_agent`.
-- Grants + RLS (platform_admin only; customer sees own via Portal RPC).
-- Bucket `installation-packages` (private, service-role write, no anon).
-
-### 2. Deterministic `install_id`
-
-Server-only helper `computeInstallId(orderId)`:
-
-```
-install_id = uuidv5(namespace=OPSQAI_INSTALL_NAMESPACE, name=`order:${orderId}`)
-```
-
-- Namespace UUID stored as env `OPSQAI_INSTALL_NAMESPACE` (generated once, backend-only).
-- Regeneration for the same order returns the exact same `install_id`. Verified by test asserting `generate(order) === regenerate(order)`.
-
-### 3. Server functions (`src/lib/installation-package.functions.ts`)
-
-All gated by `platform_admin` via `requireSupabaseAuth` + `has_role`:
-
-- `generateInstallationPackage({ order_id, installer_version?, keep_previous_bundle_valid? })`
-  - Loads order + licenses (allow status `active` OR `trial`).
-  - Computes/loads `install_id`.
-  - Selects `installer_version` (arg → order.pinned → latest GA from `license_releases`).
-  - Signs a fresh activation bundle (Ed25519, existing `license-signing.server.ts`) containing all current per-module tokens + active signing public keys + CRL.
-  - Renders package tarball in memory:
-    - `docker-compose.yml` (from `docker/docker-compose.yml` template, `INSTALLER_VERSION` baked)
-    - `.env.template` with `OPSQAI_INSTALL_ID=<real>` and secret placeholders `__CHANGE_ME__`
-    - `activation-bundle.json` (signed)
-    - `entrypoint.sh` extended: generate `POSTGRES_PASSWORD` / `MINIO_ROOT_PASSWORD` if `__CHANGE_ME__`
-    - `README.md` (quick-start, DR pointer, `install_id` printed)
-    - `CHECKSUMS.sha256`
-  - Uploads to `installation-packages/<install_id>/opsqai-<installer_version>-<yyyymmdd-hhmm>.tar.gz`.
-  - If not `keep_previous_bundle_valid`: publishes previous bundle's tokens to CRL (`licenses.revoked_bundle_generation < current`).
-  - Writes `audit_log` (`action=installation_package.generated`).
-  - Enqueues app email to `technical_contact_email` via existing `/lovable/email/transactional/send` with template `installation-package-ready` (24h signed URL, install_id, checksum).
-  - Returns `{ install_id, installer_version, checksum, signed_url, expires_at }`.
-- `getInstallationPackageDownloadUrl({ order_id })` — re-mints a fresh 24h signed URL, logs a row in `installation_package_downloads`.
-- `setOrderInstallerPin({ order_id, pinned_installer_version })` — platform_admin only.
-
-### 4. Email template
-
-New `src/lib/email-templates/installation-package-ready.tsx` (React Email, brand-styled, no attachments — link only, per AI Gateway rules). Registered in `registry.ts`.
-
-### 5. Management Center UI
-
-Route `src/routes/_authenticated/app.admin.orders.$orderId.tsx` (or extend existing licenses/orders detail):
-
-- Section "Installation Package":
-  - Status badge: Not generated / Generated &nbsp; / Regenerated N times
-  - `install_id` display (copyable, deterministic — same across regenerations)
-  - `installer_version` (with pin selector for platform_admin)
-  - Checkbox "Keep previous bundle valid on regenerate" (default OFF)
-  - Button **Generate Package** (when never generated, or trial)
-  - Button **Regenerate Package** (when already generated)
-  - Button **Download** → calls `getInstallationPackageDownloadUrl`, opens signed URL in new tab
-  - Recent downloads table (last 10 from `installation_package_downloads`)
-  - Tech contact email (editable inline)
-
-### 6. Customer Portal
-
-Extend Customer Portal "Available downloads" section: only `Download` (no generate/regenerate). Same re-minted 24h signed URL via a portal-scoped server fn that validates the caller owns the order's company. Audited.
-
-### 7. Tests
-
-- `installation-package.test.ts`:
-  - `generate(order)` twice → identical `install_id`, identical package structure, new bundle contents & checksum
-  - Trial-status order allowed
-  - Non-platform_admin caller rejected
-  - Previous bundle CRL revocation happens on regenerate (default)
-  - `keep_previous_bundle_valid` skips revocation
-- Snapshot of rendered email template.
-
-### 8. Docs
-
-- `docs/administrator-guide/02-installation.md` — add "obtaining your install package" section
-- `docs/engineering/04-issue-a-license.md` — add package generation step
-- `docs/security-documentation/05-license-security.md` — document CRL-on-regenerate policy
-
-## Files created
-
-```
-supabase/migrations/<ts>_installation_packages.sql
-src/lib/installation-package.functions.ts
-src/lib/installation-package.server.ts          (tar assembly, template rendering)
-src/lib/__tests__/installation-package.test.ts
-src/lib/email-templates/installation-package-ready.tsx
-src/routes/_authenticated/app.admin.orders.$orderId.tsx   (new detail view if absent)
-```
-
-## Files modified
-
-```
-src/lib/email-templates/registry.ts             (register new template)
-docker/entrypoint.sh                            (auto-generate placeholder secrets)
-src/lib/email-templates/... (no design changes elsewhere)
-docs/administrator-guide/02-installation.md
-docs/engineering/04-issue-a-license.md
-docs/security-documentation/05-license-security.md
-```
-
-## Out of scope (deferred to post-GA)
-
-- Kubernetes/Helm packaging (AD-021, v1.1 candidate)
-- Package auto-push to customer S3 buckets
-- Air-gap-only USB-bundle format (bundle-only, no compose)
-
-## Report I will produce after implementation
-
-1. Files created/modified (final list)
-2. Test output proving `install_id` determinism across regeneration
-3. Concrete description of what each button does in MC UI + Portal
-4. Screenshot / DOM check of the MC order detail after a generate + regenerate cycle
-5. Confirmation the previous-bundle CRL revocation path fires (unit + integration assertion)
-
-If this looks good, approve and I switch to build mode.
+install_id was NOT implemented as uuidv5(namespace, "order:"+orderId).
+It reuses the existing manual-slug convention (InstallIdSchema, e.g.
+"edeka-prod-01") stored on license_installs; no second identity scheme
+was introduced. Regeneration idempotency comes from reading the stored
+slug, not from recomputing it. Manual DR procedure documented in
+docs/security-documentation/05-license-security.md.

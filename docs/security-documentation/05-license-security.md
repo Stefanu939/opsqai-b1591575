@@ -31,9 +31,17 @@
 
 - The Management Center packages the activation bundle inside a signed
   installation ZIP (see `docs/administrator-guide/02-installation.md`).
-- Regeneration is idempotent for `install_id`: the same order always
-  produces the same identity, so a customer that regenerates the package
-  does not fork into a new install.
+- `install_id` is a human-readable slug (e.g. `edeka-prod-01`), assigned
+  once when the `license_installs` row is created and validated by
+  `InstallIdSchema`. It is **not** derived from `order_id` or any other
+  field — it is stored, not computed. This is the same slug already used
+  by `licenses`, heartbeat, CRL, and the activation bundle across earlier
+  phases; Phase 4.5 intentionally does **not** introduce a second identity
+  scheme.
+- Regeneration is idempotent because `generateInstallationPackage` reads
+  the existing `install_id` from `license_installs` and reuses it — the
+  same order always produces the same identity as long as the row exists.
+  A customer that regenerates the package does not fork into a new install.
 - Default on regeneration: the previous bundle is added to the CRL and
   stops activating new installs on the next heartbeat. The audit log records
   `installation_package.generated` with `previous_bundle_revoked = true`.
@@ -47,4 +55,31 @@
 - Download URLs are Ed25519-signed and time-limited to 24 hours. Every
   download is logged with actor, IP, user-agent, and expiry into
   `installation_package_downloads` for audit.
+
+## Recovery if the `license_installs` row is lost
+
+Because `install_id` is stored (not computed), a lost or corrupted
+`license_installs` row cannot be automatically re-derived. Recovery is a
+documented manual step:
+
+1. Platform admin retrieves the original slug from one of:
+   - the audit log (`installation_package.generated` entries carry `install_id`),
+   - the customer's own copy of the installation ZIP (the `.env.template`
+     and the signed activation bundle both embed the slug),
+   - the customer portal audit trail.
+2. Admin re-creates the `license_installs` row with the **exact same**
+   `install_id` slug via the standard install-provisioning flow.
+3. Regenerate the installation package; the customer's existing deployment
+   continues to validate against the same identity.
+4. If the slug cannot be recovered from any of the above sources, a new
+   slug must be issued and this is a **hard reset**, logged as such. A
+   hard reset is a two-sided operation, not just an MC action:
+   - MC side: platform admin provisions a new `license_installs` row with
+     the new slug and generates a fresh installation package.
+   - Customer side: the running installation must be reconfigured locally
+     — update `OPSQAI_INSTALL_ID` in `.env`, replace the on-disk activation
+     bundle with the newly issued one, and restart. The old running
+     instance will **not** automatically recognize the newly issued slug;
+     support must not assume "regenerate = done" in this path.
+
 
