@@ -14,15 +14,30 @@
 import { zipSync, strToU8 } from "fflate";
 import { createHash } from "node:crypto";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
-import {
-  INSTALL_EXE_B64,
-  INSTALL_MACOS_B64,
-  INSTALL_LINUX_B64,
-} from "@/lib/installer-binaries.generated";
+import installExeAsset from "@/assets/install-exe.asset.json";
+import installMacosAsset from "@/assets/install-macos.asset.json";
+import installLinuxAsset from "@/assets/install-linux.asset.json";
 
-function b64ToBytes(b64: string): Uint8Array {
-  return new Uint8Array(Buffer.from(b64, "base64"));
+// Installer binaries live in Lovable Assets (CDN) because they exceed the
+// per-file repo limit. Fetched once per Worker instance and cached — the
+// generated ZIP embeds them verbatim.
+const binaryCache = new Map<string, Uint8Array>();
+
+async function fetchAsset(url: string): Promise<Uint8Array> {
+  const cached = binaryCache.get(url);
+  if (cached) return cached;
+  const origin =
+    typeof process !== "undefined" && process.env?.OPSQAI_ASSET_ORIGIN
+      ? process.env.OPSQAI_ASSET_ORIGIN
+      : "";
+  const fullUrl = url.startsWith("http") ? url : `${origin}${url}`;
+  const res = await fetch(fullUrl);
+  if (!res.ok) throw new Error(`Failed to fetch installer asset ${url}: ${res.status}`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  binaryCache.set(url, bytes);
+  return bytes;
 }
+
 
 const DOCKER_COMPOSE_TEMPLATE = `# OPSQAI Self-Hosted — generated for install_id {{INSTALL_ID}}
 # Installer version: {{INSTALLER_VERSION}}
