@@ -181,6 +181,7 @@ export const listMyTraining = createServerFn({ method: "POST" })
 export const getMyTrainingSummary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await enforceAcademy(context, (null as string | null | undefined) ?? null);
     const supabase = context.supabase as any;
 
     const [enrollmentsRes, certsRes, quizzesRes] = await Promise.all([
@@ -268,6 +269,7 @@ export const saveLessonNotes = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await enforceAcademy(context, (data.company_id as string | null | undefined) ?? null);
     const supabase = context.supabase as any;
     // Verify ownership via enrollment
     const { data: enroll } = await supabase
@@ -315,6 +317,7 @@ export const assignTraining = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await enforceAcademy(context, (data.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.assign");
     const supabase = context.supabase as any;
     const companyId = data.company_id ?? (await resolveCompanyForWrite(context, null));
@@ -414,6 +417,7 @@ export const listCourseAnalytics = createServerFn({ method: "POST" })
     z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await enforceAcademy(context, (data.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.manage");
     const supabase = context.supabase as any;
     const companyId = data.company_id ?? (await resolveCompanyForWrite(context, null));
@@ -491,6 +495,7 @@ export const listCourseCohort = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAcademy(context, (data.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.manage");
     const supabase = context.supabase as any;
 
@@ -577,6 +582,7 @@ export const listCourseCohort = createServerFn({ method: "POST" })
 export const listAssignTargets = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await enforceAcademy(context, (null as string | null | undefined) ?? null);
     await requirePermission(context, "academy.assign");
     const supabase = context.supabase as any;
     const companyId = await resolveCompanyForWrite(context, null);
