@@ -122,19 +122,22 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
 
   // Primary source: newest GitHub Release ZIP (auto-detected, no manual
   // asset update). Falls back to the CDN-hosted asset when GitHub is
-  // unreachable or the repo has no eligible release yet.
+  // unreachable or the repo has no eligible release yet. Skipped in tests.
   let setupExe: Uint8Array | null = null;
   let sourceUrl = "github:latest";
-  try {
-    const { resolveLatestInstaller } = await import("@/lib/github-installer-release.server");
-    const latest = await resolveLatestInstaller();
-    if (latest) {
-      setupExe = latest.exe_bytes;
-      sourceUrl = `github:${latest.tag_name}`;
+  if (process.env.NODE_ENV !== "test" && process.env.OPSQAI_SKIP_GITHUB_INSTALLER !== "1") {
+    try {
+      const { resolveLatestInstaller } = await import("@/lib/github-installer-release.server");
+      const latest = await resolveLatestInstaller();
+      if (latest) {
+        setupExe = latest.exe_bytes;
+        sourceUrl = `github:${latest.tag_name}`;
+      }
+    } catch (err) {
+      console.warn("installer_github_lookup_failed", (err as Error).message);
     }
-  } catch (err) {
-    console.warn("installer_github_lookup_failed", (err as Error).message);
   }
+
 
   if (!setupExe) {
     sourceUrl = installerSourceUrl();
