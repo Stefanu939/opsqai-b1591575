@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self';" />
+  <title>OPSQAI Self-Hosted Setup</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wizard">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">OPSQAI</div>
+        <div class="brand-sub">Self-Hosted Setup</div>
+      </div>
+      <ol class="steps" id="steps">
+        <li data-step="1"><span class="idx">1</span> Welcome</li>
+        <li data-step="2"><span class="idx">2</span> License agreement</li>
+        <li data-step="3"><span class="idx">3</span> Install location</li>
+        <li data-step="4"><span class="idx">4</span> Company</li>
+        <li data-step="5"><span class="idx">5</span> Administrator</li>
+        <li data-step="6"><span class="idx">6</span> Database</li>
+        <li data-step="7"><span class="idx">7</span> Storage</li>
+        <li data-step="8"><span class="idx">8</span> AI provider</li>
+        <li data-step="9"><span class="idx">9</span> Review</li>
+        <li data-step="10"><span class="idx">10</span> Install</li>
+      </ol>
+      <div class="footer-brand">© OPSQAI</div>
+    </aside>
+
+    <main class="content">
+      <!-- 1 Welcome -->
+      <section class="pane" data-pane="1">
+        <h1>Welcome to OPSQAI Self-Hosted</h1>
+        <p class="lead">This wizard will install OPSQAI on this Windows computer as a native application — no Docker, no WSL, no external dependencies.</p>
+        <ul class="checklist">
+          <li>Runs as Windows Services (Automatic startup)</li>
+          <li>Embedded PostgreSQL 16 (or bring your own)</li>
+          <li>Local file storage (or S3-compatible)</li>
+          <li>HTTPS on <code>https://localhost</code> out of the box</li>
+        </ul>
+        <p class="note">Setup takes about 3–5 minutes. You can cancel at any time before installation begins.</p>
+      </section>
+
+      <!-- 2 License -->
+      <section class="pane" data-pane="2" hidden>
+        <h1>License agreement</h1>
+        <div class="license-box" id="license">
+          <p><strong>OPSQAI Self-Hosted End-User License Agreement</strong></p>
+          <p>By installing this software you agree to the OPSQAI Self-Hosted EULA. This is a commercial product distributed under a per-seat license. A valid license key is required to unlock the platform after installation.</p>
+          <p>Full terms: <a href="#" data-external="https://opsqai.de/legal/eula">https://opsqai.de/legal/eula</a></p>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" id="license-accept" />
+          <span>I have read and accept the license agreement</span>
+        </label>
+      </section>
+
+      <!-- 3 Location -->
+      <section class="pane" data-pane="3" hidden>
+        <h1>Install location</h1>
+        <p class="lead">OPSQAI installs to standard Windows locations. These paths cannot be changed in this release.</p>
+        <div class="kv">
+          <div><span>Program files</span><code>C:\Program Files\OPSQAI</code></div>
+          <div><span>Application data</span><code>C:\ProgramData\OPSQAI</code></div>
+          <div><span>Log files</span><code>C:\ProgramData\OPSQAI\logs</code></div>
+          <div><span>Database</span><code>C:\ProgramData\OPSQAI\data\pgsql</code></div>
+        </div>
+        <p class="note">The application data folder holds your database, documents and configuration. Back up this folder to protect your installation.</p>
+      </section>
+
+      <!-- 4 Company -->
+      <section class="pane" data-pane="4" hidden>
+        <h1>Company information</h1>
+        <p class="lead">Used in reports, exported documents and the OPSQAI header.</p>
+        <div class="form">
+          <label>Company name<input id="company-name" type="text" placeholder="Acme GmbH" required /></label>
+          <label>Contact email<input id="company-email" type="email" placeholder="ops@acme.com" required /></label>
+          <label>Time zone
+            <select id="company-tz">
+              <option value="UTC">UTC</option>
+              <option value="Europe/Berlin" selected>Europe/Berlin</option>
+              <option value="Europe/Bucharest">Europe/Bucharest</option>
+              <option value="Europe/London">Europe/London</option>
+              <option value="America/New_York">America/New_York</option>
+              <option value="America/Los_Angeles">America/Los_Angeles</option>
+              <option value="Asia/Singapore">Asia/Singapore</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <!-- 5 Admin -->
+      <section class="pane" data-pane="5" hidden>
+        <h1>Administrator account</h1>
+        <p class="lead">The first user with full access to OPSQAI. You can add more users later.</p>
+        <div class="form">
+          <label>Email<input id="admin-email" type="email" placeholder="admin@acme.com" required /></label>
+          <label>Password<input id="admin-password" type="password" minlength="12" placeholder="At least 12 characters" required /></label>
+          <label>Confirm password<input id="admin-password2" type="password" minlength="12" required /></label>
+        </div>
+        <p id="admin-hint" class="hint">Minimum 12 characters. Use a mix of letters, numbers and symbols.</p>
+      </section>
+
+      <!-- 6 Database -->
+      <section class="pane" data-pane="6" hidden>
+        <h1>Database</h1>
+        <div class="radio-cards">
+          <label class="radio-card">
+            <input type="radio" name="db-mode" value="embedded" checked />
+            <div>
+              <strong>Embedded (recommended)</strong>
+              <p>Ships PostgreSQL 16 with OPSQAI. Zero configuration. Best for single-server installs up to 200 users.</p>
+            </div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="db-mode" value="external" />
+            <div>
+              <strong>External PostgreSQL</strong>
+              <p>Connect to your own PostgreSQL 15+ instance (managed service, HA cluster, existing enterprise DB).</p>
+            </div>
+          </label>
+        </div>
+        <div class="form external-only" id="db-external" hidden>
+          <label>Host<input id="db-host" placeholder="pg.internal.acme.com" /></label>
+          <div class="grid-2">
+            <label>Port<input id="db-port" type="number" value="5432" /></label>
+            <label>Database<input id="db-name" value="opsqai" /></label>
+          </div>
+          <div class="grid-2">
+            <label>Username<input id="db-user" placeholder="opsqai" /></label>
+            <label>Password<input id="db-pass" type="password" /></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7 Storage -->
+      <section class="pane" data-pane="7" hidden>
+        <h1>Document storage</h1>
+        <div class="radio-cards">
+          <label class="radio-card">
+            <input type="radio" name="storage-mode" value="local" checked />
+            <div>
+              <strong>Local file system (recommended)</strong>
+              <p>Stores documents in <code>C:\ProgramData\OPSQAI\data\storage</code>. Fastest option, backed up alongside the database.</p>
+            </div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="storage-mode" value="s3" />
+            <div>
+              <strong>S3-compatible</strong>
+              <p>AWS S3, Azure Blob (S3 gateway), Backblaze B2, MinIO — any S3-compatible endpoint. Recommended for multi-server deployments.</p>
+            </div>
+          </label>
+        </div>
+        <div class="form external-only" id="storage-s3" hidden>
+          <label>Endpoint<input id="s3-endpoint" placeholder="https://s3.eu-central-1.amazonaws.com" /></label>
+          <div class="grid-2">
+            <label>Region<input id="s3-region" placeholder="eu-central-1" /></label>
+            <label>Bucket<input id="s3-bucket" placeholder="opsqai-docs" /></label>
+          </div>
+          <div class="grid-2">
+            <label>Access key<input id="s3-key" /></label>
+            <label>Secret key<input id="s3-secret" type="password" /></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 AI -->
+      <section class="pane" data-pane="8" hidden>
+        <h1>AI provider</h1>
+        <p class="lead">OPSQAI's AI features (RAG, chat, summaries) require an AI provider. You can change this later.</p>
+        <div class="form">
+          <label>Provider
+            <select id="ai-provider">
+              <option value="none">None — configure later</option>
+              <option value="openai">OpenAI</option>
+              <option value="azure">Azure OpenAI</option>
+              <option value="anthropic">Anthropic Claude</option>
+              <option value="ollama">Ollama (on-premises)</option>
+            </select>
+          </label>
+          <label class="ai-key-field">API key / endpoint<input id="ai-key" type="password" placeholder="Provider-specific credential" /></label>
+        </div>
+      </section>
+
+      <!-- 9 Review -->
+      <section class="pane" data-pane="9" hidden>
+        <h1>Review your settings</h1>
+        <p class="lead">Nothing has been installed yet. Click <strong>Install</strong> on the next step to apply this configuration.</p>
+        <div class="review" id="review"></div>
+      </section>
+
+      <!-- 10 Install -->
+      <section class="pane" data-pane="10" hidden>
+        <h1 id="install-title">Installing OPSQAI…</h1>
+        <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+        <pre id="log" class="log"></pre>
+        <div class="finish" id="finish" hidden>
+          <label class="checkbox"><input type="checkbox" id="launch-app" checked /><span>Open OPSQAI in my browser</span></label>
+          <p class="note">OPSQAI is now running at <code>https://localhost/</code>. It will start automatically every time this computer boots.</p>
+        </div>
+      </section>
+
+      <nav class="actions">
+        <button class="btn btn-ghost" id="btn-cancel">Cancel</button>
+        <div class="spacer"></div>
+        <button class="btn" id="btn-back" disabled>Back</button>
+        <button class="btn btn-primary" id="btn-next">Next</button>
+      </nav>
+    </main>
+  </div>
+  <script src="wizard.js"></script>
+</body>
+</html>
