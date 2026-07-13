@@ -37,7 +37,7 @@ describe("assembleInstallationPackage", () => {
       [
         ".env.template",
         "CHECKSUMS.sha256",
-        "README.md",
+        "README.pdf",
         "activation-bundle.json",
         "docker-compose.yml",
         "entrypoint.sh",
