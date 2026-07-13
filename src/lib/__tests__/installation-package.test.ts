@@ -41,6 +41,7 @@ describe("assembleInstallationPackage", () => {
         "activation-bundle.json",
         "docker-compose.yml",
         "entrypoint.sh",
+        "install.sh",
       ].sort(),
     );
 
@@ -58,10 +59,31 @@ describe("assembleInstallationPackage", () => {
 
     // CHECKSUMS.sha256 lines follow "<hex>  <name>"
     const checksums = strFromU8(files["CHECKSUMS.sha256"]).trim().split("\n");
-    expect(checksums).toHaveLength(5); // every file except CHECKSUMS.sha256 itself
+    expect(checksums).toHaveLength(6); // every file except CHECKSUMS.sha256 itself
     for (const line of checksums) {
       expect(line).toMatch(/^[0-9a-f]{64} {2}\S+/);
     }
+  });
+
+  it("install.sh implements the host-side installer contract", () => {
+    const { bytes } = assembleInstallationPackage(input);
+    const files = unzipSync(bytes);
+    const sh = strFromU8(files["install.sh"]);
+    // Prerequisite checks with actionable instructions
+    expect(sh).toContain("command -v docker");
+    expect(sh).toContain("docker compose version");
+    expect(sh).toContain("docs.docker.com");
+    // Idempotent .env seeding
+    expect(sh).toContain("cp .env.template .env");
+    expect(sh).toContain(".env already exists");
+    // Start + health poll + wizard URL print
+    expect(sh).toContain("docker compose up -d");
+    expect(sh).toContain("/health");
+    expect(sh).toContain("/first-run");
+    // Restore mode matches DR runbook 5.5.4
+    expect(sh).toContain("--restore");
+    expect(sh).toContain("5.5.4");
+    expect(sh).toContain("opsqai restore");
   });
 
   it("regeneration for the same install_id keeps install_id + file name stable", () => {
