@@ -16,7 +16,7 @@ function fakeBundle(install_id: string): ActivationBundle {
   };
 }
 
-describe("assembleInstallationPackage", () => {
+describe("assembleInstallationPackage (Windows-only)", () => {
   const input = {
     install_id: "acme-prod",
     installer_version: "1.0.0",
@@ -25,7 +25,7 @@ describe("assembleInstallationPackage", () => {
     license_server_url: "https://opsqai.de",
   };
 
-  it("produces a ZIP that contains every required file", async () => {
+  it("produces a Windows-only ZIP with exactly the expected files", async () => {
     const { bytes, file_name, checksum_sha256 } = await assembleInstallationPackage(input);
     expect(bytes.byteLength).toBeGreaterThan(100);
     expect(file_name).toBe("opsqai-1.0.0-acme-prod.zip");
@@ -34,116 +34,56 @@ describe("assembleInstallationPackage", () => {
     const files = unzipSync(bytes);
     const names = Object.keys(files).sort();
     expect(names).toEqual(
-      [
-        ".env.template",
-        "CHECKSUMS.sha256",
-        "README.pdf",
-        "activation-bundle.json",
-        "docker-compose.yml",
-        "entrypoint.sh",
-        "install.sh",
-        "install-windows.cmd",
-        "install.exe",
-        "install-macos",
-        "install-linux",
-      ].sort(),
+      ["CHECKSUMS.sha256", "OPSQAI-Setup.exe", "README.md", "activation-bundle.json"].sort(),
     );
 
-    // Install ID and installer version are baked into compose + env
-    expect(strFromU8(files["docker-compose.yml"])).toContain("acme-prod");
-    expect(strFromU8(files["docker-compose.yml"])).toContain("1.0.0");
-    expect(strFromU8(files[".env.template"])).toContain("OPSQAI_INSTALL_ID=acme-prod");
-    expect(strFromU8(files[".env.template"])).toContain("POSTGRES_PASSWORD=__CHANGE_ME__");
-    expect(strFromU8(files[".env.template"])).toContain("MINIO_ROOT_PASSWORD=__CHANGE_ME__");
+    // No Docker / Linux / macOS artifacts must leak into the Windows package.
+    for (const forbidden of [
+      "docker-compose.yml",
+      ".env.template",
+      "entrypoint.sh",
+      "install.sh",
+      "install-windows.cmd",
+      "install.exe",
+      "install-macos",
+      "install-linux",
+      "README.pdf",
+    ]) {
+      expect(files[forbidden]).toBeUndefined();
+    }
 
     // Activation bundle is embedded verbatim
     const parsedBundle = JSON.parse(strFromU8(files["activation-bundle.json"])) as ActivationBundle;
     expect(parsedBundle.install_id).toBe("acme-prod");
     expect(parsedBundle.module_tokens).toHaveLength(1);
 
-    // Cross-platform installer binaries are present (fetched from Lovable
-    // Assets in production; local fs fallback in tests reads
-    // installer/dist/ placeholders when the CDN isn't reachable).
-    expect(files["install.exe"].byteLength).toBeGreaterThan(0);
-    expect(files["install-macos"].byteLength).toBeGreaterThan(0);
-    expect(files["install-linux"].byteLength).toBeGreaterThan(0);
+    // The Windows installer binary is present.
+    expect(files["OPSQAI-Setup.exe"].byteLength).toBeGreaterThan(0);
+
+    // README is Markdown, Windows-focused.
+    const readme = strFromU8(files["README.md"]);
+    expect(readme).toContain("OPSQAI-Setup.exe");
+    expect(readme).toContain("Windows");
+    expect(readme).toContain("acme-prod");
+    expect(readme).not.toContain("docker compose");
 
     // CHECKSUMS.sha256 lines follow "<hex>  <name>"
     const checksums = strFromU8(files["CHECKSUMS.sha256"]).trim().split("\n");
-    expect(checksums).toHaveLength(10); // every file except CHECKSUMS.sha256 itself
+    expect(checksums).toHaveLength(3); // every file except CHECKSUMS.sha256 itself
     for (const line of checksums) {
       expect(line).toMatch(/^[0-9a-f]{64} {2}\S+/);
     }
-  });
-
-  it("install.sh implements the host-side installer contract", async () => {
-    const { bytes } = await assembleInstallationPackage(input);
-    const files = unzipSync(bytes);
-    const sh = strFromU8(files["install.sh"]);
-    // Prerequisite checks with actionable instructions
-    expect(sh).toContain("command -v docker");
-    expect(sh).toContain("docker compose version");
-    expect(sh).toContain("docs.docker.com");
-    // Idempotent .env seeding
-    expect(sh).toContain("cp .env.template .env");
-    expect(sh).toContain(".env already exists");
-    // Start + health poll + wizard URL print
-    expect(sh).toContain("docker compose up -d");
-    expect(sh).toContain("/health");
-    expect(sh).toContain("/first-run");
-    // Restore mode matches DR runbook 5.5.4
-    expect(sh).toContain("--restore");
-    expect(sh).toContain("5.5.4");
-    expect(sh).toContain("opsqai restore");
-  });
-
-  it("includes a Windows launcher that keeps errors visible", async () => {
-    const { bytes } = await assembleInstallationPackage(input);
-    const files = unzipSync(bytes);
-    const cmd = strFromU8(files["install-windows.cmd"]);
-    expect(cmd).toContain("install.exe");
-    expect(cmd).toContain("OPSQAI_INSTALLER_NO_PAUSE=1");
-    expect(cmd).toContain("pause");
-    // ZIP-preview detection path so users get an actionable message.
-    expect(cmd).toContain("ZIP preview");
-    expect(cmd).toContain("Extract All");
   });
 
   it("regeneration for the same install_id keeps install_id + file name stable", async () => {
     const a = await assembleInstallationPackage(input);
     const b = await assembleInstallationPackage(input);
     expect(a.file_name).toBe(b.file_name);
-    // Content changes only via GENERATED_AT timestamp, so checksum may differ,
-    // but the identity anchor (install_id) is stable.
     const filesA = unzipSync(a.bytes);
     const filesB = unzipSync(b.bytes);
     const bundleA = JSON.parse(strFromU8(filesA["activation-bundle.json"])) as ActivationBundle;
     const bundleB = JSON.parse(strFromU8(filesB["activation-bundle.json"])) as ActivationBundle;
     expect(bundleA.install_id).toBe(bundleB.install_id);
     expect(bundleA.install_id).toBe("acme-prod");
-  });
-
-  it("README.pdf ships in place of README.md and is a valid PDF", async () => {
-    const { bytes } = await assembleInstallationPackage(input);
-    const files = unzipSync(bytes);
-    const pdf = files["README.pdf"];
-    expect(pdf).toBeDefined();
-    // PDF header
-    const header = new TextDecoder().decode(pdf.slice(0, 5));
-    expect(header).toBe("%PDF-");
-    // Not a trivial empty PDF — the multi-page guide is at least a few KB.
-    expect(pdf.byteLength).toBeGreaterThan(3000);
-    // README.md must be gone.
-    expect(files["README.md"]).toBeUndefined();
-  });
-
-  it("entrypoint.sh generates infra secrets on first boot", async () => {
-    const { bytes } = await assembleInstallationPackage(input);
-    const files = unzipSync(bytes);
-    const sh = strFromU8(files["entrypoint.sh"]);
-    expect(sh).toContain("POSTGRES_PASSWORD");
-    expect(sh).toContain("MINIO_ROOT_PASSWORD");
-    expect(sh).toContain("__CHANGE_ME__");
-    expect(sh).toContain("/dev/urandom");
   });
 });

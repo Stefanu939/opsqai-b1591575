@@ -1,12 +1,4 @@
-// Server-only: render the installation package README as Markdown.
-//
-// Previously used pdf-lib to emit README.pdf, but pdf-lib's ESM build
-// imports named helpers from tslib (`import { __extends } from "tslib"`)
-// which the Cloudflare Worker SSR bundler wraps with broken CJS interop —
-// runtime crash: `Cannot destructure property '__extends' of
-// '__toESM(...).default' as it is undefined`. A plain Markdown README is
-// just as useful to the installer, avoids the native-ish dep, and works in
-// every environment.
+// Server-only: render the Windows-only installation package README as Markdown.
 
 export interface ReadmeInput {
   install_id: string;
@@ -16,8 +8,7 @@ export interface ReadmeInput {
 }
 
 export function renderReadmeMarkdown(input: ReadmeInput): string {
-  const zipName = `opsqai-${input.installer_version}-${input.install_id}`;
-  return `# OPSQAI Self-Hosted — Ghid de instalare
+  return `# OPSQAI Self-Hosted — Ghid de instalare Windows
 
 | | |
 |---|---|
@@ -30,150 +21,88 @@ export function renderReadmeMarkdown(input: ReadmeInput): string {
 
 ## 1. Ce este acest pachet
 
-Această arhivă conține tot ce ai nevoie pentru a rula OPSQAI pe propriul tău
-server: instalatorul nativ pentru Windows / macOS / Linux, configurația
-Docker Compose, șablonul de variabile de mediu și bundle-ul de activare
-semnat digital. Instalatorul **nu** instalează Docker în locul tău — vezi
-capitolul 2.
+Această arhivă conține instalatorul nativ Windows OPSQAI împreună cu
+bundle-ul de activare semnat digital pentru licența ta. **Nu este necesar
+Docker.** Instalatorul configurează serviciile Windows (bază de date,
+platformă, worker, updater, reverse proxy) și pornește aplicația automat.
 
-## 2. Prerechizite (ÎNAINTE de instalare)
+## 2. Prerechizite
 
-OPSQAI rulează în containere Docker. Trebuie să ai Docker instalat și pornit
-înainte de a rula instalatorul.
+- Windows Server 2019 / 2022 sau Windows 10 / 11 (64-bit).
+- Cont de Administrator local pe mașină.
+- ~2 GB spațiu liber pe disc pentru instalare + spațiu pentru date.
+- Port 443 (HTTPS) disponibil, sau alt port configurat în timpul wizard-ului.
 
-### 2.1 Windows
-- Descarcă și instalează Docker Desktop de la https://www.docker.com/products/docker-desktop/
-- Pornește Docker Desktop și așteaptă până apare mesajul „Docker Desktop is running" (icon verde în system tray).
-
-### 2.2 macOS
-- Descarcă Docker Desktop for Mac (Apple Silicon sau Intel): https://www.docker.com/products/docker-desktop/
-- Pornește Docker Desktop și așteaptă până iconul din bara de meniu devine verde.
-
-### 2.3 Linux
-- Instalează Docker Engine: https://docs.docker.com/engine/install/
-- Instalează pluginul Docker Compose v2: https://docs.docker.com/compose/install/linux/
-- Debian/Ubuntu: \`sudo apt-get install docker-ce docker-compose-plugin\`
-
-### 2.4 Verificare rapidă
-\`\`\`
-docker --version
-docker compose version
-\`\`\`
-Ambele comenzi trebuie să răspundă cu un număr de versiune.
-
-## 3. Cum extragi arhiva corect
-
-### 3.1 Windows
-- Click **dreapta** pe fișierul ZIP → **Extract All…** → selectează un folder.
-- NU face dublu-click pe fișiere din preview-ul ZIP din Explorer — extrage întâi arhiva.
-
-### 3.2 macOS / Linux
-\`\`\`
-unzip ${zipName}.zip
-cd ${zipName}
-\`\`\`
-
-## 4. Verificarea integrității (recomandat)
+## 3. Verificarea integrității (recomandat)
 
 Fișierul \`CHECKSUMS.sha256\` conține hash-urile SHA-256 ale tuturor fișierelor.
 
-**macOS / Linux:**
+**PowerShell:**
 \`\`\`
-sha256sum -c CHECKSUMS.sha256
+Get-FileHash OPSQAI-Setup.exe -Algorithm SHA256
 \`\`\`
-Fiecare linie trebuie să afișeze „OK".
+Compară valoarea cu linia corespunzătoare din \`CHECKSUMS.sha256\`.
 
-**Windows:**
-\`\`\`
-certutil -hashfile install.exe SHA256
-\`\`\`
-Compară hash-ul afișat cu linia corespunzătoare din \`CHECKSUMS.sha256\`.
+## 4. Instalare pas cu pas
 
-## 5. Instalare pas cu pas
+1. Extrage complet arhiva ZIP (Click dreapta → **Extract All…**).
+2. Click dreapta pe \`OPSQAI-Setup.exe\` → **Run as administrator**.
+3. Urmează wizard-ul: acceptă EULA, alege folderul de instalare
+   (implicit \`C:\\Program Files\\OPSQAI\`) și folderul de date
+   (implicit \`C:\\ProgramData\\OPSQAI\`).
+4. Când wizard-ul îți cere Activation Bundle, lipește conținutul
+   fișierului \`activation-bundle.json\` din această arhivă.
+5. Finalizează instalarea. Serviciile Windows pornesc automat.
 
-### 5.1 Windows (recomandat: dublu-click)
-- Deschide folderul extras.
-- Dublu-click pe \`install-windows.cmd\` (ține fereastra CMD deschisă).
-- Alternativ, rulează direct \`install.exe\`.
+## 5. Ce instalează
 
-### 5.2 macOS
-\`\`\`
-chmod +x install-macos
-./install-macos
-\`\`\`
+Instalatorul înregistrează următoarele servicii Windows (via WinSW):
 
-### 5.3 Linux desktop
-\`\`\`
-chmod +x install-linux
-./install-linux
-\`\`\`
+| Serviciu | Rol |
+|---|---|
+| \`OpsqaiDatabase\` | PostgreSQL încorporat |
+| \`OpsqaiPlatform\` | Aplicația OPSQAI (Node.js) |
+| \`OpsqaiWorker\` | Job-uri de fundal |
+| \`OpsqaiUpdater\` | Verifică și aplică update-uri semnate |
+| \`OpsqaiCaddy\` | Reverse proxy HTTPS local |
+| \`OpsqaiHello\` | Health check |
 
-### 5.4 Server headless / SSH
-\`\`\`
-chmod +x install.sh
-./install.sh
-\`\`\`
+## 6. Primul login (Setup Wizard)
 
-## 6. Ce face instalatorul (transparent)
-- Verifică prerechizitele: docker + plugin compose.
-- Copiază \`.env.template\` în \`.env\` dacă nu există (idempotent).
-- Pornește stack-ul cu: \`docker compose up -d\`
-- Așteaptă până când endpoint-ul \`/health\` răspunde OK (până la ~2 minute).
-- Afișează (și deschide în browser) URL-ul pentru Setup Wizard.
+După instalare, deschide \`https://localhost/first-run\` (sau URL-ul afișat
+la sfârșitul wizard-ului) și configurează administratorul principal.
 
-## 7. Setup Wizard
-- Deschide URL-ul afișat de instalator (implicit http://localhost:3000/first-run).
-- Lipește conținutul fișierului \`activation-bundle.json\` când wizard-ul îl cere.
-- Configurează administratorul principal și primul cont de utilizator.
+## 7. Depanare
 
-## 8. Restaurare dintr-un backup (DR)
+**„OPSQAI-Setup.exe: Windows protected your PC"** — click **More info** →
+**Run anyway**. Semnătura Authenticode va fi acceptată începând cu versiunea
+semnată (vezi \`docs/code-signing.md\`).
 
-Pentru a restaura o instalație existentă dintr-un backup (runbook DR 5.5.4),
-pasează \`--restore\` instalatorului:
-\`\`\`
-./install-linux --restore
-# sau
-install-windows.cmd --restore
-\`\`\`
-Restore rulează doar peste o instalație existentă (cu \`.env\` prezent) —
-nu suprascrie o instalație funcțională.
+**Un serviciu nu pornește** — deschide \`services.msc\`, găsește serviciul
+(prefix \`Opsqai\`), și verifică log-urile în
+\`C:\\ProgramData\\OPSQAI\\logs\\\`.
 
-## 9. Depanare — probleme frecvente
+**Instalare unattended / silent** — vezi \`docs/unattended-install.md\` din
+documentația OPSQAI Windows.
 
-**„docker is not installed or not on PATH"** — Docker Desktop nu este
-instalat sau nu rulează. Vezi capitolul 2.
+## 8. Migrare de la Docker
 
-**„install.exe is missing from this folder"** — ai deschis
-\`install-windows.cmd\` direct din preview-ul ZIP. Extrage întâi arhiva
-complet (capitolul 3.1).
+Dacă rulai anterior OPSQAI cu Docker Compose pe acest host, folosește
+utilitarul \`opsqai-migrate\` (instalat automat) pentru a importa datele.
+Vezi \`opsqai-windows/tools/docker-migrator/README.md\`.
 
-**„App did not report healthy"** — stack-ul a pornit dar aplicația nu
-răspunde. Verifică log-urile:
-\`\`\`
-docker compose logs --tail=200 opsqai
-\`\`\`
-
-**Portul 3000 este ocupat** — editează \`.env\` și schimbă \`OPSQAI_PORT\`
-înainte de a rula instalatorul din nou.
-
-## 10. Fișierele din acest pachet
+## 9. Fișierele din acest pachet
 
 | Fișier | Descriere |
 |---|---|
-| \`install.exe\` | Instalator nativ Windows (double-click) |
-| \`install-windows.cmd\` | Wrapper Windows care ține fereastra CMD deschisă |
-| \`install-macos\` | Instalator nativ macOS (universal) |
-| \`install-linux\` | Instalator nativ Linux |
-| \`install.sh\` | Fallback POSIX shell pentru servere headless |
-| \`docker-compose.yml\` | Topologia containerelor (opsqai + postgres + minio) |
-| \`.env.template\` | Șablon de variabile de mediu; secretele marcate \`__CHANGE_ME__\` |
-| \`entrypoint.sh\` | Rulează în container; generează secretele la prima pornire |
+| \`OPSQAI-Setup.exe\` | Instalator nativ Windows (NSIS, rulează ca Administrator) |
 | \`activation-bundle.json\` | Bundle de licență semnat Ed25519 (install + module tokens + CRL) |
 | \`CHECKSUMS.sha256\` | SHA-256 pentru toate fișierele de mai sus |
 | \`README.md\` | Acest ghid |
 
-## 11. Suport și referințe
+## 10. Suport și referințe
 - Ghidul complet al administratorului: \`docs/administrator-guide/02-installation.md\`
+- Instalare unattended: \`opsqai-windows/docs/unattended-install.md\`
 - Runbook DR: \`docs/engineering/runbooks/dr-verify-v1.0.0.md\`
 - Instalarea este identificată de: \`${input.install_id}\`
 `;
