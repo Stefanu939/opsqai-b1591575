@@ -217,7 +217,7 @@ if (-not (Test-Path (Join-Path $caddyDir 'caddy.exe'))) {
   Fetch "https://github.com/caddyserver/caddy/releases/download/v$caddyVersion/caddy_${caddyVersion}_windows_amd64.zip" $zip
   Expand-Archive $zip -DestinationPath $caddyDir -Force
 }
-Copy-Item (Join-Path $root 'payload\caddy\Caddyfile') (Join-Path $caddyDir 'Caddyfile') -Force
+Copy-Item (Join-Path $root 'caddy-config\Caddyfile') (Join-Path $caddyDir 'Caddyfile') -Force
 
 # --- 5. PostgreSQL Portable -----------------------------------------------
 if (-not $SkipPostgres) {
