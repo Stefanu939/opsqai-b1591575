@@ -569,6 +569,7 @@ export const getKnowledgeHealth = createServerFn({ method: "POST" })
 export const listAuditCompanies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await enforceAudit(context, null);
     const { data, error } = await context.supabase.rpc("audit_companies");
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -578,6 +579,7 @@ export const listAuditUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAudit(context, (data as any)?.company_id ?? null);
     if (!data.company_id) return [];
     const { data: rows, error } = await context.supabase.rpc("audit_users", {
       p_company: data.company_id,
@@ -603,6 +605,7 @@ export const listAuditEntries = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await enforceAudit(context, (data as any)?.company_id ?? null);
     if (!data.company_id || !data.user_id) return [];
     const { data: rows, error } = await context.supabase.rpc("audit_entries", {
       p_company: data.company_id,
