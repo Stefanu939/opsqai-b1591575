@@ -4,7 +4,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { generateText } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
-import { requirePermission, resolveCompanyForWrite } from "@/lib/authorization";
+import {
+  requirePermission,
+  resolveCompanyForWrite,
+  getProfileCompany,
+} from "@/lib/authorization";
+import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+
+const ACADEMY_MODULE = "academy" as const;
 
 const MODEL = "google/gemini-3-flash-preview";
 
@@ -15,8 +22,32 @@ async function ai() {
 }
 
 async function companyForRead(context: { supabase: any; userId: string }, hint?: string | null) {
-  if (hint) return hint;
-  return await resolveCompanyForWrite(context, null);
+  const companyId = hint ?? (await resolveCompanyForWrite(context, null));
+  await assertModuleForCompany(companyId, ACADEMY_MODULE);
+  return companyId;
+}
+
+async function companyForWrite(
+  context: { supabase: any; userId: string },
+  hint?: string | null,
+) {
+  const companyId = await resolveCompanyForWrite(context, hint ?? null);
+  await assertModuleForCompany(companyId, ACADEMY_MODULE);
+  return companyId;
+}
+
+/**
+ * User-scoped Academy fns (my enrollments, my certificates, quiz attempts)
+ * don't take a company_id argument. Enforce via the caller's profile company.
+ */
+async function enforceAcademyForCurrentUser(context: { supabase: any; userId: string }) {
+  const companyId = await getProfileCompany(context.supabase, context.userId);
+  if (!companyId) {
+    // No profile company — treat as no install license, hard deny.
+    await assertModuleForCompany("00000000-0000-0000-0000-000000000000", ACADEMY_MODULE);
+    return;
+  }
+  await assertModuleForCompany(companyId, ACADEMY_MODULE);
 }
 
 /* ----------------------------- Departments ---------------------------- */
