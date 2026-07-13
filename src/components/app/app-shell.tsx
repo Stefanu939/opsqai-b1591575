@@ -13,7 +13,7 @@ import {
   BarChart3,
   ScrollText,
   UserCircle,
-  ChevronDown,
+
   Building2,
   ShieldCheck,
   Inbox,
