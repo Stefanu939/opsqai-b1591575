@@ -26,19 +26,10 @@ const GenerateInput = z.object({
   keep_previous_bundle_valid: z.boolean().default(false),
 });
 
-async function resolveLatestStableInstallerVersion(supabase: {
-  from: (t: string) => {
-    select: (c: string) => {
-      eq: (col: string, val: unknown) => {
-        eq: (col: string, val: unknown) => {
-          order: (col: string, opts: { ascending: boolean }) => {
-            limit: (n: number) => { maybeSingle: () => Promise<{ data: { version?: string } | null }> };
-          };
-        };
-      };
-    };
-  };
-}): Promise<string> {
+async function resolveLatestStableInstallerVersion(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+): Promise<string> {
   const { data } = await supabase
     .from("license_releases")
     .select("version")
@@ -47,7 +38,7 @@ async function resolveLatestStableInstallerVersion(supabase: {
     .order("published_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  return data?.version ?? "1.0.0";
+  return (data as { version?: string } | null)?.version ?? "1.0.0";
 }
 
 export const generateInstallationPackage = createServerFn({ method: "POST" })
