@@ -17,6 +17,7 @@ param(
   [switch]$Sign,
   [switch]$SkipPostgres,   # for fast dev iterations (~200 MB)
   [switch]$SkipApp,        # skip the npm build (use previously staged payload\app)
+  [switch]$SkipWizard,     # skip Electron wizard packaging (use previously staged payload\wizard)
   [string]$Version = '0.0.0-dev'
 )
 
@@ -107,6 +108,32 @@ foreach ($svc in $services) {
   Copy-Item $winswExe (Join-Path $winswDir "$svc.exe") -Force
   Copy-Item (Join-Path $root "winsw-configs\$svc.xml") (Join-Path $winswDir "$svc.xml") -Force
 }
+
+# --- 2b. Electron wizard --------------------------------------------------
+# Packages the 10-step Setup Wizard from installer\wizard\ into payload\wizard\.
+$wizardStage = Join-Path $payload 'wizard'
+if (-not $SkipWizard) {
+  $wizardSrc = Join-Path $root 'installer\wizard'
+  Write-Host "Packaging OPSQAI Setup Wizard (Electron)..."
+  Push-Location $wizardSrc
+  try {
+    if (-not (Test-Path 'node_modules')) {
+      & npm install
+      if ($LASTEXITCODE -ne 0) { throw "wizard npm install failed" }
+    }
+    Remove-Item (Join-Path $wizardSrc 'dist') -Recurse -Force -ErrorAction SilentlyContinue
+    & npm run package
+    if ($LASTEXITCODE -ne 0) { throw "wizard packaging failed" }
+    $packaged = Get-ChildItem (Join-Path $wizardSrc 'dist') -Directory | Select-Object -First 1
+    if (-not $packaged) { throw "electron-packager produced no output in $wizardSrc\dist" }
+    Remove-Item $wizardStage -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $wizardStage | Out-Null
+    Copy-Item (Join-Path $packaged.FullName '*') $wizardStage -Recurse -Force
+  } finally { Pop-Location }
+} else {
+  Write-Host "Skipping wizard packaging (--SkipWizard)"
+}
+
 
 # --- 3. Service entrypoints -----------------------------------------------
 Copy-Item -Recurse -Force (Join-Path $root 'services') (Join-Path $payload 'services')
