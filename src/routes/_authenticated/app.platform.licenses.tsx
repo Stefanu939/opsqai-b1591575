@@ -274,16 +274,24 @@ function LicensesPage() {
 
   return (
     <div className="flex-1 p-6 md:p-10 space-y-6 max-w-6xl">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
-          <KeyRound className="h-7 w-7" /> Licenses
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Two license kinds: one <strong>Installation License</strong> per install (mandatory,
-          carries seats + maintenance), and one <strong>Module License</strong> per paid add-on
-          module. Basic modules are always included.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
+            <KeyRound className="h-7 w-7" /> Licenses
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Two license kinds: one <strong>Installation License</strong> per install (mandatory,
+            carries seats + maintenance), and one <strong>Module License</strong> per paid add-on
+            module. Basic modules are always included.
+          </p>
+        </div>
+        <Button asChild className="shrink-0 gap-1.5 bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] font-semibold shadow-[0_8px_24px_-8px_rgba(201,168,76,0.45)] hover:brightness-110">
+          <Link to="/app/platform/onboarding">
+            <Plus className="h-4 w-4" /> Onboard client nou
+          </Link>
+        </Button>
       </header>
+
 
       {pubKey && (
         <Card className="p-4">
