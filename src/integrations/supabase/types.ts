@@ -1783,6 +1783,48 @@ export type Database = {
           },
         ]
       }
+      installer_releases: {
+        Row: {
+          created_at: string
+          exe_sha256: string | null
+          exe_size_bytes: number | null
+          id: string
+          is_active: boolean
+          published_at: string
+          tag_name: string
+          updated_at: string
+          version: string
+          zip_size_bytes: number | null
+          zip_url: string
+        }
+        Insert: {
+          created_at?: string
+          exe_sha256?: string | null
+          exe_size_bytes?: number | null
+          id?: string
+          is_active?: boolean
+          published_at?: string
+          tag_name: string
+          updated_at?: string
+          version: string
+          zip_size_bytes?: number | null
+          zip_url: string
+        }
+        Update: {
+          created_at?: string
+          exe_sha256?: string | null
+          exe_size_bytes?: number | null
+          id?: string
+          is_active?: boolean
+          published_at?: string
+          tag_name?: string
+          updated_at?: string
+          version?: string
+          zip_size_bytes?: number | null
+          zip_url?: string
+        }
+        Relationships: []
+      }
       internal_requests: {
         Row: {
           answer: string | null
