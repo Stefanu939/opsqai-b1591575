@@ -103,11 +103,9 @@ Section "OPSQAI Core" SEC_CORE
   !insertmacro RegisterService "OpsqaiCaddy"
   !insertmacro RegisterService "OpsqaiUpdater"
 
-  ; Launch the OPSQAI Setup Wizard (Electron, 10 steps). The wizard collects
-  ; company / admin / DB / storage / AI settings, then invokes
-  ; services\bootstrap\init.js with those values. For silent installs (/S),
-  ; the wizard is skipped and bootstrap runs with placeholder credentials so
-  ; the smoke test keeps working — an unattended-config JSON hook lands in Phase 4.
+  ; Launch the OPSQAI Setup Wizard (Electron, 10 steps) unless the operator
+  ; passed /S. For silent installs, an unattended-config JSON file may be
+  ; supplied via /CONFIG=<path>. See docs/unattended-install.md.
   IfSilent silent_bootstrap
     DetailPrint "Launching OPSQAI Setup Wizard..."
     nsExec::ExecToLog '"$INSTDIR\wizard\OPSQAI-Wizard.exe"'
@@ -118,13 +116,26 @@ Section "OPSQAI Core" SEC_CORE
     ${EndIf}
     Goto bootstrap_done
   silent_bootstrap:
-    DetailPrint "Silent install: running bootstrap with placeholder credentials..."
-    nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "ChangeMe-Silent-1234" --company "OPSQAI"'
-    Pop $0
+    ${GetParameters} $R1
+    ${GetOptions} $R1 "/CONFIG=" $R2
+    ${If} ${Errors}
+      DetailPrint "Silent install: no /CONFIG provided, using placeholders."
+      nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "ChangeMe-Silent-1234" --company "OPSQAI"'
+      Pop $0
+    ${Else}
+      DetailPrint "Silent install: applying unattended config from $R2"
+      nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\unattended.js" --config "$R2"'
+      Pop $0
+    ${EndIf}
     ${If} $0 <> 0
       DetailPrint "bootstrap returned $0 (check %ProgramData%\OPSQAI\logs)"
     ${EndIf}
   bootstrap_done:
+
+  ; Add OPSQAI tools to the machine PATH so `opsqai` / `opsqai-migrate` work.
+  EnVar::SetHKLM
+  EnVar::AddValue "Path" "$INSTDIR\tools\bin"
+  Pop $0
 
   ; --- ARP / Uninstall entry ---
   WriteRegStr HKLM "Software\OPSQAI" "InstallDir" "$INSTDIR"
