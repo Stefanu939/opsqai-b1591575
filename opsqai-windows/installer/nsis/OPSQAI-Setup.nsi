@@ -165,6 +165,22 @@ Section "OPSQAI Core" SEC_CORE
 SectionEnd
 
 ; --- Uninstall -------------------------------------------------------------
+Var KEEP_DATA
+
+Function un.onInit
+  StrCpy $KEEP_DATA "1"
+  IfSilent skip_prompt 0
+  MessageBox MB_YESNO|MB_ICONQUESTION \
+    "Keep OPSQAI application data (database, uploaded files, configuration) in %ProgramData%\OPSQAI?$\r$\n$\r$\nChoose 'No' to permanently delete everything." \
+    IDYES keep IDNO nuke
+  keep:
+    StrCpy $KEEP_DATA "1"
+    Goto skip_prompt
+  nuke:
+    StrCpy $KEEP_DATA "0"
+  skip_prompt:
+FunctionEnd
+
 Section "Uninstall"
   ; Stop in reverse dependency order.
   !insertmacro StopAndUninstallService "OpsqaiUpdater"
@@ -173,9 +189,19 @@ Section "Uninstall"
   !insertmacro StopAndUninstallService "OpsqaiPlatform"
   !insertmacro StopAndUninstallService "OpsqaiDatabase"
 
-  ; Phase 4 uninstaller adds the "keep DB / keep documents" dialog.
-  ; Phase 2 removes application binaries only; %ProgramData%\OPSQAI is preserved.
+  EnVar::SetHKLM
+  EnVar::DeleteValue "Path" "$INSTDIR\tools\bin"
+  Pop $0
+
   RMDir /r "$INSTDIR"
+
+  ${If} $KEEP_DATA == "0"
+    ReadEnvStr $R0 "ProgramData"
+    ${If} $R0 == ""
+      StrCpy $R0 "C:\ProgramData"
+    ${EndIf}
+    RMDir /r "$R0\OPSQAI"
+  ${EndIf}
 
   DeleteRegKey HKLM "Software\OPSQAI"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OPSQAI"
