@@ -380,6 +380,9 @@ export function assembleInstallationPackage(input: BuildPackageInput): BuiltPack
 
   const files: Record<string, Uint8Array> = {
     "install.sh": strToU8(INSTALL_SH),
+    "install.exe": b64ToBytes(INSTALL_EXE_B64),
+    "install-macos": b64ToBytes(INSTALL_MACOS_B64),
+    "install-linux": b64ToBytes(INSTALL_LINUX_B64),
     "docker-compose.yml": strToU8(substitutions(DOCKER_COMPOSE_TEMPLATE)),
     ".env.template": strToU8(substitutions(ENV_TEMPLATE)),
     "entrypoint.sh": strToU8(ENTRYPOINT_SH),
