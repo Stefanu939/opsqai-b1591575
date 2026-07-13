@@ -1,0 +1,101 @@
+name: Build Windows installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver, for example 1.0.0"
+        required: true
+      sign:
+        description: "Sign with a configured Windows signing runner/cert"
+        type: boolean
+        default: false
+  push:
+    tags:
+      - "win-v*"
+
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install NSIS
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+
+      - name: Add NSIS to PATH
+        shell: pwsh
+        run: |
+          "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append
+          "C:\Program Files\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = '${{ inputs.version }}'
+          if (-not $v) { $v = ('${{ github.ref_name }}' -replace '^win-v','') }
+          if (-not $v) { $v = '1.0.0' }
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Restore updater public key
+        shell: pwsh
+        working-directory: opsqai-windows
+        env:
+          OPSQAI_UPDATER_PUBKEY: ${{ secrets.OPSQAI_UPDATER_PUBKEY }}
+        run: |
+          if (-not $env:OPSQAI_UPDATER_PUBKEY) {
+            Write-Warning "OPSQAI_UPDATER_PUBKEY is not configured; creating a Debug-only artifact."
+            exit 0
+          }
+          New-Item -ItemType Directory -Force -Path payload\updater | Out-Null
+          $env:OPSQAI_UPDATER_PUBKEY | Set-Content -Path payload\updater\pubkey.pem -Encoding ascii
+
+      - name: Build installer
+        shell: pwsh
+        working-directory: opsqai-windows
+        run: |
+          $config = 'Debug'
+          if (Test-Path payload\updater\pubkey.pem) { $config = 'Release' }
+          pwsh ./build/build.ps1 -Configuration $config -Version '${{ steps.ver.outputs.version }}'
+
+      - name: Sign installer when requested
+        if: ${{ inputs.sign == true }}
+        shell: pwsh
+        run: |
+          signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a opsqai-windows/build/artifacts/OPSQAI-Setup.exe
+          signtool.exe verify /pa /v opsqai-windows/build/artifacts/OPSQAI-Setup.exe
+
+      - name: Verify installer size
+        shell: pwsh
+        run: |
+          $exe = 'opsqai-windows/build/artifacts/OPSQAI-Setup.exe'
+          if (-not (Test-Path $exe)) { throw "Installer was not produced" }
+          $size = (Get-Item $exe).Length
+          if ($size -lt 50MB) { throw "Installer is too small ($([Math]::Round($size / 1MB, 1)) MB); refusing to upload stub" }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OPSQAI-Setup-${{ steps.ver.outputs.version }}
+          path: opsqai-windows/build/artifacts/OPSQAI-Setup.exe
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/win-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: opsqai-windows/build/artifacts/OPSQAI-Setup.exe

@@ -132,10 +132,9 @@ Section "OPSQAI Core" SEC_CORE
     ${EndIf}
   bootstrap_done:
 
-  ; Add OPSQAI tools to the machine PATH so `opsqai` / `opsqai-migrate` work.
-  EnVar::SetHKLM
-  EnVar::AddValue "Path" "$INSTDIR\tools\bin"
-  Pop $0
+  ; OPSQAI tools are installed under $INSTDIR\tools\bin. Operators can run
+  ; them by full path; avoiding a PATH mutation keeps the installer independent
+  ; of optional NSIS plugins on clean CI runners.
 
   ; --- ARP / Uninstall entry ---
   WriteRegStr HKLM "Software\OPSQAI" "InstallDir" "$INSTDIR"
@@ -188,10 +187,6 @@ Section "Uninstall"
   !insertmacro StopAndUninstallService "OpsqaiWorker"
   !insertmacro StopAndUninstallService "OpsqaiPlatform"
   !insertmacro StopAndUninstallService "OpsqaiDatabase"
-
-  EnVar::SetHKLM
-  EnVar::DeleteValue "Path" "$INSTDIR\tools\bin"
-  Pop $0
 
   RMDir /r "$INSTDIR"
 

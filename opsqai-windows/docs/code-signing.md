@@ -16,9 +16,6 @@ SmartScreen and Defender warnings that block adoption at scale.
    - Node.js 20.x LTS + npm (for `npm run build:selfhosted` and the Electron
      wizard packaging step).
    - NSIS 3.09+ (add `makensis.exe` to `PATH`).
-   - **NSIS `EnVar` plugin** — required for the installer's `%PATH%` edits.
-     Extract to `%ProgramFiles(x86)%\NSIS\Plugins\x86-unicode\`. Source:
-     <https://nsis.sourceforge.io/EnVar_plug-in>.
    - `openssl.exe` on `PATH` — only used by `build.ps1` to generate a
      DEV-ONLY updater key when `payload\updater\pubkey.pem` is missing.
      Not required on the signing runner (which restores the real key
