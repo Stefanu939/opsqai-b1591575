@@ -7,7 +7,24 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { requirePermission, resolveCompanyForWrite } from "@/lib/authorization";
+import {
+  requirePermission,
+  resolveCompanyForWrite,
+  getProfileCompany,
+} from "@/lib/authorization";
+import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+
+const ACADEMY_MODULE = "academy" as const;
+
+async function enforceAcademy(context: { supabase: any; userId: string }, hint?: string | null) {
+  const companyId = hint ?? (await getProfileCompany(context.supabase, context.userId));
+  if (!companyId) {
+    await assertModuleForCompany("00000000-0000-0000-0000-000000000000", ACADEMY_MODULE);
+    return null;
+  }
+  await assertModuleForCompany(companyId, ACADEMY_MODULE);
+  return companyId;
+}
 
 /* ============================================================
  * LEARNER SIDE
