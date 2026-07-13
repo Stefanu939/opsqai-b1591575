@@ -13,12 +13,5 @@ export default defineConfig({
   },
   vite: {
     plugins: [mcpPlugin()],
-    ssr: {
-      // pdf-lib's ESM build imports named helpers from tslib (`import { __extends } from "tslib"`).
-      // In the SSR bundle these get wrapped with CJS interop and fail at runtime with
-      // `Cannot destructure property '__extends' of '__toESM(...).default' as it is undefined`.
-      // Forcing them to be bundled keeps the named ESM imports intact.
-      noExternal: ["pdf-lib", "tslib"],
-    },
   },
 });
