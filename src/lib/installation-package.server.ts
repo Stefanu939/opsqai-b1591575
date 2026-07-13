@@ -23,7 +23,7 @@ import installLinuxAsset from "@/assets/install-linux.asset.json";
 // generated ZIP embeds them verbatim.
 const binaryCache = new Map<string, Uint8Array>();
 
-async function fetchAsset(url: string): Promise<Uint8Array> {
+async function fetchAsset(url: string, localFallback: string): Promise<Uint8Array> {
   const cached = binaryCache.get(url);
   if (cached) return cached;
   const origin =
@@ -31,11 +31,25 @@ async function fetchAsset(url: string): Promise<Uint8Array> {
       ? process.env.OPSQAI_ASSET_ORIGIN
       : "";
   const fullUrl = url.startsWith("http") ? url : `${origin}${url}`;
-  const res = await fetch(fullUrl);
-  if (!res.ok) throw new Error(`Failed to fetch installer asset ${url}: ${res.status}`);
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  binaryCache.set(url, bytes);
-  return bytes;
+  try {
+    const res = await fetch(fullUrl);
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    binaryCache.set(url, bytes);
+    return bytes;
+  } catch (fetchErr) {
+    // Vitest / local Node runs have no origin to resolve /__l5e/ URLs against.
+    // Fall back to reading the pre-built binary from installer/dist/ so tests
+    // and dev builds work without a live CDN.
+    try {
+      const { readFileSync } = await import("node:fs");
+      const bytes = new Uint8Array(readFileSync(localFallback));
+      binaryCache.set(url, bytes);
+      return bytes;
+    } catch {
+      throw new Error(`Failed to fetch installer asset ${url}: ${(fetchErr as Error).message}`);
+    }
+  }
 }
 
 
