@@ -18,4 +18,24 @@ if [ "${OPSQAI_MODE:-cloud}" = "selfhost" ] && [ -z "${OPSQAI_INSTALL_ID:-}" ]; 
   exit 1
 fi
 
+# Source runtime secrets written by the first-run wizard (Phase 5).
+# The file is chmod 600, owned by the container's runtime user, and lives
+# on the customer-owned data volume (so backups pick it up alongside the
+# database — see docs/security-documentation/07-backup-security.md).
+#
+# Contents are shell-safe KEY='value' pairs and MUST NOT be logged. If the
+# file is missing (fresh install before the wizard has run) we continue
+# silently; the wizard populates it before the first real workload.
+SECRETS_FILE="${OPSQAI_SECRETS_ENV_PATH:-/var/lib/opsqai/secrets.env}"
+if [ -r "$SECRETS_FILE" ]; then
+  # shellcheck disable=SC1090
+  set -a
+  . "$SECRETS_FILE"
+  set +a
+  echo "[opsqai] loaded runtime secrets from $SECRETS_FILE"
+else
+  echo "[opsqai] no runtime secrets file at $SECRETS_FILE (first-run wizard not yet completed?)"
+fi
+
 exec "$@"
+
