@@ -177,7 +177,7 @@ function metaRow(ctx: Ctx, label: string, value: string): void {
     x: MARGIN_X + 90,
     y: ctx.y - size,
     size,
-    font: ctx.monoBold,
+    font: ctx.bold,
     color: INK,
   });
   ctx.y -= size + 5;
