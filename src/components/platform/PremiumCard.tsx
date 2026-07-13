@@ -1,7 +1,7 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-interface PremiumCardProps extends HTMLAttributes<HTMLDivElement> {
+interface PremiumCardProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   eyebrow?: string;
   title?: ReactNode;
   action?: ReactNode;
