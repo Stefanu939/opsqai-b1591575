@@ -347,9 +347,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       show: mcAdmin,
       module: null,
     },
+    {
+      to: "/app/admin/monitoring",
+      label: "Monitoring",
+      icon: Activity,
+      show: mcAdmin,
+      module: null,
+    },
   ];
 
-  const mcCommercial: NavItem[] = mcAdmin
+  const mcEnterprise: NavItem[] = mcAdmin
     ? [
         {
           to: "/app/admin/companies",
@@ -366,8 +373,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           module: null,
         },
         {
-          to: "/app/admin/subscriptions",
-          label: "Orders & Subscriptions",
+          to: "/app/admin/contacts",
+          label: "Contacts",
+          icon: Users,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/installations",
+          label: "Installations",
           icon: Package,
           show: true,
           module: null,
@@ -389,6 +403,53 @@ export function AppShell({ children }: { children: ReactNode }) {
           to: "/app/platform/license-activation",
           label: "Activation Bundles",
           icon: Package,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/module-catalog",
+          label: "Module Catalog",
+          icon: ClipboardCheck,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/release-management",
+          label: "Release Management",
+          icon: Rocket,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/maintenance",
+          label: "Maintenance",
+          icon: Wrench,
+          show: true,
+          module: null,
+        },
+      ]
+    : [];
+
+  const mcCommercial: NavItem[] = mcAdmin
+    ? [
+        {
+          to: "/app/admin/subscriptions",
+          label: "Orders & Subscriptions",
+          icon: Package,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/billing",
+          label: "Billing",
+          icon: KeyRound,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/downloads",
+          label: "Downloads",
+          icon: Download,
           show: true,
           module: null,
         },
@@ -479,6 +540,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         },
       ]
     : [];
+
 
   const filterNav = (items: NavItem[]) => items.filter((i) => i.show && gate(i.module ?? null));
 
