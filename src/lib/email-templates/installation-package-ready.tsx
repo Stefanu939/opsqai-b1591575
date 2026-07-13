@@ -25,7 +25,7 @@ const Email = (p: Props) => (
       { label: "Link expires", value: p.expiresAt ?? "in 24 hours" },
     ]}
     cta={{ label: "Download installation package", url: p.downloadUrl ?? `${APP_URL}/portal/downloads` }}
-    footer="If the link has expired, sign in to the Customer Portal and download from there. Every download is logged for audit."
+    notice="If this link has expired, sign in to the Customer Portal and download from there. Every download is logged for audit."
   />
 );
 
