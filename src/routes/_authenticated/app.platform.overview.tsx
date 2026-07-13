@@ -82,13 +82,14 @@ function OverviewSkeleton() {
 }
 
 function OverviewContent() {
-  const fetchStats = useServerFn(getPlatformOverviewStats);
-  const { data } = useSuspenseQuery({
+  const fetchStats = useServerFn(getPlatformOverviewStats) as unknown as () => Promise<
+    import("@/lib/platform-overview.functions").OverviewStats
+  >;
+  const { data } = useSuspenseQuery<
+    import("@/lib/platform-overview.functions").OverviewStats
+  >({
     queryKey: ["platform-overview-stats"],
-    queryFn: () =>
-      (fetchStats as unknown as () => Promise<
-        import("@/lib/platform-overview.functions").OverviewStats
-      >)(),
+    queryFn: () => fetchStats(),
     staleTime: 60_000,
   });
 
