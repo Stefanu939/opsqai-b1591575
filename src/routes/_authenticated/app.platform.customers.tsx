@@ -148,12 +148,12 @@ function CustomersMc() {
       </header>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <KpiCard label="Clienți" value={String(platStats?.total_companies ?? 0)} icon={Building2} />
-        <KpiCard label="Active" value={String(platStats?.active_companies ?? 0)} icon={Power} />
-        <KpiCard label="Utilizatori" value={String(platStats?.total_users ?? 0)} icon={Users} />
-        <KpiCard label="Documente" value={String(platStats?.total_documents ?? 0)} icon={FileText} />
+        <KpiCard eyebrow="Clienți" value={String(platStats?.total_companies ?? 0)} icon={Building2} />
+        <KpiCard eyebrow="Active" value={String(platStats?.active_companies ?? 0)} icon={Power} />
+        <KpiCard eyebrow="Utilizatori" value={String(platStats?.total_users ?? 0)} icon={Users} />
+        <KpiCard eyebrow="Documente" value={String(platStats?.total_documents ?? 0)} icon={FileText} />
         <KpiCard
-          label="Întrebări"
+          eyebrow="Întrebări"
           value={String(platStats?.total_questions ?? 0)}
           icon={MessageSquare}
         />
