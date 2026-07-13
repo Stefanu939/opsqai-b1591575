@@ -29,6 +29,12 @@ export interface SetupStep {
 
 export const SETUP_STEPS: readonly SetupStep[] = [
   {
+    id: "eula_accepted",
+    label: "EULA accepted",
+    description: "The customer accepted the OPSQAI End-User License Agreement during first-run setup.",
+  },
+
+  {
     id: "db_ok",
     label: "Database reachable",
     description: "PostgreSQL responds to a health query and required extensions are present.",
