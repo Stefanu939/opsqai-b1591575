@@ -96,7 +96,7 @@ function drawParagraph(
 function h1(ctx: Ctx, text: string): void {
   ensureSpace(ctx, 32);
   ctx.y -= 6;
-  ctx.page.drawText(text, { x: MARGIN_X, y: ctx.y - 18, size: 18, font: ctx.bold, color: INK });
+  ctx.page.drawText(ascii(text), { x: MARGIN_X, y: ctx.y - 18, size: 18, font: ctx.bold, color: INK });
   ctx.y -= 22;
   ctx.page.drawLine({
     start: { x: MARGIN_X, y: ctx.y },
