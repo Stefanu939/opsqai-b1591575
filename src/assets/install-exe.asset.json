@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "asset_id": "9bc60aaf-85ab-4248-8b46-fc20c3298347",
+  "asset_id": "4261c348-aeba-4cb6-b02c-d8a9ea4ac23b",
   "project_id": "f240a152-3cd5-4434-8c7a-431a89786ec8",
-  "url": "/__l5e/assets-v1/9bc60aaf-85ab-4248-8b46-fc20c3298347/install.exe",
-  "r2_key": "a/v1/f240a152-3cd5-4434-8c7a-431a89786ec8/9bc60aaf-85ab-4248-8b46-fc20c3298347/install.exe",
-  "original_filename": "install.exe",
-  "size": 5923840,
+  "url": "/__l5e/assets-v1/4261c348-aeba-4cb6-b02c-d8a9ea4ac23b/OPSQAI-Setup.exe",
+  "r2_key": "a/v1/f240a152-3cd5-4434-8c7a-431a89786ec8/4261c348-aeba-4cb6-b02c-d8a9ea4ac23b/OPSQAI-Setup.exe",
+  "original_filename": "OPSQAI-Setup.exe",
+  "size": 328988255,
   "content_type": "application/octet-stream",
-  "created_at": "2026-07-13T05:41:42Z"
+  "created_at": "2026-07-13T15:38:28Z"
 }
