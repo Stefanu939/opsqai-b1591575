@@ -20,6 +20,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -209,6 +210,11 @@ const HelpRoute = HelpRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FirstRunRoute = FirstRunRouteImport.update({
+  id: '/first-run',
+  path: '/first-run',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturesRoute = FeaturesRouteImport.update({
@@ -962,6 +968,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
   '/features': typeof FeaturesRoute
+  '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
@@ -1109,6 +1116,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
   '/features': typeof FeaturesRoute
+  '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
@@ -1253,6 +1261,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
   '/features': typeof FeaturesRoute
+  '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
@@ -1402,6 +1411,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/docs'
     | '/features'
+    | '/first-run'
     | '/forgot-password'
     | '/help'
     | '/industries'
@@ -1549,6 +1559,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/docs'
     | '/features'
+    | '/first-run'
     | '/forgot-password'
     | '/help'
     | '/industries'
@@ -1692,6 +1703,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/docs'
     | '/features'
+    | '/first-run'
     | '/forgot-password'
     | '/help'
     | '/industries'
@@ -1841,6 +1853,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DocsRoute: typeof DocsRoute
   FeaturesRoute: typeof FeaturesRoute
+  FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HelpRoute: typeof HelpRoute
   IndustriesRoute: typeof IndustriesRoute
@@ -1965,6 +1978,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/first-run': {
+      id: '/first-run'
+      path: '/first-run'
+      fullPath: '/first-run'
+      preLoaderRoute: typeof FirstRunRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -3225,6 +3245,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DocsRoute: DocsRoute,
   FeaturesRoute: FeaturesRoute,
+  FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HelpRoute: HelpRoute,
   IndustriesRoute: IndustriesRoute,
