@@ -1,100 +1,84 @@
-# Mission Control — Onboarding premium & shell navigabil
+# MC — consolidare & un singur design
 
-## Direcție vizuală (locked)
+## De ce
+Momentan MC arată în două designuri pentru că sidebar-ul Noir & Gold linkează spre pagini care trăiesc în shell-ul `/app/admin/*` (temă generală, light). Când dai click pe „Clienți" sau „Instalări" ești aruncat în alt shell.
 
-- **Paletă Noir & Gold**: fundal `#0d0d0d`, suprafețe `#1a1a1a`/`#242424`, accent auriu `#c9a84c`, glow `#f0d78c`. Text primar off-white `#f5f0e0`, muted `#8a8578`.
-- **Tipografie**: Urbanist (headings, tracking strâns, uppercase pentru labels) + Epilogue (body, tabular numerals pentru cifre).
-- **Densitate 5 (Bloomberg-style)**: multe carduri simultan, grid-uri 3–4 coloane, sparklines inline, tabele compacte, KPI-uri stacked. Fără spații mari goale.
-- **Efecte premium**:
-  - Butoane cu shadow dublu (`0 1px 0 rgba(255,255,255,.05) inset, 0 8px 24px -8px rgba(201,168,76,.45)`).
-  - Carduri cu border `1px solid rgba(201,168,76,.15)`, hover ridicat `translateY(-2px)` + glow auriu.
-  - Hover popovers (shadcn HoverCard) pe fiecare KPI, buton acțiune și rând din tabel — arată context (definiție, sursă, trend, quick actions).
-  - Gradient hairline auriu deasupra cardurilor importante.
-  - Micro-animații fade-in + scale-in la mount.
+În plus, mai multe module fac același lucru:
+- **Customers vs Companies** — două pagini pentru aceeași entitate (tenant).
+- **Licenses vs Subscriptions** — licența și facturarea sunt cuplate, dar apar în două ecrane.
+- **Setup vs Releases** — în sidebar sunt două intrări care duc la aceeași rută.
+- **Onboarding wizard vs "adaugă client" manual în admin/customers vs create-license în admin/subscriptions** — trei căi pentru aceeași operație.
+- **Admin/platform tiles page** — duplică sidebar-ul MC.
 
-Tokens noi în `src/styles.css` (`--gold`, `--gold-glow`, `--surface-1/2/3`, `--shadow-premium`, `--shadow-gold`, `--gradient-gold`) + variante `premium` pe Button și Card.
+## 1. Design — un singur set de culori
+Păstrăm **Noir & Gold** (mai premium, editorial). Îl impunem pe TOT ce se accesează din sidebar-ul MC. Shell-ul `.mc-shell` devine obligatoriu pentru orice rută `/app/platform/*`. Nicio pagină linkată din MC sidebar nu mai trăiește în tema veche.
 
-## Shell MC navigabil
+`/app/admin/*` rămâne pentru admin-ul din workspace-ul clientului (users, ai-audit, knowledge-gaps, sop-generator, academy, integrations, sso, webhooks, api-keys, email, audit-tenant) — acolo tema generală e ok, e alt public.
 
-Refactor `src/routes/_authenticated/app.platform.tsx` (layout) → sidebar premium fix + topbar.
+## 2. Consolidări de module
+
+### Combinate
+- **Clienți** = `admin/customers` + `admin/companies` → `/app/platform/customers`
+  Un singur tabel (search, filter, tier), drawer/detaliu cu tab-uri: *Profile · Timeline · Compliance · Licenses · Support*.
+- **Licențe & Billing** = `platform/licenses` + `admin/subscriptions` → `/app/platform/licenses`
+  Tabel + drawer detaliu cu tab-uri: *License · Modules · Installs · Billing (grace/renewal/payment) · Events*.
+- **Releases** = fostul dublu-entry "Releases + Setup" → o singură rută `/app/platform/releases` (versiuni installer). Setup MC devine `/app/platform/settings`.
+- **Onboarding** rămâne unica cale pentru "client nou + licență + pachet + email". Butonul manual "add license" din admin/subscriptions dispare; se face doar prin wizard.
+
+### Mutate în MC (aceeași funcționalitate, doar shell-ul se schimbă)
+- `admin/platform` heartbeat/installs → `/app/platform/installs`
+- `admin/support` → `/app/platform/support` (view platform-wide, toate tenants)
+- `admin/platform-admins` → `/app/platform/team`
+- `admin/audit` (view platform-wide) → `/app/platform/audit`
+
+### Scoase din MC
+- `admin/platform` tiles landing → **șters** (sidebar-ul MC îl înlocuiește).
+- Duplicat sidebar "Releases" vs "Setup" pe aceeași rută → **fixat**.
+- Butonul "adaugă licență manual" din pagina veche subscriptions → **scos**, redirect la wizard.
+
+### Backend: consolidare funcții (partea despre care ai spus data trecută)
+- `onboardCustomer` devine singurul orchestrator (create tenant + issue license + generate package + email). Îl folosesc și seed-urile.
+- `TIER_PRESETS` din `license-modules.ts` devine sursa unică; se elimină hardcodările duplicate din admin/subscriptions și admin/customers.
+- Un singur `sendLicenseBundleEmail` (înlocuiește cele 2 variante actuale).
+
+## 3. Sidebar MC final
 
 ```text
-┌─ TOPBAR ─────────────────────────────────────────────────┐
-│ [OPSQAI] search…   env·prod   ⌘K   notif  user ▾         │
-├──────────┬───────────────────────────────────────────────┤
-│ SIDEBAR  │  Breadcrumb › Platform › Onboarding           │
-│          │                                               │
-│ Overview │  <Outlet />                                   │
-│ Onboard  │                                               │
-│ Clients  │                                               │
-│ Licenses │                                               │
-│ Orders   │                                               │
-│ Releases │                                               │
-│ Installs │                                               │
-│ Billing  │                                               │
-│ Settings │                                               │
-└──────────┴───────────────────────────────────────────────┘
+Mission Control
+├── Growth
+│   ├── Overview
+│   ├── Onboarding
+│   └── Clienți
+├── Operations
+│   ├── Licențe & Billing
+│   ├── Instalări
+│   ├── Releases
+│   ├── Support
+│   └── Doctor
+└── System
+    ├── Team
+    ├── Audit log
+    ├── Recovery
+    └── Settings
 ```
 
-- `AppSidebar` premium: collapsible icon-only, secțiuni grupate (Growth / Operations / System), badge auriu pe item activ, hover reveal descriere.
-- Topbar: căutare globală ⌘K (stub), selector environment, avatar cu meniu.
-- Breadcrumb auto din matches TanStack Router.
+## 4. Ordine de execuție (2 pași mari)
 
-## `/app/platform/overview` — dashboard premium
+**Pas A — design unificat + mutări pure de shell (zero risc funcțional)**
+- Mut pagini existente sub `/app/platform/*` cu wrapper `.mc-shell`.
+- Redirect-uri de la vechile rute `/app/admin/{customers,companies,subscriptions,platform,platform-admins,support,audit}` → noile locuri, ca linkurile vechi să nu se rupă.
+- Fix duplicatul Releases/Setup din sidebar.
+- Șterg `admin/platform` tiles page.
 
-Ecran nou dens, cu carduri și charts (nu doar linii):
+**Pas B — consolidări reale**
+- Merge Customers + Companies (un tabel + drawer cu tab-uri).
+- Merge Licenses + Subscriptions (drawer cu tab Billing).
+- Refactor backend: un singur `onboardCustomer`, un singur `TIER_PRESETS`, un singur email helper.
+- Scot butoanele manuale duplicate, las doar wizard-ul.
 
-- **4 KPI carduri sus** (Recharts sparkline embed): MRR, Licențe active, Instalări self-hosted online, Trials expirând. Fiecare cu HoverCard: definiție + comparație lună precedentă.
-- **Row 2**: 
-  - `AreaChart` gradient auriu — evoluție licențe pe tier (basic/pro/enterprise stack).
-  - `RadialBarChart` — mix pe tier (%).
-  - `BarChart` — instalări noi/săptămână.
-- **Row 3**:
-  - Tabel compact "Ultimele onboarding-uri" (7 rânduri, hover row → quick actions popover).
-  - Card "Heartbeat health" — donut + listă instalări offline.
-  - Card "Releases live" — versiune curentă + linkuri.
+## Ce NU atingem
+- Modulele per-tenant (users, ai-audit, academy, sop-generator, knowledge-gaps, analytics, integrations, sso, webhooks, api-keys, email settings) — sunt pentru workspace admin, nu pentru MC. Rămân în `/app/admin/*` cu tema generală.
+- Self-hosted (Windows) — separat, nu se atinge.
+- Auth, RLS, migrations de bază de date.
 
-## `/app/platform/onboarding` — Wizard 4 pași (premium)
-
-Reia planul aprobat, îmbrăcat premium:
-
-- **Layout**: stepper orizontal sus (4 pin-uri aurii cu tick), card mare central (`surface-2`), sidebar rezumat live dreapta (client, tier, module, seats, preț estimat).
-- **Step 1 — Client & tier**: form dens, radio-card pentru tier (3 carduri side-by-side cu iconă, preț, module incluse listate cu ✓, hover → tooltip module description).
-- **Step 2 — Add-ons**: matrice module (checkbox-cards grid 3 col), fiecare cu hover popover (ce face modulul, dependințe).
-- **Step 3 — Emitere**: progress bar auriu cu 3 sub-taskuri (Issue license → Generate package → Sign bundle), fiecare cu spinner/tick.
-- **Step 4 — Livrare**: card cu preview email, buton "Trimite email" (shadow premium), fallback "Copiază link + PIN" cu HoverCard explicativ.
-
-## Server (fără schimbări backend majore)
-
-- `src/lib/onboarding.functions.ts` — `onboardCustomer` compune `issueLicense` + `generateInstallationPackage` (fără rollback pe generation fail).
-- `src/lib/license-modules.ts` — `TIER_PRESETS` (Basic/Pro/Enterprise → module + seats + 12 luni).
-- Query nou pentru overview: `getPlatformOverviewStats` (KPI + serii timeline agregate din `licenses`, `license_installs`, `license_orders`).
-
-## Fișiere atinse
-
-**Noi**
-- `src/routes/_authenticated/app.platform.overview.tsx`
-- `src/routes/_authenticated/app.platform.onboarding.tsx`
-- `src/components/platform/AppSidebar.tsx`
-- `src/components/platform/PlatformTopbar.tsx`
-- `src/components/platform/KpiCard.tsx`, `PremiumCard.tsx`, `SparkChart.tsx`
-- `src/components/platform/onboarding/{Stepper,Step1Client,Step2Addons,Step3Emit,Step4Deliver,SummaryRail}.tsx`
-- `src/lib/onboarding.functions.ts`
-- `src/lib/platform-overview.functions.ts`
-- `src/lib/license-modules.ts` (constante TIER_PRESETS)
-
-**Modificate**
-- `src/styles.css` — tokens Noir & Gold, `@theme inline` mapping, utilities `.shadow-premium`, `.shadow-gold`, `.gradient-gold`, `.hairline-gold`.
-- `src/routes/__root.tsx` — link Google Fonts Urbanist + Epilogue.
-- `src/routes/_authenticated/app.platform.tsx` — shell nou cu sidebar + topbar.
-- `src/routes/_authenticated/app.platform.licenses.tsx` — buton primar "Onboard client nou" → `/app/platform/onboarding`.
-- `src/components/ui/button.tsx`, `card.tsx` — variantă `premium`.
-
-## Ce NU face acest plan
-
-- Nu schimbă backend-ul de licențiere / bundle signing.
-- Nu atinge portalul client sau self-hosted UI.
-- Nu implementează ⌘K funcțional (doar shell vizual).
-- Nu adaugă billing/facturare — doar item în sidebar (disabled/coming soon).
-
-Confirmi și trec pe build?
+Confirmi și încep cu Pasul A?
