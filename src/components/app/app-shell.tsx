@@ -134,6 +134,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   // ---- Self-hosted (customer operational) navigation ----
+  // Basic bundle (always visible): Overview, Chat, KB, FAQ, Knowledge Gaps,
+  // AI Audit, Users, Subscription. Every other admin/operational item is
+  // hidden until the customer licenses the matching module (gate via
+  // `module` key + `filterNav`). No item definitions are removed — only the
+  // gate values decide visibility.
   const selfhostWorkspace: NavItem[] = [
     {
       to: "/app",
@@ -151,13 +156,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       module: "chat",
     },
     {
-      to: "/app/workspace",
-      label: t("workspace"),
-      icon: Sparkles,
-      show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
-      module: null,
-    },
-    {
       to: "/app/knowledge",
       label: t("knowledge"),
       icon: BookOpen,
@@ -170,6 +168,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       icon: HelpCircle,
       show: hasAnyPermission("faq.read", "faq.edit"),
       module: "faq",
+    },
+    {
+      to: "/app/workspace",
+      label: t("workspace"),
+      icon: Sparkles,
+      show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
+      module: "ai_workspace_audit",
     },
     {
       to: "/app/requests",
@@ -185,22 +190,43 @@ export function AppShell({ children }: { children: ReactNode }) {
       show: hasPermission("academy.learn"),
       module: "academy",
     },
+    {
+      to: "/app/subscription",
+      label: "Subscription",
+      icon: Package,
+      show: true,
+      module: null,
+    },
   ];
 
   const selfhostAdmin: NavItem[] = [
+    {
+      to: "/app/admin/knowledge-gaps",
+      label: "Knowledge Gaps",
+      icon: AlertTriangle,
+      show: hasAnyPermission("knowledge.manage", "analytics.view"),
+      module: null, // Basic per business rule
+    },
+    {
+      to: "/app/admin/ai-audit",
+      label: "AI Audit",
+      icon: LineChart,
+      show: hasPermission("ai_audit.run"),
+      module: null, // Basic per business rule
+    },
+    {
+      to: "/app/admin/users",
+      label: t("users"),
+      icon: Users,
+      show: hasAnyPermission("user.create", "user.update", "user.delete"),
+      module: null, // Basic per business rule
+    },
     {
       to: "/app/admin/command-center",
       label: "Command Center",
       icon: LayoutDashboard,
       show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"),
       module: "executive_dashboard",
-    },
-    {
-      to: "/app/admin/knowledge-gaps",
-      label: "Knowledge Gaps",
-      icon: AlertTriangle,
-      show: hasAnyPermission("knowledge.manage", "analytics.view"),
-      module: "knowledge_gaps",
     },
     {
       to: "/app/admin/sop-generator",
@@ -221,28 +247,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: "Analytics",
       icon: BarChart3,
       show: hasPermission("analytics.view"),
-      module: null,
-    },
-    {
-      to: "/app/admin/ai-audit",
-      label: "AI Audit",
-      icon: LineChart,
-      show: hasPermission("ai_audit.run"),
-      module: "audit_log",
-    },
-    {
-      to: "/app/admin/users",
-      label: t("users"),
-      icon: Users,
-      show: hasAnyPermission("user.create", "user.update", "user.delete"),
-      module: null,
+      module: "analytics",
     },
     {
       to: "/app/admin/integrations",
       label: "Integrations",
       icon: Sparkles,
       show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: null,
+      module: "rbac",
     },
     {
       to: "/app/admin/sso-setup",
@@ -256,14 +268,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: "Webhooks",
       icon: Webhook,
       show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: null,
+      module: "rbac",
     },
     {
       to: "/app/admin/api-keys",
       label: "API keys",
       icon: KeyRound,
       show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: null,
+      module: "rbac",
     },
     {
       to: "/app/brand",
@@ -307,6 +319,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           },
         ]
       : [];
+
 
   // ---- Management Center (platform management ONLY) navigation ----
   const mcAdmin = isPlatformAdmin || isPlatformOwner;
