@@ -49,16 +49,24 @@ export const SHARED_PREFIXES: readonly string[] = [
 export const MC_ONLY_PREFIXES: readonly string[] = [
   "/app/admin/dashboard",
   "/app/admin/companies",
-  "/app/admin/customers", // Enterprise Documents / customer registry
-  "/app/admin/subscriptions", // Orders / Subscriptions
-  "/app/admin/support", // Support Inbox
+  "/app/admin/customers",
+  "/app/admin/contacts",
+  "/app/admin/installations",
+  "/app/admin/subscriptions",
+  "/app/admin/billing",
+  "/app/admin/downloads",
+  "/app/admin/monitoring",
+  "/app/admin/maintenance",
+  "/app/admin/module-catalog",
+  "/app/admin/release-management",
+  "/app/admin/support",
   "/app/admin/email",
   "/app/admin/email-logs",
-  "/app/admin/platform", // Platform Administration
-  "/app/admin/platform-admins", // Super Admins
-  "/app/admin/audit", // Platform audit (MC-only per spec)
-  "/app/platform/licenses", // Licenses, Activation Bundles, Releases, Installations, Signing Keys
-  "/portal", // Customer Portal (hosted MC)
+  "/app/admin/platform",
+  "/app/admin/platform-admins",
+  "/app/admin/audit",
+  "/app/platform/licenses",
+  "/portal",
 ];
 
 /**
