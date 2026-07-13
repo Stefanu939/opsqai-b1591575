@@ -2,13 +2,6 @@ import { describe, it, expect } from "vitest";
 import { assembleInstallationPackage } from "@/lib/installation-package.server";
 import { unzipSync, strFromU8 } from "fflate";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
-import { mkdirSync, writeFileSync } from "node:fs";
-
-mkdirSync("opsqai-windows/build/artifacts", { recursive: true });
-writeFileSync(
-  "opsqai-windows/build/artifacts/OPSQAI-Setup.exe",
-  new Uint8Array([0x4d, 0x5a, 0x90, 0x00]),
-);
 
 function fakeBundle(install_id: string): ActivationBundle {
   return {
@@ -23,7 +16,7 @@ function fakeBundle(install_id: string): ActivationBundle {
   };
 }
 
-describe("assembleInstallationPackage (Windows-only)", () => {
+describe("assembleInstallationPackage (Windows-only, license bundle)", () => {
   const input = {
     install_id: "acme-prod",
     installer_version: "1.0.0",
@@ -32,17 +25,23 @@ describe("assembleInstallationPackage (Windows-only)", () => {
     license_server_url: "https://opsqai.de",
   };
 
-  it("produces a Windows-only ZIP with exactly the expected files", async () => {
-    const { bytes, file_name, checksum_sha256 } = await assembleInstallationPackage(input);
+  it("produces a small ZIP with license bundle + installer pointer (no .exe embedded)", async () => {
+    const { bytes, file_name, checksum_sha256, installer_url } =
+      await assembleInstallationPackage(input);
     expect(bytes.byteLength).toBeGreaterThan(100);
+    expect(bytes.byteLength).toBeLessThan(200_000); // small — no .exe inside
     expect(file_name).toBe("opsqai-1.0.0-acme-prod.zip");
     expect(checksum_sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(installer_url).toMatch(/OPSQAI-Setup\.exe$/);
 
     const files = unzipSync(bytes);
     const names = Object.keys(files).sort();
     expect(names).toEqual(
-      ["CHECKSUMS.sha256", "OPSQAI-Setup.exe", "README.md", "activation-bundle.json"].sort(),
+      ["CHECKSUMS.sha256", "INSTALLER.txt", "README.md", "activation-bundle.json"].sort(),
     );
+
+    // The .exe must NOT be embedded — it lives on the CDN.
+    expect(files["OPSQAI-Setup.exe"]).toBeUndefined();
 
     // No Docker / Linux / macOS artifacts must leak into the Windows package.
     for (const forbidden of [
@@ -64,10 +63,13 @@ describe("assembleInstallationPackage (Windows-only)", () => {
     expect(parsedBundle.install_id).toBe("acme-prod");
     expect(parsedBundle.module_tokens).toHaveLength(1);
 
-    // The Windows installer binary is present.
-    expect(files["OPSQAI-Setup.exe"].byteLength).toBeGreaterThan(0);
+    // INSTALLER.txt carries the download URL
+    const installerTxt = strFromU8(files["INSTALLER.txt"]);
+    expect(installerTxt).toContain("download_url");
+    expect(installerTxt).toContain("OPSQAI-Setup.exe");
+    expect(installerTxt).toContain("acme-prod");
 
-    // README is Markdown, Windows-focused.
+    // README is Markdown, Windows-focused, references the CDN download.
     const readme = strFromU8(files["README.md"]);
     expect(readme).toContain("OPSQAI-Setup.exe");
     expect(readme).toContain("Windows");
