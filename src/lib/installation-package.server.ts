@@ -429,10 +429,17 @@ Generated: ${input.generated_at}
 
 ## Quick start
 
-1. Extract this ZIP on the target host and \`cd\` into it.
-2. \`sha256sum -c CHECKSUMS.sha256\` — every line must say \`OK\`.
-3. Run the installer for your OS:
-   - **Windows**: double-click \`install-windows.cmd\` (or \`install.exe\`)
+1. **Extract the ZIP fully first.** On Windows, right-click the downloaded ZIP
+   in File Explorer and choose **Extract All…**. Do NOT double-click files
+   inside the Windows ZIP preview — Explorer only extracts the single file you
+   clicked into a temp folder, so the installer will not find its siblings
+   (e.g. \`install.exe\`).
+2. Open the extracted folder in a terminal (or File Explorer) and \`cd\` into it.
+3. \`sha256sum -c CHECKSUMS.sha256\` — every line must say \`OK\`.
+4. Run the installer for your OS:
+   - **Windows**: double-click \`install-windows.cmd\` (recommended — keeps the
+     CMD window open so you can read the output). \`install.exe\` also works
+     if you prefer to run it directly.
    - **macOS**: \`chmod +x install-macos && ./install-macos\`
    - **Linux**: \`chmod +x install-linux && ./install-linux\`
    - **Headless / SSH**: \`chmod +x install.sh && ./install.sh\`
@@ -441,7 +448,7 @@ Generated: ${input.generated_at}
    \`.env\` (only if missing — idempotent), runs \`docker compose up -d\`,
    waits for the app to report healthy, and prints (and opens) the URL for
    the Setup Wizard.
-4. Paste \`activation-bundle.json\` when the wizard asks for it.
+5. Paste \`activation-bundle.json\` when the wizard asks for it.
 
 To restore from a backup instead of a fresh install, pass \`--restore\` to
 whichever installer you are running (matches DR runbook 5.5.4).
