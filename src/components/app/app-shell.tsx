@@ -667,58 +667,63 @@ export function AppShell({ children }: { children: ReactNode }) {
           Mode: <span className="font-mono uppercase">{mode}</span>
         </div>
       </nav>
-      <div className="border-t border-sidebar-border p-3 space-y-1">
-        <button
-          onClick={cycleLang}
-          aria-label={`Switch language to ${nextLangLabel}`}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/75 hover:bg-sidebar-accent transition-colors"
-        >
+      <div className="border-t border-sidebar-border p-3 space-y-2">
+        <div className="flex items-center gap-2 px-1">
           <Languages className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
-          <span className="font-mono text-xs">
-            {lang.toUpperCase()} → {nextLangLabel}
+          <Select value={lang} onValueChange={(v) => setLang(v as "de" | "en" | "ro")}>
+            <SelectTrigger
+              aria-label="Language"
+              className="h-8 flex-1 bg-sidebar-accent/40 border-sidebar-border text-xs"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="de">Deutsch</SelectItem>
+              <SelectItem value="ro">Română</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2 rounded-lg px-3 py-2 bg-sidebar-accent/30">
+          <span className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-sidebar-primary/40 to-sidebar-primary/10 border border-sidebar-primary/30 grid place-items-center text-sidebar-primary text-[11px] font-semibold uppercase">
+            {user?.email?.slice(0, 2) ?? "OP"}
           </span>
+          <span className="truncate flex-1 text-left text-[12px] text-sidebar-foreground/85">
+            {user?.email}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleProfile}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/85 hover:bg-sidebar-accent transition-colors"
+        >
+          <UserCircle className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
+          <span>{t("myProfile")}</span>
         </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/85 hover:bg-sidebar-accent transition-colors">
-              <span className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-sidebar-primary/40 to-sidebar-primary/10 border border-sidebar-primary/30 grid place-items-center text-sidebar-primary text-[11px] font-semibold uppercase">
-                {user?.email?.slice(0, 2) ?? "OP"}
-              </span>
-              <span className="truncate flex-1 text-left">{user?.email}</span>
-              <ChevronDown className="h-3 w-3 text-sidebar-foreground/50" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="truncate">{user?.email}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                navigate({ to: "/app/profile" });
-                onNavigate?.();
-              }}
-            >
-              <UserCircle className="h-4 w-4 mr-2" />
-              {t("myProfile")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                onNavigate?.();
-                if (typeof window !== "undefined")
-                  window.dispatchEvent(new CustomEvent("opsqai:open-support"));
-              }}
-            >
-              <LifeBuoy className="h-4 w-4 mr-2" />
-              Support &amp; Tickets
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleSignOut}
-              className="text-destructive focus:text-destructive"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              {t("signOut")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        <button
+          type="button"
+          onClick={() => {
+            setMobileOpen(false);
+            if (typeof window !== "undefined")
+              window.dispatchEvent(new CustomEvent("opsqai:open-support"));
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/85 hover:bg-sidebar-accent transition-colors"
+        >
+          <LifeBuoy className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
+          <span>Support &amp; Tickets</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span>{t("signOut")}</span>
+        </button>
       </div>
     </div>
   );
