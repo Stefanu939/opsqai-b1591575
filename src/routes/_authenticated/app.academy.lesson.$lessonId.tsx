@@ -133,8 +133,8 @@ function TeacherChat({
   lessonId: string;
   lesson: any;
   token: string;
-  enrollmentId: string;
-  initialQ: string;
+  enrollmentId?: string;
+  initialQ?: string;
 }) {
   const navigate = useNavigate();
   // Note: lesson language is chosen explicitly by the learner (see LANG_OPTIONS)

@@ -166,7 +166,7 @@ export function pageHead(input: PageHeadInput) {
     { rel: "canonical", href: url },
     ...hreflangLinks(input.path).map((l) => ({
       rel: l.rel,
-      hreflang: l.hrefLang,
+      hrefLang: l.hrefLang,
       href: l.href,
     })),
   ];
