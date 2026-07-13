@@ -31,12 +31,24 @@ export const Route = createFileRoute("/auth")({
     links: [{ rel: "canonical", href: "https://opsqai.de/auth" }],
   }),
   beforeLoad: async ({ search }) => {
+    // Fresh Self-Hosted install with no admin yet → send visitor to the
+    // first-run wizard instead of a sign-in form nobody can complete.
+    try {
+      const { getFirstRunGate } = await import("@/lib/first-run.functions");
+      const gate = await getFirstRunGate();
+      if (gate.open) throw redirect({ to: "/first-run" });
+    } catch (err) {
+      // A redirect() throw must propagate; anything else (e.g. server fn
+      // unreachable during preview) is best-effort and non-fatal.
+      if (err && typeof err === "object" && "to" in (err as Record<string, unknown>)) throw err;
+    }
     const { data } = await supabase.auth.getSession();
     if (data.session) {
       const target = safeNext(search.next);
       throw redirect({ href: target });
     }
   },
+
   component: AuthPage,
 });
 
