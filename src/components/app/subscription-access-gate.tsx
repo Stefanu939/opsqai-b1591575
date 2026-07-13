@@ -113,7 +113,7 @@ export function SubscriptionAccessGate({
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Button asChild className="w-full sm:w-auto">
-                <Link to="/app/settings">
+                <Link to="/app">
                   <CreditCard className="h-4 w-4" />
                   Manage billing
                   <ArrowRight className="h-4 w-4" />

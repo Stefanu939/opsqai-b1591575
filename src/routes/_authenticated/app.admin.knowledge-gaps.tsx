@@ -28,13 +28,15 @@ import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/app/admin/knowledge-gaps")({
   head: () => ({ meta: [{ title: "Knowledge Gaps — OPSQAI" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
-    company: typeof s.company === "string" ? s.company : undefined,
-    user: typeof s.user === "string" ? s.user : undefined,
-    status: typeof s.status === "string" ? s.status : undefined,
-    from: typeof s.from === "string" ? s.from : undefined,
-    to: typeof s.to === "string" ? s.to : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { company?: string; user?: string; status?: string; from?: string; to?: string } => {
+    const out: { company?: string; user?: string; status?: string; from?: string; to?: string } = {};
+    if (typeof s.company === "string") out.company = s.company;
+    if (typeof s.user === "string") out.user = s.user;
+    if (typeof s.status === "string") out.status = s.status;
+    if (typeof s.from === "string") out.from = s.from;
+    if (typeof s.to === "string") out.to = s.to;
+    return out;
+  },
   component: Page,
 });
 

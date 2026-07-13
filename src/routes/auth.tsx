@@ -17,9 +17,11 @@ function safeNext(raw: string | undefined): string {
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s.next === "string" ? s.next : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const out: { next?: string } = {};
+    if (typeof s.next === "string") out.next = s.next;
+    return out;
+  },
   head: () => ({
     meta: [
       { title: "Sign in — OPSQAI" },
