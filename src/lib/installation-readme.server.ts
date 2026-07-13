@@ -5,6 +5,7 @@ export interface ReadmeInput {
   installer_version: string;
   company_name: string;
   generated_at: string;
+  installer_url?: string;
 }
 
 export function renderReadmeMarkdown(input: ReadmeInput): string {
