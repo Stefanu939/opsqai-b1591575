@@ -365,6 +365,27 @@ wait_healthy
 print_wizard_url
 `;
 
+const INSTALL_WINDOWS_CMD = `@echo off
+setlocal
+cd /d "%~dp0"
+
+if not exist "install.exe" (
+  echo [opsqai] install.exe is missing from this folder.
+  echo [opsqai] Extract the ZIP again and run install-windows.cmd from the extracted folder.
+  echo.
+  pause
+  exit /b 1
+)
+
+set "OPSQAI_INSTALLER_NO_PAUSE=1"
+"%~dp0install.exe" %*
+set "EXITCODE=%ERRORLEVEL%"
+echo.
+if not "%EXITCODE%"=="0" echo [opsqai] Installer failed with exit code %EXITCODE%.
+pause
+exit /b %EXITCODE%
+`;
+
 function renderReadme(input: {
   install_id: string;
   installer_version: string;
@@ -383,6 +404,7 @@ Generated: ${input.generated_at}
 | File | Purpose |
 | ---- | ------- |
 | \`install.exe\` | Windows host installer — double-click to run |
+| \`install-windows.cmd\` | Windows launcher that keeps the CMD window open so errors stay visible |
 | \`install-macos\` | macOS host installer (universal) — \`chmod +x install-macos && ./install-macos\` |
 | \`install-linux\` | Linux host installer — \`chmod +x install-linux && ./install-linux\` |
 | \`install.sh\` | POSIX shell fallback for headless / SSH-only hosts |
@@ -397,7 +419,7 @@ Generated: ${input.generated_at}
 1. Extract this ZIP on the target host and \`cd\` into it.
 2. \`sha256sum -c CHECKSUMS.sha256\` — every line must say \`OK\`.
 3. Run the installer for your OS:
-   - **Windows**: double-click \`install.exe\`
+   - **Windows**: double-click \`install-windows.cmd\` (or \`install.exe\`)
    - **macOS**: \`chmod +x install-macos && ./install-macos\`
    - **Linux**: \`chmod +x install-linux && ./install-linux\`
    - **Headless / SSH**: \`chmod +x install.sh && ./install.sh\`
@@ -459,6 +481,7 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
 
   const files: Record<string, Uint8Array> = {
     "install.sh": strToU8(INSTALL_SH),
+    "install-windows.cmd": strToU8(INSTALL_WINDOWS_CMD),
     "install.exe": installExe,
     "install-macos": installMacos,
     "install-linux": installLinux,

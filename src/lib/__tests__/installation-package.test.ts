@@ -42,6 +42,7 @@ describe("assembleInstallationPackage", () => {
         "docker-compose.yml",
         "entrypoint.sh",
         "install.sh",
+        "install-windows.cmd",
         "install.exe",
         "install-macos",
         "install-linux",
@@ -69,7 +70,7 @@ describe("assembleInstallationPackage", () => {
 
     // CHECKSUMS.sha256 lines follow "<hex>  <name>"
     const checksums = strFromU8(files["CHECKSUMS.sha256"]).trim().split("\n");
-    expect(checksums).toHaveLength(9); // every file except CHECKSUMS.sha256 itself
+    expect(checksums).toHaveLength(10); // every file except CHECKSUMS.sha256 itself
     for (const line of checksums) {
       expect(line).toMatch(/^[0-9a-f]{64} {2}\S+/);
     }
@@ -94,6 +95,15 @@ describe("assembleInstallationPackage", () => {
     expect(sh).toContain("--restore");
     expect(sh).toContain("5.5.4");
     expect(sh).toContain("opsqai restore");
+  });
+
+  it("includes a Windows launcher that keeps errors visible", async () => {
+    const { bytes } = await assembleInstallationPackage(input);
+    const files = unzipSync(bytes);
+    const cmd = strFromU8(files["install-windows.cmd"]);
+    expect(cmd).toContain("install.exe");
+    expect(cmd).toContain("OPSQAI_INSTALLER_NO_PAUSE=1");
+    expect(cmd).toContain("pause");
   });
 
   it("regeneration for the same install_id keeps install_id + file name stable", async () => {

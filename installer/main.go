@@ -33,42 +33,59 @@ const usage = `OPSQAI Self-Hosted installer
 `
 
 func main() {
-	restore := flag.Bool("restore", false, "restore from a backup archive (DR runbook 5.5.4)")
-	help := flag.Bool("help", false, "show usage")
-	flag.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	flag.Parse()
+	exitCode, noPause := run(os.Args[1:])
+	if os.Getenv("OPSQAI_INSTALLER_NO_PAUSE") == "1" {
+		noPause = true
+	}
+	if !noPause {
+		pauseBeforeExit(exitCode)
+	}
+	os.Exit(exitCode)
+}
+
+func run(args []string) (int, bool) {
+	fs := flag.NewFlagSet("install", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	restore := fs.Bool("restore", false, "restore from a backup archive (DR runbook 5.5.4)")
+	help := fs.Bool("help", false, "show usage")
+	noPause := fs.Bool("no-pause", false, "do not wait for Enter before closing on Windows")
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	if err := fs.Parse(args); err != nil {
+		return 2, *noPause
+	}
 
 	if *help {
 		fmt.Print(usage)
-		return
+		return 0, *noPause
 	}
 
 	if err := checkPrereqs(); err != nil {
 		errln(err.Error())
-		os.Exit(1)
+		return 1, *noPause
 	}
 
 	if *restore {
 		if err := restoreFlow(); err != nil {
 			errln(err.Error())
-			os.Exit(1)
+			return 1, *noPause
 		}
-		return
+		return 0, *noPause
 	}
 
 	if err := seedEnv(); err != nil {
 		errln(err.Error())
-		os.Exit(1)
+		return 1, *noPause
 	}
 	log("Starting stack with 'docker compose up -d' ...")
 	if err := runCmd("docker", "compose", "up", "-d"); err != nil {
 		errln("docker compose up failed: " + err.Error())
-		os.Exit(1)
+		return 1, *noPause
 	}
 	if err := waitHealthy(); err != nil {
 		errln(err.Error())
 		errln("Inspect logs with: docker compose logs --tail=200 opsqai")
-		os.Exit(1)
+		return 1, *noPause
 	}
 	printAndOpenWizard()
+	return 0, *noPause
 }
