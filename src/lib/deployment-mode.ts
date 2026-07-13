@@ -81,6 +81,7 @@ export const SELFHOST_ONLY_PREFIXES: readonly string[] = [
   "/app/requests",
   "/app/academy",
   "/app/internal",
+  "/app/subscription",
   // Operational — admin
   "/app/admin/academy",
   "/app/admin/knowledge-gaps",
