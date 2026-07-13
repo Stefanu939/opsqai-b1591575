@@ -1736,6 +1736,53 @@ export type Database = {
           },
         ]
       }
+      installation_package_downloads: {
+        Row: {
+          actor_email: string | null
+          actor_role: string | null
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          install_id: string
+          ip_address: string | null
+          signed_url_expires_at: string | null
+          storage_path: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_role?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          install_id: string
+          ip_address?: string | null
+          signed_url_expires_at?: string | null
+          storage_path?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          actor_role?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          install_id?: string
+          ip_address?: string | null
+          signed_url_expires_at?: string | null
+          storage_path?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installation_package_downloads_install_id_fkey"
+            columns: ["install_id"]
+            isOneToOne: false
+            referencedRelation: "licenses"
+            referencedColumns: ["install_id"]
+          },
+        ]
+      }
       internal_requests: {
         Row: {
           answer: string | null
@@ -2060,6 +2107,12 @@ export type Database = {
           installer_version: string | null
           ip_address: string | null
           last_heartbeat_at: string | null
+          package_checksum_sha256: string | null
+          package_generated_at: string | null
+          package_generation_count: number
+          package_installer_version: string | null
+          package_storage_path: string | null
+          previous_bundle_revoked_at: string | null
           updated_at: string
           user_count: number | null
         }
@@ -2072,6 +2125,12 @@ export type Database = {
           installer_version?: string | null
           ip_address?: string | null
           last_heartbeat_at?: string | null
+          package_checksum_sha256?: string | null
+          package_generated_at?: string | null
+          package_generation_count?: number
+          package_installer_version?: string | null
+          package_storage_path?: string | null
+          previous_bundle_revoked_at?: string | null
           updated_at?: string
           user_count?: number | null
         }
@@ -2084,6 +2143,12 @@ export type Database = {
           installer_version?: string | null
           ip_address?: string | null
           last_heartbeat_at?: string | null
+          package_checksum_sha256?: string | null
+          package_generated_at?: string | null
+          package_generation_count?: number
+          package_installer_version?: string | null
+          package_storage_path?: string | null
+          previous_bundle_revoked_at?: string | null
           updated_at?: string
           user_count?: number | null
         }
@@ -2249,6 +2314,7 @@ export type Database = {
           notes: string | null
           owner_since: string
           owner_type: string
+          pinned_installer_version: string | null
           revoked: boolean
           revoked_at: string | null
           revoked_reason: string | null
@@ -2257,6 +2323,7 @@ export type Database = {
           suspended: boolean
           suspended_at: string | null
           suspended_reason: string | null
+          technical_contact_email: string | null
           tier: string
           updated_at: string
         }
@@ -2280,6 +2347,7 @@ export type Database = {
           notes?: string | null
           owner_since?: string
           owner_type?: string
+          pinned_installer_version?: string | null
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null
@@ -2288,6 +2356,7 @@ export type Database = {
           suspended?: boolean
           suspended_at?: string | null
           suspended_reason?: string | null
+          technical_contact_email?: string | null
           tier?: string
           updated_at?: string
         }
@@ -2311,6 +2380,7 @@ export type Database = {
           notes?: string | null
           owner_since?: string
           owner_type?: string
+          pinned_installer_version?: string | null
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null
@@ -2319,6 +2389,7 @@ export type Database = {
           suspended?: boolean
           suspended_at?: string | null
           suspended_reason?: string | null
+          technical_contact_email?: string | null
           tier?: string
           updated_at?: string
         }
