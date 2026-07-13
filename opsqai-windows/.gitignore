@@ -3,6 +3,12 @@ payload/winsw/
 payload/pgsql/
 payload/caddy/
 payload/app/
+payload/wizard/
+payload/tools/
+payload/assets/
+payload/updater/pubkey.pem
 build/artifacts/
+installer/wizard/dist/
+installer/wizard/node_modules/
 node_modules/
 *.log
