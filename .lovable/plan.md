@@ -64,3 +64,13 @@ Remove or strike through the `uuidv5(namespace, "order:"+orderId)` line in the P
 
 - Grep `docs/` and `.lovable/plan.md` for `uuidv5` and `order:${` — should return zero hits after the edit (except possibly historical changelog entries, which stay as-is).
 - Re-read `05-license-security.md` end-to-end to confirm the "regeneration is idempotent" claim now matches the code path in `generateInstallationPackage`.
+---
+
+POST-BUILD CLARIFICATION (Phase 4.5 closeout)
+
+install_id was NOT implemented as uuidv5(namespace, "order:"+orderId).
+It reuses the existing manual-slug convention (InstallIdSchema, e.g.
+"edeka-prod-01") stored on license_installs; no second identity scheme
+was introduced. Regeneration idempotency comes from reading the stored
+slug, not from recomputing it. Manual DR procedure documented in
+docs/security-documentation/05-license-security.md.
