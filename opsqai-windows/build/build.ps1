@@ -40,9 +40,9 @@ if (-not $SkipApp) {
   Write-Host "Building OPSQAI app (NITRO_PRESET=node-server)..."
   Push-Location $projectRoot
   try {
-    if (-not (Test-Path 'node_modules')) { & npm ci; if ($LASTEXITCODE -ne 0) { throw "npm ci failed" } }
-    & npm run build:selfhosted
-    if ($LASTEXITCODE -ne 0) { throw "npm run build:selfhosted failed" }
+    if (-not (Test-Path 'node_modules')) { & bun install --frozen-lockfile; if ($LASTEXITCODE -ne 0) { throw "bun install failed" } }
+    & bun run build:selfhosted
+    if ($LASTEXITCODE -ne 0) { throw "bun run build:selfhosted failed" }
 
     # Nitro node-server preset writes to .output/. Layout:
     #   .output/server/index.mjs   -> entry
