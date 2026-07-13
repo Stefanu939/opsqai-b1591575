@@ -166,6 +166,7 @@ if (-not (Test-Path $pubKey)) {
   }
 }
 
+# --- 4. Caddy --------------------------------------------------------------
 $caddyVersion = '2.8.4'
 $caddyDir = Join-Path $payload 'caddy'
 if (-not (Test-Path (Join-Path $caddyDir 'caddy.exe'))) {
