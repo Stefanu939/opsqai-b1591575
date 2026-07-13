@@ -13,8 +13,10 @@ const appPort = Number(process.env.OPSQAI_APP_PORT || 3000);
 
 function buildDatabaseUrl() {
   if (cfg.database.mode === 'embedded') {
-    const p = cfg.database.embedded.port || 55432;
-    return `postgres://opsqai@127.0.0.1:${p}/opsqai`;
+    const p  = cfg.database.embedded.port || 55432;
+    const pw = cfg.database.embedded.password || '';
+    const auth = pw ? `opsqai:${encodeURIComponent(pw)}` : 'opsqai';
+    return `postgres://${auth}@127.0.0.1:${p}/opsqai`;
   }
   const e = cfg.database.external;
   const auth = encodeURIComponent(e.username) + ':' + encodeURIComponent(e.password);

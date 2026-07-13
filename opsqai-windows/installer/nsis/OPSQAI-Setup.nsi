@@ -96,30 +96,23 @@ Section "OPSQAI Core" SEC_CORE
   CreateDirectory "$R0\OPSQAI\data\storage"
   CreateDirectory "$R0\OPSQAI\certs"
 
-  ; --- Register services (order matters for dependency graph) ---
-  ; Database first so Platform can depend on it.
+  ; Register services (order matters for dependency graph).
   !insertmacro RegisterService "OpsqaiDatabase"
   !insertmacro RegisterService "OpsqaiPlatform"
   !insertmacro RegisterService "OpsqaiWorker"
   !insertmacro RegisterService "OpsqaiCaddy"
   !insertmacro RegisterService "OpsqaiUpdater"
 
-  ; Phase 3 wizard hands values to bootstrap; Phase 2 stub creates a minimal
-  ; config so services can start. NSIS runs bootstrap only if /S was NOT used
-  ; without required parameters — otherwise the wizard supplies them later.
-  DetailPrint "Running bootstrap..."
-  nsExec::ExecToStack '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "changeme" --company "OPSQAI"'
+  ; Bootstrap does: write config, start OpsqaiDatabase, run migrations,
+  ; start OpsqaiCaddy + trust root CA, start Platform/Worker/Updater,
+  ; health-probe https://localhost/health. Phase 3 wizard supplies real
+  ; admin credentials; Phase 2 uses installer-provided placeholders.
+  DetailPrint "Running bootstrap (this may take up to 2 minutes)..."
+  nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "changeme" --company "OPSQAI"'
   Pop $0
   ${If} $0 <> 0
-    DetailPrint "bootstrap returned $0"
+    DetailPrint "bootstrap returned $0 (check %ProgramData%\OPSQAI\logs)"
   ${EndIf}
-
-  ; Start services in dependency order.
-  !insertmacro StartService "OpsqaiDatabase"
-  !insertmacro StartService "OpsqaiPlatform"
-  !insertmacro StartService "OpsqaiWorker"
-  !insertmacro StartService "OpsqaiCaddy"
-  !insertmacro StartService "OpsqaiUpdater"
 
   ; --- ARP / Uninstall entry ---
   WriteRegStr HKLM "Software\OPSQAI" "InstallDir" "$INSTDIR"

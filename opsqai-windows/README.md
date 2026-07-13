@@ -7,8 +7,8 @@ Ships as a single signed `OPSQAI-Setup.exe` produced by NSIS, with services wrap
 
 This repository folder is the workspace for the migration described in `.lovable/plan.md`.
 
-- [x] Phase 1 — Foundation: NSIS scaffolding, code-signing pipeline, WinSW "hello" service, silent install/uninstall (see `build/ci/build-windows.yml`)
-- [ ] Phase 2 — Runtime (Node app + Caddy + PostgreSQL Portable + admin bootstrap)
+- [x] Phase 1 — Foundation: NSIS scaffolding, code-signing pipeline, WinSW "hello" service, silent install/uninstall
+- [x] Phase 2 — Runtime: Node-server app bundle (`build:selfhosted`), Caddy on `https://localhost`, PostgreSQL Portable with scram-sha-256, migrator, bootstrap health probe
 - [ ] Phase 3 — Wizard (Electron 10-step) + external DB / S3 modes
 - [ ] Phase 4 — Auto-updater + Service Manager + backup/restore
 - [ ] Phase 5 — Docker→native migrator + QA matrix + first signed release
