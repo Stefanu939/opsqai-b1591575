@@ -84,11 +84,12 @@ function OverviewSkeleton() {
 function OverviewContent() {
   const fetchStats = useServerFn(getPlatformOverviewStats);
   const { data } = useSuspenseQuery({
-    ...statsQuery(),
+    queryKey: ["platform-overview-stats"],
     queryFn: () =>
       (fetchStats as unknown as () => Promise<
         import("@/lib/platform-overview.functions").OverviewStats
       >)(),
+    staleTime: 60_000,
   });
 
   const sparkFromWeeks = data.installsPerWeek.map((w) => ({ v: w.count }));
