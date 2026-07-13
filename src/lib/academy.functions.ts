@@ -762,7 +762,11 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
     const passed = score >= passingScore;
 
     // Finalize the pending attempt row rather than inserting a new one.
-    await (context.supabase as any)
+    // SECURITY: score/passed are guarded by a BEFORE UPDATE trigger that
+    // rejects non-service-role writes, so we grade with the admin client.
+    // The caller was already authorized above (attempt.user_id check).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await (supabaseAdmin as any)
       .from("academy_quiz_attempts")
       .update({
         answers: data.answers,
