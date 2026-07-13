@@ -1,11 +1,17 @@
 import type { SystemDocEntry } from "./catalog";
 
 function bulletList(items: string[]): string {
-  return items.filter((s) => s && s.trim()).map((s) => `- ${s.trim()}`).join("\n");
+  return items
+    .filter((s) => s && s.trim())
+    .map((s) => `- ${s.trim()}`)
+    .join("\n");
 }
 
 function numberedList(items: string[]): string {
-  return items.filter((s) => s && s.trim()).map((s, i) => `${i + 1}. ${s.trim()}`).join("\n");
+  return items
+    .filter((s) => s && s.trim())
+    .map((s, i) => `${i + 1}. ${s.trim()}`)
+    .join("\n");
 }
 
 /**
@@ -66,7 +72,10 @@ export function hashBody(s: string): string {
 
 /** Split into ~700-char chunks at paragraph boundaries; small docs → 1 chunk. */
 export function chunkBody(body: string, target = 700, overlap = 80): string[] {
-  const paras = body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const paras = body
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
   const out: string[] = [];
   let cur = "";
   for (const p of paras) {

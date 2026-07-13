@@ -1,6 +1,11 @@
 import * as React from "react";
 import { SimpleEmail, defineTemplate, APP_URL } from "./_simple";
-const Email = (p: { ticketId?: string; replyPreview?: string; ticketUrl?: string; from?: string }) => (
+const Email = (p: {
+  ticketId?: string;
+  replyPreview?: string;
+  ticketUrl?: string;
+  from?: string;
+}) => (
   <SimpleEmail
     preview={`New reply on ticket ${p.ticketId ?? ""}`}
     title="You have a new reply on your support ticket"
@@ -11,8 +16,14 @@ const Email = (p: { ticketId?: string; replyPreview?: string; ticketUrl?: string
 );
 export const template = defineTemplate({
   displayName: "Support reply",
-  subject: (d) => (d.ticketId ? `New reply on ticket ${d.ticketId}` : "New reply on your support ticket"),
+  subject: (d) =>
+    d.ticketId ? `New reply on ticket ${d.ticketId}` : "New reply on your support ticket",
   component: Email,
-  previewData: { ticketId: "OPS-1042", from: "Stefan B.", replyPreview: "We've reproduced this and a fix is rolling out.", ticketUrl: APP_URL },
+  previewData: {
+    ticketId: "OPS-1042",
+    from: "Stefan B.",
+    replyPreview: "We've reproduced this and a fix is rolling out.",
+    ticketUrl: APP_URL,
+  },
 });
 export default Email;

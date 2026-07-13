@@ -1,6 +1,11 @@
 import * as React from "react";
 import { SimpleEmail, defineTemplate, APP_URL } from "./_simple";
-const Email = (p: { eventLabel?: string; eventAt?: string; deviceLabel?: string; ipHash?: string }) => (
+const Email = (p: {
+  eventLabel?: string;
+  eventAt?: string;
+  deviceLabel?: string;
+  ipHash?: string;
+}) => (
   <SimpleEmail
     preview="OPSQAI security alert"
     title="A security event occurred on your account"
@@ -16,8 +21,14 @@ const Email = (p: { eventLabel?: string; eventAt?: string; deviceLabel?: string;
 );
 export const template = defineTemplate({
   displayName: "Security alert",
-  subject: (d) => (d.eventLabel ? `OPSQAI security alert: ${d.eventLabel}` : "OPSQAI security alert"),
+  subject: (d) =>
+    d.eventLabel ? `OPSQAI security alert: ${d.eventLabel}` : "OPSQAI security alert",
   component: Email,
-  previewData: { eventLabel: "New sign-in from an unknown device", eventAt: new Date().toLocaleString(), deviceLabel: "Chrome / macOS", ipHash: "ab12cd34" },
+  previewData: {
+    eventLabel: "New sign-in from an unknown device",
+    eventAt: new Date().toLocaleString(),
+    deviceLabel: "Chrome / macOS",
+    ipHash: "ab12cd34",
+  },
 });
 export default Email;

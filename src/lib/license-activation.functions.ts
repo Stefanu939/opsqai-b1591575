@@ -45,7 +45,12 @@ export const exportRevocationList = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     const { buildAndSignCrl } = await import("@/lib/license-crl.server");
     const { token, payload } = await buildAndSignCrl();
-    return { token, issued_at: payload.issued_at, entries: payload.entries.length, key_id: payload.key_id };
+    return {
+      token,
+      issued_at: payload.issued_at,
+      entries: payload.entries.length,
+      key_id: payload.key_id,
+    };
   });
 
 // ─── Self-Hosted: paste a single token to activate ──────────────────────
@@ -116,7 +121,8 @@ export const importActivationBundle = createServerFn({ method: "POST" })
       throw new Error("import_denied:unknown_bundle_version");
     }
 
-    const { importLicenseToken, importRevocationList } = await import("@/lib/license-import.server");
+    const { importLicenseToken, importRevocationList } =
+      await import("@/lib/license-import.server");
 
     const installRes = await importLicenseToken(parsed.install_token, {
       expectedInstallId: parsed.install_id,

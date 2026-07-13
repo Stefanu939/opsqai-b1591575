@@ -50,10 +50,26 @@ function PortalContract() {
             <div className="text-xs uppercase text-muted-foreground mb-1">Installation license</div>
             {inst.install_license ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div><div className="text-muted-foreground text-xs">Seats</div>{inst.install_license.seats ?? "—"}</div>
-                <div><div className="text-muted-foreground text-xs">Maintenance until</div>{fmt(inst.install_license.maintenance_expires_at)}</div>
-                <div><div className="text-muted-foreground text-xs">Expires</div>{fmt(inst.install_license.expires_at)}</div>
-                <div><div className="text-muted-foreground text-xs">Status</div>{inst.install_license.revoked ? "Revoked" : inst.install_license.suspended ? "Suspended" : "Active"}</div>
+                <div>
+                  <div className="text-muted-foreground text-xs">Seats</div>
+                  {inst.install_license.seats ?? "—"}
+                </div>
+                <div>
+                  <div className="text-muted-foreground text-xs">Maintenance until</div>
+                  {fmt(inst.install_license.maintenance_expires_at)}
+                </div>
+                <div>
+                  <div className="text-muted-foreground text-xs">Expires</div>
+                  {fmt(inst.install_license.expires_at)}
+                </div>
+                <div>
+                  <div className="text-muted-foreground text-xs">Status</div>
+                  {inst.install_license.revoked
+                    ? "Revoked"
+                    : inst.install_license.suspended
+                      ? "Suspended"
+                      : "Active"}
+                </div>
               </div>
             ) : (
               <div className="text-sm text-muted-foreground">Not yet issued</div>

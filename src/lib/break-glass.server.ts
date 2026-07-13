@@ -41,25 +41,38 @@ export function generateBreakGlassSecret(): { plaintext: string; hash: string } 
   const plaintext = toBase32(raw);
   const salt = randomBytes(16);
   const derived = scryptSync(plaintext, salt, KEY_LEN, {
-    N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P, maxmem: SCRYPT_MAXMEM,
+    N: SCRYPT_N,
+    r: SCRYPT_R,
+    p: SCRYPT_P,
+    maxmem: SCRYPT_MAXMEM,
   });
   const hash = `scrypt$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${salt.toString("base64")}$${derived.toString("base64")}`;
   return { plaintext, hash };
 }
 
 /** Constant-time verify of a candidate plaintext against a stored hash. */
-export function verifyBreakGlassSecret(candidate: string, hash: string | null | undefined): boolean {
+export function verifyBreakGlassSecret(
+  candidate: string,
+  hash: string | null | undefined,
+): boolean {
   if (!hash || typeof hash !== "string") return false;
   const parts = hash.split("$");
   if (parts.length !== 6 || parts[0] !== "scrypt") return false;
   const [, nStr, rStr, pStr, saltB64, derivedB64] = parts;
-  const N = Number(nStr), r = Number(rStr), p = Number(pStr);
+  const N = Number(nStr),
+    r = Number(rStr),
+    p = Number(pStr);
   if (!Number.isFinite(N) || !Number.isFinite(r) || !Number.isFinite(p)) return false;
   const salt = Buffer.from(saltB64, "base64");
   const expected = Buffer.from(derivedB64, "base64");
   let candidateDerived: Buffer;
   try {
-    candidateDerived = scryptSync(candidate.trim().toUpperCase(), salt, expected.length, { N, r, p, maxmem: SCRYPT_MAXMEM });
+    candidateDerived = scryptSync(candidate.trim().toUpperCase(), salt, expected.length, {
+      N,
+      r,
+      p,
+      maxmem: SCRYPT_MAXMEM,
+    });
   } catch {
     return false;
   }

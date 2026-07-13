@@ -28,7 +28,11 @@ export async function generateXlsx(spec: XlsxSpec): Promise<Uint8Array> {
 
   for (const sheet of spec.sheets) {
     const name = (sheet.name || "Sheet").slice(0, 31);
-    console.log("[xlsx:worksheet_create]", { name, headers: sheet.headers.length, rows: sheet.rows.length });
+    console.log("[xlsx:worksheet_create]", {
+      name,
+      headers: sheet.headers.length,
+      rows: sheet.rows.length,
+    });
 
     const aoa: Array<Array<string | number | boolean | null>> = [];
     if (sheet.headers.length) aoa.push(sheet.headers);
@@ -37,11 +41,7 @@ export async function generateXlsx(spec: XlsxSpec): Promise<Uint8Array> {
     const ws = XLSX.utils.aoa_to_sheet(aoa);
 
     // Column widths: header length / longest cell, capped at 60.
-    const colCount = Math.max(
-      sheet.headers.length,
-      ...sheet.rows.map((r) => r.length),
-      1,
-    );
+    const colCount = Math.max(sheet.headers.length, ...sheet.rows.map((r) => r.length), 1);
     const widths: Array<{ wch: number }> = [];
     for (let c = 0; c < colCount; c++) {
       let max = sheet.headers[c]?.length ?? 10;

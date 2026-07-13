@@ -24,13 +24,15 @@ export const getSetupState = createServerFn({ method: "POST" })
       .eq("id", true)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return data ?? {
-      install_id: null,
-      installer_version: null,
-      setup_progress: [] as string[],
-      setup_completed_at: null,
-      updated_at: null,
-    };
+    return (
+      data ?? {
+        install_id: null,
+        installer_version: null,
+        setup_progress: [] as string[],
+        setup_completed_at: null,
+        updated_at: null,
+      }
+    );
   });
 
 const MarkStepInput = z.object({
@@ -63,7 +65,8 @@ export const markSetupStep = createServerFn({ method: "POST" })
     else current.delete(data.step_id);
 
     const nextProgress = Array.from(current);
-    const mode: "cloud" | "selfhost" = process.env.OPSQAI_MODE === "selfhost" ? "selfhost" : "cloud";
+    const mode: "cloud" | "selfhost" =
+      process.env.OPSQAI_MODE === "selfhost" ? "selfhost" : "cloud";
     const completed = computeSetupComplete(nextProgress, mode);
 
     const { error } = await supabaseAdmin
@@ -71,7 +74,9 @@ export const markSetupStep = createServerFn({ method: "POST" })
       .update({
         setup_progress: nextProgress,
         setup_completed_at:
-          completed && !cfg?.setup_completed_at ? new Date().toISOString() : cfg?.setup_completed_at ?? null,
+          completed && !cfg?.setup_completed_at
+            ? new Date().toISOString()
+            : (cfg?.setup_completed_at ?? null),
       })
       .eq("id", true);
     if (error) throw new Error(error.message);

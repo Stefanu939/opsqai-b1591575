@@ -1,12 +1,11 @@
 import { describe, it, expect } from "vitest";
-import {
-  assertNoBlacklistedSecrets,
-  findBlacklistedSecretKeys,
-} from "../mc-secrets-blacklist";
+import { assertNoBlacklistedSecrets, findBlacklistedSecretKeys } from "../mc-secrets-blacklist";
 
 describe("MC secrets blacklist gate", () => {
   it("passes clean payloads", () => {
-    expect(findBlacklistedSecretKeys({ install_id: "acme", company_name: "Acme", seats: 50 })).toEqual([]);
+    expect(
+      findBlacklistedSecretKeys({ install_id: "acme", company_name: "Acme", seats: 50 }),
+    ).toEqual([]);
     expect(() => assertNoBlacklistedSecrets({ install_id: "acme", notes: "hi" })).not.toThrow();
   });
 
@@ -34,7 +33,9 @@ describe("MC secrets blacklist gate", () => {
 
   it("rejects AI provider API keys", () => {
     expect(() => assertNoBlacklistedSecrets({ openai_api_key: "sk-..." })).toThrow(/openai/);
-    expect(() => assertNoBlacklistedSecrets({ azure_openai_api_key: "..." })).toThrow(/azure_openai/);
+    expect(() => assertNoBlacklistedSecrets({ azure_openai_api_key: "..." })).toThrow(
+      /azure_openai/,
+    );
   });
 
   it("rejects SSH keys and private keys", () => {

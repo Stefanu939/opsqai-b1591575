@@ -43,7 +43,9 @@ async function loadSettings(sb: SupabaseClient): Promise<PlatformEmailSettings> 
 function generateToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
-  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /**
@@ -120,7 +122,6 @@ function createLovableProvider(sb: SupabaseClient): EmailProvider {
   };
 }
 
-
 function selectProvider(id: ProviderId, sb: SupabaseClient): EmailProvider {
   switch (id) {
     case "lovable":
@@ -151,7 +152,9 @@ export interface DispatchInput {
  * Render the registered template and dispatch it through the active provider.
  * This is the ONE function every OPSQAI module should call when sending app email.
  */
-export async function dispatchTransactionalEmail(input: DispatchInput): Promise<{ messageId: string }> {
+export async function dispatchTransactionalEmail(
+  input: DispatchInput,
+): Promise<{ messageId: string }> {
   const entry = TEMPLATES[input.templateName];
   if (!entry) throw new Error(`unknown_template:${input.templateName}`);
 

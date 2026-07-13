@@ -17,12 +17,7 @@ import path from "node:path";
 
 export interface FirstRunGate {
   open: boolean;
-  reason:
-    | "open"
-    | "not_selfhost"
-    | "admin_exists"
-    | "setup_completed"
-    | "db_error";
+  reason: "open" | "not_selfhost" | "admin_exists" | "setup_completed" | "db_error";
   detail?: string;
 }
 
@@ -96,9 +91,7 @@ function serializeValue(value: string): string {
  * The caller MUST validate that every KEY belongs to a known whitelist —
  * this helper only enforces the shell-safety of the file format.
  */
-export async function writeSecretsEnv(
-  updates: Record<string, string>,
-): Promise<void> {
+export async function writeSecretsEnv(updates: Record<string, string>): Promise<void> {
   const target = secretsEnvPath();
   await fs.mkdir(path.dirname(target), { recursive: true }).catch(() => {});
 

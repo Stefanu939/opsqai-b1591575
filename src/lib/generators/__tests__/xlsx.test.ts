@@ -6,15 +6,17 @@ describe("generateXlsx", () => {
   it("produces a valid .xlsx with a KPIs sheet", async () => {
     const bytes = await generateXlsx({
       title: "KPI Workbook",
-      sheets: [{
-        name: "KPIs",
-        headers: ["KPI", "Value", "Target"],
-        rows: [
-          ["On-time delivery", 96.4, 98],
-          ["Picking accuracy", 99.1, 99.5],
-          ["Inventory turns", 8.2, 10],
-        ],
-      }],
+      sheets: [
+        {
+          name: "KPIs",
+          headers: ["KPI", "Value", "Target"],
+          rows: [
+            ["On-time delivery", 96.4, 98],
+            ["Picking accuracy", 99.1, 99.5],
+            ["Inventory turns", 8.2, 10],
+          ],
+        },
+      ],
     });
 
     // XLSX files are ZIP archives — magic bytes "PK\x03\x04"

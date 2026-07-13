@@ -22,15 +22,23 @@ function InternalOverview() {
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    try { setData(await info()); } catch (e) { toast.error(String(e)); }
+    try {
+      setData(await info());
+    } catch (e) {
+      toast.error(String(e));
+    }
   };
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   const onRegen = async (force = false) => {
     setBusy(true);
     try {
       const r = await regen({ data: { force } });
-      toast.success(`Regenerated ${r.reembedded} docs (${r.unchanged} unchanged, ${r.total} total).`);
+      toast.success(
+        `Regenerated ${r.reembedded} docs (${r.unchanged} unchanged, ${r.total} total).`,
+      );
       await load();
     } catch (e) {
       toast.error(String(e));
@@ -49,7 +57,8 @@ function InternalOverview() {
           <h1 className="text-3xl font-semibold tracking-tight mt-1">Self-documenting platform</h1>
           <p className="text-muted-foreground mt-1 max-w-2xl">
             OPSQAI documents itself using its own features. System Knowledge is auto-generated from
-            the implemented platform features and is visible only to Platform Owner and Platform Super Admin.
+            the implemented platform features and is visible only to Platform Owner and Platform
+            Super Admin.
           </p>
         </div>
       </div>
@@ -60,8 +69,8 @@ function InternalOverview() {
           <div className="text-sm">
             <div className="font-medium">Isolated from customer data</div>
             <p className="text-muted-foreground mt-0.5">
-              System Knowledge lives in a dedicated workspace, is read-only, and is never mixed with any
-              customer's company knowledge. The OPSQAI Assistant retrieves only from this scope.
+              System Knowledge lives in a dedicated workspace, is read-only, and is never mixed with
+              any customer's company knowledge. The OPSQAI Assistant retrieves only from this scope.
             </p>
           </div>
         </div>
@@ -71,16 +80,22 @@ function InternalOverview() {
         <Card className="p-4">
           <div className="text-xs uppercase tracking-wider text-muted-foreground">System docs</div>
           <div className="text-2xl font-semibold mt-1">{data?.docCount ?? "—"}</div>
-          <div className="text-xs text-muted-foreground mt-1">of {data?.catalogTotal ?? "—"} implemented features</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            of {data?.catalogTotal ?? "—"} implemented features
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-xs uppercase tracking-wider text-muted-foreground">Workspace</div>
           <div className="text-lg font-semibold mt-1 truncate">{data?.name ?? "—"}</div>
-          <Badge variant="secondary" className="mt-1.5">immutable</Badge>
+          <Badge variant="secondary" className="mt-1.5">
+            immutable
+          </Badge>
         </Card>
         <Card className="p-4">
           <div className="text-xs uppercase tracking-wider text-muted-foreground">Created</div>
-          <div className="text-lg font-semibold mt-1">{data ? new Date(data.createdAt).toLocaleDateString() : "—"}</div>
+          <div className="text-lg font-semibold mt-1">
+            {data ? new Date(data.createdAt).toLocaleDateString() : "—"}
+          </div>
         </Card>
       </div>
 
@@ -111,16 +126,26 @@ function InternalOverview() {
             <div>
               <div className="font-semibold">Generate System Knowledge</div>
               <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-                Re-render the platform documentation from the implemented feature catalog and refresh
-                semantic embeddings. Only changed documents are re-embedded.
+                Re-render the platform documentation from the implemented feature catalog and
+                refresh semantic embeddings. Only changed documents are re-embedded.
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => onRegen(false)} disabled={busy} variant="default" className="gap-2">
+              <Button
+                onClick={() => onRegen(false)}
+                disabled={busy}
+                variant="default"
+                className="gap-2"
+              >
                 <RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />
                 {busy ? "Generating…" : "Regenerate (changed only)"}
               </Button>
-              <Button onClick={() => onRegen(true)} disabled={busy} variant="outline" className="gap-2">
+              <Button
+                onClick={() => onRegen(true)}
+                disabled={busy}
+                variant="outline"
+                className="gap-2"
+              >
                 <RefreshCw className="h-4 w-4" /> Force full rebuild
               </Button>
             </div>

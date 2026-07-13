@@ -87,7 +87,8 @@ export function SubscriptionAccessGate({
                 {isCancelled
                   ? "Your subscription has been cancelled, so interactive modules — chat, AI assistants, generators and workspace tools — are no longer available."
                   : "Your workspace has been suspended for non-payment. Interactive modules — chat, AI assistants, generators and workspace tools — are paused until the subscription is brought back into good standing."}{" "}
-                Historical data remains preserved and can be reviewed in read-only mode from the dashboard.
+                Historical data remains preserved and can be reviewed in read-only mode from the
+                dashboard.
               </p>
             </div>
 
@@ -97,16 +98,27 @@ export function SubscriptionAccessGate({
               </div>
               <ol className="space-y-2 text-sm">
                 <li className="flex gap-2">
-                  <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center shrink-0">1</span>
+                  <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center shrink-0">
+                    1
+                  </span>
                   <span>Settle any outstanding invoices to restore your subscription.</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center shrink-0">2</span>
-                  <span>Once payment is confirmed, access is reactivated automatically — no data is lost.</span>
+                  <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center shrink-0">
+                    2
+                  </span>
+                  <span>
+                    Once payment is confirmed, access is reactivated automatically — no data is
+                    lost.
+                  </span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center shrink-0">3</span>
-                  <span>Need assistance or a billing dispute review? Contact our support team.</span>
+                  <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center shrink-0">
+                    3
+                  </span>
+                  <span>
+                    Need assistance or a billing dispute review? Contact our support team.
+                  </span>
                 </li>
               </ol>
             </div>
@@ -128,8 +140,11 @@ export function SubscriptionAccessGate({
             </div>
 
             <p className="text-[11px] text-muted-foreground border-t border-border pt-4">
-              Reference: workspace <span className="font-mono">{state.company_id.slice(0, 8)}</span> · status{" "}
-              <span className="font-medium uppercase">{state.subscription_status.replace("_", " ")}</span>
+              Reference: workspace <span className="font-mono">{state.company_id.slice(0, 8)}</span>{" "}
+              · status{" "}
+              <span className="font-medium uppercase">
+                {state.subscription_status.replace("_", " ")}
+              </span>
             </p>
           </div>
         </div>

@@ -3,7 +3,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { getSetupState, markSetupStep, runDoctor } from "@/lib/setup.functions";
-import { SETUP_STEPS, isRequiredStep, computeSetupComplete, type SetupStepId } from "@/lib/setup-steps";
+import {
+  SETUP_STEPS,
+  isRequiredStep,
+  computeSetupComplete,
+  type SetupStepId,
+} from "@/lib/setup-steps";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +33,11 @@ function SetupPage() {
     queryKey: ["setup-state"],
     queryFn: () => getState({ data: {} } as never),
   });
-  const { data: report, refetch: refetchDoctor, isFetching: doctorRunning } = useQuery({
+  const {
+    data: report,
+    refetch: refetchDoctor,
+    isFetching: doctorRunning,
+  } = useQuery({
     queryKey: ["doctor-report"],
     queryFn: () => doctor({ data: {} } as never),
   });
@@ -54,9 +63,9 @@ function SetupPage() {
           <Wrench className="h-7 w-7" /> Setup Wizard
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Resumable install checklist. Only step identifiers are stored — never secrets, keys, or credentials.
-          Configuration values live in the installer's environment (docker <code>.env</code>, secret manager)
-          and are checked by the wizard, not stored by the app.
+          Resumable install checklist. Only step identifiers are stored — never secrets, keys, or
+          credentials. Configuration values live in the installer's environment (docker{" "}
+          <code>.env</code>, secret manager) and are checked by the wizard, not stored by the app.
         </p>
       </header>
 
@@ -102,7 +111,10 @@ function SetupPage() {
         {report ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {report.checks.map((c) => (
-              <div key={c.id} className="flex items-start justify-between gap-2 rounded border p-2 text-xs">
+              <div
+                key={c.id}
+                className="flex items-start justify-between gap-2 rounded border p-2 text-xs"
+              >
                 <div>
                   <div className="font-medium">{c.label}</div>
                   {c.detail && <div className="text-muted-foreground">{c.detail}</div>}
@@ -122,7 +134,10 @@ function SetupPage() {
           const required = isRequiredStep(s, mode);
           const skipped = s.selfHostedOnly && mode !== "selfhost";
           return (
-            <Card key={s.id} className={`p-4 flex items-start gap-3 ${skipped ? "opacity-50" : ""}`}>
+            <Card
+              key={s.id}
+              className={`p-4 flex items-start gap-3 ${skipped ? "opacity-50" : ""}`}
+            >
               <Checkbox
                 checked={isDone}
                 disabled={skipped || markMut.isPending}
@@ -136,9 +151,15 @@ function SetupPage() {
                     <Circle className="h-4 w-4 text-muted-foreground" />
                   )}
                   <span className="font-medium">{s.label}</span>
-                  {!required && <Badge variant="outline" className="text-[10px]">optional</Badge>}
+                  {!required && (
+                    <Badge variant="outline" className="text-[10px]">
+                      optional
+                    </Badge>
+                  )}
                   {s.selfHostedOnly && (
-                    <Badge variant="outline" className="text-[10px]">self-hosted</Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      self-hosted
+                    </Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">{s.description}</p>
@@ -154,8 +175,10 @@ function SetupPage() {
 }
 
 function StatusBadge({ status }: { status: "ok" | "warn" | "fail" | "skip" }) {
-  if (status === "ok") return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30">ok</Badge>;
-  if (status === "warn") return <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30">warn</Badge>;
+  if (status === "ok")
+    return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30">ok</Badge>;
+  if (status === "warn")
+    return <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30">warn</Badge>;
   if (status === "fail") return <Badge variant="destructive">fail</Badge>;
   return <Badge variant="outline">skip</Badge>;
 }

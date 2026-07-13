@@ -44,12 +44,6 @@ export const CONTENT_ROADMAP = {
     "Multilingual AI on the Floor: Design Patterns",
     "Retention and Deletion for Enterprise AI",
   ],
-  guides: [
-    "How to Build a Refusal-First AI Pipeline",
-    "How to Instrument AI Adoption",
-  ],
-  caseStudies: [
-    "European Cross-Border Rollout",
-    "AI-Assisted Peak-Season Onboarding",
-  ],
+  guides: ["How to Build a Refusal-First AI Pipeline", "How to Instrument AI Adoption"],
+  caseStudies: ["European Cross-Border Rollout", "AI-Assisted Peak-Season Onboarding"],
 };

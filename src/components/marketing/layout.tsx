@@ -7,9 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogoMark } from "@/components/brand/logo";
 import { useT, type Lang } from "@/i18n";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 
 const NAV = [
   { to: "/product", label: "Product" },
@@ -22,7 +24,10 @@ const NAV = [
   { to: "/contact", label: "Contact" },
 ] as const;
 
-const FOOTER_COLS: Array<{ title: string; links: Array<{ to: string; label: string; external?: boolean }> }> = [
+const FOOTER_COLS: Array<{
+  title: string;
+  links: Array<{ to: string; label: string; external?: boolean }>;
+}> = [
   {
     title: "Product",
     links: [
@@ -97,7 +102,6 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/75 backdrop-blur-xl">
@@ -120,15 +124,26 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2 shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 px-2 text-[13px] text-muted-foreground hover:text-foreground gap-1.5" aria-label="Change language">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 px-2 text-[13px] text-muted-foreground hover:text-foreground gap-1.5"
+                  aria-label="Change language"
+                >
                   <Globe className="h-4 w-4" />
                   <span className="font-mono text-[11px]">{lang.toUpperCase()}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[140px]">
                 {LANGS.map((l) => (
-                  <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)} className={l.code === lang ? "font-semibold text-primary" : ""}>
-                    <span className="font-mono text-[10px] mr-2 opacity-70">{l.code.toUpperCase()}</span>
+                  <DropdownMenuItem
+                    key={l.code}
+                    onClick={() => setLang(l.code)}
+                    className={l.code === lang ? "font-semibold text-primary" : ""}
+                  >
+                    <span className="font-mono text-[10px] mr-2 opacity-70">
+                      {l.code.toUpperCase()}
+                    </span>
                     {l.label}
                   </DropdownMenuItem>
                 ))}
@@ -138,17 +153,29 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
 
             <div className="hidden sm:flex items-center gap-2">
               {signedIn ? (
-                <Button asChild size="sm"><Link to="/app">Open app</Link></Button>
+                <Button asChild size="sm">
+                  <Link to="/app">Open app</Link>
+                </Button>
               ) : (
                 <>
-                  <Button asChild variant="ghost" size="sm" className="text-foreground/85"><Link to="/auth">Sign in</Link></Button>
-                  <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_8px_24px_-8px_oklch(0.82_0.14_200/0.5)]">
+                  <Button asChild variant="ghost" size="sm" className="text-foreground/85">
+                    <Link to="/auth">Sign in</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_8px_24px_-8px_oklch(0.82_0.14_200/0.5)]"
+                  >
                     <Link to="/demo">Launch Interactive Demo</Link>
                   </Button>
                 </>
               )}
             </div>
-            <button className="lg:hidden p-2 -mr-1 text-foreground" onClick={() => setOpen(!open)} aria-label="Menu">
+            <button
+              className="lg:hidden p-2 -mr-1 text-foreground"
+              onClick={() => setOpen(!open)}
+              aria-label="Menu"
+            >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
@@ -157,17 +184,28 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
           <div className="lg:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
             <div className="mx-auto max-w-7xl px-4 py-3 flex flex-col">
               {NAV.map((i) => (
-                <Link key={i.to} to={i.to} onClick={() => setOpen(false)} className="py-2.5 text-sm text-foreground/90">
+                <Link
+                  key={i.to}
+                  to={i.to}
+                  onClick={() => setOpen(false)}
+                  className="py-2.5 text-sm text-foreground/90"
+                >
                   {i.label}
                 </Link>
               ))}
               <div className="pt-3 mt-2 border-t border-border/50 flex gap-2 sm:hidden">
                 {signedIn ? (
-                  <Button asChild size="sm" className="flex-1"><Link to="/app">Open app</Link></Button>
+                  <Button asChild size="sm" className="flex-1">
+                    <Link to="/app">Open app</Link>
+                  </Button>
                 ) : (
                   <>
-                    <Button asChild variant="outline" size="sm" className="flex-1"><Link to="/auth">Sign in</Link></Button>
-                    <Button asChild size="sm" className="flex-1"><Link to="/demo">Launch Demo</Link></Button>
+                    <Button asChild variant="outline" size="sm" className="flex-1">
+                      <Link to="/auth">Sign in</Link>
+                    </Button>
+                    <Button asChild size="sm" className="flex-1">
+                      <Link to="/demo">Launch Demo</Link>
+                    </Button>
                   </>
                 )}
               </div>
@@ -187,16 +225,33 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
                 <span className="font-semibold tracking-tight">OPSQAI</span>
               </div>
               <p className="mt-3 text-xs text-muted-foreground leading-relaxed max-w-xs">
-                Enterprise AI knowledge management, operational intelligence and compliance for logistics &amp; supply chain.
+                Enterprise AI knowledge management, operational intelligence and compliance for
+                logistics &amp; supply chain.
               </p>
               <div className="mt-5 flex items-center gap-2">
-                <a href="https://www.linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
+                <a
+                  href="https://www.linkedin.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="LinkedIn"
+                  className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                >
                   <Linkedin className="h-4 w-4" />
                 </a>
-                <Link to="/contact" aria-label="Contact OPSQAI" className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
+                <Link
+                  to="/contact"
+                  aria-label="Contact OPSQAI"
+                  className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                >
                   <Mail className="h-4 w-4" />
                 </Link>
-                <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub" className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
+                <a
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="GitHub"
+                  className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                >
                   <Github className="h-4 w-4" />
                 </a>
               </div>
@@ -204,11 +259,15 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
             <div className="md:col-span-9 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
               {FOOTER_COLS.map((col) => (
                 <div key={col.title}>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-foreground/90 mb-3">{col.title}</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-foreground/90 mb-3">
+                    {col.title}
+                  </div>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {col.links.map((l, i) => (
                       <li key={`${col.title}-${i}`}>
-                        <Link to={l.to} className="hover:text-foreground transition-colors">{l.label}</Link>
+                        <Link to={l.to} className="hover:text-foreground transition-colors">
+                          {l.label}
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -221,8 +280,12 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
               <span>© {new Date().getFullYear()} OPSQAI. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="chip border-primary/30 !bg-primary/5 !text-primary">EU hosted · Dublin</span>
-              <span className="chip border-primary/30 !bg-primary/5 !text-primary">GDPR aligned</span>
+              <span className="chip border-primary/30 !bg-primary/5 !text-primary">
+                EU hosted · Dublin
+              </span>
+              <span className="chip border-primary/30 !bg-primary/5 !text-primary">
+                GDPR aligned
+              </span>
             </div>
           </div>
         </div>

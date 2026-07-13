@@ -8,16 +8,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  KeyRound, Plus, Copy, CheckCircle2, Trash2, Loader2, ArrowLeft, ExternalLink, ShieldAlert,
+  KeyRound,
+  Plus,
+  Copy,
+  CheckCircle2,
+  Trash2,
+  Loader2,
+  ArrowLeft,
+  ExternalLink,
+  ShieldAlert,
 } from "lucide-react";
 import { listApiKeys, createApiKey, revokeApiKey, type ApiKeyRow } from "@/lib/api-keys.functions";
 
@@ -55,10 +74,15 @@ function ApiKeysPage() {
     }
   }
 
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    void refresh();
+  }, []);
 
   async function onCreate() {
-    if (!newName.trim()) { toast.error("Name is required"); return; }
+    if (!newName.trim()) {
+      toast.error("Name is required");
+      return;
+    }
     setCreating(true);
     try {
       const r = await create({ data: { name: newName.trim() } });
@@ -139,16 +163,25 @@ function ApiKeysPage() {
             {keys.map((k) => {
               const revoked = !!k.revoked_at;
               return (
-                <li key={k.id} className="py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <li
+                  key={k.id}
+                  className="py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+                >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm truncate">{k.name}</span>
                       {revoked ? (
-                        <Badge variant="outline" className="border-destructive/30 bg-destructive/10 text-destructive text-[10px]">
+                        <Badge
+                          variant="outline"
+                          className="border-destructive/30 bg-destructive/10 text-destructive text-[10px]"
+                        >
                           Revoked
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]"
+                        >
                           Active
                         </Badge>
                       )}
@@ -156,14 +189,20 @@ function ApiKeysPage() {
                     <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
                       <code className="font-mono">{k.key_prefix}••••••••</code>
                       <span>Created {new Date(k.created_at).toLocaleDateString()}</span>
-                      {k.last_used_at && <span>Last used {new Date(k.last_used_at).toLocaleDateString()}</span>}
+                      {k.last_used_at && (
+                        <span>Last used {new Date(k.last_used_at).toLocaleDateString()}</span>
+                      )}
                       <span>Scopes: {k.scopes.join(", ")}</span>
                     </div>
                   </div>
                   {!revoked && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                        >
                           <Trash2 className="h-3.5 w-3.5 mr-2" />
                           Revoke
                         </Button>
@@ -172,7 +211,8 @@ function ApiKeysPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Revoke this API key?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Any client using <code className="font-mono">{k.key_prefix}…</code> will stop working immediately. This cannot be undone.
+                            Any client using <code className="font-mono">{k.key_prefix}…</code> will
+                            stop working immediately. This cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -197,7 +237,8 @@ function ApiKeysPage() {
           <DialogHeader>
             <DialogTitle>Create API key</DialogTitle>
             <DialogDescription>
-              Give the key a descriptive name so you know where it's used (e.g. "Zapier production").
+              Give the key a descriptive name so you know where it's used (e.g. "Zapier
+              production").
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -211,7 +252,9 @@ function ApiKeysPage() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNew(false)} disabled={creating}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowNew(false)} disabled={creating}>
+              Cancel
+            </Button>
             <Button onClick={onCreate} disabled={creating || !newName.trim()}>
               {creating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Create key
@@ -229,13 +272,16 @@ function ApiKeysPage() {
               Copy your API key now
             </DialogTitle>
             <DialogDescription>
-              This is the only time we'll show the full secret. Store it in a secure vault — you won't be able to view it again.
+              This is the only time we'll show the full secret. Store it in a secure vault — you
+              won't be able to view it again.
             </DialogDescription>
           </DialogHeader>
           {freshSecret && (
             <div className="space-y-3">
               <div className="rounded-lg border bg-muted/40 p-3 flex items-center gap-2">
-                <code className="text-xs flex-1 min-w-0 break-all font-mono">{freshSecret.secret}</code>
+                <code className="text-xs flex-1 min-w-0 break-all font-mono">
+                  {freshSecret.secret}
+                </code>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -247,11 +293,18 @@ function ApiKeysPage() {
                     toast.success("Copied");
                   }}
                 >
-                  {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  {copied ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Use as a bearer token: <code className="font-mono">Authorization: Bearer {freshSecret.key.key_prefix}…</code>
+                Use as a bearer token:{" "}
+                <code className="font-mono">
+                  Authorization: Bearer {freshSecret.key.key_prefix}…
+                </code>
               </p>
             </div>
           )}

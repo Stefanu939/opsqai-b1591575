@@ -76,4 +76,3 @@ export const ROLE_LABELS: Record<string, string> = {
   team_leader: "Team Leader (legacy)",
   employee: "Employee (legacy)",
 };
-

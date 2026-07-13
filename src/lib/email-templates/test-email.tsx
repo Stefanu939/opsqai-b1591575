@@ -16,13 +16,24 @@ const Email = ({ triggeredBy, triggeredAt, provider }: Props) => (
     intro="This message confirms your OPSQAI Email Service is configured correctly: sender domain, provider, template rendering and queue delivery are all working."
     securityNotice="If you didn't trigger this test, please review your platform admin access immediately."
   >
-    <Text style={row}><strong>Provider:</strong> {provider ?? "Lovable Emails"}</Text>
-    <Text style={row}><strong>Triggered by:</strong> {triggeredBy ?? "Platform Owner"}</Text>
-    <Text style={row}><strong>Sent:</strong> {triggeredAt ?? new Date().toLocaleString()}</Text>
+    <Text style={row}>
+      <strong>Provider:</strong> {provider ?? "Lovable Emails"}
+    </Text>
+    <Text style={row}>
+      <strong>Triggered by:</strong> {triggeredBy ?? "Platform Owner"}
+    </Text>
+    <Text style={row}>
+      <strong>Sent:</strong> {triggeredAt ?? new Date().toLocaleString()}
+    </Text>
   </BrandedEmail>
 );
 
-const row: React.CSSProperties = { fontSize: "14px", lineHeight: "22px", color: "#0f1729", margin: "0 0 6px" };
+const row: React.CSSProperties = {
+  fontSize: "14px",
+  lineHeight: "22px",
+  color: "#0f1729",
+  margin: "0 0 6px",
+};
 
 export const template = {
   component: Email,

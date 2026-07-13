@@ -49,30 +49,47 @@ const MAX_PER_WINDOW = 10;
 function rateLimitOk(ip: string): boolean {
   const now = Date.now();
   const arr = (BUCKET.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (arr.length >= MAX_PER_WINDOW) { BUCKET.set(ip, arr); return false; }
+  if (arr.length >= MAX_PER_WINDOW) {
+    BUCKET.set(ip, arr);
+    return false;
+  }
   arr.push(now);
   BUCKET.set(ip, arr);
   return true;
 }
 
 const BodySchema = z.object({
-  messages: z.array(z.object({
-    role: z.enum(["user", "assistant"]),
-    content: z.string().max(2000),
-  })).min(1).max(20),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().max(2000),
+      }),
+    )
+    .min(1)
+    .max(20),
 });
 
 export const Route = createFileRoute("/api/demo-chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+        const ip =
+          request.headers.get("cf-connecting-ip") ??
+          request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          "anon";
         if (!rateLimitOk(ip)) {
-          return new Response("Rate limit reached. Please try again in a few minutes.", { status: 429 });
+          return new Response("Rate limit reached. Please try again in a few minutes.", {
+            status: 429,
+          });
         }
 
         let body: unknown;
-        try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400 }); }
+        try {
+          body = await request.json();
+        } catch {
+          return new Response("Invalid JSON", { status: 400 });
+        }
         const parsed = BodySchema.safeParse(body);
         if (!parsed.success) return new Response("Invalid body", { status: 400 });
 

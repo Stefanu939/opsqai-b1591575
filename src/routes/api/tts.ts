@@ -18,11 +18,7 @@ function getClientIp(request: Request): string {
   const h = request.headers;
   const fwd = h.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();
-  return (
-    h.get("cf-connecting-ip") ??
-    h.get("x-real-ip") ??
-    "unknown"
-  );
+  return h.get("cf-connecting-ip") ?? h.get("x-real-ip") ?? "unknown";
 }
 
 function rateLimit(ip: string): { ok: boolean; retryAfter: number } {
@@ -56,14 +52,19 @@ export const Route = createFileRoute("/api/tts")({
         }
 
         let payload: { text?: string; lang?: string };
-        try { payload = await request.json(); } catch { return new Response("bad json", { status: 400 }); }
+        try {
+          payload = await request.json();
+        } catch {
+          return new Response("bad json", { status: 400 });
+        }
         const text = (payload.text ?? "").trim();
         if (!text || text.length > 4000) return new Response("bad text", { status: 400 });
         const lang = payload.lang === "de" ? "de" : "en";
         const voice = "alloy";
-        const instructions = lang === "de"
-          ? "Ruhig, souverän und premium. Sprich langsam, warm und vertrauenswürdig, wie eine Enterprise-SaaS-Produktnarration von Apple oder Stripe. Kurze Pausen zwischen Sätzen."
-          : "Calm, confident, premium. Speak slowly, warm and trustworthy, like an enterprise SaaS product narration from Apple or Stripe. Short pauses between sentences.";
+        const instructions =
+          lang === "de"
+            ? "Ruhig, souverän und premium. Sprich langsam, warm und vertrauenswürdig, wie eine Enterprise-SaaS-Produktnarration von Apple oder Stripe. Kurze Pausen zwischen Sätzen."
+            : "Calm, confident, premium. Speak slowly, warm and trustworthy, like an enterprise SaaS product narration from Apple or Stripe. Short pauses between sentences.";
         const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
           method: "POST",
           headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },

@@ -47,7 +47,9 @@ export function ChatSidebar() {
     }
   };
 
-  useEffect(() => { reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [scopeCompanyId, activeId]);
+  useEffect(() => {
+    reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [scopeCompanyId, activeId]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -55,7 +57,12 @@ export function ChatSidebar() {
   }, [threads, query]);
 
   const grouped = useMemo(() => {
-    const g: Record<"today" | "week" | "month" | "older", Thread[]> = { today: [], week: [], month: [], older: [] };
+    const g: Record<"today" | "week" | "month" | "older", Thread[]> = {
+      today: [],
+      week: [],
+      month: [],
+      older: [],
+    };
     for (const t of filtered) g[bucketOf(t.updated_at || t.created_at)].push(t);
     return g;
   }, [filtered]);
@@ -65,26 +72,48 @@ export function ChatSidebar() {
       const th = await create({ data: { companyId: scopeCompanyId ?? undefined } });
       await reload();
       navigate({ to: "/app/chat/$threadId", params: { threadId: th.id } });
-    } catch (e) { toast.error(String(e)); }
+    } catch (e) {
+      toast.error(String(e));
+    }
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm(lang === "de" ? "Diese Unterhaltung löschen?" : lang === "ro" ? "Ștergi conversația?" : "Delete this conversation?")) return;
+    if (
+      !confirm(
+        lang === "de"
+          ? "Diese Unterhaltung löschen?"
+          : lang === "ro"
+            ? "Ștergi conversația?"
+            : "Delete this conversation?",
+      )
+    )
+      return;
     try {
       await remove({ data: { id } });
       setThreads((p) => p.filter((t) => t.id !== id));
       if (activeId === id) navigate({ to: "/app/chat" });
-    } catch (e) { toast.error(String(e)); }
+    } catch (e) {
+      toast.error(String(e));
+    }
   };
 
-  const startRename = (t: Thread) => { setEditingId(t.id); setDraft(t.title); };
+  const startRename = (t: Thread) => {
+    setEditingId(t.id);
+    setDraft(t.title);
+  };
   const commitRename = async () => {
     if (!editingId) return;
-    const title = draft.trim(); if (!title) { setEditingId(null); return; }
+    const title = draft.trim();
+    if (!title) {
+      setEditingId(null);
+      return;
+    }
     try {
       await rename({ data: { id: editingId, title } });
-      setThreads((p) => p.map((t) => t.id === editingId ? { ...t, title } : t));
-    } catch (e) { toast.error(String(e)); }
+      setThreads((p) => p.map((t) => (t.id === editingId ? { ...t, title } : t)));
+    } catch (e) {
+      toast.error(String(e));
+    }
     setEditingId(null);
   };
 
@@ -93,9 +122,19 @@ export function ChatSidebar() {
     week: lang === "de" ? "Diese Woche" : lang === "ro" ? "Săptămâna aceasta" : "This week",
     month: lang === "de" ? "Diesen Monat" : lang === "ro" ? "Luna aceasta" : "This month",
     older: lang === "de" ? "Älter" : lang === "ro" ? "Mai vechi" : "Older",
-    search: lang === "de" ? "Unterhaltungen suchen…" : lang === "ro" ? "Caută conversații…" : "Search conversations…",
+    search:
+      lang === "de"
+        ? "Unterhaltungen suchen…"
+        : lang === "ro"
+          ? "Caută conversații…"
+          : "Search conversations…",
     newChat: lang === "de" ? "Neue Unterhaltung" : lang === "ro" ? "Conversație nouă" : "New chat",
-    empty: lang === "de" ? "Noch keine Unterhaltungen" : lang === "ro" ? "Nicio conversație încă" : "No conversations yet",
+    empty:
+      lang === "de"
+        ? "Noch keine Unterhaltungen"
+        : lang === "ro"
+          ? "Nicio conversație încă"
+          : "No conversations yet",
     history: lang === "de" ? "Verlauf" : lang === "ro" ? "Istoric" : "History",
   };
 
@@ -128,7 +167,9 @@ export function ChatSidebar() {
           (["today", "week", "month", "older"] as const).map((k) =>
             grouped[k].length ? (
               <div key={k} className="mb-3">
-                <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">{labels[k]}</div>
+                <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                  {labels[k]}
+                </div>
                 <div className="space-y-0.5">
                   {grouped[k].map((t) => {
                     const isActive = t.id === activeId;
@@ -152,10 +193,16 @@ export function ChatSidebar() {
                               autoFocus
                               className="h-7 text-xs"
                             />
-                            <button onClick={commitRename} className="p-1 text-primary hover:bg-primary/10 rounded">
+                            <button
+                              onClick={commitRename}
+                              className="p-1 text-primary hover:bg-primary/10 rounded"
+                            >
                               <Check className="h-3.5 w-3.5" />
                             </button>
-                            <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground hover:bg-muted rounded">
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="p-1 text-muted-foreground hover:bg-muted rounded"
+                            >
                               <X className="h-3.5 w-3.5" />
                             </button>
                           </>

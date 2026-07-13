@@ -2,7 +2,11 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { listPlatformAdmins, promotePlatformAdmin, demotePlatformAdmin } from "@/lib/companies.functions";
+import {
+  listPlatformAdmins,
+  promotePlatformAdmin,
+  demotePlatformAdmin,
+} from "@/lib/companies.functions";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,12 +35,19 @@ function PlatformAdminsPage() {
 
   const promoteMut = useMutation({
     mutationFn: (e: string) => promote({ data: { email: e } }),
-    onSuccess: () => { toast.success("Promoted to Platform Super Admin"); setEmail(""); qc.invalidateQueries({ queryKey: ["platform-admins"] }); },
+    onSuccess: () => {
+      toast.success("Promoted to Platform Super Admin");
+      setEmail("");
+      qc.invalidateQueries({ queryKey: ["platform-admins"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const demoteMut = useMutation({
     mutationFn: (id: string) => demote({ data: { user_id: id } }),
-    onSuccess: () => { toast.success("Demoted"); qc.invalidateQueries({ queryKey: ["platform-admins"] }); },
+    onSuccess: () => {
+      toast.success("Demoted");
+      qc.invalidateQueries({ queryKey: ["platform-admins"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -55,8 +66,10 @@ function PlatformAdminsPage() {
         <div className="text-sm font-medium mb-2">Promote a user</div>
         <div className="flex gap-2">
           <Input
-            type="email" placeholder="user@example.com"
-            value={email} onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            placeholder="user@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <Button
             onClick={() => promoteMut.mutate(email)}
@@ -85,12 +98,18 @@ function PlatformAdminsPage() {
               <tr key={a.id} className="border-t">
                 <td className="px-4 py-3 font-medium">{a.email}</td>
                 <td className="px-4 py-3">{a.full_name ?? "—"}</td>
-                <td className="px-4 py-3">{a.last_sign_in_at ? new Date(a.last_sign_in_at).toLocaleString() : "—"}</td>
+                <td className="px-4 py-3">
+                  {a.last_sign_in_at ? new Date(a.last_sign_in_at).toLocaleString() : "—"}
+                </td>
                 <td className="px-4 py-3 text-right">
                   <Button
-                    size="sm" variant="ghost" className="text-destructive"
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
                     disabled={a.id === user?.id || demoteMut.isPending}
-                    onClick={() => { if (confirm(`Demote ${a.email}?`)) demoteMut.mutate(a.id); }}
+                    onClick={() => {
+                      if (confirm(`Demote ${a.email}?`)) demoteMut.mutate(a.id);
+                    }}
                   >
                     <UserMinus className="h-4 w-4 mr-1" /> Demote
                   </Button>
@@ -98,7 +117,11 @@ function PlatformAdminsPage() {
               </tr>
             ))}
             {!admins?.length && (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No platform admins.</td></tr>
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                  No platform admins.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

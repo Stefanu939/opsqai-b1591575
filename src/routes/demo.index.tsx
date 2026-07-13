@@ -4,8 +4,16 @@ import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Building2, Sparkles, ShieldCheck, Clock, BookOpen, GraduationCap,
-  Activity, Users, MessageSquare, ArrowRight,
+  Building2,
+  Sparkles,
+  ShieldCheck,
+  Clock,
+  BookOpen,
+  GraduationCap,
+  Activity,
+  Users,
+  MessageSquare,
+  ArrowRight,
 } from "lucide-react";
 import { startDemoSession, useDemoSession } from "@/lib/demo/session";
 
@@ -13,9 +21,17 @@ export const Route = createFileRoute("/demo/")({
   head: () => ({
     meta: [
       { title: "OPSQAI Interactive Demo — Explore a live enterprise workspace" },
-      { name: "description", content: "Step into a fully-configured enterprise OPSQAI workspace. Explore AI chat, knowledge governance, onboarding, analytics and audit — for 15 minutes, no signup required." },
+      {
+        name: "description",
+        content:
+          "Step into a fully-configured enterprise OPSQAI workspace. Explore AI chat, knowledge governance, onboarding, analytics and audit — for 15 minutes, no signup required.",
+      },
       { property: "og:title", content: "OPSQAI Interactive Demo" },
-      { property: "og:description", content: "Explore a live, read-only enterprise OPSQAI workspace populated with real logistics operations data." },
+      {
+        property: "og:description",
+        content:
+          "Explore a live, read-only enterprise OPSQAI workspace populated with real logistics operations data.",
+      },
       { property: "og:url", content: "https://opsqai.de/demo" },
     ],
     links: [{ rel: "canonical", href: "https://opsqai.de/demo" }],
@@ -24,12 +40,32 @@ export const Route = createFileRoute("/demo/")({
 });
 
 const MODULES = [
-  { icon: MessageSquare, title: "AI Chat", desc: "Ask any operational question — answered from Atlas Logistics' own SOPs." },
-  { icon: BookOpen,      title: "Knowledge Base", desc: "8 governed SOPs, policies and work instructions." },
-  { icon: GraduationCap, title: "Academy", desc: "A published onboarding path with chapters and lessons." },
-  { icon: Activity,      title: "Analytics & Audit", desc: "60 days of operational activity and an AI Audit at 87/100." },
-  { icon: Users,         title: "People & Roles", desc: "5 roles across 4 warehouse departments." },
-  { icon: ShieldCheck,   title: "Governance", desc: "See how enterprise permissions and audit trails work." },
+  {
+    icon: MessageSquare,
+    title: "AI Chat",
+    desc: "Ask any operational question — answered from Atlas Logistics' own SOPs.",
+  },
+  {
+    icon: BookOpen,
+    title: "Knowledge Base",
+    desc: "8 governed SOPs, policies and work instructions.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Academy",
+    desc: "A published onboarding path with chapters and lessons.",
+  },
+  {
+    icon: Activity,
+    title: "Analytics & Audit",
+    desc: "60 days of operational activity and an AI Audit at 87/100.",
+  },
+  { icon: Users, title: "People & Roles", desc: "5 roles across 4 warehouse departments." },
+  {
+    icon: ShieldCheck,
+    title: "Governance",
+    desc: "See how enterprise permissions and audit trails work.",
+  },
 ];
 
 function DemoWelcomePage() {
@@ -55,9 +91,10 @@ function DemoWelcomePage() {
           Welcome to the OPSQAI Interactive Demo
         </h1>
         <p className="mt-4 text-muted-foreground max-w-2xl leading-relaxed">
-          This demo contains a fictional logistics company populated with realistic operational data.
-          Everything you see is fully functional but read-only. Explore how AI, knowledge management,
-          onboarding, governance and audit readiness work together inside a modern enterprise platform.
+          This demo contains a fictional logistics company populated with realistic operational
+          data. Everything you see is fully functional but read-only. Explore how AI, knowledge
+          management, onboarding, governance and audit readiness work together inside a modern
+          enterprise platform.
         </p>
 
         <Card className="mt-6 p-5 border-primary/30 bg-primary/5">
@@ -66,8 +103,9 @@ function DemoWelcomePage() {
             <div className="text-sm">
               <div className="font-semibold">Atlas Logistics GmbH</div>
               <p className="text-muted-foreground mt-1 leading-relaxed">
-                A mid-sized European logistics operator running Inbound, Outbound, Safety & QC, and Fleet operations.
-                Nine months of documented SOPs, 60 days of audit history, and an AI Audit at score 87/100.
+                A mid-sized European logistics operator running Inbound, Outbound, Safety & QC, and
+                Fleet operations. Nine months of documented SOPs, 60 days of audit history, and an
+                AI Audit at score 87/100.
               </p>
             </div>
           </div>
@@ -93,8 +131,9 @@ function DemoWelcomePage() {
         </div>
 
         <p className="mt-6 text-xs text-muted-foreground max-w-2xl leading-relaxed">
-          The Interactive Demo is a public preview — no signup required. Every action that would modify data
-          is blocked; you'll see a short explanation of what that action would do in your own workspace.
+          The Interactive Demo is a public preview — no signup required. Every action that would
+          modify data is blocked; you'll see a short explanation of what that action would do in
+          your own workspace.
         </p>
       </section>
     </MarketingLayout>

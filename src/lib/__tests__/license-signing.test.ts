@@ -26,7 +26,10 @@ function makeKeypair() {
   };
 }
 
-function signToken(payload: object, privateKey: ReturnType<typeof makeKeypair>["privateKey"]): string {
+function signToken(
+  payload: object,
+  privateKey: ReturnType<typeof makeKeypair>["privateKey"],
+): string {
   const payloadB64 = b64url(JSON.stringify(payload));
   const sig = edSign(null, Buffer.from(payloadB64), privateKey);
   return `opsqai.v1.${payloadB64}.${b64url(sig)}`;

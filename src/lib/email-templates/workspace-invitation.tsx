@@ -19,14 +19,20 @@ const Email = ({ inviterName, workspaceName, role, acceptUrl }: Props) => (
     ctaUrl={acceptUrl ?? "https://opsqai.de"}
     securityNotice="Invitations expire in 7 days. If you weren't expecting this, you can ignore the email."
   >
-    {role ? <Text style={{ fontSize: "14px", lineHeight: "22px", color: "#0f1729", margin: "0 0 6px" }}><strong>Role:</strong> {role}</Text> : null}
+    {role ? (
+      <Text style={{ fontSize: "14px", lineHeight: "22px", color: "#0f1729", margin: "0 0 6px" }}>
+        <strong>Role:</strong> {role}
+      </Text>
+    ) : null}
   </BrandedEmail>
 );
 
 export const template = {
   component: Email,
   subject: ({ workspaceName }: Record<string, any>) =>
-    workspaceName ? `You've been invited to ${workspaceName} on OPSQAI` : "You've been invited to OPSQAI",
+    workspaceName
+      ? `You've been invited to ${workspaceName} on OPSQAI`
+      : "You've been invited to OPSQAI",
   displayName: "Workspace invitation",
   previewData: {
     inviterName: "Stefan B.",

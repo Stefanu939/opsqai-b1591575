@@ -10,8 +10,23 @@ import {
 import { AppShell } from "@/components/app/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Sparkles, ShieldCheck, Clock, FileText, FileSpreadsheet, Presentation } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Trash2,
+  Sparkles,
+  ShieldCheck,
+  Clock,
+  FileText,
+  FileSpreadsheet,
+  Presentation,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,7 +43,9 @@ function WorkspaceIndex() {
   const del = useServerFn(deleteWorkspaceSession);
   const setRetention = useServerFn(updateCompanyRetention);
 
-  const [sessions, setSessions] = useState<Array<{ id: string; title: string; updated_at: string }>>([]);
+  const [sessions, setSessions] = useState<
+    Array<{ id: string; title: string; updated_at: string }>
+  >([]);
   const [retention, setRetentionLocal] = useState<string>("immediate");
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +64,11 @@ function WorkspaceIndex() {
     (async () => {
       const { data: prof } = await supabase.from("profiles").select("company_id").maybeSingle();
       if (prof?.company_id) {
-        const { data } = await supabase.from("companies").select("workspace_retention").eq("id", prof.company_id).maybeSingle();
+        const { data } = await supabase
+          .from("companies")
+          .select("workspace_retention")
+          .eq("id", prof.company_id)
+          .maybeSingle();
         if (data) setRetentionLocal((data as any).workspace_retention ?? "immediate");
       }
     })();
@@ -68,12 +89,16 @@ function WorkspaceIndex() {
             </div>
             <h1 className="text-3xl font-semibold tracking-tight mt-1">AI Workspace</h1>
             <p className="text-muted-foreground mt-1 max-w-2xl">
-              Upload temporary documents and let OPSQAI summarise, compare, extract KPIs,
-              find risks, and generate professional presentations, spreadsheets, Word documents and PDFs.
-              These files are <strong>never</strong> added to the Knowledge Base and are auto-deleted per your retention policy.
+              Upload temporary documents and let OPSQAI summarise, compare, extract KPIs, find
+              risks, and generate professional presentations, spreadsheets, Word documents and PDFs.
+              These files are <strong>never</strong> added to the Knowledge Base and are
+              auto-deleted per your retention policy.
             </p>
           </div>
-          <Button onClick={onCreate} className="gap-2"><Plus className="h-4 w-4" />New workspace</Button>
+          <Button onClick={onCreate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            New workspace
+          </Button>
         </div>
 
         <Card className="p-4 border-primary/20 bg-primary/5">
@@ -83,7 +108,8 @@ function WorkspaceIndex() {
               <div className="font-medium">Isolated session memory</div>
               <p className="text-muted-foreground mt-0.5">
                 Files uploaded here are processed in-session only. They are never embedded, indexed,
-                searchable or used to train the assistant. Generated artifacts (PPTX, XLSX, DOCX, PDF) follow the same retention policy.
+                searchable or used to train the assistant. Generated artifacts (PPTX, XLSX, DOCX,
+                PDF) follow the same retention policy.
               </p>
             </div>
           </div>
@@ -98,10 +124,14 @@ function WorkspaceIndex() {
                 value={retention}
                 onValueChange={async (v) => {
                   setRetentionLocal(v);
-                  await setRetention({ data: { retention: v as "immediate" | "1h" | "24h" | "7d" | "manual" } });
+                  await setRetention({
+                    data: { retention: v as "immediate" | "1h" | "24h" | "7d" | "manual" },
+                  });
                 }}
               >
-                <SelectTrigger className="w-48 h-8"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-48 h-8">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="immediate">Delete immediately</SelectItem>
                   <SelectItem value="1h">Delete after 1 hour</SelectItem>
@@ -110,19 +140,41 @@ function WorkspaceIndex() {
                   <SelectItem value="manual">Manual deletion only</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-xs text-muted-foreground">Applies to all workspace files and generated artifacts.</span>
+              <span className="text-xs text-muted-foreground">
+                Applies to all workspace files and generated artifacts.
+              </span>
             </div>
           </Card>
         )}
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <Card className="p-4"><Presentation className="h-5 w-5 text-primary mb-1.5" /><div className="text-sm font-medium">PowerPoint</div><div className="text-xs text-muted-foreground">"Create slides for tomorrow's meeting from these reports."</div></Card>
-          <Card className="p-4"><FileSpreadsheet className="h-5 w-5 text-primary mb-1.5" /><div className="text-sm font-medium">Excel</div><div className="text-xs text-muted-foreground">"Build a CAPA tracker / KPI table from this audit."</div></Card>
-          <Card className="p-4"><FileText className="h-5 w-5 text-primary mb-1.5" /><div className="text-sm font-medium">Word & PDF</div><div className="text-xs text-muted-foreground">"Generate an executive summary as PDF."</div></Card>
+          <Card className="p-4">
+            <Presentation className="h-5 w-5 text-primary mb-1.5" />
+            <div className="text-sm font-medium">PowerPoint</div>
+            <div className="text-xs text-muted-foreground">
+              "Create slides for tomorrow's meeting from these reports."
+            </div>
+          </Card>
+          <Card className="p-4">
+            <FileSpreadsheet className="h-5 w-5 text-primary mb-1.5" />
+            <div className="text-sm font-medium">Excel</div>
+            <div className="text-xs text-muted-foreground">
+              "Build a CAPA tracker / KPI table from this audit."
+            </div>
+          </Card>
+          <Card className="p-4">
+            <FileText className="h-5 w-5 text-primary mb-1.5" />
+            <div className="text-sm font-medium">Word & PDF</div>
+            <div className="text-xs text-muted-foreground">
+              "Generate an executive summary as PDF."
+            </div>
+          </Card>
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Your workspaces</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            Your workspaces
+          </h2>
           {loading ? (
             <div className="text-sm text-muted-foreground">Loading…</div>
           ) : sessions.length === 0 ? (
@@ -132,17 +184,23 @@ function WorkspaceIndex() {
           ) : (
             <div className="space-y-2">
               {sessions.map((s) => (
-                <Card key={s.id} className="p-3 flex items-center justify-between hover:border-primary/40 transition">
+                <Card
+                  key={s.id}
+                  className="p-3 flex items-center justify-between hover:border-primary/40 transition"
+                >
                   <Link
                     to="/app/workspace/$sessionId"
                     params={{ sessionId: s.id }}
                     className="flex-1 min-w-0"
                   >
                     <div className="font-medium truncate">{s.title}</div>
-                    <div className="text-xs text-muted-foreground">Updated {new Date(s.updated_at).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Updated {new Date(s.updated_at).toLocaleString()}
+                    </div>
                   </Link>
                   <Button
-                    variant="ghost" size="icon"
+                    variant="ghost"
+                    size="icon"
                     onClick={async (e) => {
                       e.preventDefault();
                       if (!confirm("Delete this workspace and all its files?")) return;

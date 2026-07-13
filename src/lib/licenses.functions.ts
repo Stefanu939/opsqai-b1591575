@@ -233,7 +233,11 @@ export const revokeLicense = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     let q = context.supabase
       .from("licenses")
-      .update({ revoked: true, revoked_at: new Date().toISOString(), revoked_reason: data.reason ?? null })
+      .update({
+        revoked: true,
+        revoked_at: new Date().toISOString(),
+        revoked_reason: data.reason ?? null,
+      })
       .eq("install_id", data.install_id)
       .eq("kind", data.kind);
     if (data.kind === "module") {
@@ -271,10 +275,12 @@ export const getLicensePublicKey = createServerFn({ method: "POST" })
 export const getModuleToken = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      install_id: InstallIdSchema,
-      module_key: z.string().refine(isValidModuleKey, "unknown module"),
-    }).parse(d),
+    z
+      .object({
+        install_id: InstallIdSchema,
+        module_key: z.string().refine(isValidModuleKey, "unknown module"),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -337,10 +343,7 @@ export const transferOwnership = createServerFn({ method: "POST" })
       patch.handed_over_at = nowIso;
     }
 
-    const { error } = await supabaseAdmin
-      .from("licenses")
-      .update(patch)
-      .eq("id", current.id);
+    const { error } = await supabaseAdmin.from("licenses").update(patch).eq("id", current.id);
     if (error) throw new Error(error.message);
     return { ok: true, install_id: data.install_id, owner_type: data.to, unchanged: false };
   });

@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { CONTACT_SUBJECT_LABELS, DEFAULT_MAILBOXES, routeContactSubject, type ContactSubject } from "@/lib/email/routing";
+import {
+  CONTACT_SUBJECT_LABELS,
+  DEFAULT_MAILBOXES,
+  routeContactSubject,
+  type ContactSubject,
+} from "@/lib/email/routing";
 import { dispatchTransactionalEmail } from "@/lib/email/dispatch.server";
 
 const BodySchema = z.object({
@@ -11,7 +16,16 @@ const BodySchema = z.object({
   phone: z.string().trim().max(60).optional().or(z.literal("")),
   country: z.string().trim().max(80).optional().or(z.literal("")),
   subject: z.enum([
-    "general", "demo", "sales", "pricing", "support", "bug", "security", "privacy", "partnership", "other",
+    "general",
+    "demo",
+    "sales",
+    "pricing",
+    "support",
+    "bug",
+    "security",
+    "privacy",
+    "partnership",
+    "other",
   ]),
   message: z.string().trim().min(10).max(8000),
   // Honeypot — bots fill this; humans don't see it.
@@ -25,7 +39,10 @@ async function ipHash(req: Request): Promise<string | null> {
     req.headers.get("x-real-ip");
   if (!raw) return null;
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
-  return Array.from(new Uint8Array(buf)).slice(0, 8).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buf))
+    .slice(0, 8)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function mailboxesFromSettings(s: any | null) {
@@ -45,14 +62,20 @@ export const Route = createFileRoute("/api/public/contact-submit")({
         const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!url || !key) {
-          return Response.json({ error: "Email service is temporarily unavailable. Please try again shortly." }, { status: 503 });
+          return Response.json(
+            { error: "Email service is temporarily unavailable. Please try again shortly." },
+            { status: 503 },
+          );
         }
 
         let parsed: z.infer<typeof BodySchema>;
         try {
           parsed = BodySchema.parse(await request.json());
         } catch {
-          return Response.json({ error: "Please review your details and try again." }, { status: 400 });
+          return Response.json(
+            { error: "Please review your details and try again." },
+            { status: 400 },
+          );
         }
         if ((parsed.website ?? "").length > 0) {
           // Silent honeypot success
@@ -61,7 +84,10 @@ export const Route = createFileRoute("/api/public/contact-submit")({
 
         const sb = createClient(url, key);
         const { data: settings } = await sb
-          .from("platform_email_settings").select("*").eq("id", true).maybeSingle();
+          .from("platform_email_settings")
+          .select("*")
+          .eq("id", true)
+          .maybeSingle();
         const mailboxes = mailboxesFromSettings(settings);
         const subject = parsed.subject as ContactSubject;
         const routedTo = routeContactSubject(subject, mailboxes);
@@ -85,7 +111,10 @@ export const Route = createFileRoute("/api/public/contact-submit")({
 
         if (insertErr || !row) {
           console.error("[contact-submit] insert failed", insertErr?.message);
-          return Response.json({ error: "We couldn't record your request. Please try again." }, { status: 500 });
+          return Response.json(
+            { error: "We couldn't record your request. Please try again." },
+            { status: 500 },
+          );
         }
 
         // Internal routing notification — sent to the correct mailbox.

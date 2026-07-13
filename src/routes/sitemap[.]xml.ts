@@ -28,14 +28,34 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/about", changefreq: "monthly", priority: "0.7" },
 
           // Commercial landing pages
-          { path: "/solutions/enterprise-ai-for-logistics", changefreq: "monthly", priority: "0.85" },
+          {
+            path: "/solutions/enterprise-ai-for-logistics",
+            changefreq: "monthly",
+            priority: "0.85",
+          },
           { path: "/solutions/warehouse-ai-assistant", changefreq: "monthly", priority: "0.85" },
           { path: "/solutions/ai-knowledge-management", changefreq: "monthly", priority: "0.85" },
-          { path: "/solutions/operational-knowledge-platform", changefreq: "monthly", priority: "0.85" },
+          {
+            path: "/solutions/operational-knowledge-platform",
+            changefreq: "monthly",
+            priority: "0.85",
+          },
           { path: "/solutions/warehouse-sop-software", changefreq: "monthly", priority: "0.85" },
-          { path: "/solutions/warehouse-documentation-software", changefreq: "monthly", priority: "0.8" },
-          { path: "/solutions/ai-for-warehouse-operations", changefreq: "monthly", priority: "0.85" },
-          { path: "/solutions/ai-for-distribution-centers", changefreq: "monthly", priority: "0.85" },
+          {
+            path: "/solutions/warehouse-documentation-software",
+            changefreq: "monthly",
+            priority: "0.8",
+          },
+          {
+            path: "/solutions/ai-for-warehouse-operations",
+            changefreq: "monthly",
+            priority: "0.85",
+          },
+          {
+            path: "/solutions/ai-for-distribution-centers",
+            changefreq: "monthly",
+            priority: "0.85",
+          },
           { path: "/solutions/operational-ai-platform", changefreq: "monthly", priority: "0.85" },
           { path: "/solutions/enterprise-knowledge-base", changefreq: "monthly", priority: "0.85" },
 
@@ -73,13 +93,28 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         // Dynamic content
         for (const post of BLOG_POSTS) {
-          entries.push({ path: `/blog/${post.slug}`, lastmod: post.dateModified ?? post.datePublished, changefreq: "monthly", priority: "0.7" });
+          entries.push({
+            path: `/blog/${post.slug}`,
+            lastmod: post.dateModified ?? post.datePublished,
+            changefreq: "monthly",
+            priority: "0.7",
+          });
         }
         for (const g of GUIDES) {
-          entries.push({ path: `/guides/${g.slug}`, lastmod: g.dateModified ?? g.datePublished, changefreq: "monthly", priority: "0.7" });
+          entries.push({
+            path: `/guides/${g.slug}`,
+            lastmod: g.dateModified ?? g.datePublished,
+            changefreq: "monthly",
+            priority: "0.7",
+          });
         }
         for (const c of CASE_STUDIES) {
-          entries.push({ path: `/case-studies/${c.slug}`, lastmod: c.datePublished, changefreq: "monthly", priority: "0.7" });
+          entries.push({
+            path: `/case-studies/${c.slug}`,
+            lastmod: c.datePublished,
+            changefreq: "monthly",
+            priority: "0.7",
+          });
         }
 
         const urls = entries.map((e) =>

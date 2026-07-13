@@ -13,7 +13,8 @@ export const Route = createFileRoute("/industries")({
       description:
         "OPSQAI for 3PL, e-commerce fulfilment, manufacturing logistics, pharma cold chain, retail DCs and air-cargo handlers.",
       path: "/industries",
-      keywords: "3PL AI, e-commerce fulfilment AI, manufacturing logistics AI, pharma cold chain AI, retail distribution centers, air cargo AI",
+      keywords:
+        "3PL AI, e-commerce fulfilment AI, manufacturing logistics AI, pharma cold chain AI, retail distribution centers, air cargo AI",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Industries", path: "/industries" },
@@ -27,13 +28,21 @@ const INDUSTRIES = [
     icon: Truck,
     title: "3PL & contract logistics",
     body: "Multi-client warehouses with different SOPs per customer. OPSQAI scopes each customer's procedures separately and gives operators answers in their own language.",
-    examples: ["Customer-specific receiving rules", "Per-account KPI escalation", "Multilingual operator base"],
+    examples: [
+      "Customer-specific receiving rules",
+      "Per-account KPI escalation",
+      "Multilingual operator base",
+    ],
   },
   {
     icon: ShoppingCart,
     title: "E-commerce fulfilment",
     body: "Pick, pack and returns operations where seasonal staff turn over fast. New hires get the same answer the team lead would give — without interrupting the team lead.",
-    examples: ["Returns and damage handling", "Peak-season onboarding", "Carrier-specific labeling"],
+    examples: [
+      "Returns and damage handling",
+      "Peak-season onboarding",
+      "Carrier-specific labeling",
+    ],
   },
   {
     icon: Factory,
@@ -45,7 +54,11 @@ const INDUSTRIES = [
     icon: Pill,
     title: "Pharma & cold chain",
     body: "GxP-adjacent operations where audit traceability matters. Every answer cites the SOP and version; the audit log is per-tenant and append-only.",
-    examples: ["Temperature-excursion handling", "Deviation reporting flow", "Restricted-access stockrooms"],
+    examples: [
+      "Temperature-excursion handling",
+      "Deviation reporting flow",
+      "Restricted-access stockrooms",
+    ],
   },
   {
     icon: Package,
@@ -66,9 +79,13 @@ function IndustriesPage() {
     <MarketingLayout>
       <section className="mx-auto max-w-4xl px-4 py-16 md:py-24">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">Industries</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">One assistant. Many corners of the supply chain.</h1>
+        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
+          One assistant. Many corners of the supply chain.
+        </h1>
         <p className="mt-5 text-lg text-muted-foreground">
-          OPSQAI was designed inside a working warehouse. It generalizes to the operations below because the underlying problem is the same: a procedure exists, the operator needs it now, in their language.
+          OPSQAI was designed inside a working warehouse. It generalizes to the operations below
+          because the underlying problem is the same: a procedure exists, the operator needs it now,
+          in their language.
         </p>
       </section>
 
@@ -82,7 +99,9 @@ function IndustriesPage() {
               <h2 className="mt-4 font-semibold">{s.title}</h2>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.body}</p>
               <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
-                {s.examples.map((b) => <li key={b}>· {b}</li>)}
+                {s.examples.map((b) => (
+                  <li key={b}>· {b}</li>
+                ))}
               </ul>
             </Card>
           ))}
@@ -91,10 +110,16 @@ function IndustriesPage() {
 
       <section className="mx-auto max-w-4xl px-4 pb-20 text-center">
         <h2 className="text-2xl font-semibold tracking-tight">Don't see yours?</h2>
-        <p className="mt-2 text-muted-foreground">If your team runs on SOPs and FAQs, OPSQAI fits. Tell us about your operation.</p>
+        <p className="mt-2 text-muted-foreground">
+          If your team runs on SOPs and FAQs, OPSQAI fits. Tell us about your operation.
+        </p>
         <div className="mt-6 flex flex-wrap gap-3 justify-center">
-          <Button asChild><Link to="/contact">Talk to us</Link></Button>
-          <Button asChild variant="outline"><Link to="/solutions">See solutions</Link></Button>
+          <Button asChild>
+            <Link to="/contact">Talk to us</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/solutions">See solutions</Link>
+          </Button>
         </div>
       </section>
     </MarketingLayout>

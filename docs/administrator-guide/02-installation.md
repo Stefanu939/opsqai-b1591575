@@ -9,7 +9,7 @@ yourself.
 Two ways to obtain it:
 
 1. **Automatic email** — the technical contact registered against your license
-   receives a mail titled *"Your OPSQAI installation package is ready"* with a
+   receives a mail titled _"Your OPSQAI installation package is ready"_ with a
    download link. The link is signed and valid for 24 hours.
 2. **Customer Portal** — sign in at `https://opsqai.de/portal/downloads` and
    click **Installation package**. A fresh 24-hour link is minted on every
@@ -17,18 +17,18 @@ Two ways to obtain it:
 
 The ZIP contains:
 
-| File | Purpose |
-| --- | --- |
-| `install.exe` | **Windows host-side installer** — double-click to run. Checks prerequisites, seeds `.env`, starts the stack, waits for health, opens the Setup Wizard in the default browser. |
-| `install-macos` | **macOS host-side installer** (universal binary). `chmod +x install-macos && ./install-macos`. |
-| `install-linux` | **Linux host-side installer**. `chmod +x install-linux && ./install-linux`. |
-| `install.sh` | POSIX shell fallback for headless / SSH-only hosts. Same contract as the native binaries. Also supports `--restore` (DR runbook 5.5.4). |
-| `docker-compose.yml` | Reference topology (opsqai + postgres + minio) |
-| `.env.template` | Copied to `.env` by the installer. `OPSQAI_INSTALL_ID` is pre-filled; infra secrets are marked `__CHANGE_ME__` |
-| `activation-bundle.json` | Ed25519-signed license bundle (install + module tokens + CRL) |
-| `entrypoint.sh` | Runs *inside* the container; auto-generates infra secrets on first boot |
-| `README.md` | Quick-start printed with your `install_id` and installer version |
-| `CHECKSUMS.sha256` | Per-file SHA-256 checksums |
+| File                     | Purpose                                                                                                                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `install.exe`            | **Windows host-side installer** — double-click to run. Checks prerequisites, seeds `.env`, starts the stack, waits for health, opens the Setup Wizard in the default browser. |
+| `install-macos`          | **macOS host-side installer** (universal binary). `chmod +x install-macos && ./install-macos`.                                                                                |
+| `install-linux`          | **Linux host-side installer**. `chmod +x install-linux && ./install-linux`.                                                                                                   |
+| `install.sh`             | POSIX shell fallback for headless / SSH-only hosts. Same contract as the native binaries. Also supports `--restore` (DR runbook 5.5.4).                                       |
+| `docker-compose.yml`     | Reference topology (opsqai + postgres + minio)                                                                                                                                |
+| `.env.template`          | Copied to `.env` by the installer. `OPSQAI_INSTALL_ID` is pre-filled; infra secrets are marked `__CHANGE_ME__`                                                                |
+| `activation-bundle.json` | Ed25519-signed license bundle (install + module tokens + CRL)                                                                                                                 |
+| `entrypoint.sh`          | Runs _inside_ the container; auto-generates infra secrets on first boot                                                                                                       |
+| `README.md`              | Quick-start printed with your `install_id` and installer version                                                                                                              |
+| `CHECKSUMS.sha256`       | Per-file SHA-256 checksums                                                                                                                                                    |
 
 All native installers are cross-compiled from a single Go source tree
 (`installer/` in the repo). They are reproducible builds (`-trimpath`,
@@ -70,14 +70,13 @@ terminal, or `./install-macos --restore`). This matches DR runbook section
 5.5.4 and prompts for the backup archive path instead of overwriting `.env`
 or starting a fresh stack.
 
-
 ## Regeneration
 
 If you request a regenerated package (e.g. after moving to a new host), the
 previous activation bundle is added to the CRL by default and stops
 activating new installs on next heartbeat. If you are restoring from your
 own backup and want the old bundle to keep working, ask your OPSQAI
-representative to check *"Keep previous bundle valid"* at regeneration time
+representative to check _"Keep previous bundle valid"_ at regeneration time
 — see `docs/security-documentation/05-license-security.md`.
 
 ## Bare metal
@@ -85,4 +84,3 @@ representative to check *"Keep previous bundle valid"* at regeneration time
 Bare-metal installation is supported but requires the customer to provide
 their own Node.js 20+ runtime and a supervised process manager. See
 `docs/technical-documentation/09-deployment.md`.
-

@@ -4,10 +4,20 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { Navigate } from "@tanstack/react-router";
-import { getEmailSettings, sendTestEmail, updateEmailSettings } from "@/lib/email/settings.functions";
+import {
+  getEmailSettings,
+  sendTestEmail,
+  updateEmailSettings,
+} from "@/lib/email/settings.functions";
 import { toast } from "sonner";
 import { Mail, Send } from "lucide-react";
 
@@ -17,7 +27,12 @@ export const Route = createFileRoute("/_authenticated/app/admin/email")({
 
 const FIELDS: Array<{ key: string; label: string; help?: string; type?: string }> = [
   { key: "sender_name", label: "Sender name" },
-  { key: "sender_email", label: "Sender email", help: "From: address (must be on a verified sender domain)", type: "email" },
+  {
+    key: "sender_email",
+    label: "Sender email",
+    help: "From: address (must be on a verified sender domain)",
+    type: "email",
+  },
   { key: "reply_to_email", label: "Reply-to", help: "Where replies are delivered", type: "email" },
   { key: "support_email", label: "Support inbox", type: "email" },
   { key: "contact_email", label: "General contact inbox", type: "email" },
@@ -88,7 +103,8 @@ function PlatformEmailSettingsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Platform Email Settings</h1>
           <p className="text-sm text-muted-foreground">
-            Centralised configuration for every email sent by OPSQAI — auth, notifications, invitations, Academy, support and more.
+            Centralised configuration for every email sent by OPSQAI — auth, notifications,
+            invitations, Academy, support and more.
           </p>
         </div>
       </div>
@@ -102,17 +118,31 @@ function PlatformEmailSettingsPage() {
                 value={settings.provider ?? "lovable"}
                 onValueChange={(v) => setSettings({ ...settings, provider: v })}
               >
-                <SelectTrigger id="provider"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="provider">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="lovable">Lovable Emails (managed)</SelectItem>
-                  <SelectItem value="smtp" disabled>SMTP (coming soon)</SelectItem>
-                  <SelectItem value="resend" disabled>Resend (coming soon)</SelectItem>
-                  <SelectItem value="sendgrid" disabled>SendGrid (coming soon)</SelectItem>
-                  <SelectItem value="mailgun" disabled>Mailgun (coming soon)</SelectItem>
-                  <SelectItem value="postmark" disabled>Postmark (coming soon)</SelectItem>
+                  <SelectItem value="smtp" disabled>
+                    SMTP (coming soon)
+                  </SelectItem>
+                  <SelectItem value="resend" disabled>
+                    Resend (coming soon)
+                  </SelectItem>
+                  <SelectItem value="sendgrid" disabled>
+                    SendGrid (coming soon)
+                  </SelectItem>
+                  <SelectItem value="mailgun" disabled>
+                    Mailgun (coming soon)
+                  </SelectItem>
+                  <SelectItem value="postmark" disabled>
+                    Postmark (coming soon)
+                  </SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Provider is pluggable; add SMTP / Resend / SendGrid keys without changing app code.</p>
+              <p className="text-xs text-muted-foreground">
+                Provider is pluggable; add SMTP / Resend / SendGrid keys without changing app code.
+              </p>
             </div>
           </div>
 
@@ -133,7 +163,9 @@ function PlatformEmailSettingsPage() {
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save settings"}</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save settings"}
+            </Button>
           </div>
         </form>
       </Card>
@@ -142,13 +174,19 @@ function PlatformEmailSettingsPage() {
         <div>
           <h2 className="text-lg font-semibold">Send test email</h2>
           <p className="text-sm text-muted-foreground">
-            Validates sender domain, provider connection, template rendering and queue delivery end-to-end.
+            Validates sender domain, provider connection, template rendering and queue delivery
+            end-to-end.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-2">
             <Label htmlFor="testTo">Recipient</Label>
-            <Input id="testTo" type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} />
+            <Input
+              id="testTo"
+              type="email"
+              value={testTo}
+              onChange={(e) => setTestTo(e.target.value)}
+            />
           </div>
           <Button onClick={onTest} disabled={!testTo}>
             <Send className="mr-2 h-4 w-4" /> Send test email

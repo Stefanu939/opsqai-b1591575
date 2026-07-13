@@ -99,7 +99,7 @@ two-clause RLS policy above before merging.
 4. **Embed** — embeddings via Lovable AI Gateway (`text-embedding-3-small`),
    stored on `document_chunks.embedding vector(1536)`.
 5. **Retrieve** — `match_document_chunks(query_embedding, match_count,
-   company_id)` returns top-K chunks scoped to the caller's company.
+company_id)` returns top-K chunks scoped to the caller's company.
 6. **Answer** — `src/routes/api/chat.ts` builds a strict, source-grounded
    prompt. If no usable sources are returned, the model emits a localized
    refusal and the UI surfaces a "Create internal request" CTA.
@@ -146,8 +146,8 @@ Rate-limiting is per IP (10 / 10 min) and per conversation (8 user turns).
 
 ## 8. Environments
 
-| Env | URL | Notes |
-| --- | --- | --- |
-| dev | `localhost:5173` | Service worker disabled. Lovable AI calls live. |
-| preview | `*.lovable.app` | Service worker disabled by host-allowlist. |
-| prod | `opsqai.eu`, `opsqai.de` | SW + PWA active; `start_url=/app`. |
+| Env     | URL                      | Notes                                           |
+| ------- | ------------------------ | ----------------------------------------------- |
+| dev     | `localhost:5173`         | Service worker disabled. Lovable AI calls live. |
+| preview | `*.lovable.app`          | Service worker disabled by host-allowlist.      |
+| prod    | `opsqai.eu`, `opsqai.de` | SW + PWA active; `start_url=/app`.              |

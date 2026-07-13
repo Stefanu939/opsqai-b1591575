@@ -8,7 +8,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
 
@@ -16,7 +22,10 @@ export const Route = createFileRoute("/_authenticated/app/profile")({
   component: ProfilePage,
 });
 
-interface Dept { id: string; name: string }
+interface Dept {
+  id: string;
+  name: string;
+}
 
 function ProfilePage() {
   const { t, setLang } = useT();
@@ -25,34 +34,51 @@ function ProfilePage() {
   const fetchDepts = useServerFn(listDepartments);
   const [depts, setDepts] = useState<Dept[]>([]);
   const [form, setForm] = useState({
-    first_name: "", last_name: "", position: "", phone: "",
-    department_id: "", language_pref: "en" as "de" | "en" | "ro",
+    first_name: "",
+    last_name: "",
+    position: "",
+    phone: "",
+    department_id: "",
+    language_pref: "en" as "de" | "en" | "ro",
   });
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetchDepts().then((d) => setDepts(d as Dept[])).catch(() => {});
+    fetchDepts()
+      .then((d) => setDepts(d as Dept[]))
+      .catch(() => {});
     if (!user) return;
-    supabase.from("profiles")
+    supabase
+      .from("profiles")
       .select("first_name,last_name,position,department_id,language_pref")
-      .eq("id", user.id).maybeSingle().then(async ({ data }) => {
-      if (!data) return;
-      const { data: phoneVal } = await supabase.rpc("get_profile_phone", { _id: user.id });
-      setForm({
-        first_name: data.first_name ?? "", last_name: data.last_name ?? "",
-        position: data.position ?? "", phone: (phoneVal as string | null) ?? "",
-        department_id: data.department_id ?? "", language_pref: (data.language_pref as "de" | "en" | "ro") ?? "en",
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(async ({ data }) => {
+        if (!data) return;
+        const { data: phoneVal } = await supabase.rpc("get_profile_phone", { _id: user.id });
+        setForm({
+          first_name: data.first_name ?? "",
+          last_name: data.last_name ?? "",
+          position: data.position ?? "",
+          phone: (phoneVal as string | null) ?? "",
+          department_id: data.department_id ?? "",
+          language_pref: (data.language_pref as "de" | "en" | "ro") ?? "en",
+        });
       });
-    });
   }, [user, fetchDepts]);
 
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true);
+    e.preventDefault();
+    setBusy(true);
     try {
       await update({ data: { ...form, department_id: form.department_id || null } });
       setLang(form.language_pref);
       toast.success(t("saved"));
-    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -67,31 +93,59 @@ function ProfilePage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">{t("firstName")}</Label>
-              <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
+              <Input
+                value={form.first_name}
+                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{t("lastName")}</Label>
-              <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
+              <Input
+                value={form.last_name}
+                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{t("position")}</Label>
-              <Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} />
+              <Input
+                value={form.position}
+                onChange={(e) => setForm({ ...form, position: e.target.value })}
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{t("phone")}</Label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{t("department")}</Label>
-              <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+              <Select
+                value={form.department_id}
+                onValueChange={(v) => setForm({ ...form, department_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
+                <SelectContent>
+                  {depts.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{t("language")}</Label>
-              <Select value={form.language_pref} onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" | "ro" })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.language_pref}
+                onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" | "ro" })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
                   <SelectItem value="de">Deutsch</SelectItem>
@@ -100,7 +154,9 @@ function ProfilePage() {
               </Select>
             </div>
           </div>
-          <Button type="submit" disabled={busy}>{t("save")}</Button>
+          <Button type="submit" disabled={busy}>
+            {t("save")}
+          </Button>
         </form>
       </Card>
     </div>

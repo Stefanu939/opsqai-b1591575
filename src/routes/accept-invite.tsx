@@ -11,10 +11,7 @@ import { LogoMark } from "@/components/brand/logo";
 export const Route = createFileRoute("/accept-invite")({
   ssr: false,
   head: () => ({
-    meta: [
-      { title: "Accept invitation — OPSQAI" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Accept invitation — OPSQAI" }, { name: "robots", content: "noindex" }],
   }),
   component: AcceptInvitePage,
 });
@@ -66,17 +63,28 @@ function AcceptInvitePage() {
       setCompany(joined?.name ?? null);
     };
     init();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) { toast.error("Password must be at least 8 characters."); return; }
-    if (password !== confirm) { toast.error("Passwords do not match."); return; }
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("Passwords do not match.");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Password set. Welcome to OPSQAI.");
     navigate({ to: "/app" });
   };
@@ -96,7 +104,8 @@ function AcceptInvitePage() {
 
         {invalid && (
           <div className="text-center text-sm text-destructive">
-            This invitation link is invalid or has expired. Please ask your administrator to resend the invite.
+            This invitation link is invalid or has expired. Please ask your administrator to resend
+            the invite.
           </div>
         )}
 
@@ -107,18 +116,42 @@ function AcceptInvitePage() {
         {ready && !invalid && (
           <form onSubmit={submit} className="space-y-4">
             <div className="rounded-md border bg-muted/40 p-3 text-sm space-y-1">
-              {email && <div><span className="text-muted-foreground">Account:</span> <span className="font-medium">{email}</span></div>}
-              {company && <div><span className="text-muted-foreground">Company:</span> <span className="font-medium">{company}</span></div>}
+              {email && (
+                <div>
+                  <span className="text-muted-foreground">Account:</span>{" "}
+                  <span className="font-medium">{email}</span>
+                </div>
+              )}
+              {company && (
+                <div>
+                  <span className="text-muted-foreground">Company:</span>{" "}
+                  <span className="font-medium">{company}</span>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">New password</Label>
-              <Input id="password" type="password" autoComplete="new-password" minLength={8}
-                value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirm password</Label>
-              <Input id="confirm" type="password" autoComplete="new-password" minLength={8}
-                value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+              <Input
+                id="confirm"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+              />
             </div>
             <Button type="submit" disabled={busy} className="w-full">
               {busy ? "Saving…" : "Activate account"}

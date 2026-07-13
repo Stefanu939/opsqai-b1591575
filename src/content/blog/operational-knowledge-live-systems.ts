@@ -10,8 +10,7 @@ export const post: BlogPost = {
   datePublished: "2026-06-20",
   author: { name: "OPSQAI Editorial", role: "Product" },
   readingMinutes: 5,
-  lede:
-    "Most SOPs are static PDFs that nobody opens. Turning them into a live system means solving three problems: findability, freshness, and honesty about what the SOP does not cover.",
+  lede: "Most SOPs are static PDFs that nobody opens. Turning them into a live system means solving three problems: findability, freshness, and honesty about what the SOP does not cover.",
   sections: [
     {
       heading: "Findability beats formatting",
@@ -44,6 +43,9 @@ export const post: BlogPost = {
       ],
     },
   ],
-  relatedLandingPages: ["/solutions/warehouse-sop-software", "/guides/how-to-digitize-warehouse-sops"],
+  relatedLandingPages: [
+    "/solutions/warehouse-sop-software",
+    "/guides/how-to-digitize-warehouse-sops",
+  ],
   relatedPosts: ["what-is-enterprise-knowledge-management-2026"],
 };

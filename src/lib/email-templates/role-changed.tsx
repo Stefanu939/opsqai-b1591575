@@ -1,6 +1,11 @@
 import * as React from "react";
 import { SimpleEmail, defineTemplate, APP_URL } from "./_simple";
-const Email = (p: { firstName?: string; newRole?: string; workspaceName?: string; changedBy?: string }) => (
+const Email = (p: {
+  firstName?: string;
+  newRole?: string;
+  workspaceName?: string;
+  changedBy?: string;
+}) => (
   <SimpleEmail
     preview="Your OPSQAI role was updated"
     title="Your role was updated"
@@ -16,6 +21,11 @@ export const template = defineTemplate({
   displayName: "Role changed",
   subject: "Your OPSQAI role was updated",
   component: Email,
-  previewData: { firstName: "Jane", newRole: "Manager", workspaceName: "ACME", changedBy: "stefan@opsqai.de" },
+  previewData: {
+    firstName: "Jane",
+    newRole: "Manager",
+    workspaceName: "ACME",
+    changedBy: "stefan@opsqai.de",
+  },
 });
 export default Email;

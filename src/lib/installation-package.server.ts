@@ -66,7 +66,9 @@ async function fetchAsset(url: string, localFallback: string): Promise<Uint8Arra
         binaryCache.set(url, bytes);
         return bytes;
       } catch {
-        throw new Error(`Failed to fetch installer asset ${fullUrl}: ${(fetchErr as Error).message}`);
+        throw new Error(
+          `Failed to fetch installer asset ${fullUrl}: ${(fetchErr as Error).message}`,
+        );
       }
     }
   }
@@ -147,5 +149,3 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
   const file_name = `opsqai-${input.installer_version}-${input.install_id}.zip`;
   return { bytes, checksum_sha256, file_name };
 }
-
-

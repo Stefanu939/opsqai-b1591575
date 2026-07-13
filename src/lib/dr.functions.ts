@@ -122,7 +122,11 @@ export const redeemBreakGlass = createServerFn({ method: "POST" })
 // ─── MC-side: issue Bootstrap Recovery Token ────────────────────────────
 
 const IssueBootstrapInput = z.object({
-  install_id: z.string().min(3).max(64).regex(/^[a-z0-9][a-z0-9-]{2,}$/),
+  install_id: z
+    .string()
+    .min(3)
+    .max(64)
+    .regex(/^[a-z0-9][a-z0-9-]{2,}$/),
   ttl_hours: z.number().int().min(1).max(168).default(24),
   reason: z.string().max(500).optional(),
 });

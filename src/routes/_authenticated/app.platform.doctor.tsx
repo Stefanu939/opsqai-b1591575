@@ -31,8 +31,8 @@ function DoctorPage() {
             <Stethoscope className="h-7 w-7" /> Doctor
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Read-only health probes. Same catalog is exposed by the <code>opsqai doctor</code> CLI so
-            green here means green on the box.
+            Read-only health probes. Same catalog is exposed by the <code>opsqai doctor</code> CLI
+            so green here means green on the box.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
@@ -57,7 +57,9 @@ function DoctorPage() {
               <Card key={c.id} className="p-4 flex items-start justify-between gap-3">
                 <div>
                   <div className="font-medium">{c.label}</div>
-                  {c.detail && <div className="text-sm text-muted-foreground mt-1 font-mono">{c.detail}</div>}
+                  {c.detail && (
+                    <div className="text-sm text-muted-foreground mt-1 font-mono">{c.detail}</div>
+                  )}
                 </div>
                 <StatusBadge status={c.status} />
               </Card>
@@ -81,8 +83,25 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
 
 function StatusBadge({ status, big }: { status: "ok" | "warn" | "fail" | "skip"; big?: boolean }) {
   const cls = big ? "text-sm px-3 py-1" : "";
-  if (status === "ok") return <Badge className={`bg-emerald-500/15 text-emerald-600 border-emerald-500/30 ${cls}`}>ok</Badge>;
-  if (status === "warn") return <Badge className={`bg-amber-500/15 text-amber-600 border-amber-500/30 ${cls}`}>warn</Badge>;
-  if (status === "fail") return <Badge variant="destructive" className={cls}>fail</Badge>;
-  return <Badge variant="outline" className={cls}>skip</Badge>;
+  if (status === "ok")
+    return (
+      <Badge className={`bg-emerald-500/15 text-emerald-600 border-emerald-500/30 ${cls}`}>
+        ok
+      </Badge>
+    );
+  if (status === "warn")
+    return (
+      <Badge className={`bg-amber-500/15 text-amber-600 border-amber-500/30 ${cls}`}>warn</Badge>
+    );
+  if (status === "fail")
+    return (
+      <Badge variant="destructive" className={cls}>
+        fail
+      </Badge>
+    );
+  return (
+    <Badge variant="outline" className={cls}>
+      skip
+    </Badge>
+  );
 }

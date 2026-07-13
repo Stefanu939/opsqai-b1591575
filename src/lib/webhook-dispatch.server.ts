@@ -36,7 +36,13 @@ async function deliverOne(
   event: WebhookEvent,
   payload: Record<string, unknown>,
   companyId: string,
-): Promise<{ ok: boolean; statusCode: number | null; latencyMs: number; error: string | null; responseBody: string | null }> {
+): Promise<{
+  ok: boolean;
+  statusCode: number | null;
+  latencyMs: number;
+  error: string | null;
+  responseBody: string | null;
+}> {
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const body = JSON.stringify({
     event,
@@ -79,7 +85,11 @@ async function deliverOne(
     });
     const latencyMs = Date.now() - start;
     let respText: string | null = null;
-    try { respText = (await res.text()).slice(0, 2000); } catch { /* ignore */ }
+    try {
+      respText = (await res.text()).slice(0, 2000);
+    } catch {
+      /* ignore */
+    }
     return {
       ok: res.ok,
       statusCode: res.status,

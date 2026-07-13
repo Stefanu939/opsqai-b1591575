@@ -82,14 +82,14 @@ export interface PortalInstall {
 export const listPortalReleases = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z
-      .object({ channel: z.string().max(32).optional() })
-      .parse(d ?? {}),
+    z.object({ channel: z.string().max(32).optional() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const query = context.supabase
       .from("license_releases")
-      .select("version, channel, docker_image, checksum, min_supported, published_at, release_notes_url, is_current")
+      .select(
+        "version, channel, docker_image, checksum, min_supported, published_at, release_notes_url, is_current",
+      )
       .order("published_at", { ascending: false })
       .limit(50);
     if (data.channel) query.eq("channel", data.channel);

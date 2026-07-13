@@ -15,13 +15,13 @@ export type ProviderId = "lovable" | "smtp" | "resend" | "sendgrid" | "mailgun" 
 
 export interface SendEmailInput {
   to: string;
-  from: string;          // formatted "Name <addr@domain>"
+  from: string; // formatted "Name <addr@domain>"
   replyTo?: string;
   subject: string;
   html: string;
   text: string;
   messageId: string;
-  templateName: string;  // for logging
+  templateName: string; // for logging
   purpose?: "transactional" | "auth";
 }
 

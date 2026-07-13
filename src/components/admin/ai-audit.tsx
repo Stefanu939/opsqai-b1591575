@@ -8,14 +8,41 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  ClipboardCheck, Loader2, Download, AlertTriangle, ShieldCheck, Lightbulb,
-  ListChecks, TrendingUp, Target, Activity, Sparkles, ArrowRight, CheckCircle2,
-  AlertCircle, XCircle, FileText, GraduationCap, BarChart3, Building2, Clock,
+  ClipboardCheck,
+  Loader2,
+  Download,
+  AlertTriangle,
+  ShieldCheck,
+  Lightbulb,
+  ListChecks,
+  TrendingUp,
+  Target,
+  Activity,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  FileText,
+  GraduationCap,
+  BarChart3,
+  Building2,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
 } from "recharts";
 
 const MATURITY_LEVELS = [
@@ -28,15 +55,21 @@ const MATURITY_LEVELS = [
 
 function riskTone(risk: string) {
   switch (risk) {
-    case "critical": return "text-red-600 bg-red-500/10 border-red-500/20";
-    case "high": return "text-red-500 bg-red-500/10 border-red-500/20";
-    case "medium": return "text-amber-500 bg-amber-500/10 border-amber-500/20";
-    default: return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+    case "critical":
+      return "text-red-600 bg-red-500/10 border-red-500/20";
+    case "high":
+      return "text-red-500 bg-red-500/10 border-red-500/20";
+    case "medium":
+      return "text-amber-500 bg-amber-500/10 border-amber-500/20";
+    default:
+      return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
   }
 }
 
 function benchmarkLabel(v: string) {
-  return String(v || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return String(v || "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function benchmarkTone(v: string) {
@@ -48,18 +81,30 @@ function benchmarkTone(v: string) {
 const ACTION_ROUTES: Record<string, { label: string; to: string; icon: any }> = {
   generate_sop: { label: "Generate SOP", to: "/app/admin/sop-generator", icon: FileText },
   generate_policy: { label: "Generate Policy", to: "/app/admin/sop-generator", icon: FileText },
-  generate_work_instruction: { label: "Generate Work Instruction", to: "/app/admin/sop-generator", icon: FileText },
+  generate_work_instruction: {
+    label: "Generate Work Instruction",
+    to: "/app/admin/sop-generator",
+    icon: FileText,
+  },
   generate_template: { label: "Generate Template", to: "/app/admin/sop-generator", icon: FileText },
   create_quiz: { label: "Create Quiz", to: "/app/academy/courses", icon: GraduationCap },
   assign_training: { label: "Assign Training", to: "/app/academy/courses", icon: GraduationCap },
-  open_knowledge_gap: { label: "Open Knowledge Gap", to: "/app/admin/knowledge-gaps", icon: Target },
+  open_knowledge_gap: {
+    label: "Open Knowledge Gap",
+    to: "/app/admin/knowledge-gaps",
+    icon: Target,
+  },
   run_new_audit: { label: "Run New Audit", to: "/app/admin/ai-audit", icon: ClipboardCheck },
 };
 
 export function AiAuditPage() {
   const { hasPermission } = useAuth();
   if (!hasPermission("ai_audit.run")) {
-    return <div className="p-8 text-sm text-muted-foreground">You don't have permission to access this page.</div>;
+    return (
+      <div className="p-8 text-sm text-muted-foreground">
+        You don't have permission to access this page.
+      </div>
+    );
   }
   const run = useServerFn(runWorkspaceAudit);
   const list = useServerFn(listAiAudits);
@@ -72,9 +117,13 @@ export function AiAuditPage() {
       const r = await list();
       setAudits(r.audits);
       if (!current && r.audits[0]) setCurrent(r.audits[0]);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const onRun = async () => {
     setBusy(true);
@@ -82,14 +131,23 @@ export function AiAuditPage() {
       const r = await run();
       toast.success(`Audit complete · score ${r.score}/100`);
       await load();
-    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const onExport = () => {
     if (!current) return;
-    const blob = new Blob([JSON.stringify(current.summary ?? current, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(current.summary ?? current, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `workspace-audit-${current.id}.json`; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `workspace-audit-${current.id}.json`;
+    a.click();
     URL.revokeObjectURL(url);
   };
   const onPrint = () => window.print();
@@ -97,8 +155,9 @@ export function AiAuditPage() {
   const summary = current?.summary ?? {};
   const categories: any[] = summary.categories ?? [];
   const radarData = categories.map((c) => ({ subject: c.label, score: c.score, fullMark: 100 }));
-  const currentLevel = MATURITY_LEVELS.find((l) => l.level === summary.maturityLevel) ?? MATURITY_LEVELS[1];
-  const nextLevel = MATURITY_LEVELS.find((l) => l.level === (currentLevel.level + 1));
+  const currentLevel =
+    MATURITY_LEVELS.find((l) => l.level === summary.maturityLevel) ?? MATURITY_LEVELS[1];
+  const nextLevel = MATURITY_LEVELS.find((l) => l.level === currentLevel.level + 1);
   const pointsToNext = nextLevel ? Math.max(0, nextLevel.threshold - (current?.score ?? 0)) : 0;
 
   const trendData = useMemo(() => {
@@ -122,7 +181,9 @@ export function AiAuditPage() {
     <div className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto print:p-0 print:max-w-none">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3 print:hidden">
         <div>
-          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Governance</p>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">
+            Governance
+          </p>
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-primary" /> Operational Maturity Assessment
           </h1>
@@ -131,10 +192,22 @@ export function AiAuditPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {current && <Button variant="outline" size="sm" onClick={onExport}><Download className="h-4 w-4 mr-1" /> Export JSON</Button>}
-          {current && <Button variant="outline" size="sm" onClick={onPrint}>Save as PDF</Button>}
+          {current && (
+            <Button variant="outline" size="sm" onClick={onExport}>
+              <Download className="h-4 w-4 mr-1" /> Export JSON
+            </Button>
+          )}
+          {current && (
+            <Button variant="outline" size="sm" onClick={onPrint}>
+              Save as PDF
+            </Button>
+          )}
           <Button onClick={onRun} disabled={busy}>
-            {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <ClipboardCheck className="h-4 w-4 mr-1" />}
+            {busy ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <ClipboardCheck className="h-4 w-4 mr-1" />
+            )}
             Run AI Audit
           </Button>
         </div>
@@ -143,7 +216,9 @@ export function AiAuditPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* History */}
         <Card className="card-enterprise border-0 p-5 lg:col-span-1 print:hidden">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">History</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+            History
+          </div>
           {audits.length === 0 ? (
             <div className="text-sm text-muted-foreground">No audits yet.</div>
           ) : (
@@ -154,8 +229,13 @@ export function AiAuditPage() {
                     onClick={() => setCurrent(a)}
                     className={`w-full text-left text-xs rounded-md px-2 py-2 border ${current?.id === a.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"}`}
                   >
-                    <div className="flex justify-between"><span>{new Date(a.created_at).toLocaleString()}</span><span className="font-mono">{Math.round(a.score)}</span></div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5 capitalize">{String(a.maturity).replace(/_/g, " ")}</div>
+                    <div className="flex justify-between">
+                      <span>{new Date(a.created_at).toLocaleString()}</span>
+                      <span className="font-mono">{Math.round(a.score)}</span>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 capitalize">
+                      {String(a.maturity).replace(/_/g, " ")}
+                    </div>
                   </button>
                 </li>
               ))}
@@ -177,12 +257,18 @@ export function AiAuditPage() {
                 </div>
                 <div className="flex items-start justify-between gap-6 flex-wrap">
                   <div className="min-w-0 flex-1">
-                    <div className="text-4xl font-semibold tabular-nums">{Math.round(current.score)}<span className="text-lg text-muted-foreground">/100</span></div>
+                    <div className="text-4xl font-semibold tabular-nums">
+                      {Math.round(current.score)}
+                      <span className="text-lg text-muted-foreground">/100</span>
+                    </div>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="capitalize">Level {currentLevel.level} · {currentLevel.name}</Badge>
+                      <Badge variant="secondary" className="capitalize">
+                        Level {currentLevel.level} · {currentLevel.name}
+                      </Badge>
                       {nextLevel && (
                         <span className="text-xs text-muted-foreground">
-                          → {nextLevel.name} in <span className="font-medium text-foreground">{pointsToNext}</span> pts
+                          → {nextLevel.name} in{" "}
+                          <span className="font-medium text-foreground">{pointsToNext}</span> pts
                         </span>
                       )}
                     </div>
@@ -198,13 +284,23 @@ export function AiAuditPage() {
 
                 {/* Maturity ladder */}
                 <div className="mt-6">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Maturity Model</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                    Maturity Model
+                  </div>
                   <div className="grid grid-cols-5 gap-2">
                     {MATURITY_LEVELS.map((l) => (
-                      <div key={l.level}
-                           className={`rounded-md border p-2 text-center text-xs ${l.level === currentLevel.level ? "border-primary bg-primary/10" : "border-border bg-muted/30"}`}>
-                        <div className="text-[10px] uppercase text-muted-foreground">L{l.level}</div>
-                        <div className={`font-medium ${l.level === currentLevel.level ? "text-primary" : ""}`}>{l.name}</div>
+                      <div
+                        key={l.level}
+                        className={`rounded-md border p-2 text-center text-xs ${l.level === currentLevel.level ? "border-primary bg-primary/10" : "border-border bg-muted/30"}`}
+                      >
+                        <div className="text-[10px] uppercase text-muted-foreground">
+                          L{l.level}
+                        </div>
+                        <div
+                          className={`font-medium ${l.level === currentLevel.level ? "text-primary" : ""}`}
+                        >
+                          {l.name}
+                        </div>
                         <div className="text-[10px] text-muted-foreground">{l.threshold}+</div>
                       </div>
                     ))}
@@ -223,27 +319,49 @@ export function AiAuditPage() {
                       <ResponsiveContainer width="100%" height="100%">
                         <RadarChart data={radarData}>
                           <PolarGrid stroke="hsl(var(--border))" />
-                          <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9 }} stroke="hsl(var(--border))" />
-                          <Radar name="Score" dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.35} />
+                          <PolarAngleAxis
+                            dataKey="subject"
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                          />
+                          <PolarRadiusAxis
+                            angle={90}
+                            domain={[0, 100]}
+                            tick={{ fontSize: 9 }}
+                            stroke="hsl(var(--border))"
+                          />
+                          <Radar
+                            name="Score"
+                            dataKey="score"
+                            stroke="hsl(var(--primary))"
+                            fill="hsl(var(--primary))"
+                            fillOpacity={0.35}
+                          />
                         </RadarChart>
                       </ResponsiveContainer>
                     </div>
                   </Card>
                   <Card className="card-enterprise border-0 p-5">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-3">Category Scores</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-3">
+                      Category Scores
+                    </div>
                     <ul className="space-y-2.5">
                       {categories.map((c) => (
                         <li key={c.key}>
                           <div className="flex items-center justify-between text-xs mb-1">
                             <span className="font-medium">{c.label}</span>
                             <span className="flex items-center gap-2">
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${riskTone(c.risk)}`}>{c.risk}</span>
+                              <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded border ${riskTone(c.risk)}`}
+                              >
+                                {c.risk}
+                              </span>
                               <span className="tabular-nums font-mono">{c.score}</span>
                             </span>
                           </div>
                           <Progress value={c.score} className="h-1.5" />
-                          {c.note && <div className="text-[10px] text-muted-foreground mt-1">{c.note}</div>}
+                          {c.note && (
+                            <div className="text-[10px] text-muted-foreground mt-1">{c.note}</div>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -260,8 +378,13 @@ export function AiAuditPage() {
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {Object.entries(summary.kpis).map(([k, v]) => (
                       <div key={k} className="rounded-md border border-border p-3">
-                        <div className="text-[10px] uppercase text-muted-foreground">{k.replace(/_/g, " ")}</div>
-                        <div className="text-xl font-semibold tabular-nums mt-1">{String(v)}{typeof v === "number" && (v as number) <= 100 ? "" : ""}</div>
+                        <div className="text-[10px] uppercase text-muted-foreground">
+                          {k.replace(/_/g, " ")}
+                        </div>
+                        <div className="text-xl font-semibold tabular-nums mt-1">
+                          {String(v)}
+                          {typeof v === "number" && (v as number) <= 100 ? "" : ""}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -270,10 +393,30 @@ export function AiAuditPage() {
 
               {/* Findings */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FindingsCard title="Strengths" icon={CheckCircle2} tone="emerald" items={Array.isArray(summary.strengths) ? summary.strengths : []} />
-                <FindingsCard title="Opportunities" icon={Lightbulb} tone="sky" items={Array.isArray(summary.opportunities) ? summary.opportunities : []} />
-                <FindingsCard title="Warnings" icon={AlertCircle} tone="amber" items={Array.isArray(summary.warnings) ? summary.warnings : []} />
-                <FindingsCard title="Critical Findings" icon={XCircle} tone="red" items={Array.isArray(summary.critical) ? summary.critical : []} />
+                <FindingsCard
+                  title="Strengths"
+                  icon={CheckCircle2}
+                  tone="emerald"
+                  items={Array.isArray(summary.strengths) ? summary.strengths : []}
+                />
+                <FindingsCard
+                  title="Opportunities"
+                  icon={Lightbulb}
+                  tone="sky"
+                  items={Array.isArray(summary.opportunities) ? summary.opportunities : []}
+                />
+                <FindingsCard
+                  title="Warnings"
+                  icon={AlertCircle}
+                  tone="amber"
+                  items={Array.isArray(summary.warnings) ? summary.warnings : []}
+                />
+                <FindingsCard
+                  title="Critical Findings"
+                  icon={XCircle}
+                  tone="red"
+                  items={Array.isArray(summary.critical) ? summary.critical : []}
+                />
               </div>
 
               {/* Priority Action Plan */}
@@ -291,7 +434,9 @@ export function AiAuditPage() {
                           <div className="flex items-start justify-between gap-3 flex-wrap">
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-[10px]">Priority {a.priority ?? i + 1}</Badge>
+                                <Badge variant="outline" className="text-[10px]">
+                                  Priority {a.priority ?? i + 1}
+                                </Badge>
                                 <span className="font-medium text-sm">{a.title}</span>
                               </div>
                               <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-2 text-xs">
@@ -299,7 +444,10 @@ export function AiAuditPage() {
                                 <Meta label="Effort" value={a.effort} />
                                 <Meta label="Time" value={a.estimatedTime} />
                                 <Meta label="Owner" value={a.department} />
-                                <Meta label="+Score" value={`+${a.expectedScoreImprovement ?? 0}`} />
+                                <Meta
+                                  label="+Score"
+                                  value={`+${a.expectedScoreImprovement ?? 0}`}
+                                />
                               </div>
                             </div>
                             <Link to={action.to as any}>
@@ -360,7 +508,11 @@ export function AiAuditPage() {
                             <td className="py-2 pr-3 capitalize">{r.likelihood}</td>
                             <td className="py-2 pr-3 capitalize">{r.impact}</td>
                             <td className="py-2 pr-3">
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded border capitalize ${riskTone(r.severity)}`}>{r.severity}</span>
+                              <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded border capitalize ${riskTone(r.severity)}`}
+                              >
+                                {r.severity}
+                              </span>
                             </td>
                             <td className="py-2 text-muted-foreground">{r.mitigation}</td>
                           </tr>
@@ -391,7 +543,9 @@ export function AiAuditPage() {
                             {f.missing.join(" · ")}
                           </div>
                         )}
-                        {f.recommendation && <div className="text-[11px] mt-1">{f.recommendation}</div>}
+                        {f.recommendation && (
+                          <div className="text-[11px] mt-1">{f.recommendation}</div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -424,12 +578,18 @@ export function AiAuditPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {Object.entries(summary.benchmark).map(([k, v]) => (
                       <div key={k} className="rounded-md border border-border p-3">
-                        <div className="text-[10px] uppercase text-muted-foreground">{k.replace(/_/g, " ")}</div>
-                        <div className={`text-sm font-semibold mt-1 ${benchmarkTone(String(v))}`}>{benchmarkLabel(String(v))}</div>
+                        <div className="text-[10px] uppercase text-muted-foreground">
+                          {k.replace(/_/g, " ")}
+                        </div>
+                        <div className={`text-sm font-semibold mt-1 ${benchmarkTone(String(v))}`}>
+                          {benchmarkLabel(String(v))}
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <div className="text-[10px] text-muted-foreground mt-2">Compared to organizations of similar size. No customer data is exposed.</div>
+                  <div className="text-[10px] text-muted-foreground mt-2">
+                    Compared to organizations of similar size. No customer data is exposed.
+                  </div>
                 </Card>
               )}
 
@@ -443,10 +603,30 @@ export function AiAuditPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={trendData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                        <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                        <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", fontSize: 12 }} />
-                        <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 10 }}
+                          stroke="hsl(var(--muted-foreground))"
+                        />
+                        <YAxis
+                          domain={[0, 100]}
+                          tick={{ fontSize: 10 }}
+                          stroke="hsl(var(--muted-foreground))"
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            background: "hsl(var(--background))",
+                            border: "1px solid hsl(var(--border))",
+                            fontSize: 12,
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="score"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                        />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -454,9 +634,14 @@ export function AiAuditPage() {
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-3">
                       {categoryTrend.map((t) => (
                         <div key={t.label} className="rounded border border-border p-2 text-center">
-                          <div className="text-[10px] uppercase text-muted-foreground">{t.label}</div>
-                          <div className={`text-sm font-semibold ${t.delta > 0 ? "text-emerald-500" : t.delta < 0 ? "text-red-500" : "text-muted-foreground"}`}>
-                            {t.delta > 0 ? "+" : ""}{t.delta}
+                          <div className="text-[10px] uppercase text-muted-foreground">
+                            {t.label}
+                          </div>
+                          <div
+                            className={`text-sm font-semibold ${t.delta > 0 ? "text-emerald-500" : t.delta < 0 ? "text-red-500" : "text-muted-foreground"}`}
+                          >
+                            {t.delta > 0 ? "+" : ""}
+                            {t.delta}
                           </div>
                         </div>
                       ))}
@@ -467,7 +652,9 @@ export function AiAuditPage() {
 
               {/* Metadata */}
               <Card className="card-enterprise border-0 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Audit Metadata</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                  Audit Metadata
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                   <Meta label="Audit ID" value={String(current.id).slice(0, 8)} />
                   <Meta label="Generated" value={new Date(current.created_at).toLocaleString()} />
@@ -483,8 +670,17 @@ export function AiAuditPage() {
   );
 }
 
-function KpiStat({ value, tone, label }: { value: number; tone: "emerald" | "amber" | "red"; label: string }) {
-  const toneCls = tone === "emerald" ? "text-emerald-500" : tone === "amber" ? "text-amber-500" : "text-red-500";
+function KpiStat({
+  value,
+  tone,
+  label,
+}: {
+  value: number;
+  tone: "emerald" | "amber" | "red";
+  label: string;
+}) {
+  const toneCls =
+    tone === "emerald" ? "text-emerald-500" : tone === "amber" ? "text-amber-500" : "text-red-500";
   return (
     <div>
       <div className={`text-2xl font-semibold ${toneCls}`}>{value}</div>
@@ -494,15 +690,29 @@ function KpiStat({ value, tone, label }: { value: number; tone: "emerald" | "amb
 }
 
 function FindingsCard({
-  title, icon: Icon, tone, items,
-}: { title: string; icon: any; tone: "emerald" | "sky" | "amber" | "red"; items?: any[] }) {
+  title,
+  icon: Icon,
+  tone,
+  items,
+}: {
+  title: string;
+  icon: any;
+  tone: "emerald" | "sky" | "amber" | "red";
+  items?: any[];
+}) {
   const toneCls =
-    tone === "emerald" ? "text-emerald-500" :
-    tone === "sky" ? "text-sky-500" :
-    tone === "amber" ? "text-amber-500" : "text-red-500";
+    tone === "emerald"
+      ? "text-emerald-500"
+      : tone === "sky"
+        ? "text-sky-500"
+        : tone === "amber"
+          ? "text-amber-500"
+          : "text-red-500";
   return (
     <Card className="card-enterprise border-0 p-5">
-      <div className={`text-[10px] uppercase tracking-wider font-semibold mb-3 flex items-center gap-2 ${toneCls}`}>
+      <div
+        className={`text-[10px] uppercase tracking-wider font-semibold mb-3 flex items-center gap-2 ${toneCls}`}
+      >
         <Icon className="h-3.5 w-3.5" /> {title}
       </div>
       {!items || items.length === 0 ? (
@@ -513,13 +723,33 @@ function FindingsCard({
             <li key={i} className="rounded-md border border-border p-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="font-medium text-sm">{it.title}</span>
-                {it.priority && <Badge variant="outline" className="text-[10px] capitalize">{it.priority}</Badge>}
+                {it.priority && (
+                  <Badge variant="outline" className="text-[10px] capitalize">
+                    {it.priority}
+                  </Badge>
+                )}
               </div>
-              {it.description && <p className="text-xs text-muted-foreground mt-1">{it.description}</p>}
+              {it.description && (
+                <p className="text-xs text-muted-foreground mt-1">{it.description}</p>
+              )}
               {(it.impact || it.recommendation) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-[11px]">
-                  {it.impact && <div><span className="uppercase text-[9px] tracking-wider text-muted-foreground">Impact:</span> {it.impact}</div>}
-                  {it.recommendation && <div><span className="uppercase text-[9px] tracking-wider text-muted-foreground">Recommendation:</span> {it.recommendation}</div>}
+                  {it.impact && (
+                    <div>
+                      <span className="uppercase text-[9px] tracking-wider text-muted-foreground">
+                        Impact:
+                      </span>{" "}
+                      {it.impact}
+                    </div>
+                  )}
+                  {it.recommendation && (
+                    <div>
+                      <span className="uppercase text-[9px] tracking-wider text-muted-foreground">
+                        Recommendation:
+                      </span>{" "}
+                      {it.recommendation}
+                    </div>
+                  )}
                 </div>
               )}
             </li>
@@ -539,11 +769,23 @@ function Meta({ label, value }: { label: string; value: any }) {
   );
 }
 
-function ProjBadge({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function ProjBadge({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
   return (
-    <div className={`rounded-md border p-2 text-center min-w-[92px] ${highlight ? "border-primary bg-primary/10" : "border-border"}`}>
+    <div
+      className={`rounded-md border p-2 text-center min-w-[92px] ${highlight ? "border-primary bg-primary/10" : "border-border"}`}
+    >
       <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
-      <div className={`text-lg font-semibold tabular-nums ${highlight ? "text-primary" : ""}`}>{Math.round(value)}</div>
+      <div className={`text-lg font-semibold tabular-nums ${highlight ? "text-primary" : ""}`}>
+        {Math.round(value)}
+      </div>
     </div>
   );
 }

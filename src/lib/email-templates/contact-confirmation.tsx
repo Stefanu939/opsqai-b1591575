@@ -21,14 +21,31 @@ const Email = ({ firstName, referenceId, subjectLabel, submittedAt, expectedResp
     ctaUrl={BRAND.website}
     securityNotice="If you didn't contact OPSQAI, you can ignore this message."
   >
-    <Text style={row}><strong>Reference ID:</strong> {referenceId ?? "—"}</Text>
-    {subjectLabel ? <Text style={row}><strong>Topic:</strong> {subjectLabel}</Text> : null}
-    {submittedAt ? <Text style={row}><strong>Submitted:</strong> {submittedAt}</Text> : null}
-    <Text style={row}><strong>Expected response:</strong> {expectedResponse ?? "Within 1 business day (CET)"}</Text>
+    <Text style={row}>
+      <strong>Reference ID:</strong> {referenceId ?? "—"}
+    </Text>
+    {subjectLabel ? (
+      <Text style={row}>
+        <strong>Topic:</strong> {subjectLabel}
+      </Text>
+    ) : null}
+    {submittedAt ? (
+      <Text style={row}>
+        <strong>Submitted:</strong> {submittedAt}
+      </Text>
+    ) : null}
+    <Text style={row}>
+      <strong>Expected response:</strong> {expectedResponse ?? "Within 1 business day (CET)"}
+    </Text>
   </BrandedEmail>
 );
 
-const row: React.CSSProperties = { fontSize: "14px", lineHeight: "22px", color: "#0f1729", margin: "0 0 6px" };
+const row: React.CSSProperties = {
+  fontSize: "14px",
+  lineHeight: "22px",
+  color: "#0f1729",
+  margin: "0 0 6px",
+};
 
 export const template = {
   component: Email,

@@ -17,7 +17,10 @@ export function currentServerMode(): DeploymentMode {
 }
 
 export class ModeAssertionError extends Error {
-  constructor(public expected: DeploymentMode, public actual: DeploymentMode) {
+  constructor(
+    public expected: DeploymentMode,
+    public actual: DeploymentMode,
+  ) {
     super(`Operation requires OPSQAI_MODE="${expected}" but current mode is "${actual}"`);
     this.name = "ModeAssertionError";
   }

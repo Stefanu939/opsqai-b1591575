@@ -8,9 +8,15 @@ import type { Database } from "@/integrations/supabase/types";
 const MODEL = "google/gemini-3-flash-preview";
 
 const LANG_LABEL: Record<string, string> = {
-  en: "English", de: "German (Deutsch)", ro: "Romanian (Română)",
-  fr: "French (Français)", es: "Spanish (Español)", it: "Italian (Italiano)",
-  pt: "Portuguese (Português)", pl: "Polish (Polski)", uk: "Ukrainian (Українська)",
+  en: "English",
+  de: "German (Deutsch)",
+  ro: "Romanian (Română)",
+  fr: "French (Français)",
+  es: "Spanish (Español)",
+  it: "Italian (Italiano)",
+  pt: "Portuguese (Português)",
+  pl: "Polish (Polski)",
+  uk: "Ukrainian (Українська)",
 };
 
 const SYSTEM = (lessonBlock: string, chosenLanguage: string | null) => {
@@ -48,9 +54,11 @@ LANGUAGE (very important):
 - Numbers, units, codes, names, and quoted policy text stay verbatim from the lesson.
 
 START BEHAVIOR:
-- If the very first user message is exactly "__BEGIN__": ${chosenLanguage
-    ? `greet the learner in ${LANG_LABEL[chosenLanguage] ?? chosenLanguage}, introduce the lesson title, list 2-3 objectives in plain language, and ask if they're ready to begin.`
-    : `respond ONLY with the trilingual language-choice prompt described above — do NOT introduce the lesson yet.`} Do not reveal the marker.
+- If the very first user message is exactly "__BEGIN__": ${
+    chosenLanguage
+      ? `greet the learner in ${LANG_LABEL[chosenLanguage] ?? chosenLanguage}, introduce the lesson title, list 2-3 objectives in plain language, and ask if they're ready to begin.`
+      : `respond ONLY with the trilingual language-choice prompt described above — do NOT introduce the lesson yet.`
+  } Do not reveal the marker.
 
 LESSON COMPLETION (VERY IMPORTANT):
 - After you have walked the learner through every section (Objectives → Concepts → Examples → Best practices → Summary) AND the learner has confirmed they understand, you MUST end your final teaching message with a short closing sentence such as "You're ready for a quick knowledge check." and then, on its own final line, output the literal marker:
@@ -73,7 +81,8 @@ export const Route = createFileRoute("/api/academy-chat")({
           const apiKey = process.env.LOVABLE_API_KEY;
           const supaUrl = process.env.SUPABASE_URL;
           const supaKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-          if (!apiKey || !supaUrl || !supaKey) return new Response("Server misconfigured", { status: 500 });
+          if (!apiKey || !supaUrl || !supaKey)
+            return new Response("Server misconfigured", { status: 500 });
 
           const supabase = createClient<Database>(supaUrl, supaKey, {
             global: { headers: { Authorization: `Bearer ${token}` } },
@@ -81,15 +90,22 @@ export const Route = createFileRoute("/api/academy-chat")({
           });
 
           const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
-          if (claimsErr || !claims?.claims?.sub) return new Response("Unauthorized", { status: 401 });
+          if (claimsErr || !claims?.claims?.sub)
+            return new Response("Unauthorized", { status: 401 });
 
-          const body = await request.json() as { messages?: UIMessage[]; lessonId?: string; language?: string | null };
+          const body = (await request.json()) as {
+            messages?: UIMessage[];
+            lessonId?: string;
+            language?: string | null;
+          };
           if (!body.lessonId) return new Response("lessonId required", { status: 400 });
           const chosen = body.language && body.language !== "ask" ? body.language : null;
 
-          const { data: lesson } = await (supabase as any).from("academy_lessons")
+          const { data: lesson } = await (supabase as any)
+            .from("academy_lessons")
             .select("title, objectives, explanation, examples, best_practices, summary")
-            .eq("id", body.lessonId).maybeSingle();
+            .eq("id", body.lessonId)
+            .maybeSingle();
           if (!lesson) return new Response("Lesson not found", { status: 404 });
 
           const block = [
@@ -99,7 +115,9 @@ export const Route = createFileRoute("/api/academy-chat")({
             `EXAMPLES:\n${lesson.examples ?? ""}`,
             `BEST PRACTICES:\n${lesson.best_practices ?? ""}`,
             `SUMMARY:\n${lesson.summary ?? ""}`,
-          ].join("\n\n").slice(0, 16000);
+          ]
+            .join("\n\n")
+            .slice(0, 16000);
 
           const gateway = createLovableAiGatewayProvider(apiKey);
           const result = streamText({

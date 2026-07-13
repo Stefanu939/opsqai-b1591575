@@ -10,7 +10,8 @@ const Email = (p: { docTitle?: string; reviewerName?: string; reviewUrl?: string
 );
 export const template = defineTemplate({
   displayName: "Document approval requested",
-  subject: (d) => (d.docTitle ? `Approval requested: ${d.docTitle}` : "A document is waiting for your approval"),
+  subject: (d) =>
+    d.docTitle ? `Approval requested: ${d.docTitle}` : "A document is waiting for your approval",
   component: Email,
   previewData: { docTitle: "ACME · Onboarding pack", reviewerName: "Maria F.", reviewUrl: APP_URL },
 });

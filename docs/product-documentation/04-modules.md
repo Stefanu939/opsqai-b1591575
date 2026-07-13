@@ -13,15 +13,15 @@ OPSQAI is organized into modules. Every install receives the **Basic** modules a
 
 ## Paid modules (per-module license)
 
-| Module key | Name | What it does |
-|---|---|---|
-| `knowledge` | Knowledge Base | Document ingestion, chunking, retrieval |
-| `academy` | Academy | Lessons, chapters, quizzes, certificates |
-| `chat` | Chat | Grounded chat over knowledge |
-| `faq` | FAQ | Curated FAQ with retrieval fallback |
-| `sops` | SOPs | Versioned SOPs with acknowledgement |
-| `brand` | Brand | Brand asset library, tone rules |
-| `requests` | Internal Requests | Internal ticket triage |
-| `workspace` | Workspace | Session-scoped AI workspace with file artifacts |
+| Module key  | Name              | What it does                                    |
+| ----------- | ----------------- | ----------------------------------------------- |
+| `knowledge` | Knowledge Base    | Document ingestion, chunking, retrieval         |
+| `academy`   | Academy           | Lessons, chapters, quizzes, certificates        |
+| `chat`      | Chat              | Grounded chat over knowledge                    |
+| `faq`       | FAQ               | Curated FAQ with retrieval fallback             |
+| `sops`      | SOPs              | Versioned SOPs with acknowledgement             |
+| `brand`     | Brand             | Brand asset library, tone rules                 |
+| `requests`  | Internal Requests | Internal ticket triage                          |
+| `workspace` | Workspace         | Session-scoped AI workspace with file artifacts |
 
 Enabling a module requires an active per-module license whose `expires_at` has not passed. Updates require `maintenance_expires_at` to be in the future.

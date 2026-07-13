@@ -8,13 +8,13 @@
 
 ## Role inventory
 
-| Role | Scope | Notes |
-|---|---|---|
+| Role             | Scope                                                      | Notes             |
+| ---------------- | ---------------------------------------------------------- | ----------------- |
 | `platform_admin` | Full admin of an install; on the MC, also license issuance | Highest privilege |
-| `admin` | Departmental admin, all operational modules | |
-| `manager` | Manage own department | |
-| `member` | Regular end-user | |
-| `guest` | Read-only, module-scoped | |
+| `admin`          | Departmental admin, all operational modules                |                   |
+| `manager`        | Manage own department                                      |                   |
+| `member`         | Regular end-user                                           |                   |
+| `guest`          | Read-only, module-scoped                                   |                   |
 
 ## Privileged server-function surface
 

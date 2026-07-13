@@ -8,12 +8,14 @@ const MODEL = "google/gemini-3-flash-preview";
 
 const ACTIONS = {
   generate: "Write a new high-quality enterprise document based on the brief.",
-  rewrite: "Rewrite the provided text to improve clarity and professionalism. Keep meaning and structure.",
+  rewrite:
+    "Rewrite the provided text to improve clarity and professionalism. Keep meaning and structure.",
   simplify: "Simplify the language. Short sentences, plain words. Keep all facts.",
   technical: "Make the text more technical, precise and architecture-oriented.",
   executive: "Rewrite for a C-level executive audience: outcomes, ROI, risk, decisions.",
   automotive: "Adapt tone, examples and terminology for the automotive industry.",
-  healthcare: "Adapt tone, examples and terminology for the healthcare industry. Note relevant compliance.",
+  healthcare:
+    "Adapt tone, examples and terminology for the healthcare industry. Note relevant compliance.",
   manufacturing: "Adapt tone, examples and terminology for manufacturing operations.",
   retail: "Adapt tone, examples and terminology for retail and store operations.",
   translate: "Translate the text into the requested target language. Preserve markdown.",
@@ -32,20 +34,26 @@ export const Route = createFileRoute("/api/customer-writer")({
           const apiKey = process.env.LOVABLE_API_KEY;
           const supaUrl = process.env.SUPABASE_URL;
           const supaKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-          if (!apiKey || !supaUrl || !supaKey) return new Response("Server misconfigured", { status: 500 });
+          if (!apiKey || !supaUrl || !supaKey)
+            return new Response("Server misconfigured", { status: 500 });
 
           const supabase = createClient(supaUrl, supaKey, {
             global: { headers: { Authorization: `Bearer ${token}` } },
             auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
           });
           const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
-          if (claimsErr || !claims?.claims?.sub) return new Response("Unauthorized", { status: 401 });
+          if (claimsErr || !claims?.claims?.sub)
+            return new Response("Unauthorized", { status: 401 });
 
           const { data: isAdmin } = await (supabase as any).rpc("is_platform_admin");
           if (!isAdmin) return new Response("Forbidden", { status: 403 });
 
-          const body = await request.json() as {
-            action: Action; company_id: string; text?: string; brief?: string; target_language?: string;
+          const body = (await request.json()) as {
+            action: Action;
+            company_id: string;
+            text?: string;
+            brief?: string;
+            target_language?: string;
           };
           const action = body.action;
           if (!ACTIONS[action]) return new Response("Invalid action", { status: 400 });
@@ -115,7 +123,8 @@ ${ctx._systemBlock || "(no profile data yet — work from generic best practice 
         } catch (e) {
           console.error("[customer-writer]", e);
           return new Response(JSON.stringify({ error: "Writer failed" }), {
-            status: 500, headers: { "Content-Type": "application/json" },
+            status: 500,
+            headers: { "Content-Type": "application/json" },
           });
         }
       },

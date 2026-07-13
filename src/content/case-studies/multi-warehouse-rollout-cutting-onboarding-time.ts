@@ -10,8 +10,7 @@ export const study: CaseStudy = {
   illustrative: true,
   industry: "Third-Party Logistics",
   scale: "5 sites, ~1,200 operators",
-  lede:
-    "A mid-market 3PL deployed OPSQAI across five distribution sites to standardise operator onboarding and reduce team-lead interruptions.",
+  lede: "A mid-market 3PL deployed OPSQAI across five distribution sites to standardise operator onboarding and reduce team-lead interruptions.",
   challenge: [
     "New operators reached productive throughput in an average of 21 shifts. Team leads spent 25–30% of their day answering repeat process questions. SOPs existed in SharePoint but were rarely opened on the floor.",
     "Corporate SOPs were in English; two of the five sites operated primarily in German and Romanian.",

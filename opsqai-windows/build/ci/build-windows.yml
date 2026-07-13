@@ -13,19 +13,18 @@
 #     opsqai-windows\payload\updater\pubkey.pem  (production Ed25519 public key,
 #     never committed — restored from GH Actions secret before build.ps1 runs).
 
-
 name: build-windows-installer
 
 on:
   push:
-    tags: ['win-v*']
+    tags: ["win-v*"]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Semver (e.g. 1.0.0)'
+        description: "Semver (e.g. 1.0.0)"
         required: true
       sign:
-        description: 'Sign the installer'
+        description: "Sign the installer"
         type: boolean
         default: true
 

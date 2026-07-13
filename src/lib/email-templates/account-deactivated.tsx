@@ -16,6 +16,10 @@ export const template = defineTemplate({
   displayName: "Account deactivated",
   subject: "Your OPSQAI account was deactivated",
   component: Email,
-  previewData: { firstName: "Jane", deactivatedAt: new Date().toLocaleString(), reason: "Requested by workspace admin" },
+  previewData: {
+    firstName: "Jane",
+    deactivatedAt: new Date().toLocaleString(),
+    reason: "Requested by workspace admin",
+  },
 });
 export default Email;

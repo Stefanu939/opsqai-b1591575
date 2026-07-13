@@ -11,7 +11,9 @@ export const DEMO_COMPANY_NAME = "Atlas Logistics GmbH";
 
 type Snapshot = { expiresAt: number | null };
 const SERVER_SNAPSHOT: Snapshot = { expiresAt: null };
-function getServerSnapshot(): Snapshot { return SERVER_SNAPSHOT; }
+function getServerSnapshot(): Snapshot {
+  return SERVER_SNAPSHOT;
+}
 
 const listeners = new Set<() => void>();
 let cached: Snapshot = { expiresAt: null };
@@ -25,7 +27,9 @@ function computeFromStorage(): Snapshot {
     const v = JSON.parse(raw) as { expiresAt: number };
     if (!v || typeof v.expiresAt !== "number") return { expiresAt: null };
     return { expiresAt: v.expiresAt };
-  } catch { return { expiresAt: null }; }
+  } catch {
+    return { expiresAt: null };
+  }
 }
 
 function refresh() {
@@ -43,7 +47,10 @@ function read(): Snapshot {
   return cached;
 }
 
-function emit() { refresh(); listeners.forEach((l) => l()); }
+function emit() {
+  refresh();
+  listeners.forEach((l) => l());
+}
 
 export function startDemoSession(durationMs = DEFAULT_DURATION_MS) {
   const expiresAt = Date.now() + durationMs;
@@ -59,9 +66,14 @@ export function endDemoSession() {
 
 function subscribe(cb: () => void) {
   listeners.add(cb);
-  const onStorage = (e: StorageEvent) => { if (e.key === KEY) cb(); };
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === KEY) cb();
+  };
   window.addEventListener("storage", onStorage);
-  return () => { listeners.delete(cb); window.removeEventListener("storage", onStorage); };
+  return () => {
+    listeners.delete(cb);
+    window.removeEventListener("storage", onStorage);
+  };
 }
 
 export function useDemoSession() {

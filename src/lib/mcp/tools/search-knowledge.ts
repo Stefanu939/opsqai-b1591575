@@ -4,14 +4,10 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 function supabaseForUser(ctx: ToolContext) {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    },
-  );
+  return createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export default defineTool({
@@ -23,7 +19,10 @@ export default defineTool({
   inputSchema: {
     query: z.string().min(1).describe("Free-text query matched against document title and text."),
     category: z.string().optional().describe("Optional category filter."),
-    knowledge_type: z.string().optional().describe("Optional knowledge_type filter (e.g. sop, policy)."),
+    knowledge_type: z
+      .string()
+      .optional()
+      .describe("Optional knowledge_type filter (e.g. sop, policy)."),
     include_content: z.boolean().optional().describe("Include full content_text (default false)."),
     limit: z.number().int().min(1).max(100).optional().describe("Max rows (default 20)."),
   },
@@ -34,11 +33,22 @@ export default defineTool({
     }
     const supabase = supabaseForUser(ctx);
     const columns = [
-      "id", "title", "category", "knowledge_type", "doc_code",
-      "section", "version", "status", "is_active", "is_critical",
-      "created_at", "updated_at",
+      "id",
+      "title",
+      "category",
+      "knowledge_type",
+      "doc_code",
+      "section",
+      "version",
+      "status",
+      "is_active",
+      "is_critical",
+      "created_at",
+      "updated_at",
       include_content ? "content_text" : null,
-    ].filter(Boolean).join(", ");
+    ]
+      .filter(Boolean)
+      .join(", ");
 
     const escaped = query.replace(/[%_]/g, (m) => `\\${m}`);
     const pattern = `%${escaped}%`;

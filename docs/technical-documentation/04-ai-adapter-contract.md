@@ -4,8 +4,8 @@ Every adapter implements:
 
 ```typescript
 export interface AiAdapter {
-  key: string;                         // registry key
-  probe(): Promise<AiProbeResult>;     // health check
+  key: string; // registry key
+  probe(): Promise<AiProbeResult>; // health check
   chat(req: ChatRequest): Promise<ChatResponse>;
   embed(req: EmbedRequest): Promise<EmbedResponse>;
   stt?(req: SttRequest): Promise<SttResponse>;

@@ -122,8 +122,7 @@ export const listMyTraining = createServerFn({ method: "POST" })
         e.status === "completed" ? 100 : total === 0 ? 0 : Math.round((completed / total) * 100);
       const assignedBy = e.assigned_by ? profByUser.get(e.assigned_by) : null;
       const cert = certByEnroll.get(e.id) ?? null;
-      const overdue =
-        e.status !== "completed" && !!e.due_at && new Date(e.due_at).getTime() < now;
+      const overdue = e.status !== "completed" && !!e.due_at && new Date(e.due_at).getTime() < now;
       return {
         id: e.id,
         status: e.status,
@@ -172,25 +171,19 @@ export const getMyTrainingSummary = createServerFn({ method: "POST" })
         .from("academy_enrollments")
         .select("id, status, mandatory, due_at, path_id")
         .eq("user_id", context.userId),
-      supabase
-        .from("academy_certificates")
-        .select("id")
-        .eq("user_id", context.userId),
-      supabase
-        .from("academy_quiz_attempts")
-        .select("score")
-        .eq("user_id", context.userId),
+      supabase.from("academy_certificates").select("id").eq("user_id", context.userId),
+      supabase.from("academy_quiz_attempts").select("score").eq("user_id", context.userId),
     ]);
 
     const enrollments = enrollmentsRes.data ?? [];
     const now = Date.now();
     const in14d = now + 14 * 24 * 60 * 60 * 1000;
 
-    const active = enrollments.filter((e: any) => e.status !== "completed" && e.status !== "revoked");
-    const mandatoryActive = active.filter((e: any) => e.mandatory);
-    const upcoming = active.filter(
-      (e: any) => e.due_at && new Date(e.due_at).getTime() < in14d,
+    const active = enrollments.filter(
+      (e: any) => e.status !== "completed" && e.status !== "revoked",
     );
+    const mandatoryActive = active.filter((e: any) => e.mandatory);
+    const upcoming = active.filter((e: any) => e.due_at && new Date(e.due_at).getTime() < in14d);
 
     // Weighted progress across active enrollments
     const enrollmentIds = active.map((e: any) => e.id);
@@ -219,7 +212,8 @@ export const getMyTrainingSummary = createServerFn({ method: "POST" })
         if (p.status === "completed")
           doneByEnroll.set(p.enrollment_id, (doneByEnroll.get(p.enrollment_id) ?? 0) + 1);
       }
-      let tot = 0, done = 0;
+      let tot = 0,
+        done = 0;
       for (const e of active) {
         const t = totalByPath.get(e.path_id) ?? 0;
         tot += t;
@@ -228,8 +222,12 @@ export const getMyTrainingSummary = createServerFn({ method: "POST" })
       learningPct = tot === 0 ? 0 : Math.round((done / tot) * 100);
     }
 
-    const scores = (quizzesRes.data ?? []).map((r: any) => Number(r.score)).filter((n: number) => !Number.isNaN(n));
-    const avgQuiz = scores.length ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : null;
+    const scores = (quizzesRes.data ?? [])
+      .map((r: any) => Number(r.score))
+      .filter((n: number) => !Number.isNaN(n));
+    const avgQuiz = scores.length
+      ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
+      : null;
 
     return {
       mandatory_active: mandatoryActive.length,
@@ -262,19 +260,17 @@ export const saveLessonNotes = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!enroll || enroll.user_id !== context.userId) throw new Error("Forbidden");
 
-    const { error } = await supabase
-      .from("academy_lesson_progress")
-      .upsert(
-        {
-          enrollment_id: data.enrollment_id,
-          lesson_id: data.lesson_id,
-          user_id: context.userId,
-          company_id: enroll.company_id,
-          notes: data.notes,
-          last_activity_at: new Date().toISOString(),
-        },
-        { onConflict: "enrollment_id,lesson_id" },
-      );
+    const { error } = await supabase.from("academy_lesson_progress").upsert(
+      {
+        enrollment_id: data.enrollment_id,
+        lesson_id: data.lesson_id,
+        user_id: context.userId,
+        company_id: enroll.company_id,
+        notes: data.notes,
+        last_activity_at: new Date().toISOString(),
+      },
+      { onConflict: "enrollment_id,lesson_id" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -316,7 +312,8 @@ export const assignTraining = createServerFn({ method: "POST" })
     });
     if (targetErr) throw new Error(targetErr.message);
     const userIds: string[] = (targets ?? []).map((t: any) => t.user_id);
-    if (!userIds.length) return { assigned: 0, skipped: 0, users: 0, courses: data.path_ids.length };
+    if (!userIds.length)
+      return { assigned: 0, skipped: 0, users: 0, courses: data.path_ids.length };
 
     // Validate paths belong to same company
     const { data: paths, error: pathErr } = await supabase
@@ -331,11 +328,12 @@ export const assignTraining = createServerFn({ method: "POST" })
     const { data: existingRows } = await supabase
       .from("academy_enrollments")
       .select("path_id, user_id")
-      .in("path_id", validPaths.map((p: any) => p.id))
+      .in(
+        "path_id",
+        validPaths.map((p: any) => p.id),
+      )
       .in("user_id", userIds);
-    const existing = new Set(
-      (existingRows ?? []).map((r: any) => `${r.path_id}:${r.user_id}`),
-    );
+    const existing = new Set((existingRows ?? []).map((r: any) => `${r.path_id}:${r.user_id}`));
 
     const rows: any[] = [];
     const notifications: any[] = [];
@@ -418,7 +416,9 @@ export const listCourseAnalytics = createServerFn({ method: "POST" })
         .in("path_id", pathIds),
       supabase
         .from("academy_quiz_attempts")
-        .select("path_id:academy_enrollments!inner(path_id), score, academy_enrollments!inner(path_id)")
+        .select(
+          "path_id:academy_enrollments!inner(path_id), score, academy_enrollments!inner(path_id)",
+        )
         .in("academy_enrollments.path_id", pathIds),
       supabase.from("academy_certificates").select("path_id").in("path_id", pathIds),
     ]);
@@ -518,7 +518,8 @@ export const listCourseCohort = createServerFn({ method: "POST" })
         doneByEnroll.set(p.enrollment_id, (doneByEnroll.get(p.enrollment_id) ?? 0) + 1);
       if (p.last_activity_at) {
         const cur = lastActByEnroll.get(p.enrollment_id);
-        if (!cur || cur < p.last_activity_at) lastActByEnroll.set(p.enrollment_id, p.last_activity_at);
+        if (!cur || cur < p.last_activity_at)
+          lastActByEnroll.set(p.enrollment_id, p.last_activity_at);
       }
     }
 
@@ -528,7 +529,11 @@ export const listCourseCohort = createServerFn({ method: "POST" })
     return enrolls.map((e: any) => {
       const done = doneByEnroll.get(e.id) ?? 0;
       const pct =
-        e.status === "completed" ? 100 : totalLessons === 0 ? 0 : Math.round((done / totalLessons) * 100);
+        e.status === "completed"
+          ? 100
+          : totalLessons === 0
+            ? 0
+            : Math.round((done / totalLessons) * 100);
       const prof = profById.get(e.user_id) as any;
       return {
         enrollment_id: e.id,
@@ -573,24 +578,20 @@ export const listAssignTargets = createServerFn({ method: "POST" })
         .eq("company_id", companyId)
         .eq("publish_status", "published")
         .order("title"),
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("company_id", companyId),
+      supabase.from("user_roles").select("role").eq("company_id", companyId),
     ]);
 
     const roles: string[] = Array.from(
-      new Set(((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role).filter(Boolean)),
+      new Set(
+        ((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role).filter(Boolean),
+      ),
     );
 
     return {
       company_id: companyId,
       users: (usersRes.data ?? []).map((u: any) => ({
         id: u.id,
-        name:
-          u.full_name ??
-          [u.first_name, u.last_name].filter(Boolean).join(" ") ??
-          "User",
+        name: u.full_name ?? [u.first_name, u.last_name].filter(Boolean).join(" ") ?? "User",
         department_id: u.department_id,
       })),
       departments: deptsRes.data ?? [],

@@ -8,10 +8,24 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  ArrowLeft, CheckCircle2, Copy, ExternalLink, Loader2, ShieldCheck, Info, Clock, XCircle,
+  ArrowLeft,
+  CheckCircle2,
+  Copy,
+  ExternalLink,
+  Loader2,
+  ShieldCheck,
+  Info,
+  Clock,
+  XCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/admin/sso-setup")({
@@ -62,7 +76,11 @@ function CopyRow({ label, value }: { label: string; value: string }) {
             toast.success("Copied");
           }}
         >
-          {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? (
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+          ) : (
+            <Copy className="h-3.5 w-3.5" />
+          )}
         </Button>
       </div>
     </div>
@@ -182,28 +200,41 @@ function SsoSetupPage() {
           <ShieldCheck className="h-7 w-7" />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Enterprise SSO</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Enterprise SSO
+          </p>
           <h1 className="mt-0.5 text-2xl sm:text-3xl font-semibold tracking-tight truncate">
             SSO configuration
           </h1>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {isActive && (
-              <Badge variant="outline" className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Badge
+                variant="outline"
+                className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              >
                 <CheckCircle2 className="h-3 w-3" /> Active
               </Badge>
             )}
             {isPending && (
-              <Badge variant="outline" className="gap-1 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <Badge
+                variant="outline"
+                className="gap-1 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+              >
                 <Clock className="h-3 w-3" /> Pending review
               </Badge>
             )}
             {isRejected && (
-              <Badge variant="outline" className="gap-1 border-destructive/30 bg-destructive/10 text-destructive">
+              <Badge
+                variant="outline"
+                className="gap-1 border-destructive/30 bg-destructive/10 text-destructive"
+              >
                 <XCircle className="h-3 w-3" /> Needs changes
               </Badge>
             )}
             {!config && (
-              <Badge variant="outline" className="text-muted-foreground">Not configured</Badge>
+              <Badge variant="outline" className="text-muted-foreground">
+                Not configured
+              </Badge>
             )}
           </div>
         </div>
@@ -220,11 +251,14 @@ function SsoSetupPage() {
       <Card className="p-5 sm:p-6 space-y-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold grid place-items-center">1</span>
+            <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold grid place-items-center">
+              1
+            </span>
             <h2 className="text-sm font-semibold">Configure your identity provider</h2>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            In your IdP (Azure Portal → Enterprise Applications, Okta admin, etc.) create a new SAML 2.0 application and paste these Service Provider values:
+            In your IdP (Azure Portal → Enterprise Applications, Okta admin, etc.) create a new SAML
+            2.0 application and paste these Service Provider values:
           </p>
         </div>
         <div className="grid gap-3">
@@ -235,12 +269,25 @@ function SsoSetupPage() {
         <div className="flex gap-2 text-xs text-muted-foreground bg-muted/40 rounded-lg p-3">
           <Info className="h-4 w-4 shrink-0 mt-0.5" />
           <div className="space-y-1.5">
-            <p><strong className="text-foreground">Azure AD quick steps:</strong></p>
+            <p>
+              <strong className="text-foreground">Azure AD quick steps:</strong>
+            </p>
             <ol className="list-decimal ml-4 space-y-0.5">
-              <li>Azure Portal → Microsoft Entra ID → Enterprise applications → New application → Create your own → non-gallery.</li>
-              <li>Single sign-on → SAML. Paste the ACS URL as <em>Reply URL</em> and the Entity ID as <em>Identifier</em>.</li>
-              <li>Set <em>NameID</em> claim to <code className="font-mono">user.mail</code> (persistent, email format).</li>
-              <li>Copy the <em>App Federation Metadata Url</em> — you'll paste it in step&nbsp;2.</li>
+              <li>
+                Azure Portal → Microsoft Entra ID → Enterprise applications → New application →
+                Create your own → non-gallery.
+              </li>
+              <li>
+                Single sign-on → SAML. Paste the ACS URL as <em>Reply URL</em> and the Entity ID as{" "}
+                <em>Identifier</em>.
+              </li>
+              <li>
+                Set <em>NameID</em> claim to <code className="font-mono">user.mail</code>{" "}
+                (persistent, email format).
+              </li>
+              <li>
+                Copy the <em>App Federation Metadata Url</em> — you'll paste it in step&nbsp;2.
+              </li>
               <li>Assign the users/groups allowed to sign in.</li>
             </ol>
           </div>
@@ -251,11 +298,14 @@ function SsoSetupPage() {
       <Card className="p-5 sm:p-6 space-y-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold grid place-items-center">2</span>
+            <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold grid place-items-center">
+              2
+            </span>
             <h2 className="text-sm font-semibold">Submit your IdP details</h2>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Paste your IdP metadata URL and the email domains that should route through SSO. Our team activates it (usually within 1 business day).
+            Paste your IdP metadata URL and the email domains that should route through SSO. Our
+            team activates it (usually within 1 business day).
           </p>
         </div>
 
@@ -269,10 +319,14 @@ function SsoSetupPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="idp">Identity provider</Label>
                 <Select value={idpType} onValueChange={(v) => setIdpType(v as IdpType)}>
-                  <SelectTrigger id="idp"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="idp">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {(Object.entries(IDP_LABELS) as [IdpType, string][]).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                      <SelectItem key={k} value={k}>
+                        {v}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -289,7 +343,9 @@ function SsoSetupPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="metaUrl">IdP metadata URL <span className="text-destructive">*</span></Label>
+              <Label htmlFor="metaUrl">
+                IdP metadata URL <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="metaUrl"
                 type="url"
@@ -318,7 +374,9 @@ function SsoSetupPage() {
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="domains">Email domains <span className="text-destructive">*</span></Label>
+              <Label htmlFor="domains">
+                Email domains <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="domains"
                 placeholder="acme.com, acme.co.uk"
@@ -327,7 +385,8 @@ function SsoSetupPage() {
                 autoComplete="off"
               />
               <p className="text-[11px] text-muted-foreground">
-                Users signing in with an email at these domains will be routed to your IdP. Comma or space separated.
+                Users signing in with an email at these domains will be routed to your IdP. Comma or
+                space separated.
               </p>
             </div>
 
@@ -346,11 +405,7 @@ function SsoSetupPage() {
 
         {!loading && !locked && (
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <Button
-              onClick={() => save(true)}
-              disabled={saving}
-              className="w-full sm:w-auto"
-            >
+            <Button onClick={() => save(true)} disabled={saving} className="w-full sm:w-auto">
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Submit for activation
             </Button>
@@ -369,8 +424,9 @@ function SsoSetupPage() {
           <div className="flex gap-2 text-sm text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
             <Clock className="h-4 w-4 shrink-0 mt-0.5" />
             <p>
-              Submitted {config?.submitted_at ? new Date(config.submitted_at).toLocaleString() : ""}.
-              Our team will validate the metadata and activate SSO for your domains. You'll get an email when it's live.
+              Submitted {config?.submitted_at ? new Date(config.submitted_at).toLocaleString() : ""}
+              . Our team will validate the metadata and activate SSO for your domains. You'll get an
+              email when it's live.
             </p>
           </div>
         )}
@@ -379,7 +435,8 @@ function SsoSetupPage() {
           <div className="flex gap-2 text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
             <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
             <p>
-              SSO is active. Users with matching email domains are automatically redirected to your IdP on sign-in.
+              SSO is active. Users with matching email domains are automatically redirected to your
+              IdP on sign-in.
             </p>
           </div>
         )}
@@ -388,11 +445,15 @@ function SsoSetupPage() {
       {/* Step 3 — Test */}
       <Card className="p-5 sm:p-6 space-y-3">
         <div className="flex items-center gap-2">
-          <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold grid place-items-center">3</span>
+          <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold grid place-items-center">
+            3
+          </span>
           <h2 className="text-sm font-semibold">Test sign-in</h2>
         </div>
         <p className="text-sm text-muted-foreground">
-          Open the dedicated SSO sign-in page in a private/incognito window and enter an email at one of your configured domains. You'll be routed to your IdP. If SSO isn't active yet for that domain, the page shows a clear message instead of falling back to the dashboard.
+          Open the dedicated SSO sign-in page in a private/incognito window and enter an email at
+          one of your configured domains. You'll be routed to your IdP. If SSO isn't active yet for
+          that domain, the page shows a clear message instead of falling back to the dashboard.
         </p>
         <Button asChild variant="outline" className="w-full sm:w-auto">
           <a href="/sso-signin" target="_blank" rel="noopener noreferrer">
@@ -403,7 +464,8 @@ function SsoSetupPage() {
       </Card>
 
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        SAML metadata and email domains are visible to platform administrators for activation and audit. Only company admins can submit or edit this configuration.
+        SAML metadata and email domains are visible to platform administrators for activation and
+        audit. Only company admins can submit or edit this configuration.
       </p>
     </div>
   );

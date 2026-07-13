@@ -13,7 +13,15 @@ interface Props {
   topQuestions?: string[];
 }
 
-const Email = ({ workspaceName, rangeLabel, chatCount, newSops, openGaps, newCerts, topQuestions }: Props) => (
+const Email = ({
+  workspaceName,
+  rangeLabel,
+  chatCount,
+  newSops,
+  openGaps,
+  newCerts,
+  topQuestions,
+}: Props) => (
   <BrandedEmail
     preview={`Your weekly OPSQAI digest for ${workspaceName ?? "your workspace"}`}
     title={`Weekly digest · ${rangeLabel ?? "last 7 days"}`}
@@ -21,15 +29,25 @@ const Email = ({ workspaceName, rangeLabel, chatCount, newSops, openGaps, newCer
     ctaLabel="Open dashboard"
     ctaUrl={`${APP_URL}/app/admin/dashboard`}
   >
-    <Text style={row}><strong>Chat sessions:</strong> {chatCount ?? 0}</Text>
-    <Text style={row}><strong>SOPs published:</strong> {newSops ?? 0}</Text>
-    <Text style={row}><strong>Open knowledge gaps:</strong> {openGaps ?? 0}</Text>
-    <Text style={row}><strong>Certificates issued:</strong> {newCerts ?? 0}</Text>
+    <Text style={row}>
+      <strong>Chat sessions:</strong> {chatCount ?? 0}
+    </Text>
+    <Text style={row}>
+      <strong>SOPs published:</strong> {newSops ?? 0}
+    </Text>
+    <Text style={row}>
+      <strong>Open knowledge gaps:</strong> {openGaps ?? 0}
+    </Text>
+    <Text style={row}>
+      <strong>Certificates issued:</strong> {newCerts ?? 0}
+    </Text>
     {topQuestions && topQuestions.length > 0 ? (
       <>
         <Text style={{ ...row, marginTop: 14, fontWeight: 600 }}>Top questions</Text>
         {topQuestions.slice(0, 5).map((q, i) => (
-          <Text key={i} style={row}>• {q}</Text>
+          <Text key={i} style={row}>
+            • {q}
+          </Text>
         ))}
       </>
     ) : null}

@@ -54,7 +54,9 @@ export const generateInstallationPackage = createServerFn({ method: "POST" })
     // Load the install-kind license (source of company_name + pin)
     const { data: lic, error: licErr } = await supabaseAdmin
       .from("licenses")
-      .select("install_id, company_name, kind, revoked, suspended, pinned_installer_version, technical_contact_email, contact_email")
+      .select(
+        "install_id, company_name, kind, revoked, suspended, pinned_installer_version, technical_contact_email, contact_email",
+      )
       .eq("install_id", data.install_id)
       .eq("kind", "install")
       .maybeSingle();
@@ -78,9 +80,7 @@ export const generateInstallationPackage = createServerFn({ method: "POST" })
       company_name: lic.company_name,
       bundle,
       license_server_url:
-        process.env.OPSQAI_LICENSE_SERVER_URL ??
-        process.env.SUPABASE_URL ??
-        "https://opsqai.de",
+        process.env.OPSQAI_LICENSE_SERVER_URL ?? process.env.SUPABASE_URL ?? "https://opsqai.de",
     });
 
     // Upload
@@ -137,7 +137,8 @@ export const generateInstallationPackage = createServerFn({ method: "POST" })
     const { data: signed, error: signErr } = await supabaseAdmin.storage
       .from("installation-packages")
       .createSignedUrl(storagePath, 24 * 60 * 60, { download: file_name });
-    if (signErr || !signed?.signedUrl) throw new Error(`sign_failed:${signErr?.message ?? "unknown"}`);
+    if (signErr || !signed?.signedUrl)
+      throw new Error(`sign_failed:${signErr?.message ?? "unknown"}`);
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     await supabaseAdmin.from("installation_package_downloads").insert({
@@ -284,7 +285,9 @@ export const getInstallationPackageStatus = createServerFn({ method: "POST" })
         .maybeSingle(),
       supabaseAdmin
         .from("licenses")
-        .select("install_id, company_name, pinned_installer_version, technical_contact_email, contact_email")
+        .select(
+          "install_id, company_name, pinned_installer_version, technical_contact_email, contact_email",
+        )
         .eq("install_id", data.install_id)
         .eq("kind", "install")
         .maybeSingle(),

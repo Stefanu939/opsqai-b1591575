@@ -6,12 +6,12 @@ export const post: BlogPost = {
   description:
     "Why keyword search fails on the warehouse floor, and how semantic retrieval changes operator behaviour.",
   pillar: "Warehouse AI",
-  keywords: "semantic search warehouse, keyword search vs semantic, retrieval augmented generation warehouse",
+  keywords:
+    "semantic search warehouse, keyword search vs semantic, retrieval augmented generation warehouse",
   datePublished: "2026-06-25",
   author: { name: "OPSQAI Editorial", role: "Engineering" },
   readingMinutes: 5,
-  lede:
-    "Operators do not phrase questions the way the SOP is written. Keyword search punishes them for it. Semantic search does not.",
+  lede: "Operators do not phrase questions the way the SOP is written. Keyword search punishes them for it. Semantic search does not.",
   sections: [
     {
       heading: "The vocabulary mismatch",
@@ -44,5 +44,8 @@ export const post: BlogPost = {
       ],
     },
   ],
-  relatedLandingPages: ["/solutions/warehouse-ai-assistant", "/solutions/ai-for-warehouse-operations"],
+  relatedLandingPages: [
+    "/solutions/warehouse-ai-assistant",
+    "/solutions/ai-for-warehouse-operations",
+  ],
 };

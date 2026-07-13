@@ -71,7 +71,10 @@ Produce the SOP now.`;
     return { markdown };
   });
 
-const ValInput = z.object({ markdown: z.string().min(20), language: z.enum(["en","de","ro"]).default("en") });
+const ValInput = z.object({
+  markdown: z.string().min(20),
+  language: z.enum(["en", "de", "ro"]).default("en"),
+});
 /** AI SOP Validator — scores draft and returns suggestions / risk warnings. */
 export const validateSop = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -85,7 +88,13 @@ export const validateSop = createServerFn({ method: "POST" })
 }. Output JSON only, no commentary.`;
     const text = await callLlm(`Language: ${data.language}\n\nSOP DRAFT:\n${data.markdown}`, sys);
     const m = text.match(/\{[\s\S]*\}/);
-    if (!m) return { score: 70, issues: [], suggestions: [], summary: "Validator response could not be parsed." };
+    if (!m)
+      return {
+        score: 70,
+        issues: [],
+        suggestions: [],
+        summary: "Validator response could not be parsed.",
+      };
     try {
       const parsed = JSON.parse(m[0]);
       return {
@@ -118,8 +127,10 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const path = `${companyId}/${crypto.randomUUID()}-${data.title.replace(/[^a-z0-9]+/gi, "-")}.md`;
     const { error: upErr } = await supabaseAdmin.storage
-      .from("knowledge-docs").upload(path, new Blob([data.markdown], { type: "text/markdown" }), {
-        contentType: "text/markdown", upsert: false,
+      .from("knowledge-docs")
+      .upload(path, new Blob([data.markdown], { type: "text/markdown" }), {
+        contentType: "text/markdown",
+        upsert: false,
       });
     if (upErr) throw new Error(upErr.message);
 
@@ -136,22 +147,29 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
         uploaded_by: context.userId,
         company_id: companyId,
       })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
 
     // chunk + embed via existing pipeline
     try {
       const { reprocessDocument } = await import("@/lib/kb.functions");
       await (reprocessDocument as any).handler?.({ data: { id: doc.id }, context });
-    } catch { /* indexed asynchronously elsewhere */ }
+    } catch {
+      /* indexed asynchronously elsewhere */
+    }
 
     try {
       await context.supabase.from("notifications").insert({
-        company_id: companyId, user_id: context.userId,
-        kind: "ai_sop_generated", title: `New AI-generated SOP: ${data.title}`,
+        company_id: companyId,
+        user_id: context.userId,
+        kind: "ai_sop_generated",
+        title: `New AI-generated SOP: ${data.title}`,
         body: data.doc_code ?? "",
       });
-    } catch { /* notification optional */ }
+    } catch {
+      /* notification optional */
+    }
 
     return { id: doc.id };
   });
@@ -186,7 +204,11 @@ function riskFrom(score: number) {
 }
 
 function heuristicCategoryScores(input: {
-  kpi: any; health: any; status: any; top: any[]; critical: any[];
+  kpi: any;
+  health: any;
+  status: any;
+  top: any[];
+  critical: any[];
 }) {
   const kpi = input.kpi ?? {};
   const health = input.health ?? {};
@@ -238,55 +260,143 @@ function buildHeuristicReport(input: any) {
       title: `Strong ${c.label}`,
       description: `${c.label} scored ${c.score}/100, above the enterprise baseline.`,
       impact: "Sustains operational reliability.",
-      risk: c.risk, recommendation: "Maintain current practices and share as internal benchmark.", priority: "low",
+      risk: c.risk,
+      recommendation: "Maintain current practices and share as internal benchmark.",
+      priority: "low",
     })),
-    opportunities: catList.filter((c) => c.score >= 50 && c.score < 70).map((c) => ({
-      title: `Improve ${c.label}`,
-      description: `${c.label} is developing (${c.score}/100).`,
-      impact: "Medium — unlocks the next maturity level.",
-      risk: c.risk, recommendation: `Invest in ${c.label} processes and tooling.`, priority: "medium",
-    })),
-    warnings: catList.filter((c) => c.score >= 35 && c.score < 50).map((c) => ({
-      title: `${c.label} below target`,
-      description: `Score ${c.score}/100 indicates rising operational risk.`,
-      impact: "Operational bottleneck likely within one quarter.",
-      risk: c.risk, recommendation: `Assign an owner and remediation plan for ${c.label}.`, priority: "high",
-    })),
-    critical: catList.filter((c) => c.score < 35).map((c) => ({
-      title: `Critical gap in ${c.label}`,
-      description: `Severe deficiency (${c.score}/100).`,
-      impact: "High — regulatory, financial or safety exposure.",
-      risk: "critical", recommendation: `Immediate remediation of ${c.label}.`, priority: "critical",
-    })),
+    opportunities: catList
+      .filter((c) => c.score >= 50 && c.score < 70)
+      .map((c) => ({
+        title: `Improve ${c.label}`,
+        description: `${c.label} is developing (${c.score}/100).`,
+        impact: "Medium — unlocks the next maturity level.",
+        risk: c.risk,
+        recommendation: `Invest in ${c.label} processes and tooling.`,
+        priority: "medium",
+      })),
+    warnings: catList
+      .filter((c) => c.score >= 35 && c.score < 50)
+      .map((c) => ({
+        title: `${c.label} below target`,
+        description: `Score ${c.score}/100 indicates rising operational risk.`,
+        impact: "Operational bottleneck likely within one quarter.",
+        risk: c.risk,
+        recommendation: `Assign an owner and remediation plan for ${c.label}.`,
+        priority: "high",
+      })),
+    critical: catList
+      .filter((c) => c.score < 35)
+      .map((c) => ({
+        title: `Critical gap in ${c.label}`,
+        description: `Severe deficiency (${c.score}/100).`,
+        impact: "High — regulatory, financial or safety exposure.",
+        risk: "critical",
+        recommendation: `Immediate remediation of ${c.label}.`,
+        priority: "critical",
+      })),
     priorityActions: weakest.map((c, i) => ({
       priority: i + 1,
       title: `Strengthen ${c.label}`,
       impact: c.score < 40 ? "High" : "Medium",
       effort: c.score < 40 ? "High" : "Medium",
       estimatedTime: c.score < 40 ? "2-4 weeks" : "1-2 weeks",
-      department: c.key === "training" ? "HR / L&D" : c.key === "compliance" ? "Compliance" : "Operations",
+      department:
+        c.key === "training" ? "HR / L&D" : c.key === "compliance" ? "Compliance" : "Operations",
       expectedScoreImprovement: Math.max(4, Math.round((70 - c.score) / 4)),
-      action: c.key === "sop_coverage" ? "generate_sop" : c.key === "training" ? "assign_training" : c.key === "knowledge_management" ? "open_knowledge_gap" : "generate_policy",
+      action:
+        c.key === "sop_coverage"
+          ? "generate_sop"
+          : c.key === "training"
+            ? "assign_training"
+            : c.key === "knowledge_management"
+              ? "open_knowledge_gap"
+              : "generate_policy",
     })),
     aiInsights: [
-      overall < 60 ? "Documentation growth is outpacing quality controls." : "Knowledge quality trends are aligning with growth.",
-      cats.ai_readiness < 60 ? "AI confidence remains below enterprise standards — improve source coverage." : "AI readiness meets baseline; monitor drift.",
-      cats.training < 60 ? "Training content is incomplete for critical roles." : "Training coverage is on track.",
-      cats.risk_management < 60 ? "Most operational risk originates from missing procedures." : "Risk posture is contained.",
-      cats.compliance < 60 ? "Compliance readiness requires focused remediation." : "Compliance readiness is improving.",
+      overall < 60
+        ? "Documentation growth is outpacing quality controls."
+        : "Knowledge quality trends are aligning with growth.",
+      cats.ai_readiness < 60
+        ? "AI confidence remains below enterprise standards — improve source coverage."
+        : "AI readiness meets baseline; monitor drift.",
+      cats.training < 60
+        ? "Training content is incomplete for critical roles."
+        : "Training coverage is on track.",
+      cats.risk_management < 60
+        ? "Most operational risk originates from missing procedures."
+        : "Risk posture is contained.",
+      cats.compliance < 60
+        ? "Compliance readiness requires focused remediation."
+        : "Compliance readiness is improving.",
     ],
     riskMatrix: [
-      { risk: "Missing critical SOPs", likelihood: cats.sop_coverage < 50 ? "high" : "medium", impact: "critical", severity: cats.sop_coverage < 50 ? "critical" : "high", mitigation: "Generate SOPs from Priority Actions." },
-      { risk: "Low AI confidence", likelihood: cats.ai_readiness < 60 ? "high" : "medium", impact: "high", severity: cats.ai_readiness < 60 ? "high" : "medium", mitigation: "Improve knowledge quality and coverage." },
-      { risk: "Training gaps", likelihood: cats.training < 60 ? "medium" : "low", impact: "high", severity: cats.training < 60 ? "high" : "medium", mitigation: "Assign mandatory learning paths." },
-      { risk: "Compliance drift", likelihood: cats.compliance < 60 ? "medium" : "low", impact: "critical", severity: cats.compliance < 60 ? "high" : "medium", mitigation: "Run ISO / GDPR gap remediation." },
+      {
+        risk: "Missing critical SOPs",
+        likelihood: cats.sop_coverage < 50 ? "high" : "medium",
+        impact: "critical",
+        severity: cats.sop_coverage < 50 ? "critical" : "high",
+        mitigation: "Generate SOPs from Priority Actions.",
+      },
+      {
+        risk: "Low AI confidence",
+        likelihood: cats.ai_readiness < 60 ? "high" : "medium",
+        impact: "high",
+        severity: cats.ai_readiness < 60 ? "high" : "medium",
+        mitigation: "Improve knowledge quality and coverage.",
+      },
+      {
+        risk: "Training gaps",
+        likelihood: cats.training < 60 ? "medium" : "low",
+        impact: "high",
+        severity: cats.training < 60 ? "high" : "medium",
+        mitigation: "Assign mandatory learning paths.",
+      },
+      {
+        risk: "Compliance drift",
+        likelihood: cats.compliance < 60 ? "medium" : "low",
+        impact: "critical",
+        severity: cats.compliance < 60 ? "high" : "medium",
+        mitigation: "Run ISO / GDPR gap remediation.",
+      },
     ],
     compliance: [
-      { framework: "ISO 9001", readiness: Math.round(cats.documentation * 0.5 + cats.sop_coverage * 0.5), missing: cats.sop_coverage < 60 ? ["Documented critical SOPs", "Process ownership matrix"] : ["Annual internal audit"], recommendation: "Close SOP coverage gaps." },
-      { framework: "ISO 27001", readiness: Math.round(cats.governance * 0.4 + cats.compliance * 0.6), missing: cats.compliance < 60 ? ["Access control policy", "Incident response plan"] : ["Annual risk review"], recommendation: "Formalize information security policies." },
-      { framework: "ISO 45001", readiness: Math.round(cats.risk_management * 0.6 + cats.operational_excellence * 0.4), missing: ["OH&S objectives", "Hazard register"], recommendation: "Document OH&S procedures." },
-      { framework: "GDPR", readiness: Math.round(cats.compliance * 0.7 + cats.data_quality * 0.3), missing: cats.compliance < 70 ? ["DPIA templates", "Data retention policy"] : ["ROPA refresh"], recommendation: "Refresh data protection artefacts." },
-      { framework: "EU AI Act", readiness: Math.round(cats.ai_readiness * 0.6 + cats.governance * 0.4), missing: ["AI risk classification", "Human-oversight policy"], recommendation: "Establish AI governance controls." },
+      {
+        framework: "ISO 9001",
+        readiness: Math.round(cats.documentation * 0.5 + cats.sop_coverage * 0.5),
+        missing:
+          cats.sop_coverage < 60
+            ? ["Documented critical SOPs", "Process ownership matrix"]
+            : ["Annual internal audit"],
+        recommendation: "Close SOP coverage gaps.",
+      },
+      {
+        framework: "ISO 27001",
+        readiness: Math.round(cats.governance * 0.4 + cats.compliance * 0.6),
+        missing:
+          cats.compliance < 60
+            ? ["Access control policy", "Incident response plan"]
+            : ["Annual risk review"],
+        recommendation: "Formalize information security policies.",
+      },
+      {
+        framework: "ISO 45001",
+        readiness: Math.round(cats.risk_management * 0.6 + cats.operational_excellence * 0.4),
+        missing: ["OH&S objectives", "Hazard register"],
+        recommendation: "Document OH&S procedures.",
+      },
+      {
+        framework: "GDPR",
+        readiness: Math.round(cats.compliance * 0.7 + cats.data_quality * 0.3),
+        missing:
+          cats.compliance < 70 ? ["DPIA templates", "Data retention policy"] : ["ROPA refresh"],
+        recommendation: "Refresh data protection artefacts.",
+      },
+      {
+        framework: "EU AI Act",
+        readiness: Math.round(cats.ai_readiness * 0.6 + cats.governance * 0.4),
+        missing: ["AI risk classification", "Human-oversight policy"],
+        recommendation: "Establish AI governance controls.",
+      },
     ],
     kpis: {
       knowledge_confidence: Math.round(cats.knowledge_management),
@@ -301,10 +411,22 @@ function buildHeuristicReport(input: any) {
       employee_adoption: Math.round(cats.training * 0.6 + cats.operational_excellence * 0.4),
     },
     benchmark: {
-      knowledge_management: cats.knowledge_management >= 70 ? "above_average" : cats.knowledge_management >= 50 ? "average" : "below_average",
-      compliance: cats.compliance >= 70 ? "above_average" : cats.compliance >= 50 ? "average" : "below_average",
-      training: cats.training >= 70 ? "above_average" : cats.training >= 50 ? "average" : "below_average",
-      ai_readiness: cats.ai_readiness >= 75 ? "top_20" : cats.ai_readiness >= 60 ? "above_average" : "average",
+      knowledge_management:
+        cats.knowledge_management >= 70
+          ? "above_average"
+          : cats.knowledge_management >= 50
+            ? "average"
+            : "below_average",
+      compliance:
+        cats.compliance >= 70
+          ? "above_average"
+          : cats.compliance >= 50
+            ? "average"
+            : "below_average",
+      training:
+        cats.training >= 70 ? "above_average" : cats.training >= 50 ? "average" : "below_average",
+      ai_readiness:
+        cats.ai_readiness >= 75 ? "top_20" : cats.ai_readiness >= 60 ? "above_average" : "average",
     },
     passedCount: catList.filter((c) => c.score >= 70).length,
     warningsCount: catList.filter((c) => c.score >= 40 && c.score < 70).length,
@@ -315,7 +437,9 @@ function buildHeuristicReport(input: any) {
 /** AI Workspace Audit — Enterprise Operational Maturity Assessment. */
 export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "ai_audit.run");
     const companyId = await resolveCompany(context, data.company_id);
@@ -329,8 +453,11 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
     ]);
 
     const heuristic = buildHeuristicReport({
-      kpi: kpi.data, health: health.data, status: status.data,
-      top: top.data ?? [], critical: critical.data ?? [],
+      kpi: kpi.data,
+      health: health.data,
+      status: status.data,
+      top: top.data ?? [],
+      critical: critical.data ?? [],
     });
 
     const sys = `You are a senior operations consultant (Deloitte / PwC style) producing an executive Operational Maturity Assessment.
@@ -357,7 +484,13 @@ Return STRICT JSON only, matching this schema (keep all keys):
 
     const payload = JSON.stringify({
       heuristic,
-      signals: { kpis: kpi.data, health: health.data, knowledgeStatus: status.data, topSops: top.data, criticalSops: critical.data },
+      signals: {
+        kpis: kpi.data,
+        health: health.data,
+        knowledgeStatus: status.data,
+        topSops: top.data,
+        criticalSops: critical.data,
+      },
     });
 
     let report: any = heuristic;
@@ -369,10 +502,13 @@ Return STRICT JSON only, matching this schema (keep all keys):
         // Merge — AI narrative wins where present, heuristic fills the rest.
         report = { ...heuristic, ...parsed };
         // Preserve category scoring integrity when AI drifts
-        if (!Array.isArray(parsed.categories) || parsed.categories.length < 5) report.categories = heuristic.categories;
+        if (!Array.isArray(parsed.categories) || parsed.categories.length < 5)
+          report.categories = heuristic.categories;
         if (!parsed.kpis) report.kpis = heuristic.kpis;
-        if (!Array.isArray(parsed.compliance) || parsed.compliance.length < 5) report.compliance = heuristic.compliance;
-        if (!Array.isArray(parsed.riskMatrix) || parsed.riskMatrix.length < 3) report.riskMatrix = heuristic.riskMatrix;
+        if (!Array.isArray(parsed.compliance) || parsed.compliance.length < 5)
+          report.compliance = heuristic.compliance;
+        if (!Array.isArray(parsed.riskMatrix) || parsed.riskMatrix.length < 3)
+          report.riskMatrix = heuristic.riskMatrix;
       }
     } catch {
       // fallback to heuristic
@@ -385,7 +521,9 @@ Return STRICT JSON only, matching this schema (keep all keys):
     report.maturityName = ml.name;
 
     // projection based on priority actions expected improvements
-    const gains = (report.priorityActions ?? []).map((a: any) => Number(a.expectedScoreImprovement) || 0);
+    const gains = (report.priorityActions ?? []).map(
+      (a: any) => Number(a.expectedScoreImprovement) || 0,
+    );
     report.projection = {
       current: score,
       afterPriority1: Math.min(100, score + (gains[0] ?? 0)),
@@ -397,7 +535,10 @@ Return STRICT JSON only, matching this schema (keep all keys):
     const rpt = report as any;
     const passedN = Number(rpt.passed) || heuristic.passedCount;
     const warnN = Number(rpt.warnings) || heuristic.warningsCount;
-    const critN = Number(rpt.critical_count ?? (Array.isArray(rpt.critical) ? rpt.critical.length : heuristic.criticalCount));
+    const critN = Number(
+      rpt.critical_count ??
+        (Array.isArray(rpt.critical) ? rpt.critical.length : heuristic.criticalCount),
+    );
 
     const { data: row, error } = await context.supabase
       .from("ai_audits")
@@ -405,36 +546,45 @@ Return STRICT JSON only, matching this schema (keep all keys):
         company_id: companyId,
         requested_by: context.userId,
         score,
-        maturity: String(rpt.maturityName || ml.name).toLowerCase().replace(" ", "_"),
+        maturity: String(rpt.maturityName || ml.name)
+          .toLowerCase()
+          .replace(" ", "_"),
         summary: report,
         passed: passedN,
         warnings: warnN,
         critical: critN,
       })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
 
     try {
       await context.supabase.from("notifications").insert({
-        company_id: companyId, user_id: context.userId,
+        company_id: companyId,
+        user_id: context.userId,
         kind: "workspace_audit_ready",
         title: `Workspace audit complete — score ${score}/100 (${ml.name})`,
         body: String(report.executiveSummary || "").slice(0, 240),
       });
-    } catch { /* notification optional */ }
+    } catch {
+      /* notification optional */
+    }
 
     return { id: row.id, score, report };
   });
 
 export const listAiAudits = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const actor = await getActorRoles(context.supabase, context.userId);
     let query = context.supabase
       .from("ai_audits")
       .select("id, score, maturity, passed, warnings, critical, summary, created_at")
-      .order("created_at", { ascending: false }).limit(50);
+      .order("created_at", { ascending: false })
+      .limit(50);
     if (actor.isPlatformAdmin && data.company_id) query = query.eq("company_id", data.company_id);
     const { data: audits } = await query;
     return { audits: audits ?? [] };

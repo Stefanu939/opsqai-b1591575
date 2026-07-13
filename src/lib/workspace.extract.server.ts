@@ -17,11 +17,19 @@ export async function extractWorkspaceText(
   const name = filename.toLowerCase();
   try {
     if (mime === "application/pdf" || name.endsWith(".pdf")) return cap(await extractPdf(buffer));
-    if (name.endsWith(".docx") || mime.includes("wordprocessingml")) return cap(await extractDocx(buffer));
-    if (name.endsWith(".xlsx") || mime.includes("spreadsheetml")) return cap(await extractXlsx(buffer));
+    if (name.endsWith(".docx") || mime.includes("wordprocessingml"))
+      return cap(await extractDocx(buffer));
+    if (name.endsWith(".xlsx") || mime.includes("spreadsheetml"))
+      return cap(await extractXlsx(buffer));
     if (name.endsWith(".pptx") || mime.includes("presentationml")) return cap(extractPptx(buffer));
-    if (name.endsWith(".csv") || mime === "text/csv") return cap(new TextDecoder("utf-8").decode(buffer));
-    if (mime.startsWith("text/") || name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".json")) {
+    if (name.endsWith(".csv") || mime === "text/csv")
+      return cap(new TextDecoder("utf-8").decode(buffer));
+    if (
+      mime.startsWith("text/") ||
+      name.endsWith(".txt") ||
+      name.endsWith(".md") ||
+      name.endsWith(".json")
+    ) {
       return cap(new TextDecoder("utf-8").decode(buffer));
     }
     if (mime.startsWith("image/")) {
@@ -53,7 +61,11 @@ async function extractXlsx(buffer: ArrayBuffer): Promise<string> {
   for (const name of wb.SheetNames) {
     const ws = wb.Sheets[name];
     parts.push(`=== Sheet: ${name} ===`);
-    const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
+    const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+      header: 1,
+      blankrows: false,
+      defval: "",
+    });
     for (const row of aoa) {
       parts.push((row as unknown[]).map((c) => (c == null ? "" : String(c))).join("\t"));
     }
@@ -61,7 +73,6 @@ async function extractXlsx(buffer: ArrayBuffer): Promise<string> {
   }
   return parts.join("\n");
 }
-
 
 function extractPptx(buffer: ArrayBuffer): string {
   const files = unzipSync(new Uint8Array(buffer));

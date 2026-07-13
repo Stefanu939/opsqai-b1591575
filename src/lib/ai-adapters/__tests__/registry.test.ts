@@ -56,9 +56,15 @@ describe("ai-adapters registry", () => {
     const custom: AIProviderAdapter = {
       id: "test-custom",
       label: "Custom Test",
-      resolveChat: () => { throw new Error("nope"); },
-      resolveTTS: () => { throw new Error("nope"); },
-      resolveEmbeddings: () => { throw new Error("nope"); },
+      resolveChat: () => {
+        throw new Error("nope");
+      },
+      resolveTTS: () => {
+        throw new Error("nope");
+      },
+      resolveEmbeddings: () => {
+        throw new Error("nope");
+      },
     };
     registerAdapter(custom);
     expect(getAdapter("test-custom")?.label).toBe("Custom Test");

@@ -12,7 +12,13 @@
 // Self-hosted verify uses the pinned public PEM the install already trusts
 // for license verification — no new key material.
 
-import { createPrivateKey, createPublicKey, sign as edSign, verify as edVerify, randomUUID } from "node:crypto";
+import {
+  createPrivateKey,
+  createPublicKey,
+  sign as edSign,
+  verify as edVerify,
+  randomUUID,
+} from "node:crypto";
 import { getActiveSigningKey } from "@/lib/license-signing.server";
 
 export interface DrBootstrapPayload {
@@ -28,7 +34,10 @@ export interface DrBootstrapPayload {
 
 const b64url = (buf: Buffer | string) =>
   (typeof buf === "string" ? Buffer.from(buf) : buf)
-    .toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    .toString("base64")
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/, "");
 
 const b64urlDecode = (s: string) =>
   Buffer.from(s.replaceAll("-", "+").replaceAll("_", "/"), "base64");

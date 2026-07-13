@@ -31,13 +31,18 @@ function AcademyKBPage() {
         const [d, p] = await Promise.all([listDept(), listPaths({ data: {} })]);
         setDepts((d as any[]) ?? []);
         setPaths((p as any[]) ?? []);
-      } catch { /* */ }
+      } catch {
+        /* */
+      }
     })();
   }, []);
 
-  const filtered = paths.filter((p) =>
-    (!dept || p.department_id === dept) &&
-    (!q || (p.title?.toLowerCase().includes(q.toLowerCase()) || p.description?.toLowerCase().includes(q.toLowerCase())))
+  const filtered = paths.filter(
+    (p) =>
+      (!dept || p.department_id === dept) &&
+      (!q ||
+        p.title?.toLowerCase().includes(q.toLowerCase()) ||
+        p.description?.toLowerCase().includes(q.toLowerCase())),
   );
 
   return (
@@ -46,9 +51,13 @@ function AcademyKBPage() {
       <div className="p-6 max-w-6xl mx-auto w-full space-y-5">
         <header className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2"><Library className="h-5 w-5 text-primary" /> Academy Knowledge Base</h1>
+            <h1 className="text-xl font-semibold flex items-center gap-2">
+              <Library className="h-5 w-5 text-primary" /> Academy Knowledge Base
+            </h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-              Lessons, training articles, safety guides, and procedures used exclusively by Academy. Isolated from the operational AI Assistant — protected by the same multi-tenant RLS as the rest of OPSQAI.
+              Lessons, training articles, safety guides, and procedures used exclusively by Academy.
+              Isolated from the operational AI Assistant — protected by the same multi-tenant RLS as
+              the rest of OPSQAI.
             </p>
           </div>
           {canManage && (
@@ -88,7 +97,12 @@ function AcademyKBPage() {
         {filtered.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
             <ShieldCheck className="h-5 w-5 mx-auto mb-2 text-muted-foreground/70" />
-            No published Academy material yet. {canManage && <Link to="/app/admin/academy" className="text-primary hover:underline">Create your first lesson →</Link>}
+            No published Academy material yet.{" "}
+            {canManage && (
+              <Link to="/app/admin/academy" className="text-primary hover:underline">
+                Create your first lesson →
+              </Link>
+            )}
           </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -106,9 +120,15 @@ function AcademyKBPage() {
                   </div>
                   <div className="text-xs text-muted-foreground line-clamp-3">{p.description}</div>
                   <div className="flex flex-wrap gap-1 text-[10px] pt-1">
-                    {p.academy_departments?.name && <Badge variant="secondary">{p.academy_departments.name}</Badge>}
+                    {p.academy_departments?.name && (
+                      <Badge variant="secondary">{p.academy_departments.name}</Badge>
+                    )}
                     {p.target_role && <Badge variant="outline">{p.target_role}</Badge>}
-                    {p.publish_status && <Badge variant={p.publish_status === "published" ? "default" : "outline"}>{p.publish_status}</Badge>}
+                    {p.publish_status && (
+                      <Badge variant={p.publish_status === "published" ? "default" : "outline"}>
+                        {p.publish_status}
+                      </Badge>
+                    )}
                   </div>
                 </Card>
               </Link>

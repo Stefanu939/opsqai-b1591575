@@ -71,7 +71,10 @@ export function requireScope(ctx: ApiAuthContext, scope: string): Response | nul
 }
 
 export function parsePagination(url: URL) {
-  const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") ?? "50", 10) || 50, 1), 200);
+  const limit = Math.min(
+    Math.max(parseInt(url.searchParams.get("limit") ?? "50", 10) || 50, 1),
+    200,
+  );
   const offset = Math.max(parseInt(url.searchParams.get("offset") ?? "0", 10) || 0, 0);
   return { limit, offset };
 }

@@ -11,11 +11,11 @@ OPSQAI-Setup.exe /S /CONFIG=C:\path\to\answers.json
 ```json
 {
   "installId": "optional-uuid",
-  "company":   { "name": "Acme GmbH", "contactEmail": "it@acme.com", "timezone": "Europe/Berlin" },
-  "admin":     { "email": "admin@acme.com", "password": "GeneratedStrongPassword!" },
-  "database":  { "mode": "embedded" },
-  "storage":   { "mode": "local" },
-  "ai":        { "provider": "openai", "apiKey": "sk-…" }
+  "company": { "name": "Acme GmbH", "contactEmail": "it@acme.com", "timezone": "Europe/Berlin" },
+  "admin": { "email": "admin@acme.com", "password": "GeneratedStrongPassword!" },
+  "database": { "mode": "embedded" },
+  "storage": { "mode": "local" },
+  "ai": { "provider": "openai", "apiKey": "sk-…" }
 }
 ```
 
@@ -43,4 +43,5 @@ External database / S3 variants:
 (SCCM/Intune, Ansible-Vault, GPO with restricted share ACL) and delete
 it after `OPSQAI-Setup.exe` exits. Only the derived, non-secret fields
 land in `%ProgramData%\OPSQAI\config\config.json` (ACL: Administrators
-+ SYSTEM only).
+
+- SYSTEM only).

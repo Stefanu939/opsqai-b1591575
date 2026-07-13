@@ -6,8 +6,19 @@
  */
 import type { ComponentType, SVGProps } from "react";
 import {
-  ShieldCheck, Building2, Users, MessageSquare, FolderTree, Cloud, KeyRound,
-  Webhook, Boxes, FileText, Mail, CalendarDays, Code2,
+  ShieldCheck,
+  Building2,
+  Users,
+  MessageSquare,
+  FolderTree,
+  Cloud,
+  KeyRound,
+  Webhook,
+  Boxes,
+  FileText,
+  Mail,
+  CalendarDays,
+  Code2,
 } from "lucide-react";
 
 export type IntegrationStatusHint = "live" | "beta" | "roadmap";
@@ -21,14 +32,14 @@ export type IntegrationCategory =
   | "developer";
 
 export type IntegrationDef = {
-  provider: string;              // unique key, used as URL slug and DB provider
+  provider: string; // unique key, used as URL slug and DB provider
   name: string;
-  vendor: string;                // Microsoft, Google, Slack, etc.
+  vendor: string; // Microsoft, Google, Slack, etc.
   category: IntegrationCategory;
-  summary: string;               // one-liner used on the tile
-  description: string;           // detail-page paragraph
+  summary: string; // one-liner used on the tile
+  description: string; // detail-page paragraph
   icon: ComponentType<SVGProps<SVGSVGElement>>;
-  accent: string;                // tailwind class for the icon tint
+  accent: string; // tailwind class for the icon tint
   hint: IntegrationStatusHint;
 };
 
@@ -42,7 +53,12 @@ export const CATEGORY_LABEL: Record<IntegrationCategory, string> = {
 };
 
 export const CATEGORY_ORDER: IntegrationCategory[] = [
-  "identity", "microsoft365", "collaboration", "storage", "productivity", "developer",
+  "identity",
+  "microsoft365",
+  "collaboration",
+  "storage",
+  "productivity",
+  "developer",
 ];
 
 export const INTEGRATIONS: IntegrationDef[] = [
@@ -165,8 +181,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     vendor: "Google Workspace",
     category: "collaboration",
     summary: "Sync trainings and compliance deadlines.",
-    description:
-      "Push Academy trainings, incident reviews, and audit deadlines to team calendars.",
+    description: "Push Academy trainings, incident reviews, and audit deadlines to team calendars.",
     icon: CalendarDays,
     accent: "text-red-500 bg-red-500/10 border-red-500/20",
     hint: "roadmap",

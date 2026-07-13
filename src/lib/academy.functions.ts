@@ -4,10 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { generateText } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
-import {
-  requirePermission,
-  resolveCompanyForWrite,
-} from "@/lib/authorization";
+import { requirePermission, resolveCompanyForWrite } from "@/lib/authorization";
 
 const MODEL = "google/gemini-3-flash-preview";
 
@@ -26,7 +23,9 @@ async function companyForRead(context: { supabase: any; userId: string }, hint?:
 
 export const listAcademyDepartments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
     const { data: rows, error } = await (context.supabase as any)
@@ -41,12 +40,14 @@ export const listAcademyDepartments = createServerFn({ method: "POST" })
 export const upsertAcademyDepartment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      id: z.string().uuid().optional(),
-      name: z.string().min(1),
-      description: z.string().optional().nullable(),
-      company_id: z.string().uuid().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        name: z.string().min(1),
+        description: z.string().optional().nullable(),
+        company_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
@@ -62,7 +63,8 @@ export const upsertAcademyDepartment = createServerFn({ method: "POST" })
     const { data: row, error } = await (context.supabase as any)
       .from("academy_departments")
       .insert({ name: data.name, description: data.description ?? null, company_id: companyId })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
@@ -89,11 +91,13 @@ const PathInput = z.object({
 export const listAcademyPaths = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      company_id: z.string().uuid().optional().nullable(),
-      department_id: z.string().uuid().optional().nullable(),
-      publish_status: z.string().optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        company_id: z.string().uuid().optional().nullable(),
+        department_id: z.string().uuid().optional().nullable(),
+        publish_status: z.string().optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
@@ -103,7 +107,8 @@ export const listAcademyPaths = createServerFn({ method: "POST" })
       .eq("company_id", companyId)
       .order("order_index", { ascending: true });
     if (data.department_id) q = q.eq("department_id", data.department_id);
-    if (data.publish_status) q = q.eq("publish_status", data.publish_status as "draft" | "published" | "archived");
+    if (data.publish_status)
+      q = q.eq("publish_status", data.publish_status as "draft" | "published" | "archived");
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
@@ -118,14 +123,18 @@ export const upsertAcademyPath = createServerFn({ method: "POST" })
     const payload: Record<string, unknown> = { ...data, company_id: companyId };
     delete (payload as any).id;
     if (data.id) {
-      const { error } = await (context.supabase as any).from("academy_learning_paths").update(payload).eq("id", data.id);
+      const { error } = await (context.supabase as any)
+        .from("academy_learning_paths")
+        .update(payload)
+        .eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
     const { data: row, error } = await (context.supabase as any)
       .from("academy_learning_paths")
       .insert({ ...payload, created_by: context.userId })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
@@ -135,7 +144,10 @@ export const deleteAcademyPath = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { error } = await (context.supabase as any).from("academy_learning_paths").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any)
+      .from("academy_learning_paths")
+      .delete()
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -145,21 +157,28 @@ export const getAcademyPath = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: path, error } = await (context.supabase as any)
-      .from("academy_learning_paths").select("*, academy_departments(name)")
-      .eq("id", data.id).maybeSingle();
+      .from("academy_learning_paths")
+      .select("*, academy_departments(name)")
+      .eq("id", data.id)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     if (!path) throw new Error("Path not found");
 
     const { data: chapters } = await (context.supabase as any)
-      .from("academy_chapters").select("*").eq("path_id", data.id).order("order_index");
+      .from("academy_chapters")
+      .select("*")
+      .eq("path_id", data.id)
+      .order("order_index");
 
     const chapterIds = (chapters ?? []).map((c: any) => c.id);
     const { data: lessons } = chapterIds.length
       ? await (context.supabase as any)
-        .from("academy_lessons")
-        .select("id, chapter_id, title, order_index, estimated_minutes, publish_status, version, language, source_document_id")
-        .in("chapter_id", chapterIds)
-        .order("order_index")
+          .from("academy_lessons")
+          .select(
+            "id, chapter_id, title, order_index, estimated_minutes, publish_status, version, language, source_document_id",
+          )
+          .in("chapter_id", chapterIds)
+          .order("order_index")
       : { data: [] as any[] };
 
     return { path, chapters: chapters ?? [], lessons: lessons ?? [] };
@@ -170,14 +189,16 @@ export const getAcademyPath = createServerFn({ method: "POST" })
 export const upsertAcademyChapter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      id: z.string().uuid().optional(),
-      path_id: z.string().uuid(),
-      title: z.string().min(1),
-      summary: z.string().optional().nullable(),
-      order_index: z.number().int().default(0),
-      company_id: z.string().uuid().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        path_id: z.string().uuid(),
+        title: z.string().min(1),
+        summary: z.string().optional().nullable(),
+        order_index: z.number().int().default(0),
+        company_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
@@ -193,10 +214,14 @@ export const upsertAcademyChapter = createServerFn({ method: "POST" })
     const { data: row, error } = await (context.supabase as any)
       .from("academy_chapters")
       .insert({
-        path_id: data.path_id, title: data.title, summary: data.summary ?? null,
-        order_index: data.order_index, company_id: companyId,
+        path_id: data.path_id,
+        title: data.title,
+        summary: data.summary ?? null,
+        order_index: data.order_index,
+        company_id: companyId,
       })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
@@ -206,7 +231,10 @@ export const deleteAcademyChapter = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { error } = await (context.supabase as any).from("academy_chapters").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any)
+      .from("academy_chapters")
+      .delete()
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -239,14 +267,18 @@ export const upsertAcademyLesson = createServerFn({ method: "POST" })
     const payload: Record<string, unknown> = { ...data, company_id: companyId };
     delete (payload as any).id;
     if (data.id) {
-      const { error } = await (context.supabase as any).from("academy_lessons").update(payload).eq("id", data.id);
+      const { error } = await (context.supabase as any)
+        .from("academy_lessons")
+        .update(payload)
+        .eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
     const { data: row, error } = await (context.supabase as any)
       .from("academy_lessons")
       .insert({ ...payload, created_by: context.userId })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
@@ -256,7 +288,10 @@ export const deleteAcademyLesson = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const { error } = await (context.supabase as any).from("academy_lessons").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any)
+      .from("academy_lessons")
+      .delete()
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -267,8 +302,11 @@ export const getAcademyLesson = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: lesson, error } = await (context.supabase as any)
       .from("academy_lessons")
-      .select("*, academy_chapters(id, title, path_id, academy_learning_paths(id, title, passing_score, language))")
-      .eq("id", data.id).maybeSingle();
+      .select(
+        "*, academy_chapters(id, title, path_id, academy_learning_paths(id, title, passing_score, language))",
+      )
+      .eq("id", data.id)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     if (!lesson) throw new Error("Lesson not found");
     return lesson;
@@ -290,20 +328,28 @@ export const listAcademyLessonVersions = createServerFn({ method: "POST" })
 
 export const restoreAcademyLessonVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ lesson_id: z.string().uuid(), version: z.number().int() }).parse(d))
+  .inputValidator((d: unknown) =>
+    z.object({ lesson_id: z.string().uuid(), version: z.number().int() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { data: v } = await (context.supabase as any)
       .from("academy_lesson_versions")
-      .select("snapshot").eq("lesson_id", data.lesson_id).eq("version", data.version).maybeSingle();
+      .select("snapshot")
+      .eq("lesson_id", data.lesson_id)
+      .eq("version", data.version)
+      .maybeSingle();
     if (!v) throw new Error("Version not found");
     const s = v.snapshot as any;
     const { error } = await (context.supabase as any)
       .from("academy_lessons")
       .update({
-        title: s.title, objectives: s.objectives ?? [],
-        explanation: s.explanation, examples: s.examples,
-        best_practices: s.best_practices, summary: s.summary,
+        title: s.title,
+        objectives: s.objectives ?? [],
+        explanation: s.explanation,
+        examples: s.examples,
+        best_practices: s.best_practices,
+        summary: s.summary,
       })
       .eq("id", data.lesson_id);
     if (error) throw new Error(error.message);
@@ -378,9 +424,18 @@ function normalizeLesson(value: any, fallbackTitle: string): AcademyLesson {
     title,
     objectives: objectives.length ? objectives : [`Understand ${title}`],
     explanation: coerceString(value?.explanation, `Review the source SOP content for ${title}.`),
-    examples: coerceString(value?.examples, "Apply the procedure exactly as described in the source SOP."),
-    best_practices: coerceString(value?.best_practices, "- Follow the approved SOP\n- Ask a manager when unsure"),
-    summary: coerceString(value?.summary, `Key points for ${title} are derived from the selected SOP.`),
+    examples: coerceString(
+      value?.examples,
+      "Apply the procedure exactly as described in the source SOP.",
+    ),
+    best_practices: coerceString(
+      value?.best_practices,
+      "- Follow the approved SOP\n- Ask a manager when unsure",
+    ),
+    summary: coerceString(
+      value?.summary,
+      `Key points for ${title} are derived from the selected SOP.`,
+    ),
   });
 }
 
@@ -393,27 +448,35 @@ function fallbackLessonFromSource(title: string, source: string): AcademyLesson 
   return normalizeLesson(
     {
       title,
-      objectives: [`Understand ${title}`, "Apply the documented procedure", "Identify when escalation is required"],
+      objectives: [
+        `Understand ${title}`,
+        "Apply the documented procedure",
+        "Identify when escalation is required",
+      ],
       explanation: excerpt || `Review the source SOP content for ${title}.`,
-      examples: excerpt ? `Example from source material:\n\n${excerpt.slice(0, 500)}` : "Use the procedure in the operational situation described by the SOP.",
-      best_practices: "- Follow the SOP step by step\n- Use the required checks before completion\n- Escalate unclear cases to a manager",
+      examples: excerpt
+        ? `Example from source material:\n\n${excerpt.slice(0, 500)}`
+        : "Use the procedure in the operational situation described by the SOP.",
+      best_practices:
+        "- Follow the SOP step by step\n- Use the required checks before completion\n- Escalate unclear cases to a manager",
       summary: `This lesson is based on the source SOP: ${title}.`,
     },
     title,
   );
 }
 
-
 export const convertSopToLesson = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      document_id: z.string().uuid(),
-      chapter_id: z.string().uuid(),
-      language: z.string().default("en"),
-      auto_publish: z.boolean().default(false),
-      company_id: z.string().uuid().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        document_id: z.string().uuid(),
+        chapter_id: z.string().uuid(),
+        language: z.string().default("en"),
+        auto_publish: z.boolean().default(false),
+        company_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
@@ -422,22 +485,34 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
     const { data: doc, error: dErr } = await context.supabase
       .from("knowledge_documents")
       .select("id, title, version")
-      .eq("id", data.document_id).maybeSingle();
+      .eq("id", data.document_id)
+      .maybeSingle();
     if (dErr) throw new Error(dErr.message);
     if (!doc) throw new Error("Document not found");
 
     const { data: chunks } = await context.supabase
-      .from("document_chunks").select("content")
+      .from("document_chunks")
+      .select("content")
       .eq("document_id", data.document_id)
-      .order("chunk_index").limit(40);
-    const body = (chunks ?? []).map((c: any) => c.content).join("\n\n").slice(0, 18000);
+      .order("chunk_index")
+      .limit(40);
+    const body = (chunks ?? [])
+      .map((c: any) => c.content)
+      .join("\n\n")
+      .slice(0, 18000);
 
     const gateway = await ai();
     const { text } = await generateText({
       model: gateway(MODEL),
       messages: [
-        { role: "system", content: `You convert SOPs into clear, engaging onboarding lessons. Write everything in ${data.language}. Use Markdown for the body fields. Keep the tone supportive and practical for warehouse / operations staff. Never invent facts not present in the SOP. Return only valid JSON, without markdown fences or commentary.` },
-        { role: "user", content: `SOP TITLE: ${doc.title}\n\nSOP CONTENT:\n${body}\n\nReturn this exact JSON object shape:\n{"title":"short title","objectives":["objective"],"explanation":"markdown 200-400 words","examples":"markdown with 2-3 short scenarios","best_practices":"markdown bullet list","summary":"markdown 3-5 bullets"}` },
+        {
+          role: "system",
+          content: `You convert SOPs into clear, engaging onboarding lessons. Write everything in ${data.language}. Use Markdown for the body fields. Keep the tone supportive and practical for warehouse / operations staff. Never invent facts not present in the SOP. Return only valid JSON, without markdown fences or commentary.`,
+        },
+        {
+          role: "user",
+          content: `SOP TITLE: ${doc.title}\n\nSOP CONTENT:\n${body}\n\nReturn this exact JSON object shape:\n{"title":"short title","objectives":["objective"],"explanation":"markdown 200-400 words","examples":"markdown with 2-3 short scenarios","best_practices":"markdown bullet list","summary":"markdown 3-5 bullets"}`,
+        },
       ],
     });
     let lesson: AcademyLesson;
@@ -465,7 +540,8 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
         publish_status: data.auto_publish ? "published" : "draft",
         created_by: context.userId,
       })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: row.id as string, lesson };
   });
@@ -475,24 +551,27 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
 const CourseSchema = z.object({
   path_title: z.string(),
   path_description: z.string(),
-  chapters: z.array(z.object({
-    title: z.string(),
-    summary: z.string(),
-    lessons: z.array(LessonSchema),
-  })),
+  chapters: z.array(
+    z.object({
+      title: z.string(),
+      summary: z.string(),
+      lessons: z.array(LessonSchema),
+    }),
+  ),
 });
-
 
 export const generateAcademyCourse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      document_ids: z.array(z.string().uuid()).min(1).max(15),
-      department_id: z.string().uuid().optional().nullable(),
-      language: z.string().default("en"),
-      target_role: z.string().optional().nullable(),
-      company_id: z.string().uuid().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        document_ids: z.array(z.string().uuid()).min(1).max(15),
+        department_id: z.string().uuid().optional().nullable(),
+        language: z.string().default("en"),
+        target_role: z.string().optional().nullable(),
+        company_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
@@ -503,37 +582,55 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
       .select("id, title, version")
       .in("id", data.document_ids);
     const { data: chunks } = await context.supabase
-      .from("document_chunks").select("document_id, chunk_index, content")
+      .from("document_chunks")
+      .select("document_id, chunk_index, content")
       .in("document_id", data.document_ids)
-      .order("chunk_index").limit(400);
+      .order("chunk_index")
+      .limit(400);
     const byDoc: Record<string, string> = {};
     for (const c of (chunks ?? []) as any[]) {
       byDoc[c.document_id] = (byDoc[c.document_id] ?? "") + "\n" + c.content;
     }
-    const corpus = (docs ?? []).map((d: any) => `### SOP: ${d.title}\n${(byDoc[d.id] ?? "").slice(0, 6000)}`).join("\n\n");
+    const corpus = (docs ?? [])
+      .map((d: any) => `### SOP: ${d.title}\n${(byDoc[d.id] ?? "").slice(0, 6000)}`)
+      .join("\n\n");
 
     if (!docs?.length) throw new Error("No source SOPs were found for course generation.");
-    if (!corpus.trim()) throw new Error("The selected SOPs do not contain readable text for course generation.");
+    if (!corpus.trim())
+      throw new Error("The selected SOPs do not contain readable text for course generation.");
 
     const gateway = await ai();
     const { text } = await generateText({
       model: gateway(MODEL),
       messages: [
-        { role: "system", content: `You design enterprise onboarding learning paths. Write everything in ${data.language}. Group related SOPs into 2-5 chapters, each with 1-4 lessons. Use Markdown in lesson bodies. Never invent facts not present in the SOPs. Return only valid JSON, without markdown fences or commentary.` },
-        { role: "user", content: `Create a coherent learning path${data.target_role ? ` for role: ${data.target_role}` : ""} from these SOPs:\n\n${corpus.slice(0, 24000)}\n\nReturn this exact JSON object shape:\n{"path_title":"course title","path_description":"short description","chapters":[{"title":"chapter title","summary":"chapter summary","lessons":[{"title":"lesson title","objectives":["objective"],"explanation":"markdown lesson body","examples":"markdown examples","best_practices":"markdown bullet list","summary":"markdown summary"}]}]}` },
+        {
+          role: "system",
+          content: `You design enterprise onboarding learning paths. Write everything in ${data.language}. Group related SOPs into 2-5 chapters, each with 1-4 lessons. Use Markdown in lesson bodies. Never invent facts not present in the SOPs. Return only valid JSON, without markdown fences or commentary.`,
+        },
+        {
+          role: "user",
+          content: `Create a coherent learning path${data.target_role ? ` for role: ${data.target_role}` : ""} from these SOPs:\n\n${corpus.slice(0, 24000)}\n\nReturn this exact JSON object shape:\n{"path_title":"course title","path_description":"short description","chapters":[{"title":"chapter title","summary":"chapter summary","lessons":[{"title":"lesson title","objectives":["objective"],"explanation":"markdown lesson body","examples":"markdown examples","best_practices":"markdown bullet list","summary":"markdown summary"}]}]}`,
+        },
       ],
     });
     let course: z.infer<typeof CourseSchema>;
     try {
       const parsed = parseJsonObject(text) as any;
       course = CourseSchema.parse({
-        path_title: coerceString(parsed.path_title, data.target_role ? `${data.target_role} Learning Path` : "Academy Learning Path").slice(0, 180),
+        path_title: coerceString(
+          parsed.path_title,
+          data.target_role ? `${data.target_role} Learning Path` : "Academy Learning Path",
+        ).slice(0, 180),
         path_description: coerceString(parsed.path_description, "Generated from selected SOPs."),
-        chapters: (Array.isArray(parsed.chapters) ? parsed.chapters : []).map((chapter: any, ci: number) => ({
-          title: coerceString(chapter?.title, `Chapter ${ci + 1}`).slice(0, 180),
-          summary: coerceString(chapter?.summary, "Source-based training chapter."),
-          lessons: (Array.isArray(chapter?.lessons) ? chapter.lessons : []).map((lesson: any, li: number) => normalizeLesson(lesson, `Lesson ${li + 1}`)),
-        })).filter((chapter: any) => chapter.lessons.length > 0),
+        chapters: (Array.isArray(parsed.chapters) ? parsed.chapters : [])
+          .map((chapter: any, ci: number) => ({
+            title: coerceString(chapter?.title, `Chapter ${ci + 1}`).slice(0, 180),
+            summary: coerceString(chapter?.summary, "Source-based training chapter."),
+            lessons: (Array.isArray(chapter?.lessons) ? chapter.lessons : []).map(
+              (lesson: any, li: number) => normalizeLesson(lesson, `Lesson ${li + 1}`),
+            ),
+          }))
+          .filter((chapter: any) => chapter.lessons.length > 0),
       });
       if (course.chapters.length === 0) throw new Error("Course contained no usable lessons.");
     } catch (error) {
@@ -541,10 +638,17 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
       const fallbackChapters = (docs as any[]).slice(0, 5).map((doc: any, index: number) => ({
         title: coerceString(doc.title, `SOP ${index + 1}`).slice(0, 180),
         summary: `Training chapter generated from ${coerceString(doc.title, "selected SOP")}.`,
-        lessons: [fallbackLessonFromSource(coerceString(doc.title, `Lesson ${index + 1}`), byDoc[doc.id] ?? "")],
+        lessons: [
+          fallbackLessonFromSource(
+            coerceString(doc.title, `Lesson ${index + 1}`),
+            byDoc[doc.id] ?? "",
+          ),
+        ],
       }));
       course = CourseSchema.parse({
-        path_title: data.target_role ? `${data.target_role} Learning Path` : "Academy Learning Path",
+        path_title: data.target_role
+          ? `${data.target_role} Learning Path`
+          : "Academy Learning Path",
         path_description: "Draft course generated from the selected SOPs.",
         chapters: fallbackChapters,
       });
@@ -562,24 +666,37 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
         target_role: data.target_role ?? null,
         created_by: context.userId,
       })
-      .select("id").single();
+      .select("id")
+      .single();
     const pathId = path!.id as string;
 
     for (let ci = 0; ci < course.chapters.length; ci++) {
       const ch = course.chapters[ci];
       const { data: chap } = await (context.supabase as any)
         .from("academy_chapters")
-        .insert({ company_id: companyId, path_id: pathId, title: ch.title, summary: ch.summary, order_index: ci })
-        .select("id").single();
+        .insert({
+          company_id: companyId,
+          path_id: pathId,
+          title: ch.title,
+          summary: ch.summary,
+          order_index: ci,
+        })
+        .select("id")
+        .single();
       const chapterId = chap!.id as string;
       for (let li = 0; li < ch.lessons.length; li++) {
         const ls = ch.lessons[li];
         await (context.supabase as any).from("academy_lessons").insert({
-          company_id: companyId, chapter_id: chapterId,
-          title: ls.title, objectives: ls.objectives,
-          explanation: ls.explanation, examples: ls.examples,
-          best_practices: ls.best_practices, summary: ls.summary,
-          language: data.language, order_index: li,
+          company_id: companyId,
+          chapter_id: chapterId,
+          title: ls.title,
+          objectives: ls.objectives,
+          explanation: ls.explanation,
+          examples: ls.examples,
+          best_practices: ls.best_practices,
+          summary: ls.summary,
+          language: data.language,
+          order_index: li,
           created_by: context.userId,
         });
       }
@@ -602,17 +719,20 @@ const QuizSchema = z.object({ questions: z.array(QuestionSchema).min(2).max(5) }
 export const generateAcademyQuiz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      lesson_id: z.string().uuid(),
-      language: z.string().default("en"),
-      count: z.number().int().min(2).max(5).default(4),
-    }).parse(d),
+    z
+      .object({
+        lesson_id: z.string().uuid(),
+        language: z.string().default("en"),
+        count: z.number().int().min(2).max(5).default(4),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { data: lesson } = await (context.supabase as any)
       .from("academy_lessons")
       .select("title, objectives, explanation, examples, best_practices, summary")
-      .eq("id", data.lesson_id).maybeSingle();
+      .eq("id", data.lesson_id)
+      .maybeSingle();
     if (!lesson) throw new Error("Lesson not found");
     const body = [
       `TITLE: ${lesson.title}`,
@@ -621,25 +741,42 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
       `EXAMPLES:\n${lesson.examples ?? ""}`,
       `BEST PRACTICES:\n${lesson.best_practices ?? ""}`,
       `SUMMARY:\n${lesson.summary ?? ""}`,
-    ].join("\n\n").slice(0, 12000);
+    ]
+      .join("\n\n")
+      .slice(0, 12000);
 
     const gateway = await ai();
     const { text } = await generateText({
       model: gateway(MODEL),
       messages: [
-        { role: "system", content: `You generate concise enterprise training quizzes. Write the question text, options, correct_answer, and explanation in ${data.language}. Each question must be answerable from the lesson content only — translate the lesson on the fly without changing its meaning, never invent facts, never omit safety information. Keep domain/technical terms (e.g. "Wareneingang", "CMR", product codes, system names) in their original language; you may add a short gloss in parentheses. Numbers, units, codes, and quoted policy text stay verbatim. Mix multiple_choice (4 options), true_false, and short_answer. Provide a short explanation referencing the lesson. Return only valid JSON, without markdown fences or commentary.` },
-        { role: "user", content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape:\n{"questions":[{"type":"multiple_choice","question":"...","options":["A","B","C","D"],"correct_answer":"A","explanation":"..."}]}` },
+        {
+          role: "system",
+          content: `You generate concise enterprise training quizzes. Write the question text, options, correct_answer, and explanation in ${data.language}. Each question must be answerable from the lesson content only — translate the lesson on the fly without changing its meaning, never invent facts, never omit safety information. Keep domain/technical terms (e.g. "Wareneingang", "CMR", product codes, system names) in their original language; you may add a short gloss in parentheses. Numbers, units, codes, and quoted policy text stay verbatim. Mix multiple_choice (4 options), true_false, and short_answer. Provide a short explanation referencing the lesson. Return only valid JSON, without markdown fences or commentary.`,
+        },
+        {
+          role: "user",
+          content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape:\n{"questions":[{"type":"multiple_choice","question":"...","options":["A","B","C","D"],"correct_answer":"A","explanation":"..."}]}`,
+        },
       ],
     });
     try {
       const parsed = parseJsonObject(text) as any;
-      const mapped = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q: any) => ({
-        type: ["multiple_choice", "true_false", "short_answer"].includes(q?.type) ? q.type : "short_answer",
-        question: coerceString(q?.question, `What is a key point from ${lesson.title}?`),
-        options: Array.isArray(q?.options) ? q.options.map((option: unknown) => coerceString(option)).filter(Boolean).slice(0, 4) : undefined,
-        correct_answer: coerceString(q?.correct_answer, "See lesson content"),
-        explanation: coerceString(q?.explanation, "This answer is based on the lesson content."),
-      })).slice(0, data.count);
+      const mapped = (Array.isArray(parsed.questions) ? parsed.questions : [])
+        .map((q: any) => ({
+          type: ["multiple_choice", "true_false", "short_answer"].includes(q?.type)
+            ? q.type
+            : "short_answer",
+          question: coerceString(q?.question, `What is a key point from ${lesson.title}?`),
+          options: Array.isArray(q?.options)
+            ? q.options
+                .map((option: unknown) => coerceString(option))
+                .filter(Boolean)
+                .slice(0, 4)
+            : undefined,
+          correct_answer: coerceString(q?.correct_answer, "See lesson content"),
+          explanation: coerceString(q?.explanation, "This answer is based on the lesson content."),
+        }))
+        .slice(0, data.count);
       const questions = QuizSchema.parse({ questions: mapped }).questions;
 
       // SECURITY: persist the graded questions (including correct_answer)
@@ -656,8 +793,10 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
           score: 0,
           passed: false,
         })
-        .select("id").single();
-      if (attemptErr || !attempt) throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
+        .select("id")
+        .single();
+      if (attemptErr || !attempt)
+        throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
 
       // Client-safe questions — strip correct_answer so it cannot be replayed.
       const clientQuestions = questions.map(({ correct_answer: _ca, ...rest }) => rest);
@@ -692,8 +831,10 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
           score: 0,
           passed: false,
         })
-        .select("id").single();
-      if (attemptErr || !attempt) throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
+        .select("id")
+        .single();
+      if (attemptErr || !attempt)
+        throw new Error(attemptErr?.message ?? "Could not start quiz attempt");
       const clientQuestions = fallback.questions.map(({ correct_answer: _ca, ...rest }) => rest);
       return { attempt_id: attempt.id as string, questions: clientQuestions };
     }
@@ -731,10 +872,14 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
 
     const { data: lesson } = await (context.supabase as any)
       .from("academy_lessons")
-      .select("company_id, chapter_id, academy_chapters!inner(path_id, academy_learning_paths!inner(passing_score))")
-      .eq("id", attempt.lesson_id).maybeSingle();
+      .select(
+        "company_id, chapter_id, academy_chapters!inner(path_id, academy_learning_paths!inner(passing_score))",
+      )
+      .eq("id", attempt.lesson_id)
+      .maybeSingle();
     if (!lesson) throw new Error("Lesson not found");
-    const passingScore: number = (lesson as any).academy_chapters?.academy_learning_paths?.passing_score ?? 70;
+    const passingScore: number =
+      (lesson as any).academy_chapters?.academy_learning_paths?.passing_score ?? 70;
 
     // Grade using stored, trusted correct_answer values.
     const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
@@ -749,8 +894,14 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
         const { text } = await generateText({
           model: gateway(MODEL),
           messages: [
-            { role: "system", content: "You grade short-answer quiz responses. Reply ONLY with 'YES' or 'NO'." },
-            { role: "user", content: `Question: ${q.question}\nExpected: ${q.correct_answer}\nLearner answer: ${a}\nIs the learner answer correct in meaning?` },
+            {
+              role: "system",
+              content: "You grade short-answer quiz responses. Reply ONLY with 'YES' or 'NO'.",
+            },
+            {
+              role: "user",
+              content: `Question: ${q.question}\nExpected: ${q.correct_answer}\nLearner answer: ${a}\nIs the learner answer correct in meaning?`,
+            },
           ],
         });
         const correct = /^yes/i.test(text.trim());
@@ -782,24 +933,31 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
         .from("academy_lesson_progress")
         .select("id, attempts, time_spent_seconds")
         .eq("enrollment_id", data.enrollment_id)
-        .eq("lesson_id", attempt.lesson_id).maybeSingle();
+        .eq("lesson_id", attempt.lesson_id)
+        .maybeSingle();
       const baseAttempts = (existing?.attempts ?? 0) + 1;
       const baseTime = (existing?.time_spent_seconds ?? 0) + (data.time_spent_seconds ?? 0);
       if (existing) {
         await (context.supabase as any)
-          .from("academy_lesson_progress").update({
-            attempts: baseAttempts, last_score: score, time_spent_seconds: baseTime,
+          .from("academy_lesson_progress")
+          .update({
+            attempts: baseAttempts,
+            last_score: score,
+            time_spent_seconds: baseTime,
             status: passed ? "completed" : "in_progress",
             completed_at: passed ? new Date().toISOString() : null,
             last_activity_at: new Date().toISOString(),
-          }).eq("id", existing.id);
+          })
+          .eq("id", existing.id);
       } else {
         await (context.supabase as any).from("academy_lesson_progress").insert({
           company_id: (lesson as any).company_id,
           enrollment_id: data.enrollment_id,
           lesson_id: attempt.lesson_id,
           user_id: context.userId,
-          attempts: 1, last_score: score, time_spent_seconds: data.time_spent_seconds ?? 0,
+          attempts: 1,
+          last_score: score,
+          time_spent_seconds: data.time_spent_seconds ?? 0,
           status: passed ? "completed" : "in_progress",
           completed_at: passed ? new Date().toISOString() : null,
           last_activity_at: new Date().toISOString(),
@@ -817,12 +975,17 @@ export const enrollSelf = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: path } = await (context.supabase as any)
-      .from("academy_learning_paths").select("company_id, mandatory")
-      .eq("id", data.path_id).maybeSingle();
+      .from("academy_learning_paths")
+      .select("company_id, mandatory")
+      .eq("id", data.path_id)
+      .maybeSingle();
     if (!path) throw new Error("Path not found");
     const { data: existing } = await (context.supabase as any)
-      .from("academy_enrollments").select("id")
-      .eq("path_id", data.path_id).eq("user_id", context.userId).maybeSingle();
+      .from("academy_enrollments")
+      .select("id")
+      .eq("path_id", data.path_id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
     if (existing) return { id: existing.id as string, existing: true };
     const { data: row, error } = await (context.supabase as any)
       .from("academy_enrollments")
@@ -834,7 +997,8 @@ export const enrollSelf = createServerFn({ method: "POST" })
         mandatory: (path as any).mandatory,
         assigned_by: context.userId,
       })
-      .select("id").single();
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: row.id as string, existing: false };
   });
@@ -842,17 +1006,22 @@ export const enrollSelf = createServerFn({ method: "POST" })
 export const assignEnrollment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      path_id: z.string().uuid(),
-      user_ids: z.array(z.string().uuid()).min(1),
-      due_at: z.string().datetime().optional().nullable(),
-      mandatory: z.boolean().default(false),
-    }).parse(d),
+    z
+      .object({
+        path_id: z.string().uuid(),
+        user_ids: z.array(z.string().uuid()).min(1),
+        due_at: z.string().datetime().optional().nullable(),
+        mandatory: z.boolean().default(false),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { data: path } = await (context.supabase as any)
-      .from("academy_learning_paths").select("company_id").eq("id", data.path_id).maybeSingle();
+      .from("academy_learning_paths")
+      .select("company_id")
+      .eq("id", data.path_id)
+      .maybeSingle();
     if (!path) throw new Error("Path not found");
     const rows = data.user_ids.map((uid) => ({
       company_id: (path as any).company_id,
@@ -864,7 +1033,8 @@ export const assignEnrollment = createServerFn({ method: "POST" })
       due_at: data.due_at ?? null,
     }));
     const { error } = await (context.supabase as any).from("academy_enrollments").upsert(rows, {
-      onConflict: "path_id,user_id", ignoreDuplicates: false,
+      onConflict: "path_id,user_id",
+      ignoreDuplicates: false,
     });
     if (error) throw new Error(error.message);
     return { count: rows.length };
@@ -878,14 +1048,18 @@ export const listPathAssignments = createServerFn({ method: "POST" })
     await requirePermission(context, "academy.manage");
     const { data: rows, error } = await (context.supabase as any)
       .from("academy_enrollments")
-      .select("id, user_id, status, mandatory, due_at, started_at, completed_at, created_at, company_id")
+      .select(
+        "id, user_id, status, mandatory, due_at, started_at, completed_at, created_at, company_id",
+      )
       .eq("path_id", data.path_id)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     const userIds = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
     if (userIds.length === 0) return [];
     const { data: profiles } = await (context.supabase as any)
-      .from("profiles").select("id, full_name, first_name, last_name").in("id", userIds);
+      .from("profiles")
+      .select("id, full_name, first_name, last_name")
+      .in("id", userIds);
     const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]));
     return (rows ?? []).map((r: any) => ({ ...r, profile: byId.get(r.user_id) ?? null }));
   });
@@ -897,7 +1071,10 @@ export const listAssignablePathLearners = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { data: path } = await (context.supabase as any)
-      .from("academy_learning_paths").select("company_id").eq("id", data.path_id).maybeSingle();
+      .from("academy_learning_paths")
+      .select("company_id")
+      .eq("id", data.path_id)
+      .maybeSingle();
     if (!path) throw new Error("Path not found");
     const { data: rows, error } = await (context.supabase as any)
       .from("profiles")
@@ -915,10 +1092,11 @@ export const removeEnrollment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { error } = await (context.supabase as any)
-      .from("academy_enrollments").delete().eq("id", data.enrollment_id);
+      .from("academy_enrollments")
+      .delete()
+      .eq("id", data.enrollment_id);
     if (error) throw new Error(error.message);
     return { ok: true };
-
   });
 
 export const listMyEnrollments = createServerFn({ method: "POST" })
@@ -926,7 +1104,9 @@ export const listMyEnrollments = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { data, error } = await (context.supabase as any)
       .from("academy_enrollments")
-      .select("id, status, mandatory, due_at, started_at, completed_at, created_at, academy_learning_paths(id, title, description, language, passing_score, academy_departments(name))")
+      .select(
+        "id, status, mandatory, due_at, started_at, completed_at, created_at, academy_learning_paths(id, title, description, language, passing_score, academy_departments(name))",
+      )
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -937,9 +1117,12 @@ export const startEnrollment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await (context.supabase as any).from("academy_enrollments")
+    await (context.supabase as any)
+      .from("academy_enrollments")
       .update({ status: "in_progress", started_at: new Date().toISOString() })
-      .eq("id", data.id).eq("user_id", context.userId).is("started_at", null);
+      .eq("id", data.id)
+      .eq("user_id", context.userId)
+      .is("started_at", null);
     return { ok: true };
   });
 
@@ -959,17 +1142,23 @@ export const completeEnrollment = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: enroll } = await (context.supabase as any)
-      .from("academy_enrollments").select("id, path_id, user_id, company_id")
-      .eq("id", data.enrollment_id).maybeSingle();
+      .from("academy_enrollments")
+      .select("id, path_id, user_id, company_id")
+      .eq("id", data.enrollment_id)
+      .maybeSingle();
     if (!enroll || (enroll as any).user_id !== context.userId) throw new Error("Forbidden");
 
     const { data: progress } = await (context.supabase as any)
       .from("academy_lesson_progress")
-      .select("last_score").eq("enrollment_id", data.enrollment_id);
+      .select("last_score")
+      .eq("enrollment_id", data.enrollment_id);
     const scores = (progress ?? []).map((p: any) => Number(p.last_score ?? 0));
-    const finalScore = scores.length ? Math.round(scores.reduce((s: number, n: number) => s + n, 0) / scores.length) : 0;
+    const finalScore = scores.length
+      ? Math.round(scores.reduce((s: number, n: number) => s + n, 0) / scores.length)
+      : 0;
 
-    await (context.supabase as any).from("academy_enrollments")
+    await (context.supabase as any)
+      .from("academy_enrollments")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", data.enrollment_id);
 
@@ -987,18 +1176,29 @@ export const completeEnrollment = createServerFn({ method: "POST" })
 
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: learnerAuth } = await supabaseAdmin.auth.admin.getUserById((enroll as any).user_id);
+      const { data: learnerAuth } = await supabaseAdmin.auth.admin.getUserById(
+        (enroll as any).user_id,
+      );
       const learnerEmail = learnerAuth?.user?.email;
-      const { data: learnerProfile } = await supabaseAdmin.from("profiles").select("full_name, first_name").eq("id", (enroll as any).user_id).maybeSingle();
-      const { data: path } = await supabaseAdmin.from("academy_learning_paths").select("title").eq("id", (enroll as any).path_id).maybeSingle();
+      const { data: learnerProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("full_name, first_name")
+        .eq("id", (enroll as any).user_id)
+        .maybeSingle();
+      const { data: path } = await supabaseAdmin
+        .from("academy_learning_paths")
+        .select("title")
+        .eq("id", (enroll as any).path_id)
+        .maybeSingle();
       if (learnerEmail) {
         const { dispatchTransactionalEmail } = await import("@/lib/email/dispatch.server");
         await dispatchTransactionalEmail({
           templateName: "certificate-ready",
           recipientEmail: learnerEmail,
           templateData: {
-            learnerName: (learnerProfile as { first_name?: string; full_name?: string } | null)?.first_name
-              ?? (learnerProfile as { full_name?: string } | null)?.full_name,
+            learnerName:
+              (learnerProfile as { first_name?: string; full_name?: string } | null)?.first_name ??
+              (learnerProfile as { full_name?: string } | null)?.full_name,
             pathTitle: (path as { title?: string } | null)?.title,
             score: finalScore,
             certificateUrl: "https://opsqai.de/app/academy",
@@ -1006,7 +1206,9 @@ export const completeEnrollment = createServerFn({ method: "POST" })
           },
         });
       }
-    } catch (e) { console.error("[academy.completePath] certificate email failed", (e as Error).message); }
+    } catch (e) {
+      console.error("[academy.completePath] certificate email failed", (e as Error).message);
+    }
 
     return { ok: true, certificate_id: cert.id, certificate_code: cert.code };
   });
@@ -1018,8 +1220,11 @@ export const listMyCertificates = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { data } = await (context.supabase as any)
       .from("academy_certificates")
-      .select("id, certificate_code, final_score, issued_at, pdf_path, academy_learning_paths(title)")
-      .eq("user_id", context.userId).order("issued_at", { ascending: false });
+      .select(
+        "id, certificate_code, final_score, issued_at, pdf_path, academy_learning_paths(title)",
+      )
+      .eq("user_id", context.userId)
+      .order("issued_at", { ascending: false });
     return data ?? [];
   });
 
@@ -1028,8 +1233,10 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: cert } = await (context.supabase as any)
-      .from("academy_certificates").select("pdf_path, user_id, company_id")
-      .eq("id", data.id).maybeSingle();
+      .from("academy_certificates")
+      .select("pdf_path, user_id, company_id")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!cert) throw new Error("Not found");
     if ((cert as any).user_id !== context.userId) {
       await requirePermission(context, "academy.manage");
@@ -1051,7 +1258,9 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
 
 export const academyDashboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
     const [{ data: kpis }, { data: heatmap }, { data: depts }] = await Promise.all([
@@ -1060,7 +1269,9 @@ export const academyDashboard = createServerFn({ method: "POST" })
       context.supabase.rpc("academy_department_performance", { p_company: companyId }),
     ]);
     return {
-      kpis: kpis ?? {}, heatmap: heatmap ?? [], departments: depts ?? [],
+      kpis: kpis ?? {},
+      heatmap: heatmap ?? [],
+      departments: depts ?? [],
     };
   });
 
@@ -1069,19 +1280,24 @@ export const academyDashboard = createServerFn({ method: "POST" })
 export const academySuggestPath = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      department: z.string().optional().nullable(),
-      role: z.string().optional().nullable(),
-      experience: z.string().optional().nullable(),
-      language: z.string().default("en"),
-    }).parse(d),
+    z
+      .object({
+        department: z.string().optional().nullable(),
+        role: z.string().optional().nullable(),
+        experience: z.string().optional().nullable(),
+        language: z.string().default("en"),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, null);
     let q = (context.supabase as any)
       .from("academy_learning_paths")
-      .select("id, title, description, target_role, experience_level, mandatory, academy_departments(name)")
-      .eq("company_id", companyId).eq("publish_status", "published");
+      .select(
+        "id, title, description, target_role, experience_level, mandatory, academy_departments(name)",
+      )
+      .eq("company_id", companyId)
+      .eq("publish_status", "published");
     if (data.department) q = q.ilike("academy_departments.name", `%${data.department}%`);
     if (data.role) q = q.ilike("target_role", `%${data.role}%`);
     if (data.experience) q = q.ilike("experience_level", `%${data.experience}%`);
@@ -1093,39 +1309,57 @@ export const academySuggestPath = createServerFn({ method: "POST" })
 
 export const getAcademySettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
     const { data: row } = await (context.supabase as any)
-      .from("academy_settings").select("*").eq("company_id", companyId).maybeSingle();
-    return row ?? {
-      company_id: companyId, passing_score: 70, quiz_min: 3, quiz_max: 5,
-      default_difficulty: "standard", certificate_template: {}, languages: ["en", "de", "ro"],
-    };
+      .from("academy_settings")
+      .select("*")
+      .eq("company_id", companyId)
+      .maybeSingle();
+    return (
+      row ?? {
+        company_id: companyId,
+        passing_score: 70,
+        quiz_min: 3,
+        quiz_max: 5,
+        default_difficulty: "standard",
+        certificate_template: {},
+        languages: ["en", "de", "ro"],
+      }
+    );
   });
 
 export const saveAcademySettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      passing_score: z.number().int().min(0).max(100),
-      quiz_min: z.number().int().min(1).max(20),
-      quiz_max: z.number().int().min(1).max(20),
-      default_difficulty: z.string(),
-      languages: z.array(z.string()).min(1),
-      company_id: z.string().uuid().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        passing_score: z.number().int().min(0).max(100),
+        quiz_min: z.number().int().min(1).max(20),
+        quiz_max: z.number().int().min(1).max(20),
+        default_difficulty: z.string(),
+        languages: z.array(z.string()).min(1),
+        company_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const companyId = await resolveCompanyForWrite(context, data.company_id);
-    const { error } = await (context.supabase as any).from("academy_settings").upsert({
-      company_id: companyId,
-      passing_score: data.passing_score,
-      quiz_min: data.quiz_min, quiz_max: data.quiz_max,
-      default_difficulty: data.default_difficulty,
-      languages: data.languages,
-    }, { onConflict: "company_id" });
+    const { error } = await (context.supabase as any).from("academy_settings").upsert(
+      {
+        company_id: companyId,
+        passing_score: data.passing_score,
+        quiz_min: data.quiz_min,
+        quiz_max: data.quiz_max,
+        default_difficulty: data.default_difficulty,
+        languages: data.languages,
+      },
+      { onConflict: "company_id" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });

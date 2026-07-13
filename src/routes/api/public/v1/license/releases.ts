@@ -16,14 +16,15 @@ function json(body: unknown, status = 200) {
 export const Route = createFileRoute("/api/public/v1/license/releases")({
   server: {
     handlers: {
-      OPTIONS: () => new Response(null, {
-        status: 204,
-        headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-methods": "GET, OPTIONS",
-          "access-control-allow-headers": "content-type",
-        },
-      }),
+      OPTIONS: () =>
+        new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-headers": "content-type",
+          },
+        }),
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const channel = url.searchParams.get("channel") ?? "stable";
@@ -32,7 +33,9 @@ export const Route = createFileRoute("/api/public/v1/license/releases")({
 
         const { data: rel } = await supabaseAdmin
           .from("license_releases")
-          .select("version, docker_image, checksum, release_notes_url, channel, min_supported, published_at")
+          .select(
+            "version, docker_image, checksum, release_notes_url, channel, min_supported, published_at",
+          )
           .eq("channel", channel)
           .eq("is_current", true)
           .order("published_at", { ascending: false })

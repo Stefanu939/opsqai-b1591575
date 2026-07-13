@@ -10,8 +10,7 @@ export const post: BlogPost = {
   datePublished: "2026-06-28",
   author: { name: "OPSQAI Editorial", role: "Security" },
   readingMinutes: 7,
-  lede:
-    "Governance for multi-tenant AI is not a checklist — it is an architecture. Five properties matter: isolation, refusal, audit, retention, and separation of prompt from data.",
+  lede: "Governance for multi-tenant AI is not a checklist — it is an architecture. Five properties matter: isolation, refusal, audit, retention, and separation of prompt from data.",
   sections: [
     {
       heading: "Isolation at the database, not the UI",
@@ -61,5 +60,8 @@ export const post: BlogPost = {
       ],
     },
   ],
-  relatedLandingPages: ["/solutions/operational-knowledge-platform", "/trust/multi-tenant-isolation"],
+  relatedLandingPages: [
+    "/solutions/operational-knowledge-platform",
+    "/trust/multi-tenant-isolation",
+  ],
 };

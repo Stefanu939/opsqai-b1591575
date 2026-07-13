@@ -4,14 +4,10 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 function supabaseForUser(ctx: ToolContext) {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    },
-  );
+  return createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export default defineTool({
@@ -22,7 +18,10 @@ export default defineTool({
     "Filter by category or knowledge_type. Returns metadata only; use search_knowledge to retrieve content.",
   inputSchema: {
     category: z.string().optional().describe("Optional category filter."),
-    knowledge_type: z.string().optional().describe("Optional knowledge_type filter (e.g. sop, policy)."),
+    knowledge_type: z
+      .string()
+      .optional()
+      .describe("Optional knowledge_type filter (e.g. sop, policy)."),
     limit: z.number().int().min(1).max(200).optional().describe("Max rows (default 50)."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
@@ -33,7 +32,9 @@ export default defineTool({
     const supabase = supabaseForUser(ctx);
     let q = supabase
       .from("knowledge_documents")
-      .select("id, title, category, knowledge_type, doc_code, section, version, status, is_active, is_critical, created_at, updated_at")
+      .select(
+        "id, title, category, knowledge_type, doc_code, section, version, status, is_active, is_critical, created_at, updated_at",
+      )
       .eq("is_active", true)
       .eq("status", "published")
       .order("updated_at", { ascending: false })

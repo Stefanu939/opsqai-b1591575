@@ -23,7 +23,8 @@ export const upsertFaq = createServerFn({ method: "POST" })
 
     if (data.id) {
       const { id, company_id: _companyIgnore, ...patch } = data;
-      void id; void _companyIgnore;
+      void id;
+      void _companyIgnore;
       const { error } = await context.supabase.from("faqs").update(patch).eq("id", data.id);
       if (error) throw new Error(error.message);
       const { data: row } = await context.supabase
@@ -33,7 +34,9 @@ export const upsertFaq = createServerFn({ method: "POST" })
         .maybeSingle();
       if (row?.company_id) {
         void emitWebhookEvent(row.company_id as string, "faq.updated", {
-          id: data.id, category: row.category, question_en: row.question_en,
+          id: data.id,
+          category: row.category,
+          question_en: row.question_en,
         });
       }
     } else {
@@ -49,7 +52,9 @@ export const upsertFaq = createServerFn({ method: "POST" })
         .single();
       if (error) throw new Error(error.message);
       void emitWebhookEvent(companyId, "faq.created", {
-        id: inserted.id, category: inserted.category, question_en: inserted.question_en,
+        id: inserted.id,
+        category: inserted.category,
+        question_en: inserted.question_en,
       });
     }
     return { ok: true };

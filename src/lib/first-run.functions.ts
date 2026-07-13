@@ -46,7 +46,9 @@ export const getFirstRunProgress = createServerFn({ method: "GET" }).handler(asy
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("platform_config")
-    .select("install_id, installer_version, setup_progress, eula_accepted_at, ai_provider_config, backup_config")
+    .select(
+      "install_id, installer_version, setup_progress, eula_accepted_at, ai_provider_config, backup_config",
+    )
     .eq("id", true)
     .maybeSingle();
   return {
@@ -95,7 +97,10 @@ export const firstRunTestStorage = createServerFn({ method: "POST" }).handler(as
     .from(bucket)
     .upload(probeKey, new Blob(["ok"]), { upsert: true });
   if (upErr) return { ok: false as const, error: upErr.message };
-  await supabaseAdmin.storage.from(bucket).remove([probeKey]).catch(() => {});
+  await supabaseAdmin.storage
+    .from(bucket)
+    .remove([probeKey])
+    .catch(() => {});
   await markStep("storage_ok");
   return { ok: true as const, bucket };
 });
@@ -172,7 +177,6 @@ export const firstRunTestSmtp = createServerFn({ method: "POST" })
     await markStep("smtp_configured");
     return { ok: true, requires_restart: true };
   });
-
 
 const SsoInput = z.object({
   skip: z.boolean().default(false),
@@ -277,7 +281,10 @@ export const firstRunCreateAdmin = createServerFn({ method: "POST" })
       .upsert({ id: userId, full_name: data.full_name, email: data.email } as never, {
         onConflict: "id",
       })
-      .then(() => undefined, () => undefined);
+      .then(
+        () => undefined,
+        () => undefined,
+      );
 
     await markStep("admin_created");
     return { ok: true, user_id: userId, email: data.email };

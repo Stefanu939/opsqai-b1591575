@@ -26,7 +26,15 @@ export interface SimpleEmailProps {
 }
 
 /** A standard one-paragraph-plus-metadata transactional email body. */
-export function SimpleEmail({ preview, title, intro, cta, notice, rows = [], body }: SimpleEmailProps) {
+export function SimpleEmail({
+  preview,
+  title,
+  intro,
+  cta,
+  notice,
+  rows = [],
+  body,
+}: SimpleEmailProps) {
   return (
     <BrandedEmail
       preview={preview}

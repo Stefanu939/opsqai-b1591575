@@ -12,18 +12,24 @@ export function DemoCountdownStrip() {
           <Building2 className="h-3.5 w-3.5 text-primary shrink-0" />
           <span className="font-semibold truncate">{DEMO_COMPANY_NAME}</span>
           <span className="hidden sm:inline text-muted-foreground">·</span>
-          <span className="hidden sm:inline text-muted-foreground truncate">Interactive Demo — read-only preview</span>
+          <span className="hidden sm:inline text-muted-foreground truncate">
+            Interactive Demo — read-only preview
+          </span>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <span className="hidden md:flex items-center gap-1.5 text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-primary" />
             Read-only
           </span>
-          <span className={`inline-flex items-center gap-1.5 font-mono tabular-nums font-semibold ${low ? "text-destructive" : "text-foreground"}`}>
+          <span
+            className={`inline-flex items-center gap-1.5 font-mono tabular-nums font-semibold ${low ? "text-destructive" : "text-foreground"}`}
+          >
             <Clock className="h-3.5 w-3.5" />
             {display}
           </span>
-          <Link to="/contact" className="hidden sm:inline text-primary hover:underline font-medium">Book a demo</Link>
+          <Link to="/contact" className="hidden sm:inline text-primary hover:underline font-medium">
+            Book a demo
+          </Link>
         </div>
       </div>
     </div>

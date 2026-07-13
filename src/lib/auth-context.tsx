@@ -37,7 +37,8 @@ interface AuthState {
 
 const Ctx = createContext<AuthState | null>(null);
 const ACTIVE_KEY = "opsqai.active_company";
-const UUID_LIKE_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+const UUID_LIKE_RE =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
 function normalizeCompanyId(id: string | null | undefined) {
   if (!id) return null;
@@ -73,28 +74,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     // Best-effort audit. RPC is a no-op for non-platform users.
     if (previous !== next) {
-      supabase.rpc("log_workspace_switch", { p_previous: previous as never, p_next: next as never }).then(() => {}, () => {});
+      supabase
+        .rpc("log_workspace_switch", { p_previous: previous as never, p_next: next as never })
+        .then(
+          () => {},
+          () => {},
+        );
     }
   };
 
   const loadProfile = (uid: string) => {
-    supabase.from("user_roles").select("role").eq("user_id", uid).then(({ data }) => {
-      setRoles((data ?? []).map((r) => r.role));
-    });
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", uid)
+      .then(({ data }) => {
+        setRoles((data ?? []).map((r) => r.role));
+      });
     supabase.rpc("my_permissions").then(({ data }) => {
-      setPermissions(new Set(((data ?? []) as Array<{ permission: string }>).map((r) => r.permission)));
+      setPermissions(
+        new Set(((data ?? []) as Array<{ permission: string }>).map((r) => r.permission)),
+      );
     });
-    supabase.from("profiles").select("company_id").eq("id", uid).maybeSingle().then(({ data }) => {
-      const cid = data?.company_id ?? null;
-      setCompanyId(cid);
-      if (cid) {
-        supabase.from("companies").select("name").eq("id", cid).maybeSingle().then(({ data: c }) => {
-          setCompanyName(c?.name ?? null);
-        });
-      } else {
-        setCompanyName(null);
-      }
-    });
+    supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", uid)
+      .maybeSingle()
+      .then(({ data }) => {
+        const cid = data?.company_id ?? null;
+        setCompanyId(cid);
+        if (cid) {
+          supabase
+            .from("companies")
+            .select("name")
+            .eq("id", cid)
+            .maybeSingle()
+            .then(({ data: c }) => {
+              setCompanyName(c?.name ?? null);
+            });
+        } else {
+          setCompanyName(null);
+        }
+      });
   };
 
   useEffect(() => {
@@ -102,8 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       if (s?.user) setTimeout(() => loadProfile(s.user.id), 0);
       else {
-        setRoles([]); setPermissions(new Set());
-        setCompanyId(null); setCompanyName(null); setActiveCompanyId(null);
+        setRoles([]);
+        setPermissions(new Set());
+        setCompanyId(null);
+        setCompanyName(null);
+        setActiveCompanyId(null);
       }
     });
     supabase.auth.getSession().then(({ data }) => {
@@ -118,13 +143,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!session?.user) return;
     const target = normalizeCompanyId(activeCompanyId) ?? normalizeCompanyId(companyId);
-    if (!target) { setCompanyName(null); return; }
-    supabase.from("companies").select("name").eq("id", target).maybeSingle().then(({ data }) => {
-      setCompanyName(data?.name ?? null);
-    });
+    if (!target) {
+      setCompanyName(null);
+      return;
+    }
+    supabase
+      .from("companies")
+      .select("name")
+      .eq("id", target)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCompanyName(data?.name ?? null);
+      });
   }, [activeCompanyId, companyId, session?.user?.id]);
 
-  const signOut = async () => { await supabase.auth.signOut(); };
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   const isPlatformOwner = roles.includes("platform_owner");
   const isPlatformAdmin = roles.includes("platform_admin") || isPlatformOwner;
@@ -134,26 +169,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasAnyPermission = (...p: Array<Permission | string>) => p.some(hasPermission);
 
   return (
-    <Ctx.Provider value={{
-      session, user: session?.user ?? null, roles, permissions,
-      companyId, companyName,
-      activeCompanyId, setActiveCompanyId,
-      scopeCompanyId: isPlatformAdmin ? activeCompanyId : companyId,
-      // Capability shortcuts. Platform Owner / Platform Admin bypass tenant gates.
-      isAdmin: roles.includes("admin") || roles.includes("workspace_owner") || isPlatformAdmin,
-      isManager: roles.includes("manager") || roles.includes("workspace_owner") || roles.includes("champion") || isPlatformAdmin,
-      isSupervisor: roles.includes("supervisor") || roles.includes("team_leader") || isPlatformAdmin,
-      isTeamLeader: roles.includes("supervisor") || roles.includes("team_leader") || isPlatformAdmin,
-      isOperator: roles.includes("operator") || roles.includes("employee"),
-      isViewer: roles.includes("viewer"),
-      isWorkspaceOwner: roles.includes("workspace_owner") || isPlatformAdmin,
-      isChampion: roles.includes("champion"),
-      isPlatformAdmin,
-      isPlatformOwner,
-      hasPermission,
-      hasAnyPermission,
-      loading, signOut,
-    }}>
+    <Ctx.Provider
+      value={{
+        session,
+        user: session?.user ?? null,
+        roles,
+        permissions,
+        companyId,
+        companyName,
+        activeCompanyId,
+        setActiveCompanyId,
+        scopeCompanyId: isPlatformAdmin ? activeCompanyId : companyId,
+        // Capability shortcuts. Platform Owner / Platform Admin bypass tenant gates.
+        isAdmin: roles.includes("admin") || roles.includes("workspace_owner") || isPlatformAdmin,
+        isManager:
+          roles.includes("manager") ||
+          roles.includes("workspace_owner") ||
+          roles.includes("champion") ||
+          isPlatformAdmin,
+        isSupervisor:
+          roles.includes("supervisor") || roles.includes("team_leader") || isPlatformAdmin,
+        isTeamLeader:
+          roles.includes("supervisor") || roles.includes("team_leader") || isPlatformAdmin,
+        isOperator: roles.includes("operator") || roles.includes("employee"),
+        isViewer: roles.includes("viewer"),
+        isWorkspaceOwner: roles.includes("workspace_owner") || isPlatformAdmin,
+        isChampion: roles.includes("champion"),
+        isPlatformAdmin,
+        isPlatformOwner,
+        hasPermission,
+        hasAnyPermission,
+        loading,
+        signOut,
+      }}
+    >
       {children}
     </Ctx.Provider>
   );
@@ -167,7 +216,10 @@ export function useAuth() {
 
 /** Render children only when the current user has the given permission. */
 export function Can({
-  permission, any, children, fallback = null,
+  permission,
+  any,
+  children,
+  fallback = null,
 }: {
   permission?: Permission | string;
   any?: Array<Permission | string>;

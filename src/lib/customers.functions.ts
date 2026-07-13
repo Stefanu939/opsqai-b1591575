@@ -4,13 +4,22 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireCustomerManagerAccess } from "@/lib/authorization";
 import { z } from "zod";
 import { FEATURE_CATALOG, COMPLIANCE_AREAS, SECURITY_AREAS } from "@/lib/feature-catalog";
-import { TEMPLATES, buildContextFromProfile, CUSTOMER_PACKAGE_TEMPLATES, type TemplateKey, type CustomerContext } from "@/lib/customer-templates";
-import { SUBSCRIPTION_PLANS, resolvePlan, type SubscriptionPlanKey } from "@/lib/subscription-plans";
+import {
+  TEMPLATES,
+  buildContextFromProfile,
+  CUSTOMER_PACKAGE_TEMPLATES,
+  type TemplateKey,
+  type CustomerContext,
+} from "@/lib/customer-templates";
+import {
+  SUBSCRIPTION_PLANS,
+  resolvePlan,
+  type SubscriptionPlanKey,
+} from "@/lib/subscription-plans";
 import { OPSQAI_FACTS } from "@/lib/opsqai-facts";
 
 const Uuid = z.string().uuid();
 const CompanyOnly = z.object({ company_id: Uuid });
-
 
 // ------- Profile -------
 
@@ -21,8 +30,16 @@ export const getCustomerProfile = createServerFn({ method: "POST" })
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: company }, { data: profile }] = await Promise.all([
-      supabaseAdmin.from("companies").select("id, name, subscription_plan, subscription_status, max_users, active").eq("id", data.company_id).maybeSingle(),
-      supabaseAdmin.from("customer_profiles").select("*").eq("company_id", data.company_id).maybeSingle(),
+      supabaseAdmin
+        .from("companies")
+        .select("id, name, subscription_plan, subscription_status, max_users, active")
+        .eq("id", data.company_id)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("customer_profiles")
+        .select("*")
+        .eq("company_id", data.company_id)
+        .maybeSingle(),
     ]);
     return { company, profile };
   });
@@ -48,7 +65,8 @@ export const upsertCustomerProfile = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("customer_profiles")
+    const { error } = await supabaseAdmin
+      .from("customer_profiles")
       .upsert({ ...data }, { onConflict: "company_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -62,7 +80,10 @@ export const listCustomerFeatures = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.from("customer_features").select("*").eq("company_id", data.company_id);
+    const { data: rows, error } = await supabaseAdmin
+      .from("customer_features")
+      .select("*")
+      .eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
     const byKey = new Map((rows ?? []).map((r) => [r.feature_key, r]));
     return FEATURE_CATALOG.map((f) => {
@@ -81,7 +102,7 @@ export const listCustomerFeatures = createServerFn({ method: "POST" })
 const FeatureUpsert = z.object({
   company_id: Uuid,
   feature_key: z.string().min(1).max(80),
-  state: z.enum(["enabled","disabled","beta","enterprise","coming_soon"]),
+  state: z.enum(["enabled", "disabled", "beta", "enterprise", "coming_soon"]),
   notes: z.string().max(2000).optional().nullable(),
 });
 
@@ -91,7 +112,8 @@ export const upsertCustomerFeature = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("customer_features")
+    const { error } = await supabaseAdmin
+      .from("customer_features")
       .upsert(data, { onConflict: "company_id,feature_key" });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -105,19 +127,31 @@ export const listCustomerCompliance = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.from("customer_compliance").select("*").eq("company_id", data.company_id);
+    const { data: rows, error } = await supabaseAdmin
+      .from("customer_compliance")
+      .select("*")
+      .eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
     const byArea = new Map((rows ?? []).map((r) => [r.area, r]));
-    return COMPLIANCE_AREAS.map((area) => byArea.get(area) ?? {
-      id: null, company_id: data.company_id, area, status: "pending",
-      evidence: "", notes: "", owner: "", updated_at: null,
-    });
+    return COMPLIANCE_AREAS.map(
+      (area) =>
+        byArea.get(area) ?? {
+          id: null,
+          company_id: data.company_id,
+          area,
+          status: "pending",
+          evidence: "",
+          notes: "",
+          owner: "",
+          updated_at: null,
+        },
+    );
   });
 
 const ComplianceUpsert = z.object({
   company_id: Uuid,
   area: z.string().min(1).max(80),
-  status: z.enum(["not_applicable","pending","in_progress","met","exceeded"]),
+  status: z.enum(["not_applicable", "pending", "in_progress", "met", "exceeded"]),
   evidence: z.string().max(4000).optional().nullable(),
   notes: z.string().max(4000).optional().nullable(),
   owner: z.string().max(200).optional().nullable(),
@@ -129,7 +163,8 @@ export const upsertCustomerCompliance = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("customer_compliance")
+    const { error } = await supabaseAdmin
+      .from("customer_compliance")
       .upsert(data, { onConflict: "company_id,area" });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -143,12 +178,24 @@ export const listCustomerSecurity = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.from("customer_security").select("*").eq("company_id", data.company_id);
+    const { data: rows, error } = await supabaseAdmin
+      .from("customer_security")
+      .select("*")
+      .eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
     const byArea = new Map((rows ?? []).map((r) => [r.area, r]));
-    return SECURITY_AREAS.map((area) => byArea.get(area) ?? {
-      id: null, company_id: data.company_id, area, summary: "", controls: {}, notes: "", updated_at: null,
-    });
+    return SECURITY_AREAS.map(
+      (area) =>
+        byArea.get(area) ?? {
+          id: null,
+          company_id: data.company_id,
+          area,
+          summary: "",
+          controls: {},
+          notes: "",
+          updated_at: null,
+        },
+    );
   });
 
 const SecurityUpsert = z.object({
@@ -165,7 +212,8 @@ export const upsertCustomerSecurity = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("customer_security")
+    const { error } = await supabaseAdmin
+      .from("customer_security")
       .upsert(data, { onConflict: "company_id,area" });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -179,7 +227,9 @@ export const customerHealth = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rpc, error } = await (supabaseAdmin as any).rpc("customer_health", { p_company: data.company_id });
+    const { data: rpc, error } = await (supabaseAdmin as any).rpc("customer_health", {
+      p_company: data.company_id,
+    });
     if (error) throw new Error(error.message);
     return rpc ?? {};
   });
@@ -192,7 +242,8 @@ export const listCustomerTimeline = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.from("customer_timeline")
+    const { data: rows, error } = await supabaseAdmin
+      .from("customer_timeline")
       .select("id, event_type, title, payload, occurred_at, created_by")
       .eq("company_id", data.company_id)
       .order("occurred_at", { ascending: false })
@@ -215,7 +266,8 @@ export const addCustomerTimelineEvent = createServerFn({ method: "POST" })
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("customer_timeline").insert({
-      ...data, created_by: context.userId,
+      ...data,
+      created_by: context.userId,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -229,8 +281,11 @@ export const listCustomerDocuments = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.from("customer_documents")
-      .select("id, doc_type, title, status, category, needs_update, version, metadata, updated_at, created_at")
+    const { data: rows, error } = await supabaseAdmin
+      .from("customer_documents")
+      .select(
+        "id, doc_type, title, status, category, needs_update, version, metadata, updated_at, created_at",
+      )
       .eq("company_id", data.company_id)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -243,11 +298,17 @@ export const getCustomerDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: doc, error } = await supabaseAdmin.from("customer_documents").select("*").eq("id", data.id).maybeSingle();
+    const { data: doc, error } = await supabaseAdmin
+      .from("customer_documents")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
     if (error) throw new Error(error.message);
-    const { data: versions } = await supabaseAdmin.from("customer_document_versions")
+    const { data: versions } = await supabaseAdmin
+      .from("customer_document_versions")
       .select("id, version, title, created_at, created_by")
-      .eq("document_id", data.id).order("version", { ascending: false });
+      .eq("document_id", data.id)
+      .order("version", { ascending: false });
     return { doc, versions: versions ?? [] };
   });
 
@@ -255,7 +316,9 @@ export const getCustomerDocument = createServerFn({ method: "POST" })
 async function sha256Hex(input: string): Promise<string> {
   const bytes = new TextEncoder().encode(input);
   const buf = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function buildGenerationInputs(companyName: string, profile: any, planKey: SubscriptionPlanKey) {
@@ -273,13 +336,15 @@ function buildGenerationInputs(companyName: string, profile: any, planKey: Subsc
 async function enrichWithAi(args: {
   skeleton: string;
   ctx: CustomerContext;
-  plan: typeof SUBSCRIPTION_PLANS[SubscriptionPlanKey];
+  plan: (typeof SUBSCRIPTION_PLANS)[SubscriptionPlanKey];
   templateLabel: string;
   templateCategory: string;
 }): Promise<{ markdown: string; missing: string[]; usedAi: boolean }> {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) {
-    const missing = Array.from(args.skeleton.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map((m) => m[1]);
+    const missing = Array.from(args.skeleton.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map(
+      (m) => m[1],
+    );
     return { markdown: args.skeleton, missing, usedAi: false };
   }
   try {
@@ -321,11 +386,15 @@ async function enrichWithAi(args: {
       prompt: `SOURCES (JSON):\n${JSON.stringify(sources, null, 2)}\n\nSKELETON:\n${args.skeleton}\n\nReturn the polished markdown.`,
     });
     const markdown = (text || "").trim() || args.skeleton;
-    const missing = Array.from(markdown.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map((m) => m[1]);
+    const missing = Array.from(markdown.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map(
+      (m) => m[1],
+    );
     return { markdown, missing, usedAi: true };
   } catch (err) {
     console.error("[customer-doc-gen] AI enrichment failed, using skeleton:", err);
-    const missing = Array.from(args.skeleton.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map((m) => m[1]);
+    const missing = Array.from(args.skeleton.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map(
+      (m) => m[1],
+    );
     return { markdown: args.skeleton, missing, usedAi: false };
   }
 }
@@ -347,13 +416,22 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: company }, { data: profile }] = await Promise.all([
       supabaseAdmin.from("companies").select("name").eq("id", data.company_id).maybeSingle(),
-      supabaseAdmin.from("customer_profiles").select("*").eq("company_id", data.company_id).maybeSingle(),
+      supabaseAdmin
+        .from("customer_profiles")
+        .select("*")
+        .eq("company_id", data.company_id)
+        .maybeSingle(),
     ]);
-    const planKey = ((profile as any)?.commercial?.subscriptionPlan ?? "standard") as SubscriptionPlanKey;
+    const planKey = ((profile as any)?.commercial?.subscriptionPlan ??
+      "standard") as SubscriptionPlanKey;
     const { ctx, plan } = buildGenerationInputs(company?.name ?? "Customer", profile, planKey);
     const skeleton = tpl.build(ctx);
     const enriched = await enrichWithAi({
-      skeleton, ctx, plan, templateLabel: tpl.label, templateCategory: tpl.category,
+      skeleton,
+      ctx,
+      plan,
+      templateLabel: tpl.label,
+      templateCategory: tpl.category,
     });
     const input_hash = await sha256Hex(JSON.stringify({ tpl: tpl.key, ctx, plan }));
     const metadata = {
@@ -366,7 +444,8 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
     };
 
     if (data.document_id) {
-      const { error } = await supabaseAdmin.from("customer_documents")
+      const { error } = await supabaseAdmin
+        .from("customer_documents")
         .update({
           doc_type: tpl.key,
           title: `${tpl.label} – ${company?.name ?? "Customer"}`,
@@ -381,18 +460,22 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
       return { id: data.document_id };
     }
 
-    const { data: inserted, error } = await supabaseAdmin.from("customer_documents").insert({
-      company_id: data.company_id,
-      doc_type: tpl.key,
-      title: `${tpl.label} – ${company?.name ?? "Customer"}`,
-      category: tpl.category,
-      status: "draft",
-      markdown: enriched.markdown,
-      metadata,
-      input_hash,
-      needs_update: false,
-      created_by: context.userId,
-    }).select("id").single();
+    const { data: inserted, error } = await supabaseAdmin
+      .from("customer_documents")
+      .insert({
+        company_id: data.company_id,
+        doc_type: tpl.key,
+        title: `${tpl.label} – ${company?.name ?? "Customer"}`,
+        category: tpl.category,
+        status: "draft",
+        markdown: enriched.markdown,
+        metadata,
+        input_hash,
+        needs_update: false,
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
     if (error || !inserted) throw new Error(error?.message || "Failed to create document");
     return { id: inserted.id };
   });
@@ -403,8 +486,11 @@ export const regenerateCustomerDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: doc } = await supabaseAdmin.from("customer_documents")
-      .select("id, company_id, doc_type").eq("id", data.id).maybeSingle();
+    const { data: doc } = await supabaseAdmin
+      .from("customer_documents")
+      .select("id, company_id, doc_type")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!doc) throw new Error("Document not found");
     // delegate to generateCustomerDocument with document_id (in-place update)
     return await generateCustomerDocument({
@@ -418,12 +504,18 @@ export const generateAllStandardDocuments = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: profile } = await supabaseAdmin.from("customer_profiles")
-      .select("commercial").eq("company_id", data.company_id).maybeSingle();
-    const planKey = ((profile as any)?.commercial?.subscriptionPlan ?? "standard") as SubscriptionPlanKey;
+    const { data: profile } = await supabaseAdmin
+      .from("customer_profiles")
+      .select("commercial")
+      .eq("company_id", data.company_id)
+      .maybeSingle();
+    const planKey = ((profile as any)?.commercial?.subscriptionPlan ??
+      "standard") as SubscriptionPlanKey;
     const plan = SUBSCRIPTION_PLANS[planKey] ?? resolvePlan(planKey);
-    const { data: existing } = await supabaseAdmin.from("customer_documents")
-      .select("id, doc_type").eq("company_id", data.company_id);
+    const { data: existing } = await supabaseAdmin
+      .from("customer_documents")
+      .select("id, doc_type")
+      .eq("company_id", data.company_id);
     const byType = new Map<string, string>((existing ?? []).map((d: any) => [d.doc_type, d.id]));
     const results: Array<{ template: string; id: string; updated: boolean }> = [];
     for (const tplKey of plan.recommendedTemplates) {
@@ -436,7 +528,6 @@ export const generateAllStandardDocuments = createServerFn({ method: "POST" })
     }
     return { count: results.length, results, plan: plan.key };
   });
-
 
 /**
  * Generate Customer Package — the primary delivery action.
@@ -451,8 +542,10 @@ export const generateCustomerPackage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: existing } = await supabaseAdmin.from("customer_documents")
-      .select("id, doc_type").eq("company_id", data.company_id);
+    const { data: existing } = await supabaseAdmin
+      .from("customer_documents")
+      .select("id, doc_type")
+      .eq("company_id", data.company_id);
     const byType = new Map<string, string>((existing ?? []).map((d: any) => [d.doc_type, d.id]));
     const results: Array<{ template: string; id: string; updated: boolean }> = [];
     for (const tplKey of CUSTOMER_PACKAGE_TEMPLATES) {
@@ -474,8 +567,22 @@ const DocPatch = z.object({
   id: Uuid,
   title: z.string().min(1).max(280).optional(),
   markdown: z.string().optional(),
-  status: z.enum(["draft","ready","review","approved","sent","archived"]).optional(),
-  category: z.enum(["Commercial","Contracts","Implementation","Training","Security","Compliance","Technical","Marketing","Internal","Generated","Archive"]).optional(),
+  status: z.enum(["draft", "ready", "review", "approved", "sent", "archived"]).optional(),
+  category: z
+    .enum([
+      "Commercial",
+      "Contracts",
+      "Implementation",
+      "Training",
+      "Security",
+      "Compliance",
+      "Technical",
+      "Marketing",
+      "Internal",
+      "Generated",
+      "Archive",
+    ])
+    .optional(),
 });
 
 export const updateCustomerDocument = createServerFn({ method: "POST" })
@@ -508,19 +615,27 @@ export const deleteAllCustomerDocuments = createServerFn({ method: "POST" })
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error: selErr } = await supabaseAdmin
-      .from("customer_documents").select("id").eq("company_id", data.company_id);
+      .from("customer_documents")
+      .select("id")
+      .eq("company_id", data.company_id);
     if (selErr) throw new Error(selErr.message);
     const ids = (rows ?? []).map((r: any) => r.id);
     if (!ids.length) return { ok: true, deleted: 0 };
-    const { error } = await supabaseAdmin.from("customer_documents").delete().eq("company_id", data.company_id);
+    const { error } = await supabaseAdmin
+      .from("customer_documents")
+      .delete()
+      .eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
     // Best-effort: purge generated exports for this customer from storage.
     try {
-      const { data: files } = await supabaseAdmin.storage.from("customer-exports").list(data.company_id, { limit: 1000 });
+      const { data: files } = await supabaseAdmin.storage
+        .from("customer-exports")
+        .list(data.company_id, { limit: 1000 });
       const paths: string[] = [];
       for (const docDir of files ?? []) {
         const { data: inner } = await supabaseAdmin.storage
-          .from("customer-exports").list(`${data.company_id}/${docDir.name}`, { limit: 1000 });
+          .from("customer-exports")
+          .list(`${data.company_id}/${docDir.name}`, { limit: 1000 });
         for (const f of inner ?? []) paths.push(`${data.company_id}/${docDir.name}/${f.name}`);
       }
       if (paths.length) await supabaseAdmin.storage.from("customer-exports").remove(paths);
@@ -528,7 +643,8 @@ export const deleteAllCustomerDocuments = createServerFn({ method: "POST" })
       console.warn("[deleteAllCustomerDocuments] storage purge failed", e);
     }
     await supabaseAdmin.from("customer_timeline").insert({
-      company_id: data.company_id, event_type: "documents_purged",
+      company_id: data.company_id,
+      event_type: "documents_purged",
       title: `Deleted ${ids.length} generated documents`,
       payload: { count: ids.length },
       created_by: context.userId,
@@ -542,10 +658,14 @@ export const restoreCustomerDocumentVersion = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: ver, error } = await supabaseAdmin.from("customer_document_versions")
-      .select("title, markdown, metadata").eq("id", data.version_id).maybeSingle();
+    const { data: ver, error } = await supabaseAdmin
+      .from("customer_document_versions")
+      .select("title, markdown, metadata")
+      .eq("id", data.version_id)
+      .maybeSingle();
     if (error || !ver) throw new Error(error?.message || "Version not found");
-    const { error: uerr } = await supabaseAdmin.from("customer_documents")
+    const { error: uerr } = await supabaseAdmin
+      .from("customer_documents")
       .update({ title: ver.title, markdown: ver.markdown, metadata: ver.metadata })
       .eq("id", data.document_id);
     if (uerr) throw new Error(uerr.message);
@@ -560,12 +680,31 @@ function markdownToBlocks(md: string) {
     | { type: "bullets"; items: string[] }
     | { type: "numbered"; items: string[] }
     | { type: "table"; headers: string[]; rows: string[][] }
-    | { type: "callout"; kind?: "recommendation"|"risk"|"opportunity"|"key-takeaway"|"best-practice"|"note"|"executive"; title?: string; text: string }
+    | {
+        type: "callout";
+        kind?:
+          | "recommendation"
+          | "risk"
+          | "opportunity"
+          | "key-takeaway"
+          | "best-practice"
+          | "note"
+          | "executive";
+        title?: string;
+        text: string;
+      }
     | { type: "kpis"; items: Array<{ label: string; value: string; sub?: string }> }
     | { type: "divider" }
     | { type: "pagebreak" };
 
-  type CalloutKind = "recommendation"|"risk"|"opportunity"|"key-takeaway"|"best-practice"|"note"|"executive";
+  type CalloutKind =
+    | "recommendation"
+    | "risk"
+    | "opportunity"
+    | "key-takeaway"
+    | "best-practice"
+    | "note"
+    | "executive";
   const calloutMap: Record<string, CalloutKind> = {
     recommendation: "recommendation",
     recommendations: "recommendation",
@@ -599,7 +738,12 @@ function markdownToBlocks(md: string) {
   const lines = normalized.split(/\r?\n/);
   const blocks: Block[] = [];
   let buf: string[] = [];
-  const flushP = () => { if (buf.length) { blocks.push({ type: "p", text: buf.join(" ") }); buf = []; } };
+  const flushP = () => {
+    if (buf.length) {
+      blocks.push({ type: "p", text: buf.join(" ") });
+      buf = [];
+    }
+  };
   let i = 0;
   while (i < lines.length) {
     const ln = lines[i];
@@ -612,9 +756,17 @@ function markdownToBlocks(md: string) {
       const kind = calloutMap[rawKind] ?? "note";
       i++;
       const inner: string[] = [];
-      while (i < lines.length && !/^:::\s*$/.test(lines[i])) { inner.push(lines[i]); i++; }
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
+        inner.push(lines[i]);
+        i++;
+      }
       if (i < lines.length) i++;
-      blocks.push({ type: "callout", kind, title, text: inner.join(" ").replace(/\s+/g, " ").trim() });
+      blocks.push({
+        type: "callout",
+        kind,
+        title,
+        text: inner.join(" ").replace(/\s+/g, " ").trim(),
+      });
       continue;
     }
     // KPI block: ::: kpis  rows of `Label | Value | Sub`
@@ -624,7 +776,8 @@ function markdownToBlocks(md: string) {
       const items: Array<{ label: string; value: string; sub?: string }> = [];
       while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
         const row = lines[i].split("|").map((s) => s.trim());
-        if (row[0] && row[1]) items.push({ label: row[0], value: row[1], sub: row[2] || undefined });
+        if (row[0] && row[1])
+          items.push({ label: row[0], value: row[1], sub: row[2] || undefined });
         i++;
       }
       if (i < lines.length) i++;
@@ -652,30 +805,47 @@ function markdownToBlocks(md: string) {
       continue;
     }
     // Horizontal rule -> divider
-    if (/^\s*(---|\*\*\*|___)\s*$/.test(ln)) { flushP(); blocks.push({ type: "divider" }); i++; continue; }
+    if (/^\s*(---|\*\*\*|___)\s*$/.test(ln)) {
+      flushP();
+      blocks.push({ type: "divider" });
+      i++;
+      continue;
+    }
     // Explicit page break
-    if (/^\s*<pagebreak\s*\/?>/i.test(ln)) { flushP(); blocks.push({ type: "pagebreak" }); i++; continue; }
+    if (/^\s*<pagebreak\s*\/?>/i.test(ln)) {
+      flushP();
+      blocks.push({ type: "pagebreak" });
+      i++;
+      continue;
+    }
     if (/^#{1,3}\s+/.test(ln)) {
       flushP();
       const m = ln.match(/^(#{1,3})\s+(.*)$/)!;
       const lvl = m[1].length as 1 | 2 | 3;
-      blocks.push({ type: (`h${lvl}` as "h1" | "h2" | "h3"), text: m[2] });
+      blocks.push({ type: `h${lvl}` as "h1" | "h2" | "h3", text: m[2] });
       i++;
     } else if (/^\s*\d+\.\s+/.test(ln)) {
       flushP();
       const items: string[] = [];
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^\s*\d+\.\s+/, "")); i++;
+        items.push(lines[i].replace(/^\s*\d+\.\s+/, ""));
+        i++;
       }
       blocks.push({ type: "numbered", items });
     } else if (/^[-*]\s+/.test(ln)) {
       flushP();
       const items: string[] = [];
       while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^[-*]\s+/, "")); i++;
+        items.push(lines[i].replace(/^[-*]\s+/, ""));
+        i++;
       }
       blocks.push({ type: "bullets", items });
-    } else if (/\|/.test(ln) && i + 1 < lines.length && /^\s*\|?\s*:?-+/.test(lines[i+1]) && /\|/.test(lines[i+1])) {
+    } else if (
+      /\|/.test(ln) &&
+      i + 1 < lines.length &&
+      /^\s*\|?\s*:?-+/.test(lines[i + 1]) &&
+      /\|/.test(lines[i + 1])
+    ) {
       flushP();
       // Robust table-cell splitter: tolerates missing leading/trailing pipes.
       const splitRow = (raw: string): string[] => {
@@ -692,7 +862,8 @@ function markdownToBlocks(md: string) {
         // pad/truncate to header width
         while (row.length < headers.length) row.push("");
         if (row.length > headers.length) row.length = headers.length;
-        rows.push(row); i++;
+        rows.push(row);
+        i++;
       }
       if (headers.length) blocks.push({ type: "table", headers, rows });
     } else if (ln.trim() === "") {
@@ -718,16 +889,24 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: doc } = await supabaseAdmin.from("customer_documents")
-      .select("id, company_id, title, markdown, version, doc_type").eq("id", data.id).maybeSingle();
+    const { data: doc } = await supabaseAdmin
+      .from("customer_documents")
+      .select("id, company_id, title, markdown, version, doc_type")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!doc) throw new Error("Document not found");
-    const { data: company } = await supabaseAdmin.from("companies").select("name").eq("id", doc.company_id).maybeSingle();
-    const today = new Date().toISOString().slice(0,10);
+    const { data: company } = await supabaseAdmin
+      .from("companies")
+      .select("name")
+      .eq("id", doc.company_id)
+      .maybeSingle();
+    const today = new Date().toISOString().slice(0, 10);
     const subtitle = `${company?.name ?? ""} · v${doc.version} · ${today}`;
     const meta = {
       customerName: company?.name ?? "",
       workspaceName: company?.name ?? "",
-      documentType: TEMPLATES[doc.doc_type as TemplateKey]?.label ?? (doc.doc_type ?? "Enterprise Document"),
+      documentType:
+        TEMPLATES[doc.doc_type as TemplateKey]?.label ?? doc.doc_type ?? "Enterprise Document",
       version: String(doc.version ?? "1.0"),
       date: today,
       confidentiality: "Confidential — for the named recipient only",
@@ -739,20 +918,30 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
     let ext: string;
     if (data.format === "md") {
       bytes = new TextEncoder().encode(doc.markdown);
-      mime = "text/markdown"; ext = "md";
+      mime = "text/markdown";
+      ext = "md";
     } else if (data.format === "html") {
       const blocks = markdownToBlocks(doc.markdown);
-      const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!));
-      const body = blocks.map((b) => {
-        if (b.type === "p" || b.type === "h1" || b.type === "h2" || b.type === "h3") return `<${b.type}>${esc(b.text)}</${b.type}>`;
-        if (b.type === "bullets") return `<ul>${b.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
-        if (b.type === "numbered") return `<ol>${b.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ol>`;
-        if (b.type === "table") return `<table><thead><tr>${b.headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-        if (b.type === "callout") return `<aside class="callout c-${b.kind ?? "note"}"><div class="ctag">${esc((b.kind ?? "note").replace("-"," ").toUpperCase())}</div>${b.title ? `<h4>${esc(b.title)}</h4>` : ""}<p>${esc(b.text)}</p></aside>`;
-        if (b.type === "kpis") return `<div class="kpis">${b.items.map((k) => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div>${k.sub ? `<div class="kpi-sub">${esc(k.sub)}</div>` : ""}</div>`).join("")}</div>`;
-        if (b.type === "divider") return `<hr/>`;
-        return "";
-      }).join("\n");
+      const esc = (s: string) =>
+        s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+      const body = blocks
+        .map((b) => {
+          if (b.type === "p" || b.type === "h1" || b.type === "h2" || b.type === "h3")
+            return `<${b.type}>${esc(b.text)}</${b.type}>`;
+          if (b.type === "bullets")
+            return `<ul>${b.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
+          if (b.type === "numbered")
+            return `<ol>${b.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ol>`;
+          if (b.type === "table")
+            return `<table><thead><tr>${b.headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+          if (b.type === "callout")
+            return `<aside class="callout c-${b.kind ?? "note"}"><div class="ctag">${esc((b.kind ?? "note").replace("-", " ").toUpperCase())}</div>${b.title ? `<h4>${esc(b.title)}</h4>` : ""}<p>${esc(b.text)}</p></aside>`;
+          if (b.type === "kpis")
+            return `<div class="kpis">${b.items.map((k) => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div>${k.sub ? `<div class="kpi-sub">${esc(k.sub)}</div>` : ""}</div>`).join("")}</div>`;
+          if (b.type === "divider") return `<hr/>`;
+          return "";
+        })
+        .join("\n");
       const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(doc.title)}</title><style>
         :root{--ink:#0F1729;--sub:#4B5772;--brand:#3358D4;--brand2:#5B7CE6;--teal:#0E9F92;--amber:#C98A2B;--red:#C93F3F;--line:#E4E7EC;--panel:#F7F8FA}
         body{font-family:Inter,system-ui,sans-serif;max-width:820px;margin:0 auto;padding:48px 32px;color:var(--ink);line-height:1.6;background:#fff}
@@ -802,35 +991,45 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
         <footer><span>${esc(meta.confidentiality)}</span><span>${esc(meta.brand)} · ${esc(meta.documentType)} · v${esc(meta.version)}</span></footer>
       </body></html>`;
       bytes = new TextEncoder().encode(html);
-      mime = "text/html"; ext = "html";
+      mime = "text/html";
+      ext = "html";
     } else if (data.format === "docx") {
       const { generateDocx } = await import("@/lib/generators/docx.server");
       bytes = await generateDocx({
-        title: doc.title, subtitle, author: "OPSQAI",
+        title: doc.title,
+        subtitle,
+        author: "OPSQAI",
         blocks: markdownToBlocks(doc.markdown) as any,
         meta,
       });
-      mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"; ext = "docx";
+      mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      ext = "docx";
     } else {
       const { generatePdf } = await import("@/lib/generators/pdf.server");
       bytes = await generatePdf({
-        title: doc.title, subtitle, author: "OPSQAI",
+        title: doc.title,
+        subtitle,
+        author: "OPSQAI",
         blocks: markdownToBlocks(doc.markdown) as any,
         meta,
       });
-      mime = "application/pdf"; ext = "pdf";
+      mime = "application/pdf";
+      ext = "pdf";
     }
 
     const safe = doc.title.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80);
     const path = `${doc.company_id}/${doc.id}/${Date.now()}_v${doc.version}_${safe}.${ext}`;
     const upload = await supabaseAdmin.storage.from("customer-exports").upload(path, bytes, {
-      contentType: mime, upsert: false,
+      contentType: mime,
+      upsert: false,
     });
     if (upload.error) throw new Error(upload.error.message);
     const signed = await supabaseAdmin.storage.from("customer-exports").createSignedUrl(path, 600);
-    if (signed.error || !signed.data) throw new Error(signed.error?.message || "Failed to sign URL");
+    if (signed.error || !signed.data)
+      throw new Error(signed.error?.message || "Failed to sign URL");
     await supabaseAdmin.from("customer_timeline").insert({
-      company_id: doc.company_id, event_type: "document_exported",
+      company_id: doc.company_id,
+      event_type: "document_exported",
       title: `Exported ${doc.title} (${ext.toUpperCase()})`,
       payload: { document_id: doc.id, format: ext, path },
       created_by: context.userId,
@@ -849,7 +1048,6 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
     const filename = `${safe || "document"}.${ext}`;
     return { url: signed.data.signedUrl, path, mime, base64, filename };
   });
-
 
 // ---- Bulk PDF download (folder / all) ----
 
@@ -873,13 +1071,20 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: company } = await supabaseAdmin.from("companies").select("name").eq("id", data.company_id).maybeSingle();
-    const { data: docs, error } = await supabaseAdmin.from("customer_documents")
+    const { data: company } = await supabaseAdmin
+      .from("companies")
+      .select("name")
+      .eq("id", data.company_id)
+      .maybeSingle();
+    const { data: docs, error } = await supabaseAdmin
+      .from("customer_documents")
       .select("id, title, markdown, metadata, version, doc_type")
       .eq("company_id", data.company_id);
     if (error) throw new Error(error.message);
-    const filtered = (docs ?? []).filter((d: any) =>
-      !data.category || ((d.metadata as any)?.category ?? "Custom Documents") === data.category);
+    const filtered = (docs ?? []).filter(
+      (d: any) =>
+        !data.category || ((d.metadata as any)?.category ?? "Custom Documents") === data.category,
+    );
     if (filtered.length === 0) throw new Error("No documents to download");
 
     const { generatePdf } = await import("@/lib/generators/pdf.server");
@@ -888,7 +1093,8 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
     const today = new Date().toISOString().slice(0, 10);
     for (const d of filtered) {
       const blocks = markdownToBlocks(d.markdown ?? "");
-      const docType = TEMPLATES[d.doc_type as TemplateKey]?.label ?? (d.doc_type ?? "Enterprise Document");
+      const docType =
+        TEMPLATES[d.doc_type as TemplateKey]?.label ?? d.doc_type ?? "Enterprise Document";
       const pdf = await generatePdf({
         title: d.title,
         subtitle: `${company?.name ?? ""} · v${d.version}`,
@@ -905,8 +1111,13 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
           revision: `R${d.version ?? 1}`,
         },
       });
-      const folder = ((d.metadata as any)?.category ?? "Custom Documents").replace(/[^\w -]+/g, "_");
-      const safe = String(d.title).replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80);
+      const folder = ((d.metadata as any)?.category ?? "Custom Documents").replace(
+        /[^\w -]+/g,
+        "_",
+      );
+      const safe = String(d.title)
+        .replace(/[^a-zA-Z0-9._-]+/g, "_")
+        .slice(0, 80);
       files[`${folder}/${safe}.pdf`] = pdf;
     }
     files["README.txt"] = strToU8(
@@ -925,9 +1136,10 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
     };
   });
 
-
 // Helper used by API route to build a context block for the AI writing assistant.
-export async function loadCustomerContextForAi(companyId: string): Promise<CustomerContext & { _systemBlock: string }> {
+export async function loadCustomerContextForAi(
+  companyId: string,
+): Promise<CustomerContext & { _systemBlock: string }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const [{ data: company }, { data: profile }] = await Promise.all([
     supabaseAdmin.from("companies").select("name").eq("id", companyId).maybeSingle(),

@@ -19,4 +19,3 @@ Verification: the monthly `opsqai doctor --verify-backup` drill lists
 `secrets.env` under "Config" and fails the drill if it is missing from
 the archive. Encrypt the backup archive at rest as with any other
 credential-bearing artifact.
-

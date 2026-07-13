@@ -10,8 +10,7 @@ export const post: BlogPost = {
   datePublished: "2026-07-03",
   author: { name: "OPSQAI Editorial", role: "Compliance" },
   readingMinutes: 6,
-  lede:
-    "An audit-ready knowledge base is one that can answer a specific question: what did this system tell this operator on this day? If you cannot answer that in ten minutes, you are not audit-ready. Note: OPSQAI itself is not currently SOC 2 or ISO/IEC 27001 certified — this article is about architectural readiness, not a certification claim (see the Trust Center for OPSQAI's certification status).",
+  lede: "An audit-ready knowledge base is one that can answer a specific question: what did this system tell this operator on this day? If you cannot answer that in ten minutes, you are not audit-ready. Note: OPSQAI itself is not currently SOC 2 or ISO/IEC 27001 certified — this article is about architectural readiness, not a certification claim (see the Trust Center for OPSQAI's certification status).",
   sections: [
     {
       heading: "The reconstruction test",

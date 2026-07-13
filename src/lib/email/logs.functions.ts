@@ -7,7 +7,10 @@ const QuerySchema = z.object({
   start: z.string().datetime(),
   end: z.string().datetime(),
   template: z.string().nullable().optional(),
-  status: z.enum(["sent", "failed", "dlq", "suppressed", "pending", "bounced", "complained"]).nullable().optional(),
+  status: z
+    .enum(["sent", "failed", "dlq", "suppressed", "pending", "bounced", "complained"])
+    .nullable()
+    .optional(),
   limit: z.number().int().min(1).max(200).default(50),
   offset: z.number().int().min(0).default(0),
 });
@@ -55,7 +58,9 @@ export const listEmailLogs = createServerFn({ method: "POST" })
     const stats = {
       total: dedup.length,
       sent: dedup.filter((r) => r.status === "sent").length,
-      failed: dedup.filter((r) => r.status === "dlq" || r.status === "failed" || r.status === "bounced").length,
+      failed: dedup.filter(
+        (r) => r.status === "dlq" || r.status === "failed" || r.status === "bounced",
+      ).length,
       suppressed: dedup.filter((r) => r.status === "suppressed").length,
       pending: dedup.filter((r) => r.status === "pending").length,
     };
@@ -68,7 +73,13 @@ export const listEmailLogs = createServerFn({ method: "POST" })
       .not("template_name", "is", null)
       .order("template_name")
       .limit(500);
-    const templates = Array.from(new Set(((distinctTemplates ?? []) as Array<{ template_name: string | null }>).map((r) => r.template_name).filter(Boolean) as string[]));
+    const templates = Array.from(
+      new Set(
+        ((distinctTemplates ?? []) as Array<{ template_name: string | null }>)
+          .map((r) => r.template_name)
+          .filter(Boolean) as string[],
+      ),
+    );
 
     return { rows: page, stats, total: dedup.length, templates };
   });

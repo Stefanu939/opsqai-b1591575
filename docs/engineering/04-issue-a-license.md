@@ -30,7 +30,7 @@ Once the install-kind license exists, generate the customer-facing ZIP:
 The `install_id` slug is chosen at **install-provisioning time** (when
 the `license_installs` row is first created) and reused on every
 regeneration — it is not derived from the order or any other field. See
-*Recovery if the `license_installs` row is lost* in
+_Recovery if the `license_installs` row is lost_ in
 `docs/security-documentation/05-license-security.md` for the manual DR
 procedure.
 
@@ -40,7 +40,5 @@ added to the CRL — see
 bundle valid (e.g. a customer restoring from their own backup), check
 **Keep previous bundle valid** before clicking **Regenerate**.
 
-
 Programmatic entry point: `generateInstallationPackage` in
 `src/lib/installation-package.functions.ts`.
-

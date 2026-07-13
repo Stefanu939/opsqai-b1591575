@@ -1,6 +1,17 @@
 import * as React from "react";
 import {
-  Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text, Button, Hr,
+  Body,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Img,
+  Link,
+  Preview,
+  Section,
+  Text,
+  Button,
+  Hr,
 } from "@react-email/components";
 import { BRAND } from "./_brand";
 
@@ -20,7 +31,14 @@ interface BrandedEmailProps {
  * Email-specific templates only override title / body / CTA / extra children.
  */
 export function BrandedEmail({
-  preview, title, intro, bodyText, ctaLabel, ctaUrl, securityNotice, children,
+  preview,
+  title,
+  intro,
+  bodyText,
+  ctaLabel,
+  ctaUrl,
+  securityNotice,
+  children,
 }: BrandedEmailProps) {
   return (
     <Html lang="en" dir="ltr">
@@ -29,23 +47,41 @@ export function BrandedEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={headerSection}>
-            <Img src={BRAND.logoUrl} alt={BRAND.productName} height={28} style={{ display: "block" }} />
+            <Img
+              src={BRAND.logoUrl}
+              alt={BRAND.productName}
+              height={28}
+              style={{ display: "block" }}
+            />
           </Section>
 
           <Section style={card}>
-            <Heading as="h1" style={h1}>{title}</Heading>
+            <Heading as="h1" style={h1}>
+              {title}
+            </Heading>
             {intro ? <Text style={textMuted}>{intro}</Text> : null}
-            {bodyText ? (typeof bodyText === "string" ? <Text style={text}>{bodyText}</Text> : bodyText) : null}
+            {bodyText ? (
+              typeof bodyText === "string" ? (
+                <Text style={text}>{bodyText}</Text>
+              ) : (
+                bodyText
+              )
+            ) : null}
             {children}
             {ctaLabel && ctaUrl ? (
               <Section style={{ textAlign: "left", margin: "24px 0 8px" }}>
-                <Button href={ctaUrl} style={button}>{ctaLabel}</Button>
+                <Button href={ctaUrl} style={button}>
+                  {ctaLabel}
+                </Button>
               </Section>
             ) : null}
             {ctaUrl ? (
               <Text style={textTiny}>
-                If the button doesn't work, copy this link into your browser:<br />
-                <Link href={ctaUrl} style={inlineLink}>{ctaUrl}</Link>
+                If the button doesn't work, copy this link into your browser:
+                <br />
+                <Link href={ctaUrl} style={inlineLink}>
+                  {ctaUrl}
+                </Link>
               </Text>
             ) : null}
           </Section>
@@ -58,7 +94,11 @@ export function BrandedEmail({
 
           <Section style={supportSection}>
             <Text style={textTiny}>
-              Need help? Contact <Link href={`mailto:${BRAND.supportEmail}`} style={inlineLink}>{BRAND.supportEmail}</Link>.
+              Need help? Contact{" "}
+              <Link href={`mailto:${BRAND.supportEmail}`} style={inlineLink}>
+                {BRAND.supportEmail}
+              </Link>
+              .
             </Text>
           </Section>
 
@@ -66,11 +106,17 @@ export function BrandedEmail({
 
           <Section style={footerSection}>
             <Text style={footerLine}>
-              <Link href={BRAND.website} style={footerLink}>{BRAND.website.replace("https://", "")}</Link>
+              <Link href={BRAND.website} style={footerLink}>
+                {BRAND.website.replace("https://", "")}
+              </Link>
               {" · "}
-              <Link href={`${BRAND.website}/legal/privacy`} style={footerLink}>Privacy</Link>
+              <Link href={`${BRAND.website}/legal/privacy`} style={footerLink}>
+                Privacy
+              </Link>
               {" · "}
-              <Link href={`${BRAND.website}/legal/terms`} style={footerLink}>Terms</Link>
+              <Link href={`${BRAND.website}/legal/terms`} style={footerLink}>
+                Terms
+              </Link>
             </Text>
             <Text style={footerCopy}>
               © {new Date().getFullYear()} {BRAND.productName} · {BRAND.tagline}

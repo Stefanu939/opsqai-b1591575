@@ -49,13 +49,63 @@ const STARTERS_BY_LANG: Record<string, string[]> = {
   ],
 };
 
-const UI_STRINGS: Record<string, { eyebrow: string; title: string; subtitle: string; tryAsking: string; sources: string; thinking: string; placeholder: string; send: string; new: string }> = {
-  en: { eyebrow: "OPSQAI Assistant", title: "Ask anything about using OPSQAI", subtitle: "Grounded in System Knowledge only — never touches customer data.", tryAsking: "Try asking", sources: "Sources", thinking: "Thinking…", placeholder: "Ask how to use OPSQAI…", send: "Send", new: "New" },
-  de: { eyebrow: "OPSQAI Assistent", title: "Fragen Sie alles zur Nutzung von OPSQAI", subtitle: "Basiert ausschließlich auf System-Wissen — keine Kundendaten.", tryAsking: "Fragen Sie z. B.", sources: "Quellen", thinking: "Denke nach…", placeholder: "Wie nutze ich OPSQAI?…", send: "Senden", new: "Neu" },
-  ro: { eyebrow: "Asistent OPSQAI", title: "Întreabă orice despre utilizarea OPSQAI", subtitle: "Bazat doar pe System Knowledge — nu accesează date despre clienți.", tryAsking: "Încearcă să întrebi", sources: "Surse", thinking: "Se gândește…", placeholder: "Cum folosesc OPSQAI?…", send: "Trimite", new: "Nou" },
+const UI_STRINGS: Record<
+  string,
+  {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    tryAsking: string;
+    sources: string;
+    thinking: string;
+    placeholder: string;
+    send: string;
+    new: string;
+  }
+> = {
+  en: {
+    eyebrow: "OPSQAI Assistant",
+    title: "Ask anything about using OPSQAI",
+    subtitle: "Grounded in System Knowledge only — never touches customer data.",
+    tryAsking: "Try asking",
+    sources: "Sources",
+    thinking: "Thinking…",
+    placeholder: "Ask how to use OPSQAI…",
+    send: "Send",
+    new: "New",
+  },
+  de: {
+    eyebrow: "OPSQAI Assistent",
+    title: "Fragen Sie alles zur Nutzung von OPSQAI",
+    subtitle: "Basiert ausschließlich auf System-Wissen — keine Kundendaten.",
+    tryAsking: "Fragen Sie z. B.",
+    sources: "Quellen",
+    thinking: "Denke nach…",
+    placeholder: "Wie nutze ich OPSQAI?…",
+    send: "Senden",
+    new: "Neu",
+  },
+  ro: {
+    eyebrow: "Asistent OPSQAI",
+    title: "Întreabă orice despre utilizarea OPSQAI",
+    subtitle: "Bazat doar pe System Knowledge — nu accesează date despre clienți.",
+    tryAsking: "Încearcă să întrebi",
+    sources: "Surse",
+    thinking: "Se gândește…",
+    placeholder: "Cum folosesc OPSQAI?…",
+    send: "Trimite",
+    new: "Nou",
+  },
 };
 
-type Source = { id: string; title: string; slug: string; category: string; excerpt: string; similarity: number };
+type Source = {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  similarity: number;
+};
 
 function AssistantPage() {
   const { lang } = useT();
@@ -64,15 +114,18 @@ function AssistantPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setToken(data.session?.access_token ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setToken(s?.access_token ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) =>
+      setToken(s?.access_token ?? null),
+    );
     return () => sub.subscription.unsubscribe();
   }, []);
 
   const transport = useMemo(
-    () => new DefaultChatTransport({
-      api: "/api/internal-chat",
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    }),
+    () =>
+      new DefaultChatTransport({
+        api: "/api/internal-chat",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      }),
     [token],
   );
 
@@ -85,7 +138,9 @@ function AssistantPage() {
   const [input, setInput] = useState("");
   const busy = status === "submitted" || status === "streaming";
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const submit = async () => {
     const q = input.trim();
@@ -120,11 +175,21 @@ function AssistantPage() {
       <div className="flex-1 overflow-y-auto space-y-3 pb-3">
         {messages.length === 0 && (
           <Card className="p-4">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t.tryAsking}</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              {t.tryAsking}
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {starters.map((s) => (
-                <Button key={s} variant="outline" size="sm" className="h-auto py-1.5 text-xs"
-                  onClick={() => { setInput(s); setTimeout(submit, 0); }}>
+                <Button
+                  key={s}
+                  variant="outline"
+                  size="sm"
+                  className="h-auto py-1.5 text-xs"
+                  onClick={() => {
+                    setInput(s);
+                    setTimeout(submit, 0);
+                  }}
+                >
                   {s}
                 </Button>
               ))}
@@ -134,16 +199,21 @@ function AssistantPage() {
 
         {messages.map((m) => {
           const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
-          const meta = (m as unknown as { metadata?: { sources?: Source[]; hasSources?: boolean } }).metadata;
+          const meta = (m as unknown as { metadata?: { sources?: Source[]; hasSources?: boolean } })
+            .metadata;
           const sources = meta?.sources ?? [];
           const isUser = m.role === "user";
           return (
             <div key={m.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] rounded-lg px-4 py-2.5 ${isUser ? "bg-primary text-primary-foreground" : "bg-card border"}`}>
+              <div
+                className={`max-w-[85%] rounded-lg px-4 py-2.5 ${isUser ? "bg-primary text-primary-foreground" : "bg-card border"}`}
+              >
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{text}</div>
                 {!isUser && sources.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-border/60 space-y-1">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t.sources}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {t.sources}
+                    </div>
                     {sources.map((s) => (
                       <Link
                         key={s.id}
@@ -153,7 +223,9 @@ function AssistantPage() {
                       >
                         <BookOpen className="h-3 w-3 shrink-0" />
                         <span className="truncate">{s.title}</span>
-                        <Badge variant="outline" className="text-[9px] py-0 px-1 ml-auto shrink-0">{s.category}</Badge>
+                        <Badge variant="outline" className="text-[9px] py-0 px-1 ml-auto shrink-0">
+                          {s.category}
+                        </Badge>
                       </Link>
                     ))}
                   </div>
@@ -162,9 +234,7 @@ function AssistantPage() {
             </div>
           );
         })}
-        {busy && (
-          <div className="text-xs text-muted-foreground animate-pulse">{t.thinking}</div>
-        )}
+        {busy && <div className="text-xs text-muted-foreground animate-pulse">{t.thinking}</div>}
         <div ref={endRef} />
       </div>
 
@@ -172,7 +242,12 @@ function AssistantPage() {
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit();
+            }
+          }}
           placeholder={t.placeholder}
           className="resize-none min-h-[44px] max-h-32"
           rows={1}

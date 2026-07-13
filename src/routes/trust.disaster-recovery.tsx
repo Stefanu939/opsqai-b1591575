@@ -36,8 +36,8 @@ function DrTrust() {
           the customer performs monthly restore drills.
         </Card>
         <Card icon={KeySquare} title="Two independent recovery paths">
-          Offline: a scrypt-hashed break-glass secret generated ahead of time and stored securely
-          by the customer. Online: a Bootstrap Recovery Token issued by the Management Center after
+          Offline: a scrypt-hashed break-glass secret generated ahead of time and stored securely by
+          the customer. Online: a Bootstrap Recovery Token issued by the Management Center after
           out-of-band verification, Ed25519-signed and <code>install_id</code>-bound with a short
           TTL.
         </Card>

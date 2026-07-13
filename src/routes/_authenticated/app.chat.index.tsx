@@ -13,11 +13,24 @@ export const Route = createFileRoute("/_authenticated/app/chat/")({ component: C
 
 function greet(name?: string | null, lang?: string) {
   const hour = new Date().getHours();
-  const part = lang === "de"
-    ? hour < 12 ? "Guten Morgen" : hour < 18 ? "Guten Tag" : "Guten Abend"
-    : lang === "ro"
-    ? hour < 12 ? "Bună dimineața" : hour < 18 ? "Bună ziua" : "Bună seara"
-    : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const part =
+    lang === "de"
+      ? hour < 12
+        ? "Guten Morgen"
+        : hour < 18
+          ? "Guten Tag"
+          : "Guten Abend"
+      : lang === "ro"
+        ? hour < 12
+          ? "Bună dimineața"
+          : hour < 18
+            ? "Bună ziua"
+            : "Bună seara"
+        : hour < 12
+          ? "Good morning"
+          : hour < 18
+            ? "Good afternoon"
+            : "Good evening";
   return name ? `${part}, ${name}` : part;
 }
 
@@ -32,23 +45,35 @@ function ChatWelcome() {
   const name = (user?.user_metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
 
   const submit = async () => {
-    const q = text.trim(); if (!q || busy) return;
+    const q = text.trim();
+    if (!q || busy) return;
     setBusy(true);
     try {
       // Bind the thread to the active workspace so RAG retrieval and FAQ
       // matching automatically scope to the tenant the admin is viewing.
-      const th = await newThread({ data: { title: q.slice(0, 60), companyId: scopeCompanyId ?? undefined } });
+      const th = await newThread({
+        data: { title: q.slice(0, 60), companyId: scopeCompanyId ?? undefined },
+      });
       navigate({ to: "/app/chat/$threadId", params: { threadId: th.id }, search: { q } });
-    } catch (e) { toast.error(String(e)); setBusy(false); }
+    } catch (e) {
+      toast.error(String(e));
+      setBusy(false);
+    }
   };
 
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
   };
 
   const prompts = [
-    "SOPs", "Warehouse Operations", "Transport Planning",
-    "Internal Procedures", "Safety Instructions",
+    "SOPs",
+    "Warehouse Operations",
+    "Transport Planning",
+    "Internal Procedures",
+    "Safety Instructions",
   ];
 
   return (
@@ -61,13 +86,26 @@ function ChatWelcome() {
           {greet(name, lang)} <span className="inline-block">👋</span>
         </h1>
         <p className="mt-3 text-muted-foreground">
-          {lang === "de" ? "Wie kann ich heute helfen?" : lang === "ro" ? "Cum te pot ajuta astăzi?" : "How can I help you today?"}
+          {lang === "de"
+            ? "Wie kann ich heute helfen?"
+            : lang === "ro"
+              ? "Cum te pot ajuta astăzi?"
+              : "How can I help you today?"}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
-          {lang === "de" ? "Frag mich zu:" : lang === "ro" ? "Întreabă-mă despre:" : "Ask anything about:"}{" "}
+          {lang === "de"
+            ? "Frag mich zu:"
+            : lang === "ro"
+              ? "Întreabă-mă despre:"
+              : "Ask anything about:"}{" "}
           {prompts.map((p, i) => (
             <span key={p}>
-              <button onClick={() => setText(`Tell me about ${p}`)} className="text-primary hover:underline">{p}</button>
+              <button
+                onClick={() => setText(`Tell me about ${p}`)}
+                className="text-primary hover:underline"
+              >
+                {p}
+              </button>
               {i < prompts.length - 1 && " · "}
             </span>
           ))}
@@ -79,7 +117,13 @@ function ChatWelcome() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKey}
-            placeholder={lang === "de" ? "Stelle eine Frage…" : lang === "ro" ? "Scrie o întrebare…" : "Send a message…"}
+            placeholder={
+              lang === "de"
+                ? "Stelle eine Frage…"
+                : lang === "ro"
+                  ? "Scrie o întrebare…"
+                  : "Send a message…"
+            }
             rows={2}
             className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px] min-h-[60px]"
           />
@@ -92,7 +136,12 @@ function ChatWelcome() {
                 <Mic className="h-4 w-4" />
               </Button>
             </div>
-            <Button onClick={submit} disabled={!text.trim() || busy} size="icon" className="h-8 w-8 rounded-full">
+            <Button
+              onClick={submit}
+              disabled={!text.trim() || busy}
+              size="icon"
+              className="h-8 w-8 rounded-full"
+            >
               <ArrowUp className="h-4 w-4" />
             </Button>
           </div>
@@ -102,10 +151,9 @@ function ChatWelcome() {
           {lang === "de"
             ? "Frühere Unterhaltungen findest du in der Seitenleiste."
             : lang === "ro"
-            ? "Găsești conversațiile anterioare în bara laterală."
-            : "Your past conversations are listed in the sidebar."}
+              ? "Găsești conversațiile anterioare în bara laterală."
+              : "Your past conversations are listed in the sidebar."}
         </p>
-
       </div>
     </div>
   );

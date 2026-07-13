@@ -25,8 +25,8 @@ SmartScreen and Defender warnings that block adoption at scale.
      for DigiCert; equivalent for Sectigo).
 3. Plug in the EV USB token (or configure the cloud HSM per vendor docs).
 4. Unlock the token once on the runner and store the PIN in the Windows
-     Credential Manager under the account that runs the GitHub Actions
-     service, so `signtool /a` picks the cert non-interactively.
+   Credential Manager under the account that runs the GitHub Actions
+   service, so `signtool /a` picks the cert non-interactively.
 5. Provision the **updater signing key**:
    - Private Ed25519 key stays on an offline signing station (HSM or
      encrypted USB) — never on the build runner.

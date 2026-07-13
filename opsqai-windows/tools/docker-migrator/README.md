@@ -6,12 +6,12 @@ v1 — see project constraints.
 
 ## Prerequisites
 
-* The Windows host already has `OPSQAI-Setup.exe` installed and the setup
+- The Windows host already has `OPSQAI-Setup.exe` installed and the setup
   wizard has been completed once (any admin credentials are fine — they
   will be replaced by the migrated data).
-* Docker Desktop or Docker Engine is reachable on the same host with the
+- Docker Desktop or Docker Engine is reachable on the same host with the
   original `docker-compose.yml` project running.
-* The account executing the migrator is a local Administrator.
+- The account executing the migrator is a local Administrator.
 
 ## Run
 

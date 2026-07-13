@@ -45,7 +45,7 @@
 - Default on regeneration: the previous bundle is added to the CRL and
   stops activating new installs on the next heartbeat. The audit log records
   `installation_package.generated` with `previous_bundle_revoked = true`.
-- Escape hatch: a platform admin can check *"Keep previous bundle valid"*
+- Escape hatch: a platform admin can check _"Keep previous bundle valid"_
   when the customer is running a restored backup that must keep its old
   bundle working. This is surfaced with an explicit warning in the MC UI.
 - The generated ZIP holds NO customer infrastructure secrets (AD-009).
@@ -81,5 +81,3 @@ documented manual step:
      bundle with the newly issued one, and restart. The old running
      instance will **not** automatically recognize the newly issued slug;
      support must not assume "regenerate = done" in this path.
-
-

@@ -3,8 +3,12 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  getAcademyPath, enrollSelf, startEnrollment, completeEnrollment,
-  getEnrollmentProgress, listMyEnrollments,
+  getAcademyPath,
+  enrollSelf,
+  startEnrollment,
+  completeEnrollment,
+  getEnrollmentProgress,
+  listMyEnrollments,
 } from "@/lib/academy.functions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -39,7 +43,9 @@ function PathPage() {
       setDone(Object.fromEntries(p.map((r) => [r.lesson_id, r])));
     }
   };
-  useEffect(() => { void load(); }, [pathId]);
+  useEffect(() => {
+    void load();
+  }, [pathId]);
 
   const handleEnroll = async () => {
     const r = (await enroll({ data: { path_id: pathId } })) as any;
@@ -69,7 +75,9 @@ function PathPage() {
         </div>
         <p className="text-sm text-muted-foreground">{path.description}</p>
         <div className="flex gap-2 text-xs">
-          {path.academy_departments?.name && <Badge variant="secondary">{path.academy_departments.name}</Badge>}
+          {path.academy_departments?.name && (
+            <Badge variant="secondary">{path.academy_departments.name}</Badge>
+          )}
           {path.target_role && <Badge variant="outline">{path.target_role}</Badge>}
           {path.mandatory && <Badge>Mandatory</Badge>}
           <Badge variant="outline">Passing {path.passing_score}%</Badge>
@@ -79,15 +87,21 @@ function PathPage() {
       <Card className="p-4 flex items-center justify-between">
         <div>
           <div className="text-sm font-medium">Progress</div>
-          <div className="text-xs text-muted-foreground">{completed} / {totalLessons} lessons · {pct}%</div>
+          <div className="text-xs text-muted-foreground">
+            {completed} / {totalLessons} lessons · {pct}%
+          </div>
           <div className="w-64 h-2 bg-muted rounded mt-2 overflow-hidden">
             <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
           </div>
         </div>
         {!enrollmentId ? (
-          <Button onClick={handleEnroll}><PlayCircle className="h-4 w-4 mr-1" /> Enroll & start</Button>
+          <Button onClick={handleEnroll}>
+            <PlayCircle className="h-4 w-4 mr-1" /> Enroll & start
+          </Button>
         ) : allDone ? (
-          <Button onClick={finish} variant="default"><Award className="h-4 w-4 mr-1" /> Finish & get certificate</Button>
+          <Button onClick={finish} variant="default">
+            <Award className="h-4 w-4 mr-1" /> Finish & get certificate
+          </Button>
         ) : (
           <Badge variant="secondary">In progress</Badge>
         )}
@@ -113,13 +127,23 @@ function PathPage() {
                     search={{ enrollmentId: enrollmentId ?? "" }}
                     className="flex items-center gap-3 p-2 rounded hover:bg-accent text-sm"
                   >
-                    {isDone ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
+                    {isDone ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground" />
+                    )}
                     <span className="flex-1">{l.title}</span>
-                    <span className="text-[11px] text-muted-foreground">{l.estimated_minutes}m</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {l.estimated_minutes}m
+                    </span>
                   </Link>
                 );
               })}
-              {chLessons.length === 0 && <div className="text-xs text-muted-foreground italic">No lessons in this chapter yet.</div>}
+              {chLessons.length === 0 && (
+                <div className="text-xs text-muted-foreground italic">
+                  No lessons in this chapter yet.
+                </div>
+              )}
             </div>
           </Card>
         );
