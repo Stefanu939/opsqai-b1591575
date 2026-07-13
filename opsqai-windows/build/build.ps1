@@ -4,16 +4,19 @@
 
 .DESCRIPTION
   Phase 2 pipeline:
-    1. Download + stage Node runtime, WinSW, Caddy, PostgreSQL Portable.
-    2. Copy service entrypoints and WinSW XML into payload/.
-    3. Run makensis to produce OPSQAI-Setup.exe.
-    4. Optionally sign with the EV code-signing certificate on the runner.
+    1. Build the OPSQAI app in Node-server mode (npm run build:selfhosted).
+    2. Stage the built app bundle + supabase migrations into payload\app.
+    3. Download + stage Node runtime, WinSW, Caddy, PostgreSQL Portable.
+    4. Copy service entrypoints and WinSW XML into payload/.
+    5. Run makensis to produce OPSQAI-Setup.exe.
+    6. Optionally sign with the EV code-signing certificate on the runner.
 #>
 [CmdletBinding()]
 param(
   [ValidateSet('Debug','Release')] [string]$Configuration = 'Debug',
   [switch]$Sign,
   [switch]$SkipPostgres,   # for fast dev iterations (~200 MB)
+  [switch]$SkipApp,        # skip the npm build (use previously staged payload\app)
   [string]$Version = '0.0.0-dev'
 )
 
