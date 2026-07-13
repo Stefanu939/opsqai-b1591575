@@ -388,7 +388,7 @@ function NewCompanyDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mc-btn-gold h-9">
+        <Button className="h-9 border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#a88a35] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]">
           <Plus className="mr-1.5 h-4 w-4" />
           Client nou
         </Button>
@@ -476,7 +476,7 @@ function NewCompanyDialog({
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={submit} disabled={pending} className="mc-btn-gold">
+          <Button onClick={submit} disabled={pending} className="border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#a88a35] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]">
             Creează
           </Button>
         </DialogFooter>
@@ -542,7 +542,7 @@ function EditPlanDialog({
             Cancel
           </Button>
           <Button
-            className="mc-btn-gold"
+            className="border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#a88a35] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]"
             onClick={() => {
               onSave(plan, max);
               setOpen(false);
