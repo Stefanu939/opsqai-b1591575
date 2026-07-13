@@ -9,7 +9,7 @@ This repository folder is the workspace for the migration described in `.lovable
 
 - [x] Phase 1 — Foundation: NSIS scaffolding, code-signing pipeline, WinSW "hello" service, silent install/uninstall
 - [x] Phase 2 — Runtime: Node-server app bundle (`build:selfhosted`), Caddy on `https://localhost`, PostgreSQL Portable with scram-sha-256, migrator, bootstrap health probe
-- [ ] Phase 3 — Wizard (Electron 10-step) + external DB / S3 modes
+- [x] Phase 3 — Wizard (Electron 10-step) + external DB / S3 modes
 - [ ] Phase 4 — Auto-updater + Service Manager + backup/restore
 - [ ] Phase 5 — Docker→native migrator + QA matrix + first signed release
 
@@ -46,7 +46,7 @@ pwsh ./build/build.ps1 -Configuration Debug
 
 ## Building on CI
 
-The `build/ci/build-windows.yml` workflow runs on a self-hosted Windows runner, builds the installer, signs it with the EV cert loaded on the runner, and uploads the artifact. See `docs/code-signing.md` for the one-time runner setup.
+The recognized GitHub Actions workflow lives at `.github/workflows/build-windows-installer.yml`. It builds `OPSQAI-Setup.exe`, rejects stub-sized output, uploads it as an artifact, and attaches it to `win-v*` releases. See `docs/code-signing.md` for production signing.
 
 ## Why NSIS + Electron + WinSW
 

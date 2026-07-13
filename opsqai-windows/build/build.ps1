@@ -29,10 +29,14 @@ $payload   = Join-Path $root 'payload'
 $artifacts = Join-Path $root 'build\artifacts'
 New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 
+function Assert-Exists($path, $label) {
+  if (-not (Test-Path $path)) { throw "Missing $label at $path" }
+}
+
 # --- 0. Build OPSQAI app (Node-server preset) -----------------------------
 $appStage = Join-Path $payload 'app'
 if (-not $SkipApp) {
-  $projectRoot = Split-Path -Parent (Split-Path -Parent $root)   # opsqai-windows/ -> repo root
+  $projectRoot = Split-Path -Parent $root   # opsqai-windows/ -> repo root
   Write-Host "Building OPSQAI app (NITRO_PRESET=node-server)..."
   Push-Location $projectRoot
   try {
@@ -53,8 +57,8 @@ if (-not $SkipApp) {
     if (Test-Path (Join-Path $out 'public')) {
       Copy-Item (Join-Path $out 'public') (Join-Path $appStage 'public') -Recurse -Force
     }
-    # migrate.mjs is authored under opsqai-windows/payload/app/server (source of truth)
-    Copy-Item (Join-Path $root 'payload\app\server\migrate.mjs') (Join-Path $appStage 'server\migrate.mjs') -Force
+    # migrate.mjs is authored outside payload\app so staging cannot delete it.
+    Copy-Item (Join-Path $root 'services\bootstrap\migrate.mjs') (Join-Path $appStage 'server\migrate.mjs') -Force
     # Ship supabase migrations alongside the app so migrate.mjs can find them.
     $migSrc = Join-Path $projectRoot 'supabase\migrations'
     if (Test-Path $migSrc) {
@@ -136,10 +140,13 @@ if (-not $SkipWizard) {
 
 
 # --- 3. Service entrypoints -----------------------------------------------
-Copy-Item -Recurse -Force (Join-Path $root 'services') (Join-Path $payload 'services')
+$servicesDest = Join-Path $payload 'services'
+Remove-Item $servicesDest -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Recurse -Force (Join-Path $root 'services') $servicesDest
 
 # --- 3b. Admin tools (service manager + docker migrator) ------------------
 $toolsDest = Join-Path $payload 'tools'
+Remove-Item $toolsDest -Recurse -Force -ErrorAction SilentlyContinue
 Copy-Item -Recurse -Force (Join-Path $root 'tools') $toolsDest
 $binDir = Join-Path $toolsDest 'bin'
 New-Item -ItemType Directory -Force -Path $binDir | Out-Null
@@ -155,10 +162,16 @@ $updaterDir = Join-Path $payload 'updater'
 New-Item -ItemType Directory -Force -Path $updaterDir | Out-Null
 $pubKey = Join-Path $updaterDir 'pubkey.pem'
 if (-not (Test-Path $pubKey)) {
+  if ($Configuration -eq 'Release') {
+    throw "Release build requires the real updater public key at $pubKey"
+  }
   Write-Warning "No updater pubkey found at $pubKey — generating a DEV-ONLY key. Do NOT ship this build."
   $tmpPriv = Join-Path $env:TEMP 'opsqai-dev-priv.pem'
-  & openssl genpkey -algorithm ed25519 -out $tmpPriv 2>$null
-  if ($LASTEXITCODE -eq 0) {
+  $openssl = Get-Command openssl -ErrorAction SilentlyContinue
+  if ($openssl) {
+    & $openssl.Source genpkey -algorithm ed25519 -out $tmpPriv 2>$null
+  }
+  if ($openssl -and $LASTEXITCODE -eq 0) {
     & openssl pkey -in $tmpPriv -pubout -out $pubKey
     Remove-Item $tmpPriv -Force -ErrorAction SilentlyContinue
   } else {
@@ -198,6 +211,27 @@ $assetsDest = Join-Path $payload 'assets'
 New-Item -ItemType Directory -Force -Path $assetsDest | Out-Null
 $icon = Join-Path $root 'installer\nsis\assets\opsqai.ico'
 if (Test-Path $icon) { Copy-Item $icon $assetsDest -Force }
+
+# --- 6b. Payload guardrails ------------------------------------------------
+# Never ship a stub installer. These checks fail the build before makensis if
+# any large runtime payload was not staged correctly.
+Assert-Exists (Join-Path $payload 'runtime\node\node.exe') 'Node.js runtime'
+Assert-Exists (Join-Path $payload 'winsw\OpsqaiPlatform.exe') 'WinSW service wrapper'
+Assert-Exists (Join-Path $payload 'wizard\OPSQAI-Wizard.exe') 'Electron setup wizard'
+Assert-Exists (Join-Path $payload 'services\bootstrap\init.js') 'bootstrap service'
+Assert-Exists (Join-Path $payload 'services\bootstrap\migrate.mjs') 'migration runner source'
+Assert-Exists (Join-Path $payload 'app\server\index.mjs') 'self-hosted app bundle'
+Assert-Exists (Join-Path $payload 'app\server\migrate.mjs') 'staged migration runner'
+Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
+if (-not $SkipPostgres) {
+  Assert-Exists (Join-Path $payload 'pgsql\bin\postgres.exe') 'PostgreSQL runtime'
+}
+
+$payloadBytes = (Get-ChildItem $payload -Recurse -File | Measure-Object Length -Sum).Sum
+$minimumBytes = if ($SkipPostgres) { 75MB } else { 250MB }
+if ($payloadBytes -lt $minimumBytes) {
+  throw "Payload is too small ($([Math]::Round($payloadBytes / 1MB, 1)) MB). Refusing to build a stub installer."
+}
 
 # --- 7. Run NSIS -----------------------------------------------------------
 $makensis = @(

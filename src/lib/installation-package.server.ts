@@ -19,6 +19,14 @@ import { renderReadmeMarkdown } from "@/lib/installation-readme.server";
 // Fetched once per Worker instance and cached.
 const binaryCache = new Map<string, Uint8Array>();
 
+function minimumRealInstallerBytes(): number {
+  return process.env.NODE_ENV === "test" ? 1 : 50 * 1024 * 1024;
+}
+
+function installerSourceUrl(): string {
+  return process.env.OPSQAI_WINDOWS_INSTALLER_URL?.trim() || installExeAsset.url;
+}
+
 async function resolveOrigin(): Promise<string | null> {
   if (typeof process !== "undefined" && process.env?.OPSQAI_ASSET_ORIGIN) {
     return process.env.OPSQAI_ASSET_ORIGIN;
@@ -74,6 +82,19 @@ async function fetchAsset(url: string, localFallback: string): Promise<Uint8Arra
     );
   }
 }
+
+function assertRealWindowsInstaller(bytes: Uint8Array, source: string): void {
+  const isPeExecutable = bytes[0] === 0x4d && bytes[1] === 0x5a;
+  if (!isPeExecutable) {
+    throw new Error(`windows_installer_not_ready: ${source} is not a Windows executable`);
+  }
+  if (bytes.byteLength < minimumRealInstallerBytes()) {
+    throw new Error(
+      `windows_installer_not_ready: OPSQAI-Setup.exe is only ${Math.round(bytes.byteLength / 1024 / 1024)} MB; upload the real Windows build artifact before generating packages`,
+    );
+  }
+}
+
 function sha256Hex(bytes: Uint8Array): string {
   const buf = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   return createHash("sha256").update(buf).digest("hex");
@@ -99,7 +120,9 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
 
   // Native Windows installer lives in Lovable Assets (too large for the
   // repo). Fetched and cached per-Worker-instance.
-  const setupExe = await fetchAsset(installExeAsset.url, "installer/dist/OPSQAI-Setup.exe");
+  const sourceUrl = installerSourceUrl();
+  const setupExe = await fetchAsset(sourceUrl, "opsqai-windows/build/artifacts/OPSQAI-Setup.exe");
+  assertRealWindowsInstaller(setupExe, sourceUrl);
 
   const files: Record<string, Uint8Array> = {
     "OPSQAI-Setup.exe": setupExe,
