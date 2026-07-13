@@ -139,7 +139,7 @@ function code(ctx: Ctx, text: string): void {
   const size = 9.5;
   const padX = 8;
   const padY = 5;
-  const lines = text.split("\n");
+  const lines = ascii(text).split("\n");
   const lineH = size + 3;
   const boxH = lines.length * lineH + padY * 2;
   ensureSpace(ctx, boxH + 4);
