@@ -27,11 +27,19 @@ Once the install-kind license exists, generate the customer-facing ZIP:
 4. Click **Generate package**. The technical contact receives a 24-hour
    download link by email; the URL is also opened in the current tab.
 
+The `install_id` slug is chosen at **install-provisioning time** (when
+the `license_installs` row is first created) and reused on every
+regeneration — it is not derived from the order or any other field. See
+*Recovery if the `license_installs` row is lost* in
+`docs/security-documentation/05-license-security.md` for the manual DR
+procedure.
+
 Regeneration follows the same flow. By default the previous bundle is
 added to the CRL — see
 `docs/security-documentation/05-license-security.md`. To keep an older
 bundle valid (e.g. a customer restoring from their own backup), check
 **Keep previous bundle valid** before clicking **Regenerate**.
+
 
 Programmatic entry point: `generateInstallationPackage` in
 `src/lib/installation-package.functions.ts`.
