@@ -61,16 +61,10 @@ const OPERATIONS: Item[] = [
     desc: "Licențe + module + subscription lifecycle (trial, grace, suspend).",
   },
   {
-    title: "Releases",
+    title: "Setup",
     url: "/app/platform/setup",
-    icon: Rocket,
-    desc: "Setup MC + releases installer.",
-  },
-  {
-    title: "Instalări",
-    url: "/app/admin/platform",
-    icon: Package,
-    desc: "Heartbeat, versiuni, telemetrie self-hosted.",
+    icon: Wrench,
+    desc: "Checklist configurare MC + releases installer.",
   },
   {
     title: "Doctor",
