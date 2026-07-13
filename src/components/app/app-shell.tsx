@@ -102,8 +102,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (!isMC) return;
     const allowed =
       currentPath.startsWith("/app/platform") ||
+      currentPath.startsWith("/app/admin") ||
       currentPath.startsWith("/app/profile") ||
-      currentPath.startsWith("/app/docs");
+      currentPath.startsWith("/app/docs") ||
+      currentPath.startsWith("/app/brand") ||
+      currentPath.startsWith("/portal");
     if (!allowed) {
       navigate({ to: "/app/platform/overview", replace: true });
     }
