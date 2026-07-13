@@ -47,9 +47,9 @@ function ensureSpace(ctx: Ctx, needed: number): void {
 // Helvetica/Courier are WinAnsi-encoded standard fonts; they don't cover
 // Romanian diacritics. Transliterate to plain Latin so text renders correctly.
 const DIACRITIC_MAP: Record<string, string> = {
-  ă: "a", â: "a", î: "i", ș: "s", ş: "s", ț: "t", ţ: "t",
-  Ă: "A", Â: "A", Î: "I", Ș: "S", Ş: "S", Ț: "T", Ţ: "T",
-  „: '"', "”": '"', "“": '"', "’": "'", "‘": "'", "–": "-", "—": "-", "…": "...",
+  "ă": "a", "â": "a", "î": "i", "ș": "s", "ş": "s", "ț": "t", "ţ": "t",
+  "Ă": "A", "Â": "A", "Î": "I", "Ș": "S", "Ş": "S", "Ț": "T", "Ţ": "T",
+  "„": '"', "”": '"', "“": '"', "’": "'", "‘": "'", "–": "-", "—": "-", "…": "...",
 };
 function ascii(s: string): string {
   return s.replace(/[ăâîșşțţĂÂÎȘŞȚŢ„”“’‘–—…]/g, (c) => DIACRITIC_MAP[c] ?? c);
