@@ -20,10 +20,12 @@ import {
 
 export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lessonId")({
   component: LessonPage,
-  validateSearch: (s: Record<string, unknown>) => ({
-    enrollmentId: (s.enrollmentId as string) ?? "",
-    q: (s.q as string) ?? "",
-  }),
+  validateSearch: (s: Record<string, unknown>): { enrollmentId?: string; q?: string } => {
+    const out: { enrollmentId?: string; q?: string } = {};
+    if (typeof s.enrollmentId === "string") out.enrollmentId = s.enrollmentId;
+    if (typeof s.q === "string") out.q = s.q;
+    return out;
+  },
 });
 
 type Q = { type: "multiple_choice" | "true_false" | "short_answer"; question: string; options?: string[]; correct_answer?: string; explanation: string };

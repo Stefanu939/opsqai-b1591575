@@ -21,12 +21,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/app/admin/support")({
   head: () => ({ meta: [{ title: "Support Inbox — OPSQAI" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
-    c: typeof s.c === "string" ? s.c : undefined,
-    company: typeof s.company === "string" ? s.company : undefined,
-    status: typeof s.status === "string" ? s.status : undefined,
-    priority: typeof s.priority === "string" ? s.priority : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { c?: string; company?: string; status?: string; priority?: string } => {
+    const out: { c?: string; company?: string; status?: string; priority?: string } = {};
+    if (typeof s.c === "string") out.c = s.c;
+    if (typeof s.company === "string") out.company = s.company;
+    if (typeof s.status === "string") out.status = s.status;
+    if (typeof s.priority === "string") out.priority = s.priority;
+    return out;
+  },
   component: Page,
 });
 

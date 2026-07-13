@@ -22,10 +22,12 @@ import { ArrowLeft, Building2, ChevronRight, Loader2, AlertCircle } from "lucide
 
 export const Route = createFileRoute("/_authenticated/app/admin/audit")({
   head: () => ({ meta: [{ title: "Audit Log — OPSQAI" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
-    company: typeof s.company === "string" ? s.company : undefined,
-    user: typeof s.user === "string" ? s.user : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { company?: string; user?: string } => {
+    const out: { company?: string; user?: string } = {};
+    if (typeof s.company === "string") out.company = s.company;
+    if (typeof s.user === "string") out.user = s.user;
+    return out;
+  },
   component: Page,
 });
 
