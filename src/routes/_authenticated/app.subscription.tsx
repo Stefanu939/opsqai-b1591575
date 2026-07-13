@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/app/subscription")({
 
 function SubscriptionPage() {
   const license = useLicense();
-  const modules = license.state.modules ?? [];
+  const modules = license.modules ?? [];
   const active = new Set<string>([...BASIC_MODULES, ...modules]);
 
   const basic = LICENSE_MODULE_CATALOG.filter((m) => m.inBasic);
