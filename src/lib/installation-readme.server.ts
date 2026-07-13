@@ -117,7 +117,7 @@ function h2(ctx: Ctx, text: string): void {
 function h3(ctx: Ctx, text: string): void {
   ensureSpace(ctx, 20);
   ctx.y -= 4;
-  ctx.page.drawText(text, { x: MARGIN_X, y: ctx.y - 11, size: 11, font: ctx.bold, color: INK });
+  ctx.page.drawText(ascii(text), { x: MARGIN_X, y: ctx.y - 11, size: 11, font: ctx.bold, color: INK });
   ctx.y -= 15;
 }
 
