@@ -1,0 +1,17 @@
+<service>
+  <id>OpsqaiCaddy</id>
+  <name>OPSQAI HTTPS Proxy</name>
+  <description>Caddy reverse proxy providing local HTTPS on https://localhost.</description>
+  <executable>%BASE%\..\caddy\caddy.exe</executable>
+  <arguments>run --config "%BASE%\..\caddy\Caddyfile"</arguments>
+  <workingdirectory>%BASE%\..\caddy</workingdirectory>
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+  <depend>OpsqaiPlatform</depend>
+  <onfailure action="restart" delay="5 sec"/>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+  <log mode="roll-by-size"><sizeThreshold>10240</sizeThreshold><keepFiles>8</keepFiles></log>
+  <logpath>%ProgramData%\OPSQAI\logs</logpath>
+</service>

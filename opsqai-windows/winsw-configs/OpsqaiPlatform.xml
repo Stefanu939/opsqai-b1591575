@@ -1,0 +1,28 @@
+<service>
+  <id>OpsqaiPlatform</id>
+  <name>OPSQAI Platform</name>
+  <description>OPSQAI web application server (Node) behind local Caddy TLS.</description>
+
+  <executable>%BASE%\..\runtime\node\node.exe</executable>
+  <arguments>"%BASE%\..\services\platform\index.js"</arguments>
+  <workingdirectory>%BASE%\..</workingdirectory>
+
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+
+  <depend>OpsqaiDatabase</depend>
+
+  <onfailure action="restart" delay="5 sec"/>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  <logpath>%ProgramData%\OPSQAI\logs</logpath>
+
+  <env name="OPSQAI_SERVICE" value="platform"/>
+  <env name="OPSQAI_CONFIG"  value="%ProgramData%\OPSQAI\config\config.json"/>
+</service>
