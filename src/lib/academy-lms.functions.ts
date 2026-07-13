@@ -181,7 +181,7 @@ export const listMyTraining = createServerFn({ method: "POST" })
 export const getMyTrainingSummary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await enforceAcademy(context, (null as string | null | undefined) ?? null);
+    await enforceAcademy(context, null);
     const supabase = context.supabase as any;
 
     const [enrollmentsRes, certsRes, quizzesRes] = await Promise.all([
@@ -582,7 +582,7 @@ export const listCourseCohort = createServerFn({ method: "POST" })
 export const listAssignTargets = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await enforceAcademy(context, (null as string | null | undefined) ?? null);
+    await enforceAcademy(context, null);
     await requirePermission(context, "academy.assign");
     const supabase = context.supabase as any;
     const companyId = await resolveCompanyForWrite(context, null);
