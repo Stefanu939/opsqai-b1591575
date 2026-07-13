@@ -52,7 +52,11 @@ const DIACRITIC_MAP: Record<string, string> = {
   "„": '"', "”": '"', "“": '"', "’": "'", "‘": "'", "–": "-", "—": "-", "…": "...",
 };
 function ascii(s: string): string {
-  return s.replace(/[ăâîșşțţĂÂÎȘŞȚŢ„”“’‘–—…]/g, (c) => DIACRITIC_MAP[c] ?? c);
+  // Map known glyphs, then strip diacritics via NFD, then replace any
+  // remaining non-WinAnsi codepoint with '?'.
+  const mapped = s.replace(/./gu, (c) => DIACRITIC_MAP[c] ?? c);
+  const stripped = mapped.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return stripped.replace(/[^\x09\x0a\x0d\x20-\x7e\xa0-\xff]/g, "?");
 }
 
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
