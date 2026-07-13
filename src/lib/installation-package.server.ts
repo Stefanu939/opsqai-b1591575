@@ -370,6 +370,7 @@ export function assembleInstallationPackage(input: BuildPackageInput): BuiltPack
       .replaceAll("{{GENERATED_AT}}", generatedAt);
 
   const files: Record<string, Uint8Array> = {
+    "install.sh": strToU8(INSTALL_SH),
     "docker-compose.yml": strToU8(substitutions(DOCKER_COMPOSE_TEMPLATE)),
     ".env.template": strToU8(substitutions(ENV_TEMPLATE)),
     "entrypoint.sh": strToU8(ENTRYPOINT_SH),
