@@ -1,12 +1,8 @@
 ; OPSQAI-Setup.nsi
-; Phase 1 skeleton: silent install/uninstall, ARP entry, WinSW "hello" service.
-; Wizard (Electron) is wired in Phase 3.
-;
-; Build:
-;   makensis /DVERSION=1.0.0 /DPAYLOAD_DIR=..\..\payload OPSQAI-Setup.nsi
-;
-; Signing is handled by the CI pipeline (see build/ci/build-windows.yml) via
-; signtool /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a OPSQAI-Setup.exe
+; Phase 2: installs Node runtime, PostgreSQL Portable, Caddy, and registers
+; all OPSQAI Windows Services. Wizard UI (Electron) lands in Phase 3 —
+; Phase 2 uses NSIS built-in pages and expects config values to be provided
+; either interactively or via /S silent-install command-line switches.
 
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
@@ -37,10 +33,6 @@ VIAddVersionKey  "FileVersion"     "${VERSION}"
 VIAddVersionKey  "ProductVersion"  "${VERSION}"
 VIAddVersionKey  "LegalCopyright"  "(c) OPSQAI"
 
-; --- UI --------------------------------------------------------------------
-; Phase 1 uses the built-in MUI2 pages. Phase 3 replaces InstFiles with a
-; call to installer/wizard (Electron) via nsExec::ExecToStack.
-
 !define MUI_ABORTWARNING
 !define MUI_ICON   "assets\opsqai.ico"
 !define MUI_UNICON "assets\opsqai.ico"
@@ -57,12 +49,34 @@ VIAddVersionKey  "LegalCopyright"  "(c) OPSQAI"
 !insertmacro MUI_LANGUAGE "German"
 !insertmacro MUI_LANGUAGE "Romanian"
 
+; --- Helper macros ---------------------------------------------------------
+!macro RegisterService NAME
+  DetailPrint "Registering ${NAME}..."
+  nsExec::ExecToStack '"$INSTDIR\winsw\${NAME}.exe" install'
+  Pop $0
+  ${If} $0 <> 0
+    DetailPrint "${NAME} install returned $0"
+  ${EndIf}
+!macroend
+
+!macro StartService NAME
+  DetailPrint "Starting ${NAME}..."
+  nsExec::ExecToStack '"$INSTDIR\winsw\${NAME}.exe" start'
+  Pop $0
+!macroend
+
+!macro StopAndUninstallService NAME
+  nsExec::ExecToStack '"$INSTDIR\winsw\${NAME}.exe" stop'
+  Pop $0
+  nsExec::ExecToStack '"$INSTDIR\winsw\${NAME}.exe" uninstall'
+  Pop $0
+!macroend
+
 ; --- Install ---------------------------------------------------------------
 Section "OPSQAI Core" SEC_CORE
   SectionIn RO
 
-  ${If} ${RunningX64}
-  ${Else}
+  ${IfNot} ${RunningX64}
     MessageBox MB_ICONSTOP "OPSQAI requires 64-bit Windows 10 (build 17763) or newer."
     Abort
   ${EndIf}
@@ -70,21 +84,42 @@ Section "OPSQAI Core" SEC_CORE
   SetOutPath "$INSTDIR"
   File /r "${PAYLOAD_DIR}\*.*"
 
-  ; ProgramData layout
-  CreateDirectory "$APPDATA\..\..\ProgramData\OPSQAI\config"
-  CreateDirectory "$APPDATA\..\..\ProgramData\OPSQAI\logs"
-  CreateDirectory "$APPDATA\..\..\ProgramData\OPSQAI\data"
-  CreateDirectory "$APPDATA\..\..\ProgramData\OPSQAI\certs"
+  ; --- ProgramData layout ---
+  ; NSIS $APPDATA points to CurrentUser; we need ProgramData for machine-wide state.
+  ReadEnvStr $R0 "ProgramData"
+  ${If} $R0 == ""
+    StrCpy $R0 "C:\ProgramData"
+  ${EndIf}
+  CreateDirectory "$R0\OPSQAI\config"
+  CreateDirectory "$R0\OPSQAI\logs"
+  CreateDirectory "$R0\OPSQAI\data\pgsql"
+  CreateDirectory "$R0\OPSQAI\data\storage"
+  CreateDirectory "$R0\OPSQAI\certs"
 
-  ; --- Register WinSW "hello" service (Phase 1 smoke test) ---
-  DetailPrint "Registering OpsqaiHello service..."
-  nsExec::ExecToStack '"$INSTDIR\winsw\OpsqaiHello.exe" install'
+  ; --- Register services (order matters for dependency graph) ---
+  ; Database first so Platform can depend on it.
+  !insertmacro RegisterService "OpsqaiDatabase"
+  !insertmacro RegisterService "OpsqaiPlatform"
+  !insertmacro RegisterService "OpsqaiWorker"
+  !insertmacro RegisterService "OpsqaiCaddy"
+  !insertmacro RegisterService "OpsqaiUpdater"
+
+  ; Phase 3 wizard hands values to bootstrap; Phase 2 stub creates a minimal
+  ; config so services can start. NSIS runs bootstrap only if /S was NOT used
+  ; without required parameters — otherwise the wizard supplies them later.
+  DetailPrint "Running bootstrap..."
+  nsExec::ExecToStack '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "changeme" --company "OPSQAI"'
   Pop $0
   ${If} $0 <> 0
-    DetailPrint "WinSW install returned $0"
+    DetailPrint "bootstrap returned $0"
   ${EndIf}
-  nsExec::ExecToStack '"$INSTDIR\winsw\OpsqaiHello.exe" start'
-  Pop $0
+
+  ; Start services in dependency order.
+  !insertmacro StartService "OpsqaiDatabase"
+  !insertmacro StartService "OpsqaiPlatform"
+  !insertmacro StartService "OpsqaiWorker"
+  !insertmacro StartService "OpsqaiCaddy"
+  !insertmacro StartService "OpsqaiUpdater"
 
   ; --- ARP / Uninstall entry ---
   WriteRegStr HKLM "Software\OPSQAI" "InstallDir" "$INSTDIR"
@@ -115,14 +150,15 @@ SectionEnd
 
 ; --- Uninstall -------------------------------------------------------------
 Section "Uninstall"
-  DetailPrint "Stopping and removing OpsqaiHello service..."
-  nsExec::ExecToStack '"$INSTDIR\winsw\OpsqaiHello.exe" stop'
-  Pop $0
-  nsExec::ExecToStack '"$INSTDIR\winsw\OpsqaiHello.exe" uninstall'
-  Pop $0
+  ; Stop in reverse dependency order.
+  !insertmacro StopAndUninstallService "OpsqaiUpdater"
+  !insertmacro StopAndUninstallService "OpsqaiCaddy"
+  !insertmacro StopAndUninstallService "OpsqaiWorker"
+  !insertmacro StopAndUninstallService "OpsqaiPlatform"
+  !insertmacro StopAndUninstallService "OpsqaiDatabase"
 
-  ; Phase 1: remove application only. Phase 4 uninstaller adds the
-  ; "remove data / keep DB / keep documents" dialog.
+  ; Phase 4 uninstaller adds the "keep DB / keep documents" dialog.
+  ; Phase 2 removes application binaries only; %ProgramData%\OPSQAI is preserved.
   RMDir /r "$INSTDIR"
 
   DeleteRegKey HKLM "Software\OPSQAI"
