@@ -144,6 +144,155 @@ done
 exec "$@"
 `;
 
+const INSTALL_SH = `#!/usr/bin/env bash
+# OPSQAI Self-Hosted host-side installer.
+# Runs ON THE HOST (not inside the container). Distinct from entrypoint.sh
+# which runs automatically inside the app container on every boot.
+#
+# Usage:
+#   ./install.sh              Fresh install (default)
+#   ./install.sh --restore    Restore from a backup archive (DR runbook 5.5.4)
+#   ./install.sh --help
+#
+# Safe to re-run: prerequisite check + .env copy are idempotent.
+
+set -euo pipefail
+
+MODE="install"
+for arg in "$@"; do
+  case "$arg" in
+    --restore) MODE="restore" ;;
+    --help|-h)
+      cat <<'EOF'
+OPSQAI Self-Hosted installer
+
+  ./install.sh              Fresh install: checks prerequisites, seeds .env
+                            from .env.template, starts the stack, waits for
+                            the app to report healthy, then prints the URL
+                            to open the Setup Wizard.
+  ./install.sh --restore    Disaster-recovery mode: prompts for a backup
+                            archive path and follows the DR runbook (5.5.4)
+                            instead of writing a fresh .env / starting a new
+                            stack. Does NOT overwrite an existing .env.
+EOF
+      exit 0
+      ;;
+    *)
+      echo "install.sh: unknown argument: $arg" >&2
+      echo "Run './install.sh --help' for usage." >&2
+      exit 2
+      ;;
+  esac
+done
+
+log()  { printf '\\033[1;34m[opsqai]\\033[0m %s\\n' "$*"; }
+warn() { printf '\\033[1;33m[opsqai]\\033[0m %s\\n' "$*" >&2; }
+err()  { printf '\\033[1;31m[opsqai]\\033[0m %s\\n' "$*" >&2; }
+
+check_prereqs() {
+  local missing=0
+  if ! command -v docker >/dev/null 2>&1; then
+    err "docker is not installed or not on PATH."
+    err "Install Docker Engine: https://docs.docker.com/engine/install/"
+    missing=1
+  fi
+  if ! docker compose version >/dev/null 2>&1; then
+    err "The Docker Compose plugin (v2) is not available."
+    err "Install it: https://docs.docker.com/compose/install/linux/"
+    err "On Debian/Ubuntu: 'sudo apt-get install docker-compose-plugin'."
+    missing=1
+  fi
+  if [ "$missing" -ne 0 ]; then
+    err "Fix the prerequisites above and re-run './install.sh'."
+    exit 1
+  fi
+  log "Prerequisites OK (docker + compose plugin present)."
+}
+
+seed_env() {
+  if [ -f .env ]; then
+    log ".env already exists — leaving it untouched (idempotent)."
+    return
+  fi
+  if [ ! -f .env.template ]; then
+    err ".env.template is missing from this directory."
+    err "Are you running install.sh from inside the extracted ZIP?"
+    exit 1
+  fi
+  cp .env.template .env
+  log "Copied .env.template -> .env. Review and edit OPSQAI_PUBLIC_URL before opening the Setup Wizard."
+}
+
+wait_healthy() {
+  local port url tries=60
+  port="\${OPSQAI_PORT:-3000}"
+  url="http://localhost:\${port}/health"
+  log "Waiting for the app to report healthy at \${url} ..."
+  for i in $(seq 1 "$tries"); do
+    if curl -fsS --max-time 3 "$url" >/dev/null 2>&1; then
+      log "App is healthy after \${i} check(s)."
+      return 0
+    fi
+    sleep 2
+  done
+  err "App did not report healthy after \$((tries * 2))s."
+  err "Inspect logs with: docker compose logs --tail=200 opsqai"
+  exit 1
+}
+
+print_wizard_url() {
+  local public_url
+  # shellcheck disable=SC1091
+  public_url="$(grep -E '^OPSQAI_PUBLIC_URL=' .env | head -n1 | cut -d= -f2- || true)"
+  if [ -z "\${public_url:-}" ] || [ "\${public_url}" = "https://opsqai.example.com" ]; then
+    public_url="http://localhost:\${OPSQAI_PORT:-3000}"
+  fi
+  log ""
+  log "Setup complete. Open this URL in a browser to begin the Setup Wizard:"
+  log ""
+  log "    \${public_url}/first-run"
+  log ""
+}
+
+restore_flow() {
+  log "OPSQAI restore mode — following DR runbook 5.5.4."
+  log "Prerequisites: existing .env pointing at the SAME install_id as the backup."
+  if [ ! -f .env ]; then
+    err "No .env found. Restore must run against an existing installation directory."
+    err "For a fresh install use './install.sh' (without --restore)."
+    exit 1
+  fi
+  read -r -p "Path to backup archive (.tar.zst): " archive
+  if [ ! -f "$archive" ]; then
+    err "File not found: $archive"
+    exit 1
+  fi
+  log "Stopping stack ..."
+  docker compose down
+  log "Restoring $archive — see docs/engineering/runbooks/dr-verify-v1.0.0.md for the full procedure."
+  log "This installer defers the actual volume rehydration to 'opsqai restore', which knows how to"
+  log "unpack Config (including secrets.env), Database and Storage scopes into the correct volumes."
+  docker compose run --rm opsqai opsqai restore --archive "$archive"
+  log "Starting stack ..."
+  docker compose up -d
+  wait_healthy
+  log "Restore complete. Run 'docker compose exec opsqai opsqai doctor' to verify."
+}
+
+check_prereqs
+
+if [ "$MODE" = "restore" ]; then
+  restore_flow
+  exit 0
+fi
+
+seed_env
+log "Starting stack with 'docker compose up -d' ..."
+docker compose up -d
+wait_healthy
+print_wizard_url
+`;
+
 function renderReadme(input: {
   install_id: string;
   installer_version: string;
