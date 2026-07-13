@@ -7,6 +7,15 @@
 //   - password persisted to config.json (owner-only ACL applied by bootstrap)
 //   - listen on 127.0.0.1 only; pg_hba locked to loopback + scram
 //   - clean shutdown via pg_ctl stop -m fast on SIGTERM
+//
+// Phase 2.1 fix:
+//   - postgresql.conf / pg_hba.conf writes are IDEMPOTENT (repaired on every
+//     boot). A partially-initialized data dir left behind by an aborted
+//     install used to leave postgres listening on default port 5432, so
+//     bootstrap's readiness probe on 55432 timed out with no explanation.
+//   - readiness now uses pg_isready in addition to a raw TCP connect and
+//     will wait up to 90s. Exit code + stderr of the postgres child are
+//     surfaced loudly so bootstrap's log tail is actionable.
 
 "use strict";
 const { spawn, spawnSync } = require("child_process");
@@ -16,6 +25,7 @@ const net = require("net");
 const os = require("os");
 const path = require("path");
 const { loadConfig, saveConfig, programData, programFiles } = require("../common/config");
+const { ensureConfig } = require("./ensure-config");
 
 const cfg = loadConfig();
 if (cfg.database.mode !== "embedded") {
@@ -27,6 +37,7 @@ const port = cfg.database.embedded.port || 55432;
 const pgBin = programFiles("pgsql", "bin");
 const dataDir = programData("data", "pgsql");
 const pgCtl = path.join(pgBin, "pg_ctl.exe");
+const pgIsReady = path.join(pgBin, "pg_isready.exe");
 const initdb = path.join(pgBin, "initdb.exe");
 const postgres = path.join(pgBin, "postgres.exe");
 
@@ -45,7 +56,9 @@ function ensurePassword() {
   return pw;
 }
 
-if (!fs.existsSync(path.join(dataDir, "PG_VERSION"))) {
+const freshInit = !fs.existsSync(path.join(dataDir, "PG_VERSION"));
+
+if (freshInit) {
   const pw = ensurePassword();
   fs.mkdirSync(dataDir, { recursive: true });
   const pwFile = path.join(os.tmpdir(), `opsqai-pg-${process.pid}.pw`);
@@ -76,48 +89,71 @@ if (!fs.existsSync(path.join(dataDir, "PG_VERSION"))) {
       fs.unlinkSync(pwFile);
     } catch {}
   }
-  // Bind to loopback only + password-encryption default.
-  fs.appendFileSync(
-    path.join(dataDir, "postgresql.conf"),
-    `\n# --- OPSQAI ---\n` +
-      `listen_addresses = '127.0.0.1'\n` +
-      `port = ${port}\n` +
-      `password_encryption = scram-sha-256\n` +
-      `logging_collector = on\n` +
-      `log_directory = 'log'\n`,
-  );
-  // Restrict pg_hba to loopback + scram (initdb already did, but ensure no 'trust' entries linger).
-  const hba = path.join(dataDir, "pg_hba.conf");
-  fs.writeFileSync(
-    hba,
-    `# OPSQAI: loopback-only, scram-sha-256\n` +
-      `local  all  all                scram-sha-256\n` +
-      `host   all  all  127.0.0.1/32  scram-sha-256\n` +
-      `host   all  all  ::1/128       scram-sha-256\n`,
-  );
 } else {
   // Ensure password is known even on re-registration.
   ensurePassword();
+  log("existing data dir detected — verifying config is up to date");
 }
+
+// IDEMPOTENT: always repair postgresql.conf / pg_hba.conf. This fixes stale
+// data dirs left behind by an aborted install (where PG_VERSION exists but
+// the OPSQAI config block was never appended).
+try {
+  const result = ensureConfig(dataDir, port);
+  if (result.postgresqlConfChanged) log(`postgresql.conf: ${result.postgresqlConfAction}`);
+  if (result.pgHbaChanged) log(`pg_hba.conf: rewritten (loopback + scram-sha-256 only)`);
+} catch (e) {
+  log(`FATAL: ensureConfig failed: ${e.message}`);
+  process.exit(1);
+}
+
+fs.mkdirSync(path.join(dataDir, "log"), { recursive: true });
 
 log(`Starting postgres on 127.0.0.1:${port}`);
 const child = spawn(postgres, ["-D", dataDir], { stdio: "inherit" });
 
-function waitReady(attempt = 0) {
-  const s = net.connect(port, "127.0.0.1");
-  s.once("connect", () => {
-    s.end();
-    log("Postgres is accepting connections.");
-  });
-  s.once("error", () => {
-    if (attempt >= 60) {
-      log("Postgres did not become ready in 60s.");
+child.on("error", (e) => {
+  log(`FATAL: failed to spawn postgres: ${e.message}`);
+});
+
+async function readinessProbe() {
+  const deadline = Date.now() + 90_000;
+  let lastMsg = "";
+  let tcpOk = false;
+  while (Date.now() < deadline) {
+    if (!tcpOk) {
+      tcpOk = await new Promise((resolve) => {
+        const s = net.connect(port, "127.0.0.1");
+        s.once("connect", () => {
+          s.end();
+          resolve(true);
+        });
+        s.once("error", () => resolve(false));
+      });
+    }
+    if (tcpOk && fs.existsSync(pgIsReady)) {
+      const r = spawnSync(pgIsReady, ["-h", "127.0.0.1", "-p", String(port), "-U", "opsqai", "-d", "postgres"], {
+        encoding: "utf8",
+      });
+      lastMsg = `${(r.stdout || "").trim()} ${(r.stderr || "").trim()}`.trim();
+      if (r.status === 0) {
+        log(`Postgres is accepting connections (pg_isready: ${lastMsg || "ok"}).`);
+        return;
+      }
+    } else if (tcpOk) {
+      // pg_isready binary missing — fall back to TCP-only signal.
+      log("Postgres TCP socket open (pg_isready.exe not present; accepting).");
       return;
     }
-    setTimeout(() => waitReady(attempt + 1), 1000);
-  });
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  log(`Postgres did not become ready in 90s. tcpOk=${tcpOk} lastProbe='${lastMsg}'`);
+  log(`Check ${path.join(dataDir, "log")}\\ for postgres startup errors.`);
 }
-setTimeout(waitReady, 1000);
+
+setTimeout(() => {
+  readinessProbe().catch((e) => log(`readiness probe error: ${e.message}`));
+}, 1000);
 
 for (const sig of ["SIGINT", "SIGTERM"]) {
   process.on(sig, () => {
@@ -126,7 +162,7 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
     process.exit(0);
   });
 }
-child.on("exit", (code) => {
-  log(`postgres exited ${code}`);
+child.on("exit", (code, signal) => {
+  log(`postgres exited code=${code} signal=${signal ?? "none"}`);
   process.exit(code ?? 1);
 });

@@ -1,117 +1,53 @@
-## Goal
+## Diagnosis
 
-1. `app-shell.tsx` deja are separare `isMC` vs self-host, dar:
-   - MC nav îi lipsesc: Module Catalog, Release Management, Maintenance, Downloads, Monitoring, Billing.
-   - Self-hosted nav arată tot admin-ul necondiționat — trebuie gate-uit pe module licențiate; doar Basic vizibil implicit.
-2. Billing MC: modelul de preț nu e reflectat nicăieri — trebuie o pagină cu preț fix produs 15.000€ + abonament mentenanță 200–500€/lună + module extra cu preț per key.
-3. Fiecare item/card trebuie verificat că ruta chiar există și functia din spate răspunde, apoi filtrat, nu șters.
+`opsqai-windows/services/database/index.js` only writes `postgresql.conf` / `pg_hba.conf` **inside the fresh-init branch** (`if (!fs.existsSync(...PG_VERSION))`). If a previous attempt left a partially-initialized `data/pgsql/` behind (very likely — the first install attempts crashed before this run), `PG_VERSION` exists but the `# --- OPSQAI ---` block that sets `listen_addresses`, `port = 55432`, and `password_encryption` was never appended. `postgres.exe` then starts on its initdb defaults (port `5432`, `listen_addresses = 'localhost'` may be commented), so the bootstrap TCP probe against `127.0.0.1:55432` legitimately never succeeds — hence "postgres not ready after 60s".
 
-Nu se șterge nicio rută sau definiție NavItem — doar filtrare la render, exact ca patternul existent `filterNav` + `gate(module)`.
+Secondary problems that hide the real cause:
+- The service `waitReady()` only logs "did not become ready" — it never exits, never surfaces `postgres.exe`'s actual stderr, and never checks the log directory.
+- Bootstrap has no fallback diagnostics: on timeout it exits 3 without tailing `%ProgramData%\OPSQAI\data\pgsql\log\*.log` or the winsw `OpsqaiDatabase.out.log`.
+- No `pg_isready` probe — a raw TCP `connect` succeeds as soon as postgres binds the socket, even before recovery finishes, so on slow disks the 60 s window is genuinely tight for the first boot after a crash-recovered data dir.
 
----
+## Fix Plan
 
-## Step 1 — Audit nav items existente (fără edit)
+### 1. `opsqai-windows/services/database/index.js` — make config idempotent
 
-Pentru fiecare item din cele 3 grupe self-host și 6 grupe MC din `app-shell.tsx` (liniile 137–468), verific:
-- ruta există sub `src/routes/_authenticated/`
-- pagina se randează (loader nu aruncă, componenta se montează)
-- funcțiile server pe care le apelează sunt implementate
+Move the `postgresql.conf` / `pg_hba.conf` writing out of the fresh-init branch into an always-run `ensureConfig()` step that:
 
-Raportez un tabel `route → exists? → renders? → server fn ok?` înainte de orice modificare. Orice item cu rută lipsă marcat `show: false` explicit cu comentariu, nu șters.
+- Reads current `postgresql.conf`; if the `# --- OPSQAI ---` sentinel is missing, appends the block (`listen_addresses = '127.0.0.1'`, `port = <cfg port>`, `password_encryption = scram-sha-256`, `logging_collector = on`, `log_directory = 'log'`, `log_filename = 'postgresql-%Y-%m-%d.log'`).
+- If the sentinel is present but `port` differs from `cfg.database.embedded.port`, rewrite that line (drift protection when the operator changes the port).
+- Always overwrites `pg_hba.conf` with the loopback+scram-only content (already idempotent, just lift it out of the init branch).
+- Ensures `log/` subdir exists before postgres starts.
 
-## Step 2 — MC nav: completare la lista cerută
+Also:
+- Add a stderr/exit listener on the `postgres` child so an early exit is logged loudly (currently only `exit` is caught, but code and stderr are inherited to the winsw log — surface the exit code with a distinctive marker so bootstrap can find it).
+- Replace `waitReady`'s raw TCP probe with `pg_isready.exe -h 127.0.0.1 -p <port> -U opsqai -d postgres` (bundled in `pgsql/bin`), polled every second up to 90 s. Log the last `pg_isready` message on failure.
 
-Adaug NavItem-uri noi (rutele lipsă le creez ca stub route file + placeholder component; le pot construi pe rând ulterior). Structura finală MC:
+### 2. `opsqai-windows/services/bootstrap/init.js` — better readiness + diagnostics
 
+- Bump the DB wait from 60 s → 120 s (Windows first-boot after aborted init can genuinely need >60 s).
+- After TCP connect, run `pg_isready.exe -h 127.0.0.1 -p <port>` from `%ProgramFiles%\OPSQAI\pgsql\bin` and require exit 0 before proceeding.
+- On failure, tail and print the last ~80 lines of `%ProgramData%\OPSQAI\data\pgsql\log\*.log` (newest file) **and** `%ProgramData%\OPSQAI\logs\OpsqaiDatabase.out.log` / `.err.log` before `process.exit(3)`. This turns silent 60 s timeouts into actionable output.
+- Before starting the service, if `%ProgramData%\OPSQAI\data\pgsql\PG_VERSION` exists but `postgresql.conf` lacks the `# --- OPSQAI ---` sentinel, log a `stale data dir detected — service will repair` warning (matches the ensureConfig repair path).
+
+### 3. Recovery path for the user's current stuck install
+
+The user's machine is already in the broken state (partial `data/pgsql/`). Two options, called out in the plan output:
+
+a. Simplest: uninstall, delete `%ProgramData%\OPSQAI\data\pgsql\`, reinstall — the new `ensureConfig()` also fixes it, but a clean data dir avoids any half-initialized catalog state.
+
+b. In-place: stop `OpsqaiDatabase`, delete `%ProgramData%\OPSQAI\data\pgsql\`, re-run `bootstrap\init.js` — the service will re-initdb and the new code path will write the correct conf files.
+
+### 4. Verification
+
+- `bunx tsgo --noEmit` (nothing in `src/` changed but keeps the invariant).
+- Since these are Windows-only Node scripts that can't run in the sandbox, add a small Node unit that exercises `ensureConfig()` against a fake temp `postgresql.conf` (with and without sentinel; drifted port) and asserts the resulting file content. Place under `opsqai-windows/services/database/__tests__/ensure-config.test.mjs` and run with `node --test`.
+
+### Files touched
+
+```text
+opsqai-windows/services/database/index.js             (edit — idempotent config + pg_isready)
+opsqai-windows/services/bootstrap/init.js             (edit — longer wait + diagnostics tail)
+opsqai-windows/services/database/__tests__/ensure-config.test.mjs   (new — node --test)
 ```
-Overview      : Dashboard, Executive Dashboard, Analytics, Monitoring*
-Enterprise    : Companies, Enterprise Documents, Contacts*, Installations*, Customer Portal
-Licensing     : Licenses & Releases, Activation Bundles, Module Catalog*, Release Management*, Maintenance*
-Commercial    : Orders & Subscriptions, Billing*, Downloads*
-Operations    : Support Inbox, Audit Log, Email Settings, Email Logs
-Integrations  : Integrations, SSO/SAML/OAuth, Webhooks, API Keys, API Docs
-Platform      : Platform Administration, Users & Roles, Directory, Branding, Setup, Doctor, Recovery
-```
 
-`*` = rută nouă, creez fișier de rută + pagină stub minimă (heading + descriere + link-uri către surfaces existente unde este cazul: Module Catalog citește `LICENSE_MODULE_CATALOG`; Downloads listează `installer_releases`; Monitoring pointează la Doctor/health; Maintenance listează licențele cu `maintenance_expires_at` iminent). Nu implementez business logic nouă în acest pas dincolo de citiri simple deja disponibile.
-
-## Step 3 — Self-Hosted nav: license-gated by default
-
-Regulă nouă: în self-host, doar **Basic bundle** vizibil din start. Restul apar când licența conține modulul corespunzător. Basic vizibil implicit:
-
-- Dashboard (`/app`), Chat (`chat`), Knowledge Base (`kb`), FAQ (`faq`), Requests (`internal_requests` — actualmente Basic-adjacent; îl mut în Basic dacă user confirmă, altfel îl las gated), Knowledge Gaps (`knowledge_gaps`), AI Audit (`audit_log`), Users, Subscription/Billing view.
-
-Mapare item → ModuleKey pentru gating (folosind `useHasModule` / `gate()` deja prezent):
-
-| Nav item              | module gate               | vizibil în Basic? |
-|-----------------------|---------------------------|-------------------|
-| Chat                  | `chat`                    | da (Basic)        |
-| Knowledge Base        | `kb`                      | da (Basic)        |
-| FAQ                   | `faq`                     | da (Basic)        |
-| Knowledge Gaps        | `knowledge_gaps`          | da (per cerință)  |
-| AI Audit              | `audit_log`               | da (per cerință)  |
-| Users                 | (permisiune, fără modul)  | da (Basic)        |
-| Subscription/Billing  | (fără modul, mereu)       | da (Basic)        |
-| Workspace             | `ai_workspace_audit`      | nu (hidden)       |
-| Requests              | `internal_requests`       | nu                |
-| Academy (learner)     | `academy`                 | nu                |
-| Command Center        | `executive_dashboard`     | nu                |
-| SOP Generator         | `ai_sop_generator`        | nu                |
-| Academy Manager       | `academy`                 | nu                |
-| Analytics             | `analytics`               | nu                |
-| Integrations          | (admin + modul dedicat? — propun `rbac` sau nou key) | nu |
-| SSO Setup             | `rbac`                    | nu                |
-| Webhooks              | (admin) — propun gated de `rbac` sau always-admin | nu |
-| API Keys              | idem                      | nu                |
-| Brand Center          | `brand_center`            | nu                |
-
-Pattern implementare: pentru items care actualmente au `module: null` dar trebuie hidden until licensed, actualizez cheia `module` la key-ul corect. `filterNav` deja face `show && gate(module)`, deci nu se schimbă logica — doar datele.
-
-Adaug NavItem nou "Subscription" în self-host Workspace group care duce la o pagină `/app/subscription` (creez rută stub) care arată planul curent, mentenanța, modulele active/inactive și link "Cere modul suplimentar".
-
-## Step 4 — Mode isolation (route access, nu doar nav)
-
-`DeploymentModeGate` deja există și redirectează. Verific că lists `MC_ONLY_PREFIXES` / `SELFHOST_ONLY_PREFIXES` din `deployment-mode.ts` acoperă rutele noi din Step 2. Adaug prefixele noi (`/app/admin/module-catalog`, `/app/admin/downloads`, `/app/admin/maintenance`, `/app/admin/monitoring`, `/app/admin/billing`, `/app/admin/installations`, `/app/admin/contacts`) în `MC_ONLY_PREFIXES`. Rutele operaționale rămân doar în self-host.
-
-## Step 5 — Billing model (MC)
-
-Creez `/app/admin/billing` cu:
-- **Product one-time**: `€15,000` fixed, incl. installation (constantă în `src/lib/pricing.ts` nou).
-- **Maintenance subscription**: bandă `€200–€500 / lună`, custom per client (input în UI-ul MC billing per licență).
-- **Extra modules**: derivate din `LICENSE_MODULE_CATALOG` — arăt tabel cu `label`, `defaultPriceCents`, editabil per client (override).
-- Buton "Add custom line item" pentru pricing customizat.
-
-Structura date: adaug tabel `license_pricing` (per install_id):
-```
-install_id text PK/FK, product_price_cents int default 1500000,
-maintenance_monthly_cents int, currency text default 'EUR',
-custom_lines jsonb default '[]', updated_at timestamptz
-```
-Cu GRANT + RLS (admin-only via `has_role`). Migration + server fn `getLicensePricing` / `saveLicensePricing`.
-
-Self-host Subscription page (Step 3) citește read-only același rând pentru install-ul curent, prin server fn public (validat cu install_id din `platform_config`), fără să expună alte tenants.
-
-## Step 6 — Verificare
-
-- `bun run tsgo` clean.
-- Playwright headless: setez `VITE_OPSQAI_MODE=mc` build, verific `/app/platform/*` render + capture nav; apoi `=selfhost`, verific `/app` cu licență Basic → doar items Basic; apoi injectez licență cu `analytics` → apare Analytics.
-- Screenshot before/after pentru fiecare mod.
-- Raport final: lista NavItem filtrată real pentru fiecare mod + screenshot-uri.
-
----
-
-## Deliverables
-
-- `src/components/app/app-shell.tsx` — grupuri MC completate, self-host items cu `module` corect.
-- `src/lib/deployment-mode.ts` — prefixe noi.
-- rute stub noi sub `src/routes/_authenticated/` (Module Catalog, Downloads, Maintenance, Monitoring, Billing, Installations, Contacts, Subscription).
-- `src/lib/pricing.ts` + migration `license_pricing` + `pricing.functions.ts`.
-- Playwright script sub `/tmp/browser/nav-modes/`.
-- Raport în chat cu tabelele finale + screenshots.
-
-## Întrebări înainte de build
-
-1. **Requests (`internal_requests`)** — îl las gated (ascuns până la licență) sau îl mut în Basic alături de Chat/KB/FAQ? (ai listat "Knowledge Gap" în Basic, dar nu "Requests".)
-2. **Integrations / Webhooks / API Keys** — le gate-uiez pe un modul nou `integrations` (nu există în catalog azi), pe `rbac`, sau le las always-admin fără modul? Propun adăugare `integrations` în `LICENSE_MODULE_CATALOG` (bump `MODULE_CATALOG_VERSION`).
-3. **Currency billing** — EUR fix sau multi-currency? Confirm EUR-only.
-4. **Maintenance range 200–500€** — input liber cu validare `>=200 && <=500`, sau slider fix cu 4 trepte (200/300/400/500)?
+No changes to WinSW XML, no schema changes, no cloud-side changes.
