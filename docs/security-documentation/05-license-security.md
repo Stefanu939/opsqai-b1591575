@@ -26,3 +26,25 @@
 - Bundle format is JSON, itself Ed25519-signed.
 - Bundle includes: all current licenses for the install, active signing-key public keys, latest CRL.
 - Bundle expiry: 90 days from issuance. Portal reminds the customer at 60 and 75 days.
+
+## Installation package regeneration
+
+- The Management Center packages the activation bundle inside a signed
+  installation ZIP (see `docs/administrator-guide/02-installation.md`).
+- Regeneration is idempotent for `install_id`: the same order always
+  produces the same identity, so a customer that regenerates the package
+  does not fork into a new install.
+- Default on regeneration: the previous bundle is added to the CRL and
+  stops activating new installs on the next heartbeat. The audit log records
+  `installation_package.generated` with `previous_bundle_revoked = true`.
+- Escape hatch: a platform admin can check *"Keep previous bundle valid"*
+  when the customer is running a restored backup that must keep its old
+  bundle working. This is surfaced with an explicit warning in the MC UI.
+- The generated ZIP holds NO customer infrastructure secrets (AD-009).
+  `POSTGRES_PASSWORD` and `MINIO_ROOT_PASSWORD` are placeholders; the
+  bundled `entrypoint.sh` generates strong random values on first boot and
+  writes them to a customer-owned data volume.
+- Download URLs are Ed25519-signed and time-limited to 24 hours. Every
+  download is logged with actor, IP, user-agent, and expiry into
+  `installation_package_downloads` for audit.
+
