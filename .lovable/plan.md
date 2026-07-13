@@ -1,76 +1,64 @@
-One small addition to point 4 of the recovery procedure, before applying:
+adaugă o constrângere la nivel de bază de date (ex. un index unic parțial, sau un lacăt explicit — `SELECT ... FOR UPDATE` pe un rând de configurare, sau pur și simplu o coloană `setup_completed_at` verificată **și** setată atomic, într-o singură tranzacție, nu în doi pași separați). Testul de verificare cerut în plan („POST direct la firstRunCreateAdmin → trebuie Forbidden") ar trebui completat cu un test de dublă-cerere simultană (`Promise.all` cu două apeluri paralele), nu doar apeluri secvențiale — altfel condiția de rasă poate trece neobservată chiar și prin testele lor.
 
-Clarify explicitly that a "hard reset" also requires the customer to 
+**Un lucru de clarificat, nu neapărat o greșeală:**
 
-manually reconfigure their existing running installation with the new 
+La pasul 4 (AI Provider) și 5 (SMTP), planul spune că secretele „merg via `add_secret`/env" — dar în contextul unui wizard rulat de un client fără cunoștințe tehnice (exact scenariul pe care tu însuți l-ai descris, „nu vreau să editez fișiere manual"), nu e clar din text **cum** ajunge secretul acolo prin interfața wizard-ului, fără ca utilizatorul să deschidă manual `.env`. Cere-le să clarifice explicit: câmpul de parolă din formularul wizard-ului scrie direct o variabilă de mediu la runtime (posibil, dacă `entrypoint.sh`/aplicația suportă asta), sau chiar wizard-ul tot cere clientului să editeze un fișier la un moment dat, undeva pe drum? Dacă răspunsul e a doua variantă, contrazice exact motivul pentru care ai cerut acest wizard.  
+First-Run Setup Wizard (Phase 5)
 
-install_id (update .env, replace the local activation bundle) — the old 
+Distinct from `/_authenticated/app/platform/setup.tsx` (the Doctor panel, unchanged). The new wizard is a **public** route reachable only when the install has zero platform admins.
 
-running instance will not automatically recognize the newly issued slug. 
+## Route & gate
 
-This is not just an MC-side action; note it as a two-sided step (MC 
+- New route: `src/routes/first-run.tsx` at URL `/first-run` (public — NOT under `_authenticated/`).
+- New server fn `getFirstRunGate` (no auth middleware) returns `{ open: boolean, reason }`:
+  - `open=true` iff `OPSQAI_MODE==="selfhost"` AND `SELECT count(*) FROM user_roles WHERE role IN ('platform_owner','platform_admin')` is 0 (via `supabaseAdmin`, loaded inside the handler).
+  - Otherwise `open=false` — the route renders a "Setup already completed" panel with a link to `/auth`. `beforeLoad` calls the gate and `throw redirect({ to: "/auth" })` when closed. This is the **security-critical boundary**.
+- Once ANY admin exists, the gate flips permanently closed. There is no "reopen" affordance — a lost admin uses the DR break-glass flow, not this route.
+- Every state-changing step server fn re-runs the gate check at the top of `.handler()` (defense in depth: `throw new Error("Forbidden: setup already completed")` if an admin now exists). No `requireSupabaseAuth`; authorization is "install has no admins".
 
-issues new identity + customer applies it locally) in the doc, so support 
+## Steps (10)
 
-doesn't assume "regenerate = done" when a hard reset actually requires 
+Reuses existing server code where it exists; adds thin new server fns where it doesn't. Persists progress as string IDs in `platform_config.setup_progress` reusing the `SETUP_STEPS` catalog (extending it with new IDs where needed — never storing secrets).
 
-customer-side action too.  
-  
-Goal
 
-Close Phase 4.5 cleanly by making the documentation match what was actually built: `install_id` is a human-readable slug (validated by `InstallIdSchema`), manually assigned once per install and reused by every subsequent regeneration — **not** a `uuidv5(namespace, "order:"+orderId)` value.
+| #   | Step                             | Server logic                                                                                                                                                                                                                                                                                                                  | Persists                                                            |
+| --- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1   | Accept License (EULA + checkbox) | new `acceptEula` fn — records timestamp in `platform_config.eula_accepted_at` (new column)                                                                                                                                                                                                                                    | new step id `eula_accepted`                                         |
+| 2   | Import Installation License      | reuse `license-import.server.ts` via new unauth wrapper `firstRunImportLicense` (gate-protected)                                                                                                                                                                                                                              | existing `license_imported`                                         |
+| 3   | Configure Storage                | new `firstRunTestStorage` — writes/reads/deletes a probe object in the uploads bucket                                                                                                                                                                                                                                         | existing `storage_ok`                                               |
+| 4   | Configure AI Provider            | new `firstRunSetAiProvider` — writes provider selection into `platform_config.ai_provider_config` (JSON, no raw secrets — secret values go via `add_secret`/env, only non-secret identifiers persisted). Test call via active adapter's `resolveChat`.                                                                        | existing `ai_configured`                                            |
+| 5   | Configure SMTP                   | new `firstRunTestSmtp` — sends probe email; persists non-secret host/port/from into `platform_email_settings` (existing table). Password reference only.                                                                                                                                                                      | existing `smtp_configured`                                          |
+| 6   | Configure SSO (optional/skip)    | reuse `sso_configurations` insert if provided; else mark skipped                                                                                                                                                                                                                                                              | new step id `sso_configured` (soft)                                 |
+| 7   | Configure Backup                 | new `firstRunSetBackupTarget` — writes non-secret backup target kind (`local`/`s3`/`azure`/`nas`) + endpoint into `platform_config.backup_config` (new column, no secrets)                                                                                                                                                    | new step id `backup_configured` (soft)                              |
+| 8   | Test Connections                 | reuse `runDoctorReport()` from `doctor.server.ts` verbatim; render its checks. Requires overall status ≠ `fail` to proceed.                                                                                                                                                                                                   | derived (`db_ok`, `storage_ok`, `ai_configured`, `smtp_configured`) |
+| 9   | Create Admin                     | new `firstRunCreateAdmin` — inside handler: re-check gate, `supabaseAdmin.auth.admin.createUser({email,password,email_confirm:true})`, insert `user_roles(user_id, role='platform_owner')`, set `platform_config.setup_completed_at = now()`. Only the FIRST call succeeds; subsequent calls fail because gate is now closed. | new step id `admin_created` (already in catalog)                    |
+| 10  | Finish                           | client-side redirect to `/auth` with a success toast. Preloaded email in the sign-in form via search param.                                                                                                                                                                                                                   | —                                                                   |
 
-No code changes. Docs and one plan-artifact update only.
 
-## Changes
+## Files
 
-### 1. `docs/security-documentation/05-license-security.md`
-
-In the "Installation package regeneration" section, replace the current sentence:
-
-> Regeneration is idempotent for `install_id`: the same order always produces the same identity, so a customer that regenerates the package does not fork into a new install.
-
-with an explicit description of the real mechanism:
-
-- `install_id` is a human-readable slug (e.g. `edeka-prod-01`), assigned once when the `license_installs` row is created and validated by `InstallIdSchema`.
-- It is **not** derived from `order_id` or any other field; it is stored, not computed.
-- Regeneration is idempotent because `generateInstallationPackage` reads the existing `install_id` from `license_installs` and reuses it — the same order always produces the same identity as long as the row exists.
-- This is the same slug already used by `licenses`, heartbeat, CRL, and the activation bundle across earlier phases; Phase 4.5 intentionally does **not** introduce a second identity scheme.
-
-### 2. Same file — new subsection "Recovery if the `license_installs` row is lost"
-
-Document the manual DR step, since the value can no longer be recomputed automatically:
-
-1. Platform admin retrieves the original slug from one of: the audit log (`installation_package.generated` entries carry `install_id`), the customer's own copy of the installation ZIP (`.env.template` and the signed activation bundle both embed it), or the customer portal audit trail.
-2. Admin re-creates the `license_installs` row with the **exact same** `install_id` slug via the standard install-provisioning flow.
-3. Regenerate the installation package; the customer's existing deployment continues to validate against the same identity.
-4. If the slug cannot be recovered from any of the above sources, a new slug must be issued and the customer's install must be re-activated with a fresh bundle — this is a hard reset and must be logged as such.
-
-### 3. `docs/engineering/04-issue-a-license.md`
-
-Add a one-line note under "Generating the installation package" pointing at the new recovery subsection, and clarify that the slug is chosen at install-provisioning time, not at package-generation time.
-
-### 4. `.lovable/plan.md`
-
-Remove or strike through the `uuidv5(namespace, "order:"+orderId)` line in the Phase 4.5 entry and replace with a one-liner: *"install_id reuses the existing manual-slug convention (`InstallIdSchema`); no second identity scheme was introduced."* This keeps the artifact honest about what shipped.
-
-## Out of scope
-
-- No changes to `installation-package.server.ts`, `installation-package.functions.ts`, or any migration.
-- No change to `InstallIdSchema` or the provisioning flow.
-- No new DR tooling; recovery remains a documented manual admin step, consistent with AD-009 (MC holds no customer infra secrets and no derivable-from-nothing identity).
+- Create `src/routes/first-run.tsx` — the wizard UI (stepper, one card per step, resume support).
+- Create `src/lib/first-run.functions.ts` — `getFirstRunGate`, `markFirstRunStep`, `acceptEula`, `firstRunImportLicense`, `firstRunTestStorage`, `firstRunSetAiProvider`, `firstRunTestSmtp`, `firstRunSetBackupTarget`, `firstRunRunDoctor`, `firstRunCreateAdmin`. None use `requireSupabaseAuth`; each starts with `await assertFirstRunOpen()`.
+- Create `src/lib/first-run.server.ts` — `assertFirstRunOpen()` helper (single source of truth for the gate).
+- Edit `src/lib/setup-steps.ts` — add `eula_accepted`, `sso_configured` (soft), `backup_configured` (soft) to the frozen catalog.
+- Migration:
+  - `alter table platform_config add column eula_accepted_at timestamptz`, `ai_provider_config jsonb`, `backup_config jsonb`.
+  - No new grants needed (existing platform_config grants apply).
+- Edit `src/routes/__root.tsx` or add a small `beforeLoad` on `/auth` that, when the gate is open, redirects to `/first-run` — so a fresh install lands users in the wizard automatically.
+- Edit `docs/administrator-guide/03-setup-wizard.md` — replace the current "reopen `/app/platform/setup`" resume note with the new `/first-run` flow; keep the Doctor page description intact under a "Post-setup: Doctor panel" section.
 
 ## Verification
 
-- Grep `docs/` and `.lovable/plan.md` for `uuidv5` and `order:${` — should return zero hits after the edit (except possibly historical changelog entries, which stay as-is).
-- Re-read `05-license-security.md` end-to-end to confirm the "regeneration is idempotent" claim now matches the code path in `generateInstallationPackage`.
----
+Playwright script under `/tmp/browser/first-run/`:
 
-POST-BUILD CLARIFICATION (Phase 4.5 closeout)
+1. **Fresh case**: delete every row from `user_roles WHERE role IN ('platform_owner','platform_admin')` on a scratch DB (or use a stubbed gate override for the test). GET `/first-run` unauthenticated → renders the wizard (screenshot). Walk steps 1–9 to completion. Screenshot the redirect to `/auth`.
+2. **Closed case**: after step 9 (admin now exists), GET `/first-run` again unauthenticated → **must** redirect to `/auth`. Also POST directly to `firstRunCreateAdmin` server fn → **must** return `Forbidden`. Screenshot both.
+3. Doctor panel at `/app/platform/setup` still requires `isPlatformAdmin` and is unchanged (smoke test).
 
-install_id was NOT implemented as uuidv5(namespace, "order:"+orderId).
-It reuses the existing manual-slug convention (InstallIdSchema, e.g.
-"edeka-prod-01") stored on license_installs; no second identity scheme
-was introduced. Regeneration idempotency comes from reading the stored
-slug, not from recomputing it. Manual DR procedure documented in
-docs/security-documentation/05-license-security.md.
+Report both cases in the final message with screenshot paths.
+
+## Non-goals
+
+- No Postgres "configure" step — DB is up before the wizard runs; only surfaced as `db_ok` inside step 8.
+- No secret storage in `platform_config` — only identifiers/hostnames/kind flags. Secrets stay in `.env` / `add_secret`.
+- No changes to the existing Doctor panel, `setup.functions.ts`, or `installation-package.*`.
