@@ -270,6 +270,8 @@ export function PlatformSidebar() {
 
       <SidebarContent className="bg-[#0a0a0a]">
         <Group label="Growth" items={GROWTH} currentPath={currentPath} collapsed={collapsed} />
+        <Group label="Licensing" items={LICENSING} currentPath={currentPath} collapsed={collapsed} />
+        <Group label="Commercial" items={COMMERCIAL} currentPath={currentPath} collapsed={collapsed} />
         <Group label="Operations" items={OPERATIONS} currentPath={currentPath} collapsed={collapsed} />
         <Group label="System" items={SYSTEM} currentPath={currentPath} collapsed={collapsed} />
       </SidebarContent>
