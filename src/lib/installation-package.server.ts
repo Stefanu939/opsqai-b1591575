@@ -1,46 +1,35 @@
-// Server-only: assemble the installation package (ZIP) for a self-hosted
-// customer. Contents:
-//   - docker-compose.yml            (installer_version baked in)
-//   - .env.template                 (OPSQAI_INSTALL_ID pre-filled; secrets = __CHANGE_ME__)
-//   - activation-bundle.json        (Ed25519-signed, from license-activation-core)
-//   - entrypoint.sh                 (auto-generates infra secrets on first boot)
-//   - README.pdf                    (structured installation guide + install_id)
-//   - CHECKSUMS.sha256              (sha256 of every file above)
+// Server-only: assemble the Windows-only installation package (ZIP) for a
+// self-hosted customer. Contents:
+//   - OPSQAI-Setup.exe        Native Windows installer (NSIS + WinSW services)
+//   - activation-bundle.json  Ed25519-signed license bundle
+//   - README.md               Windows install guide (renderReadmeMarkdown)
+//   - CHECKSUMS.sha256        SHA-256 of every file above
 //
 // AD-009 compliance: MC ships ONLY OPSQAI_INSTALL_ID and the signed bundle.
-// POSTGRES_PASSWORD / MINIO_ROOT_PASSWORD stay as placeholders — first boot
-// generates strong random values and writes them to a customer-owned volume.
+// The Windows installer generates local secrets during the Setup Wizard and
+// stores them on the customer-owned data volume.
 
 import { zipSync, strToU8 } from "fflate";
 import { createHash } from "node:crypto";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
 import installExeAsset from "@/assets/install-exe.asset.json";
-import installMacosAsset from "@/assets/install-macos.asset.json";
-import installLinuxAsset from "@/assets/install-linux.asset.json";
 import { renderReadmeMarkdown } from "@/lib/installation-readme.server";
 
-// Installer binaries live in Lovable Assets (CDN) because they exceed the
-// per-file repo limit. Fetched once per Worker instance and cached — the
-// generated ZIP embeds them verbatim.
+// Installer binary lives in Lovable Assets (CDN) — too large for the repo.
+// Fetched once per Worker instance and cached.
 const binaryCache = new Map<string, Uint8Array>();
 
 async function resolveOrigin(): Promise<string | null> {
   if (typeof process !== "undefined" && process.env?.OPSQAI_ASSET_ORIGIN) {
     return process.env.OPSQAI_ASSET_ORIGIN;
   }
-  // Derive origin from the active server request (Cloudflare Worker).
-  // Dynamic import: unavailable / throws outside a request (Vitest, module-eval).
   try {
     const mod = (await import("@tanstack/react-start/server")) as {
       getRequestUrl?: () => URL;
       getRequestHost?: () => string;
     };
-    if (mod.getRequestUrl) {
-      return mod.getRequestUrl().origin;
-    }
-    if (mod.getRequestHost) {
-      return `https://${mod.getRequestHost()}`;
-    }
+    if (mod.getRequestUrl) return mod.getRequestUrl().origin;
+    if (mod.getRequestHost) return `https://${mod.getRequestHost()}`;
     return null;
   } catch {
     return null;
@@ -74,7 +63,6 @@ async function fetchAsset(url: string, localFallback: string): Promise<Uint8Arra
     }
   }
 
-  // No origin (Vitest / local Node): read pre-built binary directly.
   try {
     const { readFileSync } = await import("node:fs");
     const bytes = new Uint8Array(readFileSync(localFallback));
