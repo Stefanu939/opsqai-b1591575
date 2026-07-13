@@ -90,6 +90,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const deploymentQuery = useDeploymentInfo();
   const mode = deploymentQuery.data?.mode ?? getClientDeploymentMode();
   const isMC = mode === "mc";
+  const currentPath = useRouterState({ select: (s) => s.location.pathname });
+
+  // In MC deployment we render ONLY the dedicated Mission Control shell
+  // (Noir & Gold PlatformSidebar via /app/platform/* layout). All other
+  // authenticated routes are redirected there. This keeps the MC surface
+  // clean and prevents the legacy multi-section app sidebar from showing.
+  useEffect(() => {
+    if (!isMC) return;
+    const allowed =
+      currentPath.startsWith("/app/platform") ||
+      currentPath.startsWith("/app/profile") ||
+      currentPath.startsWith("/app/docs");
+    if (!allowed) {
+      navigate({ to: "/app/platform/overview", replace: true });
+    }
+  }, [isMC, currentPath, navigate]);
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
@@ -102,6 +118,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         setCompanies((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>);
       });
   }, [isPlatformAdmin]);
+
+  // MC deployment: render children only — /app/platform/* has its own shell.
+  if (isMC) {
+    return <>{children}</>;
+  }
 
   type NavItem = {
     to: string;
