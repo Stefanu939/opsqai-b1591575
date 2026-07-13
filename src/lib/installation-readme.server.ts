@@ -50,6 +50,7 @@ const DIACRITIC_MAP: Record<string, string> = {
   "ă": "a", "â": "a", "î": "i", "ș": "s", "ş": "s", "ț": "t", "ţ": "t",
   "Ă": "A", "Â": "A", "Î": "I", "Ș": "S", "Ş": "S", "Ț": "T", "Ţ": "T",
   "„": '"', "”": '"', "“": '"', "’": "'", "‘": "'", "–": "-", "—": "-", "…": "...",
+  "→": "->", "←": "<-", "✓": "OK", "✗": "X", "•": "-",
 };
 function ascii(s: string): string {
   // Map known glyphs, then strip diacritics via NFD, then replace any
