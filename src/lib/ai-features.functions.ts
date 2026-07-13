@@ -583,6 +583,8 @@ export const listAiAudits = createServerFn({ method: "POST" })
     z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    const companyId = await resolveCompany(context, data.company_id);
+    await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
     const actor = await getActorRoles(context.supabase, context.userId);
     let query = context.supabase
       .from("ai_audits")
