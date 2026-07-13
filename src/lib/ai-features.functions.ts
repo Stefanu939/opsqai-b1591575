@@ -446,6 +446,7 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "ai_audit.run");
     const companyId = await resolveCompany(context, data.company_id);
+    await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
 
     const [kpi, health, status, top, critical] = await Promise.all([
       context.supabase.rpc("dashboard_kpis", { p_company: companyId }),
