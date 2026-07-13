@@ -41,8 +41,37 @@ if (-not $SkipApp) {
   Push-Location $projectRoot
   try {
     if (-not (Test-Path 'node_modules')) { & bun install --frozen-lockfile; if ($LASTEXITCODE -ne 0) { throw "bun install failed" } }
+
+    # Patch @lovable.dev/mcp-js (<=0.20.1) Windows path-separator bug:
+    # configResolved gives projectRoot with forward slashes, but node's
+    # resolve() returns backslashes, so assertContains rejects the routesDir.
+    # Normalize both sides before comparing.
+    $mcpVite = Join-Path $projectRoot 'node_modules\@lovable.dev\mcp-js\dist\stacks\tanstack\vite.js'
+    if (Test-Path $mcpVite) {
+      $content = Get-Content $mcpVite -Raw
+      if (-not $content.Contains('__LOVABLE_WIN_PATCH__')) {
+        $replacement = @'
+function assertContains(parent, child, label) {
+  // __LOVABLE_WIN_PATCH__: normalize Windows separators before comparing
+  var _p = parent.split(sep).join('/');
+  var _c = child.split(sep).join('/');
+  if (_c !== _p && !_c.startsWith(_p + '/')) {
+    throw new Error('@lovable.dev/mcp-js: ' + label + ' must resolve under ' + _p + ', got ' + _c);
+  }
+  return;
+  // original (unreachable):
+'@
+        $needle = 'function assertContains(parent, child, label) {'
+        $patched = $content.Replace($needle, $replacement)
+        Set-Content -Path $mcpVite -Value $patched -NoNewline
+        Write-Host "  Patched @lovable.dev/mcp-js for Windows path separators."
+      }
+    }
+
+
     & bun run build:selfhosted
     if ($LASTEXITCODE -ne 0) { throw "bun run build:selfhosted failed" }
+
 
     # Nitro node-server preset writes to .output/. Layout:
     #   .output/server/index.mjs   -> entry
