@@ -64,11 +64,24 @@ export const SETUP_STEPS: readonly SetupStep[] = [
     soft: true,
   },
   {
+    id: "sso_configured",
+    label: "SSO configured",
+    description: "SAML or OIDC single sign-on configured (optional — can be added later).",
+    soft: true,
+  },
+  {
+    id: "backup_configured",
+    label: "Backup target",
+    description: "Backup destination selected (local volume, S3, Azure Blob, or NAS).",
+    soft: true,
+  },
+  {
     id: "license_imported",
     label: "Installation License imported",
     description: "A signed Installation License token has been imported and matches this install_id.",
     selfHostedOnly: true,
   },
+
   {
     id: "admin_created",
     label: "First platform admin",
