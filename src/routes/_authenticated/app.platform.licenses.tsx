@@ -42,8 +42,13 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BillingPanel } from "@/components/platform/BillingPanel";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: (s.tab === "billing" ? "billing" : "licenses") as "licenses" | "billing",
+  }),
   component: LicensesPage,
 });
 
