@@ -42,6 +42,9 @@ describe("assembleInstallationPackage", () => {
         "docker-compose.yml",
         "entrypoint.sh",
         "install.sh",
+        "install.exe",
+        "install-macos",
+        "install-linux",
       ].sort(),
     );
 
@@ -57,9 +60,15 @@ describe("assembleInstallationPackage", () => {
     expect(parsedBundle.install_id).toBe("acme-prod");
     expect(parsedBundle.module_tokens).toHaveLength(1);
 
+    // Cross-platform installer binaries are present (placeholders until
+    // scripts/build-installer.sh regenerates them from Go source).
+    expect(files["install.exe"].byteLength).toBeGreaterThan(0);
+    expect(files["install-macos"].byteLength).toBeGreaterThan(0);
+    expect(files["install-linux"].byteLength).toBeGreaterThan(0);
+
     // CHECKSUMS.sha256 lines follow "<hex>  <name>"
     const checksums = strFromU8(files["CHECKSUMS.sha256"]).trim().split("\n");
-    expect(checksums).toHaveLength(6); // every file except CHECKSUMS.sha256 itself
+    expect(checksums).toHaveLength(9); // every file except CHECKSUMS.sha256 itself
     for (const line of checksums) {
       expect(line).toMatch(/^[0-9a-f]{64} {2}\S+/);
     }
