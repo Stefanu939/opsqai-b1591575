@@ -48,9 +48,9 @@ const GROWTH: Item[] = [
   },
   {
     title: "Clienți",
-    url: "/app/admin/customers",
+    url: "/app/platform/customers",
     icon: Building2,
-    desc: "CRM clienți, profiluri, timeline, compliance.",
+    desc: "Lista tenants OPSQAI · plan, status, utilizare, acțiuni.",
   },
 ];
 

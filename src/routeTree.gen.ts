@@ -120,6 +120,7 @@ import { Route as AuthenticatedAppPlatformOnboardingRouteImport } from './routes
 import { Route as AuthenticatedAppPlatformLicensesRouteImport } from './routes/_authenticated/app.platform.licenses'
 import { Route as AuthenticatedAppPlatformLicenseActivationRouteImport } from './routes/_authenticated/app.platform.license-activation'
 import { Route as AuthenticatedAppPlatformDoctorRouteImport } from './routes/_authenticated/app.platform.doctor'
+import { Route as AuthenticatedAppPlatformCustomersRouteImport } from './routes/_authenticated/app.platform.customers'
 import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
 import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
 import { Route as AuthenticatedAppDocsBookRouteImport } from './routes/_authenticated/app.docs.$book'
@@ -746,6 +747,12 @@ const AuthenticatedAppPlatformDoctorRoute =
     path: '/doctor',
     getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
+const AuthenticatedAppPlatformCustomersRoute =
+  AuthenticatedAppPlatformCustomersRouteImport.update({
+    id: '/customers',
+    path: '/customers',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
+  } as any)
 const AuthenticatedAppInternalKnowledgeRoute =
   AuthenticatedAppInternalKnowledgeRouteImport.update({
     id: '/knowledge',
@@ -1109,6 +1116,7 @@ export interface FileRoutesByFullPath {
   '/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/app/platform/customers': typeof AuthenticatedAppPlatformCustomersRoute
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
@@ -1255,6 +1263,7 @@ export interface FileRoutesByTo {
   '/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
   '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/app/platform/customers': typeof AuthenticatedAppPlatformCustomersRoute
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
@@ -1409,6 +1418,7 @@ export interface FileRoutesById {
   '/_authenticated/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
   '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
   '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
+  '/_authenticated/app/platform/customers': typeof AuthenticatedAppPlatformCustomersRoute
   '/_authenticated/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/_authenticated/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/_authenticated/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
@@ -1563,6 +1573,7 @@ export interface FileRouteTypes {
     | '/app/docs/$book'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
+    | '/app/platform/customers'
     | '/app/platform/doctor'
     | '/app/platform/license-activation'
     | '/app/platform/licenses'
@@ -1709,6 +1720,7 @@ export interface FileRouteTypes {
     | '/app/docs/$book'
     | '/app/internal/assistant'
     | '/app/internal/knowledge'
+    | '/app/platform/customers'
     | '/app/platform/doctor'
     | '/app/platform/license-activation'
     | '/app/platform/licenses'
@@ -1862,6 +1874,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/docs/$book'
     | '/_authenticated/app/internal/assistant'
     | '/_authenticated/app/internal/knowledge'
+    | '/_authenticated/app/platform/customers'
     | '/_authenticated/app/platform/doctor'
     | '/_authenticated/app/platform/license-activation'
     | '/_authenticated/app/platform/licenses'
@@ -2730,6 +2743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppPlatformDoctorRouteImport
       parentRoute: typeof AuthenticatedAppPlatformRoute
     }
+    '/_authenticated/app/platform/customers': {
+      id: '/_authenticated/app/platform/customers'
+      path: '/customers'
+      fullPath: '/app/platform/customers'
+      preLoaderRoute: typeof AuthenticatedAppPlatformCustomersRouteImport
+      parentRoute: typeof AuthenticatedAppPlatformRoute
+    }
     '/_authenticated/app/internal/knowledge': {
       id: '/_authenticated/app/internal/knowledge'
       path: '/knowledge'
@@ -3062,6 +3082,7 @@ const AuthenticatedAppInternalRouteWithChildren =
   )
 
 interface AuthenticatedAppPlatformRouteChildren {
+  AuthenticatedAppPlatformCustomersRoute: typeof AuthenticatedAppPlatformCustomersRoute
   AuthenticatedAppPlatformDoctorRoute: typeof AuthenticatedAppPlatformDoctorRoute
   AuthenticatedAppPlatformLicenseActivationRoute: typeof AuthenticatedAppPlatformLicenseActivationRoute
   AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
@@ -3075,6 +3096,8 @@ interface AuthenticatedAppPlatformRouteChildren {
 
 const AuthenticatedAppPlatformRouteChildren: AuthenticatedAppPlatformRouteChildren =
   {
+    AuthenticatedAppPlatformCustomersRoute:
+      AuthenticatedAppPlatformCustomersRoute,
     AuthenticatedAppPlatformDoctorRoute: AuthenticatedAppPlatformDoctorRoute,
     AuthenticatedAppPlatformLicenseActivationRoute:
       AuthenticatedAppPlatformLicenseActivationRoute,
