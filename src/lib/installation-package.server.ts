@@ -4,7 +4,7 @@
 //   - .env.template                 (OPSQAI_INSTALL_ID pre-filled; secrets = __CHANGE_ME__)
 //   - activation-bundle.json        (Ed25519-signed, from license-activation-core)
 //   - entrypoint.sh                 (auto-generates infra secrets on first boot)
-//   - README.md                     (quick start + install_id printed)
+//   - README.pdf                    (structured installation guide + install_id)
 //   - CHECKSUMS.sha256              (sha256 of every file above)
 //
 // AD-009 compliance: MC ships ONLY OPSQAI_INSTALL_ID and the signed bundle.
