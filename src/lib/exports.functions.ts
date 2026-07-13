@@ -15,6 +15,17 @@ import { z } from "zod";
 import JSZip from "jszip";
 import { createHash } from "node:crypto";
 import { getActorRoles, getProfileCompany } from "@/lib/authorization";
+import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+
+const AUDIT_MODULE = "audit_log" as const;
+
+async function enforceAudit(context: { supabase: any; userId: string }, hint?: string | null) {
+  const companyId = hint ?? (await getProfileCompany(context.supabase, context.userId));
+  await assertModuleForCompany(
+    companyId ?? "00000000-0000-0000-0000-000000000000",
+    AUDIT_MODULE,
+  );
+}
 
 const BUCKET = "workspace-exports";
 const PACKAGE_VERSION = "1.0.0";
