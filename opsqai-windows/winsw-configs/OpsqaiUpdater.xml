@@ -1,0 +1,16 @@
+<service>
+  <id>OpsqaiUpdater</id>
+  <name>OPSQAI Updater</name>
+  <description>Polls updates.opsqai.de for signed OPSQAI updates.</description>
+  <executable>%BASE%\..\runtime\node\node.exe</executable>
+  <arguments>"%BASE%\..\services\updater\index.js"</arguments>
+  <workingdirectory>%BASE%\..</workingdirectory>
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+  <log mode="roll-by-size"><sizeThreshold>4096</sizeThreshold><keepFiles>4</keepFiles></log>
+  <logpath>%ProgramData%\OPSQAI\logs</logpath>
+  <env name="OPSQAI_SERVICE" value="updater"/>
+  <env name="OPSQAI_CONFIG"  value="%ProgramData%\OPSQAI\config\config.json"/>
+</service>

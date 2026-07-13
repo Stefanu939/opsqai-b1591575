@@ -1,0 +1,18 @@
+<service>
+  <id>OpsqaiDatabase</id>
+  <name>OPSQAI Database (embedded PostgreSQL)</name>
+  <description>Supervises the embedded PostgreSQL instance for OPSQAI. Not present in external-DB installs.</description>
+  <executable>%BASE%\..\runtime\node\node.exe</executable>
+  <arguments>"%BASE%\..\services\database\index.js"</arguments>
+  <workingdirectory>%BASE%\..</workingdirectory>
+  <startmode>Automatic</startmode>
+  <onfailure action="restart" delay="5 sec"/>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+  <stoptimeout>45 sec</stoptimeout>
+  <log mode="roll-by-size"><sizeThreshold>10240</sizeThreshold><keepFiles>8</keepFiles></log>
+  <logpath>%ProgramData%\OPSQAI\logs</logpath>
+  <env name="OPSQAI_SERVICE" value="database"/>
+  <env name="OPSQAI_CONFIG"  value="%ProgramData%\OPSQAI\config\config.json"/>
+</service>
