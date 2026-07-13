@@ -15,21 +15,38 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  ArrowLeft, CheckCircle2, ExternalLink, Loader2, Power, Send, Bell, ShieldCheck,
+  ArrowLeft,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  Power,
+  Send,
+  Bell,
+  ShieldCheck,
 } from "lucide-react";
 import {
-  getNotificationConfig, saveNotificationConfig,
-  testNotification, disconnectNotification,
-  NOTIFICATION_EVENTS, type NotificationEvent,
+  getNotificationConfig,
+  saveNotificationConfig,
+  testNotification,
+  disconnectNotification,
+  NOTIFICATION_EVENTS,
+  type NotificationEvent,
 } from "@/lib/notifications.functions";
 
 type Provider = "slack" | "teams";
 
-const PROVIDER_META: Record<Provider, {
-  name: string; accent: string;
-  urlLabel: string; urlHint: string; urlPlaceholder: string;
-  docsHref: string; docsLabel: string;
-}> = {
+const PROVIDER_META: Record<
+  Provider,
+  {
+    name: string;
+    accent: string;
+    urlLabel: string;
+    urlHint: string;
+    urlPlaceholder: string;
+    docsHref: string;
+    docsLabel: string;
+  }
+> = {
   slack: {
     name: "Slack",
     accent: "text-pink-500 bg-pink-500/10 border-pink-500/20",
@@ -45,7 +62,8 @@ const PROVIDER_META: Record<Provider, {
     urlLabel: "Teams Incoming Webhook URL",
     urlHint: "Teams → channel → ⋯ → Connectors → Incoming Webhook → Configure → copy the URL.",
     urlPlaceholder: "https://<tenant>.webhook.office.com/webhookb2/…",
-    docsHref: "https://learn.microsoft.com/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook",
+    docsHref:
+      "https://learn.microsoft.com/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook",
     docsLabel: "Teams webhook docs",
   },
 };
@@ -115,7 +133,7 @@ function NotificationsSetup() {
   }, [load, provider]);
 
   function toggleEvent(ev: NotificationEvent) {
-    setEvents((cur) => cur.includes(ev) ? cur.filter((e) => e !== ev) : [...cur, ev]);
+    setEvents((cur) => (cur.includes(ev) ? cur.filter((e) => e !== ev) : [...cur, ev]));
   }
 
   async function onSave() {
@@ -129,7 +147,9 @@ function NotificationsSetup() {
       toast.success(`${meta.name} notifications saved`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
-    } finally { setBusy(null); }
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function onTest() {
@@ -137,21 +157,32 @@ function NotificationsSetup() {
     try {
       const r = await test({ data: { provider } });
       if (r.ok) toast.success("Test delivered — check your channel.");
-      else { toast.error(`Delivery failed (${r.status || "network"})`); setLastError(`Test failed (${r.status}): ${r.body}`); }
+      else {
+        toast.error(`Delivery failed (${r.status || "network"})`);
+        setLastError(`Test failed (${r.status}): ${r.body}`);
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
-    } finally { setBusy(null); }
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function onDisconnect() {
     setBusy("off");
     try {
       await disconnect({ data: { provider } });
-      setStatus("disconnected"); setUrl(""); setEvents([]); setConnectedAt(null); setLastError(null);
+      setStatus("disconnected");
+      setUrl("");
+      setEvents([]);
+      setConnectedAt(null);
+      setLastError(null);
       toast.success("Notifications disabled");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
-    } finally { setBusy(null); }
+    } finally {
+      setBusy(null);
+    }
   }
 
   const connected = status === "connected";
@@ -167,21 +198,30 @@ function NotificationsSetup() {
       </Link>
 
       <header className="grid grid-cols-[auto_minmax(0,1fr)] gap-4 items-start">
-        <div className={`h-14 w-14 shrink-0 rounded-2xl border grid place-items-center ${meta.accent}`}>
+        <div
+          className={`h-14 w-14 shrink-0 rounded-2xl border grid place-items-center ${meta.accent}`}
+        >
           <Bell className="h-7 w-7" />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Notifications</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Notifications
+          </p>
           <h1 className="mt-0.5 text-2xl sm:text-3xl font-semibold tracking-tight truncate">
             {meta.name}
           </h1>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {connected ? (
-              <Badge variant="outline" className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Badge
+                variant="outline"
+                className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              >
                 <CheckCircle2 className="h-3 w-3" /> Live
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-muted-foreground">Not configured</Badge>
+              <Badge variant="outline" className="text-muted-foreground">
+                Not configured
+              </Badge>
             )}
             {connectedAt && (
               <span className="text-[11px] text-muted-foreground">
@@ -200,7 +240,9 @@ function NotificationsSetup() {
         </div>
         <p className="text-sm text-muted-foreground">{meta.urlHint}</p>
         <div className="space-y-2">
-          <Label htmlFor="webhook-url" className="text-xs">{meta.urlLabel}</Label>
+          <Label htmlFor="webhook-url" className="text-xs">
+            {meta.urlLabel}
+          </Label>
           <Input
             id="webhook-url"
             placeholder={meta.urlPlaceholder}
@@ -212,7 +254,9 @@ function NotificationsSetup() {
           />
         </div>
         <a
-          href={meta.docsHref} target="_blank" rel="noreferrer"
+          href={meta.docsHref}
+          target="_blank"
+          rel="noreferrer"
           className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
         >
           <ExternalLink className="h-3 w-3" /> {meta.docsLabel}
@@ -260,20 +304,30 @@ function NotificationsSetup() {
               Save configuration
             </Button>
             <Button
-              variant="outline" onClick={onTest}
+              variant="outline"
+              onClick={onTest}
               disabled={busy !== null || !connected}
               className="w-full sm:w-auto"
             >
-              {busy === "test" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+              {busy === "test" ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
               Send test
             </Button>
             {connected && (
               <Button
-                variant="ghost" onClick={onDisconnect}
+                variant="ghost"
+                onClick={onDisconnect}
                 disabled={busy !== null}
                 className="w-full sm:w-auto sm:ml-auto text-destructive hover:text-destructive"
               >
-                {busy === "off" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Power className="h-4 w-4 mr-2" />}
+                {busy === "off" ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Power className="h-4 w-4 mr-2" />
+                )}
                 Disable
               </Button>
             )}
@@ -287,7 +341,8 @@ function NotificationsSetup() {
       </Card>
 
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Webhook URLs are scoped to this company and only readable by admins. OPSQAI never posts the URL back to any third party; test deliveries are logged for troubleshooting.
+        Webhook URLs are scoped to this company and only readable by admins. OPSQAI never posts the
+        URL back to any third party; test deliveries are logged for troubleshooting.
       </p>
     </div>
   );

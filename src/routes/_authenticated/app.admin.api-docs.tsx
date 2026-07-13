@@ -30,14 +30,22 @@ function CodeBlock({ code, id }: { code: string; id: string }) {
         }}
         aria-label={`Copy ${id}`}
       >
-        {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+        {copied ? (
+          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+        ) : (
+          <Copy className="h-3.5 w-3.5" />
+        )}
       </Button>
     </div>
   );
 }
 
 function Endpoint({
-  method, path, description, params, example,
+  method,
+  path,
+  description,
+  params,
+  example,
 }: {
   method: "GET";
   path: string;
@@ -48,7 +56,10 @@ function Endpoint({
   return (
     <Card className="p-5 sm:p-6 space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <Badge variant="outline" className="font-mono text-[10px] border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+        <Badge
+          variant="outline"
+          className="font-mono text-[10px] border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+        >
           {method}
         </Badge>
         <code className="text-sm font-mono">{path}</code>
@@ -56,12 +67,20 @@ function Endpoint({
       <p className="text-sm text-muted-foreground">{description}</p>
       {params && params.length > 0 && (
         <div>
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Query parameters</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+            Query parameters
+          </p>
           <ul className="space-y-1.5 text-sm">
             {params.map((p) => (
-              <li key={p.name} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+              <li
+                key={p.name}
+                className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3"
+              >
                 <code className="font-mono text-xs shrink-0">{p.name}</code>
-                <span className="text-xs text-muted-foreground shrink-0">{p.type}{p.required ? " · required" : ""}</span>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {p.type}
+                  {p.required ? " · required" : ""}
+                </span>
                 <span className="text-muted-foreground">{p.description}</span>
               </li>
             ))}
@@ -119,7 +138,9 @@ function ApiDocsPage() {
         <h2 className="text-sm font-semibold">Authentication</h2>
         <p className="text-sm text-muted-foreground">
           All endpoints require a bearer token. Create one from{" "}
-          <Link to="/app/admin/api-keys" className="underline">API keys</Link>{" "}
+          <Link to="/app/admin/api-keys" className="underline">
+            API keys
+          </Link>{" "}
           — you'll see the full secret exactly once. Keys are scoped to your company.
         </p>
         <CodeBlock
@@ -127,9 +148,16 @@ function ApiDocsPage() {
           code={`Authorization: Bearer opsq_live_xxxxxxxxxxxxxxxxxxxxxxxx`}
         />
         <div className="text-xs text-muted-foreground">
-          <p><strong>Base URL:</strong> <code className="font-mono">{base}/api/public/v1</code></p>
-          <p><strong>Rate limit:</strong> Fair-use, contact support for higher tiers.</p>
-          <p><strong>Errors:</strong> <code>401</code> invalid token · <code>403</code> insufficient scope · <code>500</code> server error.</p>
+          <p>
+            <strong>Base URL:</strong> <code className="font-mono">{base}/api/public/v1</code>
+          </p>
+          <p>
+            <strong>Rate limit:</strong> Fair-use, contact support for higher tiers.
+          </p>
+          <p>
+            <strong>Errors:</strong> <code>401</code> invalid token · <code>403</code> insufficient
+            scope · <code>500</code> server error.
+          </p>
         </div>
       </Card>
 
@@ -169,8 +197,16 @@ function ApiDocsPage() {
         description="List published, active knowledge documents for your company. Full content only returned when include_content=1."
         params={[
           { name: "category", type: "string", description: "Filter by category." },
-          { name: "type", type: "string", description: "Filter by knowledge_type (sop, policy, …)." },
-          { name: "include_content", type: "0 | 1", description: "Include content_text in response." },
+          {
+            name: "type",
+            type: "string",
+            description: "Filter by knowledge_type (sop, policy, …).",
+          },
+          {
+            name: "include_content",
+            type: "0 | 1",
+            description: "Include content_text in response.",
+          },
           { name: "limit", type: "1–200", description: "Page size, default 50." },
           { name: "offset", type: "integer", description: "Pagination offset, default 0." },
         ]}
@@ -201,10 +237,15 @@ function ApiDocsPage() {
       <Card className="p-5 sm:p-6 space-y-3">
         <h2 className="text-sm font-semibold">Security &amp; scope</h2>
         <ul className="text-sm text-muted-foreground space-y-1.5 list-disc pl-4">
-          <li>Every key is scoped to the company that created it — cross-tenant reads are impossible.</li>
+          <li>
+            Every key is scoped to the company that created it — cross-tenant reads are impossible.
+          </li>
           <li>Only published, active knowledge documents are exposed via the API.</li>
           <li>Revoking a key stops all requests immediately.</li>
-          <li>Rotate keys periodically and keep them out of client-side code (they must never ship in a browser bundle).</li>
+          <li>
+            Rotate keys periodically and keep them out of client-side code (they must never ship in
+            a browser bundle).
+          </li>
         </ul>
       </Card>
     </div>

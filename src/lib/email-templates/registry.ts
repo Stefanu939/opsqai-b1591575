@@ -42,7 +42,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "support-ticket-created": supportTicketCreated,
   "support-reply": supportReply,
   "test-email": testEmail,
-  "welcome": welcome,
+  welcome: welcome,
   "password-changed": passwordChanged,
   "role-changed": roleChanged,
   "sop-published": sopPublished,

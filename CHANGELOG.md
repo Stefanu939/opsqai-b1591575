@@ -7,6 +7,7 @@ All notable changes to OPSQAI are documented here. This project adheres to Seman
 Phase 4.5 Part 2 — Installation Package Generation.
 
 ### Added
+
 - MC generates a signed ZIP installation package per install (`docker-compose.yml`, `.env.template`, `entrypoint.sh`, `activation-bundle.json`, `README.md`, `CHECKSUMS.sha256`).
 - Hybrid secret policy (AD-009): MC ships only `OPSQAI_INSTALL_ID` and the signed activation bundle; `entrypoint.sh` generates infra secrets on first boot.
 - Idempotent regeneration keyed on `install_id`. Previous bundle CRL-revoked by default; escape hatch "Keep previous bundle valid" for backup-restore scenarios.
@@ -21,6 +22,7 @@ Phase 4.5 Part 2 — Installation Package Generation.
 First public release. Cuts the platform, licensing model, self-hosted packaging, disaster recovery, customer portal, deployment-mode gate, and the full documentation suite.
 
 ### Added
+
 - Two-axis licensing (Installation + Module) with Ed25519 signing and versioned tokens (`license_version: 1`, `kind`, `install_id`, `key_id`).
 - Central signing-key rotation with `key_id` and CRL, both propagated via signed activation bundles.
 - Offline activation flow with signed bundles and `/app/platform/license-activation` UI.
@@ -34,6 +36,7 @@ First public release. Cuts the platform, licensing model, self-hosted packaging,
 - DR-Verify runbook and Reference-install acceptance runbook.
 
 ### Security
+
 - Roles held only in `user_roles`; `has_role()` is `SECURITY DEFINER` with pinned `search_path`.
 - Every public-schema table has explicit `GRANT`s.
 - Every privileged server function verified against a negative-path test.

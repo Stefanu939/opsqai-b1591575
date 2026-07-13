@@ -34,10 +34,7 @@ import {
 
 export const Route = createFileRoute("/first-run")({
   head: () => ({
-    meta: [
-      { title: "OPSQAI — First-Run Setup" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "OPSQAI — First-Run Setup" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   beforeLoad: async () => {
     const gate = await getFirstRunGate();
@@ -104,8 +101,8 @@ function FirstRunWizard() {
             <h1 className="text-3xl font-semibold tracking-tight">OPSQAI first-run setup</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            One-time wizard. Runs only when this install has no admin account yet.
-            Progress is saved after each step — safe to close and resume.
+            One-time wizard. Runs only when this install has no admin account yet. Progress is saved
+            after each step — safe to close and resume.
           </p>
         </header>
 
@@ -202,7 +199,10 @@ function EulaStep({ onDone }: { onDone: () => void }) {
   });
   return (
     <>
-      <StepHeader title="End-User License Agreement" description="Please read and accept before continuing." />
+      <StepHeader
+        title="End-User License Agreement"
+        description="Please read and accept before continuing."
+      />
       <Textarea
         readOnly
         rows={10}
@@ -222,8 +222,8 @@ your installation package under LICENSE.txt. Key points:
 Full text: docs/legal/eula.md (also in your installation package ZIP).`}
       />
       <label className="flex items-center gap-2 text-sm">
-        <Checkbox checked={checked} onCheckedChange={(v) => setChecked(v === true)} />
-        I have read and accept the OPSQAI EULA.
+        <Checkbox checked={checked} onCheckedChange={(v) => setChecked(v === true)} />I have read
+        and accept the OPSQAI EULA.
       </label>
       <div className="mt-4">
         <Button disabled={!checked || mut.isPending} onClick={() => mut.mutate()}>
@@ -297,16 +297,19 @@ function StorageStep({ onDone }: { onDone: () => void }) {
 }
 
 function AiStep({ onDone }: { onDone: () => void }) {
-  const [provider, setProvider] = useState<"lovable" | "azure" | "openai-compatible" | "ollama">("lovable");
+  const [provider, setProvider] = useState<"lovable" | "azure" | "openai-compatible" | "ollama">(
+    "lovable",
+  );
   const [endpoint, setEndpoint] = useState("");
   const [model, setModel] = useState("");
   const [apiKey, setApiKey] = useState("");
   const call = useServerFn(firstRunSetAiProvider);
   const mut = useMutation({
-    mutationFn: () =>
-      call({ data: { provider, endpoint, model, api_key: apiKey } }),
+    mutationFn: () => call({ data: { provider, endpoint, model, api_key: apiKey } }),
     onSuccess: (r) => {
-      toast.success(r.requires_restart ? "AI provider saved (restart container to apply)" : "AI provider saved");
+      toast.success(
+        r.requires_restart ? "AI provider saved (restart container to apply)" : "AI provider saved",
+      );
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -321,7 +324,9 @@ function AiStep({ onDone }: { onDone: () => void }) {
         <div>
           <Label>Provider</Label>
           <Select value={provider} onValueChange={(v) => setProvider(v as typeof provider)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="lovable">Lovable AI Gateway (default)</SelectItem>
               <SelectItem value="azure">Azure OpenAI</SelectItem>
@@ -334,21 +339,36 @@ function AiStep({ onDone }: { onDone: () => void }) {
           <>
             <div>
               <Label>Endpoint URL</Label>
-              <Input value={endpoint} onChange={(e) => setEndpoint(e.target.value)} placeholder="https://…" />
+              <Input
+                value={endpoint}
+                onChange={(e) => setEndpoint(e.target.value)}
+                placeholder="https://…"
+              />
             </div>
             <div>
               <Label>Model</Label>
-              <Input value={model} onChange={(e) => setModel(e.target.value)} placeholder="gpt-4o-mini" />
+              <Input
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="gpt-4o-mini"
+              />
             </div>
           </>
         )}
         <div>
           <Label>API key</Label>
-          <Input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} autoComplete="off" />
+          <Input
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            autoComplete="off"
+          />
         </div>
       </div>
       <div className="mt-4">
-        <Button onClick={() => mut.mutate()} disabled={mut.isPending}>Save AI configuration</Button>
+        <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+          Save AI configuration
+        </Button>
       </div>
     </>
   );
@@ -376,7 +396,10 @@ function SmtpStep({ onDone }: { onDone: () => void }) {
           test_recipient: testTo,
         },
       }),
-    onSuccess: () => { toast.success("SMTP saved"); onDone(); },
+    onSuccess: () => {
+      toast.success("SMTP saved");
+      onDone();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
@@ -386,16 +409,48 @@ function SmtpStep({ onDone }: { onDone: () => void }) {
         description="Values are written to secrets.env (chmod 600). Restart the container after finishing the wizard for changes to take effect."
       />
       <div className="grid grid-cols-2 gap-3">
-        <div><Label>Host</Label><Input value={host} onChange={(e) => setHost(e.target.value)} /></div>
-        <div><Label>Port</Label><Input type="number" value={port} onChange={(e) => setPort(Number(e.target.value))} /></div>
-        <div><Label>From email</Label><Input value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} /></div>
-        <div><Label>From name</Label><Input value={fromName} onChange={(e) => setFromName(e.target.value)} /></div>
-        <div><Label>Username</Label><Input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="off" /></div>
-        <div><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="off" /></div>
-        <div className="col-span-2"><Label>Test recipient (optional)</Label><Input value={testTo} onChange={(e) => setTestTo(e.target.value)} /></div>
+        <div>
+          <Label>Host</Label>
+          <Input value={host} onChange={(e) => setHost(e.target.value)} />
+        </div>
+        <div>
+          <Label>Port</Label>
+          <Input type="number" value={port} onChange={(e) => setPort(Number(e.target.value))} />
+        </div>
+        <div>
+          <Label>From email</Label>
+          <Input value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} />
+        </div>
+        <div>
+          <Label>From name</Label>
+          <Input value={fromName} onChange={(e) => setFromName(e.target.value)} />
+        </div>
+        <div>
+          <Label>Username</Label>
+          <Input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <Label>Password</Label>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+        <div className="col-span-2">
+          <Label>Test recipient (optional)</Label>
+          <Input value={testTo} onChange={(e) => setTestTo(e.target.value)} />
+        </div>
       </div>
       <div className="mt-4">
-        <Button onClick={() => mut.mutate()} disabled={mut.isPending || !host || !fromEmail}>Save SMTP configuration</Button>
+        <Button onClick={() => mut.mutate()} disabled={mut.isPending || !host || !fromEmail}>
+          Save SMTP configuration
+        </Button>
       </div>
     </>
   );
@@ -405,7 +460,10 @@ function SsoStep({ onDone }: { onDone: () => void }) {
   const call = useServerFn(firstRunConfigureSso);
   const mut = useMutation({
     mutationFn: (skip: boolean) => call({ data: { skip } }),
-    onSuccess: () => { toast.success("SSO step recorded"); onDone(); },
+    onSuccess: () => {
+      toast.success("SSO step recorded");
+      onDone();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
@@ -415,8 +473,12 @@ function SsoStep({ onDone }: { onDone: () => void }) {
         description="Configure SAML/OIDC now, or skip and add it later under Admin → SSO Setup."
       />
       <div className="flex gap-2">
-        <Button onClick={() => mut.mutate(false)} disabled={mut.isPending}>Configure later in admin</Button>
-        <Button variant="outline" onClick={() => mut.mutate(true)} disabled={mut.isPending}>Skip</Button>
+        <Button onClick={() => mut.mutate(false)} disabled={mut.isPending}>
+          Configure later in admin
+        </Button>
+        <Button variant="outline" onClick={() => mut.mutate(true)} disabled={mut.isPending}>
+          Skip
+        </Button>
       </div>
     </>
   );
@@ -434,7 +496,10 @@ function BackupStep({ onDone }: { onDone: () => void }) {
       call({
         data: { target, endpoint, bucket, access_key: accessKey, secret_key: secretKey },
       }),
-    onSuccess: () => { toast.success("Backup target saved"); onDone(); },
+    onSuccess: () => {
+      toast.success("Backup target saved");
+      onDone();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
@@ -447,7 +512,9 @@ function BackupStep({ onDone }: { onDone: () => void }) {
         <div>
           <Label>Target</Label>
           <Select value={target} onValueChange={(v) => setTarget(v as typeof target)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="local">Local volume</SelectItem>
               <SelectItem value="s3">S3 / S3-compatible</SelectItem>
@@ -458,15 +525,38 @@ function BackupStep({ onDone }: { onDone: () => void }) {
         </div>
         {target !== "local" && (
           <>
-            <div><Label>Endpoint / URL</Label><Input value={endpoint} onChange={(e) => setEndpoint(e.target.value)} /></div>
-            <div><Label>Bucket / container</Label><Input value={bucket} onChange={(e) => setBucket(e.target.value)} /></div>
-            <div><Label>Access key</Label><Input value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" /></div>
-            <div><Label>Secret key</Label><Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="off" /></div>
+            <div>
+              <Label>Endpoint / URL</Label>
+              <Input value={endpoint} onChange={(e) => setEndpoint(e.target.value)} />
+            </div>
+            <div>
+              <Label>Bucket / container</Label>
+              <Input value={bucket} onChange={(e) => setBucket(e.target.value)} />
+            </div>
+            <div>
+              <Label>Access key</Label>
+              <Input
+                value={accessKey}
+                onChange={(e) => setAccessKey(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <Label>Secret key</Label>
+              <Input
+                type="password"
+                value={secretKey}
+                onChange={(e) => setSecretKey(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
           </>
         )}
       </div>
       <div className="mt-4">
-        <Button onClick={() => mut.mutate()} disabled={mut.isPending}>Save backup target</Button>
+        <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+          Save backup target
+        </Button>
       </div>
     </>
   );
@@ -487,7 +577,10 @@ function DoctorStep({ onDone }: { onDone: () => void }) {
       {data ? (
         <div className="space-y-2">
           {data.checks.map((c) => (
-            <div key={c.id} className="flex items-start justify-between gap-3 rounded border p-2 text-sm">
+            <div
+              key={c.id}
+              className="flex items-start justify-between gap-3 rounded border p-2 text-sm"
+            >
               <div>
                 <div className="font-medium">{c.label}</div>
                 {c.detail && <div className="text-xs text-muted-foreground">{c.detail}</div>}
@@ -500,11 +593,10 @@ function DoctorStep({ onDone }: { onDone: () => void }) {
         <div className="text-sm text-muted-foreground">Running…</div>
       )}
       <div className="mt-4 flex gap-2">
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>Re-run</Button>
-        <Button
-          onClick={onDone}
-          disabled={!data || data.overall === "fail"}
-        >
+        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+          Re-run
+        </Button>
+        <Button onClick={onDone} disabled={!data || data.overall === "fail"}>
           Continue
         </Button>
       </div>
@@ -519,7 +611,10 @@ function AdminStep({ onDone }: { onDone: () => void }) {
   const call = useServerFn(firstRunCreateAdmin);
   const mut = useMutation({
     mutationFn: () => call({ data: { email, password, full_name: fullName } }),
-    onSuccess: () => { toast.success("Platform admin created"); onDone(); },
+    onSuccess: () => {
+      toast.success("Platform admin created");
+      onDone();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
@@ -531,14 +626,37 @@ function AdminStep({ onDone }: { onDone: () => void }) {
       <div className="rounded border border-amber-500/40 bg-amber-500/10 p-3 text-xs flex gap-2 mb-4">
         <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
         <div>
-          Save these credentials in your password manager <strong>before</strong> submitting. Recovery requires the
-          DR break-glass procedure, not this wizard.
+          Save these credentials in your password manager <strong>before</strong> submitting.
+          Recovery requires the DR break-glass procedure, not this wizard.
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3">
-        <div><Label>Full name</Label><Input value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" /></div>
-        <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" /></div>
-        <div><Label>Password (min 12 chars)</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" /></div>
+        <div>
+          <Label>Full name</Label>
+          <Input
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            autoComplete="name"
+          />
+        </div>
+        <div>
+          <Label>Email</Label>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
+          />
+        </div>
+        <div>
+          <Label>Password (min 12 chars)</Label>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+        </div>
       </div>
       <div className="mt-4">
         <Button
@@ -560,9 +678,19 @@ function FinishStep({ onDone }: { onDone: () => void }) {
         description="Restart the container so entrypoint.sh picks up the new secrets.env values, then sign in with your new admin account."
       />
       <ol className="text-sm list-decimal ml-5 space-y-1 mb-4">
-        <li>Run <code className="text-xs bg-muted px-1 rounded">docker compose restart opsqai</code> on the host.</li>
-        <li>Sign in at <code className="text-xs bg-muted px-1 rounded">/auth</code> with the admin credentials you just created.</li>
-        <li>Verify green status on <code className="text-xs bg-muted px-1 rounded">/app/platform/setup</code> (the Doctor panel).</li>
+        <li>
+          Run <code className="text-xs bg-muted px-1 rounded">docker compose restart opsqai</code>{" "}
+          on the host.
+        </li>
+        <li>
+          Sign in at <code className="text-xs bg-muted px-1 rounded">/auth</code> with the admin
+          credentials you just created.
+        </li>
+        <li>
+          Verify green status on{" "}
+          <code className="text-xs bg-muted px-1 rounded">/app/platform/setup</code> (the Doctor
+          panel).
+        </li>
       </ol>
       <Button onClick={onDone}>Go to sign-in</Button>
     </>
@@ -570,8 +698,10 @@ function FinishStep({ onDone }: { onDone: () => void }) {
 }
 
 function StatusBadge({ status }: { status: "ok" | "warn" | "fail" | "skip" }) {
-  if (status === "ok") return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30">ok</Badge>;
-  if (status === "warn") return <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30">warn</Badge>;
+  if (status === "ok")
+    return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30">ok</Badge>;
+  if (status === "warn")
+    return <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30">warn</Badge>;
   if (status === "fail") return <Badge variant="destructive">fail</Badge>;
   return <Badge variant="outline">skip</Badge>;
 }

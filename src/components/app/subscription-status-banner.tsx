@@ -32,7 +32,9 @@ export function SubscriptionStatusBanner() {
         if (cancelled) return;
         setState((data as unknown as State) ?? null);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [session?.user?.id, scopeCompanyId]);
 
   if (!state) return null;
@@ -50,21 +52,27 @@ export function SubscriptionStatusBanner() {
   if (status === "trial" && !showTrialNudge) return null;
 
   const tone =
-    status === "suspended" || status === "cancelled" ? "danger" :
-    status === "grace_period" ? "warning" :
-    "info";
+    status === "suspended" || status === "cancelled"
+      ? "danger"
+      : status === "grace_period"
+        ? "warning"
+        : "info";
 
-  const cls = tone === "danger"
-    ? "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300"
-    : tone === "warning"
-      ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
-      : "bg-sky-500/10 border-sky-500/30 text-sky-700 dark:text-sky-300";
+  const cls =
+    tone === "danger"
+      ? "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300"
+      : tone === "warning"
+        ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
+        : "bg-sky-500/10 border-sky-500/30 text-sky-700 dark:text-sky-300";
 
   const Icon =
-    status === "suspended" ? ShieldAlert :
-    status === "cancelled" ? XCircle :
-    status === "grace_period" ? Clock :
-    AlertTriangle;
+    status === "suspended"
+      ? ShieldAlert
+      : status === "cancelled"
+        ? XCircle
+        : status === "grace_period"
+          ? Clock
+          : AlertTriangle;
 
   return (
     <div className={`border-b px-4 py-2.5 text-xs md:text-sm flex items-center gap-3 ${cls}`}>
@@ -73,12 +81,16 @@ export function SubscriptionStatusBanner() {
         <span className="font-medium">
           {status === "suspended" && "Workspace suspended — read-only access only."}
           {status === "cancelled" && "Subscription cancelled — workspace is read-only."}
-          {status === "grace_period" && graceLeft !== null && graceLeft > 0 &&
+          {status === "grace_period" &&
+            graceLeft !== null &&
+            graceLeft > 0 &&
             `Grace period active — ${graceLeft} day${graceLeft === 1 ? "" : "s"} left before suspension.`}
-          {status === "grace_period" && (graceLeft === null || graceLeft <= 0) &&
+          {status === "grace_period" &&
+            (graceLeft === null || graceLeft <= 0) &&
             "Grace period ending — workspace will be suspended shortly."}
           {showTrialNudge && `Trial ends in ${trialLeft} day${trialLeft === 1 ? "" : "s"}.`}
-          {showRenewalNudge && `Subscription renews in ${renewalLeft} day${renewalLeft === 1 ? "" : "s"}.`}
+          {showRenewalNudge &&
+            `Subscription renews in ${renewalLeft} day${renewalLeft === 1 ? "" : "s"}.`}
         </span>
       </div>
       {isPlatformAdmin ? (

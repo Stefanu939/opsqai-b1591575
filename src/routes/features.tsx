@@ -13,7 +13,8 @@ export const Route = createFileRoute("/features")({
       description:
         "Source-grounded RAG, SOP version control, multi-tenant RLS, multilingual EN/DE/RO, audit log, knowledge gaps, internal requests, PWA install.",
       path: "/features",
-      keywords: "enterprise AI features, RAG, SOP management, multilingual AI, audit log, RBAC, PWA",
+      keywords:
+        "enterprise AI features, RAG, SOP management, multilingual AI, audit log, RBAC, PWA",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Features", path: "/features" },
@@ -72,8 +73,12 @@ function FeaturesPage() {
     <MarketingLayout>
       <section className="mx-auto max-w-4xl px-4 py-16 md:py-24 text-center">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">Features</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">Everything operations teams need.</h1>
-        <p className="mt-5 text-lg text-muted-foreground">A complete platform — not a wrapper around a chatbot.</p>
+        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
+          Everything operations teams need.
+        </h1>
+        <p className="mt-5 text-lg text-muted-foreground">
+          A complete platform — not a wrapper around a chatbot.
+        </p>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-20">
@@ -97,10 +102,17 @@ function FeaturesPage() {
       <section className="bg-muted/30 border-t border-border/60">
         <div className="mx-auto max-w-3xl px-4 py-16 text-center">
           <h2 className="text-2xl font-semibold tracking-tight">Need something specific?</h2>
-          <p className="mt-3 text-muted-foreground">SSO, on-prem, custom integrations and white-label branding are available on the Enterprise plan.</p>
+          <p className="mt-3 text-muted-foreground">
+            SSO, on-prem, custom integrations and white-label branding are available on the
+            Enterprise plan.
+          </p>
           <div className="mt-6 flex gap-3 justify-center">
-            <Button asChild><Link to="/contact">Talk to sales</Link></Button>
-            <Button asChild variant="outline"><Link to="/pricing">See pricing</Link></Button>
+            <Button asChild>
+              <Link to="/contact">Talk to sales</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/pricing">See pricing</Link>
+            </Button>
           </div>
         </div>
       </section>

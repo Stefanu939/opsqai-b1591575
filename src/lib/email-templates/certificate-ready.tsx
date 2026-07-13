@@ -26,7 +26,10 @@ const Email = ({ learnerName, pathTitle, score, certificateUrl, verifyUrl }: Pro
     ) : null}
     {verifyUrl ? (
       <Text style={{ fontSize: "13px", lineHeight: "20px", color: "#55607a", margin: "8px 0 0" }}>
-        Public verification: <a href={verifyUrl} style={{ color: "#3a5bb8" }}>{verifyUrl}</a>
+        Public verification:{" "}
+        <a href={verifyUrl} style={{ color: "#3a5bb8" }}>
+          {verifyUrl}
+        </a>
       </Text>
     ) : null}
   </BrandedEmail>

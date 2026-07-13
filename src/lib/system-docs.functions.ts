@@ -20,7 +20,9 @@ async function requireInternalAccess(context: { supabase: any; userId: string })
 
 /** Returns the implemented features (intersect catalog vs. shipped feature flags). */
 function implementedEntries(): SystemDocEntry[] {
-  const enabled = new Set(FEATURE_CATALOG.filter((f) => f.defaultState !== "coming_soon").map((f) => f.key));
+  const enabled = new Set(
+    FEATURE_CATALOG.filter((f) => f.defaultState !== "coming_soon").map((f) => f.key),
+  );
   return SYSTEM_DOC_CATALOG.filter((e) => !e.featureKey || enabled.has(e.featureKey));
 }
 
@@ -30,11 +32,18 @@ export const getInternalWorkspaceInfo = createServerFn({ method: "GET" })
     await requireInternalAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: company } = await supabaseAdmin
-      .from("companies").select("id, name, created_at").eq("is_system", true).maybeSingle();
+      .from("companies")
+      .select("id, name, created_at")
+      .eq("is_system", true)
+      .maybeSingle();
     if (!company) throw new Error("OPSQAI Internal workspace missing");
     const [{ count: docCount }, { count: catalogCount }] = await Promise.all([
-      supabaseAdmin.from("knowledge_documents").select("id", { count: "exact", head: true })
-        .eq("company_id", (company as any).id).eq("knowledge_type", "system").eq("is_active", true),
+      supabaseAdmin
+        .from("knowledge_documents")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", (company as any).id)
+        .eq("knowledge_type", "system")
+        .eq("is_active", true),
       supabaseAdmin.from("system_doc_catalog").select("slug", { count: "exact", head: true }),
     ]);
     return {
@@ -52,7 +61,11 @@ export const listSystemDocs = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await requireInternalAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: company } = await supabaseAdmin.from("companies").select("id").eq("is_system", true).maybeSingle();
+    const { data: company } = await supabaseAdmin
+      .from("companies")
+      .select("id")
+      .eq("is_system", true)
+      .maybeSingle();
     if (!company) return [];
     const { data, error } = await supabaseAdmin
       .from("knowledge_documents")
@@ -64,8 +77,12 @@ export const listSystemDocs = createServerFn({ method: "GET" })
       .order("title");
     if (error) throw new Error(error.message);
     return (data ?? []) as Array<{
-      id: string; title: string; category: string; system_slug: string;
-      updated_at: string; chunk_count: number;
+      id: string;
+      title: string;
+      category: string;
+      system_slug: string;
+      updated_at: string;
+      chunk_count: number;
     }>;
   });
 
@@ -78,9 +95,17 @@ export const getSystemDoc = createServerFn({ method: "POST" })
     const { data: row } = await supabaseAdmin
       .from("system_doc_catalog")
       .select("slug, title, category, body_md, related_slugs, updated_at")
-      .eq("slug", data.slug).maybeSingle();
+      .eq("slug", data.slug)
+      .maybeSingle();
     if (!row) throw new Error("Document not found");
-    return row as { slug: string; title: string; category: string; body_md: string; related_slugs: string[]; updated_at: string };
+    return row as {
+      slug: string;
+      title: string;
+      category: string;
+      body_md: string;
+      related_slugs: string[];
+      updated_at: string;
+    };
   });
 
 export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
@@ -93,7 +118,10 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
     const { embedTexts } = await import("@/lib/embeddings.server");
 
     const { data: company } = await supabaseAdmin
-      .from("companies").select("id").eq("is_system", true).maybeSingle();
+      .from("companies")
+      .select("id")
+      .eq("is_system", true)
+      .maybeSingle();
     if (!company) throw new Error("OPSQAI Internal workspace missing");
     const companyId = (company as any).id as string;
 
@@ -109,7 +137,8 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
       const { data: existingCat } = await supabaseAdmin
         .from("system_doc_catalog")
         .select("slug, body_hash, document_id, version")
-        .eq("slug", entry.slug).maybeSingle();
+        .eq("slug", entry.slug)
+        .maybeSingle();
 
       const needsReembed = data.force || !existingCat || (existingCat as any).body_hash !== hash;
 
@@ -117,7 +146,10 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
       let documentId = (existingCat as any)?.document_id as string | null | undefined;
       if (documentId) {
         const { data: docRow } = await supabaseAdmin
-          .from("knowledge_documents").select("id").eq("id", documentId).maybeSingle();
+          .from("knowledge_documents")
+          .select("id")
+          .eq("id", documentId)
+          .maybeSingle();
         if (!docRow) documentId = null;
       }
       if (!documentId) {
@@ -125,34 +157,43 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
         const { data: existing } = await supabaseAdmin
           .from("knowledge_documents")
           .select("id")
-          .eq("company_id", companyId).eq("system_slug", entry.slug).maybeSingle();
+          .eq("company_id", companyId)
+          .eq("system_slug", entry.slug)
+          .maybeSingle();
         documentId = (existing as any)?.id ?? null;
       }
 
       if (!documentId) {
-        const { data: inserted, error: insErr } = await supabaseAdmin.from("knowledge_documents").insert({
-          company_id: companyId,
-          title: entry.title,
-          category: entry.category,
-          content_text: body.slice(0, 50000),
-          status: "ready",
-          knowledge_type: "system",
-          system_slug: entry.slug,
-          doc_code: `SYS-${entry.slug.replace(/\//g, "-").toUpperCase()}`.slice(0, 80),
-          file_type: "system",
-          is_active: true,
-          is_critical: false,
-        } as any).select("id").single();
+        const { data: inserted, error: insErr } = await supabaseAdmin
+          .from("knowledge_documents")
+          .insert({
+            company_id: companyId,
+            title: entry.title,
+            category: entry.category,
+            content_text: body.slice(0, 50000),
+            status: "ready",
+            knowledge_type: "system",
+            system_slug: entry.slug,
+            doc_code: `SYS-${entry.slug.replace(/\//g, "-").toUpperCase()}`.slice(0, 80),
+            file_type: "system",
+            is_active: true,
+            is_critical: false,
+          } as any)
+          .select("id")
+          .single();
         if (insErr) throw new Error(insErr.message);
         documentId = (inserted as any).id;
       } else if (needsReembed) {
-        await supabaseAdmin.from("knowledge_documents").update({
-          title: entry.title,
-          category: entry.category,
-          content_text: body.slice(0, 50000),
-          status: "ready",
-          updated_at: new Date().toISOString(),
-        } as any).eq("id", documentId);
+        await supabaseAdmin
+          .from("knowledge_documents")
+          .update({
+            title: entry.title,
+            category: entry.category,
+            content_text: body.slice(0, 50000),
+            status: "ready",
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("id", documentId);
       }
 
       if (needsReembed) {
@@ -173,8 +214,10 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
         }));
         const { error: chunkErr } = await supabaseAdmin.from("document_chunks").insert(rows as any);
         if (chunkErr) throw new Error(chunkErr.message);
-        await supabaseAdmin.from("knowledge_documents")
-          .update({ chunk_count: chunks.length } as any).eq("id", documentId!);
+        await supabaseAdmin
+          .from("knowledge_documents")
+          .update({ chunk_count: chunks.length } as any)
+          .eq("id", documentId!);
         reembedded += 1;
       } else {
         unchanged += 1;

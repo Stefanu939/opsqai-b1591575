@@ -29,20 +29,36 @@ function VerifyPage() {
 
   useEffect(() => {
     void (async () => {
-      if (!UUID_RE.test(code)) { setState("missing"); return; }
+      if (!UUID_RE.test(code)) {
+        setState("missing");
+        return;
+      }
       const { data, error } = await supabase.rpc("academy_verify_certificate", { _code: code });
-      if (error || !data) { setState("missing"); return; }
+      if (error || !data) {
+        setState("missing");
+        return;
+      }
       const r = data as VerifyResult;
-      if (!r.certificateCode) { setState("missing"); return; }
-      if (!r.valid) { setCert(r); setState("revoked"); return; }
-      setCert(r); setState("ok");
+      if (!r.certificateCode) {
+        setState("missing");
+        return;
+      }
+      if (!r.valid) {
+        setCert(r);
+        setState("revoked");
+        return;
+      }
+      setCert(r);
+      setState("ok");
     })();
   }, [code]);
 
   return (
     <div className="min-h-screen grid place-items-center bg-background p-6">
       <Card className="p-8 max-w-md w-full text-center space-y-4">
-        <div className="flex justify-center"><GraduationCap className="h-10 w-10 text-primary" /></div>
+        <div className="flex justify-center">
+          <GraduationCap className="h-10 w-10 text-primary" />
+        </div>
         <div className="text-xl font-semibold">OPSQAI Academy Certificate</div>
         {state === "loading" && <div className="text-sm text-muted-foreground">Verifying…</div>}
         {state === "missing" && (
@@ -57,13 +73,21 @@ function VerifyPage() {
         )}
         {state === "ok" && cert && (
           <div className="space-y-2 text-sm">
-            <Badge variant="default" className="mx-auto"><ShieldCheck className="h-3 w-3 mr-1" /> Verified</Badge>
-            <div><b>{cert.recipient || "Learner"}</b></div>
+            <Badge variant="default" className="mx-auto">
+              <ShieldCheck className="h-3 w-3 mr-1" /> Verified
+            </Badge>
+            <div>
+              <b>{cert.recipient || "Learner"}</b>
+            </div>
             <div className="text-muted-foreground">{cert.pathTitle}</div>
             <div className="text-muted-foreground">{cert.company}</div>
             <div>Score: {cert.score}%</div>
-            <div className="text-xs text-muted-foreground">Issued {new Date(cert.issuedAt).toLocaleDateString()}</div>
-            <div className="font-mono text-[10px] text-muted-foreground break-all">{cert.certificateCode}</div>
+            <div className="text-xs text-muted-foreground">
+              Issued {new Date(cert.issuedAt).toLocaleDateString()}
+            </div>
+            <div className="font-mono text-[10px] text-muted-foreground break-all">
+              {cert.certificateCode}
+            </div>
           </div>
         )}
       </Card>

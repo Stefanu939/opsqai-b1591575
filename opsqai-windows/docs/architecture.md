@@ -1,7 +1,7 @@
 # Architecture (native Windows deployment)
 
-Companion to `.lovable/plan.md` — the plan describes *what* we're building
-and *why*; this document describes the runtime shape once installed.
+Companion to `.lovable/plan.md` — the plan describes _what_ we're building
+and _why_; this document describes the runtime shape once installed.
 
 ## Runtime topology
 
@@ -87,7 +87,10 @@ Written by the wizard, read by every service on startup, hot-reloaded by
     "s3": null
   },
   "ai": { "provider": "openai", "endpoint": "...", "keyRef": "vault:openai" },
-  "updates": { "channel": "stable", "manifestUrl": "https://updates.opsqai.de/channel/stable/manifest.json" }
+  "updates": {
+    "channel": "stable",
+    "manifestUrl": "https://updates.opsqai.de/channel/stable/manifest.json"
+  }
 }
 ```
 
@@ -111,6 +114,6 @@ the Windows Credential Manager under a dedicated OPSQAI target, not in
 
 Everything about tokens, module licenses, public-key verification, and
 offline verification stays identical to today's Docker edition. The only
-change is *where* the verifier binary lives on disk
+change is _where_ the verifier binary lives on disk
 (`%ProgramFiles%\OPSQAI\licensing\`) — the code and key material are
 untouched.

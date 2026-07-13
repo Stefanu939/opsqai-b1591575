@@ -16,7 +16,6 @@ export type SetupStepId =
   | "license_imported"
   | "admin_created";
 
-
 export interface SetupStep {
   id: SetupStepId;
   label: string;
@@ -31,7 +30,8 @@ export const SETUP_STEPS: readonly SetupStep[] = [
   {
     id: "eula_accepted",
     label: "EULA accepted",
-    description: "The customer accepted the OPSQAI End-User License Agreement during first-run setup.",
+    description:
+      "The customer accepted the OPSQAI End-User License Agreement during first-run setup.",
   },
 
   {
@@ -78,7 +78,8 @@ export const SETUP_STEPS: readonly SetupStep[] = [
   {
     id: "license_imported",
     label: "Installation License imported",
-    description: "A signed Installation License token has been imported and matches this install_id.",
+    description:
+      "A signed Installation License token has been imported and matches this install_id.",
     selfHostedOnly: true,
   },
 
@@ -95,10 +96,7 @@ export function isRequiredStep(step: SetupStep, mode: "cloud" | "selfhost"): boo
   return true;
 }
 
-export function computeSetupComplete(
-  done: readonly string[],
-  mode: "cloud" | "selfhost",
-): boolean {
+export function computeSetupComplete(done: readonly string[], mode: "cloud" | "selfhost"): boolean {
   const doneSet = new Set(done);
   return SETUP_STEPS.filter((s) => isRequiredStep(s, mode)).every((s) => doneSet.has(s.id));
 }

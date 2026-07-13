@@ -13,11 +13,7 @@
 // opts in via <ModuleGate> or useLicense().
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import {
-  BASIC_MODULES,
-  effectiveModules,
-  type ModuleKey,
-} from "@/lib/license-modules";
+import { BASIC_MODULES, effectiveModules, type ModuleKey } from "@/lib/license-modules";
 
 export type DeploymentMode = "cloud" | "selfhost";
 
@@ -139,8 +135,7 @@ function buildSelfHostState(): LicenseState {
   const now = Math.floor(Date.now() / 1000);
   // Availability is controlled solely by expires_at — once past, add-on
   // modules are blocked (basic bundle stays available via hasModule()).
-  const expired =
-    typeof payload.expires_at === "number" && payload.expires_at < now;
+  const expired = typeof payload.expires_at === "number" && payload.expires_at < now;
   return {
     mode: "selfhost",
     install_id: payload.install_id ?? null,
@@ -162,9 +157,7 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
     const mode = resolveMode();
     return mode === "cloud" ? CLOUD_STATE : buildSelfHostState();
   }, []);
-  return (
-    <LicenseContext.Provider value={value}>{children}</LicenseContext.Provider>
-  );
+  return <LicenseContext.Provider value={value}>{children}</LicenseContext.Provider>;
 }
 
 export function useLicense(): LicenseState {
@@ -207,9 +200,9 @@ function ModuleLockedNotice({ moduleKey }: { moduleKey: ModuleKey }) {
       </div>
       <h2 className="text-xl font-semibold">This module is not licensed</h2>
       <p className="text-sm text-muted-foreground">
-        The <code className="rounded bg-muted px-1.5 py-0.5">{moduleKey}</code>{" "}
-        module is not included in your current OPSQAI license. Contact your
-        OPSQAI representative to activate it for this install.
+        The <code className="rounded bg-muted px-1.5 py-0.5">{moduleKey}</code> module is not
+        included in your current OPSQAI license. Contact your OPSQAI representative to activate it
+        for this install.
       </p>
     </div>
   );

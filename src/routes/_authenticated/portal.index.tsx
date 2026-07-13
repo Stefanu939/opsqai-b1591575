@@ -30,7 +30,8 @@ function PortalHome() {
       {data && data.installs.length === 0 ? (
         <Card className="p-6">
           <p className="text-sm text-muted-foreground">
-            No installations linked to this email yet. If you expect to see one, contact OPSQAI support.
+            No installations linked to this email yet. If you expect to see one, contact OPSQAI
+            support.
           </p>
         </Card>
       ) : null}
@@ -58,7 +59,9 @@ function PortalHome() {
                 </div>
                 <div>
                   <div className="text-muted-foreground">Maintenance until</div>
-                  <div className="font-medium">{maint ? new Date(maint).toLocaleDateString() : "—"}</div>
+                  <div className="font-medium">
+                    {maint ? new Date(maint).toLocaleDateString() : "—"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">Modules</div>
@@ -70,10 +73,10 @@ function PortalHome() {
                     {inst.install_license?.revoked
                       ? "Revoked"
                       : inst.install_license?.suspended
-                      ? "Suspended"
-                      : inst.install_license
-                      ? "Active"
-                      : "Pending"}
+                        ? "Suspended"
+                        : inst.install_license
+                          ? "Active"
+                          : "Pending"}
                   </div>
                 </div>
               </div>

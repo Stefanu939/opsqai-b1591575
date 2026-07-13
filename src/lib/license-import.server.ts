@@ -23,11 +23,7 @@ import {
 import { verifyCrl, type CrlEntry, type CrlVerifyReason } from "@/lib/license-crl.server";
 import { isValidModuleKey } from "@/lib/license-modules";
 
-export type ImportReason =
-  | VerifyReason
-  | "unknown_module"
-  | "no_pinned_key"
-  | "db_error";
+export type ImportReason = VerifyReason | "unknown_module" | "no_pinned_key" | "db_error";
 
 export interface ImportResult {
   ok: boolean;
@@ -54,10 +50,7 @@ async function loadPinnedPublicPem(keyId: string): Promise<string | null> {
 export async function verifyTokenForImport(
   token: string,
   opts?: { expectedInstallId?: string; now?: number },
-): Promise<
-  | { ok: true; payload: AnyLicensePayload }
-  | { ok: false; reason: ImportReason }
-> {
+): Promise<{ ok: true; payload: AnyLicensePayload } | { ok: false; reason: ImportReason }> {
   const keyId = peekTokenKeyId(token);
   if (!keyId) return { ok: false, reason: "malformed" };
 
@@ -109,7 +102,9 @@ export async function importLicenseToken(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const expiresAtIso = p.expires_at ? new Date(p.expires_at * 1000).toISOString() : null;
-  const maintIso = p.maintenance_expires_at ? new Date(p.maintenance_expires_at * 1000).toISOString() : null;
+  const maintIso = p.maintenance_expires_at
+    ? new Date(p.maintenance_expires_at * 1000).toISOString()
+    : null;
 
   if (p.kind === "install") {
     const ip = p as InstallLicensePayload;
@@ -203,7 +198,9 @@ export async function importRevocationList(token: string): Promise<CrlImportSumm
   if (parts.length !== 4) return { ok: false, reason: "malformed", applied: 0, entries: 0 };
   let keyId: string | null = null;
   try {
-    const p = JSON.parse(Buffer.from(parts[2].replaceAll("-", "+").replaceAll("_", "/"), "base64").toString());
+    const p = JSON.parse(
+      Buffer.from(parts[2].replaceAll("-", "+").replaceAll("_", "/"), "base64").toString(),
+    );
     keyId = typeof p.key_id === "string" ? p.key_id : null;
   } catch {
     /* fall through */
@@ -234,5 +231,10 @@ export async function importRevocationList(token: string): Promise<CrlImportSumm
     if (!error) applied += updated?.length ?? 0;
   }
 
-  return { ok: true, applied, entries: res.payload.entries.length, issued_at: res.payload.issued_at };
+  return {
+    ok: true,
+    applied,
+    entries: res.payload.entries.length,
+    issued_at: res.payload.issued_at,
+  };
 }

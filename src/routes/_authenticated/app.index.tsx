@@ -3,8 +3,16 @@ import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  MessageSquare, Sparkles, BookOpen, HelpCircle, Inbox, BarChart3,
-  ArrowRight, ScrollText, ClipboardCheck, Search,
+  MessageSquare,
+  Sparkles,
+  BookOpen,
+  HelpCircle,
+  Inbox,
+  BarChart3,
+  ArrowRight,
+  ScrollText,
+  ClipboardCheck,
+  Search,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
@@ -14,7 +22,14 @@ export const Route = createFileRoute("/_authenticated/app/")({
 function OperationalHome() {
   const { user, companyName, hasPermission, hasAnyPermission } = useAuth();
   const hour = new Date().getHours();
-  const greeting = hour < 5 ? "Good evening" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting =
+    hour < 5
+      ? "Good evening"
+      : hour < 12
+        ? "Good morning"
+        : hour < 18
+          ? "Good afternoon"
+          : "Good evening";
   const name =
     (user?.user_metadata?.first_name as string | undefined) ||
     (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ||
@@ -22,43 +37,70 @@ function OperationalHome() {
     "there";
 
   const quickActions: Array<{
-    to: any; label: string; desc: string; icon: any; show: boolean; primary?: boolean;
+    to: any;
+    label: string;
+    desc: string;
+    icon: any;
+    show: boolean;
+    primary?: boolean;
   }> = [
     {
-      to: "/app/chat", label: "Ask the AI Assistant",
+      to: "/app/chat",
+      label: "Ask the AI Assistant",
       desc: "Get instant, source-grounded answers from your operational knowledge.",
-      icon: MessageSquare, primary: true,
+      icon: MessageSquare,
+      primary: true,
       show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"),
     },
     {
-      to: "/app/workspace", label: "Open AI Workspace",
+      to: "/app/workspace",
+      label: "Open AI Workspace",
       desc: "Analyse, compare and generate documents from session-scoped files.",
       icon: Sparkles,
       show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
     },
     {
-      to: "/app/knowledge", label: "Browse Knowledge Base",
+      to: "/app/knowledge",
+      label: "Browse Knowledge Base",
       desc: "Open SOPs, manuals and procedures across your workspace.",
       icon: BookOpen,
       show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"),
     },
     {
-      to: "/app/faq", label: "Browse FAQs",
+      to: "/app/faq",
+      label: "Browse FAQs",
       desc: "Frequently asked questions answered by your team.",
       icon: HelpCircle,
       show: hasAnyPermission("faq.read", "faq.edit"),
     },
     {
-      to: "/app/requests", label: "Internal Requests",
+      to: "/app/requests",
+      label: "Internal Requests",
       desc: "Submit a question or resolve one for your colleagues.",
-      icon: Inbox, show: true,
+      icon: Inbox,
+      show: true,
     },
   ].filter((a) => a.show);
 
   const adminShortcuts: Array<{ to: any; label: string; icon: any; show: boolean }> = [
-    { to: "/app/admin/dashboard", label: "Executive Dashboard", icon: BarChart3, show: hasPermission("dashboard.view") },
-    { to: "/app/admin/audit", label: "Audit Log", icon: ScrollText, show: hasPermission("audit.view") },
-    { to: "/app/admin/ai-audit", label: "AI Workspace Audit", icon: ClipboardCheck, show: hasPermission("ai_audit.run") },
+    {
+      to: "/app/admin/dashboard",
+      label: "Executive Dashboard",
+      icon: BarChart3,
+      show: hasPermission("dashboard.view"),
+    },
+    {
+      to: "/app/admin/audit",
+      label: "Audit Log",
+      icon: ScrollText,
+      show: hasPermission("audit.view"),
+    },
+    {
+      to: "/app/admin/ai-audit",
+      label: "AI Workspace Audit",
+      icon: ClipboardCheck,
+      show: hasPermission("ai_audit.run"),
+    },
   ].filter((a) => a.show);
 
   return (
@@ -71,7 +113,8 @@ function OperationalHome() {
           {greeting}, {name} 👋
         </h1>
         <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl">
-          Welcome back. Pick up a conversation, dive into a document or jump straight into the AI assistant.
+          Welcome back. Pick up a conversation, dive into a document or jump straight into the AI
+          assistant.
         </p>
       </header>
 
@@ -87,15 +130,25 @@ function OperationalHome() {
               What do you want to know today?
             </h2>
             <p className="mt-1.5 text-sm text-muted-foreground max-w-xl">
-              Ask anything about your SOPs, procedures, safety rules or operations — answers are grounded in your own knowledge.
+              Ask anything about your SOPs, procedures, safety rules or operations — answers are
+              grounded in your own knowledge.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col gap-2 md:items-end shrink-0">
-            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
-              <Link to="/app/chat">Start a conversation <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <Button
+              asChild
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+            >
+              <Link to="/app/chat">
+                Start a conversation <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-              <Link to="/app/workspace"><Sparkles className="mr-2 h-4 w-4" />Open Workspace</Link>
+              <Link to="/app/workspace">
+                <Sparkles className="mr-2 h-4 w-4" />
+                Open Workspace
+              </Link>
             </Button>
           </div>
         </div>
@@ -103,7 +156,9 @@ function OperationalHome() {
 
       {/* Quick actions */}
       <section className="mb-8">
-        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-3">Quick actions</div>
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-3">
+          Quick actions
+        </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {quickActions.map((a) => (
             <Link
@@ -127,7 +182,9 @@ function OperationalHome() {
       {/* Admin shortcuts — only render when user can access at least one */}
       {adminShortcuts.length > 0 && (
         <section>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-3">For managers & admins</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-3">
+            For managers & admins
+          </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {adminShortcuts.map((a) => (
               <Link
@@ -151,7 +208,11 @@ function OperationalHome() {
       {/* Tip / search footer */}
       <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
         <Search className="h-3.5 w-3.5" />
-        Tip: press <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[10px]">⌘K</kbd> to search across SOPs, FAQs, users and audit history.
+        Tip: press{" "}
+        <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[10px]">
+          ⌘K
+        </kbd>{" "}
+        to search across SOPs, FAQs, users and audit history.
       </div>
     </div>
   );

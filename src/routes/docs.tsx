@@ -25,7 +25,10 @@ function DocsIndex() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-20">
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">
-        <Link to="/" className="hover:text-foreground">Home</Link> <span className="mx-2">/</span>
+        <Link to="/" className="hover:text-foreground">
+          Home
+        </Link>{" "}
+        <span className="mx-2">/</span>
         <span className="text-foreground">Documentation</span>
       </nav>
       <header className="mb-14 max-w-3xl">
@@ -65,7 +68,10 @@ function DocsIndex() {
           Authenticated customers see the full docs rendered in-app at{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-xs">/app/docs</code>, and can download
           PDF versions from the{" "}
-          <Link to="/portal" className="text-primary hover:underline">Customer Portal</Link>.
+          <Link to="/portal" className="text-primary hover:underline">
+            Customer Portal
+          </Link>
+          .
         </p>
       </section>
     </main>

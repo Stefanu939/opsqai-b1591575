@@ -51,6 +51,7 @@ The recognized GitHub Actions workflow lives at `.github/workflows/build-windows
 ## Why NSIS + Electron + WinSW
 
 Decided in `.lovable/plan.md` §3. Short version:
+
 - **NSIS** — small, scriptable, signs cleanly, decades of Windows enterprise track record.
 - **Electron** — same TS/React stack as OPSQAI web app; shared between wizard and Service Manager.
 - **WinSW** — pinned static exe, wraps any process as a proper Windows Service with Event Log + auto-restart.

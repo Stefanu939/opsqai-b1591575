@@ -5,7 +5,10 @@ import type { ActivationBundle } from "@/lib/license-activation.functions";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 mkdirSync("opsqai-windows/build/artifacts", { recursive: true });
-writeFileSync("opsqai-windows/build/artifacts/OPSQAI-Setup.exe", new Uint8Array([0x4d, 0x5a, 0x90, 0x00]));
+writeFileSync(
+  "opsqai-windows/build/artifacts/OPSQAI-Setup.exe",
+  new Uint8Array([0x4d, 0x5a, 0x90, 0x00]),
+);
 
 function fakeBundle(install_id: string): ActivationBundle {
   return {

@@ -25,9 +25,17 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — OPSQAI" },
-      { name: "description", content: "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base." },
+      {
+        name: "description",
+        content:
+          "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base.",
+      },
       { property: "og:title", content: "Sign in — OPSQAI" },
-      { property: "og:description", content: "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base." },
+      {
+        property: "og:description",
+        content:
+          "Sign in to OPSQAI to access your company's logistics AI assistant, SOPs and knowledge base.",
+      },
       { property: "og:url", content: "https://opsqai.de/auth" },
     ],
     links: [{ rel: "canonical", href: "https://opsqai.de/auth" }],
@@ -89,13 +97,15 @@ function AuthPage() {
     }
   };
 
-  const contactAdmin = lang === "de"
-    ? "Wenden Sie sich an Ihren Unternehmensadministrator für den Zugang."
-    : lang === "ro"
-    ? "Contactați administratorul companiei pentru acces."
-    : "Contact your company administrator for access.";
+  const contactAdmin =
+    lang === "de"
+      ? "Wenden Sie sich an Ihren Unternehmensadministrator für den Zugang."
+      : lang === "ro"
+        ? "Contactați administratorul companiei pentru acces."
+        : "Contact your company administrator for access.";
 
-  const forgotLabel = lang === "de" ? "Passwort vergessen?" : lang === "ro" ? "Ai uitat parola?" : "Forgot password?";
+  const forgotLabel =
+    lang === "de" ? "Passwort vergessen?" : lang === "ro" ? "Ai uitat parola?" : "Forgot password?";
 
   return (
     <div
@@ -140,7 +150,10 @@ function AuthPage() {
         >
           {/* Brand header — bigger logo & type on mobile */}
           <div className="text-center mt-6 md:mt-0 mb-8 md:mb-6">
-            <LogoMark size={72} className="mx-auto mb-5 h-20 w-20 md:h-16 md:w-16 text-foreground" />
+            <LogoMark
+              size={72}
+              className="mx-auto mb-5 h-20 w-20 md:h-16 md:w-16 text-foreground"
+            />
             <h1 className="text-3xl md:text-2xl font-semibold tracking-tight">OPSQAI</h1>
             <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-muted-foreground/70 mt-1.5">
               Operational Knowledge Intelligence
@@ -152,7 +165,9 @@ function AuthPage() {
 
           <form onSubmit={onSubmit} className="space-y-5 md:space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm md:text-sm">{t("email")}</Label>
+              <Label htmlFor="email" className="text-sm md:text-sm">
+                {t("email")}
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -169,7 +184,9 @@ function AuthPage() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm">{t("password")}</Label>
+                <Label htmlFor="password" className="text-sm">
+                  {t("password")}
+                </Label>
                 <Link
                   to="/forgot-password"
                   className="text-sm md:text-xs text-muted-foreground hover:text-foreground min-h-11 md:min-h-0 inline-flex items-center"
@@ -206,8 +223,16 @@ function AuthPage() {
               <p className="text-muted-foreground">
                 {lang === "de" ? "Kein Konto?" : lang === "ro" ? "Nu ai cont?" : "No account yet?"}
               </p>
-              <Link to="/demo" className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline">
-                {lang === "de" ? "Interaktive Demo starten" : lang === "ro" ? "Lansează Demo Interactiv" : "Launch Interactive Demo"} →
+              <Link
+                to="/demo"
+                className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              >
+                {lang === "de"
+                  ? "Interaktive Demo starten"
+                  : lang === "ro"
+                    ? "Lansează Demo Interactiv"
+                    : "Launch Interactive Demo"}{" "}
+                →
               </Link>
             </div>
             <p className="text-center text-sm md:text-xs text-muted-foreground pt-2 md:pt-0 md:mt-4">

@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { GraduationCap, BookOpen, Award, Sparkles, BarChart3, Settings as SettingsIcon } from "lucide-react";
+import {
+  GraduationCap,
+  BookOpen,
+  Award,
+  Sparkles,
+  BarChart3,
+  Settings as SettingsIcon,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 const baseCls =

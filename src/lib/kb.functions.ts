@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { companyFromStoragePath, requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
+import {
+  companyFromStoragePath,
+  requireAnyPermission,
+  resolveCompanyForWrite,
+} from "@/lib/authorization";
 
 const DocInput = z.object({
   title: z.string().min(1),
@@ -125,14 +129,22 @@ export const reprocessDocument = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: doc } = await supabaseAdmin
-      .from("knowledge_documents").select("file_path, file_type, title, company_id").eq("id", data.id).maybeSingle();
+      .from("knowledge_documents")
+      .select("file_path, file_type, title, company_id")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!doc || !doc.file_path) throw new Error("Document or file not found");
 
     await supabaseAdmin.from("document_chunks").delete().eq("document_id", data.id);
-    await supabaseAdmin.from("knowledge_documents").update({ status: "processing", error: null, chunk_count: 0 }).eq("id", data.id);
+    await supabaseAdmin
+      .from("knowledge_documents")
+      .update({ status: "processing", error: null, chunk_count: 0 })
+      .eq("id", data.id);
 
     try {
-      const { data: file } = await supabaseAdmin.storage.from("knowledge-docs").download(doc.file_path);
+      const { data: file } = await supabaseAdmin.storage
+        .from("knowledge-docs")
+        .download(doc.file_path);
       if (!file) throw new Error("File not found in storage");
       const buffer = await file.arrayBuffer();
       const { extractText, chunkText } = await import("@/lib/doc-processing.server");
@@ -152,12 +164,19 @@ export const reprocessDocument = createServerFn({ method: "POST" })
         embedding: `[${vecs[idx].join(",")}]`,
       }));
       await supabaseAdmin.from("document_chunks").insert(rows as never);
-      await supabaseAdmin.from("knowledge_documents")
-        .update({ status: "ready", chunk_count: chunks.length, content_text: text.slice(0, 50000), error: null })
+      await supabaseAdmin
+        .from("knowledge_documents")
+        .update({
+          status: "ready",
+          chunk_count: chunks.length,
+          content_text: text.slice(0, 50000),
+          error: null,
+        })
         .eq("id", data.id);
       return { ok: true, chunks: chunks.length };
     } catch (err) {
-      await supabaseAdmin.from("knowledge_documents")
+      await supabaseAdmin
+        .from("knowledge_documents")
         .update({ status: "failed", error: err instanceof Error ? err.message : String(err) })
         .eq("id", data.id);
       throw err;
@@ -170,7 +189,10 @@ export const deleteKnowledgeDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.delete"]);
     const { data: doc } = await context.supabase
-      .from("knowledge_documents").select("file_path").eq("id", data.id).maybeSingle();
+      .from("knowledge_documents")
+      .select("file_path")
+      .eq("id", data.id)
+      .maybeSingle();
     if (doc?.file_path) {
       await context.supabase.storage.from("knowledge-docs").remove([doc.file_path]);
     }

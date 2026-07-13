@@ -82,14 +82,18 @@ export const listWorkspaceLifecycle = createServerFn({ method: "POST" })
 export const listSubscriptionEvents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid(), limit: z.number().int().min(1).max(200).optional() }).parse(d),
+    z
+      .object({ company_id: z.string().uuid(), limit: z.number().int().min(1).max(200).optional() })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requireCompanyOrPlatform(context, data.company_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("subscription_events")
-      .select("id, event_type, from_status, to_status, reason, actor_id, actor_kind, metadata, created_at")
+      .select(
+        "id, event_type, from_status, to_status, reason, actor_id, actor_kind, metadata, created_at",
+      )
       .eq("company_id", data.company_id)
       .order("created_at", { ascending: false })
       .limit(data.limit ?? 100);
@@ -126,13 +130,33 @@ export const changeSubscriptionStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     // Notifications for the visible transitions.
     if (data.to_status === "suspended")
-      await notify(data.company_id, "workspace_suspended", "Workspace suspended", data.reason ?? "Suspended by administrator");
+      await notify(
+        data.company_id,
+        "workspace_suspended",
+        "Workspace suspended",
+        data.reason ?? "Suspended by administrator",
+      );
     if (data.to_status === "active")
-      await notify(data.company_id, "workspace_reactivated", "Workspace reactivated", "Full access restored.");
+      await notify(
+        data.company_id,
+        "workspace_reactivated",
+        "Workspace reactivated",
+        "Full access restored.",
+      );
     if (data.to_status === "grace_period")
-      await notify(data.company_id, "billing_grace_started", "Grace period started", data.reason ?? "Grace period started by administrator");
+      await notify(
+        data.company_id,
+        "billing_grace_started",
+        "Grace period started",
+        data.reason ?? "Grace period started by administrator",
+      );
     if (data.to_status === "cancelled")
-      await notify(data.company_id, "workspace_cancelled", "Subscription cancelled", data.reason ?? "Subscription cancelled by administrator");
+      await notify(
+        data.company_id,
+        "workspace_cancelled",
+        "Subscription cancelled",
+        data.reason ?? "Subscription cancelled by administrator",
+      );
     return { ok: true, from: cur?.subscription_status ?? null, to: data.to_status };
   });
 
@@ -169,8 +193,12 @@ export const adjustGracePeriod = createServerFn({ method: "POST" })
     }
 
     const patch: Record<string, unknown> = { grace_period_ends_at: newEnds };
-    if (cur.subscription_status !== "grace_period" && newEnds) patch.subscription_status = "grace_period";
-    const { error } = await supabaseAdmin.from("companies").update(patch as any).eq("id", data.company_id);
+    if (cur.subscription_status !== "grace_period" && newEnds)
+      patch.subscription_status = "grace_period";
+    const { error } = await supabaseAdmin
+      .from("companies")
+      .update(patch as any)
+      .eq("id", data.company_id);
     if (error) throw new Error(error.message);
 
     await logEvent(context, {
@@ -199,14 +227,21 @@ export const updateRenewalDate = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: Record<string, unknown> = { renewal_date: data.renewal_date };
-    if (data.next_invoice_due_at !== undefined) patch.next_invoice_due_at = data.next_invoice_due_at;
-    const { error } = await supabaseAdmin.from("companies").update(patch as any).eq("id", data.company_id);
+    if (data.next_invoice_due_at !== undefined)
+      patch.next_invoice_due_at = data.next_invoice_due_at;
+    const { error } = await supabaseAdmin
+      .from("companies")
+      .update(patch as any)
+      .eq("id", data.company_id);
     if (error) throw new Error(error.message);
     await logEvent(context, {
       company_id: data.company_id,
       event_type: "renewal_updated",
       reason: data.reason,
-      metadata: { renewal_date: data.renewal_date, next_invoice_due_at: data.next_invoice_due_at ?? null },
+      metadata: {
+        renewal_date: data.renewal_date,
+        next_invoice_due_at: data.next_invoice_due_at ?? null,
+      },
     });
     return { ok: true };
   });
@@ -215,7 +250,13 @@ export const updateRenewalDate = createServerFn({ method: "POST" })
 export const setBillingOverride = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid(), enabled: z.boolean(), reason: z.string().max(500).optional().nullable() }).parse(d),
+    z
+      .object({
+        company_id: z.string().uuid(),
+        enabled: z.boolean(),
+        reason: z.string().max(500).optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -296,7 +337,12 @@ export const recordPayment = createServerFn({ method: "POST" })
           _reason: "Payment received",
           _actor_kind: "platform_admin",
         });
-        await notify(data.company_id, "workspace_reactivated", "Workspace reactivated", "Payment received. Full access restored.");
+        await notify(
+          data.company_id,
+          "workspace_reactivated",
+          "Workspace reactivated",
+          "Payment received. Full access restored.",
+        );
       }
     }
     return { ok: true, paid_at: paidAt };

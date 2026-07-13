@@ -73,9 +73,7 @@ function CommandCenterPage() {
               <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mt-0.5">
                 {active.label}
               </h1>
-              <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-                {active.tagline}
-              </p>
+              <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{active.tagline}</p>
             </div>
           </div>
 
@@ -93,9 +91,7 @@ function CommandCenterPage() {
                   key={v.key}
                   role="tab"
                   aria-selected={isActive}
-                  onClick={() =>
-                    navigate({ search: { view: v.key }, replace: true })
-                  }
+                  onClick={() => navigate({ search: { view: v.key }, replace: true })}
                   className={[
                     "group inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium",
                     "border-b-2 -mb-px transition-colors",
@@ -107,7 +103,9 @@ function CommandCenterPage() {
                   <Icon
                     className={[
                       "h-4 w-4",
-                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
                     ].join(" ")}
                   />
                   {v.label}

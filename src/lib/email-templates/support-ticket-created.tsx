@@ -18,13 +18,28 @@ const Email = ({ requesterName, ticketId, subjectLine, ticketUrl }: Props) => (
     ctaLabel={ticketUrl ? "View ticket" : undefined}
     ctaUrl={ticketUrl}
   >
-    {ticketId ? <Text style={row}><strong>Ticket:</strong> {ticketId}</Text> : null}
-    {subjectLine ? <Text style={row}><strong>Subject:</strong> {subjectLine}</Text> : null}
-    <Text style={row}><strong>Expected first response:</strong> within 1 business day (CET)</Text>
+    {ticketId ? (
+      <Text style={row}>
+        <strong>Ticket:</strong> {ticketId}
+      </Text>
+    ) : null}
+    {subjectLine ? (
+      <Text style={row}>
+        <strong>Subject:</strong> {subjectLine}
+      </Text>
+    ) : null}
+    <Text style={row}>
+      <strong>Expected first response:</strong> within 1 business day (CET)
+    </Text>
   </BrandedEmail>
 );
 
-const row: React.CSSProperties = { fontSize: "14px", lineHeight: "22px", color: "#0f1729", margin: "0 0 6px" };
+const row: React.CSSProperties = {
+  fontSize: "14px",
+  lineHeight: "22px",
+  color: "#0f1729",
+  margin: "0 0 6px",
+};
 
 export const template = {
   component: Email,

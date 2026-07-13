@@ -24,7 +24,7 @@ export type DeploymentMode = "mc" | "selfhost";
  * Routes that render in BOTH deployments (dashboard shell, profile, docs).
  */
 export const SHARED_PREFIXES: readonly string[] = [
-  "/app",                 // /app landing — dashboard root (each mode renders its own content)
+  "/app", // /app landing — dashboard root (each mode renders its own content)
   "/app/profile",
   "/app/docs",
   // Platform surfaces that exist in BOTH deployments (MC = platform-wide,
@@ -49,16 +49,16 @@ export const SHARED_PREFIXES: readonly string[] = [
 export const MC_ONLY_PREFIXES: readonly string[] = [
   "/app/admin/dashboard",
   "/app/admin/companies",
-  "/app/admin/customers",           // Enterprise Documents / customer registry
-  "/app/admin/subscriptions",       // Orders / Subscriptions
-  "/app/admin/support",             // Support Inbox
+  "/app/admin/customers", // Enterprise Documents / customer registry
+  "/app/admin/subscriptions", // Orders / Subscriptions
+  "/app/admin/support", // Support Inbox
   "/app/admin/email",
   "/app/admin/email-logs",
-  "/app/admin/platform",            // Platform Administration
-  "/app/admin/platform-admins",     // Super Admins
-  "/app/admin/audit",               // Platform audit (MC-only per spec)
-  "/app/platform/licenses",         // Licenses, Activation Bundles, Releases, Installations, Signing Keys
-  "/portal",                        // Customer Portal (hosted MC)
+  "/app/admin/platform", // Platform Administration
+  "/app/admin/platform-admins", // Super Admins
+  "/app/admin/audit", // Platform audit (MC-only per spec)
+  "/app/platform/licenses", // Licenses, Activation Bundles, Releases, Installations, Signing Keys
+  "/portal", // Customer Portal (hosted MC)
 ];
 
 /**
@@ -106,10 +106,7 @@ function anyPrefix(path: string, prefixes: readonly string[]): boolean {
 
 export interface RouteGateVerdict {
   allowed: boolean;
-  reason?:
-    | "mc_only_route_on_selfhost"
-    | "selfhost_only_route_on_mc"
-    | "operational_on_mc";
+  reason?: "mc_only_route_on_selfhost" | "selfhost_only_route_on_mc" | "operational_on_mc";
 }
 
 /**

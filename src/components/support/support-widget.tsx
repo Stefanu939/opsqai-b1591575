@@ -7,33 +7,62 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageCircle, X, Send, Paperclip, Plus, ArrowLeft, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Paperclip,
+  Plus,
+  ArrowLeft,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  listSupportConversations, getSupportConversation, createSupportConversation,
-  postSupportMessage, markSupportRead, createSupportAttachmentUrl, getSupportUnreadCount,
+  listSupportConversations,
+  getSupportConversation,
+  createSupportConversation,
+  postSupportMessage,
+  markSupportRead,
+  createSupportAttachmentUrl,
+  getSupportUnreadCount,
 } from "@/lib/support.functions";
 
 type Priority = "low" | "normal" | "high" | "critical";
 type Status = "open" | "pending" | "resolved" | "closed";
 
 interface Conversation {
-  id: string; company_id: string; subject: string;
-  status: Status; priority: Priority;
-  last_message_at: string; unread_for_customer: number; unread_for_platform: number;
+  id: string;
+  company_id: string;
+  subject: string;
+  status: Status;
+  priority: Priority;
+  last_message_at: string;
+  unread_for_customer: number;
+  unread_for_platform: number;
   companies?: { name: string } | null;
 }
 interface Message {
-  id: string; conversation_id: string; sender_id: string;
-  sender_kind: "customer" | "platform"; body: string;
-  internal_note: boolean; attachments: Array<{ path: string; name: string; size: number; mime: string }>;
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  sender_kind: "customer" | "platform";
+  body: string;
+  internal_note: boolean;
+  attachments: Array<{ path: string; name: string; size: number; mime: string }>;
   created_at: string;
 }
 
@@ -44,7 +73,11 @@ const priorityColor: Record<Priority, string> = {
   critical: "bg-red-500/15 text-red-600 dark:text-red-400",
 };
 
-function gatherContext(routePath: string, auth: ReturnType<typeof useAuth>, viewingCompanyId: string | null) {
+function gatherContext(
+  routePath: string,
+  auth: ReturnType<typeof useAuth>,
+  viewingCompanyId: string | null,
+) {
   if (typeof window === "undefined") return {};
   return {
     company_id: auth.companyId,
@@ -84,7 +117,9 @@ export function SupportWidget() {
   const [unread, setUnread] = useState(0);
   const [draft, setDraft] = useState("");
   const [internalNote, setInternalNote] = useState(false);
-  const [attachments, setAttachments] = useState<Array<{ path: string; name: string; size: number; mime: string }>>([]);
+  const [attachments, setAttachments] = useState<
+    Array<{ path: string; name: string; size: number; mime: string }>
+  >([]);
   const [uploading, setUploading] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [newPriority, setNewPriority] = useState<Priority>("normal");
@@ -102,14 +137,21 @@ export function SupportWidget() {
       const y = window.scrollY;
       const dy = y - last;
       last = y;
-      if (y < 80) { setCollapsed(false); }
-      else if (dy > 6) { setCollapsed(true); }
-      else if (dy < -6) { setCollapsed(false); }
+      if (y < 80) {
+        setCollapsed(false);
+      } else if (dy > 6) {
+        setCollapsed(true);
+      } else if (dy < -6) {
+        setCollapsed(false);
+      }
       if (stopT) clearTimeout(stopT);
       stopT = setTimeout(() => setCollapsed(false), 900);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", onScroll); if (stopT) clearTimeout(stopT); };
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (stopT) clearTimeout(stopT);
+    };
   }, []);
   // Allow other UI (Profile menu, bottom nav "More", etc.) to open the widget.
   useEffect(() => {
@@ -134,7 +176,9 @@ export function SupportWidget() {
     try {
       const r = await unreadFn();
       setUnread(r.count ?? 0);
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   };
 
   // Poll + realtime unread badge.
@@ -144,10 +188,21 @@ export function SupportWidget() {
     const t = setInterval(refreshUnread, 30000);
     const ch = supabase
       .channel(`support-unread-${auth.user.id}-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "support_messages" }, refreshUnread)
-      .on("postgres_changes", { event: "*", schema: "public", table: "support_conversations" }, refreshUnread)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_messages" },
+        refreshUnread,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_conversations" },
+        refreshUnread,
+      )
       .subscribe();
-    return () => { clearInterval(t); supabase.removeChannel(ch); };
+    return () => {
+      clearInterval(t);
+      supabase.removeChannel(ch);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canUse, auth.user?.id]);
 
@@ -158,11 +213,14 @@ export function SupportWidget() {
       setConversations(rows as unknown as Conversation[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadThread = async (id: string) => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const { conversation, messages } = await getFn({ data: { id } });
       if (conversation) {
@@ -174,7 +232,9 @@ export function SupportWidget() {
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to open");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -187,11 +247,20 @@ export function SupportWidget() {
     if (!activeId) return;
     const ch = supabase
       .channel(`support-thread-${activeId}`)
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "support_messages", filter: `conversation_id=eq.${activeId}` },
-        (payload) => setMessages((prev) => [...prev, payload.new as unknown as Message]))
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "support_messages",
+          filter: `conversation_id=eq.${activeId}`,
+        },
+        (payload) => setMessages((prev) => [...prev, payload.new as unknown as Message]),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [activeId]);
 
   useEffect(() => {
@@ -204,14 +273,32 @@ export function SupportWidget() {
     setUploading(true);
     try {
       for (const file of arr) {
-        if (file.size > 20 * 1024 * 1024) { setError(`${file.name} exceeds 20MB`); continue; }
-        const signed = await uploadUrlFn({ data: { conversation_id: activeId, filename: file.name, mime: file.type || "application/octet-stream" } });
-        const { error: upErr } = await supabase.storage.from("support-attachments")
+        if (file.size > 20 * 1024 * 1024) {
+          setError(`${file.name} exceeds 20MB`);
+          continue;
+        }
+        const signed = await uploadUrlFn({
+          data: {
+            conversation_id: activeId,
+            filename: file.name,
+            mime: file.type || "application/octet-stream",
+          },
+        });
+        const { error: upErr } = await supabase.storage
+          .from("support-attachments")
           .uploadToSignedUrl(signed.path, signed.token, file, { contentType: file.type });
-        if (upErr) { setError(upErr.message); continue; }
-        setAttachments((prev) => [...prev, { path: signed.path, name: file.name, size: file.size, mime: file.type }]);
+        if (upErr) {
+          setError(upErr.message);
+          continue;
+        }
+        setAttachments((prev) => [
+          ...prev,
+          { path: signed.path, name: file.name, size: file.size, mime: file.type },
+        ]);
       }
-    } finally { setUploading(false); }
+    } finally {
+      setUploading(false);
+    }
   };
 
   const onPaste: React.ClipboardEventHandler<HTMLTextAreaElement> = (e) => {
@@ -229,13 +316,18 @@ export function SupportWidget() {
     if (!activeId || !draft.trim()) return;
     setError(null);
     try {
-      await postFn({ data: {
-        conversation_id: activeId, body: draft.trim(),
-        internal_note: isPlatform ? internalNote : false,
-        attachments,
-        context: gatherContext(routeState, auth, auth.activeCompanyId),
-      } });
-      setDraft(""); setAttachments([]); setInternalNote(false);
+      await postFn({
+        data: {
+          conversation_id: activeId,
+          body: draft.trim(),
+          internal_note: isPlatform ? internalNote : false,
+          attachments,
+          context: gatherContext(routeState, auth, auth.activeCompanyId),
+        },
+      });
+      setDraft("");
+      setAttachments([]);
+      setInternalNote(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to send");
     }
@@ -243,17 +335,27 @@ export function SupportWidget() {
 
   const createNew = async () => {
     if (!newSubject.trim() || !draft.trim()) return;
-    setError(null); setLoading(true);
+    setError(null);
+    setLoading(true);
     try {
-      const conv = await createFn({ data: {
-        subject: newSubject.trim(), priority: newPriority, body: draft.trim(),
-        attachments: [], context: gatherContext(routeState, auth, auth.activeCompanyId),
-      } });
-      setNewSubject(""); setDraft(""); setNewPriority("normal");
+      const conv = await createFn({
+        data: {
+          subject: newSubject.trim(),
+          priority: newPriority,
+          body: draft.trim(),
+          attachments: [],
+          context: gatherContext(routeState, auth, auth.activeCompanyId),
+        },
+      });
+      setNewSubject("");
+      setDraft("");
+      setNewPriority("normal");
       await loadThread((conv as { id: string }).id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (hidden) return null;
@@ -313,168 +415,315 @@ export function SupportWidget() {
               <div className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
             </div>
 
-          <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-            {view !== "list" && (
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setView("list"); setActiveId(null); setMessages([]); }}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold tracking-tight">
-                {view === "new" ? "New support request" : view === "thread" ? "Conversation" : "Support"}
-              </div>
-              <div className="text-[11px] text-muted-foreground truncate">
-                {isPlatform ? "Platform inbox · widget view" : "We usually reply within a few hours"}
-              </div>
-            </div>
-            {view === "list" && !isPlatform && (
-              <Button size="sm" variant="outline" onClick={() => { setView("new"); setDraft(""); setNewSubject(""); }}>
-                <Plus className="h-3.5 w-3.5 mr-1" /> New
-              </Button>
-            )}
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {error && (
-            <div className="px-4 py-2 text-[11px] bg-red-500/10 text-red-600 dark:text-red-400 flex items-center gap-1.5">
-              <AlertTriangle className="h-3 w-3" />{error}
-            </div>
-          )}
-
-          {view === "list" && (
-            <div className="flex-1 overflow-y-auto">
-              {loading && <div className="p-6 text-center text-xs text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />Loading…</div>}
-              {!loading && conversations.length === 0 && (
-                <div className="p-6 text-center text-xs text-muted-foreground">
-                  No conversations yet.
-                  {!isPlatform && <Button size="sm" className="mt-3 block mx-auto" onClick={() => setView("new")}><Plus className="h-3.5 w-3.5 mr-1" /> Start a conversation</Button>}
-                </div>
+            <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+              {view !== "list" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => {
+                    setView("list");
+                    setActiveId(null);
+                    setMessages([]);
+                  }}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
               )}
-              <div className="divide-y divide-border">
-                {conversations.map((c) => {
-                  const u = isPlatform ? c.unread_for_platform : c.unread_for_customer;
-                  return (
-                    <button key={c.id} onClick={() => loadThread(c.id)} className="w-full text-left px-4 py-3 hover:bg-muted/60 transition">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="secondary" className={`text-[10px] capitalize ${priorityColor[c.priority]}`}>{c.priority}</Badge>
-                        <Badge variant="outline" className="text-[10px] capitalize">{c.status}</Badge>
-                        {isPlatform && c.companies?.name && <span className="text-[10px] text-muted-foreground truncate">{c.companies.name}</span>}
-                        {u > 0 && <span className="ml-auto h-2 w-2 rounded-full bg-primary" />}
-                      </div>
-                      <div className="text-sm font-medium truncate">{c.subject}</div>
-                      <div className="text-[10px] text-muted-foreground">{new Date(c.last_message_at).toLocaleString()}</div>
-                    </button>
-                  );
-                })}
-              </div>
-              {isPlatform && (
-                <div className="p-3 border-t border-border">
-                  <Button size="sm" variant="outline" className="w-full" onClick={() => { setOpen(false); navigate({ to: "/app/admin/support" }); }}>
-                    Open full inbox →
-                  </Button>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold tracking-tight">
+                  {view === "new"
+                    ? "New support request"
+                    : view === "thread"
+                      ? "Conversation"
+                      : "Support"}
                 </div>
-              )}
-            </div>
-          )}
-
-          {view === "new" && (
-            <div className="flex-1 flex flex-col p-4 gap-3">
-              <Input placeholder="Subject" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} />
-              <Select value={newPriority} onValueChange={(v) => setNewPriority(v as Priority)}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-              <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Describe the issue or request…" rows={8} className="flex-1 resize-none" />
-              <Button onClick={createNew} disabled={!newSubject.trim() || !draft.trim() || loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1.5" /> Send</>}
-              </Button>
-              <div className="text-[10px] text-muted-foreground">Page, browser and workspace context attach automatically.</div>
-            </div>
-          )}
-
-          {view === "thread" && (
-            <>
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-muted/20">
-                {messages.map((m) => {
-                  const mine = m.sender_id === auth.user?.id;
-                  const isInternal = m.internal_note;
-                  return (
-                    <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                        isInternal ? "bg-amber-500/15 border border-amber-500/30" :
-                        mine ? "bg-primary text-primary-foreground" : "bg-background border border-border"
-                      }`}>
-                        {isInternal && <div className="text-[10px] uppercase tracking-wider mb-1 opacity-70">Internal note</div>}
-                        <div className="whitespace-pre-wrap break-words">{m.body}</div>
-                        {m.attachments.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {m.attachments.map((a, i) => (
-                              <a key={i} href="#" onClick={async (e) => {
-                                e.preventDefault();
-                                const { getSupportAttachmentUrl } = await import("@/lib/support.functions");
-                                const { url } = await getSupportAttachmentUrl({ data: { path: a.path } });
-                                window.open(url, "_blank");
-                              }} className="block text-[11px] underline opacity-90">
-                                📎 {a.name}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                        <div className="text-[10px] opacity-60 mt-1">{new Date(m.created_at).toLocaleTimeString()}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {messages.length === 0 && !loading && (
-                  <div className="text-center text-xs text-muted-foreground py-8">No messages.</div>
-                )}
+                <div className="text-[11px] text-muted-foreground truncate">
+                  {isPlatform
+                    ? "Platform inbox · widget view"
+                    : "We usually reply within a few hours"}
+                </div>
               </div>
+              {view === "list" && !isPlatform && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setView("new");
+                    setDraft("");
+                    setNewSubject("");
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> New
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
 
-              <div className="p-3 border-t border-border space-y-2">
-                {attachments.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {attachments.map((a, i) => (
-                      <Badge key={i} variant="secondary" className="text-[10px]">
-                        {a.name}
-                        <button className="ml-1.5 opacity-60 hover:opacity-100" onClick={() => setAttachments((p) => p.filter((_, j) => j !== i))}>×</button>
-                      </Badge>
-                    ))}
+            {error && (
+              <div className="px-4 py-2 text-[11px] bg-red-500/10 text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                <AlertTriangle className="h-3 w-3" />
+                {error}
+              </div>
+            )}
+
+            {view === "list" && (
+              <div className="flex-1 overflow-y-auto">
+                {loading && (
+                  <div className="p-6 text-center text-xs text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+                    Loading…
                   </div>
                 )}
+                {!loading && conversations.length === 0 && (
+                  <div className="p-6 text-center text-xs text-muted-foreground">
+                    No conversations yet.
+                    {!isPlatform && (
+                      <Button
+                        size="sm"
+                        className="mt-3 block mx-auto"
+                        onClick={() => setView("new")}
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Start a conversation
+                      </Button>
+                    )}
+                  </div>
+                )}
+                <div className="divide-y divide-border">
+                  {conversations.map((c) => {
+                    const u = isPlatform ? c.unread_for_platform : c.unread_for_customer;
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => loadThread(c.id)}
+                        className="w-full text-left px-4 py-3 hover:bg-muted/60 transition"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge
+                            variant="secondary"
+                            className={`text-[10px] capitalize ${priorityColor[c.priority]}`}
+                          >
+                            {c.priority}
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px] capitalize">
+                            {c.status}
+                          </Badge>
+                          {isPlatform && c.companies?.name && (
+                            <span className="text-[10px] text-muted-foreground truncate">
+                              {c.companies.name}
+                            </span>
+                          )}
+                          {u > 0 && <span className="ml-auto h-2 w-2 rounded-full bg-primary" />}
+                        </div>
+                        <div className="text-sm font-medium truncate">{c.subject}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {new Date(c.last_message_at).toLocaleString()}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {isPlatform && (
+                  <div className="p-3 border-t border-border">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setOpen(false);
+                        navigate({ to: "/app/admin/support" });
+                      }}
+                    >
+                      Open full inbox →
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {view === "new" && (
+              <div className="flex-1 flex flex-col p-4 gap-3">
+                <Input
+                  placeholder="Subject"
+                  value={newSubject}
+                  onChange={(e) => setNewSubject(e.target.value)}
+                />
+                <Select value={newPriority} onValueChange={(v) => setNewPriority(v as Priority)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  onPaste={onPaste}
-                  onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendReply(); }}
-                  placeholder={isPlatform && internalNote ? "Internal note (not visible to customer)" : "Type a message… (⌘↵ to send)"}
-                  rows={3}
-                  className="resize-none text-sm"
+                  placeholder="Describe the issue or request…"
+                  rows={8}
+                  className="flex-1 resize-none"
                 />
-                <div className="flex items-center gap-1">
-                  <label className="cursor-pointer">
-                    <input type="file" multiple className="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAttach(e.target.files)} />
-                    <Button asChild variant="ghost" size="icon" className="h-8 w-8"><span>{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}</span></Button>
-                  </label>
-                  {isPlatform && (
-                    <button onClick={() => setInternalNote((v) => !v)} className={`text-[10px] px-2 py-1 rounded ${internalNote ? "bg-amber-500/20 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}>
-                      Internal
-                    </button>
+                <Button
+                  onClick={createNew}
+                  disabled={!newSubject.trim() || !draft.trim() || loading}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-1.5" /> Send
+                    </>
                   )}
-                  <Button onClick={sendReply} disabled={!draft.trim()} className="ml-auto" size="sm">
-                    <Send className="h-3.5 w-3.5 mr-1" /> Send
-                  </Button>
+                </Button>
+                <div className="text-[10px] text-muted-foreground">
+                  Page, browser and workspace context attach automatically.
                 </div>
               </div>
-            </>
-          )}
-        </Card>
+            )}
+
+            {view === "thread" && (
+              <>
+                <div
+                  ref={scrollRef}
+                  className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-muted/20"
+                >
+                  {messages.map((m) => {
+                    const mine = m.sender_id === auth.user?.id;
+                    const isInternal = m.internal_note;
+                    return (
+                      <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                        <div
+                          className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                            isInternal
+                              ? "bg-amber-500/15 border border-amber-500/30"
+                              : mine
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-background border border-border"
+                          }`}
+                        >
+                          {isInternal && (
+                            <div className="text-[10px] uppercase tracking-wider mb-1 opacity-70">
+                              Internal note
+                            </div>
+                          )}
+                          <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                          {m.attachments.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {m.attachments.map((a, i) => (
+                                <a
+                                  key={i}
+                                  href="#"
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    const { getSupportAttachmentUrl } =
+                                      await import("@/lib/support.functions");
+                                    const { url } = await getSupportAttachmentUrl({
+                                      data: { path: a.path },
+                                    });
+                                    window.open(url, "_blank");
+                                  }}
+                                  className="block text-[11px] underline opacity-90"
+                                >
+                                  📎 {a.name}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                          <div className="text-[10px] opacity-60 mt-1">
+                            {new Date(m.created_at).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {messages.length === 0 && !loading && (
+                    <div className="text-center text-xs text-muted-foreground py-8">
+                      No messages.
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 border-t border-border space-y-2">
+                  {attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {attachments.map((a, i) => (
+                        <Badge key={i} variant="secondary" className="text-[10px]">
+                          {a.name}
+                          <button
+                            className="ml-1.5 opacity-60 hover:opacity-100"
+                            onClick={() => setAttachments((p) => p.filter((_, j) => j !== i))}
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <Textarea
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onPaste={onPaste}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendReply();
+                    }}
+                    placeholder={
+                      isPlatform && internalNote
+                        ? "Internal note (not visible to customer)"
+                        : "Type a message… (⌘↵ to send)"
+                    }
+                    rows={3}
+                    className="resize-none text-sm"
+                  />
+                  <div className="flex items-center gap-1">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                        onChange={(e) => handleAttach(e.target.files)}
+                      />
+                      <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                        <span>
+                          {uploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Paperclip className="h-4 w-4" />
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                    {isPlatform && (
+                      <button
+                        onClick={() => setInternalNote((v) => !v)}
+                        className={`text-[10px] px-2 py-1 rounded ${internalNote ? "bg-amber-500/20 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}
+                      >
+                        Internal
+                      </button>
+                    )}
+                    <Button
+                      onClick={sendReply}
+                      disabled={!draft.trim()}
+                      className="ml-auto"
+                      size="sm"
+                    >
+                      <Send className="h-3.5 w-3.5 mr-1" /> Send
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </Card>
         </>
       )}
     </>

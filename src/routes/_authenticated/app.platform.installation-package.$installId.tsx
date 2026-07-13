@@ -24,18 +24,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  ArrowLeft,
-  AlertTriangle,
-  Download,
-  Package,
-  RefreshCw,
-  Rocket,
-  Copy,
-} from "lucide-react";
+import { ArrowLeft, AlertTriangle, Download, Package, RefreshCw, Rocket, Copy } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/app/platform/installation-package/$installId")({
+export const Route = createFileRoute(
+  "/_authenticated/app/platform/installation-package/$installId",
+)({
   component: InstallationPackagePage,
 });
 
@@ -183,7 +177,9 @@ function InstallationPackagePage() {
 
       {/* Identity */}
       <Card className="p-5 space-y-3">
-        <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Identity</div>
+        <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Identity
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <div className="text-muted-foreground">Install ID (deterministic)</div>
@@ -226,8 +222,8 @@ function InstallationPackagePage() {
           Installer version
         </div>
         <p className="text-sm text-muted-foreground">
-          Leave empty to always use the latest Stable channel release. Pin only when a customer
-          has validated a specific installer topology (air-gap, custom Compose, etc.).
+          Leave empty to always use the latest Stable channel release. Pin only when a customer has
+          validated a specific installer topology (air-gap, custom Compose, etc.).
         </p>
         <div className="flex gap-2 items-center">
           <Input
@@ -253,8 +249,8 @@ function InstallationPackagePage() {
           Technical contact
         </div>
         <p className="text-sm text-muted-foreground">
-          The technical contact receives an email with a 24-hour download link every time a
-          package is generated or regenerated. Defaults to the license contact when unset.
+          The technical contact receives an email with a 24-hour download link every time a package
+          is generated or regenerated. Defaults to the license contact when unset.
         </p>
         <div className="flex gap-2 items-center">
           <Input
@@ -277,14 +273,17 @@ function InstallationPackagePage() {
 
       {/* Regeneration collision warning */}
       {isRegeneration && !keepPrevious && (
-        <Alert variant="default" className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+        <Alert
+          variant="default"
+          className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20"
+        >
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertTitle>Regeneration will revoke the previous bundle</AlertTitle>
           <AlertDescription className="text-sm">
             If the customer is already running a restored installation using the previous license
             (e.g. from their own backup), it will lose access to paid modules on next reconnect.
-            Check <em>Keep previous bundle valid</em> if you're unsure whether an older bundle
-            might still be in active use.
+            Check <em>Keep previous bundle valid</em> if you're unsure whether an older bundle might
+            still be in active use.
           </AlertDescription>
         </Alert>
       )}
@@ -296,27 +295,18 @@ function InstallationPackagePage() {
         </div>
         {isRegeneration && (
           <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={keepPrevious}
-              onCheckedChange={(v) => setKeepPrevious(v === true)}
-            />
+            <Checkbox checked={keepPrevious} onCheckedChange={(v) => setKeepPrevious(v === true)} />
             Keep previous bundle valid on regenerate (skip CRL revocation)
           </label>
         )}
         <div className="flex flex-wrap gap-2">
           {install?.package_generated_at ? (
-            <Button
-              onClick={() => setConfirmOpen(true)}
-              disabled={generateMut.isPending}
-            >
+            <Button onClick={() => setConfirmOpen(true)} disabled={generateMut.isPending}>
               <RefreshCw className="h-4 w-4 mr-1" />
               {generateMut.isPending ? "Regenerating…" : "Regenerate package"}
             </Button>
           ) : (
-            <Button
-              onClick={() => generateMut.mutate()}
-              disabled={generateMut.isPending}
-            >
+            <Button onClick={() => generateMut.mutate()} disabled={generateMut.isPending}>
               <Rocket className="h-4 w-4 mr-1" />
               {generateMut.isPending ? "Generating…" : "Generate package"}
             </Button>
@@ -332,7 +322,8 @@ function InstallationPackagePage() {
         </div>
         {install?.previous_bundle_revoked_at && (
           <div className="text-xs text-muted-foreground">
-            Previous bundle revoked at {new Date(install.previous_bundle_revoked_at).toLocaleString()}.
+            Previous bundle revoked at{" "}
+            {new Date(install.previous_bundle_revoked_at).toLocaleString()}.
           </div>
         )}
       </Card>
@@ -355,7 +346,10 @@ function InstallationPackagePage() {
                   </div>
                 </div>
                 <Badge variant="outline" className="text-xs">
-                  link exp. {d.signed_url_expires_at ? new Date(d.signed_url_expires_at).toLocaleString() : "—"}
+                  link exp.{" "}
+                  {d.signed_url_expires_at
+                    ? new Date(d.signed_url_expires_at).toLocaleString()
+                    : "—"}
                 </Badge>
               </div>
             ))}
@@ -378,10 +372,7 @@ function InstallationPackagePage() {
             <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={() => generateMut.mutate()}
-              disabled={generateMut.isPending}
-            >
+            <Button onClick={() => generateMut.mutate()} disabled={generateMut.isPending}>
               {generateMut.isPending ? "Regenerating…" : "Regenerate"}
             </Button>
           </DialogFooter>

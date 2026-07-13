@@ -19,8 +19,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useT } from "@/i18n";
 import {
-  Send, Upload, FileText, X, Loader2, Download, Sparkles, ArrowLeft, ShieldCheck,
-  FileSpreadsheet, Presentation, FileType2, Pencil, Check,
+  Send,
+  Upload,
+  FileText,
+  X,
+  Loader2,
+  Download,
+  Sparkles,
+  ArrowLeft,
+  ShieldCheck,
+  FileSpreadsheet,
+  Presentation,
+  FileType2,
+  Pencil,
+  Check,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -32,9 +44,29 @@ export const Route = createFileRoute("/_authenticated/app/workspace/$sessionId")
   head: () => ({ meta: [{ title: "AI Workspace · OPSQAI" }] }),
 });
 
-interface WSFile { id: string; file_name: string; mime: string | null; size_bytes: number | null; status: string; expires_at: string | null; created_at: string }
-interface WSArtifact { id: string; kind: "pptx" | "xlsx" | "docx" | "pdf" | "csv" | "txt"; file_name: string; storage_path: string; expires_at: string | null; created_at: string }
-interface WSSession { id: string; title: string; company_id: string; user_id: string }
+interface WSFile {
+  id: string;
+  file_name: string;
+  mime: string | null;
+  size_bytes: number | null;
+  status: string;
+  expires_at: string | null;
+  created_at: string;
+}
+interface WSArtifact {
+  id: string;
+  kind: "pptx" | "xlsx" | "docx" | "pdf" | "csv" | "txt";
+  file_name: string;
+  storage_path: string;
+  expires_at: string | null;
+  created_at: string;
+}
+interface WSSession {
+  id: string;
+  title: string;
+  company_id: string;
+  user_id: string;
+}
 
 function iconFor(kind: string) {
   if (kind === "pptx") return Presentation;
@@ -73,7 +105,8 @@ function WorkspaceSession() {
     setTitle(data.session.title);
     setInitial(
       (data.messages ?? []).map((m: any) => ({
-        id: m.id, role: m.role,
+        id: m.id,
+        role: m.role,
         parts: (m.parts as UIMessage["parts"]) ?? [{ type: "text", text: m.content }],
       })),
     );
@@ -89,11 +122,12 @@ function WorkspaceSession() {
   }, [sessionId]);
 
   const transport = useMemo(
-    () => new DefaultChatTransport({
-      api: "/api/workspace-chat",
-      headers: () => ({ Authorization: `Bearer ${tokenRef.current}` }),
-      body: () => ({ sessionId, language: lang }),
-    }),
+    () =>
+      new DefaultChatTransport({
+        api: "/api/workspace-chat",
+        headers: () => ({ Authorization: `Bearer ${tokenRef.current}` }),
+        body: () => ({ sessionId, language: lang }),
+      }),
     [sessionId, lang],
   );
 
@@ -162,25 +196,38 @@ function WorkspaceSession() {
       <div className="flex-1 flex flex-col min-h-0">
         <div className="border-b bg-card/50 px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
-            <Link to="/app/workspace" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /></Link>
+            <Link to="/app/workspace" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
             {editingTitle ? (
               <div className="flex items-center gap-1">
                 <input
-                  value={title} onChange={(e) => setTitle(e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   className="bg-background border rounded px-2 py-1 text-sm font-medium min-w-0"
-                  autoFocus onKeyDown={(e) => { if (e.key === "Enter") void saveTitle(); }}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void saveTitle();
+                  }}
                 />
-                <Button size="icon" variant="ghost" onClick={saveTitle}><Check className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" onClick={saveTitle}>
+                  <Check className="h-4 w-4" />
+                </Button>
               </div>
             ) : (
               <div className="flex items-center gap-2 min-w-0">
                 <Sparkles className="h-4 w-4 text-primary shrink-0" />
                 <span className="font-semibold truncate">{session.title}</span>
-                <Button size="icon" variant="ghost" onClick={() => setEditingTitle(true)}><Pencil className="h-3.5 w-3.5" /></Button>
+                <Button size="icon" variant="ghost" onClick={() => setEditingTitle(true)}>
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
               </div>
             )}
           </div>
-          <Badge variant="outline" className="gap-1 text-xs"><ShieldCheck className="h-3 w-3" />Temporary · retention: {retention}</Badge>
+          <Badge variant="outline" className="gap-1 text-xs">
+            <ShieldCheck className="h-3 w-3" />
+            Temporary · retention: {retention}
+          </Badge>
         </div>
 
         <div className="flex-1 grid lg:grid-cols-[320px_1fr] min-h-0">
@@ -188,12 +235,31 @@ function WorkspaceSession() {
           <aside className="border-r bg-muted/20 p-4 overflow-y-auto space-y-5">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Session files</h3>
-                <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => inputRef.current?.click()} disabled={uploading}>
-                  {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+                  Session files
+                </h3>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 gap-1"
+                  onClick={() => inputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5" />
+                  )}
                   Upload
                 </Button>
-                <input ref={inputRef} type="file" multiple accept={ACCEPT} className="hidden" onChange={(e) => handleUpload(e.target.files)} />
+                <input
+                  ref={inputRef}
+                  type="file"
+                  multiple
+                  accept={ACCEPT}
+                  className="hidden"
+                  onChange={(e) => handleUpload(e.target.files)}
+                />
               </div>
               {files.length === 0 ? (
                 <div className="text-xs text-muted-foreground border border-dashed rounded-md p-4 text-center">
@@ -202,10 +268,18 @@ function WorkspaceSession() {
               ) : (
                 <ul className="space-y-1.5">
                   {files.map((f) => (
-                    <li key={f.id} className="group flex items-center gap-2 text-sm bg-card border rounded-md px-2 py-1.5">
+                    <li
+                      key={f.id}
+                      className="group flex items-center gap-2 text-sm bg-card border rounded-md px-2 py-1.5"
+                    >
                       <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                      <span className="truncate flex-1" title={f.file_name}>{f.file_name}</span>
-                      <button onClick={() => removeFile(f.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
+                      <span className="truncate flex-1" title={f.file_name}>
+                        {f.file_name}
+                      </span>
+                      <button
+                        onClick={() => removeFile(f.id)}
+                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                      >
                         <X className="h-3.5 w-3.5" />
                       </button>
                     </li>
@@ -215,21 +289,32 @@ function WorkspaceSession() {
             </div>
 
             <div>
-              <h3 className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-2">Generated artifacts</h3>
+              <h3 className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-2">
+                Generated artifacts
+              </h3>
               {artifacts.length === 0 ? (
-                <div className="text-xs text-muted-foreground">Ask the assistant to generate a presentation, spreadsheet, report or PDF.</div>
+                <div className="text-xs text-muted-foreground">
+                  Ask the assistant to generate a presentation, spreadsheet, report or PDF.
+                </div>
               ) : (
                 <ul className="space-y-1.5">
                   {artifacts.map((a) => {
                     const Icon = iconFor(a.kind);
                     return (
-                      <li key={a.id} className="flex items-center gap-2 text-sm bg-card border rounded-md px-2 py-1.5">
+                      <li
+                        key={a.id}
+                        className="flex items-center gap-2 text-sm bg-card border rounded-md px-2 py-1.5"
+                      >
                         <Icon className="h-4 w-4 text-primary shrink-0" />
-                        <span className="truncate flex-1" title={a.file_name}>{a.file_name}</span>
+                        <span className="truncate flex-1" title={a.file_name}>
+                          {a.file_name}
+                        </span>
                         <button
                           className="text-muted-foreground hover:text-primary"
                           onClick={async () => {
-                            const { url } = (await dlUrl({ data: { id: a.id } })) as { url: string };
+                            const { url } = (await dlUrl({ data: { id: a.id } })) as {
+                              url: string;
+                            };
                             window.open(url, "_blank");
                           }}
                           title="Download"
@@ -261,7 +346,12 @@ function WorkspaceSession() {
 }
 
 function ChatPanel({
-  initial, transport, files, scrollRef, onArtifact, dlUrl,
+  initial,
+  transport,
+  files,
+  scrollRef,
+  onArtifact,
+  dlUrl,
 }: {
   initial: UIMessage[];
   transport: DefaultChatTransport<UIMessage>;
@@ -286,7 +376,10 @@ function ChatPanel({
     if (messages.length !== lastCountRef.current) {
       lastCountRef.current = messages.length;
       const last = messages[messages.length - 1];
-      if (last?.role === "assistant" && last.parts.some((p: any) => p.type?.startsWith?.("tool-"))) {
+      if (
+        last?.role === "assistant" &&
+        last.parts.some((p: any) => p.type?.startsWith?.("tool-"))
+      ) {
         void onArtifact();
       }
     }
@@ -353,11 +446,12 @@ function ChatPanel({
             <X className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="font-medium text-destructive">AI Workspace request failed.</div>
-              <div className="text-xs text-muted-foreground mt-0.5 break-words">{error.message || String(error)}</div>
+              <div className="text-xs text-muted-foreground mt-0.5 break-words">
+                {error.message || String(error)}
+              </div>
             </div>
           </div>
         )}
-
       </div>
 
       <div className="border-t p-4 bg-card/50">
@@ -367,13 +461,20 @@ function ChatPanel({
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void submit(); }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void submit();
+              }
             }}
             placeholder="Ask, analyse, or say: 'Generate a PowerPoint for tomorrow's meeting from these files.'"
             rows={2}
             className="resize-none"
           />
-          <Button onClick={submit} disabled={!text.trim() || status === "submitted" || status === "streaming"} className="h-10 w-10 p-0 shrink-0">
+          <Button
+            onClick={submit}
+            disabled={!text.trim() || status === "submitted" || status === "streaming"}
+            className="h-10 w-10 p-0 shrink-0"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
@@ -383,8 +484,12 @@ function ChatPanel({
 }
 
 function MessageRow({
-  m, dlUrl,
-}: { m: UIMessage; dlUrl: (args: { data: { id: string } }) => Promise<{ url: string }> }) {
+  m,
+  dlUrl,
+}: {
+  m: UIMessage;
+  dlUrl: (args: { data: { id: string } }) => Promise<{ url: string }>;
+}) {
   const isUser = m.role === "user";
   const text = m.parts
     .filter((p: any) => p.type === "text")
@@ -393,19 +498,34 @@ function MessageRow({
 
   // Tool outputs (generated artifacts)
   type ToolOut =
-    | { success: true; artifact_id: string; file_name: string; kind: string; download_url?: string | null }
+    | {
+        success: true;
+        artifact_id: string;
+        file_name: string;
+        kind: string;
+        download_url?: string | null;
+      }
     | { success: false; kind: string; error: string; stage?: string }
     | { artifact_id?: string; file_name?: string; kind?: string; download_url?: string | null }; // legacy shape
   const toolOutputs = (m.parts as any[])
-    .filter((p) => typeof p.type === "string" && p.type.startsWith("tool-") && p.state === "output-available")
+    .filter(
+      (p) =>
+        typeof p.type === "string" && p.type.startsWith("tool-") && p.state === "output-available",
+    )
     .map((p) => p.output as ToolOut);
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <Card className={`max-w-3xl ${isUser ? "bg-primary text-primary-foreground" : "bg-card"} p-4 space-y-3`}>
+      <Card
+        className={`max-w-3xl ${isUser ? "bg-primary text-primary-foreground" : "bg-card"} p-4 space-y-3`}
+      >
         {text && (
           <div className="prose prose-sm dark:prose-invert max-w-none break-words">
-            {isUser ? <p className="whitespace-pre-wrap m-0">{text}</p> : <ReactMarkdown>{text}</ReactMarkdown>}
+            {isUser ? (
+              <p className="whitespace-pre-wrap m-0">{text}</p>
+            ) : (
+              <ReactMarkdown>{text}</ReactMarkdown>
+            )}
           </div>
         )}
         {toolOutputs.length > 0 && (
@@ -420,8 +540,13 @@ function MessageRow({
                   >
                     <X className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-destructive">Artifact generation failed{o.kind ? ` (.${o.kind})` : ""}.</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">Reason: {o.error}{o.stage ? ` — stage: ${o.stage}` : ""}</div>
+                      <div className="font-medium text-destructive">
+                        Artifact generation failed{o.kind ? ` (.${o.kind})` : ""}.
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Reason: {o.error}
+                        {o.stage ? ` — stage: ${o.stage}` : ""}
+                      </div>
                     </div>
                   </div>
                 );
@@ -446,7 +571,10 @@ function MessageRow({
                 >
                   <Icon className="h-4 w-4 text-primary" />
                   <span className="font-medium truncate">{fileName ?? `artifact.${kind}`}</span>
-                  <span className="ml-auto inline-flex items-center gap-1 text-primary"><Download className="h-3.5 w-3.5" />Download</span>
+                  <span className="ml-auto inline-flex items-center gap-1 text-primary">
+                    <Download className="h-3.5 w-3.5" />
+                    Download
+                  </span>
                 </button>
               );
             })}

@@ -26,14 +26,22 @@ function ResetPassword() {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
-    supabase.auth.getSession().then(({ data }) => { if (data.session) setReady(true); });
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setReady(true);
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) { toast.error("Password must be at least 8 characters."); return; }
-    if (password !== confirm) { toast.error("Passwords do not match."); return; }
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("Passwords do not match.");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
@@ -61,19 +69,40 @@ function ResetPassword() {
           {!ready ? (
             <p className="text-sm text-muted-foreground mt-3">
               Open this page from the link in your reset email. If you got here directly,{" "}
-              <Link to="/forgot-password" className="underline">request a new link</Link>.
+              <Link to="/forgot-password" className="underline">
+                request a new link
+              </Link>
+              .
             </p>
           ) : (
             <form onSubmit={onSubmit} className="mt-6 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password">New password</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" minLength={8} />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  minLength={8}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm">Confirm password</Label>
-                <Input id="confirm" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" minLength={8} />
+                <Input
+                  id="confirm"
+                  type="password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  minLength={8}
+                />
               </div>
-              <Button type="submit" disabled={busy} className="w-full">Update password</Button>
+              <Button type="submit" disabled={busy} className="w-full">
+                Update password
+              </Button>
             </form>
           )}
         </Card>

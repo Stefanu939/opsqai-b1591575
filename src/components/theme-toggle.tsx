@@ -12,13 +12,19 @@ export function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
   root.style.colorScheme = theme;
-  try { localStorage.setItem("opsqai-theme", theme); } catch { /* ignore */ }
+  try {
+    localStorage.setItem("opsqai-theme", theme);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
-  useEffect(() => { setTheme(getInitial()); }, []);
+  useEffect(() => {
+    setTheme(getInitial());
+  }, []);
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";

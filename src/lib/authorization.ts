@@ -7,7 +7,10 @@ export function roleNames(rows: Array<{ role: string }> | null | undefined) {
 }
 
 export async function getActorRoles(supabase: any, userId: string) {
-  const { data, error } = await supabase.from("user_roles").select("role, company_id").eq("user_id", userId);
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role, company_id")
+    .eq("user_id", userId);
   if (error) throw new Error(error.message);
   const roles = roleNames(data as Array<{ role: string }>);
   return {
@@ -19,7 +22,10 @@ export async function getActorRoles(supabase: any, userId: string) {
   };
 }
 
-export async function hasPermission(context: { supabase: any; userId: string }, permission: string) {
+export async function hasPermission(
+  context: { supabase: any; userId: string },
+  permission: string,
+) {
   const { data, error } = await context.supabase.rpc("has_permission", {
     _user_id: context.userId,
     _permission: permission,
@@ -28,11 +34,17 @@ export async function hasPermission(context: { supabase: any; userId: string }, 
   return data === true;
 }
 
-export async function requirePermission(context: { supabase: any; userId: string }, permission: string) {
+export async function requirePermission(
+  context: { supabase: any; userId: string },
+  permission: string,
+) {
   if (!(await hasPermission(context, permission))) throw new Error("Forbidden");
 }
 
-export async function requireAnyPermission(context: { supabase: any; userId: string }, permissions: string[]) {
+export async function requireAnyPermission(
+  context: { supabase: any; userId: string },
+  permissions: string[],
+) {
   for (const permission of permissions) {
     if (await hasPermission(context, permission)) return;
   }
@@ -56,9 +68,12 @@ export async function requireCustomerManagerAccess(context: { supabase: any; use
   throw new Error("Forbidden: customer delivery center access required");
 }
 
-
 export async function getProfileCompany(supabase: any, userId: string): Promise<string | null> {
-  const { data, error } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   return data?.company_id ?? null;
 }

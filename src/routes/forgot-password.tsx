@@ -51,22 +51,36 @@ function ForgotPassword() {
       <main className="flex-1 flex items-center justify-center px-4">
         <Card className="w-full max-w-md p-8">
           <h1 className="text-xl font-semibold tracking-tight">Reset your password</h1>
-          <p className="text-sm text-muted-foreground mt-1">Enter your email and we'll send you a link to set a new password.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter your email and we'll send you a link to set a new password.
+          </p>
           {sent ? (
             <div className="mt-6 rounded-md border border-border bg-muted/40 p-4 text-sm">
-              If an account exists for <span className="font-medium">{email}</span>, a reset link is on its way.
+              If an account exists for <span className="font-medium">{email}</span>, a reset link is
+              on its way.
             </div>
           ) : (
             <form onSubmit={onSubmit} className="mt-6 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
               </div>
-              <Button type="submit" disabled={busy} className="w-full">Send reset link</Button>
+              <Button type="submit" disabled={busy} className="w-full">
+                Send reset link
+              </Button>
             </form>
           )}
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            <Link to="/auth" className="hover:underline">← Back to sign in</Link>
+            <Link to="/auth" className="hover:underline">
+              ← Back to sign in
+            </Link>
           </p>
         </Card>
       </main>

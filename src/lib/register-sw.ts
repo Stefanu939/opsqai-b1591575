@@ -16,11 +16,7 @@ export function registerServiceWorker() {
     .getRegistrations()
     .then((regs) => {
       for (const r of regs) {
-        const url =
-          r.active?.scriptURL ||
-          r.waiting?.scriptURL ||
-          r.installing?.scriptURL ||
-          "";
+        const url = r.active?.scriptURL || r.waiting?.scriptURL || r.installing?.scriptURL || "";
         if (url.endsWith("/sw.js") || url.endsWith("/service-worker.js")) {
           r.unregister().catch(() => {});
         }

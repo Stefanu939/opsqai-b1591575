@@ -13,7 +13,9 @@ type OAuthDetails = {
 };
 type OAuthResult = { redirect_url?: string; redirect_to?: string };
 type OAuthApi = {
-  getAuthorizationDetails: (id: string) => Promise<{ data: OAuthDetails | null; error: Error | null }>;
+  getAuthorizationDetails: (
+    id: string,
+  ) => Promise<{ data: OAuthDetails | null; error: Error | null }>;
   approveAuthorization: (id: string) => Promise<{ data: OAuthResult | null; error: Error | null }>;
   denyAuthorization: (id: string) => Promise<{ data: OAuthResult | null; error: Error | null }>;
 };

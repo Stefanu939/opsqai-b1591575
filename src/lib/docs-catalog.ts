@@ -5,7 +5,7 @@
 // Keep in sync with `docs/book.yaml`.
 
 export interface DocChapter {
-  slug: string;      // file name without .md
+  slug: string; // file name without .md
   title: string;
 }
 

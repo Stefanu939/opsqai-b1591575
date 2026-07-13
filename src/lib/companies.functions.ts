@@ -24,7 +24,9 @@ export const listCompanies = createServerFn({ method: "POST" })
 
     // Aggregate counts
     const { data: profileCounts } = await supabaseAdmin.from("profiles").select("company_id");
-    const { data: docCounts } = await supabaseAdmin.from("knowledge_documents").select("company_id");
+    const { data: docCounts } = await supabaseAdmin
+      .from("knowledge_documents")
+      .select("company_id");
     const { data: faqCounts } = await supabaseAdmin.from("faqs").select("company_id");
 
     const tally = (rows: Array<{ company_id: string }> | null) => {
@@ -46,12 +48,14 @@ export const listCompanies = createServerFn({ method: "POST" })
 
 export const createCompany = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => CompanyInput.extend({
-    admin_email: z.string().email(),
-    admin_password: z.string().min(8),
-    admin_first_name: z.string().optional(),
-    admin_last_name: z.string().optional(),
-  }).parse(d))
+  .inputValidator((d: unknown) =>
+    CompanyInput.extend({
+      admin_email: z.string().email(),
+      admin_password: z.string().min(8),
+      admin_first_name: z.string().optional(),
+      admin_last_name: z.string().optional(),
+    }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -75,7 +79,9 @@ export const createCompany = createServerFn({ method: "POST" })
       user_metadata: {
         first_name: data.admin_first_name,
         last_name: data.admin_last_name,
-        full_name: [data.admin_first_name, data.admin_last_name].filter(Boolean).join(" ") || data.admin_email.split("@")[0],
+        full_name:
+          [data.admin_first_name, data.admin_last_name].filter(Boolean).join(" ") ||
+          data.admin_email.split("@")[0],
         company_id: company.id,
         role: "admin",
       },
@@ -85,9 +91,14 @@ export const createCompany = createServerFn({ method: "POST" })
     // The trigger places this user in the right company; ensure 'admin' role bound to this company:
     await supabaseAdmin.from("user_roles").delete().eq("user_id", created.user.id);
     await supabaseAdmin.from("user_roles").insert({
-      user_id: created.user.id, role: "admin", company_id: company.id,
+      user_id: created.user.id,
+      role: "admin",
+      company_id: company.id,
     });
-    await supabaseAdmin.from("profiles").update({ company_id: company.id }).eq("id", created.user.id);
+    await supabaseAdmin
+      .from("profiles")
+      .update({ company_id: company.id })
+      .eq("id", created.user.id);
 
     return { ok: true, company_id: company.id, admin_user_id: created.user.id };
   });
@@ -109,7 +120,8 @@ export const deleteCompany = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    if (data.id === "00000000-0000-0000-0000-000000000001") throw new Error("Cannot delete Default Company");
+    if (data.id === "00000000-0000-0000-0000-000000000001")
+      throw new Error("Cannot delete Default Company");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("companies").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -148,13 +160,18 @@ export const listPlatformAdmins = createServerFn({ method: "POST" })
     // supabaseAdmin is reserved for Auth Admin API calls only, since Lovable Cloud
     // service-role keys can be non-JWT and break PostgREST reads.
     const { data: roleRows, error } = await context.supabase
-      .from("user_roles").select("user_id, created_at").eq("role", "platform_admin");
+      .from("user_roles")
+      .select("user_id, created_at")
+      .eq("role", "platform_admin");
     if (error) throw new Error(error.message);
     if (!roleRows?.length) return [];
     const ids = roleRows.map((r) => r.user_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: profiles }, usersResp] = await Promise.all([
-      context.supabase.from("profiles").select("id, full_name, first_name, last_name").in("id", ids),
+      context.supabase
+        .from("profiles")
+        .select("id, full_name, first_name, last_name")
+        .in("id", ids),
       supabaseAdmin.auth.admin.listUsers({ perPage: 1000 }),
     ]);
     const emailById = new Map(usersResp.data.users.map((u) => [u.id, u.email ?? ""]));
@@ -183,14 +200,21 @@ export const promotePlatformAdmin = createServerFn({ method: "POST" })
     let target: { id: string } | undefined;
     const needle = data.email.toLowerCase();
     for (let page = 1; page <= 20 && !target; page++) {
-      const { data: usersResp, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      const { data: usersResp, error: listErr } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage: 200,
+      });
       if (listErr) throw new Error(listErr.message);
       target = usersResp.users.find((u) => (u.email ?? "").toLowerCase() === needle);
       if (usersResp.users.length < 200) break;
     }
     if (!target) throw new Error("User not found. Ask them to sign up first.");
-    const { error } = await context.supabase.from("user_roles")
-      .upsert({ user_id: target.id, role: "platform_admin", company_id: null }, { onConflict: "user_id,role" });
+    const { error } = await context.supabase
+      .from("user_roles")
+      .upsert(
+        { user_id: target.id, role: "platform_admin", company_id: null },
+        { onConflict: "user_id,role" },
+      );
     if (error) throw new Error(error.message);
     return { ok: true, user_id: target.id };
   });
@@ -202,10 +226,15 @@ export const demotePlatformAdmin = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     if (data.user_id === context.userId) throw new Error("You cannot demote yourself");
     const { count } = await context.supabase
-      .from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "platform_admin");
+      .from("user_roles")
+      .select("user_id", { count: "exact", head: true })
+      .eq("role", "platform_admin");
     if ((count ?? 0) <= 1) throw new Error("At least one Platform Super Admin must remain");
-    const { error } = await context.supabase.from("user_roles")
-      .delete().eq("user_id", data.user_id).eq("role", "platform_admin");
+    const { error } = await context.supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.user_id)
+      .eq("role", "platform_admin");
     if (error) throw new Error(error.message);
     return { ok: true };
   });

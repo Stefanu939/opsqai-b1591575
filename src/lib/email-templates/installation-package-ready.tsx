@@ -12,8 +12,14 @@ interface Props {
 
 const Email = (p: Props) => (
   <SimpleEmail
-    preview={p.regenerated ? "Your regenerated OPSQAI installation package is ready" : "Your OPSQAI installation package is ready"}
-    title={p.regenerated ? "Installation package regenerated" : "Your installation package is ready"}
+    preview={
+      p.regenerated
+        ? "Your regenerated OPSQAI installation package is ready"
+        : "Your OPSQAI installation package is ready"
+    }
+    title={
+      p.regenerated ? "Installation package regenerated" : "Your installation package is ready"
+    }
     intro={
       p.regenerated
         ? `A new installation package for ${p.company_name ?? "your OPSQAI install"} has been generated. The download link below is valid for 24 hours.`
@@ -24,7 +30,10 @@ const Email = (p: Props) => (
       { label: "Installer version", value: p.installer_version ?? "—" },
       { label: "Link expires", value: p.expiresAt ?? "in 24 hours" },
     ]}
-    cta={{ label: "Download installation package", url: p.downloadUrl ?? `${APP_URL}/portal/downloads` }}
+    cta={{
+      label: "Download installation package",
+      url: p.downloadUrl ?? `${APP_URL}/portal/downloads`,
+    }}
     notice="If this link has expired, sign in to the Customer Portal and download from there. Every download is logged for audit."
   />
 );

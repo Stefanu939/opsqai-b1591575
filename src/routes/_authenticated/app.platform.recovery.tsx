@@ -133,7 +133,13 @@ function RecoveryPage() {
               Since <span className="font-mono">{state.recovery_mode_since ?? "—"}</span>
               {state.recovery_mode_reason ? ` · reason: ${state.recovery_mode_reason}` : ""}
             </div>
-            <Button className="mt-2" size="sm" variant="outline" onClick={() => exitMut.mutate()} disabled={exitMut.isPending}>
+            <Button
+              className="mt-2"
+              size="sm"
+              variant="outline"
+              onClick={() => exitMut.mutate()}
+              disabled={exitMut.isPending}
+            >
               Exit recovery mode
             </Button>
           </div>
@@ -155,8 +161,15 @@ function RecoveryPage() {
           <div className="text-right text-xs text-muted-foreground">
             {state?.break_glass_generated ? (
               <>
-                <div>Generated {state.break_glass_created_at ? new Date(state.break_glass_created_at).toLocaleString() : "—"}</div>
-                {state.break_glass_used_at ? <div>Used {new Date(state.break_glass_used_at).toLocaleString()}</div> : null}
+                <div>
+                  Generated{" "}
+                  {state.break_glass_created_at
+                    ? new Date(state.break_glass_created_at).toLocaleString()
+                    : "—"}
+                </div>
+                {state.break_glass_used_at ? (
+                  <div>Used {new Date(state.break_glass_used_at).toLocaleString()}</div>
+                ) : null}
               </>
             ) : (
               <div>Not generated yet</div>
@@ -188,11 +201,18 @@ function RecoveryPage() {
           </div>
         ) : (
           <div className="flex gap-2">
-            <Button onClick={() => genMut.mutate(false)} disabled={genMut.isPending || state?.break_glass_generated}>
+            <Button
+              onClick={() => genMut.mutate(false)}
+              disabled={genMut.isPending || state?.break_glass_generated}
+            >
               Generate break-glass secret
             </Button>
             {state?.break_glass_generated ? (
-              <Button variant="outline" onClick={() => genMut.mutate(true)} disabled={genMut.isPending}>
+              <Button
+                variant="outline"
+                onClick={() => genMut.mutate(true)}
+                disabled={genMut.isPending}
+              >
                 <RotateCw className="h-4 w-4 mr-1" /> Rotate (invalidates current)
               </Button>
             ) : null}
@@ -208,7 +228,11 @@ function RecoveryPage() {
             placeholder="Paste the plaintext secret"
             autoComplete="off"
           />
-          <Button onClick={() => redeemBgMut.mutate()} disabled={!bgInput || redeemBgMut.isPending} variant="destructive">
+          <Button
+            onClick={() => redeemBgMut.mutate()}
+            disabled={!bgInput || redeemBgMut.isPending}
+            variant="destructive"
+          >
             Enter recovery mode
           </Button>
         </div>
@@ -228,7 +252,11 @@ function RecoveryPage() {
           rows={4}
           className="font-mono text-xs"
         />
-        <Button onClick={() => redeemBtMut.mutate()} disabled={!btInput.trim() || redeemBtMut.isPending} variant="destructive">
+        <Button
+          onClick={() => redeemBtMut.mutate()}
+          disabled={!btInput.trim() || redeemBtMut.isPending}
+          variant="destructive"
+        >
           Redeem bootstrap token
         </Button>
       </Card>
@@ -257,9 +285,13 @@ function RecoveryPage() {
                   </Badge>
                 ))}
                 {s.offline_capable ? (
-                  <Badge variant="secondary" className="text-[10px]">offline-capable</Badge>
+                  <Badge variant="secondary" className="text-[10px]">
+                    offline-capable
+                  </Badge>
                 ) : (
-                  <Badge variant="destructive" className="text-[10px]">needs MC</Badge>
+                  <Badge variant="destructive" className="text-[10px]">
+                    needs MC
+                  </Badge>
                 )}
               </div>
             </div>

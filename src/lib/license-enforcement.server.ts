@@ -69,8 +69,10 @@ export async function requireModule(
   const install = rows.find((r) => r.kind === "install");
   if (!install) return { ok: false, reason: "no_install_license", install_id, module_key: mk };
   if (install.revoked) return { ok: false, reason: "install_revoked", install_id, module_key: mk };
-  if (install.suspended) return { ok: false, reason: "install_suspended", install_id, module_key: mk };
-  if (isExpired(install, now)) return { ok: false, reason: "install_expired", install_id, module_key: mk };
+  if (install.suspended)
+    return { ok: false, reason: "install_suspended", install_id, module_key: mk };
+  if (isExpired(install, now))
+    return { ok: false, reason: "install_expired", install_id, module_key: mk };
 
   // Basic modules only require a valid Installation License.
   if ((BASIC_MODULES as readonly string[]).includes(mk)) {
@@ -81,7 +83,8 @@ export async function requireModule(
   if (!mod) return { ok: false, reason: "no_module_license", install_id, module_key: mk };
   if (mod.revoked) return { ok: false, reason: "module_revoked", install_id, module_key: mk };
   if (mod.suspended) return { ok: false, reason: "module_suspended", install_id, module_key: mk };
-  if (isExpired(mod, now)) return { ok: false, reason: "module_expired", install_id, module_key: mk };
+  if (isExpired(mod, now))
+    return { ok: false, reason: "module_expired", install_id, module_key: mk };
 
   return { ok: true, install_id, module_key: mk };
 }

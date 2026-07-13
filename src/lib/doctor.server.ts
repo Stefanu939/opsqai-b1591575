@@ -37,7 +37,8 @@ async function checkDatabase(): Promise<DoctorCheckResult> {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("platform_config").select("id").limit(1);
-    if (error) return { id: "db", label: "Database reachable", status: "fail", detail: error.message };
+    if (error)
+      return { id: "db", label: "Database reachable", status: "fail", detail: error.message };
     return { id: "db", label: "Database reachable", status: "ok" };
   } catch (e) {
     return { id: "db", label: "Database reachable", status: "fail", detail: (e as Error).message };
@@ -51,7 +52,13 @@ async function checkSigningKeys(): Promise<DoctorCheckResult> {
     .select("key_id, active")
     .eq("active", true)
     .limit(1);
-  if (error) return { id: "signing_keys", label: "License signing keys", status: "fail", detail: error.message };
+  if (error)
+    return {
+      id: "signing_keys",
+      label: "License signing keys",
+      status: "fail",
+      detail: error.message,
+    };
   if (!data?.length) {
     return {
       id: "signing_keys",
@@ -60,13 +67,20 @@ async function checkSigningKeys(): Promise<DoctorCheckResult> {
       detail: "No active signing key. Management Center will auto-generate one on first issue.",
     };
   }
-  return { id: "signing_keys", label: "License signing keys", status: "ok", detail: `active key: ${data[0].key_id}` };
+  return {
+    id: "signing_keys",
+    label: "License signing keys",
+    status: "ok",
+    detail: `active key: ${data[0].key_id}`,
+  };
 }
 
 function checkAiProvider(): DoctorCheckResult {
   try {
     const active = getActiveAdapter();
-    const all = listAdapters().map((a) => a.id).join(", ");
+    const all = listAdapters()
+      .map((a) => a.id)
+      .join(", ");
     return {
       id: "ai",
       label: "AI provider registered",
@@ -74,7 +88,12 @@ function checkAiProvider(): DoctorCheckResult {
       detail: `active=${active.id}, registered=[${all}]`,
     };
   } catch (e) {
-    return { id: "ai", label: "AI provider registered", status: "fail", detail: (e as Error).message };
+    return {
+      id: "ai",
+      label: "AI provider registered",
+      status: "fail",
+      detail: (e as Error).message,
+    };
   }
 }
 
@@ -85,7 +104,8 @@ async function checkPlatformAdmin(): Promise<DoctorCheckResult> {
     .select("user_id")
     .eq("role", "platform_admin")
     .limit(1);
-  if (error) return { id: "admin", label: "Platform admin present", status: "fail", detail: error.message };
+  if (error)
+    return { id: "admin", label: "Platform admin present", status: "fail", detail: error.message };
   if (!data?.length) {
     return {
       id: "admin",
@@ -99,7 +119,12 @@ async function checkPlatformAdmin(): Promise<DoctorCheckResult> {
 
 async function checkInstallLicense(mode: "cloud" | "selfhost"): Promise<DoctorCheckResult> {
   if (mode === "cloud") {
-    return { id: "install_license", label: "Installation License", status: "skip", detail: "Cloud mode — not applicable" };
+    return {
+      id: "install_license",
+      label: "Installation License",
+      status: "skip",
+      detail: "Cloud mode — not applicable",
+    };
   }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
@@ -107,7 +132,13 @@ async function checkInstallLicense(mode: "cloud" | "selfhost"): Promise<DoctorCh
     .select("install_id, revoked, expires_at")
     .eq("kind", "install")
     .limit(1);
-  if (error) return { id: "install_license", label: "Installation License", status: "fail", detail: error.message };
+  if (error)
+    return {
+      id: "install_license",
+      label: "Installation License",
+      status: "fail",
+      detail: error.message,
+    };
   if (!data?.length) {
     return {
       id: "install_license",
@@ -117,16 +148,37 @@ async function checkInstallLicense(mode: "cloud" | "selfhost"): Promise<DoctorCh
     };
   }
   const row = data[0];
-  if (row.revoked) return { id: "install_license", label: "Installation License", status: "fail", detail: "License revoked." };
+  if (row.revoked)
+    return {
+      id: "install_license",
+      label: "Installation License",
+      status: "fail",
+      detail: "License revoked.",
+    };
   if (row.expires_at && new Date(row.expires_at) < new Date()) {
-    return { id: "install_license", label: "Installation License", status: "fail", detail: "License expired." };
+    return {
+      id: "install_license",
+      label: "Installation License",
+      status: "fail",
+      detail: "License expired.",
+    };
   }
-  return { id: "install_license", label: "Installation License", status: "ok", detail: `install_id=${row.install_id}` };
+  return {
+    id: "install_license",
+    label: "Installation License",
+    status: "ok",
+    detail: `install_id=${row.install_id}`,
+  };
 }
 
 async function checkHeartbeat(mode: "cloud" | "selfhost"): Promise<DoctorCheckResult> {
   if (mode === "cloud") {
-    return { id: "heartbeat", label: "Heartbeat to license server", status: "skip", detail: "Cloud mode — not applicable" };
+    return {
+      id: "heartbeat",
+      label: "Heartbeat to license server",
+      status: "skip",
+      detail: "Cloud mode — not applicable",
+    };
   }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
@@ -135,7 +187,12 @@ async function checkHeartbeat(mode: "cloud" | "selfhost"): Promise<DoctorCheckRe
     .limit(1);
   const last = data?.[0]?.last_heartbeat_at;
   if (!last) {
-    return { id: "heartbeat", label: "Heartbeat to license server", status: "warn", detail: "No heartbeat recorded yet." };
+    return {
+      id: "heartbeat",
+      label: "Heartbeat to license server",
+      status: "warn",
+      detail: "No heartbeat recorded yet.",
+    };
   }
   const ageH = (Date.now() - new Date(last).getTime()) / 3_600_000;
   if (ageH > 48) {
@@ -146,7 +203,12 @@ async function checkHeartbeat(mode: "cloud" | "selfhost"): Promise<DoctorCheckRe
       detail: `Last heartbeat ${ageH.toFixed(1)}h ago.`,
     };
   }
-  return { id: "heartbeat", label: "Heartbeat to license server", status: "ok", detail: `${ageH.toFixed(1)}h ago` };
+  return {
+    id: "heartbeat",
+    label: "Heartbeat to license server",
+    status: "ok",
+    detail: `${ageH.toFixed(1)}h ago`,
+  };
 }
 
 function resolveMode(): "cloud" | "selfhost" {

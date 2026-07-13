@@ -52,7 +52,11 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Bookmark /app — every other page is one click away.",
       "Press the language toggle in the sidebar to switch between EN, DE and RO at any time.",
     ],
-    relatedSlugs: ["getting-started/navigation", "getting-started/roles", "getting-started/workspaces"],
+    relatedSlugs: [
+      "getting-started/navigation",
+      "getting-started/roles",
+      "getting-started/workspaces",
+    ],
   },
   {
     slug: "getting-started/navigation",
@@ -61,14 +65,16 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
     purpose: "Find any feature in OPSQAI in three clicks or fewer.",
     whoCanPerform: ["Everyone"],
     requiredPermissions: ["none"],
-    whenToUse: "Use whenever you cannot find a page or want a faster way to reach something you use daily.",
+    whenToUse:
+      "Use whenever you cannot find a page or want a faster way to reach something you use daily.",
     steps: [
       "The sidebar groups items by Workspace, Admin and Platform — only sections you have permission for appear.",
       "Use Global Search at the top of the sidebar (or press its button) to search across SOPs, FAQs, gaps, users, audit entries and workspaces.",
       "The Workspace Context banner across the top of every page tells platform admins which company they are currently viewing.",
       "The notifications bell shows open knowledge gaps, low-confidence answers and outdated SOPs assigned to you.",
     ],
-    expectedResult: "You can navigate between any two pages in OPSQAI without scrolling the sidebar.",
+    expectedResult:
+      "You can navigate between any two pages in OPSQAI without scrolling the sidebar.",
     commonMistakes: [
       "Trying to find admin pages while signed in as a non-admin role — those entries are hidden by design.",
     ],
@@ -95,7 +101,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
     commonMistakes: [
       "Editing data while the global view is active — most write actions require a specific workspace to be selected first.",
     ],
-    tips: ["The persistent banner at the top of every page tells you which workspace is currently active."],
+    tips: [
+      "The persistent banner at the top of every page tells you which workspace is currently active.",
+    ],
     relatedSlugs: ["getting-started/roles", "companies/create"],
   },
   {
@@ -121,7 +129,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Assigning Admin when Manager is sufficient — every extra capability widens the audit surface.",
       "Trying to grant Platform roles from inside a customer workspace — only Platform admins can grant Platform roles.",
     ],
-    tips: ["Roles are stored in user_roles, never on profiles. This protects against privilege escalation."],
+    tips: [
+      "Roles are stored in user_roles, never on profiles. This protects against privilege escalation.",
+    ],
     relatedSlugs: ["users/manage-roles", "admin/permissions"],
   },
 
@@ -141,11 +151,14 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Save. A workspace id is generated immediately and isolation is enforced by RLS.",
       "Open the company and invite the first Workspace Owner so they can self-onboard.",
     ],
-    expectedResult: "The new company appears in the workspace switcher and you can invite users into it.",
+    expectedResult:
+      "The new company appears in the workspace switcher and you can invite users into it.",
     commonMistakes: [
       "Forgetting to set a sensible max_users — invites will start failing once the quota is reached.",
     ],
-    tips: ["Use a recognisable display name (e.g. legal entity + short code) so platform reports stay readable."],
+    tips: [
+      "Use a recognisable display name (e.g. legal entity + short code) so platform reports stay readable.",
+    ],
     relatedSlugs: ["companies/edit", "users/invite", "companies/multiple"],
   },
   {
@@ -162,8 +175,11 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Update fields. Changes affecting subscription or seat count are audited.",
       "Save. Active sessions pick up the change on next page load.",
     ],
-    expectedResult: "Updated values appear everywhere the company is referenced (sidebar, banner, exports).",
-    commonMistakes: ["Lowering max_users below the current active count — new invites will be rejected."],
+    expectedResult:
+      "Updated values appear everywhere the company is referenced (sidebar, banner, exports).",
+    commonMistakes: [
+      "Lowering max_users below the current active count — new invites will be rejected.",
+    ],
     tips: ["The Workspace Retention setting controls how long ephemeral AI Workspace files live."],
     relatedSlugs: ["companies/create", "companies/multiple"],
   },
@@ -180,7 +196,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "The banner across the top of every page confirms the active context.",
       "Choose 'All companies (global)' for platform-wide reports such as Companies, Support Inbox and Customer Delivery.",
     ],
-    expectedResult: "You can move between workspaces without signing in and out, and you always know which one you're viewing.",
+    expectedResult:
+      "You can move between workspaces without signing in and out, and you always know which one you're viewing.",
     commonMistakes: [
       "Editing records while in global mode and being surprised when the system asks you to select a specific company.",
     ],
@@ -194,13 +211,15 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
     purpose: "Permanently remove a customer workspace and all its data.",
     whoCanPerform: ["Platform Owner", "Platform Super Admin"],
     requiredPermissions: ["platform.manage"],
-    whenToUse: "Only after the customer has been off-boarded, exports are delivered and the retention period has expired.",
+    whenToUse:
+      "Only after the customer has been off-boarded, exports are delivered and the retention period has expired.",
     steps: [
       "Export any data the customer needs to keep (see Enterprise Export).",
       "Open Platform → Companies, locate the workspace, click 'Delete' and confirm twice.",
       "Cascading deletes remove knowledge, threads, audit entries and academy data for that workspace.",
     ],
-    expectedResult: "The workspace and all related rows are removed. The audit log captures the deletion.",
+    expectedResult:
+      "The workspace and all related rows are removed. The audit log captures the deletion.",
     commonMistakes: ["Deleting before exporting — there is no undo."],
     tips: ["The OPSQAI Internal workspace cannot be deleted by design."],
     relatedSlugs: ["companies/edit", "admin/exports"],
@@ -262,8 +281,11 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Choose 'Remove from workspace'.",
       "Confirm. Their auth session is invalidated and they lose access to all workspace data.",
     ],
-    expectedResult: "The user can no longer sign in to that workspace; historic audit entries are preserved.",
-    commonMistakes: ["Removing a user before transferring ownership of their gaps or assigned training."],
+    expectedResult:
+      "The user can no longer sign in to that workspace; historic audit entries are preserved.",
+    commonMistakes: [
+      "Removing a user before transferring ownership of their gaps or assigned training.",
+    ],
     tips: ["Re-invite later if needed — historic audit entries link by user id."],
     relatedSlugs: ["users/invite", "users/reset"],
   },
@@ -303,7 +325,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Save. The system splits the content into chunks and embeds them for semantic search.",
       "Confirm the status pill switches from 'processing' to 'ready'.",
     ],
-    expectedResult: "The article appears in Knowledge, is searchable, and the AI Assistant can cite it.",
+    expectedResult:
+      "The article appears in Knowledge, is searchable, and the AI Assistant can cite it.",
     commonMistakes: [
       "Pasting an entire 100-page document into one article instead of splitting by topic.",
       "Forgetting to set a doc code — citations look cleaner with codes like SOP-WH-01.",
@@ -329,9 +352,14 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Set department and category metadata.",
       "Save. The pipeline chunks the text and writes embeddings; large documents may take a minute.",
     ],
-    expectedResult: "The document shows status 'ready' with a chunk count > 0 and is retrievable from chat.",
-    commonMistakes: ["Uploading scanned PDFs without OCR — they extract no text and the AI cannot use them."],
-    tips: ["Re-run extraction (Reprocess) if a document was uploaded before its source format was supported."],
+    expectedResult:
+      "The document shows status 'ready' with a chunk count > 0 and is retrievable from chat.",
+    commonMistakes: [
+      "Uploading scanned PDFs without OCR — they extract no text and the AI cannot use them.",
+    ],
+    tips: [
+      "Re-run extraction (Reprocess) if a document was uploaded before its source format was supported.",
+    ],
     relatedSlugs: ["knowledge/create-article", "knowledge/publish"],
   },
   {
@@ -367,7 +395,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Toggle 'Active' off (or upload a new version which auto-supersedes the old one).",
       "The chunk index is retained so historic audit entries still resolve.",
     ],
-    expectedResult: "The document no longer appears in chat citations or KB browsing for end users.",
+    expectedResult:
+      "The document no longer appears in chat citations or KB browsing for end users.",
     commonMistakes: ["Hard-deleting instead of archiving and losing the audit trail."],
     tips: ["Add a brief change note explaining why it was archived."],
     relatedSlugs: ["knowledge/publish", "knowledge/versions"],
@@ -386,7 +415,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Edit the body and add a short change note.",
       "Save. The prior version is preserved with its own embedding index.",
     ],
-    expectedResult: "A version history is visible and the latest version is the one retrieved by chat.",
+    expectedResult:
+      "A version history is visible and the latest version is the one retrieved by chat.",
     commonMistakes: ["Editing in place without bumping the version — change notes are lost."],
     tips: ["The Audit Log captures every version transition with old and new content."],
     relatedSlugs: ["knowledge/publish", "admin/audit-log"],
@@ -408,7 +438,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Read the answer; expand the Sources block to verify the citation.",
       "Use follow-up questions to drill in — context carries inside the thread.",
     ],
-    expectedResult: "A concise answer grounded in the company KB plus citations to the documents used.",
+    expectedResult:
+      "A concise answer grounded in the company KB plus citations to the documents used.",
     commonMistakes: [
       "Treating the assistant as ChatGPT — OPSQAI refuses anything it cannot ground in the KB.",
       "Asking compound questions; break them into shorter follow-ups for cleaner citations.",
@@ -432,7 +463,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Export a PDF for the customer.",
     ],
     expectedResult: "A maturity score (0–100), a written summary and a prioritised action list.",
-    commonMistakes: ["Running an audit before any content is uploaded — the score will be artificially low."],
+    commonMistakes: [
+      "Running an audit before any content is uploaded — the score will be artificially low.",
+    ],
     tips: ["Compare audit scores quarter over quarter to demonstrate progress."],
     relatedSlugs: ["admin/dashboard", "ai/knowledge-gaps"],
   },
@@ -451,8 +484,11 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "The Teacher answers using the lesson's source documents and the KB only.",
       "Take the quiz to unlock the next chapter.",
     ],
-    expectedResult: "The learner receives grounded, lesson-scoped explanations and progresses through the path.",
-    commonMistakes: ["Expecting the Teacher to invent material — it stays within the lesson source documents."],
+    expectedResult:
+      "The learner receives grounded, lesson-scoped explanations and progresses through the path.",
+    commonMistakes: [
+      "Expecting the Teacher to invent material — it stays within the lesson source documents.",
+    ],
     tips: ["The Teacher answers in the learner's chosen language automatically."],
     relatedSlugs: ["academy/learning-paths", "academy/quiz"],
   },
@@ -471,8 +507,11 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Open a gap, write or upload an answer, then promote it into the KB.",
       "The gap is closed automatically once a covering document is published.",
     ],
-    expectedResult: "Coverage improves over time; the same question stops appearing in the gaps inbox.",
-    commonMistakes: ["Closing gaps without publishing — they will re-open the next time someone asks."],
+    expectedResult:
+      "Coverage improves over time; the same question stops appearing in the gaps inbox.",
+    commonMistakes: [
+      "Closing gaps without publishing — they will re-open the next time someone asks.",
+    ],
     tips: ["Use the AI SOP Generator to draft an answer in seconds, then refine it."],
     relatedSlugs: ["ai/sop-generator", "knowledge/create-article", "requests/create"],
   },
@@ -492,7 +531,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Review the draft, edit, then publish to Knowledge.",
     ],
     expectedResult: "A professionally structured SOP draft ready for human review.",
-    commonMistakes: ["Publishing without review — always validate facts against your operational reality."],
+    commonMistakes: [
+      "Publishing without review — always validate facts against your operational reality.",
+    ],
     tips: ["Generated SOPs are tagged so reviewers know they came from the generator."],
     relatedSlugs: ["knowledge/create-article", "ai/knowledge-gaps"],
   },
@@ -511,8 +552,11 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Ask the assistant to summarise, extract KPIs, compare versions or find risks.",
       "Files auto-delete per your workspace retention policy.",
     ],
-    expectedResult: "You get answers about your uploaded documents without polluting the company KB.",
-    commonMistakes: ["Treating Workspace as KB — uploaded files are isolated and never searchable from chat."],
+    expectedResult:
+      "You get answers about your uploaded documents without polluting the company KB.",
+    commonMistakes: [
+      "Treating Workspace as KB — uploaded files are isolated and never searchable from chat.",
+    ],
     tips: ["Generated artifacts (PPTX, XLSX, DOCX, PDF) follow the same retention policy."],
     relatedSlugs: ["ai/chat", "admin/workspace-settings"],
   },
@@ -531,7 +575,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Below the per-workspace threshold (default 55%), managers receive a notification for review.",
     ],
     expectedResult: "You can quickly assess answer quality without reading the entire source.",
-    commonMistakes: ["Acting on a low-confidence answer for a safety-critical task without verification."],
+    commonMistakes: [
+      "Acting on a low-confidence answer for a safety-critical task without verification.",
+    ],
     tips: ["Tune the threshold per workspace if your team needs stricter or looser controls."],
     relatedSlugs: ["ai/chat", "ai/knowledge-gaps"],
   },
@@ -554,7 +600,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Publish.",
     ],
     expectedResult: "Learners in the assigned department see the new path under My Courses.",
-    commonMistakes: ["Building courses on top of unpublished knowledge — the AI Teacher cannot read it."],
+    commonMistakes: [
+      "Building courses on top of unpublished knowledge — the AI Teacher cannot read it.",
+    ],
     tips: ["Re-using a single SOP across multiple paths keeps content consistent."],
     relatedSlugs: ["academy/assign", "academy/learning-paths", "academy/quiz"],
   },
@@ -591,7 +639,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Add Chapters in the order learners should complete them.",
       "Add Lessons under each Chapter and set the quiz pass threshold.",
     ],
-    expectedResult: "A coherent learning journey with predictable structure and assessable outcomes.",
+    expectedResult:
+      "A coherent learning journey with predictable structure and assessable outcomes.",
     commonMistakes: ["Mixing audiences in one path — keep paths role-specific for relevance."],
     tips: ["Use chapter-level pass requirements to gate progression."],
     relatedSlugs: ["academy/create-course", "academy/quiz", "academy/certificates"],
@@ -611,7 +660,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Share the verification link with auditors; the link uses a public verify endpoint.",
     ],
     expectedResult: "A signed, verifiable PDF certificate per completed path.",
-    commonMistakes: ["Re-issuing certificates without revoking the old one — the verify endpoint resolves the latest."],
+    commonMistakes: [
+      "Re-issuing certificates without revoking the old one — the verify endpoint resolves the latest.",
+    ],
     tips: ["Certificate verification is read-only and safe to share externally."],
     relatedSlugs: ["academy/learning-paths", "academy/assessments"],
   },
@@ -649,7 +700,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Inspect failure rates, average score and time-to-complete.",
     ],
     expectedResult: "You can identify weak content and weak learners objectively.",
-    commonMistakes: ["Penalising learners for failing badly-written questions — fix the question first."],
+    commonMistakes: [
+      "Penalising learners for failing badly-written questions — fix the question first.",
+    ],
     tips: ["Retraining events fire automatically when a source SOP changes."],
     relatedSlugs: ["academy/quiz", "academy/learning-paths"],
   },
@@ -689,7 +742,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
     ],
     expectedResult: "Consultants can produce branded, on-message documents from a click.",
     commonMistakes: ["Hardcoding customer-specific values into templates — use variables instead."],
-    tips: ["Variables auto-fill from the customer profile; missing fields render as 'Not configured'."],
+    tips: [
+      "Variables auto-fill from the customer profile; missing fields render as 'Not configured'.",
+    ],
     relatedSlugs: ["delivery/upload", "delivery/export"],
   },
   {
@@ -721,14 +776,16 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
     purpose: "Capture an unanswered question or process change request.",
     whoCanPerform: ["Everyone"],
     requiredPermissions: ["none"],
-    whenToUse: "When the assistant refuses, or when something needs an SOP that does not yet exist.",
+    whenToUse:
+      "When the assistant refuses, or when something needs an SOP that does not yet exist.",
     steps: [
       "On a refusal, click 'Create Internal Request'.",
       "Or open Internal Requests → New request.",
       "Describe the situation; attach evidence.",
       "Submit.",
     ],
-    expectedResult: "A ticket is created, assignees are notified, and the original question is preserved.",
+    expectedResult:
+      "A ticket is created, assignees are notified, and the original question is preserved.",
     commonMistakes: ["Filing duplicate requests; check the existing list first."],
     tips: ["Promote a resolved request into the KB so the same question never recurs."],
     relatedSlugs: ["requests/assign", "requests/resolve", "ai/knowledge-gaps"],
@@ -742,11 +799,7 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
     whoCanPerform: ["Admin", "Manager"],
     requiredPermissions: ["knowledge.manage"],
     whenToUse: "Triage stage.",
-    steps: [
-      "Open the request.",
-      "Set assignee, priority and due date.",
-      "Add a triage note.",
-    ],
+    steps: ["Open the request.", "Set assignee, priority and due date.", "Add a triage note."],
     expectedResult: "Assignee receives a notification and the ticket appears in their queue.",
     commonMistakes: ["Assigning without setting priority — everything ends up tied for first."],
     tips: ["Critical requests escalate via the notification bell automatically."],
@@ -767,7 +820,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Promote to KB if the answer is reusable.",
       "Click 'Resolve'.",
     ],
-    expectedResult: "Status switches to Resolved, requester is notified, KB is updated if promoted.",
+    expectedResult:
+      "Status switches to Resolved, requester is notified, KB is updated if promoted.",
     commonMistakes: ["Resolving without promoting reusable knowledge — see Knowledge Gaps."],
     tips: ["Resolved requests appear in the Audit Log for traceability."],
     relatedSlugs: ["requests/assign", "ai/knowledge-gaps", "admin/audit-log"],
@@ -810,7 +864,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Save.",
     ],
     expectedResult: "Settings take effect immediately for everyone in the workspace.",
-    commonMistakes: ["Setting retention to 'Manual deletion only' without an associated cleanup process."],
+    commonMistakes: [
+      "Setting retention to 'Manual deletion only' without an associated cleanup process.",
+    ],
     tips: ["Retention changes only apply to files created after the change."],
     relatedSlugs: ["admin/branding", "admin/notifications", "ai/confidence"],
   },
@@ -829,7 +885,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Preview, then save to apply globally.",
     ],
     expectedResult: "All app surfaces (sidebar, marketing site, exports) pick up the new identity.",
-    commonMistakes: ["Uploading logos with insufficient contrast — sidebar uses both light and dark variants."],
+    commonMistakes: [
+      "Uploading logos with insufficient contrast — sidebar uses both light and dark variants.",
+    ],
     tips: ["Brand Center is platform-wide; customer workspaces can override their logo only."],
     relatedSlugs: ["admin/workspace-settings", "platform/administration"],
   },
@@ -866,7 +924,8 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Platform Owner inherits every permission via is_platform_owner().",
       "To grant a new permission, add a row in role_permissions; UI gating uses hasPermission().",
     ],
-    expectedResult: "Effective permissions match the documented matrix and the principle of least privilege.",
+    expectedResult:
+      "Effective permissions match the documented matrix and the principle of least privilege.",
     commonMistakes: [
       "Storing roles on profiles — never do this; it enables privilege escalation. Roles live in user_roles.",
     ],
@@ -888,8 +947,12 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Click a row to view the before/after payload and the resolved sources.",
     ],
     expectedResult: "Complete traceability of who did what, when and with what data.",
-    commonMistakes: ["Exporting raw audit data without redacting customer questions before sharing externally."],
-    tips: ["Audit entries are immutable from the UI; they can only be archived by retention policy."],
+    commonMistakes: [
+      "Exporting raw audit data without redacting customer questions before sharing externally.",
+    ],
+    tips: [
+      "Audit entries are immutable from the UI; they can only be archived by retention policy.",
+    ],
     relatedSlugs: ["admin/permissions", "platform/administration"],
   },
   {
@@ -950,7 +1013,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "For oversized documents, split the source into smaller sections.",
     ],
     expectedResult: "PDF downloads complete with all formatting preserved.",
-    commonMistakes: ["Trying to export non-Unicode content; the generator sanitises but extremes still fail."],
+    commonMistakes: [
+      "Trying to export non-Unicode content; the generator sanitises but extremes still fail.",
+    ],
     tips: ["DOCX export is available as a fallback for every PDF route."],
     relatedSlugs: ["delivery/export", "admin/exports"],
   },
@@ -986,7 +1051,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Lower the workspace min confidence temporarily to diagnose retrieval vs answer-grounding.",
     ],
     expectedResult: "The expected source appears in retrieval and is cited by the AI.",
-    commonMistakes: ["Treating a refusal as a search failure — refusals are intentional for ungrounded answers."],
+    commonMistakes: [
+      "Treating a refusal as a search failure — refusals are intentional for ungrounded answers.",
+    ],
     tips: ["The chat logs include top similarity scores; check them in the server logs."],
     relatedSlugs: ["knowledge/upload", "ai/confidence", "troubleshooting/ai-problems"],
   },
@@ -1005,7 +1072,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
     ],
     expectedResult: "Chat responds within seconds and citations render correctly.",
     commonMistakes: ["Assuming the AI is broken when in fact the KB is empty for the topic."],
-    tips: ["The audit log records mode = gap when no sources matched, regardless of model availability."],
+    tips: [
+      "The audit log records mode = gap when no sources matched, regardless of model availability.",
+    ],
     relatedSlugs: ["ai/chat", "ai/confidence", "troubleshooting/search"],
   },
   {
@@ -1021,9 +1090,12 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Inspect their effective permissions via my_permissions() RPC.",
       "Check workspace context — the user may be looking at a different company than they think.",
     ],
-    expectedResult: "The user gains the access they require, or the limitation is clearly explained.",
+    expectedResult:
+      "The user gains the access they require, or the limitation is clearly explained.",
     commonMistakes: ["Granting Admin when a single permission like academy.manage would suffice."],
-    tips: ["Permissions are additive across roles, so granting a second role can be the cleanest fix."],
+    tips: [
+      "Permissions are additive across roles, so granting a second role can be the cleanest fix.",
+    ],
     relatedSlugs: ["admin/permissions", "users/manage-roles"],
   },
   {
@@ -1061,7 +1133,9 @@ export const SYSTEM_DOC_CATALOG: SystemDocEntry[] = [
       "Retire outdated content with archive, not delete.",
     ],
     expectedResult: "Retrieval is precise, citations are clean, and audits surface gaps not noise.",
-    commonMistakes: ["Maintaining a 'misc' category — split it as soon as it grows past 10 documents."],
+    commonMistakes: [
+      "Maintaining a 'misc' category — split it as soon as it grows past 10 documents.",
+    ],
     tips: ["Run an AI Workspace Audit quarterly to identify structural debt."],
     relatedSlugs: ["knowledge/create-article", "ai/audit"],
   },

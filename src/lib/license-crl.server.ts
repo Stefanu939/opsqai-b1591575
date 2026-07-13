@@ -30,7 +30,10 @@ export interface CrlPayload {
 
 const b64url = (buf: Buffer | string) =>
   (typeof buf === "string" ? Buffer.from(buf) : buf)
-    .toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    .toString("base64")
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/, "");
 
 const b64urlDecode = (s: string) =>
   Buffer.from(s.replaceAll("-", "+").replaceAll("_", "/"), "base64");
@@ -41,10 +44,7 @@ export function signCrl(payload: CrlPayload, privatePem: string): string {
   return `opsqai-crl.v1.${payloadB64}.${b64url(sig)}`;
 }
 
-export type CrlVerifyReason =
-  | "malformed"
-  | "bad_signature"
-  | "unknown_crl_version";
+export type CrlVerifyReason = "malformed" | "bad_signature" | "unknown_crl_version";
 
 export type CrlVerifyResult =
   | { ok: true; payload: CrlPayload }
@@ -57,7 +57,12 @@ export function verifyCrl(token: string, publicPem: string): CrlVerifyResult {
   }
   const [, , payloadB64, sigB64] = parts;
   try {
-    const ok = edVerify(null, Buffer.from(payloadB64), createPublicKey(publicPem), b64urlDecode(sigB64));
+    const ok = edVerify(
+      null,
+      Buffer.from(payloadB64),
+      createPublicKey(publicPem),
+      b64urlDecode(sigB64),
+    );
     if (!ok) return { ok: false, reason: "bad_signature" };
     const payload = JSON.parse(b64urlDecode(payloadB64).toString("utf-8")) as Partial<CrlPayload>;
     if (payload.crl_version !== 1) return { ok: false, reason: "unknown_crl_version" };

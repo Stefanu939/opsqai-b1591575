@@ -208,7 +208,9 @@ const commercialBlock = (ctx: CustomerContext) => `## Commercial Terms
 export const TEMPLATES: Record<TemplateKey, TemplateDef> = {
   // ---------------- COMMERCIAL ----------------
   executive_summary: {
-    key: "executive_summary", label: "Executive Summary", category: "Commercial",
+    key: "executive_summary",
+    label: "Executive Summary",
+    category: "Commercial",
     description: "C-level overview tailored to the customer.",
     build: (ctx) => `${header(ctx, "Executive Summary")}
 
@@ -231,7 +233,9 @@ OPSQAI consolidates that knowledge into a single, source-grounded AI assistant �
 `,
   },
   commercial_proposal: {
-    key: "commercial_proposal", label: "Commercial Proposal", category: "Commercial",
+    key: "commercial_proposal",
+    label: "Commercial Proposal",
+    category: "Commercial",
     description: "Formal commercial proposal with pricing structure.",
     build: (ctx) => `${header(ctx, "Commercial Proposal")}
 ${profileBlock(ctx)}
@@ -251,7 +255,9 @@ ${v(ctx.commercialNotes, "Standard commercial terms apply.")}
 `,
   },
   quotation: {
-    key: "quotation", label: "Quotation", category: "Commercial",
+    key: "quotation",
+    label: "Quotation",
+    category: "Commercial",
     description: "Short formal quotation document.",
     build: (ctx) => `${header(ctx, "Quotation")}
 
@@ -270,7 +276,9 @@ ${v(ctx.commercialNotes, "Standard commercial terms apply.")}
 `,
   },
   pilot_proposal: {
-    key: "pilot_proposal", label: "Pilot Proposal", category: "Commercial",
+    key: "pilot_proposal",
+    label: "Pilot Proposal",
+    category: "Commercial",
     description: "Time-boxed pilot plan with success criteria.",
     build: (ctx) => `${header(ctx, "Pilot Proposal")}
 
@@ -293,7 +301,9 @@ Validate measurable operational impact of OPSQAI inside ${v(ctx.companyName)} wi
 `,
   },
   business_case: {
-    key: "business_case", label: "Business Case", category: "Commercial",
+    key: "business_case",
+    label: "Business Case",
+    category: "Commercial",
     description: "Quantified business case for OPSQAI adoption.",
     build: (ctx) => `${header(ctx, "Business Case")}
 
@@ -316,7 +326,9 @@ The business case should be approved when projected annual operational value exc
 `,
   },
   roi_analysis: {
-    key: "roi_analysis", label: "ROI Analysis", category: "Commercial",
+    key: "roi_analysis",
+    label: "ROI Analysis",
+    category: "Commercial",
     description: "Return-on-investment model with conservative assumptions.",
     build: (ctx) => `${header(ctx, "ROI Analysis")}
 
@@ -336,7 +348,9 @@ Final values must be agreed jointly with ${v(ctx.companyName)} based on baseline
 `,
   },
   enterprise_overview: {
-    key: "enterprise_overview", label: "Enterprise Overview", category: "Commercial",
+    key: "enterprise_overview",
+    label: "Enterprise Overview",
+    category: "Commercial",
     description: "Comprehensive enterprise capability brief.",
     build: (ctx) => `${header(ctx, "Enterprise Overview")}
 ${profileBlock(ctx)}
@@ -353,7 +367,9 @@ OPSQAI is an enterprise Operational Knowledge Intelligence platform, purpose-bui
 `,
   },
   renewal_summary: {
-    key: "renewal_summary", label: "Renewal Summary", category: "Commercial",
+    key: "renewal_summary",
+    label: "Renewal Summary",
+    category: "Commercial",
     description: "Renewal brief with value realized.",
     build: (ctx) => `${header(ctx, "Renewal Summary")}
 
@@ -373,7 +389,9 @@ ${v(ctx.commercialNotes, "Renew at current scope. Re-evaluate license count afte
 
   // ---------------- MARKETING ----------------
   professional_brochure: {
-    key: "professional_brochure", label: "Professional Brochure", category: "Marketing",
+    key: "professional_brochure",
+    label: "Professional Brochure",
+    category: "Marketing",
     description: "Two-page brochure-style overview for the customer.",
     build: (ctx) => `${header(ctx, `OPSQAI for ${v(ctx.companyName)}`)}
 
@@ -400,7 +418,9 @@ Contact ${v(ctx.accountManager, "your OPSQAI account manager")} or visit https:/
 `,
   },
   executive_presentation: {
-    key: "executive_presentation", label: "Executive Presentation", category: "Marketing",
+    key: "executive_presentation",
+    label: "Executive Presentation",
+    category: "Marketing",
     description: "Slide-style talking points for an executive briefing.",
     build: (ctx) => `${header(ctx, "Executive Presentation — Talking Points")}
 
@@ -432,7 +452,9 @@ Sign Pilot Proposal and Service Agreement.
 
   // ---------------- CONTRACTS ----------------
   service_agreement: {
-    key: "service_agreement", label: "Service Agreement", category: "Contracts",
+    key: "service_agreement",
+    label: "Service Agreement",
+    category: "Contracts",
     description: "Master service agreement skeleton (B2B Germany).",
     build: (ctx) => `${header(ctx, "Service Agreement")}
 ${profileBlock(ctx)}
@@ -464,7 +486,9 @@ Subject to commercial agreement; the standard OPSQAI framework follows German la
 `,
   },
   data_processing_agreement: {
-    key: "data_processing_agreement", label: "Data Processing Agreement (DPA)", category: "Contracts",
+    key: "data_processing_agreement",
+    label: "Data Processing Agreement (DPA)",
+    category: "Contracts",
     description: "GDPR Article 28 data processing terms (draft).",
     build: (ctx) => `${header(ctx, "Data Processing Agreement")}
 
@@ -508,7 +532,9 @@ OPSQAI is not yet SOC 2 or ISO/IEC 27001 certified. Our infrastructure subproces
 `,
   },
   statement_of_work: {
-    key: "statement_of_work", label: "Statement of Work (SOW)", category: "Contracts",
+    key: "statement_of_work",
+    label: "Statement of Work (SOW)",
+    category: "Contracts",
     description: "Project-scoped SOW for implementation.",
     build: (ctx) => `${header(ctx, "Statement of Work")}
 
@@ -539,7 +565,9 @@ See Project Timeline.
 `,
   },
   project_charter: {
-    key: "project_charter", label: "Project Charter", category: "Contracts",
+    key: "project_charter",
+    label: "Project Charter",
+    category: "Contracts",
     description: "Formal project authorization document.",
     build: (ctx) => `${header(ctx, "Project Charter")}
 
@@ -567,7 +595,9 @@ OPSQAI deployment at ${v(ctx.companyName)}
 `,
   },
   sla: {
-    key: "sla", label: "Service Level Agreement", category: "Contracts",
+    key: "sla",
+    label: "Service Level Agreement",
+    category: "Contracts",
     description: "SLA targets and support windows.",
     build: (ctx) => `${header(ctx, "Service Level Agreement")}
 
@@ -588,7 +618,9 @@ Final SLA terms are agreed in writing as part of the Service Agreement.
 
   // ---------------- IMPLEMENTATION ----------------
   implementation_plan: {
-    key: "implementation_plan", label: "Implementation Plan", category: "Implementation",
+    key: "implementation_plan",
+    label: "Implementation Plan",
+    category: "Implementation",
     description: "Phased rollout with milestones.",
     build: (ctx) => `${header(ctx, "Implementation Plan")}
 
@@ -609,7 +641,9 @@ ${v(ctx.implementationNotes, "—")}
 `,
   },
   deployment_roadmap: {
-    key: "deployment_roadmap", label: "Deployment Roadmap", category: "Implementation",
+    key: "deployment_roadmap",
+    label: "Deployment Roadmap",
+    category: "Implementation",
     description: "Quarter-by-quarter roadmap.",
     build: (ctx) => `${header(ctx, "Deployment Roadmap")}
 
@@ -622,7 +656,9 @@ ${v(ctx.implementationNotes, "—")}
 `,
   },
   deployment_guide: {
-    key: "deployment_guide", label: "Deployment Guide", category: "Implementation",
+    key: "deployment_guide",
+    label: "Deployment Guide",
+    category: "Implementation",
     description: "Deployment and rollout guide.",
     build: (ctx) => `${header(ctx, "Deployment Guide")}
 
@@ -636,7 +672,9 @@ ${v(ctx.implementationNotes, "—")}
 `,
   },
   project_timeline: {
-    key: "project_timeline", label: "Project Timeline", category: "Implementation",
+    key: "project_timeline",
+    label: "Project Timeline",
+    category: "Implementation",
     description: "Concrete dated timeline for the engagement.",
     build: (ctx) => `${header(ctx, "Project Timeline")}
 
@@ -652,7 +690,9 @@ ${v(ctx.implementationNotes, "—")}
 `,
   },
   customer_welcome_guide: {
-    key: "customer_welcome_guide", label: "Customer Welcome Guide", category: "Implementation",
+    key: "customer_welcome_guide",
+    label: "Customer Welcome Guide",
+    category: "Implementation",
     description: "Friendly welcome and orientation pack for the customer.",
     build: (ctx) => `${header(ctx, "Welcome to OPSQAI")}
 
@@ -678,7 +718,9 @@ Welcome aboard, ${v(ctx.companyName)} team.
 `,
   },
   onboarding_guide: {
-    key: "onboarding_guide", label: "Onboarding Guide", category: "Implementation",
+    key: "onboarding_guide",
+    label: "Onboarding Guide",
+    category: "Implementation",
     description: "End-to-end onboarding workflow.",
     build: (ctx) => `${header(ctx, "Onboarding Guide")}
 
@@ -695,7 +737,9 @@ Onboarding for ${v(ctx.companyName)} is currently at **${v(ctx.onboardingPct, "0
 `,
   },
   meeting_minutes: {
-    key: "meeting_minutes", label: "Meeting Minutes", category: "Implementation",
+    key: "meeting_minutes",
+    label: "Meeting Minutes",
+    category: "Implementation",
     description: "Reusable minutes template for customer meetings.",
     build: (ctx) => `${header(ctx, "Meeting Minutes")}
 
@@ -720,7 +764,9 @@ Onboarding for ${v(ctx.companyName)} is currently at **${v(ctx.onboardingPct, "0
 `,
   },
   customer_success_plan: {
-    key: "customer_success_plan", label: "Customer Success Plan", category: "Implementation",
+    key: "customer_success_plan",
+    label: "Customer Success Plan",
+    category: "Implementation",
     description: "QBR cadence, adoption goals, escalation.",
     build: (ctx) => `${header(ctx, "Customer Success Plan")}
 
@@ -736,7 +782,9 @@ Onboarding for ${v(ctx.companyName)} is currently at **${v(ctx.onboardingPct, "0
 `,
   },
   support_plan: {
-    key: "support_plan", label: "Support Plan", category: "Implementation",
+    key: "support_plan",
+    label: "Support Plan",
+    category: "Implementation",
     description: "Support workflows, channels and contacts.",
     build: (ctx) => `${header(ctx, "Support Plan")}
 
@@ -750,7 +798,9 @@ Onboarding for ${v(ctx.companyName)} is currently at **${v(ctx.onboardingPct, "0
 
   // ---------------- TRAINING ----------------
   training_plan: {
-    key: "training_plan", label: "Training Plan", category: "Training",
+    key: "training_plan",
+    label: "Training Plan",
+    category: "Training",
     description: "Role-based training curriculum.",
     build: (ctx) => `${header(ctx, "Training Plan")}
 
@@ -767,7 +817,9 @@ ${v(ctx.companyName)} workforce across operations, training and administration, 
 `,
   },
   employee_quick_start: {
-    key: "employee_quick_start", label: "Employee Quick-Start Guide", category: "Training",
+    key: "employee_quick_start",
+    label: "Employee Quick-Start Guide",
+    category: "Training",
     description: "One-page quick start for end users.",
     build: (ctx) => `${header(ctx, "Employee Quick-Start Guide")}
 
@@ -790,7 +842,9 @@ Your company's AI assistant for SOPs, policies and operational know-how.
 `,
   },
   administrator_guide: {
-    key: "administrator_guide", label: "Administrator Guide", category: "Training",
+    key: "administrator_guide",
+    label: "Administrator Guide",
+    category: "Training",
     description: "Day-to-day administrator operations.",
     build: (ctx) => `${header(ctx, "Administrator Guide")}
 
@@ -805,7 +859,9 @@ Your company's AI assistant for SOPs, policies and operational know-how.
 
   // ---------------- SECURITY ----------------
   security_overview: {
-    key: "security_overview", label: "Security Overview", category: "Security",
+    key: "security_overview",
+    label: "Security Overview",
+    category: "Security",
     description: "Security posture summary.",
     build: (ctx) => `${header(ctx, "Security Overview")}
 
@@ -831,7 +887,9 @@ OPSQAI is delivered with security controls designed for enterprise operations at
 
   // ---------------- COMPLIANCE ----------------
   compliance_overview: {
-    key: "compliance_overview", label: "Compliance Overview", category: "Compliance",
+    key: "compliance_overview",
+    label: "Compliance Overview",
+    category: "Compliance",
     description: "All compliance areas with status.",
     build: (ctx) => `${header(ctx, "Compliance Overview")}
 
@@ -850,7 +908,9 @@ Compliance posture for ${v(ctx.companyName)}:
 `,
   },
   gdpr_overview: {
-    key: "gdpr_overview", label: "GDPR Overview", category: "Compliance",
+    key: "gdpr_overview",
+    label: "GDPR Overview",
+    category: "Compliance",
     description: "GDPR-specific overview.",
     build: (ctx) => `${header(ctx, "GDPR Overview")}
 
@@ -872,7 +932,9 @@ Compliance posture for ${v(ctx.companyName)}:
 `,
   },
   data_protection_overview: {
-    key: "data_protection_overview", label: "Data Protection Overview", category: "Compliance",
+    key: "data_protection_overview",
+    label: "Data Protection Overview",
+    category: "Compliance",
     description: "Plain-language data protection summary.",
     build: (ctx) => `${header(ctx, "Data Protection Overview")}
 
@@ -885,7 +947,9 @@ Compliance posture for ${v(ctx.companyName)}:
 
   // ---------------- TECHNICAL ----------------
   technical_proposal: {
-    key: "technical_proposal", label: "Technical Proposal", category: "Technical",
+    key: "technical_proposal",
+    label: "Technical Proposal",
+    category: "Technical",
     description: "Architecture, AI stack, integrations.",
     build: (ctx) => `${header(ctx, "Technical Proposal")}
 
@@ -907,7 +971,9 @@ OPSQAI is a multi-tenant SaaS built on hardened Postgres with strict workspace i
 `,
   },
   architecture_overview: {
-    key: "architecture_overview", label: "Architecture Overview", category: "Technical",
+    key: "architecture_overview",
+    label: "Architecture Overview",
+    category: "Technical",
     description: "High-level architecture.",
     build: (ctx) => `${header(ctx, "Architecture Overview")}
 
@@ -916,7 +982,9 @@ Active workspaces, including ${v(ctx.companyName)}, are isolated by RLS policies
 `,
   },
   feature_matrix: {
-    key: "feature_matrix", label: "Feature Matrix", category: "Technical",
+    key: "feature_matrix",
+    label: "Feature Matrix",
+    category: "Technical",
     description: "Per-customer enabled features.",
     build: (ctx) => `${header(ctx, "Feature Matrix")}
 
@@ -924,7 +992,9 @@ The feature matrix for ${v(ctx.companyName)} is maintained inside the OPSQAI Cus
 `,
   },
   operational_assessment: {
-    key: "operational_assessment", label: "Operational Assessment", category: "Technical",
+    key: "operational_assessment",
+    label: "Operational Assessment",
+    category: "Technical",
     description: "Snapshot of customer operational maturity.",
     build: (ctx) => `${header(ctx, "Operational Assessment")}
 
@@ -948,7 +1018,9 @@ The feature matrix for ${v(ctx.companyName)} is maintained inside the OPSQAI Cus
 `,
   },
   ai_readiness_report: {
-    key: "ai_readiness_report", label: "AI Readiness Report", category: "Technical",
+    key: "ai_readiness_report",
+    label: "AI Readiness Report",
+    category: "Technical",
     description: "Practical AI readiness assessment.",
     build: (ctx) => `${header(ctx, "AI Readiness Report")}
 
@@ -976,24 +1048,55 @@ Prioritize closing the largest readiness gap before broadening rollout at ${v(ct
 export const TEMPLATE_LIST = Object.values(TEMPLATES);
 
 export const DOC_CATEGORIES: DocCategory[] = [
-  "Commercial", "Contracts", "Implementation", "Training",
-  "Security", "Compliance", "Technical", "Marketing",
-  "Internal", "Generated", "Archive",
+  "Commercial",
+  "Contracts",
+  "Implementation",
+  "Training",
+  "Security",
+  "Compliance",
+  "Technical",
+  "Marketing",
+  "Internal",
+  "Generated",
+  "Archive",
 ];
 
 export const DOC_STATUSES = ["draft", "ready", "review", "approved", "sent", "archived"] as const;
 
 /** Full set of templates included in "Generate Customer Package". */
 export const CUSTOMER_PACKAGE_TEMPLATES: TemplateKey[] = [
-  "executive_summary", "commercial_proposal", "quotation", "business_case", "roi_analysis",
-  "enterprise_overview", "professional_brochure", "executive_presentation",
-  "service_agreement", "data_processing_agreement", "statement_of_work", "project_charter", "sla",
-  "implementation_plan", "deployment_roadmap", "project_timeline",
-  "customer_welcome_guide", "onboarding_guide", "customer_success_plan", "support_plan",
-  "training_plan", "employee_quick_start", "administrator_guide",
-  "security_overview", "compliance_overview", "gdpr_overview", "data_protection_overview",
-  "technical_proposal", "architecture_overview", "feature_matrix",
-  "operational_assessment", "ai_readiness_report",
+  "executive_summary",
+  "commercial_proposal",
+  "quotation",
+  "business_case",
+  "roi_analysis",
+  "enterprise_overview",
+  "professional_brochure",
+  "executive_presentation",
+  "service_agreement",
+  "data_processing_agreement",
+  "statement_of_work",
+  "project_charter",
+  "sla",
+  "implementation_plan",
+  "deployment_roadmap",
+  "project_timeline",
+  "customer_welcome_guide",
+  "onboarding_guide",
+  "customer_success_plan",
+  "support_plan",
+  "training_plan",
+  "employee_quick_start",
+  "administrator_guide",
+  "security_overview",
+  "compliance_overview",
+  "gdpr_overview",
+  "data_protection_overview",
+  "technical_proposal",
+  "architecture_overview",
+  "feature_matrix",
+  "operational_assessment",
+  "ai_readiness_report",
 ];
 
 export function buildContextFromProfile(
@@ -1033,7 +1136,8 @@ export function buildContextFromProfile(
     employees: pick(g, "employees"),
     warehouses: pick(g, "warehouses"),
     users: pick(g, "users"),
-    purchasedLicenses: pick(g, "purchasedLicenses") ?? pick(c, "purchasedLicenses") ?? pick(c, "seats"),
+    purchasedLicenses:
+      pick(g, "purchasedLicenses") ?? pick(c, "purchasedLicenses") ?? pick(c, "seats"),
     languages: pick(g, "languages"),
     preferredLanguage: pick(g, "preferredLanguage") ?? pick(g, "language"),
     timezone: pick(g, "timezone"),

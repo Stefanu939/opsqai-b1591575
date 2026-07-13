@@ -15,8 +15,24 @@ const samplePayload = (): CrlPayload => ({
   key_id: "ed25519-test",
   issued_at: 1_700_000_000,
   entries: [
-    { install_id: "acme-prod", kind: "install", module_key: null, revoked: true, suspended: false, revoked_at: "2026-01-01T00:00:00Z", suspended_at: null },
-    { install_id: "acme-prod", kind: "module", module_key: "sop", revoked: false, suspended: true, revoked_at: null, suspended_at: "2026-02-01T00:00:00Z" },
+    {
+      install_id: "acme-prod",
+      kind: "install",
+      module_key: null,
+      revoked: true,
+      suspended: false,
+      revoked_at: "2026-01-01T00:00:00Z",
+      suspended_at: null,
+    },
+    {
+      install_id: "acme-prod",
+      kind: "module",
+      module_key: "sop",
+      revoked: false,
+      suspended: true,
+      revoked_at: null,
+      suspended_at: "2026-02-01T00:00:00Z",
+    },
   ],
 });
 

@@ -10,8 +10,7 @@ export const study: CaseStudy = {
   illustrative: true,
   industry: "Distribution",
   scale: "1 site, 180 SOPs, ~400 operators",
-  lede:
-    "A regional distribution center consolidated 180 legacy SOPs into a retrieval-grounded platform, replacing a static shared drive with a live system operators use every shift.",
+  lede: "A regional distribution center consolidated 180 legacy SOPs into a retrieval-grounded platform, replacing a static shared drive with a live system operators use every shift.",
   challenge: [
     "SOPs were spread across three shared drives with duplicate and outdated versions. Operators rarely consulted them; team leads answered process questions verbally, creating drift across shifts.",
     "An upcoming ISO 9001 recertification required a defensible answer to 'what did the SOP say on any given day'.",

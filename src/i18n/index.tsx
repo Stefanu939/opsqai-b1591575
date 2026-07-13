@@ -35,7 +35,8 @@ const dict = {
     or: "oder",
     welcome: "Willkommen",
     askAnything: "Frag den Assistenten – Antworten direkt aus Firmen-SOPs.",
-    ragNote: "Antworten basieren ausschließlich auf hochgeladenen Dokumenten und FAQs. Jede Antwort enthält die verwendeten Quellen.",
+    ragNote:
+      "Antworten basieren ausschließlich auf hochgeladenen Dokumenten und FAQs. Jede Antwort enthält die verwendeten Quellen.",
     conversations: "Unterhaltungen",
     documents: "Dokumente",
     documentsDesc: "SOPs, Handbücher und Verfahren – durchsuchbar nach Bedeutung.",
@@ -114,10 +115,12 @@ const dict = {
     excerpt: "Auszug",
     internalRequests: "Interne Anfragen",
     workspace: "KI-Arbeitsbereich",
-    internalRequestsDesc: "Wissenslücken aus dem Chat – sammeln, beantworten, in FAQ oder Wissensdatenbank übernehmen.",
+    internalRequestsDesc:
+      "Wissenslücken aus dem Chat – sammeln, beantworten, in FAQ oder Wissensdatenbank übernehmen.",
     createInternalRequest: "Interne Anfrage erstellen",
     kbGapTitle: "Diese Information ist nicht in der Wissensdatenbank.",
-    kbGapBody: "Möchtest du eine interne Anfrage an dein Team senden? Vorgesetzte werden benachrichtigt und können die Antwort als FAQ oder KB-Eintrag freigeben.",
+    kbGapBody:
+      "Möchtest du eine interne Anfrage an dein Team senden? Vorgesetzte werden benachrichtigt und können die Antwort als FAQ oder KB-Eintrag freigeben.",
     requestSent: "Anfrage gesendet",
     sending: "Wird gesendet…",
     status: "Status",
@@ -174,7 +177,8 @@ const dict = {
     or: "or",
     welcome: "Welcome",
     askAnything: "Ask the assistant — answers come directly from company SOPs.",
-    ragNote: "Answers are based exclusively on uploaded company documents and FAQs. Every answer lists the sources used.",
+    ragNote:
+      "Answers are based exclusively on uploaded company documents and FAQs. Every answer lists the sources used.",
     conversations: "Conversations",
     documents: "Documents",
     documentsDesc: "SOPs, manuals and procedures — searchable by meaning.",
@@ -253,10 +257,12 @@ const dict = {
     excerpt: "Excerpt",
     internalRequests: "Internal Requests",
     workspace: "AI Workspace",
-    internalRequestsDesc: "Knowledge gaps from chat — collect, answer, and promote to FAQ or Knowledge Base.",
+    internalRequestsDesc:
+      "Knowledge gaps from chat — collect, answer, and promote to FAQ or Knowledge Base.",
     createInternalRequest: "Create internal request",
     kbGapTitle: "This isn't in the Knowledge Base yet.",
-    kbGapBody: "Send an internal request to your team. Managers will be notified and can publish the answer as a FAQ or KB document.",
+    kbGapBody:
+      "Send an internal request to your team. Managers will be notified and can publish the answer as a FAQ or KB document.",
     requestSent: "Request sent",
     sending: "Sending…",
     status: "Status",

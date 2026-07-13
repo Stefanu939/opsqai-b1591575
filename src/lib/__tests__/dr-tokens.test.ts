@@ -13,7 +13,11 @@ vi.mock("@/lib/license-signing.server", () => ({
 }));
 
 import { vi } from "vitest";
-import { signBootstrapToken, verifyBootstrapToken, peekBootstrapKeyId } from "@/lib/dr-tokens.server";
+import {
+  signBootstrapToken,
+  verifyBootstrapToken,
+  peekBootstrapKeyId,
+} from "@/lib/dr-tokens.server";
 
 beforeAll(() => {
   const { privateKey, publicKey } = generateKeyPairSync("ed25519");
@@ -39,7 +43,10 @@ describe("bootstrap recovery token", () => {
   });
 
   it("rejects expired tokens", async () => {
-    const { token, payload } = await signBootstrapToken({ install_id: "acme-prod", ttl_seconds: 60 });
+    const { token, payload } = await signBootstrapToken({
+      install_id: "acme-prod",
+      ttl_seconds: 60,
+    });
     const r = verifyBootstrapToken(token, PUB_PEM, {
       expectedInstallId: "acme-prod",
       now: payload.expires_at + 1,
@@ -68,13 +75,25 @@ describe("bootstrap recovery token", () => {
   it("rejects unknown dr_version", () => {
     // Hand-craft a token with dr_version=99, signed with our key.
     const payload = {
-      dr_version: 99, kind: "dr_bootstrap", install_id: "acme-prod",
-      nonce: "n", key_id: KEY_ID, issued_at: 1, expires_at: 2 ** 31,
+      dr_version: 99,
+      kind: "dr_bootstrap",
+      install_id: "acme-prod",
+      nonce: "n",
+      key_id: KEY_ID,
+      issued_at: 1,
+      expires_at: 2 ** 31,
     };
-    const b64 = Buffer.from(JSON.stringify(payload)).toString("base64")
-      .replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    const b64 = Buffer.from(JSON.stringify(payload))
+      .toString("base64")
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replace(/=+$/, "");
     const sig = edSign(null, Buffer.from(b64), createPrivateKey(PRIV_PEM));
-    const sigB64 = sig.toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    const sigB64 = sig
+      .toString("base64")
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replace(/=+$/, "");
     const token = `opsqai-dr.v1.${b64}.${sigB64}`;
     const r = verifyBootstrapToken(token, PUB_PEM, { expectedInstallId: "acme-prod" });
     expect(r.ok).toBe(false);

@@ -12,7 +12,15 @@ export const Route = createFileRoute("/demo/app/faq")({
   component: DemoFaqPage,
 });
 
-type Faq = { id: string; question_en: string; question_de: string; answer_en: string; answer_de: string; category: string; updated_at: string };
+type Faq = {
+  id: string;
+  question_en: string;
+  question_de: string;
+  answer_en: string;
+  answer_de: string;
+  category: string;
+  updated_at: string;
+};
 
 function DemoFaqPage() {
   const { show } = useDemoReadOnly();
@@ -22,7 +30,11 @@ function DemoFaqPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("faqs").select("*").eq("company_id", DEMO_COMPANY_ID).order("updated_at", { ascending: false });
+      const { data } = await supabase
+        .from("faqs")
+        .select("*")
+        .eq("company_id", DEMO_COMPANY_ID)
+        .order("updated_at", { ascending: false });
       setRows((data ?? []) as Faq[]);
     })();
   }, []);
@@ -30,7 +42,9 @@ function DemoFaqPage() {
   const filtered = rows.filter((r) => {
     if (!q) return true;
     const s = q.toLowerCase();
-    return (r.question_en + r.question_de + r.answer_en + r.answer_de + r.category).toLowerCase().includes(s);
+    return (r.question_en + r.question_de + r.answer_en + r.answer_de + r.category)
+      .toLowerCase()
+      .includes(s);
   });
 
   return (
@@ -40,10 +54,19 @@ function DemoFaqPage() {
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary/85 font-medium">
             <HelpCircle className="h-3.5 w-3.5" /> FAQ
           </div>
-          <h1 className="mt-2 text-2xl md:text-3xl font-semibold tracking-tight">Frequently asked operational questions</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Bilingual, tied to SOPs, ready for the AI to cite.</p>
+          <h1 className="mt-2 text-2xl md:text-3xl font-semibold tracking-tight">
+            Frequently asked operational questions
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Bilingual, tied to SOPs, ready for the AI to cite.
+          </p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2" onClick={() => show("Add a FAQ entry")}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => show("Add a FAQ entry")}
+        >
           <Plus className="h-4 w-4" /> New FAQ
         </Button>
       </div>
@@ -51,11 +74,20 @@ function DemoFaqPage() {
       <div className="mt-6 flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search questions…" className="pl-8" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search questions…"
+            className="pl-8"
+          />
         </div>
         <div className="flex rounded-md border border-border/60 p-0.5">
           {(["en", "de"] as const).map((l) => (
-            <button key={l} onClick={() => setLang(l)} className={`px-2.5 py-1 text-xs rounded ${lang === l ? "bg-muted font-medium" : "text-muted-foreground"}`}>
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={`px-2.5 py-1 text-xs rounded ${lang === l ? "bg-muted font-medium" : "text-muted-foreground"}`}
+            >
               {l.toUpperCase()}
             </button>
           ))}
@@ -69,10 +101,16 @@ function DemoFaqPage() {
               <span className="chip !text-[10px]">{f.category}</span>
             </div>
             <div className="font-medium">{lang === "en" ? f.question_en : f.question_de}</div>
-            <div className="text-sm text-muted-foreground mt-1 leading-relaxed">{lang === "en" ? f.answer_en : f.answer_de}</div>
+            <div className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              {lang === "en" ? f.answer_en : f.answer_de}
+            </div>
           </Card>
         ))}
-        {filtered.length === 0 && <div className="text-sm text-muted-foreground text-center py-8">No FAQs match your search.</div>}
+        {filtered.length === 0 && (
+          <div className="text-sm text-muted-foreground text-center py-8">
+            No FAQs match your search.
+          </div>
+        )}
       </div>
     </div>
   );

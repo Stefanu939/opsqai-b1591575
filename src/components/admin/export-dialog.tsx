@@ -10,7 +10,12 @@
  */
 import { useState } from "react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,9 +53,17 @@ export function ExportDialog({ open, onOpenChange, kind, companyId, onDeleted }:
   const [mode, setMode] = useState<Mode>("only");
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ url: string | null; sha256: string; bytes: number } | null>(null);
+  const [result, setResult] = useState<{
+    url: string | null;
+    sha256: string;
+    bytes: number;
+  } | null>(null);
 
-  const reset = () => { setMode("only"); setTyped(""); setResult(null); };
+  const reset = () => {
+    setMode("only");
+    setTyped("");
+    setResult(null);
+  };
 
   const submit = async () => {
     setBusy(true);
@@ -79,7 +92,13 @@ export function ExportDialog({ open, onOpenChange, kind, companyId, onDeleted }:
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        onOpenChange(o);
+        if (!o) reset();
+      }}
+    >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Export {KIND_LABEL[kind]}</DialogTitle>
@@ -101,7 +120,9 @@ export function ExportDialog({ open, onOpenChange, kind, companyId, onDeleted }:
                     disabled={disabled}
                     onClick={() => setMode(m)}
                     className={`text-left rounded-lg border p-3 transition ${
-                      active ? "border-primary ring-1 ring-primary/40" : "border-border hover:border-primary/40"
+                      active
+                        ? "border-primary ring-1 ring-primary/40"
+                        : "border-border hover:border-primary/40"
                     } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
@@ -110,13 +131,23 @@ export function ExportDialog({ open, onOpenChange, kind, companyId, onDeleted }:
                         {m === "migrate" && "Export & Migrate"}
                         {m === "delete" && "Export + Delete"}
                       </span>
-                      {m === "delete" && <Badge variant="destructive" className="text-[10px]">Irreversible</Badge>}
-                      {disabled && <Badge variant="outline" className="text-[10px]">Workspace Owner only</Badge>}
+                      {m === "delete" && (
+                        <Badge variant="destructive" className="text-[10px]">
+                          Irreversible
+                        </Badge>
+                      )}
+                      {disabled && (
+                        <Badge variant="outline" className="text-[10px]">
+                          Workspace Owner only
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {m === "only" && "Download a ZIP archive. Nothing in your workspace changes."}
-                      {m === "migrate" && "Generate a versioned package suitable for re-importing into another OPSQAI instance."}
-                      {m === "delete" && "Export, verify the archive checksum, then permanently delete the source data from this workspace."}
+                      {m === "migrate" &&
+                        "Generate a versioned package suitable for re-importing into another OPSQAI instance."}
+                      {m === "delete" &&
+                        "Export, verify the archive checksum, then permanently delete the source data from this workspace."}
                     </p>
                   </button>
                 );
@@ -129,10 +160,17 @@ export function ExportDialog({ open, onOpenChange, kind, companyId, onDeleted }:
                   <ShieldAlert className="h-4 w-4" /> Permanent deletion
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  After the archive is verified, all {KIND_LABEL[kind].toLowerCase()} records for this workspace will be removed. This cannot be undone.
+                  After the archive is verified, all {KIND_LABEL[kind].toLowerCase()} records for
+                  this workspace will be removed. This cannot be undone.
                 </p>
-                <Label className="text-xs">Type <span className="font-mono font-semibold">DELETE</span> to confirm</Label>
-                <Input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="DELETE" />
+                <Label className="text-xs">
+                  Type <span className="font-mono font-semibold">DELETE</span> to confirm
+                </Label>
+                <Input
+                  value={typed}
+                  onChange={(e) => setTyped(e.target.value)}
+                  placeholder="DELETE"
+                />
               </div>
             )}
           </div>
@@ -164,10 +202,20 @@ export function ExportDialog({ open, onOpenChange, kind, companyId, onDeleted }:
               variant={mode === "delete" ? "destructive" : "default"}
               className="w-full"
             >
-              {busy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Working…</> : mode === "delete" ? "Export + Delete" : "Run export"}
+              {busy ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Working…
+                </>
+              ) : mode === "delete" ? (
+                "Export + Delete"
+              ) : (
+                "Run export"
+              )}
             </Button>
           ) : (
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">Close</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
+              Close
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

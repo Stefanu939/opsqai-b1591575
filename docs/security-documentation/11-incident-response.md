@@ -22,9 +22,9 @@ The customer runs their own IR process. OPSQAI's role is limited to:
 
 ## Severity ladder
 
-| Sev | Definition | Example |
-|---|---|---|
-| S0 | Confirmed active exploitation | Signing-key compromise |
-| S1 | High-likelihood exploit path | RLS bypass in production |
-| S2 | Meaningful weakness, no PoC | Missing rate limit |
-| S3 | Hardening opportunity | Log verbosity |
+| Sev | Definition                    | Example                  |
+| --- | ----------------------------- | ------------------------ |
+| S0  | Confirmed active exploitation | Signing-key compromise   |
+| S1  | High-likelihood exploit path  | RLS bypass in production |
+| S2  | Meaningful weakness, no PoC   | Missing rate limit       |
+| S3  | Hardening opportunity         | Log verbosity            |

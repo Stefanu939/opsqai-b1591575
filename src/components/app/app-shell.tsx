@@ -1,10 +1,36 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, MessageSquare, BookOpen, HelpCircle, Users, LogOut, Menu, X,
-  Languages, BarChart3, ScrollText, UserCircle, ChevronDown, Building2, ShieldCheck, Inbox,
-  AlertTriangle, LineChart, Sparkles, ClipboardCheck, GraduationCap, KeyRound, LifeBuoy,
-  Package, FileText, Mail, Wrench, Rocket, ShieldAlert, Webhook,
+  LayoutDashboard,
+  MessageSquare,
+  BookOpen,
+  HelpCircle,
+  Users,
+  LogOut,
+  Menu,
+  X,
+  Languages,
+  BarChart3,
+  ScrollText,
+  UserCircle,
+  ChevronDown,
+  Building2,
+  ShieldCheck,
+  Inbox,
+  AlertTriangle,
+  LineChart,
+  Sparkles,
+  ClipboardCheck,
+  GraduationCap,
+  KeyRound,
+  LifeBuoy,
+  Package,
+  FileText,
+  Mail,
+  Wrench,
+  Rocket,
+  ShieldAlert,
+  Webhook,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
@@ -15,9 +41,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -28,16 +65,27 @@ import type { ModuleKey } from "@/lib/license-modules";
 // SupportWidget is mounted globally in __root.tsx so it appears on marketing
 // pages too. Do not remount here or the bubble/badge will duplicate.
 
-
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
-  const { isPlatformAdmin, isPlatformOwner, signOut, user, companyName, activeCompanyId, setActiveCompanyId, hasPermission, hasAnyPermission } = auth;
+  const {
+    isPlatformAdmin,
+    isPlatformOwner,
+    signOut,
+    user,
+    companyName,
+    activeCompanyId,
+    setActiveCompanyId,
+    hasPermission,
+    hasAnyPermission,
+  } = auth;
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const license = useLicense();
   const gate = (m: ModuleKey | null) => (m === null ? true : hasModule(license, m));
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [companies, setCompanies] = useState<Array<{ id: string; name: string; is_system?: boolean }>>([]);
+  const [companies, setCompanies] = useState<
+    Array<{ id: string; name: string; is_system?: boolean }>
+  >([]);
 
   const deploymentQuery = useDeploymentInfo();
   const mode = deploymentQuery.data?.mode ?? getClientDeploymentMode();
@@ -45,86 +93,311 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isPlatformAdmin) return;
-    supabase.from("companies").select("id, name, is_system").order("is_system", { ascending: false }).order("name").then(({ data }) => {
-      setCompanies((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>);
-    });
+    supabase
+      .from("companies")
+      .select("id, name, is_system")
+      .order("is_system", { ascending: false })
+      .order("name")
+      .then(({ data }) => {
+        setCompanies((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>);
+      });
   }, [isPlatformAdmin]);
 
-  type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; show: boolean; module?: ModuleKey | null };
+  type NavItem = {
+    to: string;
+    label: string;
+    icon: typeof LayoutDashboard;
+    exact?: boolean;
+    show: boolean;
+    module?: ModuleKey | null;
+  };
 
   // ---- Self-hosted (customer operational) navigation ----
   const selfhostWorkspace: NavItem[] = [
-    { to: "/app", label: t("dashboard"), icon: LayoutDashboard, exact: true, show: true, module: null },
-    { to: "/app/chat", label: t("chat"), icon: MessageSquare, show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"), module: "chat" },
-    { to: "/app/workspace", label: t("workspace"), icon: Sparkles, show: hasPermission("workspace.use") || hasPermission("workspace.manage"), module: null },
-    { to: "/app/knowledge", label: t("knowledge"), icon: BookOpen, show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"), module: "kb" },
-    { to: "/app/faq", label: t("faq"), icon: HelpCircle, show: hasAnyPermission("faq.read", "faq.edit"), module: "faq" },
-    { to: "/app/requests", label: t("internalRequests"), icon: Inbox, show: true, module: "internal_requests" },
-    { to: "/app/academy", label: "My Training", icon: GraduationCap, show: hasPermission("academy.learn"), module: "academy" },
+    {
+      to: "/app",
+      label: t("dashboard"),
+      icon: LayoutDashboard,
+      exact: true,
+      show: true,
+      module: null,
+    },
+    {
+      to: "/app/chat",
+      label: t("chat"),
+      icon: MessageSquare,
+      show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"),
+      module: "chat",
+    },
+    {
+      to: "/app/workspace",
+      label: t("workspace"),
+      icon: Sparkles,
+      show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
+      module: null,
+    },
+    {
+      to: "/app/knowledge",
+      label: t("knowledge"),
+      icon: BookOpen,
+      show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"),
+      module: "kb",
+    },
+    {
+      to: "/app/faq",
+      label: t("faq"),
+      icon: HelpCircle,
+      show: hasAnyPermission("faq.read", "faq.edit"),
+      module: "faq",
+    },
+    {
+      to: "/app/requests",
+      label: t("internalRequests"),
+      icon: Inbox,
+      show: true,
+      module: "internal_requests",
+    },
+    {
+      to: "/app/academy",
+      label: "My Training",
+      icon: GraduationCap,
+      show: hasPermission("academy.learn"),
+      module: "academy",
+    },
   ];
 
   const selfhostAdmin: NavItem[] = [
-    { to: "/app/admin/command-center", label: "Command Center", icon: LayoutDashboard, show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"), module: "executive_dashboard" },
-    { to: "/app/admin/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle, show: hasAnyPermission("knowledge.manage", "analytics.view"), module: "knowledge_gaps" },
-    { to: "/app/admin/sop-generator", label: "AI SOP Generator", icon: Sparkles, show: hasPermission("sop.generate"), module: "ai_sop_generator" },
-    { to: "/app/admin/academy", label: "Academy Manager", icon: GraduationCap, show: hasPermission("academy.manage"), module: "academy" },
-    { to: "/app/admin/analytics", label: "Analytics", icon: BarChart3, show: hasPermission("analytics.view"), module: null },
-    { to: "/app/admin/ai-audit", label: "AI Audit", icon: LineChart, show: hasPermission("ai_audit.run"), module: "audit_log" },
-    { to: "/app/admin/users", label: t("users"), icon: Users, show: hasAnyPermission("user.create", "user.update", "user.delete"), module: null },
-    { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null },
-    { to: "/app/admin/sso-setup", label: "SSO / Microsoft", icon: ShieldCheck, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: "rbac" },
-    { to: "/app/admin/webhooks", label: "Webhooks", icon: Webhook, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null },
-    { to: "/app/admin/api-keys", label: "API keys", icon: KeyRound, show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"), module: null },
-    { to: "/app/brand", label: "Brand Center", icon: Sparkles, show: isPlatformAdmin || isPlatformOwner, module: "brand_center" },
+    {
+      to: "/app/admin/command-center",
+      label: "Command Center",
+      icon: LayoutDashboard,
+      show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"),
+      module: "executive_dashboard",
+    },
+    {
+      to: "/app/admin/knowledge-gaps",
+      label: "Knowledge Gaps",
+      icon: AlertTriangle,
+      show: hasAnyPermission("knowledge.manage", "analytics.view"),
+      module: "knowledge_gaps",
+    },
+    {
+      to: "/app/admin/sop-generator",
+      label: "AI SOP Generator",
+      icon: Sparkles,
+      show: hasPermission("sop.generate"),
+      module: "ai_sop_generator",
+    },
+    {
+      to: "/app/admin/academy",
+      label: "Academy Manager",
+      icon: GraduationCap,
+      show: hasPermission("academy.manage"),
+      module: "academy",
+    },
+    {
+      to: "/app/admin/analytics",
+      label: "Analytics",
+      icon: BarChart3,
+      show: hasPermission("analytics.view"),
+      module: null,
+    },
+    {
+      to: "/app/admin/ai-audit",
+      label: "AI Audit",
+      icon: LineChart,
+      show: hasPermission("ai_audit.run"),
+      module: "audit_log",
+    },
+    {
+      to: "/app/admin/users",
+      label: t("users"),
+      icon: Users,
+      show: hasAnyPermission("user.create", "user.update", "user.delete"),
+      module: null,
+    },
+    {
+      to: "/app/admin/integrations",
+      label: "Integrations",
+      icon: Sparkles,
+      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
+      module: null,
+    },
+    {
+      to: "/app/admin/sso-setup",
+      label: "SSO / Microsoft",
+      icon: ShieldCheck,
+      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
+      module: "rbac",
+    },
+    {
+      to: "/app/admin/webhooks",
+      label: "Webhooks",
+      icon: Webhook,
+      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
+      module: null,
+    },
+    {
+      to: "/app/admin/api-keys",
+      label: "API keys",
+      icon: KeyRound,
+      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
+      module: null,
+    },
+    {
+      to: "/app/brand",
+      label: "Brand Center",
+      icon: Sparkles,
+      show: isPlatformAdmin || isPlatformOwner,
+      module: "brand_center",
+    },
   ];
 
-  const selfhostPlatform: NavItem[] = (isPlatformAdmin || isPlatformOwner)
-    ? [
-        { to: "/app/platform/setup", label: "Setup Wizard", icon: Rocket, show: true, module: null },
-        { to: "/app/platform/doctor", label: "System Doctor", icon: Wrench, show: true, module: null },
-        { to: "/app/platform/recovery", label: "Disaster Recovery", icon: ShieldAlert, show: true, module: null },
-        { to: "/app/platform/license-activation", label: "License Activation", icon: KeyRound, show: true, module: null },
-      ]
-    : [];
+  const selfhostPlatform: NavItem[] =
+    isPlatformAdmin || isPlatformOwner
+      ? [
+          {
+            to: "/app/platform/setup",
+            label: "Setup Wizard",
+            icon: Rocket,
+            show: true,
+            module: null,
+          },
+          {
+            to: "/app/platform/doctor",
+            label: "System Doctor",
+            icon: Wrench,
+            show: true,
+            module: null,
+          },
+          {
+            to: "/app/platform/recovery",
+            label: "Disaster Recovery",
+            icon: ShieldAlert,
+            show: true,
+            module: null,
+          },
+          {
+            to: "/app/platform/license-activation",
+            label: "License Activation",
+            icon: KeyRound,
+            show: true,
+            module: null,
+          },
+        ]
+      : [];
 
   // ---- Management Center (platform management ONLY) navigation ----
   const mcAdmin = isPlatformAdmin || isPlatformOwner;
 
   const mcOverview: NavItem[] = [
-    { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: null },
-    { to: "/app/admin/dashboard", label: "Executive Dashboard", icon: BarChart3, show: mcAdmin, module: null },
-    { to: "/app/admin/analytics", label: "Analytics", icon: LineChart, show: mcAdmin, module: null },
+    {
+      to: "/app",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      exact: true,
+      show: true,
+      module: null,
+    },
+    {
+      to: "/app/admin/dashboard",
+      label: "Executive Dashboard",
+      icon: BarChart3,
+      show: mcAdmin,
+      module: null,
+    },
+    {
+      to: "/app/admin/analytics",
+      label: "Analytics",
+      icon: LineChart,
+      show: mcAdmin,
+      module: null,
+    },
   ];
 
   const mcCommercial: NavItem[] = mcAdmin
     ? [
-        { to: "/app/admin/companies", label: "Companies", icon: Building2, show: true, module: null },
-        { to: "/app/admin/customers", label: "Enterprise Documents", icon: FileText, show: true, module: null },
-        { to: "/app/admin/subscriptions", label: "Orders & Subscriptions", icon: Package, show: true, module: null },
+        {
+          to: "/app/admin/companies",
+          label: "Companies",
+          icon: Building2,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/customers",
+          label: "Enterprise Documents",
+          icon: FileText,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/subscriptions",
+          label: "Orders & Subscriptions",
+          icon: Package,
+          show: true,
+          module: null,
+        },
         { to: "/portal", label: "Customer Portal", icon: LifeBuoy, show: true, module: null },
       ]
     : [];
 
   const mcLicensing: NavItem[] = mcAdmin
     ? [
-        { to: "/app/platform/licenses", label: "Licenses & Releases", icon: KeyRound, show: true, module: null },
-        { to: "/app/platform/license-activation", label: "Activation Bundles", icon: Package, show: true, module: null },
+        {
+          to: "/app/platform/licenses",
+          label: "Licenses & Releases",
+          icon: KeyRound,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/platform/license-activation",
+          label: "Activation Bundles",
+          icon: Package,
+          show: true,
+          module: null,
+        },
       ]
     : [];
 
   const mcOperations: NavItem[] = mcAdmin
     ? [
         { to: "/app/admin/support", label: "Support Inbox", icon: Inbox, show: true, module: null },
-        { to: "/app/admin/audit", label: t("auditLog"), icon: ScrollText, show: hasPermission("audit.view"), module: null },
+        {
+          to: "/app/admin/audit",
+          label: t("auditLog"),
+          icon: ScrollText,
+          show: hasPermission("audit.view"),
+          module: null,
+        },
         { to: "/app/admin/email", label: "Email Settings", icon: Mail, show: true, module: null },
-        { to: "/app/admin/email-logs", label: "Email Logs", icon: ScrollText, show: true, module: null },
+        {
+          to: "/app/admin/email-logs",
+          label: "Email Logs",
+          icon: ScrollText,
+          show: true,
+          module: null,
+        },
       ]
     : [];
 
   const mcIntegrations: NavItem[] = mcAdmin
     ? [
-        { to: "/app/admin/integrations", label: "Integrations", icon: Sparkles, show: true, module: null },
-        { to: "/app/admin/sso-setup", label: "SSO / SAML / OAuth", icon: ShieldCheck, show: true, module: null },
+        {
+          to: "/app/admin/integrations",
+          label: "Integrations",
+          icon: Sparkles,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/sso-setup",
+          label: "SSO / SAML / OAuth",
+          icon: ShieldCheck,
+          show: true,
+          module: null,
+        },
         { to: "/app/admin/webhooks", label: "Webhooks", icon: Webhook, show: true, module: null },
         { to: "/app/admin/api-keys", label: "API Keys", icon: KeyRound, show: true, module: null },
         { to: "/app/admin/api-docs", label: "API Docs", icon: FileText, show: true, module: null },
@@ -133,13 +406,43 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const mcPlatformAdmin: NavItem[] = mcAdmin
     ? [
-        { to: "/app/admin/platform", label: "Platform Administration", icon: ShieldCheck, show: true, module: null },
-        { to: "/app/admin/platform-admins", label: "Users & Roles", icon: Users, show: true, module: null },
+        {
+          to: "/app/admin/platform",
+          label: "Platform Administration",
+          icon: ShieldCheck,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/platform-admins",
+          label: "Users & Roles",
+          icon: Users,
+          show: true,
+          module: null,
+        },
         { to: "/app/admin/users", label: "Directory", icon: Users, show: true, module: null },
         { to: "/app/brand", label: "Branding", icon: Sparkles, show: true, module: null },
-        { to: "/app/platform/setup", label: "Setup Wizard", icon: Rocket, show: true, module: null },
-        { to: "/app/platform/doctor", label: "System Doctor", icon: Wrench, show: true, module: null },
-        { to: "/app/platform/recovery", label: "Disaster Recovery", icon: ShieldAlert, show: true, module: null },
+        {
+          to: "/app/platform/setup",
+          label: "Setup Wizard",
+          icon: Rocket,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/platform/doctor",
+          label: "System Doctor",
+          icon: Wrench,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/platform/recovery",
+          label: "Disaster Recovery",
+          icon: ShieldAlert,
+          show: true,
+          module: null,
+        },
       ]
     : [];
 
@@ -183,11 +486,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
 
   const ActiveIndicator = () => (
-    <span aria-hidden className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-sidebar-primary opacity-0 group-data-[status=active]:opacity-100 shadow-[0_0_12px_var(--color-sidebar-primary)]" />
+    <span
+      aria-hidden
+      className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-sidebar-primary opacity-0 group-data-[status=active]:opacity-100 shadow-[0_0_12px_var(--color-sidebar-primary)]"
+    />
   );
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <div className="flex h-full flex-col text-sidebar-foreground" style={{ background: "var(--gradient-sidebar)" }}>
+    <div
+      className="flex h-full flex-col text-sidebar-foreground"
+      style={{ background: "var(--gradient-sidebar)" }}
+    >
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
         <LogoMark size={32} className="text-sidebar-foreground" />
         <div className="min-w-0 flex-1">
@@ -199,15 +508,21 @@ export function AppShell({ children }: { children: ReactNode }) {
         <ThemeToggle className="h-8 w-8" />
         <NotificationsBell />
       </div>
-      <div className="px-3 pt-3"><GlobalSearch asButton /></div>
+      <div className="px-3 pt-3">
+        <GlobalSearch asButton />
+      </div>
       {isPlatformAdmin && companies.length > 0 && (
         <div className="px-3 py-3 border-b border-sidebar-border">
-          <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50 mb-1.5">Viewing workspace</div>
+          <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50 mb-1.5">
+            Viewing workspace
+          </div>
           <Select
             value={activeCompanyId ?? "__all__"}
             onValueChange={(v) => setActiveCompanyId(v === "__all__" ? null : v)}
           >
-            <SelectTrigger className="h-8 bg-sidebar-accent/40 border-sidebar-border text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 bg-sidebar-accent/40 border-sidebar-border text-xs">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All companies (global)</SelectItem>
               {companies.map((c) => (
@@ -215,7 +530,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                   {c.is_system ? `★ ${c.name}` : c.name}
                 </SelectItem>
               ))}
-
             </SelectContent>
           </Select>
         </div>
@@ -224,7 +538,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         {sections.map((section, sIdx) =>
           section.items.length > 0 ? (
             <div key={section.label}>
-              <div className={`${sIdx === 0 ? "" : "pt-5"} pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40`}>
+              <div
+                className={`${sIdx === 0 ? "" : "pt-5"} pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40`}
+              >
                 {section.label}
               </div>
               {section.items.map((item) => (
@@ -257,7 +573,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/75 hover:bg-sidebar-accent transition-colors"
         >
           <Languages className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
-          <span className="font-mono text-xs">{lang.toUpperCase()} → {nextLangLabel}</span>
+          <span className="font-mono text-xs">
+            {lang.toUpperCase()} → {nextLangLabel}
+          </span>
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -272,19 +590,31 @@ export function AppShell({ children }: { children: ReactNode }) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="truncate">{user?.email}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => { navigate({ to: "/app/profile" }); onNavigate?.(); }}>
-              <UserCircle className="h-4 w-4 mr-2" />{t("myProfile")}
+            <DropdownMenuItem
+              onClick={() => {
+                navigate({ to: "/app/profile" });
+                onNavigate?.();
+              }}
+            >
+              <UserCircle className="h-4 w-4 mr-2" />
+              {t("myProfile")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 onNavigate?.();
-                if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("opsqai:open-support"));
+                if (typeof window !== "undefined")
+                  window.dispatchEvent(new CustomEvent("opsqai:open-support"));
               }}
             >
-              <LifeBuoy className="h-4 w-4 mr-2" />Support &amp; Tickets
+              <LifeBuoy className="h-4 w-4 mr-2" />
+              Support &amp; Tickets
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-              <LogOut className="h-4 w-4 mr-2" />{t("signOut")}
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="text-destructive focus:text-destructive"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {t("signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -304,11 +634,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile top bar — safe-area aware, sticky, app-like */}
       <div
         className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar/95 backdrop-blur text-sidebar-foreground px-3 border-b border-sidebar-border"
-        style={{ paddingTop: "env(safe-area-inset-top)", height: "calc(3.5rem + env(safe-area-inset-top))" }}
+        style={{
+          paddingTop: "env(safe-area-inset-top)",
+          height: "calc(3.5rem + env(safe-area-inset-top))",
+        }}
       >
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Open menu" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground -ml-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Open menu"
+              className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground -ml-1"
+            >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </SheetTrigger>

@@ -2,7 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  listUsers, createUser, inviteUser, updateUser, deleteUser, resetUserPassword, listDepartments, createDepartment,
+  listUsers,
+  createUser,
+  inviteUser,
+  updateUser,
+  deleteUser,
+  resetUserPassword,
+  listDepartments,
+  createDepartment,
 } from "@/lib/users.functions";
 import { listCompanies } from "@/lib/companies.functions";
 import { Card } from "@/components/ui/card";
@@ -11,9 +18,20 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
@@ -27,21 +45,39 @@ export const Route = createFileRoute("/_authenticated/app/admin/users")({
 type Role = "admin" | "manager" | "team_leader" | "employee";
 const ROLES: Role[] = ["admin", "manager", "team_leader", "employee"];
 const ROLE_LABEL: Record<Role, string> = {
-  admin: "Company Admin", manager: "Manager", team_leader: "Team Leader", employee: "Employee",
+  admin: "Company Admin",
+  manager: "Manager",
+  team_leader: "Team Leader",
+  employee: "Employee",
 };
 
 interface U {
-  id: string; email: string; full_name: string | null;
-  first_name: string | null; last_name: string | null;
-  position: string | null; phone: string | null;
-  department_id: string | null; department_name: string | null;
-  company_id: string | null; company_name: string | null;
-  language_pref: string | null; is_active: boolean;
-  last_sign_in_at: string | null; created_at: string;
+  id: string;
+  email: string;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  position: string | null;
+  phone: string | null;
+  department_id: string | null;
+  department_name: string | null;
+  company_id: string | null;
+  company_name: string | null;
+  language_pref: string | null;
+  is_active: boolean;
+  last_sign_in_at: string | null;
+  created_at: string;
   roles: string[];
 }
-interface Dept { id: string; name: string; company_id?: string | null }
-interface Company { id: string; name: string }
+interface Dept {
+  id: string;
+  name: string;
+  company_id?: string | null;
+}
+interface Company {
+  id: string;
+  name: string;
+}
 
 function AdminUsers() {
   const { t } = useT();
@@ -71,17 +107,27 @@ function AdminUsers() {
       setUsers(results[0] as U[]);
       setDepts(results[1] as Dept[]);
       if (isPlatformAdmin) setCompanies((results[2] as Company[]) ?? []);
-    } catch (e) { toast.error(String(e)); } finally { setLoading(false); }
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setLoading(false);
+    }
   };
-  useEffect(() => { if (canManage) load(); else setLoading(false); }, [canManage, activeCompanyId]);
+  useEffect(() => {
+    if (canManage) load();
+    else setLoading(false);
+  }, [canManage, activeCompanyId]);
 
   if (!canManage) return <div className="p-8 text-sm text-muted-foreground">Admin only.</div>;
 
   const filtered = users.filter((u) => {
     const s = search.toLowerCase();
-    return !s || u.email.toLowerCase().includes(s)
-      || (u.full_name ?? "").toLowerCase().includes(s)
-      || (u.department_name ?? "").toLowerCase().includes(s);
+    return (
+      !s ||
+      u.email.toLowerCase().includes(s) ||
+      (u.full_name ?? "").toLowerCase().includes(s) ||
+      (u.department_name ?? "").toLowerCase().includes(s)
+    );
   });
 
   return (
@@ -92,14 +138,39 @@ function AdminUsers() {
           <p className="text-sm text-muted-foreground mt-1">{t("usersDesc")}</p>
         </div>
         <div className="flex gap-2">
-          <InviteDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} invite={invite} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
-          <CreateDialog depts={depts} companies={companies} isPlatformAdmin={isPlatformAdmin} onDone={load} create={create} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
+          <InviteDialog
+            depts={depts}
+            companies={companies}
+            isPlatformAdmin={isPlatformAdmin}
+            onDone={load}
+            invite={invite}
+            onDeptCreated={(d) =>
+              setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))
+            }
+          />
+          <CreateDialog
+            depts={depts}
+            companies={companies}
+            isPlatformAdmin={isPlatformAdmin}
+            onDone={load}
+            create={create}
+            onDeptCreated={(d) =>
+              setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))
+            }
+          />
         </div>
       </div>
 
-      <Input placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
+      <Input
+        placeholder={t("search")}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="mb-4 max-w-sm"
+      />
 
-      {loading ? <p className="text-sm text-muted-foreground">…</p> : (
+      {loading ? (
+        <p className="text-sm text-muted-foreground">…</p>
+      ) : (
         <Card className="divide-y divide-border">
           {filtered.map((u) => {
             const isSelf = u.id === user?.id;
@@ -108,12 +179,20 @@ function AdminUsers() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="font-medium truncate">{u.full_name || u.email}</div>
-                    {isSelf && <span className="text-xs text-muted-foreground">{t("thisIsYou")}</span>}
-                    {!u.is_active && <Badge variant="outline" className="text-destructive border-destructive">{t("inactive")}</Badge>}
+                    {isSelf && (
+                      <span className="text-xs text-muted-foreground">{t("thisIsYou")}</span>
+                    )}
+                    {!u.is_active && (
+                      <Badge variant="outline" className="text-destructive border-destructive">
+                        {t("inactive")}
+                      </Badge>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground font-mono truncate">{u.email}</div>
                   <div className="text-xs text-muted-foreground mt-0.5 flex gap-2 flex-wrap">
-                    {u.company_name && <span className="font-medium text-foreground/70">{u.company_name}</span>}
+                    {u.company_name && (
+                      <span className="font-medium text-foreground/70">{u.company_name}</span>
+                    )}
                     {u.position && <span>· {u.position}</span>}
                     {u.department_name && <span>· {u.department_name}</span>}
                     {u.phone && <span>· {u.phone}</span>}
@@ -121,17 +200,41 @@ function AdminUsers() {
                 </div>
                 <div className="flex gap-1 flex-wrap items-center">
                   {u.roles.map((r) => (
-                    <Badge key={r} variant={r === "admin" ? "default" : "secondary"} className="text-[10px] uppercase">{r.replace("_", " ")}</Badge>
+                    <Badge
+                      key={r}
+                      variant={r === "admin" ? "default" : "secondary"}
+                      className="text-[10px] uppercase"
+                    >
+                      {r.replace("_", " ")}
+                    </Badge>
                   ))}
                 </div>
                 <div className="flex gap-1">
-                  <EditDialog u={u} depts={depts} onDone={load} update={update} onDeptCreated={(d) => setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))} />
+                  <EditDialog
+                    u={u}
+                    depts={depts}
+                    onDone={load}
+                    update={update}
+                    onDeptCreated={(d) =>
+                      setDepts((prev) => [...prev, d].sort((a, b) => a.name.localeCompare(b.name)))
+                    }
+                  />
                   <ResetPwDialog u={u} onDone={load} reset={resetPw} />
-                  <Button size="icon" variant="ghost" disabled={isSelf} onClick={async () => {
-                    if (!confirm(`Delete ${u.email}?`)) return;
-                    try { await del({ data: { user_id: u.id } }); toast.success("Deleted"); load(); }
-                    catch (e) { toast.error(String(e)); }
-                  }}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    disabled={isSelf}
+                    onClick={async () => {
+                      if (!confirm(`Delete ${u.email}?`)) return;
+                      try {
+                        await del({ data: { user_id: u.id } });
+                        toast.success("Deleted");
+                        load();
+                      } catch (e) {
+                        toast.error(String(e));
+                      }
+                    }}
+                  >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
@@ -144,70 +247,190 @@ function AdminUsers() {
   );
 }
 
-function CreateDialog({ depts, companies, isPlatformAdmin, onDone, create, onDeptCreated }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; create: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
+function CreateDialog({
+  depts,
+  companies,
+  isPlatformAdmin,
+  onDone,
+  create,
+  onDeptCreated,
+}: {
+  depts: Dept[];
+  companies: Company[];
+  isPlatformAdmin: boolean;
+  onDone: () => void;
+  create: (a: { data: any }) => Promise<any>;
+  onDeptCreated: (d: Dept) => void;
+}) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
-  const empty = { email: "", password: "", first_name: "", last_name: "", position: "", phone: "", department_id: "", role: "employee" as Role, company_id: "" };
+  const empty = {
+    email: "",
+    password: "",
+    first_name: "",
+    last_name: "",
+    position: "",
+    phone: "",
+    department_id: "",
+    role: "employee" as Role,
+    company_id: "",
+  };
   const [form, setForm] = useState(empty);
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPlatformAdmin && !form.company_id) { toast.error("Select a company"); return; }
+    if (isPlatformAdmin && !form.company_id) {
+      toast.error("Select a company");
+      return;
+    }
     setBusy(true);
     try {
-      await create({ data: {
-        ...form,
-        department_id: form.department_id || null,
-        company_id: form.company_id || undefined,
-      } });
-      toast.success("User created"); setOpen(false); onDone();
+      await create({
+        data: {
+          ...form,
+          department_id: form.department_id || null,
+          company_id: form.company_id || undefined,
+        },
+      });
+      toast.success("User created");
+      setOpen(false);
+      onDone();
       setForm(empty);
-    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button><UserPlus className="h-4 w-4 mr-2" />{t("createUser")}</Button></DialogTrigger>
+      <DialogTrigger asChild>
+        <Button>
+          <UserPlus className="h-4 w-4 mr-2" />
+          {t("createUser")}
+        </Button>
+      </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>{t("createUser")}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{t("createUser")}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Field label={`${t("firstName")} *`}><Input required value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></Field>
-            <Field label={`${t("lastName")} *`}><Input required value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></Field>
-            <Field label={`${t("email")} *`}><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
-            <Field label={`${t("password")} *`}><Input type="password" required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
+            <Field label={`${t("firstName")} *`}>
+              <Input
+                required
+                value={form.first_name}
+                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+              />
+            </Field>
+            <Field label={`${t("lastName")} *`}>
+              <Input
+                required
+                value={form.last_name}
+                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+              />
+            </Field>
+            <Field label={`${t("email")} *`}>
+              <Input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </Field>
+            <Field label={`${t("password")} *`}>
+              <Input
+                type="password"
+                required
+                minLength={8}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+            </Field>
             {isPlatformAdmin && (
               <Field label="Company *">
-                <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select company" /></SelectTrigger>
-                  <SelectContent>{companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                <Select
+                  value={form.company_id}
+                  onValueChange={(v) => setForm({ ...form, company_id: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </Field>
             )}
             <Field label="Role *">
-              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Role })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}</SelectContent>
+              <Select
+                value={form.role}
+                onValueChange={(v) => setForm({ ...form, role: v as Role })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLES.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {ROLE_LABEL[r]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
-            <Field label={t("position")}><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></Field>
-            <Field label={t("phone")}><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+            <Field label={t("position")}>
+              <Input
+                value={form.position}
+                onChange={(e) => setForm({ ...form, position: e.target.value })}
+              />
+            </Field>
+            <Field label={t("phone")}>
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+            </Field>
             <Field label={t("department")}>
               <DeptPicker
-                depts={depts} value={form.department_id}
+                depts={depts}
+                value={form.department_id}
                 onChange={(v) => setForm({ ...form, department_id: v })}
                 companyId={isPlatformAdmin ? form.company_id : undefined}
                 onCreated={onDeptCreated}
               />
             </Field>
           </div>
-          <DialogFooter><Button disabled={busy} type="submit">{t("create")}</Button></DialogFooter>
+          <DialogFooter>
+            <Button disabled={busy} type="submit">
+              {t("create")}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
 
-function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite, onDeptCreated }: { depts: Dept[]; companies: Company[]; isPlatformAdmin: boolean; onDone: () => void; invite: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
+function InviteDialog({
+  depts,
+  companies,
+  isPlatformAdmin,
+  onDone,
+  invite,
+  onDeptCreated,
+}: {
+  depts: Dept[];
+  companies: Company[];
+  isPlatformAdmin: boolean;
+  onDone: () => void;
+  invite: (a: { data: any }) => Promise<any>;
+  onDeptCreated: (d: Dept) => void;
+}) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -219,86 +442,207 @@ function InviteDialog({ depts, companies, isPlatformAdmin, onDone, invite, onDep
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPlatformAdmin && !companyId) { toast.error("Select a company"); return; }
+    if (isPlatformAdmin && !companyId) {
+      toast.error("Select a company");
+      return;
+    }
     setBusy(true);
     try {
-      await invite({ data: { email, role, department_id: dept || null, company_id: companyId || undefined, first_name: first || undefined, last_name: last || undefined } });
-      toast.success(t("invitationSent")); setOpen(false); onDone();
-      setEmail(""); setFirst(""); setLast(""); setCompanyId(""); setDept(""); setRole("employee");
-    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+      await invite({
+        data: {
+          email,
+          role,
+          department_id: dept || null,
+          company_id: companyId || undefined,
+          first_name: first || undefined,
+          last_name: last || undefined,
+        },
+      });
+      toast.success(t("invitationSent"));
+      setOpen(false);
+      onDone();
+      setEmail("");
+      setFirst("");
+      setLast("");
+      setCompanyId("");
+      setDept("");
+      setRole("employee");
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button variant="outline"><Mail className="h-4 w-4 mr-2" />{t("invite")}</Button></DialogTrigger>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Mail className="h-4 w-4 mr-2" />
+          {t("invite")}
+        </Button>
+      </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>{t("inviteByEmail")}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{t("inviteByEmail")}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t("firstName")}><Input value={first} onChange={(e) => setFirst(e.target.value)} /></Field>
-            <Field label={t("lastName")}><Input value={last} onChange={(e) => setLast(e.target.value)} /></Field>
+            <Field label={t("firstName")}>
+              <Input value={first} onChange={(e) => setFirst(e.target.value)} />
+            </Field>
+            <Field label={t("lastName")}>
+              <Input value={last} onChange={(e) => setLast(e.target.value)} />
+            </Field>
           </div>
-          <Field label={`${t("email")} *`}><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+          <Field label={`${t("email")} *`}>
+            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          </Field>
           {isPlatformAdmin && (
             <Field label="Company *">
               <Select value={companyId} onValueChange={setCompanyId}>
-                <SelectTrigger><SelectValue placeholder="Select company" /></SelectTrigger>
-                <SelectContent>{companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select company" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
           )}
           <Field label="Role *">
-            <Select value={role} onValueChange={(v) => setRole(v as Role)}><SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}</SelectContent></Select>
+            <Select value={role} onValueChange={(v) => setRole(v as Role)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLES.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {ROLE_LABEL[r]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label={t("department")}>
             <DeptPicker
-              depts={depts} value={dept} onChange={setDept}
+              depts={depts}
+              value={dept}
+              onChange={setDept}
               companyId={isPlatformAdmin ? companyId : undefined}
               onCreated={onDeptCreated}
             />
           </Field>
-          <DialogFooter><Button disabled={busy} type="submit">{t("sendInvite")}</Button></DialogFooter>
+          <DialogFooter>
+            <Button disabled={busy} type="submit">
+              {t("sendInvite")}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
 
-function EditDialog({ u, depts, onDone, update, onDeptCreated }: { u: U; depts: Dept[]; onDone: () => void; update: (a: { data: any }) => Promise<any>; onDeptCreated: (d: Dept) => void }) {
+function EditDialog({
+  u,
+  depts,
+  onDone,
+  update,
+  onDeptCreated,
+}: {
+  u: U;
+  depts: Dept[];
+  onDone: () => void;
+  update: (a: { data: any }) => Promise<any>;
+  onDeptCreated: (d: Dept) => void;
+}) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    first_name: u.first_name ?? "", last_name: u.last_name ?? "", position: u.position ?? "",
-    phone: u.phone ?? "", department_id: u.department_id ?? "", is_active: u.is_active,
+    first_name: u.first_name ?? "",
+    last_name: u.last_name ?? "",
+    position: u.position ?? "",
+    phone: u.phone ?? "",
+    department_id: u.department_id ?? "",
+    is_active: u.is_active,
     roles: new Set(u.roles),
   });
   const [busy, setBusy] = useState(false);
 
   const toggleRole = (r: Role) => {
-    const s = new Set(form.roles); if (s.has(r)) s.delete(r); else s.add(r);
+    const s = new Set(form.roles);
+    if (s.has(r)) s.delete(r);
+    else s.add(r);
     setForm({ ...form, roles: s });
   };
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true);
+    e.preventDefault();
+    setBusy(true);
     try {
-      await update({ data: { user_id: u.id, ...form, department_id: form.department_id || null, roles: [...form.roles] } });
-      toast.success("Saved"); setOpen(false); onDone();
-    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+      await update({
+        data: {
+          user_id: u.id,
+          ...form,
+          department_id: form.department_id || null,
+          roles: [...form.roles],
+        },
+      });
+      toast.success("Saved");
+      setOpen(false);
+      onDone();
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="icon" variant="ghost"><Pencil className="h-4 w-4" /></Button></DialogTrigger>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost">
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>{t("editUser")}: {u.email}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>
+            {t("editUser")}: {u.email}
+          </DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t("firstName")}><Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></Field>
-            <Field label={t("lastName")}><Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></Field>
-            <Field label={t("position")}><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></Field>
-            <Field label={t("phone")}><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+            <Field label={t("firstName")}>
+              <Input
+                value={form.first_name}
+                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+              />
+            </Field>
+            <Field label={t("lastName")}>
+              <Input
+                value={form.last_name}
+                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+              />
+            </Field>
+            <Field label={t("position")}>
+              <Input
+                value={form.position}
+                onChange={(e) => setForm({ ...form, position: e.target.value })}
+              />
+            </Field>
+            <Field label={t("phone")}>
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+            </Field>
             <Field label={t("department")}>
               <DeptPicker
-                depts={depts} value={form.department_id}
+                depts={depts}
+                value={form.department_id}
                 onChange={(v) => setForm({ ...form, department_id: v })}
                 companyId={u.company_id}
                 onCreated={onDeptCreated}
@@ -309,8 +653,12 @@ function EditDialog({ u, depts, onDone, update, onDeptCreated }: { u: U; depts: 
             <Label>{t("roles")}</Label>
             <div className="flex flex-wrap gap-2">
               {ROLES.map((r) => (
-                <button key={r} type="button" onClick={() => toggleRole(r)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${form.roles.has(r) ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}>
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => toggleRole(r)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${form.roles.has(r) ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                >
                   {r.replace("_", " ")}
                 </button>
               ))}
@@ -321,32 +669,78 @@ function EditDialog({ u, depts, onDone, update, onDeptCreated }: { u: U; depts: 
               <div className="text-sm font-medium">{t("active")}</div>
               <div className="text-xs text-muted-foreground">{t("activeDesc")}</div>
             </div>
-            <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
+            <Switch
+              checked={form.is_active}
+              onCheckedChange={(v) => setForm({ ...form, is_active: v })}
+            />
           </div>
-          <DialogFooter><Button disabled={busy} type="submit">{t("save")}</Button></DialogFooter>
+          <DialogFooter>
+            <Button disabled={busy} type="submit">
+              {t("save")}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
 
-function ResetPwDialog({ u, onDone, reset }: { u: U; onDone: () => void; reset: (a: { data: any }) => Promise<any> }) {
+function ResetPwDialog({
+  u,
+  onDone,
+  reset,
+}: {
+  u: U;
+  onDone: () => void;
+  reset: (a: { data: any }) => Promise<any>;
+}) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
-  const [pw, setPw] = useState(""); const [busy, setBusy] = useState(false);
+  const [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true);
-    try { await reset({ data: { user_id: u.id, new_password: pw } }); toast.success("Password reset"); setOpen(false); setPw(""); onDone(); }
-    catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await reset({ data: { user_id: u.id, new_password: pw } });
+      toast.success("Password reset");
+      setOpen(false);
+      setPw("");
+      onDone();
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="icon" variant="ghost"><KeyRound className="h-4 w-4" /></Button></DialogTrigger>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost">
+          <KeyRound className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>{t("resetPassword")} — {u.email}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>
+            {t("resetPassword")} — {u.email}
+          </DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <Field label={t("newPassword")}><Input type="password" minLength={8} required value={pw} onChange={(e) => setPw(e.target.value)} /></Field>
-          <DialogFooter><Button disabled={busy} type="submit">{t("resetPassword")}</Button></DialogFooter>
+          <Field label={t("newPassword")}>
+            <Input
+              type="password"
+              minLength={8}
+              required
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+            />
+          </Field>
+          <DialogFooter>
+            <Button disabled={busy} type="submit">
+              {t("resetPassword")}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -354,7 +748,12 @@ function ResetPwDialog({ u, onDone, reset }: { u: U; onDone: () => void; reset: 
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="space-y-1.5"><Label className="text-xs">{label}</Label>{children}</div>;
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{label}</Label>
+      {children}
+    </div>
+  );
 }
 
 /**
@@ -363,17 +762,26 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * and persist it to the current company.
  */
 function DeptPicker({
-  depts, value, onChange, companyId, onCreated,
+  depts,
+  value,
+  onChange,
+  companyId,
+  onCreated,
 }: {
-  depts: Dept[]; value: string; onChange: (id: string) => void;
-  companyId?: string | null; onCreated: (d: Dept) => void;
+  depts: Dept[];
+  value: string;
+  onChange: (id: string) => void;
+  companyId?: string | null;
+  onCreated: (d: Dept) => void;
 }) {
   const create = useServerFn(createDepartment);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const NEW = "__new__";
-  const visible = companyId ? depts.filter((d) => !d.company_id || d.company_id === companyId) : depts;
+  const visible = companyId
+    ? depts.filter((d) => !d.company_id || d.company_id === companyId)
+    : depts;
 
   const submit = async () => {
     const trimmed = name.trim();
@@ -382,36 +790,69 @@ function DeptPicker({
     try {
       const payload: { name: string; company_id?: string } = { name: trimmed };
       if (companyId) payload.company_id = companyId;
-      const d = await create({ data: payload }) as Dept;
+      const d = (await create({ data: payload })) as Dept;
       onCreated({ id: d.id, name: d.name, company_id: companyId ?? null });
       onChange(d.id);
-      setAdding(false); setName("");
+      setAdding(false);
+      setName("");
       toast.success(`Department "${d.name}" added`);
-    } catch (e) { toast.error(String(e)); } finally { setBusy(false); }
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (adding) {
     return (
       <div className="flex gap-1.5">
         <Input
-          autoFocus value={name} placeholder="e.g. Warehouse, Picker, Loading"
+          autoFocus
+          value={name}
+          placeholder="e.g. Warehouse, Picker, Loading"
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              submit();
+            }
+          }}
         />
-        <Button type="button" size="sm" disabled={busy || !name.trim()} onClick={submit}>Add</Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => { setAdding(false); setName(""); }}>Cancel</Button>
+        <Button type="button" size="sm" disabled={busy || !name.trim()} onClick={submit}>
+          Add
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            setAdding(false);
+            setName("");
+          }}
+        >
+          Cancel
+        </Button>
       </div>
     );
   }
   return (
     <Select
       value={value}
-      onValueChange={(v) => { if (v === NEW) setAdding(true); else onChange(v); }}
+      onValueChange={(v) => {
+        if (v === NEW) setAdding(true);
+        else onChange(v);
+      }}
     >
-      <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+      <SelectTrigger>
+        <SelectValue placeholder="—" />
+      </SelectTrigger>
       <SelectContent>
         <SelectItem value={NEW}>+ Create new department…</SelectItem>
-        {visible.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+        {visible.map((d) => (
+          <SelectItem key={d.id} value={d.id}>
+            {d.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

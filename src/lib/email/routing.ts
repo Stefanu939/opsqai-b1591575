@@ -31,10 +31,10 @@ export const CONTACT_SUBJECT_LABELS: Record<ContactSubject, string> = {
 };
 
 export interface RoutingMailboxes {
-  contact: string;   // info@opsqai.de
-  support: string;   // support@opsqai.de
-  security: string;  // security@opsqai.de
-  privacy: string;   // policy@opsqai.de
+  contact: string; // info@opsqai.de
+  support: string; // support@opsqai.de
+  security: string; // security@opsqai.de
+  privacy: string; // policy@opsqai.de
 }
 
 export const DEFAULT_MAILBOXES: RoutingMailboxes = {
@@ -44,18 +44,25 @@ export const DEFAULT_MAILBOXES: RoutingMailboxes = {
   privacy: "policy@opsqai.de",
 };
 
-export function routeContactSubject(subject: ContactSubject, mb: RoutingMailboxes = DEFAULT_MAILBOXES): string {
+export function routeContactSubject(
+  subject: ContactSubject,
+  mb: RoutingMailboxes = DEFAULT_MAILBOXES,
+): string {
   switch (subject) {
-    case "security":     return mb.security;
-    case "privacy":      return mb.privacy;
+    case "security":
+      return mb.security;
+    case "privacy":
+      return mb.privacy;
     case "demo":
     case "sales":
     case "pricing":
     case "support":
-    case "bug":          return mb.support;
+    case "bug":
+      return mb.support;
     case "partnership":
     case "general":
     case "other":
-    default:             return mb.contact;
+    default:
+      return mb.contact;
   }
 }

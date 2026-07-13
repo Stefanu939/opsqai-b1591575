@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { companyFromStoragePath, requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
+import {
+  companyFromStoragePath,
+  requireAnyPermission,
+  resolveCompanyForWrite,
+} from "@/lib/authorization";
 
 const ReplaceInput = z.object({
   previous_id: z.string().uuid(),
@@ -28,7 +32,10 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
       .eq("id", data.previous_id)
       .maybeSingle();
     if (!prev) throw new Error("Previous version not found");
-    const companyId = await resolveCompanyForWrite(context, companyFromStoragePath(data.file_path) ?? prev.company_id);
+    const companyId = await resolveCompanyForWrite(
+      context,
+      companyFromStoragePath(data.file_path) ?? prev.company_id,
+    );
 
     // Deactivate previous
     await supabaseAdmin
@@ -60,7 +67,8 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
 
     try {
       const { data: file, error: dlErr } = await supabaseAdmin.storage
-        .from("knowledge-docs").download(data.file_path);
+        .from("knowledge-docs")
+        .download(data.file_path);
       if (dlErr || !file) throw new Error(dlErr?.message || "Download failed");
       const buffer = await file.arrayBuffer();
       const { extractText, chunkText } = await import("@/lib/doc-processing.server");
@@ -73,18 +81,31 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
         vecs.push(...(await embedTexts(chunks.slice(i, i + 50))));
       }
       const rows = chunks.map((content, idx) => ({
-        document_id: doc.id, company_id: doc.company_id, chunk_index: idx, content,
+        document_id: doc.id,
+        company_id: doc.company_id,
+        chunk_index: idx,
+        content,
         token_count: Math.ceil(content.length / 4),
         embedding: `[${vecs[idx].join(",")}]`,
       }));
       await supabaseAdmin.from("document_chunks").insert(rows as never);
-      await supabaseAdmin.from("knowledge_documents")
-        .update({ status: "ready", chunk_count: chunks.length, content_text: text.slice(0, 50000), error: null } as never)
+      await supabaseAdmin
+        .from("knowledge_documents")
+        .update({
+          status: "ready",
+          chunk_count: chunks.length,
+          content_text: text.slice(0, 50000),
+          error: null,
+        } as never)
         .eq("id", doc.id);
       return { ok: true, id: doc.id, chunks: chunks.length };
     } catch (err) {
-      await supabaseAdmin.from("knowledge_documents")
-        .update({ status: "failed", error: err instanceof Error ? err.message : String(err) } as never)
+      await supabaseAdmin
+        .from("knowledge_documents")
+        .update({
+          status: "failed",
+          error: err instanceof Error ? err.message : String(err),
+        } as never)
         .eq("id", doc.id);
       throw err;
     }
@@ -98,8 +119,10 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: target } = await supabaseAdmin
-      .from("knowledge_documents").select("id, company_id, doc_code, parent_document_id")
-      .eq("id", data.id).maybeSingle();
+      .from("knowledge_documents")
+      .select("id, company_id, doc_code, parent_document_id")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!target) throw new Error("Not found");
     const rootId = (target as { parent_document_id: string | null }).parent_document_id ?? data.id;
 
@@ -118,7 +141,9 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
 
 export const setCriticalFlag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), is_critical: z.boolean() }).parse(d))
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), is_critical: z.boolean() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
     const { error } = await context.supabase

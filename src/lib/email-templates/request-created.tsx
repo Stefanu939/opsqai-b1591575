@@ -1,6 +1,11 @@
 import * as React from "react";
 import { SimpleEmail, defineTemplate, APP_URL } from "./_simple";
-const Email = (p: { firstName?: string; question?: string; requestUrl?: string; referenceId?: string }) => (
+const Email = (p: {
+  firstName?: string;
+  question?: string;
+  requestUrl?: string;
+  referenceId?: string;
+}) => (
   <SimpleEmail
     preview="Your internal request was received"
     title="We received your internal request"
@@ -16,6 +21,11 @@ export const template = defineTemplate({
   displayName: "Internal request created",
   subject: "Your internal request was received",
   component: Email,
-  previewData: { firstName: "Jane", question: "What's the process for damaged returns?", referenceId: "IRQ-12AB", requestUrl: APP_URL },
+  previewData: {
+    firstName: "Jane",
+    question: "What's the process for damaged returns?",
+    referenceId: "IRQ-12AB",
+    requestUrl: APP_URL,
+  },
 });
 export default Email;

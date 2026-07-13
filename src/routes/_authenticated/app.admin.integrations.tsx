@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plug, Search, CheckCircle2, ArrowLeft } from "lucide-react";
 import {
-  INTEGRATIONS, CATEGORY_ORDER, CATEGORY_LABEL,
+  INTEGRATIONS,
+  CATEGORY_ORDER,
+  CATEGORY_LABEL,
   type IntegrationDef,
 } from "@/lib/integrations-catalog";
 
@@ -88,8 +90,8 @@ function IntegrationsHub() {
           </span>
         </div>
         <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          Connect OPSQAI to the tools your teams already use. Everything is scoped per-tenant, audited,
-          and revocable at any time.
+          Connect OPSQAI to the tools your teams already use. Everything is scoped per-tenant,
+          audited, and revocable at any time.
         </p>
       </header>
 
@@ -156,22 +158,34 @@ function IntegrationCard({ def, status }: { def: IntegrationDef; status?: string
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-sm truncate">{def.name}</h3>
               {connected && (
-                <Badge variant="outline" className="h-5 gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="h-5 gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]"
+                >
                   <CheckCircle2 className="h-3 w-3" /> Connected
                 </Badge>
               )}
               {hasError && (
-                <Badge variant="outline" className="h-5 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="h-5 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px]"
+                >
                   Attention
                 </Badge>
               )}
               {!connected && !hasError && def.hint === "beta" && (
-                <Badge variant="outline" className="h-5 border-blue-500/30 bg-blue-500/10 text-blue-500 text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="h-5 border-blue-500/30 bg-blue-500/10 text-blue-500 text-[10px]"
+                >
                   Beta
                 </Badge>
               )}
               {!connected && !hasError && def.hint === "roadmap" && (
-                <Badge variant="outline" className="h-5 border-muted-foreground/20 text-muted-foreground text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="h-5 border-muted-foreground/20 text-muted-foreground text-[10px]"
+                >
                   Roadmap
                 </Badge>
               )}

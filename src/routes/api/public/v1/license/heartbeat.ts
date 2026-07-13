@@ -28,14 +28,15 @@ function json(body: unknown, status = 200) {
 export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
   server: {
     handlers: {
-      OPTIONS: () => new Response(null, {
-        status: 204,
-        headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-methods": "POST, OPTIONS",
-          "access-control-allow-headers": "content-type",
-        },
-      }),
+      OPTIONS: () =>
+        new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "POST, OPTIONS",
+            "access-control-allow-headers": "content-type",
+          },
+        }),
       POST: async ({ request }) => {
         let parsed: z.infer<typeof Body>;
         try {
@@ -48,7 +49,9 @@ export const Route = createFileRoute("/api/public/v1/license/heartbeat")({
 
         const { data: lic } = await supabaseAdmin
           .from("licenses")
-          .select("install_id, signed_token, revoked, revoked_reason, expires_at, maintenance_expires_at")
+          .select(
+            "install_id, signed_token, revoked, revoked_reason, expires_at, maintenance_expires_at",
+          )
           .eq("install_id", parsed.install_id)
           .maybeSingle();
 

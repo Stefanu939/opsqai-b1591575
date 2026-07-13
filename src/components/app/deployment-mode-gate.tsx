@@ -39,8 +39,8 @@ export function DeploymentModeGate({ children }: { children: ReactNode }) {
     verdict.reason === "operational_on_mc"
       ? "This is an operational module available inside a customer install."
       : verdict.reason === "mc_only_route_on_selfhost"
-      ? "This surface exists only in the Management Center."
-      : "This surface is only available in a Self-Hosted install.";
+        ? "This surface exists only in the Management Center."
+        : "This surface is only available in a Self-Hosted install.";
 
   return (
     <div className="flex-1 flex items-center justify-center p-8">

@@ -21,7 +21,14 @@
 // Legacy `LicensePayload` (bundled `modules[]` + `tier` + `max_users`) is
 // kept for backward compatibility until Phase 1 migrates callers.
 
-import { generateKeyPairSync, createPrivateKey, createPublicKey, sign as edSign, verify as edVerify, randomUUID } from "node:crypto";
+import {
+  generateKeyPairSync,
+  createPrivateKey,
+  createPublicKey,
+  sign as edSign,
+  verify as edVerify,
+  randomUUID,
+} from "node:crypto";
 
 // ─── Versioned typed payloads (Phase 0) ─────────────────────────────────
 
@@ -67,7 +74,10 @@ export interface LicensePayload {
 
 const b64url = (buf: Buffer | string) =>
   (typeof buf === "string" ? Buffer.from(buf) : buf)
-    .toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    .toString("base64")
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/, "");
 
 const b64urlDecode = (s: string) =>
   Buffer.from(s.replaceAll("-", "+").replaceAll("_", "/"), "base64");
@@ -109,7 +119,11 @@ export function peekTokenKeyId(token: string): string | null {
 // ─── Signing key management ─────────────────────────────────────────────
 
 /** Fetch the active signing keypair. Auto-generates one on first call. */
-export async function getActiveSigningKey(): Promise<{ privatePem: string; publicPem: string; keyId: string }> {
+export async function getActiveSigningKey(): Promise<{
+  privatePem: string;
+  publicPem: string;
+  keyId: string;
+}> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const { data: existing } = await supabaseAdmin
@@ -121,7 +135,11 @@ export async function getActiveSigningKey(): Promise<{ privatePem: string; publi
     .maybeSingle();
 
   if (existing?.private_key_pem) {
-    return { privatePem: existing.private_key_pem, publicPem: existing.public_key_pem, keyId: existing.key_id };
+    return {
+      privatePem: existing.private_key_pem,
+      publicPem: existing.public_key_pem,
+      keyId: existing.key_id,
+    };
   }
 
   const { privateKey, publicKey } = generateKeyPairSync("ed25519");
@@ -143,7 +161,9 @@ export async function getActiveSigningKey(): Promise<{ privatePem: string; publi
 
 // ─── Legacy sign/verify (kept for backward compatibility) ───────────────
 
-export async function signLicense(payload: Omit<LicensePayload, "key_id">): Promise<{ token: string; keyId: string }> {
+export async function signLicense(
+  payload: Omit<LicensePayload, "key_id">,
+): Promise<{ token: string; keyId: string }> {
   const { privatePem, keyId } = await getActiveSigningKey();
   const full: LicensePayload = { ...payload, key_id: keyId };
   return { token: signPayloadWithKey(full, privatePem), keyId };
@@ -214,7 +234,8 @@ export function verifyLicenseTokenTyped<K extends LicenseKind>(
   if (!raw || typeof raw !== "object") return { ok: false, reason: "bad_signature" };
   const p = raw as Partial<AnyLicensePayload>;
   if (p.license_version !== 1) return { ok: false, reason: "unknown_license_version" };
-  if (p.kind !== expectedKind) return { ok: false, reason: "wrong_kind", payload: p as AnyLicensePayload };
+  if (p.kind !== expectedKind)
+    return { ok: false, reason: "wrong_kind", payload: p as AnyLicensePayload };
   if (typeof p.expires_at === "number" && p.expires_at > 0 && p.expires_at < now) {
     return { ok: false, reason: "expired", payload: p as AnyLicensePayload };
   }

@@ -13,7 +13,10 @@ export const Route = createFileRoute("/sso-signin")({
   head: () => ({
     meta: [
       { title: "SSO sign-in — OPSQAI" },
-      { name: "description", content: "Sign in with your company's single sign-on identity provider." },
+      {
+        name: "description",
+        content: "Sign in with your company's single sign-on identity provider.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -116,9 +119,14 @@ function SsoSignInPage() {
               <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400 flex gap-2">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="font-medium">SSO is not configured for <span className="font-mono">{notConfigured}</span> yet.</p>
+                  <p className="font-medium">
+                    SSO is not configured for <span className="font-mono">{notConfigured}</span>{" "}
+                    yet.
+                  </p>
                   <p className="text-xs">
-                    If you're the company administrator, submit your SAML metadata from the SSO configuration page. Otherwise, sign in with email &amp; password or contact your admin.
+                    If you're the company administrator, submit your SAML metadata from the SSO
+                    configuration page. Otherwise, sign in with email &amp; password or contact your
+                    admin.
                   </p>
                 </div>
               </div>
@@ -137,8 +145,12 @@ function SsoSignInPage() {
           </form>
 
           <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
-            <Link to="/auth" className="hover:underline">← Use email &amp; password</Link>
-            <Link to="/forgot-password" className="hover:underline">Forgot password?</Link>
+            <Link to="/auth" className="hover:underline">
+              ← Use email &amp; password
+            </Link>
+            <Link to="/forgot-password" className="hover:underline">
+              Forgot password?
+            </Link>
           </div>
         </Card>
       </main>

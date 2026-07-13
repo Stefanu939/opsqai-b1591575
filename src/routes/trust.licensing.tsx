@@ -31,17 +31,17 @@ function LicensingTrust() {
       <section className="mt-10 space-y-6">
         <Card icon={KeyRound} title="Ed25519, versioned, key-id bound">
           Every license is a signed token carrying <code>license_version</code>, <code>kind</code>,
-          <code> install_id</code> and <code>key_id</code>. The verifier rejects unknown versions
-          or unknown key ids. Private signing keys never leave the Management Center.
+          <code> install_id</code> and <code>key_id</code>. The verifier rejects unknown versions or
+          unknown key ids. Private signing keys never leave the Management Center.
         </Card>
         <Card icon={ShieldCheck} title="Two independent axes">
           One mandatory Installation License per install (seats + maintenance). Zero or more
           per-Module Licenses. No tier bundling.
         </Card>
         <Card icon={RefreshCw} title="Rotation and revocation">
-          Signing keys rotate on a documented cadence with at least 90 days of dual-signing
-          overlap. Revocation is delivered via a signed CRL, itself included in every activation
-          bundle for offline installs.
+          Signing keys rotate on a documented cadence with at least 90 days of dual-signing overlap.
+          Revocation is delivered via a signed CRL, itself included in every activation bundle for
+          offline installs.
         </Card>
       </section>
       <p className="mt-10 text-sm text-muted-foreground">

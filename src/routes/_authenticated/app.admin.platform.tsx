@@ -1,7 +1,16 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import {
-  ShieldCheck, Building2, Users, BarChart3, ScrollText, Mail, Inbox, Sparkles, FileText, Plug,
+  ShieldCheck,
+  Building2,
+  Users,
+  BarChart3,
+  ScrollText,
+  Mail,
+  Inbox,
+  Sparkles,
+  FileText,
+  Plug,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import type { ComponentType, SVGProps } from "react";
@@ -22,17 +31,72 @@ type Tile = {
 // quotas, subscription editor, prompt limits) is intentionally hidden until
 // it is production-ready — a clean surface beats a cluttered "coming soon" page.
 const MODULES: Array<Tile> = [
-  { to: "/app/admin/companies", title: "Companies", desc: "Create, suspend, restore and inspect every tenant.", icon: Building2 },
-  { to: "/app/admin/integrations", title: "Integrations", desc: "SSO, Microsoft 365, SharePoint, Teams, Slack and more.", icon: Plug },
-  { to: "/app/admin/platform-admins", title: "Platform Super Admins", desc: "Grant and revoke unrestricted platform access.", icon: ShieldCheck },
-  { to: "/app/admin/users", title: "Global Users", desc: "Browse and manage every user across all companies.", icon: Users },
-  { to: "/app/admin/analytics", title: "Platform Analytics", desc: "Cross-tenant usage, AI confidence and adoption KPIs.", icon: BarChart3 },
-  { to: "/app/admin/audit", title: "Platform Audit Log", desc: "Every question and answer, with sources.", icon: ScrollText },
-  { to: "/app/admin/customers", title: "Enterprise Documents", desc: "Contracts, DPAs and per-tenant documentation.", icon: FileText },
-  { to: "/app/admin/support", title: "Support Inbox", desc: "Centralised support requests from every tenant.", icon: Inbox },
-  { to: "/app/admin/email", title: "Email Settings", desc: "Custom domain, DKIM/SPF and outbound configuration.", icon: Mail },
-  { to: "/app/admin/email-logs", title: "Email Logs", desc: "Inspect delivery, bounces and unsubscribe activity.", icon: ScrollText },
-  { to: "/app/brand", title: "Brand Center", desc: "Logos, tokens and marketing assets governance.", icon: Sparkles },
+  {
+    to: "/app/admin/companies",
+    title: "Companies",
+    desc: "Create, suspend, restore and inspect every tenant.",
+    icon: Building2,
+  },
+  {
+    to: "/app/admin/integrations",
+    title: "Integrations",
+    desc: "SSO, Microsoft 365, SharePoint, Teams, Slack and more.",
+    icon: Plug,
+  },
+  {
+    to: "/app/admin/platform-admins",
+    title: "Platform Super Admins",
+    desc: "Grant and revoke unrestricted platform access.",
+    icon: ShieldCheck,
+  },
+  {
+    to: "/app/admin/users",
+    title: "Global Users",
+    desc: "Browse and manage every user across all companies.",
+    icon: Users,
+  },
+  {
+    to: "/app/admin/analytics",
+    title: "Platform Analytics",
+    desc: "Cross-tenant usage, AI confidence and adoption KPIs.",
+    icon: BarChart3,
+  },
+  {
+    to: "/app/admin/audit",
+    title: "Platform Audit Log",
+    desc: "Every question and answer, with sources.",
+    icon: ScrollText,
+  },
+  {
+    to: "/app/admin/customers",
+    title: "Enterprise Documents",
+    desc: "Contracts, DPAs and per-tenant documentation.",
+    icon: FileText,
+  },
+  {
+    to: "/app/admin/support",
+    title: "Support Inbox",
+    desc: "Centralised support requests from every tenant.",
+    icon: Inbox,
+  },
+  {
+    to: "/app/admin/email",
+    title: "Email Settings",
+    desc: "Custom domain, DKIM/SPF and outbound configuration.",
+    icon: Mail,
+  },
+  {
+    to: "/app/admin/email-logs",
+    title: "Email Logs",
+    desc: "Inspect delivery, bounces and unsubscribe activity.",
+    icon: ScrollText,
+  },
+  {
+    to: "/app/brand",
+    title: "Brand Center",
+    desc: "Logos, tokens and marketing assets governance.",
+    icon: Sparkles,
+  },
 ];
 
 function PlatformAdminLanding() {
@@ -50,8 +114,8 @@ function PlatformAdminLanding() {
         </div>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">Platform Administration</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-          Govern every tenant, role and platform-wide setting. Platform Owner permissions
-          bypass every company restriction and cannot be removed by any deployment or migration.
+          Govern every tenant, role and platform-wide setting. Platform Owner permissions bypass
+          every company restriction and cannot be removed by any deployment or migration.
         </p>
       </header>
 
@@ -75,4 +139,3 @@ function PlatformAdminLanding() {
     </div>
   );
 }
-

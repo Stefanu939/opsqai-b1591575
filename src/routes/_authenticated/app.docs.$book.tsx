@@ -15,9 +15,7 @@ export const Route = createFileRoute("/_authenticated/app/docs/$book")({
     ],
   }),
   component: BookView,
-  notFoundComponent: () => (
-    <div className="p-6 text-muted-foreground">Book not found.</div>
-  ),
+  notFoundComponent: () => <div className="p-6 text-muted-foreground">Book not found.</div>,
   errorComponent: ({ error }) => (
     <div className="p-6 text-destructive">Failed to load book: {String(error)}</div>
   ),

@@ -36,13 +36,13 @@ describe("writeSecretsEnv", () => {
   });
 
   it("escapes single quotes for POSIX shell safety", async () => {
-    await writeSecretsEnv({ WEIRD_KEY: "it's a \"trap\"" });
+    await writeSecretsEnv({ WEIRD_KEY: 'it\'s a "trap"' });
     const body = await fs.readFile(secretsEnvPath(), "utf8");
     expect(body).toContain("WEIRD_KEY='it'\\''s a \"trap\"'");
   });
 
   it("rejects invalid secret names", async () => {
     await expect(writeSecretsEnv({ "bad key": "x" } as never)).rejects.toThrow(/Invalid/);
-    await expect(writeSecretsEnv({ "a": "x" })).rejects.toThrow(/Invalid/);
+    await expect(writeSecretsEnv({ a: "x" })).rejects.toThrow(/Invalid/);
   });
 });

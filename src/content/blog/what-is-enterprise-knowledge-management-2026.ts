@@ -10,8 +10,7 @@ export const post: BlogPost = {
   datePublished: "2026-06-15",
   author: { name: "OPSQAI Editorial", role: "Research" },
   readingMinutes: 6,
-  lede:
-    "Enterprise knowledge management (EKM) in 2026 is no longer about wikis and taxonomies. It is about making institutional knowledge queryable, verifiable and safe to act on — with AI that grounds every answer in a source and refuses when it cannot.",
+  lede: "Enterprise knowledge management (EKM) in 2026 is no longer about wikis and taxonomies. It is about making institutional knowledge queryable, verifiable and safe to act on — with AI that grounds every answer in a source and refuses when it cannot.",
   sections: [
     {
       heading: "The old model is dead",
@@ -58,6 +57,9 @@ export const post: BlogPost = {
       ],
     },
   ],
-  relatedLandingPages: ["/solutions/ai-knowledge-management", "/solutions/enterprise-knowledge-base"],
+  relatedLandingPages: [
+    "/solutions/ai-knowledge-management",
+    "/solutions/enterprise-knowledge-base",
+  ],
   relatedPosts: ["operational-knowledge-live-systems", "source-backed-ai-grounded-answers"],
 };

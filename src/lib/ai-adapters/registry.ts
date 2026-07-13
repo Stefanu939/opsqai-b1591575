@@ -54,7 +54,9 @@ export function getActiveAdapter(): AIProviderAdapter {
   if (!raw || !raw.trim()) return getAdapter(DEFAULT_ADAPTER_ID)!;
   const found = getAdapter(raw);
   if (!found) {
-    const known = listAdapters().map((a) => a.id).join(", ");
+    const known = listAdapters()
+      .map((a) => a.id)
+      .join(", ");
     throw new Error(`Unknown AI_PROVIDER "${raw}". Registered: ${known}`);
   }
   return found;

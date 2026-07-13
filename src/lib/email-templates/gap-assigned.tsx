@@ -11,7 +11,8 @@ const Email = (p: { topic?: string; gapUrl?: string; priority?: string }) => (
 );
 export const template = defineTemplate({
   displayName: "Knowledge gap assigned",
-  subject: (d) => (d.topic ? `Knowledge gap assigned: ${d.topic}` : "A knowledge gap was assigned to you"),
+  subject: (d) =>
+    d.topic ? `Knowledge gap assigned: ${d.topic}` : "A knowledge gap was assigned to you",
   component: Email,
   previewData: { topic: "Returns process for damaged pallets", priority: "high", gapUrl: APP_URL },
 });

@@ -63,10 +63,10 @@ Executed on a clean reference host before every GA. Every scenario is timed and 
    affected install (`/app/platform/installation-package/<install_id>`).
 3. Confirm whether the customer is running a restored backup with the
    previous bundle:
-   - **Not running a restored backup (default):** leave *Keep previous
-     bundle valid* unchecked and click **Regenerate**. Previous bundle is
+   - **Not running a restored backup (default):** leave _Keep previous
+     bundle valid_ unchecked and click **Regenerate**. Previous bundle is
      added to the CRL on the next heartbeat.
-   - **Running a restored backup:** check *Keep previous bundle valid*
+   - **Running a restored backup:** check _Keep previous bundle valid_
      BEFORE clicking **Regenerate**. The prior bundle remains valid until
      its own 90-day expiry.
 4. Technical contact receives an email with a 24-hour signed URL. Same

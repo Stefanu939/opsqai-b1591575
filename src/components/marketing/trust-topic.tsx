@@ -14,7 +14,9 @@ export function TrustTopic({ eyebrow = "Trust Center", title, intro, children }:
     <MarketingLayout>
       <section className="mx-auto max-w-3xl px-4 py-12 md:py-16">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">
-          <Link to="/trust" className="hover:text-foreground">{eyebrow}</Link>
+          <Link to="/trust" className="hover:text-foreground">
+            {eyebrow}
+          </Link>
         </p>
         <h1 className="mt-2 text-3xl md:text-4xl font-semibold tracking-tight">{title}</h1>
         <p className="mt-4 text-base text-muted-foreground leading-relaxed">{intro}</p>
@@ -22,11 +24,22 @@ export function TrustTopic({ eyebrow = "Trust Center", title, intro, children }:
           {children}
         </div>
         <div className="mt-10 rounded-lg border border-border/60 bg-muted/30 p-4 text-xs text-muted-foreground">
-          This page is maintained by OPSQAI as informational customer-facing content. It describes current controls and practices and is not a substitute for independent certification.
+          This page is maintained by OPSQAI as informational customer-facing content. It describes
+          current controls and practices and is not a substitute for independent certification.
         </div>
         <div className="mt-6 flex flex-wrap gap-2 text-sm">
-          <Link to="/trust" className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-muted/40">← Back to Trust Center</Link>
-          <Link to="/contact" className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-muted/40">Contact notify@opsqai.de</Link>
+          <Link
+            to="/trust"
+            className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-muted/40"
+          >
+            ← Back to Trust Center
+          </Link>
+          <Link
+            to="/contact"
+            className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-muted/40"
+          >
+            Contact notify@opsqai.de
+          </Link>
         </div>
       </section>
     </MarketingLayout>

@@ -6,13 +6,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useT } from "@/i18n";
 import {
-  Send, FileText, BookOpenCheck, ScrollText, Copy, Check, AlertCircle, Inbox,
-  ThumbsUp, ThumbsDown, ExternalLink, Phone, Mail, UserCheck,
+  Send,
+  FileText,
+  BookOpenCheck,
+  ScrollText,
+  Copy,
+  Check,
+  AlertCircle,
+  Inbox,
+  ThumbsUp,
+  ThumbsDown,
+  ExternalLink,
+  Phone,
+  Mail,
+  UserCheck,
 } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
 import { z } from "zod";
@@ -67,8 +77,10 @@ function confLabel(b: ConfBucket): string {
   return b === "high" ? "High" : b === "medium" ? "Medium" : "Low";
 }
 function confClasses(b: ConfBucket): string {
-  if (b === "high") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
-  if (b === "medium") return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+  if (b === "high")
+    return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+  if (b === "medium")
+    return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
   return "bg-muted text-muted-foreground border-border";
 }
 // Show a relevance % that rewards a clear primary match while staying truthful for supporting ones.
@@ -120,21 +132,42 @@ function ChatThread() {
   }, [threadId]);
 
   const transport = useMemo(
-    () => new DefaultChatTransport({
-      api: "/api/chat",
-      headers: () => ({ Authorization: `Bearer ${tokenRef.current}` }),
-      body: () => ({ threadId, language: lang }),
-    }),
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        headers: () => ({ Authorization: `Bearer ${tokenRef.current}` }),
+        body: () => ({ threadId, language: lang }),
+      }),
     [threadId, lang],
   );
 
-  if (!initial) return <div className="flex-1 grid place-items-center text-sm text-muted-foreground">…</div>;
+  if (!initial)
+    return <div className="flex-1 grid place-items-center text-sm text-muted-foreground">…</div>;
 
-  return <ChatInner key={threadId} threadId={threadId} initial={initial} transport={transport} seed={q} seededRef={seededRef} taRef={taRef} scrollRef={scrollRef} t={t} />;
+  return (
+    <ChatInner
+      key={threadId}
+      threadId={threadId}
+      initial={initial}
+      transport={transport}
+      seed={q}
+      seededRef={seededRef}
+      taRef={taRef}
+      scrollRef={scrollRef}
+      t={t}
+    />
+  );
 }
 
 function ChatInner({
-  threadId, initial, transport, seed, seededRef, taRef, scrollRef, t,
+  threadId,
+  initial,
+  transport,
+  seed,
+  seededRef,
+  taRef,
+  scrollRef,
+  t,
 }: {
   threadId: string;
   initial: UIMessage[];
@@ -167,7 +200,9 @@ function ChatInner({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, scrollRef]);
 
-  useEffect(() => { if (!loading) taRef.current?.focus(); }, [loading, taRef]);
+  useEffect(() => {
+    if (!loading) taRef.current?.focus();
+  }, [loading, taRef]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,7 +230,9 @@ function ChatInner({
             if (m.role === "user") {
               return (
                 <div key={m.id} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">{rawText}</div>
+                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">
+                    {rawText}
+                  </div>
                 </div>
               );
             }
@@ -212,7 +249,11 @@ function ChatInner({
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
-                    {text ? <ReactMarkdown>{text}</ReactMarkdown> : <ThinkingDots label={T("thinking")} />}
+                    {text ? (
+                      <ReactMarkdown>{text}</ReactMarkdown>
+                    ) : (
+                      <ThinkingDots label={T("thinking")} />
+                    )}
                   </div>
                   {showMeta && (
                     <div className="mt-3 flex flex-col gap-1.5 text-xs">
@@ -227,7 +268,9 @@ function ChatInner({
                       )}
                       <div className="flex items-center gap-1.5">
                         <span className="opacity-70 text-muted-foreground">Confidence:</span>
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(answerBucket)}`}>
+                        <span
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(answerBucket)}`}
+                        >
                           {confLabel(answerBucket)}
                         </span>
                       </div>
@@ -238,7 +281,9 @@ function ChatInner({
                       <CopyButton text={text} label={T("copy") || "Copy"} />
                     </div>
                   )}
-                  {sources.length > 0 && <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />}
+                  {sources.length > 0 && (
+                    <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />
+                  )}
                   {meta?.escalation && meta.escalation.department && (
                     <EscalationCard escalation={meta.escalation} />
                   )}
@@ -249,8 +294,8 @@ function ChatInner({
                     <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
                       <span aria-hidden>⚠</span>
                       <span>
-                        This question has been flagged as a <strong>knowledge gap</strong>.
-                        Our administrators have been notified and can improve the Knowledge Base.
+                        This question has been flagged as a <strong>knowledge gap</strong>. Our
+                        administrators have been notified and can improve the Knowledge Base.
                       </span>
                     </div>
                   )}
@@ -264,7 +309,9 @@ function ChatInner({
               <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
                 <LogoMark size={20} className="text-foreground" />
               </div>
-              <div className="flex-1 pt-2"><ThinkingDots label={T("searching")} /></div>
+              <div className="flex-1 pt-2">
+                <ThinkingDots label={T("searching")} />
+              </div>
             </div>
           )}
         </div>
@@ -279,11 +326,19 @@ function ChatInner({
             placeholder={T("typeMessage")}
             rows={1}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(e as unknown as React.FormEvent); }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                onSubmit(e as unknown as React.FormEvent);
+              }
             }}
             className="resize-none min-h-[44px] max-h-40"
           />
-          <Button type="submit" size="icon" disabled={loading || !input.trim()} className="h-11 w-11 shrink-0">
+          <Button
+            type="submit"
+            size="icon"
+            disabled={loading || !input.trim()}
+            className="h-11 w-11 shrink-0"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
@@ -292,7 +347,15 @@ function ChatInner({
   );
 }
 
-function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; answerBucket: ConfBucket; T: (k: string) => string }) {
+function SourcesPanel({
+  sources,
+  answerBucket,
+  T,
+}: {
+  sources: SourceItem[];
+  answerBucket: ConfBucket;
+  T: (k: string) => string;
+}) {
   const docs = sources.filter((s) => s.type === "document");
   const faqs = sources.filter((s) => s.type === "faq");
   const primary = docs.find((d) => d.primary) ?? docs[0];
@@ -309,9 +372,13 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
   const openDoc = async (documentId?: string) => {
     if (!documentId) return;
     const { data: doc } = await supabase
-      .from("knowledge_documents").select("file_path").eq("id", documentId).maybeSingle();
+      .from("knowledge_documents")
+      .select("file_path")
+      .eq("id", documentId)
+      .maybeSingle();
     if (!doc?.file_path) return;
-    const { data: signed } = await supabase.storage.from("knowledge-docs")
+    const { data: signed } = await supabase.storage
+      .from("knowledge-docs")
       .createSignedUrl(doc.file_path, 60 * 10);
     if (signed?.signedUrl) window.open(signed.signedUrl, "_blank");
   };
@@ -320,22 +387,59 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
     const bucket: ConfBucket = isPrimary ? answerBucket : bucketConfidence(s.similarity);
     const rel = displayRelevance(s.similarity, !!isPrimary);
     return (
-      <div className={`rounded-md border p-3 ${isPrimary ? "border-primary/40 bg-primary/5" : "border-border bg-muted/30"}`}>
+      <div
+        className={`rounded-md border p-3 ${isPrimary ? "border-primary/40 bg-primary/5" : "border-border bg-muted/30"}`}
+      >
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           {isPrimary && <Badge className="text-[10px]">Primary</Badge>}
-          {s.code && <Badge variant="outline" className="font-mono text-[10px]">{s.code}</Badge>}
-          {s.version && <Badge variant="secondary" className="text-[10px]">v{s.version}</Badge>}
+          {s.code && (
+            <Badge variant="outline" className="font-mono text-[10px]">
+              {s.code}
+            </Badge>
+          )}
+          {s.version && (
+            <Badge variant="secondary" className="text-[10px]">
+              v{s.version}
+            </Badge>
+          )}
           <div className="text-sm font-medium truncate">{s.title}</div>
         </div>
         <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] mb-2">
-          {s.version && <><dt className="text-muted-foreground">Version</dt><dd className="font-medium">v{s.version}</dd></>}
-          {s.department && <><dt className="text-muted-foreground">Department</dt><dd className="font-medium truncate">{s.department}</dd></>}
-          {s.last_updated && <><dt className="text-muted-foreground">Last updated</dt><dd className="font-medium">{new Date(s.last_updated).toLocaleDateString()}</dd></>}
-          {s.section && <><dt className="text-muted-foreground">Matched section</dt><dd className="font-medium truncate">{s.section}</dd></>}
-          {s.page && <><dt className="text-muted-foreground">Page</dt><dd className="font-medium">{s.page}</dd></>}
+          {s.version && (
+            <>
+              <dt className="text-muted-foreground">Version</dt>
+              <dd className="font-medium">v{s.version}</dd>
+            </>
+          )}
+          {s.department && (
+            <>
+              <dt className="text-muted-foreground">Department</dt>
+              <dd className="font-medium truncate">{s.department}</dd>
+            </>
+          )}
+          {s.last_updated && (
+            <>
+              <dt className="text-muted-foreground">Last updated</dt>
+              <dd className="font-medium">{new Date(s.last_updated).toLocaleDateString()}</dd>
+            </>
+          )}
+          {s.section && (
+            <>
+              <dt className="text-muted-foreground">Matched section</dt>
+              <dd className="font-medium truncate">{s.section}</dd>
+            </>
+          )}
+          {s.page && (
+            <>
+              <dt className="text-muted-foreground">Page</dt>
+              <dd className="font-medium">{s.page}</dd>
+            </>
+          )}
           <dt className="text-muted-foreground">Confidence</dt>
           <dd>
-            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(bucket)}`}>
+            <span
+              className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(bucket)}`}
+            >
               {confLabel(bucket)}
             </span>
           </dd>
@@ -351,13 +455,18 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
             <summary className="cursor-pointer text-[11px] font-medium text-primary hover:underline list-none inline-flex items-center gap-1">
               <ScrollText className="h-3 w-3" /> Matched excerpt
             </summary>
-            <p className="mt-1.5 text-xs text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 pl-2 line-clamp-6">{s.excerpt}</p>
+            <p className="mt-1.5 text-xs text-muted-foreground whitespace-pre-wrap border-l-2 border-primary/30 pl-2 line-clamp-6">
+              {s.excerpt}
+            </p>
           </details>
         )}
         <div className="mt-2 flex items-center gap-3">
           <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
           {s.document_id && (
-            <button onClick={() => openDoc(s.document_id)} className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline">
+            <button
+              onClick={() => openDoc(s.document_id)}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+            >
               <ExternalLink className="h-3 w-3" /> Open document
             </button>
           )}
@@ -365,7 +474,6 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
       </div>
     );
   };
-
 
   return (
     <div className="mt-3">
@@ -395,7 +503,9 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
                   Supporting sources
                 </h3>
                 <div className="space-y-3">
-                  {supporting.map((s, i) => <DocCard key={i} s={s} />)}
+                  {supporting.map((s, i) => (
+                    <DocCard key={i} s={s} />
+                  ))}
                 </div>
               </div>
             )}
@@ -408,7 +518,9 @@ function SourcesPanel({ sources, answerBucket, T }: { sources: SourceItem[]; ans
                   {faqs.map((s, i) => (
                     <div key={i} className="rounded-md border border-border p-3 bg-muted/30">
                       <div className="text-sm font-medium mb-1">{s.title}</div>
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">{s.excerpt}</p>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                        {s.excerpt}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -428,7 +540,9 @@ function FeedbackBar({ messageId }: { messageId: string }) {
     try {
       await rate({ data: { message_id: messageId, rating: r } });
       setVoted(r);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
   return (
     <div className="mt-2 flex items-center gap-1">
@@ -457,15 +571,23 @@ function EscalationCard({ escalation }: { escalation: Escalation }) {
         <UserCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium">Ask your {escalation.department} manager</div>
-          {escalation.name && <div className="text-xs text-muted-foreground mt-0.5">{escalation.name}</div>}
+          {escalation.name && (
+            <div className="text-xs text-muted-foreground mt-0.5">{escalation.name}</div>
+          )}
           <div className="mt-3 flex flex-wrap gap-2">
             {escalation.phone && (
-              <a href={`tel:${escalation.phone}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-xs font-medium hover:bg-muted">
+              <a
+                href={`tel:${escalation.phone}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-xs font-medium hover:bg-muted"
+              >
                 <Phone className="h-3 w-3" /> {escalation.phone}
               </a>
             )}
             {escalation.email && (
-              <a href={`mailto:${escalation.email}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-xs font-medium hover:bg-muted">
+              <a
+                href={`mailto:${escalation.email}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-xs font-medium hover:bg-muted"
+              >
                 <Mail className="h-3 w-3" /> {escalation.email}
               </a>
             )}
@@ -495,7 +617,13 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     <button
       type="button"
       onClick={async () => {
-        try { await navigator.clipboard.writeText(text); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* noop */ }
+        try {
+          await navigator.clipboard.writeText(text);
+          setDone(true);
+          setTimeout(() => setDone(false), 1500);
+        } catch {
+          /* noop */
+        }
       }}
       className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
     >
@@ -505,7 +633,15 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   );
 }
 
-function CreateRequestCTA({ threadId, question, T }: { threadId: string; question: string; T: (k: string) => string }) {
+function CreateRequestCTA({
+  threadId,
+  question,
+  T,
+}: {
+  threadId: string;
+  question: string;
+  T: (k: string) => string;
+}) {
   const create = useServerFn(createInternalRequest);
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const onClick = async () => {
@@ -532,14 +668,20 @@ function CreateRequestCTA({ threadId, question, T }: { threadId: string; questio
             </div>
           ) : (
             <Button
-              type="button" size="sm" variant="default" className="mt-3 h-8"
-              onClick={onClick} disabled={state === "sending"}
+              type="button"
+              size="sm"
+              variant="default"
+              className="mt-3 h-8"
+              onClick={onClick}
+              disabled={state === "sending"}
             >
               <Inbox className="h-3.5 w-3.5 mr-1.5" />
               {state === "sending" ? T("sending") : T("createInternalRequest")}
             </Button>
           )}
-          {state === "error" && <div className="text-xs text-destructive mt-2">{T("errorOccurred")}</div>}
+          {state === "error" && (
+            <div className="text-xs text-destructive mt-2">{T("errorOccurred")}</div>
+          )}
         </div>
       </div>
     </div>

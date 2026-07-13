@@ -1,7 +1,11 @@
 // Server-only: extract text from PDF/DOCX/TXT and chunk for embedding.
 import { unzipSync, strFromU8 } from "fflate";
 
-export async function extractText(buffer: ArrayBuffer, filename: string, mime: string): Promise<string> {
+export async function extractText(
+  buffer: ArrayBuffer,
+  filename: string,
+  mime: string,
+): Promise<string> {
   const name = filename.toLowerCase();
   const isPdf = mime === "application/pdf" || name.endsWith(".pdf");
   const isDocx =
@@ -34,7 +38,9 @@ function extractDocx(buffer: ArrayBuffer): string {
     .replace(/<w:br\/?>/g, "\n")
     .replace(/<w:tab\/?>/g, "\t");
   const stripped = withBreaks.replace(/<[^>]+>/g, "");
-  return decodeEntities(stripped).replace(/\n{3,}/g, "\n\n").trim();
+  return decodeEntities(stripped)
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function decodeEntities(s: string): string {
@@ -56,16 +62,20 @@ function decodeEntities(s: string): string {
  * to the chunk so retrieval surfaces the right context.
  */
 export function chunkText(text: string, targetSize = 1000, overlap = 200): string[] {
-  const clean = text.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  const clean = text
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   if (!clean) return [];
 
   const isHeader = (line: string) => {
     const l = line.trim();
     if (!l || l.length > 120) return false;
-    if (/^(\d+(\.\d+)*\.?\s+\S)/.test(l)) return true;            // 1. / 1.1 / 2.3.4
+    if (/^(\d+(\.\d+)*\.?\s+\S)/.test(l)) return true; // 1. / 1.1 / 2.3.4
     if (/^(section|kapitel|capitol|teil|chapter)\b/i.test(l)) return true;
-    if (/^[A-ZÄÖÜ0-9][A-ZÄÖÜ0-9 \-/&,()]+:?$/.test(l) && l.length >= 3 && /[A-ZÄÖÜ]{2}/.test(l)) return true; // ALL CAPS
-    if (/^#{1,4}\s+\S/.test(l)) return true;                       // markdown headings
+    if (/^[A-ZÄÖÜ0-9][A-ZÄÖÜ0-9 \-/&,()]+:?$/.test(l) && l.length >= 3 && /[A-ZÄÖÜ]{2}/.test(l))
+      return true; // ALL CAPS
+    if (/^#{1,4}\s+\S/.test(l)) return true; // markdown headings
     return false;
   };
 
@@ -100,7 +110,10 @@ export function chunkText(text: string, targetSize = 1000, overlap = 200): strin
       const t = piece.trim();
       if (!t) continue;
       if (t.length > targetSize * 1.5) {
-        if (buf) { push(); buf = ""; }
+        if (buf) {
+          push();
+          buf = "";
+        }
         for (let i = 0; i < t.length; i += targetSize - overlap) {
           chunks.push((prefix + t.slice(i, i + targetSize)).trim());
         }

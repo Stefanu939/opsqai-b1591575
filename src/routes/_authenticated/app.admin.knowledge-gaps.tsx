@@ -10,7 +10,10 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  listGapCompanies, listGapUsers, listGapUserQuestions, getKnowledgeHealth,
+  listGapCompanies,
+  listGapUsers,
+  listGapUserQuestions,
+  getKnowledgeHealth,
 } from "@/lib/exports.functions";
 import { updateKnowledgeGap, deleteKnowledgeGap } from "@/lib/knowledge-gaps.functions";
 import { Card } from "@/components/ui/card";
@@ -18,18 +21,36 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  ChevronRight, Building2, Users, AlertCircle, Loader2, ArrowLeft,
-  Check, X, PlayCircle, Trash2, FileText, BookOpen, Activity,
+  ChevronRight,
+  Building2,
+  Users,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  Check,
+  X,
+  PlayCircle,
+  Trash2,
+  FileText,
+  BookOpen,
+  Activity,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/app/admin/knowledge-gaps")({
   head: () => ({ meta: [{ title: "Knowledge Gaps — OPSQAI" }] }),
-  validateSearch: (s: Record<string, unknown>): { company?: string; user?: string; status?: string; from?: string; to?: string } => {
-    const out: { company?: string; user?: string; status?: string; from?: string; to?: string } = {};
+  validateSearch: (
+    s: Record<string, unknown>,
+  ): { company?: string; user?: string; status?: string; from?: string; to?: string } => {
+    const out: { company?: string; user?: string; status?: string; from?: string; to?: string } =
+      {};
     if (typeof s.company === "string") out.company = s.company;
     if (typeof s.user === "string") out.user = s.user;
     if (typeof s.status === "string") out.status = s.status;
@@ -41,30 +62,49 @@ export const Route = createFileRoute("/_authenticated/app/admin/knowledge-gaps")
 });
 
 interface Company {
-  id: string; name: string;
-  users: number; openGaps: number; totalGaps: number; resolvedGaps: number;
+  id: string;
+  name: string;
+  users: number;
+  openGaps: number;
+  totalGaps: number;
+  resolvedGaps: number;
   lastActivity: string | null;
-  documents: number; lastUpdate: string | null;
+  documents: number;
+  lastUpdate: string | null;
 }
 interface UserRow {
-  id: string; name: string; role: string | null;
-  department: string | null; position: string | null;
-  openGaps: number; totalGaps: number; lastActivity: string | null;
+  id: string;
+  name: string;
+  role: string | null;
+  department: string | null;
+  position: string | null;
+  openGaps: number;
+  totalGaps: number;
+  lastActivity: string | null;
 }
 interface Question {
-  id: string; question: string; status: string;
-  occurrences: number; confidence: number | null;
-  firstSeen: string; lastSeen: string;
-  department: string | null; assignee: string | null;
+  id: string;
+  question: string;
+  status: string;
+  occurrences: number;
+  confidence: number | null;
+  firstSeen: string;
+  lastSeen: string;
+  department: string | null;
+  assignee: string | null;
   resolvedAt: string | null;
   aiAnswer: string | null;
   suggestedDoc: { id: string; title: string; code: string | null } | null;
   suggestedFaq: { id: string; question: string } | null;
 }
 interface Health {
-  score: number; openGaps: number; resolvedGaps: number;
-  repeatedQuestions: number; totalGaps: number;
-  avgResolutionHours: number; documents: number;
+  score: number;
+  openGaps: number;
+  resolvedGaps: number;
+  repeatedQuestions: number;
+  totalGaps: number;
+  avgResolutionHours: number;
+  documents: number;
   lastKnowledgeUpdate: string | null;
 }
 
@@ -76,9 +116,7 @@ function Page() {
   // Workspace context: when a platform admin enters a tenant via the workspace
   // switcher, skip the Companies drill-down and jump straight into that tenant
   // unless they explicitly drilled elsewhere via URL.
-  const scopedCompanyId = isPlatformAdmin
-    ? search.company ?? activeCompanyId ?? null
-    : companyId;
+  const scopedCompanyId = isPlatformAdmin ? (search.company ?? activeCompanyId ?? null) : companyId;
   const scopedUserId = search.user ?? null;
 
   if (isPlatformAdmin && !scopedCompanyId) return <CompaniesView />;
@@ -86,7 +124,11 @@ function Page() {
     return (
       <UsersView
         companyId={scopedCompanyId}
-        backToCompanies={isPlatformAdmin ? () => navigate({ to: "/app/admin/knowledge-gaps", search: {} as never }) : undefined}
+        backToCompanies={
+          isPlatformAdmin
+            ? () => navigate({ to: "/app/admin/knowledge-gaps", search: {} as never })
+            : undefined
+        }
       />
     );
   if (scopedCompanyId && scopedUserId)
@@ -115,17 +157,25 @@ function CompaniesView() {
   const [rows, setRows] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    list().then((r) => setRows(r as unknown as Company[])).finally(() => setLoading(false));
+    list()
+      .then((r) => setRows(r as unknown as Company[]))
+      .finally(() => setLoading(false));
   }, [list]);
 
   return (
     <Shell title="Knowledge Gaps" subtitle="Browse open knowledge gaps across all companies.">
-      {loading ? <Loading /> : rows.length === 0 ? <EmptyState text="No companies yet." /> : (
+      {loading ? (
+        <Loading />
+      ) : rows.length === 0 ? (
+        <EmptyState text="No companies yet." />
+      ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {rows.map((c) => (
             <button
               key={c.id}
-              onClick={() => navigate({ to: "/app/admin/knowledge-gaps", search: { company: c.id } as never })}
+              onClick={() =>
+                navigate({ to: "/app/admin/knowledge-gaps", search: { company: c.id } as never })
+              }
               className="text-left"
             >
               <Card className="p-4 hover:border-primary/40 transition h-full">
@@ -135,15 +185,22 @@ function CompaniesView() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{c.name}</div>
-                    <div className="text-xs text-muted-foreground">{c.users} users · {c.documents} docs</div>
+                    <div className="text-xs text-muted-foreground">
+                      {c.users} users · {c.documents} docs
+                    </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant={c.openGaps > 0 ? "destructive" : "secondary"} className="text-[10px]">
+                  <Badge
+                    variant={c.openGaps > 0 ? "destructive" : "secondary"}
+                    className="text-[10px]"
+                  >
                     {c.openGaps} open
                   </Badge>
-                  <Badge variant="outline" className="text-[10px]">{c.totalGaps} total</Badge>
+                  <Badge variant="outline" className="text-[10px]">
+                    {c.totalGaps} total
+                  </Badge>
                   {c.lastActivity && (
                     <span className="text-[10px] text-muted-foreground self-center">
                       · last {new Date(c.lastActivity).toLocaleDateString()}
@@ -160,7 +217,13 @@ function CompaniesView() {
 }
 
 /* ------------------------------- Users ------------------------------- */
-function UsersView({ companyId, backToCompanies }: { companyId: string; backToCompanies?: () => void }) {
+function UsersView({
+  companyId,
+  backToCompanies,
+}: {
+  companyId: string;
+  backToCompanies?: () => void;
+}) {
   const navigate = useNavigate();
   const list = useServerFn(listGapUsers);
   const healthFn = useServerFn(getKnowledgeHealth);
@@ -192,22 +255,40 @@ function UsersView({ companyId, backToCompanies }: { companyId: string; backToCo
           <div className="flex items-center gap-3 flex-wrap">
             <Activity className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">Knowledge Health</span>
-            <Badge variant={health.score >= 70 ? "secondary" : "destructive"} className="text-[10px]">
+            <Badge
+              variant={health.score >= 70 ? "secondary" : "destructive"}
+              className="text-[10px]"
+            >
               Score {health.score}/100
             </Badge>
             <span className="text-xs text-muted-foreground">
-              {health.openGaps} open · {health.resolvedGaps} resolved · {health.repeatedQuestions} repeated · avg {health.avgResolutionHours}h to resolve · {health.documents} docs
+              {health.openGaps} open · {health.resolvedGaps} resolved · {health.repeatedQuestions}{" "}
+              repeated · avg {health.avgResolutionHours}h to resolve · {health.documents} docs
             </span>
           </div>
         </Card>
       )}
-      <Input placeholder="Search users…" value={q} onChange={(e) => setQ(e.target.value)} className="mb-4 max-w-sm" />
-      {loading ? <Loading /> : filtered.length === 0 ? <EmptyState text="No users to show." /> : (
+      <Input
+        placeholder="Search users…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className="mb-4 max-w-sm"
+      />
+      {loading ? (
+        <Loading />
+      ) : filtered.length === 0 ? (
+        <EmptyState text="No users to show." />
+      ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((u) => (
             <button
               key={u.id}
-              onClick={() => navigate({ to: "/app/admin/knowledge-gaps", search: { company: companyId, user: u.id } as never })}
+              onClick={() =>
+                navigate({
+                  to: "/app/admin/knowledge-gaps",
+                  search: { company: companyId, user: u.id } as never,
+                })
+              }
               className="text-left"
             >
               <Card className="p-4 hover:border-primary/40 transition h-full">
@@ -224,10 +305,15 @@ function UsersView({ companyId, backToCompanies }: { companyId: string; backToCo
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={u.openGaps > 0 ? "destructive" : "secondary"} className="text-[10px]">
+                  <Badge
+                    variant={u.openGaps > 0 ? "destructive" : "secondary"}
+                    className="text-[10px]"
+                  >
                     {u.openGaps} open
                   </Badge>
-                  <Badge variant="outline" className="text-[10px]">{u.totalGaps} total</Badge>
+                  <Badge variant="outline" className="text-[10px]">
+                    {u.totalGaps} total
+                  </Badge>
                   {u.lastActivity && (
                     <span className="text-[10px] text-muted-foreground ml-auto">
                       {new Date(u.lastActivity).toLocaleDateString()}
@@ -245,10 +331,18 @@ function UsersView({ companyId, backToCompanies }: { companyId: string; backToCo
 
 /* ----------------------------- Questions ----------------------------- */
 function QuestionsView({
-  companyId, userId, status, from, to, backToUsers,
+  companyId,
+  userId,
+  status,
+  from,
+  to,
+  backToUsers,
 }: {
-  companyId: string; userId: string;
-  status?: string; from?: string; to?: string;
+  companyId: string;
+  userId: string;
+  status?: string;
+  from?: string;
+  to?: string;
   backToUsers: () => void;
 }) {
   const list = useServerFn(listGapUserQuestions);
@@ -263,22 +357,44 @@ function QuestionsView({
     setLoading(true);
     try {
       const r = await list({
-        data: { company_id: companyId, user_id: userId, status: filter === "all" ? undefined : filter, from, to },
+        data: {
+          company_id: companyId,
+          user_id: userId,
+          status: filter === "all" ? undefined : filter,
+          from,
+          to,
+        },
       });
       setRows(r as unknown as Question[]);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [companyId, userId, filter, from, to]);
+  useEffect(() => {
+    load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [companyId, userId, filter, from, to]);
 
   const run = async (id: string, fn: () => Promise<unknown>) => {
-    setBusyId(id); try { await fn(); await load(); } finally { setBusyId(null); }
+    setBusyId(id);
+    try {
+      await fn();
+      await load();
+    } finally {
+      setBusyId(null);
+    }
   };
 
   return (
-    <Shell title="Knowledge Gaps" subtitle="Questions this user could not get answered." back={backToUsers}>
+    <Shell
+      title="Knowledge Gaps"
+      subtitle="Questions this user could not get answered."
+      back={backToUsers}
+    >
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="open">Open</SelectItem>
@@ -290,23 +406,45 @@ function QuestionsView({
         <span className="text-xs text-muted-foreground">{rows.length} questions</span>
       </div>
 
-      {loading ? <Loading /> : rows.length === 0 ? <EmptyState text="No questions match these filters." /> : (
+      {loading ? (
+        <Loading />
+      ) : rows.length === 0 ? (
+        <EmptyState text="No questions match these filters." />
+      ) : (
         <div className="grid gap-3">
           {rows.map((g) => {
             const isOpen = g.status === "open" || g.status === "in_progress";
             return (
               <Card key={g.id} className="p-4">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <Badge variant={g.status === "open" ? "destructive" : g.status === "resolved" ? "secondary" : "outline"} className="text-[10px] capitalize">
+                  <Badge
+                    variant={
+                      g.status === "open"
+                        ? "destructive"
+                        : g.status === "resolved"
+                          ? "secondary"
+                          : "outline"
+                    }
+                    className="text-[10px] capitalize"
+                  >
                     {g.status.replace("_", " ")}
                   </Badge>
-                  <Badge variant="secondary" className="font-mono text-[10px]">×{g.occurrences}</Badge>
+                  <Badge variant="secondary" className="font-mono text-[10px]">
+                    ×{g.occurrences}
+                  </Badge>
                   {g.confidence != null && (
-                    <span className="text-[10px] text-muted-foreground">conf {Math.round(g.confidence * 100)}%</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      conf {Math.round(g.confidence * 100)}%
+                    </span>
                   )}
-                  {g.department && <Badge variant="outline" className="text-[10px]">{g.department}</Badge>}
+                  {g.department && (
+                    <Badge variant="outline" className="text-[10px]">
+                      {g.department}
+                    </Badge>
+                  )}
                   <span className="text-[10px] text-muted-foreground ml-auto">
-                    {new Date(g.firstSeen).toLocaleDateString()} → {new Date(g.lastSeen).toLocaleDateString()}
+                    {new Date(g.firstSeen).toLocaleDateString()} →{" "}
+                    {new Date(g.lastSeen).toLocaleDateString()}
                   </span>
                 </div>
                 <p className="text-sm">{g.question}</p>
@@ -318,7 +456,14 @@ function QuestionsView({
                 )}
                 {(g.suggestedDoc || g.suggestedFaq) && (
                   <div className="text-xs text-muted-foreground mt-2 space-y-0.5">
-                    {g.suggestedDoc && <div>Suggested SOP: <span className="font-mono">{g.suggestedDoc.code ?? ""} {g.suggestedDoc.title}</span></div>}
+                    {g.suggestedDoc && (
+                      <div>
+                        Suggested SOP:{" "}
+                        <span className="font-mono">
+                          {g.suggestedDoc.code ?? ""} {g.suggestedDoc.title}
+                        </span>
+                      </div>
+                    )}
                     {g.suggestedFaq && <div>Suggested FAQ: {g.suggestedFaq.question}</div>}
                   </div>
                 )}
@@ -326,24 +471,57 @@ function QuestionsView({
                   {isOpen && (
                     <>
                       {g.status === "open" && (
-                        <Button size="sm" variant="ghost" disabled={busyId === g.id}
-                          onClick={() => run(g.id, () => update({ data: { id: g.id, status: "in_progress" } }))}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={busyId === g.id}
+                          onClick={() =>
+                            run(g.id, () => update({ data: { id: g.id, status: "in_progress" } }))
+                          }
+                        >
                           <PlayCircle className="h-3.5 w-3.5 mr-1.5" /> In Progress
                         </Button>
                       )}
-                      <Button size="sm" variant="ghost" disabled={busyId === g.id}
-                        onClick={() => run(g.id, () => update({ data: { id: g.id, status: "resolved", resolution: "dismissed" } }))}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={busyId === g.id}
+                        onClick={() =>
+                          run(g.id, () =>
+                            update({
+                              data: { id: g.id, status: "resolved", resolution: "dismissed" },
+                            }),
+                          )
+                        }
+                      >
                         <Check className="h-3.5 w-3.5 mr-1.5" /> Resolve
                       </Button>
-                      <Button size="sm" variant="ghost" disabled={busyId === g.id}
-                        onClick={() => run(g.id, () => update({ data: { id: g.id, status: "ignored", resolution: "dismissed" } }))}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={busyId === g.id}
+                        onClick={() =>
+                          run(g.id, () =>
+                            update({
+                              data: { id: g.id, status: "ignored", resolution: "dismissed" },
+                            }),
+                          )
+                        }
+                      >
                         <X className="h-3.5 w-3.5 mr-1.5" /> Ignore
                       </Button>
                     </>
                   )}
-                  <Button size="sm" variant="ghost" className="text-destructive ml-auto"
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive ml-auto"
                     disabled={busyId === g.id}
-                    onClick={() => { if (confirm("Delete this gap?")) run(g.id, () => remove({ data: { id: g.id } })); }}>
+                    onClick={() => {
+                      if (confirm("Delete this gap?"))
+                        run(g.id, () => remove({ data: { id: g.id } }));
+                    }}
+                  >
                     <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
                   </Button>
                 </div>
@@ -357,7 +535,17 @@ function QuestionsView({
 }
 
 /* ----------------------------- Shell helpers ----------------------------- */
-function Shell({ title, subtitle, back, children }: { title: string; subtitle?: string; back?: () => void; children: React.ReactNode }) {
+function Shell({
+  title,
+  subtitle,
+  back,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  back?: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
       <div className="mb-6">
@@ -374,10 +562,20 @@ function Shell({ title, subtitle, back, children }: { title: string; subtitle?: 
   );
 }
 function Loading() {
-  return <Card className="p-12 text-center text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />Loading…</Card>;
+  return (
+    <Card className="p-12 text-center text-sm text-muted-foreground">
+      <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+      Loading…
+    </Card>
+  );
 }
 function EmptyState({ text }: { text: string }) {
-  return <Card className="p-12 text-center text-sm text-muted-foreground"><AlertCircle className="h-4 w-4 mx-auto mb-2" />{text}</Card>;
+  return (
+    <Card className="p-12 text-center text-sm text-muted-foreground">
+      <AlertCircle className="h-4 w-4 mx-auto mb-2" />
+      {text}
+    </Card>
+  );
 }
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const _icons = [Users, FileText, BookOpen];

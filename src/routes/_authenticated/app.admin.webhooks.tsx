@@ -10,13 +10,33 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Plus, Webhook, PlayCircle, Trash2, Copy, Loader2, CheckCircle2,
-  XCircle, ShieldCheck,
+  ArrowLeft,
+  Plus,
+  Webhook,
+  PlayCircle,
+  Trash2,
+  Copy,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/admin/webhooks")({
@@ -73,7 +93,7 @@ function WebhooksPage() {
   const [emitting, setEmitting] = useState(false);
 
   const testFn = useServerFn(testWebhook);
-  
+
   const emitFn = useServerFn(emitTestEvent);
   const createFn = useServerFn(createWebhookEndpoint);
 
@@ -125,7 +145,9 @@ function WebhooksPage() {
     try {
       const r = await emitFn({ data: { event: emitEvent as never } });
       if (r.dispatched_to === 0) {
-        toast.warning(`No endpoint is subscribed to "${emitEvent}". Add it to an endpoint's events first.`);
+        toast.warning(
+          `No endpoint is subscribed to "${emitEvent}". Add it to an endpoint's events first.`,
+        );
       } else {
         toast.success(`Event "${emitEvent}" dispatched to ${r.dispatched_to} endpoint(s).`);
       }
@@ -137,7 +159,6 @@ function WebhooksPage() {
       setEmitting(false);
     }
   }
-
 
   async function handleDelete(id: string) {
     if (!confirm("Remove this webhook endpoint?")) return;
@@ -249,13 +270,17 @@ function WebhooksPage() {
               <DialogHeader>
                 <DialogTitle>Fire a test event</DialogTitle>
                 <DialogDescription>
-                  Dispatches a real event through the outbound pipeline. Every active endpoint subscribed to the event receives a signed, marked-as-test delivery — great for validating that your consumer routes and verifies signatures correctly.
+                  Dispatches a real event through the outbound pipeline. Every active endpoint
+                  subscribed to the event receives a signed, marked-as-test delivery — great for
+                  validating that your consumer routes and verifies signatures correctly.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-2">
                 <Label htmlFor="emit-event">Event</Label>
                 <Select value={emitEvent} onValueChange={setEmitEvent}>
-                  <SelectTrigger id="emit-event"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="emit-event">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="knowledge.published">knowledge.published</SelectItem>
                     <SelectItem value="faq.created">faq.created</SelectItem>
@@ -267,11 +292,14 @@ function WebhooksPage() {
                   </SelectContent>
                 </Select>
                 <p className="text-[11px] text-muted-foreground">
-                  Payload will include <code className="font-mono">test: true</code> so consumers can ignore or route it separately.
+                  Payload will include <code className="font-mono">test: true</code> so consumers
+                  can ignore or route it separately.
                 </p>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setEmitOpen(false)} disabled={emitting}>Cancel</Button>
+                <Button variant="outline" onClick={() => setEmitOpen(false)} disabled={emitting}>
+                  Cancel
+                </Button>
                 <Button onClick={handleEmit} disabled={emitting}>
                   {emitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                   Fire event
@@ -318,12 +346,13 @@ function WebhooksPage() {
           <h3 className="text-sm font-semibold">Verifying signatures</h3>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Each request includes an <code className="text-foreground">X-OPSQAI-Signature</code> header:
-          <code className="text-foreground"> sha256=&lt;hmac_sha256(secret, raw_body)&gt;</code>. Compute the
-          HMAC on the raw request body and constant-time compare against the header.
+          Each request includes an <code className="text-foreground">X-OPSQAI-Signature</code>{" "}
+          header:
+          <code className="text-foreground"> sha256=&lt;hmac_sha256(secret, raw_body)&gt;</code>.
+          Compute the HMAC on the raw request body and constant-time compare against the header.
         </p>
         <pre className="text-[11px] bg-background border rounded-md p-3 overflow-x-auto">
-{`// Node.js example
+          {`// Node.js example
 const sig = req.headers["x-opsqai-signature"];
 const expected = "sha256=" + crypto
   .createHmac("sha256", process.env.OPSQAI_WEBHOOK_SECRET)
@@ -340,7 +369,11 @@ if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
 /* ---------- Endpoint card ---------- */
 
 function EndpointCard({
-  ep, testing, onTest, onDelete, onToggle,
+  ep,
+  testing,
+  onTest,
+  onDelete,
+  onToggle,
 }: {
   ep: Endpoint;
   testing: boolean;
@@ -358,7 +391,10 @@ function EndpointCard({
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-sm truncate">{ep.name}</h3>
             {ep.active ? (
-              <Badge variant="outline" className="h-5 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
+              <Badge
+                variant="outline"
+                className="h-5 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]"
+              >
                 Active
               </Badge>
             ) : (
@@ -367,19 +403,17 @@ function EndpointCard({
               </Badge>
             )}
             {ep.failure_count > 0 && (
-              <Badge variant="outline" className="h-5 border-destructive/30 bg-destructive/10 text-destructive text-[10px]">
+              <Badge
+                variant="outline"
+                className="h-5 border-destructive/30 bg-destructive/10 text-destructive text-[10px]"
+              >
                 {ep.failure_count} fail
               </Badge>
             )}
           </div>
           <code className="mt-1 block text-[11px] text-muted-foreground truncate">{ep.url}</code>
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onToggle}
-          className="shrink-0 h-8 px-2 text-xs"
-        >
+        <Button size="sm" variant="ghost" onClick={onToggle} className="shrink-0 h-8 px-2 text-xs">
           {ep.active ? "Pause" : "Enable"}
         </Button>
       </div>
@@ -431,7 +465,11 @@ function EndpointCard({
           disabled={testing}
           className="w-full sm:w-auto"
         >
-          {testing ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <PlayCircle className="h-3.5 w-3.5 mr-2" />}
+          {testing ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+          ) : (
+            <PlayCircle className="h-3.5 w-3.5 mr-2" />
+          )}
           Send test
         </Button>
         <Button
@@ -451,13 +489,20 @@ function EndpointCard({
 /* ---------- Create dialog ---------- */
 
 function CreateEndpointDialog({
-  open, setOpen, companyId, userId, createFn, onCreated,
+  open,
+  setOpen,
+  companyId,
+  userId,
+  createFn,
+  onCreated,
 }: {
   open: boolean;
   setOpen: (v: boolean) => void;
   companyId: string | null;
   userId: string | null;
-  createFn: (opts: { data: { name: string; url: string; events: string[] } }) => Promise<{ id?: string; secret: string }>;
+  createFn: (opts: {
+    data: { name: string; url: string; events: string[] };
+  }) => Promise<{ id?: string; secret: string }>;
   onCreated: () => void;
 }) {
   const [name, setName] = useState("");

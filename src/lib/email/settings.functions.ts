@@ -15,7 +15,9 @@ const SettingsSchema = z.object({
   company_name: z.string().min(1).max(100),
   footer_text: z.string().min(1).max(280),
   logo_url: z.string().url(),
-  provider: z.enum(["lovable", "smtp", "resend", "sendgrid", "mailgun", "postmark"]).default("lovable"),
+  provider: z
+    .enum(["lovable", "smtp", "resend", "sendgrid", "mailgun", "postmark"])
+    .default("lovable"),
 });
 
 export const getEmailSettings = createServerFn({ method: "GET" })

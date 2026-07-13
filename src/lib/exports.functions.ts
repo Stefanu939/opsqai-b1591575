@@ -52,8 +52,7 @@ function toCsv(rows: Record<string, unknown>[]): string {
 async function resolveScope(supabase: any, userId: string, hint?: string) {
   const actor = await getActorRoles(supabase, userId);
   const profileCompany = await getProfileCompany(supabase, userId);
-  const companyId =
-    actor.isPlatformAdmin && hint ? hint : profileCompany;
+  const companyId = actor.isPlatformAdmin && hint ? hint : profileCompany;
   if (!companyId) throw new Error("No company assigned");
   if (!actor.isPlatformAdmin && companyId !== profileCompany) {
     throw new Error("Forbidden");
@@ -95,14 +94,22 @@ async function snapshotKb(supabase: any, companyId: string) {
           .select("id, document_id, chunk_index, content, token_count, metadata, created_at")
           .in("document_id", ids)
       : Promise.resolve({ data: [] as any[] }),
-    supabase.from("knowledge_tags").select("*").eq("company_id", companyId).then(
-      (r: any) => r,
-      () => ({ data: [] }),
-    ),
-    supabase.from("knowledge_categories").select("*").eq("company_id", companyId).then(
-      (r: any) => r,
-      () => ({ data: [] }),
-    ),
+    supabase
+      .from("knowledge_tags")
+      .select("*")
+      .eq("company_id", companyId)
+      .then(
+        (r: any) => r,
+        () => ({ data: [] }),
+      ),
+    supabase
+      .from("knowledge_categories")
+      .select("*")
+      .eq("company_id", companyId)
+      .then(
+        (r: any) => r,
+        () => ({ data: [] }),
+      ),
   ]);
   return {
     documents: documents ?? [],
@@ -118,17 +125,46 @@ async function snapshotFaq(supabase: any, companyId: string) {
 }
 
 async function snapshotWorkspace(supabase: any, companyId: string) {
-  const [kb, faq, company, users, roles, departments, brand, templates, settings] = await Promise.all([
-    snapshotKb(supabase, companyId),
-    snapshotFaq(supabase, companyId),
-    supabase.from("companies").select("*").eq("id", companyId).maybeSingle(),
-    supabase.from("profiles").select("*").eq("company_id", companyId),
-    supabase.from("user_roles").select("*").eq("company_id", companyId),
-    supabase.from("departments").select("*").eq("company_id", companyId).then((r: any) => r, () => ({ data: [] })),
-    supabase.from("brand_assets").select("*").eq("company_id", companyId).then((r: any) => r, () => ({ data: [] })),
-    supabase.from("sop_templates").select("*").eq("company_id", companyId).then((r: any) => r, () => ({ data: [] })),
-    supabase.from("company_settings").select("*").eq("company_id", companyId).then((r: any) => r, () => ({ data: null })),
-  ]);
+  const [kb, faq, company, users, roles, departments, brand, templates, settings] =
+    await Promise.all([
+      snapshotKb(supabase, companyId),
+      snapshotFaq(supabase, companyId),
+      supabase.from("companies").select("*").eq("id", companyId).maybeSingle(),
+      supabase.from("profiles").select("*").eq("company_id", companyId),
+      supabase.from("user_roles").select("*").eq("company_id", companyId),
+      supabase
+        .from("departments")
+        .select("*")
+        .eq("company_id", companyId)
+        .then(
+          (r: any) => r,
+          () => ({ data: [] }),
+        ),
+      supabase
+        .from("brand_assets")
+        .select("*")
+        .eq("company_id", companyId)
+        .then(
+          (r: any) => r,
+          () => ({ data: [] }),
+        ),
+      supabase
+        .from("sop_templates")
+        .select("*")
+        .eq("company_id", companyId)
+        .then(
+          (r: any) => r,
+          () => ({ data: [] }),
+        ),
+      supabase
+        .from("company_settings")
+        .select("*")
+        .eq("company_id", companyId)
+        .then(
+          (r: any) => r,
+          () => ({ data: null }),
+        ),
+    ]);
   return {
     kb,
     faq,
@@ -247,10 +283,15 @@ export const runExport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { actor, companyId } = await resolveScope(context.supabase, context.userId, data.company_id);
+    const { actor, companyId } = await resolveScope(
+      context.supabase,
+      context.userId,
+      data.company_id,
+    );
     if (!canExport(actor)) throw new Error("Forbidden: export permission required");
     if (data.mode === "delete") {
-      if (!canDelete(actor)) throw new Error("Forbidden: only Workspace Owner or Super Admin may delete");
+      if (!canDelete(actor))
+        throw new Error("Forbidden: only Workspace Owner or Super Admin may delete");
       if (data.delete_confirmation !== "DELETE")
         throw new Error('Type "DELETE" to confirm permanent removal');
     }
@@ -467,7 +508,9 @@ export const listGapUsers = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     if (!data.company_id) return [];
-    const { data: rows, error } = await context.supabase.rpc("gap_users", { p_company: data.company_id });
+    const { data: rows, error } = await context.supabase.rpc("gap_users", {
+      p_company: data.company_id,
+    });
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
@@ -505,7 +548,9 @@ export const getKnowledgeHealth = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     if (!data.company_id) return null;
-    const { data: row, error } = await context.supabase.rpc("knowledge_health", { p_company: data.company_id });
+    const { data: row, error } = await context.supabase.rpc("knowledge_health", {
+      p_company: data.company_id,
+    });
     if (error) throw new Error(error.message);
     return row;
   });
@@ -523,7 +568,9 @@ export const listAuditUsers = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     if (!data.company_id) return [];
-    const { data: rows, error } = await context.supabase.rpc("audit_users", { p_company: data.company_id });
+    const { data: rows, error } = await context.supabase.rpc("audit_users", {
+      p_company: data.company_id,
+    });
     if (error) throw new Error(error.message);
     return rows ?? [];
   });

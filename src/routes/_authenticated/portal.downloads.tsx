@@ -55,8 +55,8 @@ function PortalDownloads() {
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Installation packages and offline activation bundles for the installations tied to your
-          account. Package downloads issue a signed URL valid for 24 hours; every download is
-          logged for audit.
+          account. Package downloads issue a signed URL valid for 24 hours; every download is logged
+          for audit.
         </p>
       </header>
 

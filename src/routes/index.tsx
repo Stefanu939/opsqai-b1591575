@@ -1,17 +1,50 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ArrowRight, Brain, BookOpen, FileText, ShieldCheck, Search, Users,
-  Building2, Languages, GraduationCap, Lock, Network, CheckCircle2,
-  XCircle, Upload, Sparkles, MessageSquare, FileCheck2, Workflow,
-  Warehouse, Truck, Factory, PackageSearch, ShoppingCart, ClipboardCheck,
-  Boxes, Layers, BarChart3, Zap, Clock, TrendingUp, Send, Paperclip,
-  LayoutDashboard, Database, Activity,
+  ArrowRight,
+  Brain,
+  BookOpen,
+  FileText,
+  ShieldCheck,
+  Search,
+  Users,
+  Building2,
+  Languages,
+  GraduationCap,
+  Lock,
+  Network,
+  CheckCircle2,
+  XCircle,
+  Upload,
+  Sparkles,
+  MessageSquare,
+  FileCheck2,
+  Workflow,
+  Warehouse,
+  Truck,
+  Factory,
+  PackageSearch,
+  ShoppingCart,
+  ClipboardCheck,
+  Boxes,
+  Layers,
+  BarChart3,
+  Zap,
+  Clock,
+  TrendingUp,
+  Send,
+  Paperclip,
+  LayoutDashboard,
+  Database,
+  Activity,
 } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Button } from "@/components/ui/button";
 import {
-  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "@/components/ui/accordion";
 
 import { pageHead, softwareApplicationLd } from "@/lib/seo";
@@ -23,7 +56,8 @@ export const Route = createFileRoute("/")({
       description:
         "OPSQAI is an Enterprise AI Knowledge Platform for logistics and warehouse teams. Centralize SOPs, manuals and FAQs; deliver source-backed answers, faster onboarding and standardized operations.",
       path: "/",
-      keywords: "enterprise AI, knowledge management, warehouse AI, logistics AI, SOP software, operational knowledge platform",
+      keywords:
+        "enterprise AI, knowledge management, warehouse AI, logistics AI, SOP software, operational knowledge platform",
       jsonLd: [
         softwareApplicationLd({
           description:
@@ -59,7 +93,17 @@ function Home() {
 
 /* ---------------- Shared ---------------- */
 
-function SectionHead({ eyebrow, title, intro, center = false }: { eyebrow: string; title: string; intro?: string; center?: boolean }) {
+function SectionHead({
+  eyebrow,
+  title,
+  intro,
+  center = false,
+}: {
+  eyebrow: string;
+  title: string;
+  intro?: string;
+  center?: boolean;
+}) {
   return (
     <div className={center ? "max-w-3xl mx-auto text-center" : "max-w-3xl"}>
       <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">{eyebrow}</p>
@@ -90,7 +134,9 @@ function Hero() {
           <div className="lg:col-span-7">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs text-primary">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="font-medium uppercase tracking-wider text-[10px]">Enterprise AI Knowledge &amp; Operations Platform</span>
+              <span className="font-medium uppercase tracking-wider text-[10px]">
+                Enterprise AI Knowledge &amp; Operations Platform
+              </span>
             </div>
             <h1 className="mt-6 text-4xl sm:text-5xl lg:text-[3.75rem] font-semibold tracking-tight leading-[1.05]">
               Enterprise AI Platform for{" "}
@@ -102,16 +148,30 @@ function Hero() {
               teams and auditors can trust.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]">
-                <Link to="/demo">Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Button
+                asChild
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]"
+              >
+                <Link to="/demo">
+                  Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-border bg-background/40 backdrop-blur">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-border bg-background/40 backdrop-blur"
+              >
                 <Link to="/contact">Talk to Sales</Link>
               </Button>
             </div>
             <div className="mt-8 flex flex-wrap gap-2.5">
               {TRUST_BADGES.map((b) => (
-                <div key={b.label} className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 backdrop-blur px-3.5 py-1.5 text-xs">
+                <div
+                  key={b.label}
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 backdrop-blur px-3.5 py-1.5 text-xs"
+                >
                   <b.icon className="h-3.5 w-3.5 text-primary" />
                   <span className="font-medium">{b.label}</span>
                 </div>
@@ -140,7 +200,9 @@ function HeroProductMock() {
           <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
-          <div className="ml-3 text-[11px] text-muted-foreground font-mono">app.opsqai.de / assistant</div>
+          <div className="ml-3 text-[11px] text-muted-foreground font-mono">
+            app.opsqai.de / assistant
+          </div>
         </div>
         <div className="p-5 space-y-4">
           {/* User bubble */}
@@ -155,8 +217,9 @@ function HeroProductMock() {
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-primary font-semibold mb-2">
                 <Brain className="h-3 w-3" /> OPSQAI Assistant
               </div>
-              Isolate the pallet in the <span className="text-primary font-medium">Quarantine zone Q-2</span>,
-              photograph the damage and create a non-conformity ticket within 30&nbsp;min.
+              Isolate the pallet in the{" "}
+              <span className="text-primary font-medium">Quarantine zone Q-2</span>, photograph the
+              damage and create a non-conformity ticket within 30&nbsp;min.
               <div className="mt-3 flex flex-wrap gap-1.5">
                 <span className="inline-flex items-center gap-1 rounded-md border border-primary/25 bg-primary/5 px-2 py-0.5 text-[10px] text-primary">
                   <FileCheck2 className="h-2.5 w-2.5" /> SOP-INB-014 · §4.2
@@ -170,15 +233,21 @@ function HeroProductMock() {
           {/* Input */}
           <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3 py-2">
             <Paperclip className="h-4 w-4 text-muted-foreground" />
-            <div className="flex-1 text-xs text-muted-foreground">Ask about a procedure, policy or manual…</div>
+            <div className="flex-1 text-xs text-muted-foreground">
+              Ask about a procedure, policy or manual…
+            </div>
             <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground grid place-items-center">
               <Send className="h-3.5 w-3.5" />
             </div>
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-border/60 bg-muted/30 px-4 py-2 text-[10px] text-muted-foreground">
-          <div className="flex items-center gap-1.5"><Activity className="h-3 w-3 text-primary" /> Confidence 96%</div>
-          <div className="flex items-center gap-1.5"><Lock className="h-3 w-3" /> Workspace-isolated</div>
+          <div className="flex items-center gap-1.5">
+            <Activity className="h-3 w-3 text-primary" /> Confidence 96%
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Lock className="h-3 w-3" /> Workspace-isolated
+          </div>
         </div>
       </div>
 
@@ -188,7 +257,9 @@ function HeroProductMock() {
           <Clock className="h-4 w-4" />
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Answer time</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Answer time
+          </div>
           <div className="text-sm font-semibold">under 2 seconds</div>
         </div>
       </div>
@@ -208,26 +279,45 @@ function HeroProductMock() {
 /* ---------------- Trust bar ---------------- */
 
 function TrustBar() {
-  const items = ["Logistics", "Warehousing", "3PL", "Distribution", "Manufacturing", "Supply Chain"];
+  const items = [
+    "Logistics",
+    "Warehousing",
+    "3PL",
+    "Distribution",
+    "Manufacturing",
+    "Supply Chain",
+  ];
   return (
     <section className="border-y border-border/50 bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-        <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Built for</span>
+        <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
+          Built for
+        </span>
         {items.map((i) => (
-          <span key={i} className="text-sm text-foreground/70 font-medium tracking-tight">{i}</span>
+          <span key={i} className="text-sm text-foreground/70 font-medium tracking-tight">
+            {i}
+          </span>
         ))}
       </div>
     </section>
   );
 }
 
-
 /* ---------------- What is OPSQAI ---------------- */
 
 const CAPABILITIES = [
-  "AI Knowledge Base", "AI Assistant", "Document Intelligence", "FAQ Management",
-  "SOP Management", "Enterprise Search", "User Management", "Workspace Management",
-  "AI-powered Onboarding", "Role-based Access", "Multi-company SaaS", "Audit & Compliance",
+  "AI Knowledge Base",
+  "AI Assistant",
+  "Document Intelligence",
+  "FAQ Management",
+  "SOP Management",
+  "Enterprise Search",
+  "User Management",
+  "Workspace Management",
+  "AI-powered Onboarding",
+  "Role-based Access",
+  "Multi-company SaaS",
+  "Audit & Compliance",
 ];
 
 function WhatIsOpsqai() {
@@ -241,16 +331,21 @@ function WhatIsOpsqai() {
             intro="OPSQAI is an Enterprise AI Platform that turns your company documentation into an intelligent operational assistant. The chat is only one interface — behind it sits a full knowledge, governance and analytics stack."
           />
           <p className="mt-6 text-sm text-muted-foreground leading-relaxed">
-            Built for logistics, warehousing and operations teams that need reliable,
-            source-backed answers — not generic AI guesses.
+            Built for logistics, warehousing and operations teams that need reliable, source-backed
+            answers — not generic AI guesses.
           </p>
         </div>
         <div className="lg:col-span-7">
           <div className="card-enterprise p-6 sm:p-8">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">OPSQAI combines</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              OPSQAI combines
+            </div>
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {CAPABILITIES.map((c) => (
-                <div key={c} className="rounded-lg border border-border bg-background/40 px-3 py-2.5 text-[13px] flex items-center gap-2">
+                <div
+                  key={c}
+                  className="rounded-lg border border-border bg-background/40 px-3 py-2.5 text-[13px] flex items-center gap-2"
+                >
                   <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
                   <span className="truncate">{c}</span>
                 </div>
@@ -266,15 +361,51 @@ function WhatIsOpsqai() {
 /* ---------------- Platform Overview ---------------- */
 
 const FEATURES = [
-  { icon: Brain, title: "AI Assistant", body: "Employees receive instant answers based only on approved company knowledge." },
-  { icon: BookOpen, title: "Knowledge Base", body: "Upload PDFs, Word files, manuals, procedures and internal documentation." },
-  { icon: Search, title: "Semantic Search", body: "Find information instantly — without browsing hundreds of pages." },
-  { icon: FileCheck2, title: "Source Citations", body: "Every answer links back to the original document and section." },
-  { icon: MessageSquare, title: "FAQ Management", body: "Centralize frequently asked questions across teams and sites." },
-  { icon: Users, title: "User & Role Management", body: "Control permissions across departments and workspaces." },
-  { icon: ShieldCheck, title: "Enterprise Security", body: "Private workspaces and protected company knowledge, isolated per tenant." },
-  { icon: Languages, title: "Multi-language AI", body: "Employees ask questions in virtually any language — ideal for international teams." },
-  { icon: GraduationCap, title: "Fast Onboarding", body: "Reduce onboarding time by giving new hires instant access to company knowledge." },
+  {
+    icon: Brain,
+    title: "AI Assistant",
+    body: "Employees receive instant answers based only on approved company knowledge.",
+  },
+  {
+    icon: BookOpen,
+    title: "Knowledge Base",
+    body: "Upload PDFs, Word files, manuals, procedures and internal documentation.",
+  },
+  {
+    icon: Search,
+    title: "Semantic Search",
+    body: "Find information instantly — without browsing hundreds of pages.",
+  },
+  {
+    icon: FileCheck2,
+    title: "Source Citations",
+    body: "Every answer links back to the original document and section.",
+  },
+  {
+    icon: MessageSquare,
+    title: "FAQ Management",
+    body: "Centralize frequently asked questions across teams and sites.",
+  },
+  {
+    icon: Users,
+    title: "User & Role Management",
+    body: "Control permissions across departments and workspaces.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Enterprise Security",
+    body: "Private workspaces and protected company knowledge, isolated per tenant.",
+  },
+  {
+    icon: Languages,
+    title: "Multi-language AI",
+    body: "Employees ask questions in virtually any language — ideal for international teams.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Fast Onboarding",
+    body: "Reduce onboarding time by giving new hires instant access to company knowledge.",
+  },
 ];
 
 function PlatformOverview() {
@@ -306,12 +437,36 @@ function PlatformOverview() {
 
 const FLOW = [
   { icon: Upload, title: "Upload documents", body: "SOPs, manuals, PDFs, DOCX and FAQs." },
-  { icon: Sparkles, title: "AI indexes knowledge", body: "Semantic embeddings scoped to your workspace." },
-  { icon: MessageSquare, title: "Employees ask questions", body: "In plain language, in any supported language." },
-  { icon: Search, title: "OPSQAI searches your knowledge", body: "Hybrid semantic + keyword retrieval." },
-  { icon: Brain, title: "Instant verified answer", body: "Grounded in your documents — never invented." },
-  { icon: FileCheck2, title: "Source citations included", body: "Document, section and excerpt attached." },
-  { icon: Workflow, title: "Higher productivity", body: "Standardized operations, fewer mistakes." },
+  {
+    icon: Sparkles,
+    title: "AI indexes knowledge",
+    body: "Semantic embeddings scoped to your workspace.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Employees ask questions",
+    body: "In plain language, in any supported language.",
+  },
+  {
+    icon: Search,
+    title: "OPSQAI searches your knowledge",
+    body: "Hybrid semantic + keyword retrieval.",
+  },
+  {
+    icon: Brain,
+    title: "Instant verified answer",
+    body: "Grounded in your documents — never invented.",
+  },
+  {
+    icon: FileCheck2,
+    title: "Source citations included",
+    body: "Document, section and excerpt attached.",
+  },
+  {
+    icon: Workflow,
+    title: "Higher productivity",
+    body: "Standardized operations, fewer mistakes.",
+  },
 ];
 
 function WorkflowSection() {
@@ -418,14 +573,46 @@ function Industries() {
 /* ---------------- Enterprise ---------------- */
 
 const ENTERPRISE_FEATURES = [
-  { icon: Network, title: "Multi-company SaaS", body: "Serve multiple companies from one governed platform." },
-  { icon: Building2, title: "Workspace isolation", body: "Each workspace has its own data, users and configuration." },
-  { icon: Lock, title: "Role-based permissions", body: "Granular control across departments and functions." },
-  { icon: ShieldCheck, title: "Secure authentication", body: "Encrypted sessions, audit logs and access reviews." },
-  { icon: Layers, title: "Cloud infrastructure", body: "EU hosting, daily backups, point-in-time recovery." },
-  { icon: Sparkles, title: "Modern AI", body: "State-of-the-art models, tuned for grounded answers." },
-  { icon: Workflow, title: "Scalable architecture", body: "From a single site to enterprise-wide deployment." },
-  { icon: Users, title: "Browser-based", body: "No installation. Works on desktop, tablet and mobile." },
+  {
+    icon: Network,
+    title: "Multi-company SaaS",
+    body: "Serve multiple companies from one governed platform.",
+  },
+  {
+    icon: Building2,
+    title: "Workspace isolation",
+    body: "Each workspace has its own data, users and configuration.",
+  },
+  {
+    icon: Lock,
+    title: "Role-based permissions",
+    body: "Granular control across departments and functions.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Secure authentication",
+    body: "Encrypted sessions, audit logs and access reviews.",
+  },
+  {
+    icon: Layers,
+    title: "Cloud infrastructure",
+    body: "EU hosting, daily backups, point-in-time recovery.",
+  },
+  {
+    icon: Sparkles,
+    title: "Modern AI",
+    body: "State-of-the-art models, tuned for grounded answers.",
+  },
+  {
+    icon: Workflow,
+    title: "Scalable architecture",
+    body: "From a single site to enterprise-wide deployment.",
+  },
+  {
+    icon: Users,
+    title: "Browser-based",
+    body: "No installation. Works on desktop, tablet and mobile.",
+  },
 ];
 
 function Enterprise() {
@@ -474,7 +661,15 @@ function Screenshots() {
   );
 }
 
-function MockShell({ title, icon: Icon, children }: { title: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
+function MockShell({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
   return (
     <div className="card-enterprise hover-lift overflow-hidden">
       <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 h-10">
@@ -505,32 +700,61 @@ function MockDashboard() {
       <div className="grid grid-cols-2 gap-2">
         {kpis.map((k) => (
           <div key={k.label} className="rounded-lg border border-border/60 bg-background/40 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{k.label}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {k.label}
+            </div>
             <div className="mt-1 text-lg font-semibold">{k.value}</div>
-            <div className="text-[10px] text-primary flex items-center gap-1"><TrendingUp className="h-2.5 w-2.5" />{k.trend}</div>
+            <div className="text-[10px] text-primary flex items-center gap-1">
+              <TrendingUp className="h-2.5 w-2.5" />
+              {k.trend}
+            </div>
           </div>
         ))}
       </div>
       <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-3">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Weekly activity</div>
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+          Weekly activity
+        </div>
         <div className="flex items-end gap-1.5 h-14">
           {[40, 65, 55, 80, 70, 90, 75].map((h, i) => (
             <div key={i} className="flex-1 rounded-sm bg-primary/70" style={{ height: `${h}%` }} />
           ))}
         </div>
       </div>
-      <div className="mt-3 text-xs text-muted-foreground">Live operational KPIs and adoption at a glance.</div>
+      <div className="mt-3 text-xs text-muted-foreground">
+        Live operational KPIs and adoption at a glance.
+      </div>
     </MockShell>
   );
 }
 
 function MockKnowledge() {
   const docs = [
-    { name: "SOP-INB-014 · Inbound Damages", tag: "Published", tint: "text-primary bg-primary/10 border-primary/30" },
-    { name: "Safety Manual v3.2", tag: "Indexed", tint: "text-primary bg-primary/10 border-primary/30" },
-    { name: "Picking & Packing Guide", tag: "Draft", tint: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" },
-    { name: "Returns Policy 2026", tag: "Published", tint: "text-primary bg-primary/10 border-primary/30" },
-    { name: "Forklift Operation Rules", tag: "Indexed", tint: "text-primary bg-primary/10 border-primary/30" },
+    {
+      name: "SOP-INB-014 · Inbound Damages",
+      tag: "Published",
+      tint: "text-primary bg-primary/10 border-primary/30",
+    },
+    {
+      name: "Safety Manual v3.2",
+      tag: "Indexed",
+      tint: "text-primary bg-primary/10 border-primary/30",
+    },
+    {
+      name: "Picking & Packing Guide",
+      tag: "Draft",
+      tint: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+    },
+    {
+      name: "Returns Policy 2026",
+      tag: "Published",
+      tint: "text-primary bg-primary/10 border-primary/30",
+    },
+    {
+      name: "Forklift Operation Rules",
+      tag: "Indexed",
+      tint: "text-primary bg-primary/10 border-primary/30",
+    },
   ];
   return (
     <MockShell title="Knowledge Base" icon={Database}>
@@ -539,14 +763,23 @@ function MockKnowledge() {
       </div>
       <div className="mt-3 space-y-1.5">
         {docs.map((d) => (
-          <div key={d.name} className="flex items-center gap-2 rounded-md border border-border/60 bg-background/40 px-3 py-2">
+          <div
+            key={d.name}
+            className="flex items-center gap-2 rounded-md border border-border/60 bg-background/40 px-3 py-2"
+          >
             <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
             <div className="text-[12px] truncate flex-1">{d.name}</div>
-            <span className={`text-[9px] uppercase tracking-wider rounded border px-1.5 py-0.5 ${d.tint}`}>{d.tag}</span>
+            <span
+              className={`text-[9px] uppercase tracking-wider rounded border px-1.5 py-0.5 ${d.tint}`}
+            >
+              {d.tag}
+            </span>
           </div>
         ))}
       </div>
-      <div className="mt-3 text-xs text-muted-foreground">Central repository with versioning and status.</div>
+      <div className="mt-3 text-xs text-muted-foreground">
+        Central repository with versioning and status.
+      </div>
     </MockShell>
   );
 }
@@ -560,7 +793,9 @@ function MockAnalytics() {
   return (
     <MockShell title="Analytics" icon={BarChart3}>
       <div className="rounded-lg border border-border/60 bg-background/40 p-3">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Answer confidence</div>
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Answer confidence
+        </div>
         <div className="mt-2 flex items-center gap-3">
           <div className="text-2xl font-semibold">96%</div>
           <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -581,7 +816,9 @@ function MockAnalytics() {
           ))}
         </div>
       </div>
-      <div className="mt-3 text-xs text-muted-foreground">Usage, AI activity and knowledge health.</div>
+      <div className="mt-3 text-xs text-muted-foreground">
+        Usage, AI activity and knowledge health.
+      </div>
     </MockShell>
   );
 }
@@ -601,7 +838,9 @@ function MetricsBand() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((m) => (
             <div key={m.v}>
-              <div className="text-4xl font-semibold tracking-tight text-gradient-primary">{m.k}</div>
+              <div className="text-4xl font-semibold tracking-tight text-gradient-primary">
+                {m.k}
+              </div>
               <div className="mt-1 text-sm font-semibold">{m.v}</div>
               <div className="text-xs text-muted-foreground mt-0.5">{m.sub}</div>
             </div>
@@ -616,7 +855,11 @@ function MetricsBand() {
 
 const COMPARE = [
   { row: "Knowledge scope", chatbot: "Generic public web", opsqai: "Your company knowledge only" },
-  { row: "Answer reliability", chatbot: "Prone to hallucinations", opsqai: "Source-backed, refuses when unknown" },
+  {
+    row: "Answer reliability",
+    chatbot: "Prone to hallucinations",
+    opsqai: "Source-backed, refuses when unknown",
+  },
   { row: "Document management", chatbot: "None", opsqai: "Full knowledge base with versioning" },
   { row: "Permissions", chatbot: "None", opsqai: "Enterprise roles & access control" },
   { row: "Workspace separation", chatbot: "None", opsqai: "Multi-company SaaS with isolation" },
@@ -641,7 +884,10 @@ function Comparison() {
             <div className="col-span-4 text-primary">OPSQAI</div>
           </div>
           {COMPARE.map((c, i) => (
-            <div key={c.row} className={`grid grid-cols-12 px-5 py-4 text-sm items-start gap-3 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
+            <div
+              key={c.row}
+              className={`grid grid-cols-12 px-5 py-4 text-sm items-start gap-3 ${i % 2 === 1 ? "bg-muted/20" : ""}`}
+            >
               <div className="col-span-4 font-medium">{c.row}</div>
               <div className="col-span-4 text-muted-foreground flex items-start gap-2">
                 <XCircle className="h-4 w-4 text-destructive/70 mt-0.5 shrink-0" />
@@ -662,13 +908,33 @@ function Comparison() {
 /* ---------------- Why Choose ---------------- */
 
 const WHY = [
-  { icon: GraduationCap, title: "Faster onboarding", body: "New hires productive in days, not months." },
+  {
+    icon: GraduationCap,
+    title: "Faster onboarding",
+    body: "New hires productive in days, not months.",
+  },
   { icon: FileCheck2, title: "Reliable answers", body: "Grounded in approved documentation." },
-  { icon: BookOpen, title: "Reduced knowledge loss", body: "Institutional knowledge captured and reused." },
-  { icon: ShieldCheck, title: "Improved compliance", body: "Versioned SOPs, audit trails, acknowledgements." },
-  { icon: Workflow, title: "Higher operational efficiency", body: "Less searching, more executing." },
+  {
+    icon: BookOpen,
+    title: "Reduced knowledge loss",
+    body: "Institutional knowledge captured and reused.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Improved compliance",
+    body: "Versioned SOPs, audit trails, acknowledgements.",
+  },
+  {
+    icon: Workflow,
+    title: "Higher operational efficiency",
+    body: "Less searching, more executing.",
+  },
   { icon: Lock, title: "Enterprise security", body: "Per-tenant isolation and role-based access." },
-  { icon: Warehouse, title: "Designed for operations", body: "Built for warehouses, sites and shift work." },
+  {
+    icon: Warehouse,
+    title: "Designed for operations",
+    body: "Built for warehouses, sites and shift work.",
+  },
 ];
 
 function WhyChoose() {
@@ -699,9 +965,21 @@ function WhyChoose() {
 /* ---------------- Founding customers ---------------- */
 
 const PILOT_PILLARS = [
-  { icon: Sparkles, title: "Hands-on rollout", body: "We personally shape the workspace, ingest your SOPs and tune the assistant to your operations vocabulary." },
-  { icon: ShieldCheck, title: "Enterprise controls from day one", body: "Workspace isolation, roles, audit log and EU hosting — even during pilot." },
-  { icon: TrendingUp, title: "Shared success metrics", body: "We define onboarding-time, error-rate and adoption KPIs with you, and review them monthly." },
+  {
+    icon: Sparkles,
+    title: "Hands-on rollout",
+    body: "We personally shape the workspace, ingest your SOPs and tune the assistant to your operations vocabulary.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Enterprise controls from day one",
+    body: "Workspace isolation, roles, audit log and EU hosting — even during pilot.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Shared success metrics",
+    body: "We define onboarding-time, error-rate and adoption KPIs with you, and review them monthly.",
+  },
 ];
 
 function FoundingCustomers() {
@@ -710,7 +988,9 @@ function FoundingCustomers() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-24">
         <div className="grid lg:grid-cols-12 gap-10 items-start">
           <div className="lg:col-span-5">
-            <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Founding Customer Program</p>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">
+              Founding Customer Program
+            </p>
             <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
               Partner with us early — shape the product, own the outcome
             </h2>
@@ -720,8 +1000,14 @@ function FoundingCustomers() {
               a roadmap you can influence.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link to="/contact">Talk to the team <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Button
+                asChild
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Link to="/contact">
+                  Talk to the team <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link to="/pricing">See pricing</Link>
@@ -747,27 +1033,40 @@ function FoundingCustomers() {
   );
 }
 
-
 /* ---------------- FAQ ---------------- */
 
 const FAQS = [
-  { q: "What makes OPSQAI different from ChatGPT?", a: "OPSQAI answers only from your approved company documentation, with citations to the exact source. It adds knowledge management, user roles, workspace isolation and audit logging — a full enterprise platform, not just a chat window." },
-  { q: "Can OPSQAI replace internal documentation?", a: "No — it enhances it. OPSQAI is where your existing SOPs, manuals and FAQs become instantly usable, searchable and enforceable across teams." },
-  { q: "Does it support multiple languages?", a: "Yes. Employees can ask in virtually any language supported by modern AI models, making OPSQAI suitable for international operations." },
-  { q: "Can multiple companies use the platform?", a: "Yes. OPSQAI is a true multi-company SaaS. Each customer has an isolated workspace with its own data, users and configuration." },
-  { q: "Can answers include document sources?", a: "Every AI answer includes the source document, section and excerpt — so your team, auditors and managers can verify the origin." },
-  { q: "Is company data private?", a: "Yes. Data is isolated per workspace at the database layer, encrypted in transit and at rest, hosted in the EU and never used to train shared models." },
+  {
+    q: "What makes OPSQAI different from ChatGPT?",
+    a: "OPSQAI answers only from your approved company documentation, with citations to the exact source. It adds knowledge management, user roles, workspace isolation and audit logging — a full enterprise platform, not just a chat window.",
+  },
+  {
+    q: "Can OPSQAI replace internal documentation?",
+    a: "No — it enhances it. OPSQAI is where your existing SOPs, manuals and FAQs become instantly usable, searchable and enforceable across teams.",
+  },
+  {
+    q: "Does it support multiple languages?",
+    a: "Yes. Employees can ask in virtually any language supported by modern AI models, making OPSQAI suitable for international operations.",
+  },
+  {
+    q: "Can multiple companies use the platform?",
+    a: "Yes. OPSQAI is a true multi-company SaaS. Each customer has an isolated workspace with its own data, users and configuration.",
+  },
+  {
+    q: "Can answers include document sources?",
+    a: "Every AI answer includes the source document, section and excerpt — so your team, auditors and managers can verify the origin.",
+  },
+  {
+    q: "Is company data private?",
+    a: "Yes. Data is isolated per workspace at the database layer, encrypted in transit and at rest, hosted in the EU and never used to train shared models.",
+  },
 ];
 
 function FAQSection() {
   return (
     <section className="border-t border-border/50">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20 md:py-24">
-        <SectionHead
-          eyebrow="FAQ"
-          title="Answers to common questions"
-          center
-        />
+        <SectionHead eyebrow="FAQ" title="Answers to common questions" center />
         <div className="mt-10">
           <Accordion type="single" collapsible className="w-full">
             {FAQS.map((f, i) => (
@@ -793,18 +1092,33 @@ function FinalCTA() {
   return (
     <section className="border-t border-border/50 bg-muted/40">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20 md:py-28 text-center">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Get Started</p>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">
+          Get Started
+        </p>
         <h2 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight">
-          Turn your documentation into your <span className="text-gradient-primary">operational advantage</span>
+          Turn your documentation into your{" "}
+          <span className="text-gradient-primary">operational advantage</span>
         </h2>
         <p className="mt-5 text-[15px] text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Start with your existing SOPs and see OPSQAI deliver verified, source-backed answers to your teams — in days, not months.
+          Start with your existing SOPs and see OPSQAI deliver verified, source-backed answers to
+          your teams — in days, not months.
         </p>
         <div className="mt-8 flex flex-wrap gap-3 justify-center">
-          <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]">
-            <Link to="/demo">Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" /></Link>
+          <Button
+            asChild
+            size="lg"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]"
+          >
+            <Link to="/demo">
+              Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="border-border bg-background/40 backdrop-blur">
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="border-border bg-background/40 backdrop-blur"
+          >
             <Link to="/contact">Talk to Sales</Link>
           </Button>
         </div>

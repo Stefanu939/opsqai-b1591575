@@ -37,7 +37,9 @@ export const Route = createFileRoute("/api/public/v1/knowledge")({
           "created_at",
           "updated_at",
           includeContent ? "content_text" : null,
-        ].filter(Boolean).join(", ");
+        ]
+          .filter(Boolean)
+          .join(", ");
 
         let query = auth.supabaseAdmin
           .from("knowledge_documents")

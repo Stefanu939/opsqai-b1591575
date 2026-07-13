@@ -10,8 +10,7 @@ export const post: BlogPost = {
   datePublished: "2026-07-01",
   author: { name: "OPSQAI Editorial", role: "Product" },
   readingMinutes: 5,
-  lede:
-    "An AI answer without a source is a liability. An AI answer with a citation to a specific document version is a decision an operator can defend.",
+  lede: "An AI answer without a source is a liability. An AI answer with a citation to a specific document version is a decision an operator can defend.",
   sections: [
     {
       heading: "What 'grounded' actually means",
@@ -45,5 +44,8 @@ export const post: BlogPost = {
       ],
     },
   ],
-  relatedLandingPages: ["/solutions/enterprise-ai-for-logistics", "/solutions/enterprise-knowledge-base"],
+  relatedLandingPages: [
+    "/solutions/enterprise-ai-for-logistics",
+    "/solutions/enterprise-knowledge-base",
+  ],
 };

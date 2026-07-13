@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  ArrowLeft, CheckCircle2, ExternalLink, Loader2, Power, ShieldCheck, Info,
+  ArrowLeft,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  Power,
+  ShieldCheck,
+  Info,
 } from "lucide-react";
 import { findIntegration } from "@/lib/integrations-catalog";
 
@@ -149,7 +155,9 @@ function IntegrationDetail() {
 
       {/* Hero — mobile-first grid layout, icon shrinks, title truncates */}
       <header className="grid grid-cols-[auto_minmax(0,1fr)] gap-4 items-start">
-        <div className={`h-14 w-14 shrink-0 rounded-2xl border grid place-items-center ${def.accent}`}>
+        <div
+          className={`h-14 w-14 shrink-0 rounded-2xl border grid place-items-center ${def.accent}`}
+        >
           <def.icon className="h-7 w-7" />
         </div>
         <div className="min-w-0">
@@ -159,11 +167,17 @@ function IntegrationDetail() {
           </h1>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {connected ? (
-              <Badge variant="outline" className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Badge
+                variant="outline"
+                className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              >
                 <CheckCircle2 className="h-3 w-3" /> Connected
               </Badge>
             ) : row?.status === "pending" ? (
-              <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <Badge
+                variant="outline"
+                className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+              >
                 Pending activation
               </Badge>
             ) : (
@@ -198,7 +212,8 @@ function IntegrationDetail() {
             <h2 className="text-sm font-semibold">Self-service configuration</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Configure SSO for your company: paste your IdP metadata URL, list the email domains, and we'll activate it. All Service Provider endpoints (ACS URL, Entity ID) are provided.
+            Configure SSO for your company: paste your IdP metadata URL, list the email domains, and
+            we'll activate it. All Service Provider endpoints (ACS URL, Entity ID) are provided.
           </p>
           <Button asChild className="w-full sm:w-auto">
             <Link to="/app/admin/sso-setup">
@@ -217,23 +232,17 @@ function IntegrationDetail() {
             <h2 className="text-sm font-semibold">Live notifications</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Paste your incoming-webhook URL and pick which OPSQAI events forward to your channel. No IT ticket required — {def.name} setup takes under two minutes.
+            Paste your incoming-webhook URL and pick which OPSQAI events forward to your channel. No
+            IT ticket required — {def.name} setup takes under two minutes.
           </p>
           <Button asChild className="w-full sm:w-auto">
-            <Link
-              to="/app/admin/notifications/$provider"
-              params={{ provider: def.provider }}
-            >
+            <Link to="/app/admin/notifications/$provider" params={{ provider: def.provider }}>
               <ExternalLink className="h-4 w-4 mr-2" />
               Configure {def.name} notifications
             </Link>
           </Button>
         </Card>
       )}
-
-
-
-
 
       {/* Actions — sticky-feel row, full-width on mobile, inline on desktop */}
       <Card className="p-5 sm:p-6 space-y-4">
@@ -251,8 +260,8 @@ function IntegrationDetail() {
             <div className="flex gap-2 text-sm text-muted-foreground bg-muted/40 rounded-lg p-3">
               <Info className="h-4 w-4 shrink-0 mt-0.5" />
               <p>
-                This integration is on our roadmap. Register your interest and we'll notify you when it
-                ships — enterprise customers can request priority delivery.
+                This integration is on our roadmap. Register your interest and we'll notify you when
+                it ships — enterprise customers can request priority delivery.
               </p>
             </div>
             <Button
@@ -278,7 +287,11 @@ function IntegrationDetail() {
                 disabled={busy}
                 className="w-full sm:w-auto"
               >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Power className="h-4 w-4 mr-2" />}
+                {busy ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Power className="h-4 w-4 mr-2" />
+                )}
                 Disable integration
               </Button>
               {def.provider === "webhooks" ? (
@@ -314,8 +327,8 @@ function IntegrationDetail() {
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Enabling {def.name} will register the integration for this workspace. Configuration steps
-              (redirect URIs, OAuth consent, IdP metadata) are guided from the manage screen.
+              Enabling {def.name} will register the integration for this workspace. Configuration
+              steps (redirect URIs, OAuth consent, IdP metadata) are guided from the manage screen.
             </p>
             <Button onClick={connect} disabled={busy} className="w-full sm:w-auto">
               {busy && <Loader2 className="h-4 w-4 animate-spin mr-2" />}

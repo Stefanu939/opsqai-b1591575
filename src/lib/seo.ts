@@ -119,7 +119,12 @@ export function softwareApplicationLd(input: {
     url: input.url ?? SITE_URL,
     applicationCategory: input.category ?? "BusinessApplication",
     operatingSystem: "Web",
-    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR", availability: "https://schema.org/InStock" },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "EUR",
+      availability: "https://schema.org/InStock",
+    },
   };
 }
 
@@ -161,7 +166,7 @@ export function pageHead(input: PageHeadInput) {
     { rel: "canonical", href: url },
     ...hreflangLinks(input.path).map((l) => ({
       rel: l.rel,
-      hreflang: l.hrefLang,
+      hrefLang: l.hrefLang,
       href: l.href,
     })),
   ];

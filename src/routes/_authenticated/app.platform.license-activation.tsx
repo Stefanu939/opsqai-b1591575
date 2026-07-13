@@ -65,7 +65,10 @@ function LicenseActivationPage() {
         toast.error(`Rejected: ${res.reason}`);
       }
     },
-    onError: (e: Error) => { setPreview(null); toast.error(e.message); },
+    onError: (e: Error) => {
+      setPreview(null);
+      toast.error(e.message);
+    },
   });
 
   const importMut = useMutation({
@@ -78,7 +81,8 @@ function LicenseActivationPage() {
       }),
     onSuccess: () => {
       toast.success("License activated");
-      setToken(""); setPreview(null);
+      setToken("");
+      setPreview(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -111,8 +115,8 @@ function LicenseActivationPage() {
           <ShieldCheck className="h-7 w-7" /> Add License
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Paste a signed license token issued by your OPSQAI Management Center. Tokens are verified locally
-          with the pinned public key — no network call to the vendor is required.
+          Paste a signed license token issued by your OPSQAI Management Center. Tokens are verified
+          locally with the pinned public key — no network call to the vendor is required.
         </p>
       </header>
 
@@ -129,11 +133,18 @@ function LicenseActivationPage() {
           rows={6}
           placeholder="Paste license token (opsqai.v1.…)"
           value={token}
-          onChange={(e) => { setToken(e.target.value); setPreview(null); }}
+          onChange={(e) => {
+            setToken(e.target.value);
+            setPreview(null);
+          }}
           className="font-mono text-xs"
         />
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => previewMut.mutate()} disabled={!token || previewMut.isPending}>
+          <Button
+            variant="outline"
+            onClick={() => previewMut.mutate()}
+            disabled={!token || previewMut.isPending}
+          >
             Verify
           </Button>
           <Button onClick={() => importMut.mutate()} disabled={!token || importMut.isPending}>
@@ -143,13 +154,22 @@ function LicenseActivationPage() {
 
         {preview && (
           <div className="rounded border p-3 bg-muted/30 text-sm space-y-1">
-            <div><Badge variant="outline">{preview.kind}</Badge> <span className="font-mono text-xs">{preview.install_id}</span></div>
+            <div>
+              <Badge variant="outline">{preview.kind}</Badge>{" "}
+              <span className="font-mono text-xs">{preview.install_id}</span>
+            </div>
             {preview.customer && <div>Customer: {preview.customer}</div>}
             {typeof preview.seats === "number" && <div>Seats: {preview.seats}</div>}
-            {preview.module && <div>Module: <code>{preview.module}</code></div>}
+            {preview.module && (
+              <div>
+                Module: <code>{preview.module}</code>
+              </div>
+            )}
             <div className="text-xs text-muted-foreground">
               Signed by <code>{preview.key_id}</code> · expires{" "}
-              {preview.expires_at ? new Date(preview.expires_at * 1000).toLocaleDateString() : "never"}
+              {preview.expires_at
+                ? new Date(preview.expires_at * 1000).toLocaleDateString()
+                : "never"}
               {preview.maintenance_expires_at
                 ? ` · maintenance until ${new Date(preview.maintenance_expires_at * 1000).toLocaleDateString()}`
                 : ""}
@@ -159,7 +179,9 @@ function LicenseActivationPage() {
       </Card>
 
       <Card className="p-4 space-y-3">
-        <div className="text-sm font-medium">Activation bundle (Installation + all modules + revocation list)</div>
+        <div className="text-sm font-medium">
+          Activation bundle (Installation + all modules + revocation list)
+        </div>
         <Textarea
           rows={6}
           placeholder='Paste bundle JSON exported from Management Center (starts with { "bundle_version": 1, … })'
@@ -177,8 +199,8 @@ function LicenseActivationPage() {
           <RefreshCcw className="h-4 w-4" /> Revocation list
         </div>
         <p className="text-xs text-muted-foreground">
-          Apply a signed CRL to mark revoked/suspended licenses on this install. Only rows already present
-          locally are updated — the CRL is not a substitute for a signed token.
+          Apply a signed CRL to mark revoked/suspended licenses on this install. Only rows already
+          present locally are updated — the CRL is not a substitute for a signed token.
         </p>
         <Textarea
           rows={4}
@@ -187,7 +209,11 @@ function LicenseActivationPage() {
           onChange={(e) => setCrlToken(e.target.value)}
           className="font-mono text-xs"
         />
-        <Button variant="outline" onClick={() => crlMut.mutate()} disabled={!crlToken || crlMut.isPending}>
+        <Button
+          variant="outline"
+          onClick={() => crlMut.mutate()}
+          disabled={!crlToken || crlMut.isPending}
+        >
           Apply CRL
         </Button>
       </Card>

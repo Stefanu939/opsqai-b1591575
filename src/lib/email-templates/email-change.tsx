@@ -10,7 +10,12 @@ interface EmailChangeEmailProps {
   confirmationUrl: string;
 }
 
-export const EmailChangeEmail = ({ siteName, oldEmail, newEmail, confirmationUrl }: EmailChangeEmailProps) => (
+export const EmailChangeEmail = ({
+  siteName,
+  oldEmail,
+  newEmail,
+  confirmationUrl,
+}: EmailChangeEmailProps) => (
   <BrandedEmail
     preview={`Confirm your email change for ${siteName}`}
     title="Confirm your email change"

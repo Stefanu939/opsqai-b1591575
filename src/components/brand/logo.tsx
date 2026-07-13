@@ -66,18 +66,20 @@ export function LogoMark({
 
       {/* Intelligence core */}
       <circle cx="32" cy="32" r="5.2" fill={c} />
-      <circle cx="32" cy="32" r="5.2" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="1" />
+      <circle
+        cx="32"
+        cy="32"
+        r="5.2"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.25"
+        strokeWidth="1"
+      />
     </svg>
   );
 }
 
-export function LogoWordmark({
-  className,
-  size = 18,
-}: {
-  className?: string;
-  size?: number;
-}) {
+export function LogoWordmark({ className, size = 18 }: { className?: string; size?: number }) {
   return (
     <span
       className={cn("font-display font-semibold tracking-[-0.01em] leading-none", className)}

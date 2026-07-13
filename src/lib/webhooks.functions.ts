@@ -61,11 +61,11 @@ export function assertSafeWebhookUrl(raw: string): URL {
       a === 10 ||
       a === 127 ||
       a === 0 ||
-      (a === 169 && b === 254) ||          // link-local / AWS/Azure/GCP metadata (169.254.169.254)
+      (a === 169 && b === 254) || // link-local / AWS/Azure/GCP metadata (169.254.169.254)
       (a === 172 && b >= 16 && b <= 31) || // private
-      (a === 192 && b === 168) ||          // private
-      (a === 100 && b >= 64 && b <= 127) ||// CGNAT
-      a >= 224                              // multicast + reserved + broadcast
+      (a === 192 && b === 168) || // private
+      (a === 100 && b >= 64 && b <= 127) || // CGNAT
+      a >= 224 // multicast + reserved + broadcast
     ) {
       throw new Error("Private, loopback, or metadata IP addresses are not allowed");
     }
@@ -78,10 +78,11 @@ export function assertSafeWebhookUrl(raw: string): URL {
     if (
       h === "::" ||
       h === "::1" ||
-      h.startsWith("fe80:") ||     // link-local
-      h.startsWith("fc") || h.startsWith("fd") || // unique local
-      h.startsWith("::ffff:") ||   // IPv4-mapped
-      h.startsWith("2001:db8:")    // documentation
+      h.startsWith("fe80:") || // link-local
+      h.startsWith("fc") ||
+      h.startsWith("fd") || // unique local
+      h.startsWith("::ffff:") || // IPv4-mapped
+      h.startsWith("2001:db8:") // documentation
     ) {
       throw new Error("Private or loopback IPv6 addresses are not allowed");
     }
@@ -112,7 +113,10 @@ export const createWebhookEndpoint = createServerFn({ method: "POST" })
 
     // Resolve caller's company.
     const { data: profile } = await context.supabase
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     const companyId = profile?.company_id;
     if (!companyId) throw new Error("No active company");
 
@@ -248,7 +252,10 @@ export const emitTestEvent = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => EmitInput.parse(d))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("No company context");
 
     const { data: matching } = await context.supabase
@@ -266,4 +273,3 @@ export const emitTestEvent = createServerFn({ method: "POST" })
     });
     return { ok: true, dispatched_to: matching?.length ?? 0 };
   });
-
