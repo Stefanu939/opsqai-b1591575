@@ -42,8 +42,13 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BillingPanel } from "@/components/platform/BillingPanel";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: (s.tab === "billing" ? "billing" : "licenses") as "licenses" | "billing",
+  }),
   component: LicensesPage,
 });
 
@@ -81,6 +86,8 @@ function LicensesPage() {
   const { isPlatformAdmin } = useAuth();
   if (!isPlatformAdmin) throw redirect({ to: "/app" });
   const qc = useQueryClient();
+  const { tab } = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   const list = useServerFn(listLicenses);
   const issue = useServerFn(issueLicense);
@@ -276,13 +283,12 @@ function LicensesPage() {
     <div className="flex-1 p-6 md:p-10 space-y-6 max-w-6xl">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
-            <KeyRound className="h-7 w-7" /> Licenses
+          <p className="mc-eyebrow text-[var(--mc-fg-dim)]">Operations</p>
+          <h1 className="mc-heading text-3xl font-semibold tracking-tight flex items-center gap-2 text-[var(--mc-fg)]">
+            <KeyRound className="h-7 w-7 text-[var(--mc-gold)]" /> Licențe &amp; Billing
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Two license kinds: one <strong>Installation License</strong> per install (mandatory,
-            carries seats + maintenance), and one <strong>Module License</strong> per paid add-on
-            module. Basic modules are always included.
+          <p className="text-sm text-[var(--mc-fg-muted)] mt-1">
+            Emiterea licențelor, module add-on, bundle de activare — plus lifecycle-ul de subscription (trial, grace, suspend).
           </p>
         </div>
         <Button asChild className="shrink-0 gap-1.5 bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] font-semibold shadow-[0_8px_24px_-8px_rgba(201,168,76,0.45)] hover:brightness-110">
@@ -291,6 +297,22 @@ function LicensesPage() {
           </Link>
         </Button>
       </header>
+
+      <Tabs
+        value={tab}
+        onValueChange={(v) => navigate({ search: { tab: v as "licenses" | "billing" }, replace: true })}
+      >
+        <TabsList>
+          <TabsTrigger value="licenses">Licențe</TabsTrigger>
+          <TabsTrigger value="billing">Billing</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="billing" className="mt-6">
+          <BillingPanel />
+        </TabsContent>
+
+        <TabsContent value="licenses" className="mt-6 space-y-6">
+
 
 
       {pubKey && (
@@ -674,6 +696,9 @@ function LicensesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+

@@ -56,10 +56,10 @@ const GROWTH: Item[] = [
 
 const OPERATIONS: Item[] = [
   {
-    title: "Licențe",
+    title: "Licențe & Billing",
     url: "/app/platform/licenses",
     icon: KeyRound,
-    desc: "Tabel complet licențe + module + acțiuni.",
+    desc: "Licențe + module + subscription lifecycle (trial, grace, suspend).",
   },
   {
     title: "Releases",
