@@ -132,15 +132,21 @@ import { Route as AuthenticatedAppAdminSupportRouteImport } from './routes/_auth
 import { Route as AuthenticatedAppAdminSubscriptionsRouteImport } from './routes/_authenticated/app.admin.subscriptions'
 import { Route as AuthenticatedAppAdminSsoSetupRouteImport } from './routes/_authenticated/app.admin.sso-setup'
 import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/_authenticated/app.admin.sop-generator'
+import { Route as AuthenticatedAppAdminReleaseManagementRouteImport } from './routes/_authenticated/app.admin.release-management'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
+import { Route as AuthenticatedAppAdminMonitoringRouteImport } from './routes/_authenticated/app.admin.monitoring'
 import { Route as AuthenticatedAppAdminModuleCatalogRouteImport } from './routes/_authenticated/app.admin.module-catalog'
+import { Route as AuthenticatedAppAdminMaintenanceRouteImport } from './routes/_authenticated/app.admin.maintenance'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
 import { Route as AuthenticatedAppAdminIntegrationsRouteImport } from './routes/_authenticated/app.admin.integrations'
+import { Route as AuthenticatedAppAdminInstallationsRouteImport } from './routes/_authenticated/app.admin.installations'
 import { Route as AuthenticatedAppAdminEmailLogsRouteImport } from './routes/_authenticated/app.admin.email-logs'
 import { Route as AuthenticatedAppAdminEmailRouteImport } from './routes/_authenticated/app.admin.email'
+import { Route as AuthenticatedAppAdminDownloadsRouteImport } from './routes/_authenticated/app.admin.downloads'
 import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
 import { Route as AuthenticatedAppAdminCustomersRouteImport } from './routes/_authenticated/app.admin.customers'
+import { Route as AuthenticatedAppAdminContactsRouteImport } from './routes/_authenticated/app.admin.contacts'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
 import { Route as AuthenticatedAppAdminCommandCenterRouteImport } from './routes/_authenticated/app.admin.command-center'
 import { Route as AuthenticatedAppAdminBillingRouteImport } from './routes/_authenticated/app.admin.billing'
@@ -822,6 +828,12 @@ const AuthenticatedAppAdminSopGeneratorRoute =
     path: '/admin/sop-generator',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminReleaseManagementRoute =
+  AuthenticatedAppAdminReleaseManagementRouteImport.update({
+    id: '/admin/release-management',
+    path: '/admin/release-management',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminPlatformAdminsRoute =
   AuthenticatedAppAdminPlatformAdminsRouteImport.update({
     id: '/admin/platform-admins',
@@ -834,10 +846,22 @@ const AuthenticatedAppAdminPlatformRoute =
     path: '/admin/platform',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminMonitoringRoute =
+  AuthenticatedAppAdminMonitoringRouteImport.update({
+    id: '/admin/monitoring',
+    path: '/admin/monitoring',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminModuleCatalogRoute =
   AuthenticatedAppAdminModuleCatalogRouteImport.update({
     id: '/admin/module-catalog',
     path: '/admin/module-catalog',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAdminMaintenanceRoute =
+  AuthenticatedAppAdminMaintenanceRouteImport.update({
+    id: '/admin/maintenance',
+    path: '/admin/maintenance',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminKnowledgeGapsRoute =
@@ -852,6 +876,12 @@ const AuthenticatedAppAdminIntegrationsRoute =
     path: '/admin/integrations',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminInstallationsRoute =
+  AuthenticatedAppAdminInstallationsRouteImport.update({
+    id: '/admin/installations',
+    path: '/admin/installations',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminEmailLogsRoute =
   AuthenticatedAppAdminEmailLogsRouteImport.update({
     id: '/admin/email-logs',
@@ -864,6 +894,12 @@ const AuthenticatedAppAdminEmailRoute =
     path: '/admin/email',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminDownloadsRoute =
+  AuthenticatedAppAdminDownloadsRouteImport.update({
+    id: '/admin/downloads',
+    path: '/admin/downloads',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminDashboardRoute =
   AuthenticatedAppAdminDashboardRouteImport.update({
     id: '/admin/dashboard',
@@ -874,6 +910,12 @@ const AuthenticatedAppAdminCustomersRoute =
   AuthenticatedAppAdminCustomersRouteImport.update({
     id: '/admin/customers',
     path: '/admin/customers',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAdminContactsRoute =
+  AuthenticatedAppAdminContactsRouteImport.update({
+    id: '/admin/contacts',
+    path: '/admin/contacts',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAdminCompaniesRoute =
@@ -1121,15 +1163,21 @@ export interface FileRoutesByFullPath {
   '/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
   '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
+  '/app/admin/contacts': typeof AuthenticatedAppAdminContactsRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/downloads': typeof AuthenticatedAppAdminDownloadsRoute
   '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
+  '/app/admin/installations': typeof AuthenticatedAppAdminInstallationsRoute
   '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/app/admin/maintenance': typeof AuthenticatedAppAdminMaintenanceRoute
   '/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
+  '/app/admin/monitoring': typeof AuthenticatedAppAdminMonitoringRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
+  '/app/admin/release-management': typeof AuthenticatedAppAdminReleaseManagementRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
   '/app/admin/sso-setup': typeof AuthenticatedAppAdminSsoSetupRoute
   '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
@@ -1271,15 +1319,21 @@ export interface FileRoutesByTo {
   '/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
   '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
+  '/app/admin/contacts': typeof AuthenticatedAppAdminContactsRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/app/admin/downloads': typeof AuthenticatedAppAdminDownloadsRoute
   '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
+  '/app/admin/installations': typeof AuthenticatedAppAdminInstallationsRoute
   '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/app/admin/maintenance': typeof AuthenticatedAppAdminMaintenanceRoute
   '/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
+  '/app/admin/monitoring': typeof AuthenticatedAppAdminMonitoringRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
+  '/app/admin/release-management': typeof AuthenticatedAppAdminReleaseManagementRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
   '/app/admin/sso-setup': typeof AuthenticatedAppAdminSsoSetupRoute
   '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
@@ -1429,15 +1483,21 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
   '/_authenticated/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
+  '/_authenticated/app/admin/contacts': typeof AuthenticatedAppAdminContactsRoute
   '/_authenticated/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
   '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
+  '/_authenticated/app/admin/downloads': typeof AuthenticatedAppAdminDownloadsRoute
   '/_authenticated/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
   '/_authenticated/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
+  '/_authenticated/app/admin/installations': typeof AuthenticatedAppAdminInstallationsRoute
   '/_authenticated/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/_authenticated/app/admin/maintenance': typeof AuthenticatedAppAdminMaintenanceRoute
   '/_authenticated/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
+  '/_authenticated/app/admin/monitoring': typeof AuthenticatedAppAdminMonitoringRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
+  '/_authenticated/app/admin/release-management': typeof AuthenticatedAppAdminReleaseManagementRoute
   '/_authenticated/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
   '/_authenticated/app/admin/sso-setup': typeof AuthenticatedAppAdminSsoSetupRoute
   '/_authenticated/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
@@ -1587,15 +1647,21 @@ export interface FileRouteTypes {
     | '/app/admin/billing'
     | '/app/admin/command-center'
     | '/app/admin/companies'
+    | '/app/admin/contacts'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
+    | '/app/admin/downloads'
     | '/app/admin/email'
     | '/app/admin/email-logs'
+    | '/app/admin/installations'
     | '/app/admin/integrations'
     | '/app/admin/knowledge-gaps'
+    | '/app/admin/maintenance'
     | '/app/admin/module-catalog'
+    | '/app/admin/monitoring'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
+    | '/app/admin/release-management'
     | '/app/admin/sop-generator'
     | '/app/admin/sso-setup'
     | '/app/admin/subscriptions'
@@ -1737,15 +1803,21 @@ export interface FileRouteTypes {
     | '/app/admin/billing'
     | '/app/admin/command-center'
     | '/app/admin/companies'
+    | '/app/admin/contacts'
     | '/app/admin/customers'
     | '/app/admin/dashboard'
+    | '/app/admin/downloads'
     | '/app/admin/email'
     | '/app/admin/email-logs'
+    | '/app/admin/installations'
     | '/app/admin/integrations'
     | '/app/admin/knowledge-gaps'
+    | '/app/admin/maintenance'
     | '/app/admin/module-catalog'
+    | '/app/admin/monitoring'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
+    | '/app/admin/release-management'
     | '/app/admin/sop-generator'
     | '/app/admin/sso-setup'
     | '/app/admin/subscriptions'
@@ -1894,15 +1966,21 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/billing'
     | '/_authenticated/app/admin/command-center'
     | '/_authenticated/app/admin/companies'
+    | '/_authenticated/app/admin/contacts'
     | '/_authenticated/app/admin/customers'
     | '/_authenticated/app/admin/dashboard'
+    | '/_authenticated/app/admin/downloads'
     | '/_authenticated/app/admin/email'
     | '/_authenticated/app/admin/email-logs'
+    | '/_authenticated/app/admin/installations'
     | '/_authenticated/app/admin/integrations'
     | '/_authenticated/app/admin/knowledge-gaps'
+    | '/_authenticated/app/admin/maintenance'
     | '/_authenticated/app/admin/module-catalog'
+    | '/_authenticated/app/admin/monitoring'
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
+    | '/_authenticated/app/admin/release-management'
     | '/_authenticated/app/admin/sop-generator'
     | '/_authenticated/app/admin/sso-setup'
     | '/_authenticated/app/admin/subscriptions'
@@ -2866,6 +2944,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminSopGeneratorRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/release-management': {
+      id: '/_authenticated/app/admin/release-management'
+      path: '/admin/release-management'
+      fullPath: '/app/admin/release-management'
+      preLoaderRoute: typeof AuthenticatedAppAdminReleaseManagementRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/platform-admins': {
       id: '/_authenticated/app/admin/platform-admins'
       path: '/admin/platform-admins'
@@ -2880,11 +2965,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminPlatformRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/monitoring': {
+      id: '/_authenticated/app/admin/monitoring'
+      path: '/admin/monitoring'
+      fullPath: '/app/admin/monitoring'
+      preLoaderRoute: typeof AuthenticatedAppAdminMonitoringRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/module-catalog': {
       id: '/_authenticated/app/admin/module-catalog'
       path: '/admin/module-catalog'
       fullPath: '/app/admin/module-catalog'
       preLoaderRoute: typeof AuthenticatedAppAdminModuleCatalogRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/admin/maintenance': {
+      id: '/_authenticated/app/admin/maintenance'
+      path: '/admin/maintenance'
+      fullPath: '/app/admin/maintenance'
+      preLoaderRoute: typeof AuthenticatedAppAdminMaintenanceRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/knowledge-gaps': {
@@ -2901,6 +3000,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminIntegrationsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/installations': {
+      id: '/_authenticated/app/admin/installations'
+      path: '/admin/installations'
+      fullPath: '/app/admin/installations'
+      preLoaderRoute: typeof AuthenticatedAppAdminInstallationsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/email-logs': {
       id: '/_authenticated/app/admin/email-logs'
       path: '/admin/email-logs'
@@ -2915,6 +3021,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminEmailRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/downloads': {
+      id: '/_authenticated/app/admin/downloads'
+      path: '/admin/downloads'
+      fullPath: '/app/admin/downloads'
+      preLoaderRoute: typeof AuthenticatedAppAdminDownloadsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/dashboard': {
       id: '/_authenticated/app/admin/dashboard'
       path: '/admin/dashboard'
@@ -2927,6 +3040,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/customers'
       fullPath: '/app/admin/customers'
       preLoaderRoute: typeof AuthenticatedAppAdminCustomersRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/admin/contacts': {
+      id: '/_authenticated/app/admin/contacts'
+      path: '/admin/contacts'
+      fullPath: '/app/admin/contacts'
+      preLoaderRoute: typeof AuthenticatedAppAdminContactsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/admin/companies': {
@@ -3221,15 +3341,21 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminBillingRoute: typeof AuthenticatedAppAdminBillingRoute
   AuthenticatedAppAdminCommandCenterRoute: typeof AuthenticatedAppAdminCommandCenterRoute
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
+  AuthenticatedAppAdminContactsRoute: typeof AuthenticatedAppAdminContactsRoute
   AuthenticatedAppAdminCustomersRoute: typeof AuthenticatedAppAdminCustomersRoute
   AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
+  AuthenticatedAppAdminDownloadsRoute: typeof AuthenticatedAppAdminDownloadsRoute
   AuthenticatedAppAdminEmailRoute: typeof AuthenticatedAppAdminEmailRoute
   AuthenticatedAppAdminEmailLogsRoute: typeof AuthenticatedAppAdminEmailLogsRoute
+  AuthenticatedAppAdminInstallationsRoute: typeof AuthenticatedAppAdminInstallationsRoute
   AuthenticatedAppAdminIntegrationsRoute: typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  AuthenticatedAppAdminMaintenanceRoute: typeof AuthenticatedAppAdminMaintenanceRoute
   AuthenticatedAppAdminModuleCatalogRoute: typeof AuthenticatedAppAdminModuleCatalogRoute
+  AuthenticatedAppAdminMonitoringRoute: typeof AuthenticatedAppAdminMonitoringRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
+  AuthenticatedAppAdminReleaseManagementRoute: typeof AuthenticatedAppAdminReleaseManagementRoute
   AuthenticatedAppAdminSopGeneratorRoute: typeof AuthenticatedAppAdminSopGeneratorRoute
   AuthenticatedAppAdminSsoSetupRoute: typeof AuthenticatedAppAdminSsoSetupRoute
   AuthenticatedAppAdminSubscriptionsRoute: typeof AuthenticatedAppAdminSubscriptionsRoute
@@ -3274,19 +3400,27 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminCommandCenterRoute:
     AuthenticatedAppAdminCommandCenterRoute,
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
+  AuthenticatedAppAdminContactsRoute: AuthenticatedAppAdminContactsRoute,
   AuthenticatedAppAdminCustomersRoute: AuthenticatedAppAdminCustomersRoute,
   AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
+  AuthenticatedAppAdminDownloadsRoute: AuthenticatedAppAdminDownloadsRoute,
   AuthenticatedAppAdminEmailRoute: AuthenticatedAppAdminEmailRoute,
   AuthenticatedAppAdminEmailLogsRoute: AuthenticatedAppAdminEmailLogsRoute,
+  AuthenticatedAppAdminInstallationsRoute:
+    AuthenticatedAppAdminInstallationsRoute,
   AuthenticatedAppAdminIntegrationsRoute:
     AuthenticatedAppAdminIntegrationsRouteWithChildren,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
+  AuthenticatedAppAdminMaintenanceRoute: AuthenticatedAppAdminMaintenanceRoute,
   AuthenticatedAppAdminModuleCatalogRoute:
     AuthenticatedAppAdminModuleCatalogRoute,
+  AuthenticatedAppAdminMonitoringRoute: AuthenticatedAppAdminMonitoringRoute,
   AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
   AuthenticatedAppAdminPlatformAdminsRoute:
     AuthenticatedAppAdminPlatformAdminsRoute,
+  AuthenticatedAppAdminReleaseManagementRoute:
+    AuthenticatedAppAdminReleaseManagementRoute,
   AuthenticatedAppAdminSopGeneratorRoute:
     AuthenticatedAppAdminSopGeneratorRoute,
   AuthenticatedAppAdminSsoSetupRoute: AuthenticatedAppAdminSsoSetupRoute,
