@@ -72,7 +72,7 @@ export const generateInstallationPackage = createServerFn({ method: "POST" })
     const bundle = await buildActivationBundle(data.install_id);
 
     // Assemble ZIP
-    const { bytes, checksum_sha256, file_name } = assembleInstallationPackage({
+    const { bytes, checksum_sha256, file_name } = await assembleInstallationPackage({
       install_id: data.install_id,
       installer_version: installerVersion,
       company_name: lic.company_name,
