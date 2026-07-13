@@ -167,8 +167,11 @@ if (-not (Test-Path $pubKey)) {
   }
   Write-Warning "No updater pubkey found at $pubKey — generating a DEV-ONLY key. Do NOT ship this build."
   $tmpPriv = Join-Path $env:TEMP 'opsqai-dev-priv.pem'
-  & openssl genpkey -algorithm ed25519 -out $tmpPriv 2>$null
-  if ($LASTEXITCODE -eq 0) {
+  $openssl = Get-Command openssl -ErrorAction SilentlyContinue
+  if ($openssl) {
+    & $openssl.Source genpkey -algorithm ed25519 -out $tmpPriv 2>$null
+  }
+  if ($openssl -and $LASTEXITCODE -eq 0) {
     & openssl pkey -in $tmpPriv -pubout -out $pubKey
     Remove-Item $tmpPriv -Force -ErrorAction SilentlyContinue
   } else {
