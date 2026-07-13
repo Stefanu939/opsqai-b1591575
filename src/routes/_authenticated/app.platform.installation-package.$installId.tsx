@@ -355,7 +355,7 @@ function InstallationPackagePage() {
                   </div>
                 </div>
                 <Badge variant="outline" className="text-xs">
-                  link exp. {new Date(d.signed_url_expires_at).toLocaleString()}
+                  link exp. {d.signed_url_expires_at ? new Date(d.signed_url_expires_at).toLocaleString() : "—"}
                 </Badge>
               </div>
             ))}
