@@ -103,16 +103,28 @@ Section "OPSQAI Core" SEC_CORE
   !insertmacro RegisterService "OpsqaiCaddy"
   !insertmacro RegisterService "OpsqaiUpdater"
 
-  ; Bootstrap does: write config, start OpsqaiDatabase, run migrations,
-  ; start OpsqaiCaddy + trust root CA, start Platform/Worker/Updater,
-  ; health-probe https://localhost/health. Phase 3 wizard supplies real
-  ; admin credentials; Phase 2 uses installer-provided placeholders.
-  DetailPrint "Running bootstrap (this may take up to 2 minutes)..."
-  nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "changeme" --company "OPSQAI"'
-  Pop $0
-  ${If} $0 <> 0
-    DetailPrint "bootstrap returned $0 (check %ProgramData%\OPSQAI\logs)"
-  ${EndIf}
+  ; Launch the OPSQAI Setup Wizard (Electron, 10 steps). The wizard collects
+  ; company / admin / DB / storage / AI settings, then invokes
+  ; services\bootstrap\init.js with those values. For silent installs (/S),
+  ; the wizard is skipped and bootstrap runs with placeholder credentials so
+  ; the smoke test keeps working — an unattended-config JSON hook lands in Phase 4.
+  IfSilent silent_bootstrap
+    DetailPrint "Launching OPSQAI Setup Wizard..."
+    nsExec::ExecToLog '"$INSTDIR\wizard\OPSQAI-Wizard.exe"'
+    Pop $0
+    ${If} $0 <> 0
+      DetailPrint "Wizard exited with code $0 — installation not completed"
+      Abort "OPSQAI setup was cancelled or failed. See %ProgramData%\OPSQAI\logs for details."
+    ${EndIf}
+    Goto bootstrap_done
+  silent_bootstrap:
+    DetailPrint "Silent install: running bootstrap with placeholder credentials..."
+    nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "ChangeMe-Silent-1234" --company "OPSQAI"'
+    Pop $0
+    ${If} $0 <> 0
+      DetailPrint "bootstrap returned $0 (check %ProgramData%\OPSQAI\logs)"
+    ${EndIf}
+  bootstrap_done:
 
   ; --- ARP / Uninstall entry ---
   WriteRegStr HKLM "Software\OPSQAI" "InstallDir" "$INSTDIR"

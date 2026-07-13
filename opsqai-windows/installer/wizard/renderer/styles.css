@@ -1,0 +1,127 @@
+/* OPSQAI Setup Wizard — enterprise Windows look, MS-Office-like layout. */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px; color: #1a1a1a; background: #f3f3f3;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wizard { display: grid; grid-template-columns: 240px 1fr; height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  background: linear-gradient(180deg, #0b3b8f 0%, #0a2e70 100%);
+  color: #e8eefc; padding: 24px 0; display: flex; flex-direction: column;
+}
+.brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,.15); }
+.brand-mark { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+.brand-sub  { font-size: 12px; opacity: .75; margin-top: 4px; }
+
+.steps { list-style: none; margin: 20px 0 0; padding: 0; flex: 1; }
+.steps li {
+  padding: 10px 24px; display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: rgba(255,255,255,.7); position: relative;
+}
+.steps li .idx {
+  width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 11px;
+  background: rgba(255,255,255,.12); color: rgba(255,255,255,.85);
+  font-weight: 600; flex-shrink: 0;
+}
+.steps li.active { color: #fff; background: rgba(255,255,255,.08); }
+.steps li.active .idx { background: #4a90ff; color: #fff; }
+.steps li.done .idx { background: #2ecc71; color: #fff; }
+.steps li.done .idx::before { content: '✓'; }
+.steps li.done .idx > * { display: none; }
+
+.footer-brand { padding: 12px 24px 0; font-size: 11px; opacity: .5; }
+
+/* Content */
+.content { display: flex; flex-direction: column; background: #fff; }
+.pane { padding: 32px 40px 16px; flex: 1; overflow-y: auto; }
+.pane h1 { font-size: 22px; font-weight: 600; margin: 0 0 8px; color: #0b3b8f; }
+.pane .lead { color: #444; margin: 0 0 20px; line-height: 1.5; }
+.pane .note { color: #666; font-size: 12.5px; background: #f7f8fb; border-left: 3px solid #4a90ff; padding: 10px 14px; margin-top: 16px; border-radius: 3px; }
+.hint { color: #666; font-size: 12.5px; margin-top: 8px; }
+
+/* Forms */
+.form { display: flex; flex-direction: column; gap: 14px; max-width: 500px; }
+.form label { display: flex; flex-direction: column; font-size: 12.5px; color: #333; font-weight: 500; gap: 5px; }
+.form input, .form select {
+  padding: 8px 10px; border: 1px solid #c8ccd1; border-radius: 3px; font-size: 14px;
+  font-family: inherit; background: #fff; transition: border .1s;
+}
+.form input:focus, .form select:focus { outline: none; border-color: #4a90ff; box-shadow: 0 0 0 2px rgba(74,144,255,.2); }
+.form input:invalid:not(:placeholder-shown) { border-color: #d64545; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Checkboxes */
+.checkbox { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 16px; font-size: 13px; }
+.checkbox input { width: 16px; height: 16px; }
+
+/* Radio cards */
+.radio-cards { display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px; }
+.radio-card {
+  display: flex; gap: 12px; padding: 14px 16px; border: 1px solid #d0d4d9; border-radius: 4px;
+  cursor: pointer; transition: all .1s; background: #fff;
+}
+.radio-card:hover { border-color: #4a90ff; background: #f6f9ff; }
+.radio-card input { margin-top: 3px; }
+.radio-card input:checked ~ div { color: #0b3b8f; }
+.radio-card:has(input:checked) { border-color: #0b3b8f; background: #f0f5ff; box-shadow: 0 0 0 1px #0b3b8f inset; }
+.radio-card strong { display: block; margin-bottom: 3px; font-size: 14px; }
+.radio-card p { margin: 0; color: #555; font-size: 12.5px; line-height: 1.45; }
+
+/* License */
+.license-box {
+  background: #fafbfc; border: 1px solid #e1e4e8; border-radius: 3px;
+  padding: 14px 18px; height: 260px; overflow-y: auto; font-size: 13px; line-height: 1.6;
+}
+.license-box p { margin: 0 0 10px; }
+.license-box a { color: #0b3b8f; }
+
+/* Key-value list */
+.kv { display: flex; flex-direction: column; gap: 8px; max-width: 560px; }
+.kv > div { display: grid; grid-template-columns: 160px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid #eef0f2; align-items: center; }
+.kv span { color: #666; font-size: 12.5px; }
+.kv code { background: #f5f6f8; padding: 3px 8px; border-radius: 3px; font-size: 12.5px; color: #0b3b8f; font-family: 'Consolas', monospace; }
+
+/* Review */
+.review { display: flex; flex-direction: column; gap: 6px; }
+.review .row { display: grid; grid-template-columns: 180px 1fr; padding: 8px 0; border-bottom: 1px solid #eef0f2; }
+.review .row span { color: #666; font-size: 12.5px; }
+.review .row strong { font-weight: 500; color: #1a1a1a; }
+.review .section-title { font-weight: 600; color: #0b3b8f; margin-top: 12px; padding-bottom: 4px; border-bottom: 2px solid #0b3b8f; }
+
+/* Progress / install log */
+.progress { height: 6px; background: #e6e8ec; border-radius: 3px; overflow: hidden; margin: 14px 0; }
+.progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #4a90ff, #0b3b8f); transition: width .3s; }
+.progress-bar.indeterminate {
+  width: 40%; animation: indet 1.4s infinite ease-in-out;
+}
+@keyframes indet { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
+.log {
+  background: #0d1117; color: #c9d1d9; padding: 12px 14px; border-radius: 3px;
+  height: 300px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 12px;
+  margin: 0; white-space: pre-wrap; line-height: 1.5;
+}
+.finish { margin-top: 16px; }
+
+/* Actions */
+.actions {
+  display: flex; align-items: center; gap: 8px; padding: 14px 40px;
+  background: #f7f8fb; border-top: 1px solid #e1e4e8;
+}
+.actions .spacer { flex: 1; }
+.btn {
+  padding: 7px 20px; border-radius: 3px; border: 1px solid #c8ccd1; background: #fff;
+  cursor: pointer; font-family: inherit; font-size: 13.5px; color: #1a1a1a;
+  min-width: 92px; transition: all .1s;
+}
+.btn:hover:not(:disabled) { background: #f0f2f5; border-color: #a8adb5; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: #0b3b8f; color: #fff; border-color: #0b3b8f; }
+.btn-primary:hover:not(:disabled) { background: #0a2e70; border-color: #0a2e70; }
+.btn-ghost { border: none; background: transparent; color: #666; min-width: auto; }
+.btn-ghost:hover:not(:disabled) { color: #1a1a1a; background: transparent; }
