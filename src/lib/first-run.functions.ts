@@ -157,30 +157,22 @@ export const firstRunTestSmtp = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await assertFirstRunOpen();
 
-    if (data.password) {
-      await writeSecretsEnv({
-        SMTP_PASSWORD: data.password,
-        SMTP_USERNAME: data.username || "",
-      });
-    }
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("platform_email_settings").upsert(
-      {
-        id: true,
-        smtp_host: data.host,
-        smtp_port: data.port,
-        smtp_from_email: data.from_email,
-        smtp_from_name: data.from_name || null,
-        smtp_username: data.username || null,
-        // Password intentionally NOT stored in DB — lives in secrets.env only.
-      } as never,
-      { onConflict: "id" },
-    );
+    // All SMTP config lives in secrets.env (the file is 0600 anyway, and
+    // grouping host/port/creds keeps the wizard's persistence surface
+    // small — no schema migration needed for SMTP host/port fields).
+    await writeSecretsEnv({
+      SMTP_HOST: data.host,
+      SMTP_PORT: String(data.port),
+      SMTP_FROM_EMAIL: data.from_email,
+      SMTP_FROM_NAME: data.from_name || "",
+      SMTP_USERNAME: data.username || "",
+      ...(data.password ? { SMTP_PASSWORD: data.password } : {}),
+    });
 
     await markStep("smtp_configured");
-    return { ok: true, requires_restart: !!data.password };
+    return { ok: true, requires_restart: true };
   });
+
 
 const SsoInput = z.object({
   skip: z.boolean().default(false),
