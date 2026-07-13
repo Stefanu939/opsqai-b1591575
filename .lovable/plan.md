@@ -1,30 +1,24 @@
-## De ce apare eroarea
+## Plan
 
-Când regenerezi pachetul de instalare, `assembleInstallationPackage` (rulează în Cloudflare Worker) încearcă:
+1. **Make `install.exe` stay open on Windows**
+   - Add a Windows-only “press Enter to close” pause at the end of the installer.
+   - Also pause before exiting on errors, so users can read why it stopped instead of the CMD window disappearing.
 
-```ts
-fetch("/__l5e/assets-v1/<uuid>/install.exe")
-```
+2. **Improve Windows launch behavior**
+   - Keep the normal console output when run from CMD/PowerShell.
+   - When double-clicked, make the installer show the final success/error message and wait for input.
 
-`fetch` în Worker **cere URL absolut**. Codul are un fallback pe `process.env.OPSQAI_ASSET_ORIGIN`, dar variabila nu e setată în producție → `origin = ""` → `fullUrl` rămâne `/__l5e/...` → aruncă `Invalid URL`. Fallback-ul local (`readFileSync` din `installer/dist/...`) nu există în Worker (fără filesystem real), deci eroarea originală bubble-up cu textul pe care îl vezi în toast.
+3. **Clean up Windows console output**
+   - Disable ANSI color escape codes on Windows so messages don’t show strange characters in CMD.
 
-## Fix propus (minimal, un singur fișier)
+4. **Keep macOS/Linux unchanged**
+   - Do not add pauses on macOS/Linux, because terminal users expect the command to exit normally.
 
-Derivă originul din requestul curent al server function-ului, în loc să te bazezi pe un env var neconfigurat.
+5. **Rebuild/package path**
+   - Update the Go installer source and build script behavior if needed so the next generated ZIP contains the corrected Windows `install.exe`.
+   - Note: the existing uploaded binary asset may need to be regenerated/re-uploaded after this code change so production ZIPs include the fixed executable.
 
-**`src/lib/installation-package.server.ts`**
-1. Import: `import { getWebRequest } from "@tanstack/react-start/server";`
-2. În `fetchAsset`, ordinea de rezolvare a originii:
-   1. dacă `url` e deja absolut → folosește-l direct;
-   2. altfel încearcă `getWebRequest()` și extrage `new URL(req.url).origin`;
-   3. dacă nu există request (ex. Vitest), încearcă `process.env.OPSQAI_ASSET_ORIGIN`;
-   4. dacă tot nu-l are, sari direct pe fallback-ul `readFileSync(localFallback)` (path-ul dev/test existent) — fără să mai construiască un URL invalid.
-3. Împachetează `fetch(fullUrl)` doar pe ramura (1)/(2)/(3); pe ramura (4), sari direct la filesystem.
-4. Mesajul de eroare final rămâne descriptiv, dar acum ori merge fetch-ul via origin real, ori intră pe fallback curat.
+## Technical details
 
-Fără schimbări în UI, în ruta `/demo`, în asset JSON-uri, sau în binarul Go. Restul contractului (ZIP layout, checksums, teste) rămâne identic.
-
-## Verificare
-
-- Rebuild → apeși din nou "Regenerate": toast-ul de eroare dispare, download link-ul e emis, `install.exe` din ZIP are ~5.9 MB (nu 1 byte).
-- `bunx vitest run src/lib/__tests__/installation-package.test.ts` continuă să treacă (folosește fallback-ul local — pasul 4).
+- The likely cause is that Windows accepts and launches `install.exe`, but double-click execution opens a temporary console that closes immediately when the process exits or errors.
+- I will implement this in the Go installer, focused on `main.go` / utility helpers, without changing unrelated app features.
