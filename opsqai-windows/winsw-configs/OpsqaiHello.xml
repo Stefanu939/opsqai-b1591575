@@ -1,0 +1,37 @@
+<!--
+  WinSW config for the Phase 1 smoke-test service.
+  Renamed to OpsqaiHello.xml next to OpsqaiHello.exe (WinSW pattern).
+  Docs: https://github.com/winsw/winsw
+
+  Real services (OpsqaiPlatform, OpsqaiWorker, OpsqaiDatabase, OpsqaiStorage,
+  OpsqaiUpdater) follow the same shape and are added in Phase 2+.
+-->
+<service>
+  <id>OpsqaiHello</id>
+  <name>OPSQAI Hello (smoke test)</name>
+  <description>Phase 1 smoke-test service — confirms WinSW wrapping, Event Log, auto-restart.</description>
+
+  <executable>%BASE%\..\runtime\node\node.exe</executable>
+  <arguments>"%BASE%\..\services\hello\index.js"</arguments>
+  <workingdirectory>%BASE%\..</workingdirectory>
+
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+
+  <onfailure action="restart" delay="5 sec"/>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  <logpath>%ProgramData%\OPSQAI\logs</logpath>
+
+  <!-- Event Log: WinSW writes to Application log with source "OpsqaiHello".
+       The OPSQAI custom source is registered in Phase 2 via a NSIS custom action. -->
+
+  <env name="OPSQAI_SERVICE" value="hello"/>
+  <env name="OPSQAI_CONFIG"  value="%ProgramData%\OPSQAI\config\config.json"/>
+</service>

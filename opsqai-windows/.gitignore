@@ -1,0 +1,8 @@
+payload/runtime/
+payload/winsw/
+payload/pgsql/
+payload/caddy/
+payload/app/
+build/artifacts/
+node_modules/
+*.log

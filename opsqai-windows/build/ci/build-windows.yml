@@ -1,0 +1,62 @@
+# GitHub Actions workflow — Phase 1 signed Windows installer build.
+# Requires a self-hosted Windows runner with:
+#   - NSIS 3.09+ on PATH
+#   - Windows SDK (for signtool)
+#   - The EV code-signing token/HSM plugged in and unlocked
+#   - PowerShell 7+
+
+name: build-windows-installer
+
+on:
+  push:
+    tags: ['win-v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semver (e.g. 1.0.0)'
+        required: true
+      sign:
+        description: 'Sign the installer'
+        type: boolean
+        default: true
+
+concurrency:
+  group: build-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: [self-hosted, windows, opsqai-signing]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = '${{ inputs.version }}'
+          if (-not $v) { $v = ('${{ github.ref_name }}' -replace '^win-v','') }
+          if (-not $v) { $v = '0.0.0-dev' }
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build installer
+        shell: pwsh
+        working-directory: opsqai-windows
+        run: |
+          $signFlag = @()
+          if ('${{ inputs.sign }}' -ne 'false') { $signFlag = @('-Sign') }
+          pwsh ./build/build.ps1 -Configuration Release -Version '${{ steps.ver.outputs.version }}' @signFlag
+
+      - name: Verify signature
+        shell: pwsh
+        run: signtool verify /pa /v opsqai-windows/build/artifacts/OPSQAI-Setup.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OPSQAI-Setup-${{ steps.ver.outputs.version }}
+          path: opsqai-windows/build/artifacts/OPSQAI-Setup.exe
+          if-no-files-found: error
