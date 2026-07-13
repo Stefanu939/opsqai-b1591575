@@ -310,23 +310,27 @@ Generated: ${input.generated_at}
 
 | File | Purpose |
 | ---- | ------- |
+| \`install.sh\` | Host-side installer — run this first (\`./install.sh\`) |
 | \`docker-compose.yml\` | Reference topology (opsqai + postgres + minio) |
-| \`.env.template\` | Copy to \`.env\` and fill secrets marked \`__CHANGE_ME__\` |
+| \`.env.template\` | Copied to \`.env\` by \`install.sh\`; secrets marked \`__CHANGE_ME__\` |
 | \`activation-bundle.json\` | Ed25519-signed license bundle — install & module tokens + CRL |
-| \`entrypoint.sh\` | Auto-generates infra secrets on first boot |
-| \`CHECKSUMS.sha256\` | Verify integrity before running \`docker compose up\` |
+| \`entrypoint.sh\` | Runs inside the container; auto-generates infra secrets on first boot |
+| \`CHECKSUMS.sha256\` | Verify integrity before running \`install.sh\` |
 
 ## Quick start
 
 1. Extract this ZIP on the target host and \`cd\` into it.
-2. \`cp .env.template .env\` and edit \`OPSQAI_PUBLIC_URL\`.
-   You may leave \`POSTGRES_PASSWORD\` / \`MINIO_ROOT_PASSWORD\` as
-   \`__CHANGE_ME__\` — the entrypoint will generate strong values on first
-   boot and persist them to a customer-owned volume.
-3. \`sha256sum -c CHECKSUMS.sha256\` — every line must say \`OK\`.
-4. \`docker compose up -d\`.
-5. Open \`OPSQAI_PUBLIC_URL\` and run through the Setup Wizard. Paste
-   \`activation-bundle.json\` when asked.
+2. \`sha256sum -c CHECKSUMS.sha256\` — every line must say \`OK\`.
+3. \`chmod +x install.sh && ./install.sh\`
+   \`install.sh\` checks Docker prerequisites, copies \`.env.template\` to
+   \`.env\` (only if missing — idempotent), runs \`docker compose up -d\`,
+   waits for the app to report healthy, and prints the URL to open the
+   Setup Wizard.
+4. Open the printed URL and paste \`activation-bundle.json\` when asked.
+
+To restore from a backup instead of a fresh install, run
+\`./install.sh --restore\` (matches DR runbook 5.5.4).
+
 
 ## Support
 
