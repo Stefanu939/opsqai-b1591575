@@ -391,7 +391,7 @@ export interface BuiltPackage {
 }
 
 /** Deterministic assembly of the installation ZIP. */
-export function assembleInstallationPackage(input: BuildPackageInput): BuiltPackage {
+export async function assembleInstallationPackage(input: BuildPackageInput): Promise<BuiltPackage> {
   const generatedAt = new Date().toISOString();
 
   const substitutions = (s: string): string =>
@@ -401,11 +401,19 @@ export function assembleInstallationPackage(input: BuildPackageInput): BuiltPack
       .replaceAll("{{LICENSE_SERVER_URL}}", input.license_server_url)
       .replaceAll("{{GENERATED_AT}}", generatedAt);
 
+  // Native installer binaries live in Lovable Assets (too large for the
+  // repo). Fetched in parallel and cached per-Worker-instance.
+  const [installExe, installMacos, installLinux] = await Promise.all([
+    fetchAsset(installExeAsset.url),
+    fetchAsset(installMacosAsset.url),
+    fetchAsset(installLinuxAsset.url),
+  ]);
+
   const files: Record<string, Uint8Array> = {
     "install.sh": strToU8(INSTALL_SH),
-    "install.exe": b64ToBytes(INSTALL_EXE_B64),
-    "install-macos": b64ToBytes(INSTALL_MACOS_B64),
-    "install-linux": b64ToBytes(INSTALL_LINUX_B64),
+    "install.exe": installExe,
+    "install-macos": installMacos,
+    "install-linux": installLinux,
     "docker-compose.yml": strToU8(substitutions(DOCKER_COMPOSE_TEMPLATE)),
     ".env.template": strToU8(substitutions(ENV_TEMPLATE)),
     "entrypoint.sh": strToU8(ENTRYPOINT_SH),
@@ -432,3 +440,4 @@ export function assembleInstallationPackage(input: BuildPackageInput): BuiltPack
   const file_name = `opsqai-${input.installer_version}-${input.install_id}.zip`;
   return { bytes, checksum_sha256, file_name };
 }
+
