@@ -84,22 +84,16 @@ const OPERATIONS: Item[] = [
 
 const SYSTEM: Item[] = [
   {
+    title: "Team",
+    url: "/app/admin/platform-admins",
+    icon: Settings,
+    desc: "Platform admins, roluri și permisiuni MC.",
+  },
+  {
     title: "Recovery",
     url: "/app/platform/recovery",
     icon: LifeBuoy,
     desc: "Bootstrap tokens & disaster recovery.",
-  },
-  {
-    title: "Setup",
-    url: "/app/platform/setup",
-    icon: Wrench,
-    desc: "Configurare MC.",
-  },
-  {
-    title: "Config",
-    url: "/app/admin/platform-admins",
-    icon: Settings,
-    desc: "Roluri & platform admins.",
   },
 ];
 
