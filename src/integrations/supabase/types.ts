@@ -878,6 +878,7 @@ export type Database = {
           grace_period_days: number
           grace_period_ends_at: string | null
           id: string
+          install_id: string | null
           internal_notes: string | null
           is_demo_tenant: boolean
           is_system: boolean
@@ -907,6 +908,7 @@ export type Database = {
           grace_period_days?: number
           grace_period_ends_at?: string | null
           id?: string
+          install_id?: string | null
           internal_notes?: string | null
           is_demo_tenant?: boolean
           is_system?: boolean
@@ -936,6 +938,7 @@ export type Database = {
           grace_period_days?: number
           grace_period_ends_at?: string | null
           id?: string
+          install_id?: string | null
           internal_notes?: string | null
           is_demo_tenant?: boolean
           is_system?: boolean
