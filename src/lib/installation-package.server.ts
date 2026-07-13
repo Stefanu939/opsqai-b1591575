@@ -14,6 +14,15 @@
 import { zipSync, strToU8 } from "fflate";
 import { createHash } from "node:crypto";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
+import {
+  INSTALL_EXE_B64,
+  INSTALL_MACOS_B64,
+  INSTALL_LINUX_B64,
+} from "@/lib/installer-binaries.generated";
+
+function b64ToBytes(b64: string): Uint8Array {
+  return new Uint8Array(Buffer.from(b64, "base64"));
+}
 
 const DOCKER_COMPOSE_TEMPLATE = `# OPSQAI Self-Hosted — generated for install_id {{INSTALL_ID}}
 # Installer version: {{INSTALLER_VERSION}}
