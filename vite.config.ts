@@ -13,12 +13,5 @@ export default defineConfig({
   },
   vite: {
     plugins: [mcpPlugin()],
-    ssr: {
-      // pdf-lib ships ESM that imports named helpers from tslib (`import { __extends } from "tslib"`).
-      // In the Cloudflare Worker SSR build these can get wrapped with CJS interop and fail at runtime
-      // with `Cannot destructure property '__extends' of '__toESM(...).default' as it is undefined`.
-      // Forcing them to be bundled (noExternal) keeps the named ESM imports intact.
-      noExternal: ["pdf-lib", "tslib"],
-    },
   },
 });
