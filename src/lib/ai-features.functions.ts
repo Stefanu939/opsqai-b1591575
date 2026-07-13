@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
+import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+
+const AI_AUDIT_MODULE = "ai_workspace_audit" as const;
 
 async function ensurePerm(context: any, perm: string) {
   await requirePermission(context, perm);
