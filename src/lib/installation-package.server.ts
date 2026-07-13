@@ -370,8 +370,21 @@ setlocal
 cd /d "%~dp0"
 
 if not exist "install.exe" (
-  echo [opsqai] install.exe is missing from this folder.
-  echo [opsqai] Extract the ZIP again and run install-windows.cmd from the extracted folder.
+  echo %~dp0 | findstr /i "\\\\AppData\\\\Local\\\\Temp\\\\ Temp1_ Temp2_" >nul
+  if not errorlevel 1 (
+    echo [opsqai] It looks like you double-clicked this file from inside the Windows ZIP preview.
+    echo [opsqai] Windows only extracted install-windows.cmd to a temporary folder, so install.exe is missing.
+    echo.
+    echo [opsqai] How to fix:
+    echo [opsqai]   1. Close this window.
+    echo [opsqai]   2. Right-click the downloaded ZIP in File Explorer and choose "Extract All..."
+    echo [opsqai]   3. Open the extracted folder and double-click install-windows.cmd from there.
+  ) else (
+    echo [opsqai] install.exe is missing from this folder:
+    echo [opsqai]   %~dp0
+    echo [opsqai] Make sure you extracted the full ZIP and are running install-windows.cmd
+    echo [opsqai] from the extracted folder that also contains install.exe.
+  )
   echo.
   pause
   exit /b 1
