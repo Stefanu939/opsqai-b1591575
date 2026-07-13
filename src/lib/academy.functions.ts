@@ -759,6 +759,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await enforceAcademyForCurrentUser(context);
     const { data: lesson } = await (context.supabase as any)
       .from("academy_lessons")
       .select("title, objectives, explanation, examples, best_practices, summary")
@@ -885,6 +886,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SubmitSchema.parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAcademyForCurrentUser(context);
     // SECURITY: load the stored attempt and grade against the trusted
     // server-side questions. The client no longer supplies correct_answer.
     const { data: attempt, error: attemptErr } = await (context.supabase as any)
@@ -1007,6 +1009,7 @@ export const enrollSelf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAcademyForCurrentUser(context);
     const { data: path } = await (context.supabase as any)
       .from("academy_learning_paths")
       .select("company_id, mandatory")
@@ -1135,6 +1138,7 @@ export const removeEnrollment = createServerFn({ method: "POST" })
 export const listMyEnrollments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await enforceAcademyForCurrentUser(context);
     const { data, error } = await (context.supabase as any)
       .from("academy_enrollments")
       .select(
@@ -1150,6 +1154,7 @@ export const startEnrollment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAcademyForCurrentUser(context);
     await (context.supabase as any)
       .from("academy_enrollments")
       .update({ status: "in_progress", started_at: new Date().toISOString() })
@@ -1163,6 +1168,7 @@ export const getEnrollmentProgress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAcademyForCurrentUser(context);
     const { data: rows } = await (context.supabase as any)
       .from("academy_lesson_progress")
       .select("lesson_id, status, last_score, attempts, time_spent_seconds, completed_at")
@@ -1174,6 +1180,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAcademyForCurrentUser(context);
     const { data: enroll } = await (context.supabase as any)
       .from("academy_enrollments")
       .select("id, path_id, user_id, company_id")
@@ -1251,6 +1258,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
 export const listMyCertificates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    await enforceAcademyForCurrentUser(context);
     const { data } = await (context.supabase as any)
       .from("academy_certificates")
       .select(
@@ -1265,6 +1273,7 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceAcademyForCurrentUser(context);
     const { data: cert } = await (context.supabase as any)
       .from("academy_certificates")
       .select("pdf_path, user_id, company_id")
