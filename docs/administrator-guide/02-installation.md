@@ -19,13 +19,21 @@ The ZIP contains:
 
 | File | Purpose |
 | --- | --- |
-| `install.sh` | **Host-side installer — run this first.** Checks prerequisites, seeds `.env`, starts the stack, waits for health, prints the Setup Wizard URL. Also supports `--restore` (DR runbook 5.5.4) |
+| `install.exe` | **Windows host-side installer** — double-click to run. Checks prerequisites, seeds `.env`, starts the stack, waits for health, opens the Setup Wizard in the default browser. |
+| `install-macos` | **macOS host-side installer** (universal binary). `chmod +x install-macos && ./install-macos`. |
+| `install-linux` | **Linux host-side installer**. `chmod +x install-linux && ./install-linux`. |
+| `install.sh` | POSIX shell fallback for headless / SSH-only hosts. Same contract as the native binaries. Also supports `--restore` (DR runbook 5.5.4). |
 | `docker-compose.yml` | Reference topology (opsqai + postgres + minio) |
-| `.env.template` | Copied to `.env` by `install.sh`. `OPSQAI_INSTALL_ID` is pre-filled; infra secrets are marked `__CHANGE_ME__` |
+| `.env.template` | Copied to `.env` by the installer. `OPSQAI_INSTALL_ID` is pre-filled; infra secrets are marked `__CHANGE_ME__` |
 | `activation-bundle.json` | Ed25519-signed license bundle (install + module tokens + CRL) |
 | `entrypoint.sh` | Runs *inside* the container; auto-generates infra secrets on first boot |
 | `README.md` | Quick-start printed with your `install_id` and installer version |
 | `CHECKSUMS.sha256` | Per-file SHA-256 checksums |
+
+All native installers are cross-compiled from a single Go source tree
+(`installer/` in the repo). They are reproducible builds (`-trimpath`,
+stripped) and can be independently rebuilt from source; the SHA-256 in
+`CHECKSUMS.sha256` is the authoritative integrity check.
 
 ## Docker (recommended)
 
@@ -37,25 +45,30 @@ unzip ~/opsqai-<installer_version>-<install_id>.zip
 # 2. Verify checksums BEFORE running anything
 sha256sum -c CHECKSUMS.sha256   # every line must say OK
 
-# 3. Run the host-side installer
-chmod +x install.sh
-./install.sh
-# install.sh:
+# 3. Run the installer for your OS
+#    Windows: double-click install.exe (opens a console window)
+#    macOS:   chmod +x install-macos && ./install-macos
+#    Linux:   chmod +x install-linux && ./install-linux
+#    Headless / SSH only: chmod +x install.sh && ./install.sh
+#
+# Every installer:
 #   - verifies docker + docker compose plugin are installed
 #   - copies .env.template -> .env (idempotent; skipped if .env exists)
 #   - runs 'docker compose up -d'
 #   - polls the app's /health endpoint until it reports healthy
-#   - prints the URL to open the Setup Wizard
+#   - prints (and, on desktop OS, opens) the URL for the Setup Wizard
 
-# 4. Open the printed URL and paste activation-bundle.json when asked.
+# 4. Paste activation-bundle.json when the wizard asks for it.
 
 # 5. Verify post-setup with the doctor tool
 docker compose exec opsqai opsqai doctor
 ```
 
-To restore from a backup instead of a fresh install, run `./install.sh --restore`.
-This matches DR runbook section 5.5.4 and prompts for the backup archive path
-instead of overwriting `.env` or starting a fresh stack.
+To restore from a backup instead of a fresh install, pass `--restore` to
+whichever installer you are running (e.g. `install.exe --restore` from a
+terminal, or `./install-macos --restore`). This matches DR runbook section
+5.5.4 and prompts for the backup archive path instead of overwriting `.env`
+or starting a fresh stack.
 
 
 ## Regeneration
