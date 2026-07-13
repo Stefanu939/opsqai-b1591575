@@ -28,6 +28,46 @@ $payload   = Join-Path $root 'payload'
 $artifacts = Join-Path $root 'build\artifacts'
 New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 
+# --- 0. Build OPSQAI app (Node-server preset) -----------------------------
+$appStage = Join-Path $payload 'app'
+if (-not $SkipApp) {
+  $projectRoot = Split-Path -Parent (Split-Path -Parent $root)   # opsqai-windows/ -> repo root
+  Write-Host "Building OPSQAI app (NITRO_PRESET=node-server)..."
+  Push-Location $projectRoot
+  try {
+    if (-not (Test-Path 'node_modules')) { & npm ci; if ($LASTEXITCODE -ne 0) { throw "npm ci failed" } }
+    & npm run build:selfhosted
+    if ($LASTEXITCODE -ne 0) { throw "npm run build:selfhosted failed" }
+
+    # Nitro node-server preset writes to .output/. Layout:
+    #   .output/server/index.mjs   -> entry
+    #   .output/public/            -> static assets
+    $out = Join-Path $projectRoot '.output'
+    if (-not (Test-Path (Join-Path $out 'server\index.mjs'))) {
+      throw "Expected .output/server/index.mjs after build:selfhosted"
+    }
+    Remove-Item $appStage -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $appStage | Out-Null
+    Copy-Item (Join-Path $out 'server') (Join-Path $appStage 'server') -Recurse -Force
+    if (Test-Path (Join-Path $out 'public')) {
+      Copy-Item (Join-Path $out 'public') (Join-Path $appStage 'public') -Recurse -Force
+    }
+    # migrate.mjs is authored under opsqai-windows/payload/app/server (source of truth)
+    Copy-Item (Join-Path $root 'payload\app\server\migrate.mjs') (Join-Path $appStage 'server\migrate.mjs') -Force
+    # Ship supabase migrations alongside the app so migrate.mjs can find them.
+    $migSrc = Join-Path $projectRoot 'supabase\migrations'
+    if (Test-Path $migSrc) {
+      Copy-Item $migSrc (Join-Path $appStage 'migrations') -Recurse -Force
+    }
+  } finally { Pop-Location }
+} else {
+  Write-Host "Skipping OPSQAI app build (--SkipApp)"
+  if (-not (Test-Path (Join-Path $appStage 'server\index.mjs'))) {
+    Write-Warning "payload\app\server\index.mjs missing — installer bootstrap will skip migrations."
+  }
+}
+
+
 function Fetch($url, $dest) {
   if (Test-Path $dest) { return }
   Write-Host "  -> $url"
