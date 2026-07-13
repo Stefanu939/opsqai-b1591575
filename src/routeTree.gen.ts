@@ -100,6 +100,7 @@ import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticat
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
+import { Route as AuthenticatedAppPlatformIndexRouteImport } from './routes/_authenticated/app.platform.index'
 import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
 import { Route as AuthenticatedAppDocsIndexRouteImport } from './routes/_authenticated/app.docs.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
@@ -629,6 +630,12 @@ const AuthenticatedAppWorkspaceIndexRoute =
     path: '/workspace/',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPlatformIndexRoute =
+  AuthenticatedAppPlatformIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
+  } as any)
 const AuthenticatedAppInternalIndexRoute =
   AuthenticatedAppInternalIndexRouteImport.update({
     id: '/',
@@ -1121,6 +1128,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/docs/': typeof AuthenticatedAppDocsIndexRoute
   '/app/internal/': typeof AuthenticatedAppInternalIndexRoute
+  '/app/platform/': typeof AuthenticatedAppPlatformIndexRoute
   '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1197,7 +1205,6 @@ export interface FileRoutesByTo {
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
-  '/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/portal/contract': typeof AuthenticatedPortalContractRoute
@@ -1267,6 +1274,7 @@ export interface FileRoutesByTo {
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/docs': typeof AuthenticatedAppDocsIndexRoute
   '/app/internal': typeof AuthenticatedAppInternalIndexRoute
+  '/app/platform': typeof AuthenticatedAppPlatformIndexRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1420,6 +1428,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/docs/': typeof AuthenticatedAppDocsIndexRoute
   '/_authenticated/app/internal/': typeof AuthenticatedAppInternalIndexRoute
+  '/_authenticated/app/platform/': typeof AuthenticatedAppPlatformIndexRoute
   '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1573,6 +1582,7 @@ export interface FileRouteTypes {
     | '/app/chat/'
     | '/app/docs/'
     | '/app/internal/'
+    | '/app/platform/'
     | '/app/workspace/'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
@@ -1649,7 +1659,6 @@ export interface FileRouteTypes {
     | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
-    | '/app/platform'
     | '/app/profile'
     | '/app/requests'
     | '/portal/contract'
@@ -1719,6 +1728,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/docs'
     | '/app/internal'
+    | '/app/platform'
     | '/app/workspace'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
@@ -1871,6 +1881,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/docs/'
     | '/_authenticated/app/internal/'
+    | '/_authenticated/app/platform/'
     | '/_authenticated/app/workspace/'
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
@@ -2579,6 +2590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppWorkspaceIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/platform/': {
+      id: '/_authenticated/app/platform/'
+      path: '/'
+      fullPath: '/app/platform/'
+      preLoaderRoute: typeof AuthenticatedAppPlatformIndexRouteImport
+      parentRoute: typeof AuthenticatedAppPlatformRoute
+    }
     '/_authenticated/app/internal/': {
       id: '/_authenticated/app/internal/'
       path: '/'
@@ -3051,6 +3069,7 @@ interface AuthenticatedAppPlatformRouteChildren {
   AuthenticatedAppPlatformOverviewRoute: typeof AuthenticatedAppPlatformOverviewRoute
   AuthenticatedAppPlatformRecoveryRoute: typeof AuthenticatedAppPlatformRecoveryRoute
   AuthenticatedAppPlatformSetupRoute: typeof AuthenticatedAppPlatformSetupRoute
+  AuthenticatedAppPlatformIndexRoute: typeof AuthenticatedAppPlatformIndexRoute
   AuthenticatedAppPlatformInstallationPackageInstallIdRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
 }
 
@@ -3068,6 +3087,7 @@ const AuthenticatedAppPlatformRouteChildren: AuthenticatedAppPlatformRouteChildr
     AuthenticatedAppPlatformRecoveryRoute:
       AuthenticatedAppPlatformRecoveryRoute,
     AuthenticatedAppPlatformSetupRoute: AuthenticatedAppPlatformSetupRoute,
+    AuthenticatedAppPlatformIndexRoute: AuthenticatedAppPlatformIndexRoute,
     AuthenticatedAppPlatformInstallationPackageInstallIdRoute:
       AuthenticatedAppPlatformInstallationPackageInstallIdRoute,
   }
