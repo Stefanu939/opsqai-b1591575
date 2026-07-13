@@ -14,15 +14,44 @@
 import { zipSync, strToU8 } from "fflate";
 import { createHash } from "node:crypto";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
-import {
-  INSTALL_EXE_B64,
-  INSTALL_MACOS_B64,
-  INSTALL_LINUX_B64,
-} from "@/lib/installer-binaries.generated";
+import installExeAsset from "@/assets/install-exe.asset.json";
+import installMacosAsset from "@/assets/install-macos.asset.json";
+import installLinuxAsset from "@/assets/install-linux.asset.json";
 
-function b64ToBytes(b64: string): Uint8Array {
-  return new Uint8Array(Buffer.from(b64, "base64"));
+// Installer binaries live in Lovable Assets (CDN) because they exceed the
+// per-file repo limit. Fetched once per Worker instance and cached — the
+// generated ZIP embeds them verbatim.
+const binaryCache = new Map<string, Uint8Array>();
+
+async function fetchAsset(url: string, localFallback: string): Promise<Uint8Array> {
+  const cached = binaryCache.get(url);
+  if (cached) return cached;
+  const origin =
+    typeof process !== "undefined" && process.env?.OPSQAI_ASSET_ORIGIN
+      ? process.env.OPSQAI_ASSET_ORIGIN
+      : "";
+  const fullUrl = url.startsWith("http") ? url : `${origin}${url}`;
+  try {
+    const res = await fetch(fullUrl);
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    binaryCache.set(url, bytes);
+    return bytes;
+  } catch (fetchErr) {
+    // Vitest / local Node runs have no origin to resolve /__l5e/ URLs against.
+    // Fall back to reading the pre-built binary from installer/dist/ so tests
+    // and dev builds work without a live CDN.
+    try {
+      const { readFileSync } = await import("node:fs");
+      const bytes = new Uint8Array(readFileSync(localFallback));
+      binaryCache.set(url, bytes);
+      return bytes;
+    } catch {
+      throw new Error(`Failed to fetch installer asset ${url}: ${(fetchErr as Error).message}`);
+    }
+  }
 }
+
 
 const DOCKER_COMPOSE_TEMPLATE = `# OPSQAI Self-Hosted — generated for install_id {{INSTALL_ID}}
 # Installer version: {{INSTALLER_VERSION}}
@@ -376,7 +405,7 @@ export interface BuiltPackage {
 }
 
 /** Deterministic assembly of the installation ZIP. */
-export function assembleInstallationPackage(input: BuildPackageInput): BuiltPackage {
+export async function assembleInstallationPackage(input: BuildPackageInput): Promise<BuiltPackage> {
   const generatedAt = new Date().toISOString();
 
   const substitutions = (s: string): string =>
@@ -386,11 +415,19 @@ export function assembleInstallationPackage(input: BuildPackageInput): BuiltPack
       .replaceAll("{{LICENSE_SERVER_URL}}", input.license_server_url)
       .replaceAll("{{GENERATED_AT}}", generatedAt);
 
+  // Native installer binaries live in Lovable Assets (too large for the
+  // repo). Fetched in parallel and cached per-Worker-instance.
+  const [installExe, installMacos, installLinux] = await Promise.all([
+    fetchAsset(installExeAsset.url, "installer/dist/install.exe"),
+    fetchAsset(installMacosAsset.url, "installer/dist/install-macos"),
+    fetchAsset(installLinuxAsset.url, "installer/dist/install-linux"),
+  ]);
+
   const files: Record<string, Uint8Array> = {
     "install.sh": strToU8(INSTALL_SH),
-    "install.exe": b64ToBytes(INSTALL_EXE_B64),
-    "install-macos": b64ToBytes(INSTALL_MACOS_B64),
-    "install-linux": b64ToBytes(INSTALL_LINUX_B64),
+    "install.exe": installExe,
+    "install-macos": installMacos,
+    "install-linux": installLinux,
     "docker-compose.yml": strToU8(substitutions(DOCKER_COMPOSE_TEMPLATE)),
     ".env.template": strToU8(substitutions(ENV_TEMPLATE)),
     "entrypoint.sh": strToU8(ENTRYPOINT_SH),
@@ -417,3 +454,4 @@ export function assembleInstallationPackage(input: BuildPackageInput): BuiltPack
   const file_name = `opsqai-${input.installer_version}-${input.install_id}.zip`;
   return { bytes, checksum_sha256, file_name };
 }
+
