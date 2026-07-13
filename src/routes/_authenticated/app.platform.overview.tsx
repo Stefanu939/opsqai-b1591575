@@ -31,16 +31,6 @@ import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { getPlatformOverviewStats } from "@/lib/platform-overview.functions";
 
-const statsQuery = () =>
-  queryOptions({
-    queryKey: ["platform-overview-stats"],
-    queryFn: () =>
-      (getPlatformOverviewStats as unknown as () => Promise<
-        import("@/lib/platform-overview.functions").OverviewStats
-      >)(),
-    staleTime: 60_000,
-  });
-
 export const Route = createFileRoute("/_authenticated/app/platform/overview")({
   component: OverviewPage,
 });
