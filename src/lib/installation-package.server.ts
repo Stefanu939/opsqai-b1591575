@@ -319,26 +319,34 @@ Generated: ${input.generated_at}
 
 | File | Purpose |
 | ---- | ------- |
-| \`install.sh\` | Host-side installer — run this first (\`./install.sh\`) |
+| \`install.exe\` | Windows host installer — double-click to run |
+| \`install-macos\` | macOS host installer (universal) — \`chmod +x install-macos && ./install-macos\` |
+| \`install-linux\` | Linux host installer — \`chmod +x install-linux && ./install-linux\` |
+| \`install.sh\` | POSIX shell fallback for headless / SSH-only hosts |
 | \`docker-compose.yml\` | Reference topology (opsqai + postgres + minio) |
-| \`.env.template\` | Copied to \`.env\` by \`install.sh\`; secrets marked \`__CHANGE_ME__\` |
+| \`.env.template\` | Copied to \`.env\` by the installer; secrets marked \`__CHANGE_ME__\` |
 | \`activation-bundle.json\` | Ed25519-signed license bundle — install & module tokens + CRL |
 | \`entrypoint.sh\` | Runs inside the container; auto-generates infra secrets on first boot |
-| \`CHECKSUMS.sha256\` | Verify integrity before running \`install.sh\` |
+| \`CHECKSUMS.sha256\` | Verify integrity before running any installer |
 
 ## Quick start
 
 1. Extract this ZIP on the target host and \`cd\` into it.
 2. \`sha256sum -c CHECKSUMS.sha256\` — every line must say \`OK\`.
-3. \`chmod +x install.sh && ./install.sh\`
-   \`install.sh\` checks Docker prerequisites, copies \`.env.template\` to
-   \`.env\` (only if missing — idempotent), runs \`docker compose up -d\`,
-   waits for the app to report healthy, and prints the URL to open the
-   Setup Wizard.
-4. Open the printed URL and paste \`activation-bundle.json\` when asked.
+3. Run the installer for your OS:
+   - **Windows**: double-click \`install.exe\`
+   - **macOS**: \`chmod +x install-macos && ./install-macos\`
+   - **Linux**: \`chmod +x install-linux && ./install-linux\`
+   - **Headless / SSH**: \`chmod +x install.sh && ./install.sh\`
 
-To restore from a backup instead of a fresh install, run
-\`./install.sh --restore\` (matches DR runbook 5.5.4).
+   Every installer checks Docker prerequisites, copies \`.env.template\` to
+   \`.env\` (only if missing — idempotent), runs \`docker compose up -d\`,
+   waits for the app to report healthy, and prints (and opens) the URL for
+   the Setup Wizard.
+4. Paste \`activation-bundle.json\` when the wizard asks for it.
+
+To restore from a backup instead of a fresh install, pass \`--restore\` to
+whichever installer you are running (matches DR runbook 5.5.4).
 
 
 ## Support
