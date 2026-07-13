@@ -8,6 +8,13 @@ import {
   LifeBuoy,
   Settings,
   Building2,
+  Package,
+  Download,
+  ClipboardCheck,
+  Rocket,
+  FileText,
+  CreditCard,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -51,20 +58,92 @@ const GROWTH: Item[] = [
     icon: Building2,
     desc: "Lista tenants OPSQAI · plan, status, utilizare, acțiuni.",
   },
+  {
+    title: "Installations",
+    url: "/app/admin/installations",
+    icon: Package,
+    desc: "Installs înregistrate, heartbeat, versiune installer.",
+  },
+  {
+    title: "Contacts",
+    url: "/app/admin/contacts",
+    icon: UserPlus,
+    desc: "Contact comercial și tehnic per client.",
+  },
+  {
+    title: "Monitoring",
+    url: "/app/admin/monitoring",
+    icon: Activity,
+    desc: "Fleet health, drift instalări, semnale live.",
+  },
+];
+
+const LICENSING: Item[] = [
+  {
+    title: "Licenses & Releases",
+    url: "/app/platform/licenses",
+    icon: KeyRound,
+    desc: "Licențe + module + subscription lifecycle.",
+  },
+  {
+    title: "Module Catalog",
+    url: "/app/admin/module-catalog",
+    icon: ClipboardCheck,
+    desc: "Catalog frozen de module vandabile.",
+  },
+  {
+    title: "Release Management",
+    url: "/app/admin/release-management",
+    icon: Rocket,
+    desc: "Installer builds, signing, canale rollout.",
+  },
+  {
+    title: "Maintenance",
+    url: "/app/admin/maintenance",
+    icon: Wrench,
+    desc: "Ferestre de mentenanță, expirări, renewals.",
+  },
+  {
+    title: "Downloads",
+    url: "/app/admin/downloads",
+    icon: Download,
+    desc: "Installer releases + activation packages servite clienților.",
+  },
+];
+
+const COMMERCIAL: Item[] = [
+  {
+    title: "Orders & Subscriptions",
+    url: "/app/admin/subscriptions",
+    icon: Package,
+    desc: "Comenzi, abonamente și evenimente billing.",
+  },
+  {
+    title: "Billing",
+    url: "/app/admin/billing",
+    icon: CreditCard,
+    desc: "€15,000 produs one-off + mentenanță €200–€500/lună + module extra.",
+  },
+  {
+    title: "Support Inbox",
+    url: "/app/admin/support",
+    icon: LifeBuoy,
+    desc: "Tickete și conversații cu clienții.",
+  },
 ];
 
 const OPERATIONS: Item[] = [
   {
-    title: "Licențe & Billing",
-    url: "/app/platform/licenses",
-    icon: KeyRound,
-    desc: "Licențe + module + subscription lifecycle (trial, grace, suspend).",
+    title: "Enterprise Documents",
+    url: "/app/admin/customers",
+    icon: FileText,
+    desc: "Contract, DPA, ISO — per client.",
   },
   {
     title: "Setup",
     url: "/app/platform/setup",
     icon: Wrench,
-    desc: "Checklist configurare MC + releases installer.",
+    desc: "Checklist configurare MC.",
   },
   {
     title: "Doctor",
@@ -80,6 +159,12 @@ const SYSTEM: Item[] = [
     url: "/app/admin/platform-admins",
     icon: Settings,
     desc: "Platform admins, roluri și permisiuni MC.",
+  },
+  {
+    title: "Platform Administration",
+    url: "/app/admin/platform",
+    icon: ShieldCheck,
+    desc: "Setări globale platform.",
   },
   {
     title: "Recovery",
@@ -185,6 +270,8 @@ export function PlatformSidebar() {
 
       <SidebarContent className="bg-[#0a0a0a]">
         <Group label="Growth" items={GROWTH} currentPath={currentPath} collapsed={collapsed} />
+        <Group label="Licensing" items={LICENSING} currentPath={currentPath} collapsed={collapsed} />
+        <Group label="Commercial" items={COMMERCIAL} currentPath={currentPath} collapsed={collapsed} />
         <Group label="Operations" items={OPERATIONS} currentPath={currentPath} collapsed={collapsed} />
         <Group label="System" items={SYSTEM} currentPath={currentPath} collapsed={collapsed} />
       </SidebarContent>

@@ -31,6 +31,8 @@ import {
   Rocket,
   ShieldAlert,
   Webhook,
+  Activity,
+  Download,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
@@ -100,8 +102,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (!isMC) return;
     const allowed =
       currentPath.startsWith("/app/platform") ||
+      currentPath.startsWith("/app/admin") ||
       currentPath.startsWith("/app/profile") ||
-      currentPath.startsWith("/app/docs");
+      currentPath.startsWith("/app/docs") ||
+      currentPath.startsWith("/app/brand") ||
+      currentPath.startsWith("/portal");
     if (!allowed) {
       navigate({ to: "/app/platform/overview", replace: true });
     }
@@ -134,6 +139,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   // ---- Self-hosted (customer operational) navigation ----
+  // Basic bundle (always visible): Overview, Chat, KB, FAQ, Knowledge Gaps,
+  // AI Audit, Users, Subscription. Every other admin/operational item is
+  // hidden until the customer licenses the matching module (gate via
+  // `module` key + `filterNav`). No item definitions are removed — only the
+  // gate values decide visibility.
   const selfhostWorkspace: NavItem[] = [
     {
       to: "/app",
@@ -151,13 +161,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       module: "chat",
     },
     {
-      to: "/app/workspace",
-      label: t("workspace"),
-      icon: Sparkles,
-      show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
-      module: null,
-    },
-    {
       to: "/app/knowledge",
       label: t("knowledge"),
       icon: BookOpen,
@@ -170,6 +173,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       icon: HelpCircle,
       show: hasAnyPermission("faq.read", "faq.edit"),
       module: "faq",
+    },
+    {
+      to: "/app/workspace",
+      label: t("workspace"),
+      icon: Sparkles,
+      show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
+      module: "ai_workspace_audit",
     },
     {
       to: "/app/requests",
@@ -185,22 +195,43 @@ export function AppShell({ children }: { children: ReactNode }) {
       show: hasPermission("academy.learn"),
       module: "academy",
     },
+    {
+      to: "/app/subscription",
+      label: "Subscription",
+      icon: Package,
+      show: true,
+      module: null,
+    },
   ];
 
   const selfhostAdmin: NavItem[] = [
+    {
+      to: "/app/admin/knowledge-gaps",
+      label: "Knowledge Gaps",
+      icon: AlertTriangle,
+      show: hasAnyPermission("knowledge.manage", "analytics.view"),
+      module: null, // Basic per business rule
+    },
+    {
+      to: "/app/admin/ai-audit",
+      label: "AI Audit",
+      icon: LineChart,
+      show: hasPermission("ai_audit.run"),
+      module: null, // Basic per business rule
+    },
+    {
+      to: "/app/admin/users",
+      label: t("users"),
+      icon: Users,
+      show: hasAnyPermission("user.create", "user.update", "user.delete"),
+      module: null, // Basic per business rule
+    },
     {
       to: "/app/admin/command-center",
       label: "Command Center",
       icon: LayoutDashboard,
       show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"),
       module: "executive_dashboard",
-    },
-    {
-      to: "/app/admin/knowledge-gaps",
-      label: "Knowledge Gaps",
-      icon: AlertTriangle,
-      show: hasAnyPermission("knowledge.manage", "analytics.view"),
-      module: "knowledge_gaps",
     },
     {
       to: "/app/admin/sop-generator",
@@ -221,28 +252,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: "Analytics",
       icon: BarChart3,
       show: hasPermission("analytics.view"),
-      module: null,
-    },
-    {
-      to: "/app/admin/ai-audit",
-      label: "AI Audit",
-      icon: LineChart,
-      show: hasPermission("ai_audit.run"),
-      module: "audit_log",
-    },
-    {
-      to: "/app/admin/users",
-      label: t("users"),
-      icon: Users,
-      show: hasAnyPermission("user.create", "user.update", "user.delete"),
-      module: null,
+      module: "analytics",
     },
     {
       to: "/app/admin/integrations",
       label: "Integrations",
       icon: Sparkles,
       show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: null,
+      module: "rbac",
     },
     {
       to: "/app/admin/sso-setup",
@@ -256,14 +273,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: "Webhooks",
       icon: Webhook,
       show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: null,
+      module: "rbac",
     },
     {
       to: "/app/admin/api-keys",
       label: "API keys",
       icon: KeyRound,
       show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: null,
+      module: "rbac",
     },
     {
       to: "/app/brand",
@@ -308,6 +325,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         ]
       : [];
 
+
   // ---- Management Center (platform management ONLY) navigation ----
   const mcAdmin = isPlatformAdmin || isPlatformOwner;
 
@@ -334,9 +352,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       show: mcAdmin,
       module: null,
     },
+    {
+      to: "/app/admin/monitoring",
+      label: "Monitoring",
+      icon: Activity,
+      show: mcAdmin,
+      module: null,
+    },
   ];
 
-  const mcCommercial: NavItem[] = mcAdmin
+  const mcEnterprise: NavItem[] = mcAdmin
     ? [
         {
           to: "/app/admin/companies",
@@ -353,8 +378,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           module: null,
         },
         {
-          to: "/app/admin/subscriptions",
-          label: "Orders & Subscriptions",
+          to: "/app/admin/contacts",
+          label: "Contacts",
+          icon: Users,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/installations",
+          label: "Installations",
           icon: Package,
           show: true,
           module: null,
@@ -376,6 +408,53 @@ export function AppShell({ children }: { children: ReactNode }) {
           to: "/app/platform/license-activation",
           label: "Activation Bundles",
           icon: Package,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/module-catalog",
+          label: "Module Catalog",
+          icon: ClipboardCheck,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/release-management",
+          label: "Release Management",
+          icon: Rocket,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/maintenance",
+          label: "Maintenance",
+          icon: Wrench,
+          show: true,
+          module: null,
+        },
+      ]
+    : [];
+
+  const mcCommercial: NavItem[] = mcAdmin
+    ? [
+        {
+          to: "/app/admin/subscriptions",
+          label: "Orders & Subscriptions",
+          icon: Package,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/billing",
+          label: "Billing",
+          icon: KeyRound,
+          show: true,
+          module: null,
+        },
+        {
+          to: "/app/admin/downloads",
+          label: "Downloads",
+          icon: Download,
           show: true,
           module: null,
         },
@@ -467,14 +546,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       ]
     : [];
 
+
   const filterNav = (items: NavItem[]) => items.filter((i) => i.show && gate(i.module ?? null));
 
   // Assemble grouped nav sections based on deployment mode.
   const sections: Array<{ label: string; items: NavItem[] }> = isMC
     ? [
         { label: "Overview", items: filterNav(mcOverview) },
+        { label: "Enterprise", items: filterNav(mcEnterprise) },
+        { label: "Licensing", items: filterNav(mcLicensing) },
         { label: "Commercial", items: filterNav(mcCommercial) },
-        { label: "Licensing & Releases", items: filterNav(mcLicensing) },
         { label: "Operations", items: filterNav(mcOperations) },
         { label: "Integrations & API", items: filterNav(mcIntegrations) },
         { label: "Platform", items: filterNav(mcPlatformAdmin) },
