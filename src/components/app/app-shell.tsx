@@ -31,6 +31,8 @@ import {
   Rocket,
   ShieldAlert,
   Webhook,
+  Activity,
+  Download,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
