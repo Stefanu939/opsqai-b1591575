@@ -23,32 +23,66 @@ import installLinuxAsset from "@/assets/install-linux.asset.json";
 // generated ZIP embeds them verbatim.
 const binaryCache = new Map<string, Uint8Array>();
 
+async function resolveOrigin(): Promise<string | null> {
+  if (typeof process !== "undefined" && process.env?.OPSQAI_ASSET_ORIGIN) {
+    return process.env.OPSQAI_ASSET_ORIGIN;
+  }
+  // Derive origin from the active server request (Cloudflare Worker).
+  // Dynamic import: unavailable / throws outside a request (Vitest, module-eval).
+  try {
+    const mod = (await import("@tanstack/react-start/server")) as {
+      getRequestUrl?: () => URL;
+      getRequestHost?: () => string;
+    };
+    if (mod.getRequestUrl) {
+      return mod.getRequestUrl().origin;
+    }
+    if (mod.getRequestHost) {
+      return `https://${mod.getRequestHost()}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchAsset(url: string, localFallback: string): Promise<Uint8Array> {
   const cached = binaryCache.get(url);
   if (cached) return cached;
-  const origin =
-    typeof process !== "undefined" && process.env?.OPSQAI_ASSET_ORIGIN
-      ? process.env.OPSQAI_ASSET_ORIGIN
-      : "";
-  const fullUrl = url.startsWith("http") ? url : `${origin}${url}`;
-  try {
-    const res = await fetch(fullUrl);
-    if (!res.ok) throw new Error(`status ${res.status}`);
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    binaryCache.set(url, bytes);
-    return bytes;
-  } catch (fetchErr) {
-    // Vitest / local Node runs have no origin to resolve /__l5e/ URLs against.
-    // Fall back to reading the pre-built binary from installer/dist/ so tests
-    // and dev builds work without a live CDN.
+
+  const isAbsolute = url.startsWith("http://") || url.startsWith("https://");
+  const origin = isAbsolute ? null : await resolveOrigin();
+
+  if (isAbsolute || origin) {
+    const fullUrl = isAbsolute ? url : `${origin}${url}`;
     try {
-      const { readFileSync } = await import("node:fs");
-      const bytes = new Uint8Array(readFileSync(localFallback));
+      const res = await fetch(fullUrl);
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      const bytes = new Uint8Array(await res.arrayBuffer());
       binaryCache.set(url, bytes);
       return bytes;
-    } catch {
-      throw new Error(`Failed to fetch installer asset ${url}: ${(fetchErr as Error).message}`);
+    } catch (fetchErr) {
+      try {
+        const { readFileSync } = await import("node:fs");
+        const bytes = new Uint8Array(readFileSync(localFallback));
+        binaryCache.set(url, bytes);
+        return bytes;
+      } catch {
+        throw new Error(`Failed to fetch installer asset ${fullUrl}: ${(fetchErr as Error).message}`);
+      }
     }
+  }
+
+  // No origin (Vitest / local Node): read pre-built binary directly.
+  try {
+    const { readFileSync } = await import("node:fs");
+    const bytes = new Uint8Array(readFileSync(localFallback));
+    binaryCache.set(url, bytes);
+    return bytes;
+  } catch (err) {
+    throw new Error(
+      `Failed to load installer asset ${url}: no request origin and local fallback ${localFallback} unavailable (${(err as Error).message})`,
+    );
   }
 }
 
