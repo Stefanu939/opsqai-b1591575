@@ -102,7 +102,7 @@ describe("assembleInstallationPackage", () => {
     const files = unzipSync(bytes);
     const cmd = strFromU8(files["install-windows.cmd"]);
     expect(cmd).toContain("install.exe");
-    expect(cmd).toContain("--no-pause");
+    expect(cmd).toContain("OPSQAI_INSTALLER_NO_PAUSE=1");
     expect(cmd).toContain("pause");
   });
 

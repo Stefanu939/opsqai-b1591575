@@ -377,7 +377,8 @@ if not exist "install.exe" (
   exit /b 1
 )
 
-"%~dp0install.exe" --no-pause %*
+set "OPSQAI_INSTALLER_NO_PAUSE=1"
+"%~dp0install.exe" %*
 set "EXITCODE=%ERRORLEVEL%"
 echo.
 if not "%EXITCODE%"=="0" echo [opsqai] Installer failed with exit code %EXITCODE%.

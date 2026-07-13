@@ -34,6 +34,9 @@ const usage = `OPSQAI Self-Hosted installer
 
 func main() {
 	exitCode, noPause := run(os.Args[1:])
+	if os.Getenv("OPSQAI_INSTALLER_NO_PAUSE") == "1" {
+		noPause = true
+	}
 	if !noPause {
 		pauseBeforeExit(exitCode)
 	}
