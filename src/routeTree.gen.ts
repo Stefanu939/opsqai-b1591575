@@ -142,6 +142,7 @@ import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_au
 import { Route as AuthenticatedAppAdminCustomersRouteImport } from './routes/_authenticated/app.admin.customers'
 import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
 import { Route as AuthenticatedAppAdminCommandCenterRouteImport } from './routes/_authenticated/app.admin.command-center'
+import { Route as AuthenticatedAppAdminBillingRouteImport } from './routes/_authenticated/app.admin.billing'
 import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
 import { Route as AuthenticatedAppAdminApiKeysRouteImport } from './routes/_authenticated/app.admin.api-keys'
 import { Route as AuthenticatedAppAdminApiDocsRouteImport } from './routes/_authenticated/app.admin.api-docs'
@@ -880,6 +881,12 @@ const AuthenticatedAppAdminCommandCenterRoute =
     path: '/admin/command-center',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminBillingRoute =
+  AuthenticatedAppAdminBillingRouteImport.update({
+    id: '/admin/billing',
+    path: '/admin/billing',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminAuditRoute =
   AuthenticatedAppAdminAuditRouteImport.update({
     id: '/admin/audit',
@@ -1104,6 +1111,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/api-docs': typeof AuthenticatedAppAdminApiDocsRoute
   '/app/admin/api-keys': typeof AuthenticatedAppAdminApiKeysRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
+  '/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
   '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
@@ -1252,6 +1260,7 @@ export interface FileRoutesByTo {
   '/app/admin/api-docs': typeof AuthenticatedAppAdminApiDocsRoute
   '/app/admin/api-keys': typeof AuthenticatedAppAdminApiKeysRoute
   '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
+  '/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
   '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
@@ -1408,6 +1417,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/api-docs': typeof AuthenticatedAppAdminApiDocsRoute
   '/_authenticated/app/admin/api-keys': typeof AuthenticatedAppAdminApiKeysRoute
   '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
+  '/_authenticated/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
   '/_authenticated/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
   '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
   '/_authenticated/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
@@ -1564,6 +1574,7 @@ export interface FileRouteTypes {
     | '/app/admin/api-docs'
     | '/app/admin/api-keys'
     | '/app/admin/audit'
+    | '/app/admin/billing'
     | '/app/admin/command-center'
     | '/app/admin/companies'
     | '/app/admin/customers'
@@ -1712,6 +1723,7 @@ export interface FileRouteTypes {
     | '/app/admin/api-docs'
     | '/app/admin/api-keys'
     | '/app/admin/audit'
+    | '/app/admin/billing'
     | '/app/admin/command-center'
     | '/app/admin/companies'
     | '/app/admin/customers'
@@ -1867,6 +1879,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/api-docs'
     | '/_authenticated/app/admin/api-keys'
     | '/_authenticated/app/admin/audit'
+    | '/_authenticated/app/admin/billing'
     | '/_authenticated/app/admin/command-center'
     | '/_authenticated/app/admin/companies'
     | '/_authenticated/app/admin/customers'
@@ -2910,6 +2923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminCommandCenterRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/billing': {
+      id: '/_authenticated/app/admin/billing'
+      path: '/admin/billing'
+      fullPath: '/app/admin/billing'
+      preLoaderRoute: typeof AuthenticatedAppAdminBillingRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/audit': {
       id: '/_authenticated/app/admin/audit'
       path: '/admin/audit'
@@ -3178,6 +3198,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminApiDocsRoute: typeof AuthenticatedAppAdminApiDocsRoute
   AuthenticatedAppAdminApiKeysRoute: typeof AuthenticatedAppAdminApiKeysRoute
   AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
+  AuthenticatedAppAdminBillingRoute: typeof AuthenticatedAppAdminBillingRoute
   AuthenticatedAppAdminCommandCenterRoute: typeof AuthenticatedAppAdminCommandCenterRoute
   AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
   AuthenticatedAppAdminCustomersRoute: typeof AuthenticatedAppAdminCustomersRoute
@@ -3228,6 +3249,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminApiDocsRoute: AuthenticatedAppAdminApiDocsRoute,
   AuthenticatedAppAdminApiKeysRoute: AuthenticatedAppAdminApiKeysRoute,
   AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
+  AuthenticatedAppAdminBillingRoute: AuthenticatedAppAdminBillingRoute,
   AuthenticatedAppAdminCommandCenterRoute:
     AuthenticatedAppAdminCommandCenterRoute,
   AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
