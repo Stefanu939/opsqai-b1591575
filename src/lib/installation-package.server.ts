@@ -418,9 +418,9 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
   // Native installer binaries live in Lovable Assets (too large for the
   // repo). Fetched in parallel and cached per-Worker-instance.
   const [installExe, installMacos, installLinux] = await Promise.all([
-    fetchAsset(installExeAsset.url),
-    fetchAsset(installMacosAsset.url),
-    fetchAsset(installLinuxAsset.url),
+    fetchAsset(installExeAsset.url, "installer/dist/install.exe"),
+    fetchAsset(installMacosAsset.url, "installer/dist/install-macos"),
+    fetchAsset(installLinuxAsset.url, "installer/dist/install-linux"),
   ]);
 
   const files: Record<string, Uint8Array> = {
