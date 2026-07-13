@@ -19,10 +19,11 @@ The ZIP contains:
 
 | File | Purpose |
 | --- | --- |
+| `install.sh` | **Host-side installer — run this first.** Checks prerequisites, seeds `.env`, starts the stack, waits for health, prints the Setup Wizard URL. Also supports `--restore` (DR runbook 5.5.4) |
 | `docker-compose.yml` | Reference topology (opsqai + postgres + minio) |
-| `.env.template` | Copy to `.env`. `OPSQAI_INSTALL_ID` is pre-filled; secrets are marked `__CHANGE_ME__` |
+| `.env.template` | Copied to `.env` by `install.sh`. `OPSQAI_INSTALL_ID` is pre-filled; infra secrets are marked `__CHANGE_ME__` |
 | `activation-bundle.json` | Ed25519-signed license bundle (install + module tokens + CRL) |
-| `entrypoint.sh` | Auto-generates infra secrets on first boot |
+| `entrypoint.sh` | Runs *inside* the container; auto-generates infra secrets on first boot |
 | `README.md` | Quick-start printed with your `install_id` and installer version |
 | `CHECKSUMS.sha256` | Per-file SHA-256 checksums |
 
@@ -36,19 +37,26 @@ unzip ~/opsqai-<installer_version>-<install_id>.zip
 # 2. Verify checksums BEFORE running anything
 sha256sum -c CHECKSUMS.sha256   # every line must say OK
 
-# 3. Configure
-cp .env.template .env
-# edit .env — set OPSQAI_PUBLIC_URL. You may leave POSTGRES_PASSWORD and
-# MINIO_ROOT_PASSWORD as __CHANGE_ME__; entrypoint.sh will generate strong
-# random values on first boot and persist them to the customer-owned data
-# volume. OPSQAI never holds these secrets — see AD-009.
+# 3. Run the host-side installer
+chmod +x install.sh
+./install.sh
+# install.sh:
+#   - verifies docker + docker compose plugin are installed
+#   - copies .env.template -> .env (idempotent; skipped if .env exists)
+#   - runs 'docker compose up -d'
+#   - polls the app's /health endpoint until it reports healthy
+#   - prints the URL to open the Setup Wizard
 
-# 4. Start
-docker compose up -d
+# 4. Open the printed URL and paste activation-bundle.json when asked.
 
-# 5. Verify
+# 5. Verify post-setup with the doctor tool
 docker compose exec opsqai opsqai doctor
 ```
+
+To restore from a backup instead of a fresh install, run `./install.sh --restore`.
+This matches DR runbook section 5.5.4 and prompts for the backup archive path
+instead of overwriting `.env` or starting a fresh stack.
+
 
 ## Regeneration
 
