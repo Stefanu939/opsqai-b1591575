@@ -927,9 +927,11 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
       })
       .eq("id", attempt.id);
 
-    // Update progress
+    // Update progress. SECURITY: status='completed'/completed_at/last_score
+    // are guarded by a BEFORE INSERT/UPDATE trigger that rejects non-service-
+    // role writes, so use supabaseAdmin here (caller already authorized above).
     if (data.enrollment_id) {
-      const { data: existing } = await (context.supabase as any)
+      const { data: existing } = await (supabaseAdmin as any)
         .from("academy_lesson_progress")
         .select("id, attempts, time_spent_seconds")
         .eq("enrollment_id", data.enrollment_id)
@@ -938,7 +940,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
       const baseAttempts = (existing?.attempts ?? 0) + 1;
       const baseTime = (existing?.time_spent_seconds ?? 0) + (data.time_spent_seconds ?? 0);
       if (existing) {
-        await (context.supabase as any)
+        await (supabaseAdmin as any)
           .from("academy_lesson_progress")
           .update({
             attempts: baseAttempts,
@@ -950,7 +952,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
           })
           .eq("id", existing.id);
       } else {
-        await (context.supabase as any).from("academy_lesson_progress").insert({
+        await (supabaseAdmin as any).from("academy_lesson_progress").insert({
           company_id: (lesson as any).company_id,
           enrollment_id: data.enrollment_id,
           lesson_id: attempt.lesson_id,
