@@ -120,11 +120,28 @@ export interface BuiltPackage {
 export async function assembleInstallationPackage(input: BuildPackageInput): Promise<BuiltPackage> {
   const generatedAt = new Date().toISOString();
 
-  // Native Windows installer lives in Lovable Assets (too large for the
-  // repo). Fetched and cached per-Worker-instance.
-  const sourceUrl = installerSourceUrl();
-  const setupExe = await fetchAsset(sourceUrl, "opsqai-windows/build/artifacts/OPSQAI-Setup.exe");
+  // Primary source: newest GitHub Release ZIP (auto-detected, no manual
+  // asset update). Falls back to the CDN-hosted asset when GitHub is
+  // unreachable or the repo has no eligible release yet.
+  let setupExe: Uint8Array | null = null;
+  let sourceUrl = "github:latest";
+  try {
+    const { resolveLatestInstaller } = await import("@/lib/github-installer-release.server");
+    const latest = await resolveLatestInstaller();
+    if (latest) {
+      setupExe = latest.exe_bytes;
+      sourceUrl = `github:${latest.tag_name}`;
+    }
+  } catch (err) {
+    console.warn("installer_github_lookup_failed", (err as Error).message);
+  }
+
+  if (!setupExe) {
+    sourceUrl = installerSourceUrl();
+    setupExe = await fetchAsset(sourceUrl, "opsqai-windows/build/artifacts/OPSQAI-Setup.exe");
+  }
   assertRealWindowsInstaller(setupExe, sourceUrl);
+
 
   const files: Record<string, Uint8Array> = {
     "OPSQAI-Setup.exe": setupExe,
