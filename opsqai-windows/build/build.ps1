@@ -138,7 +138,34 @@ if (-not $SkipWizard) {
 # --- 3. Service entrypoints -----------------------------------------------
 Copy-Item -Recurse -Force (Join-Path $root 'services') (Join-Path $payload 'services')
 
-# --- 4. Caddy --------------------------------------------------------------
+# --- 3b. Admin tools (service manager + docker migrator) ------------------
+$toolsDest = Join-Path $payload 'tools'
+Copy-Item -Recurse -Force (Join-Path $root 'tools') $toolsDest
+$binDir = Join-Path $toolsDest 'bin'
+New-Item -ItemType Directory -Force -Path $binDir | Out-Null
+Copy-Item (Join-Path $toolsDest 'service-manager\opsqai.cmd')          (Join-Path $binDir 'opsqai.cmd')          -Force
+Copy-Item (Join-Path $toolsDest 'docker-migrator\opsqai-migrate.cmd')  (Join-Path $binDir 'opsqai-migrate.cmd')  -Force
+
+# --- 3c. Updater signing key ----------------------------------------------
+# The pinned Ed25519 public key MUST be present before shipping. In CI the
+# key is materialised from a secret; local dev builds fall back to a
+# generated throwaway key so smoke tests pass — this key is not trusted for
+# production releases.
+$updaterDir = Join-Path $payload 'updater'
+New-Item -ItemType Directory -Force -Path $updaterDir | Out-Null
+$pubKey = Join-Path $updaterDir 'pubkey.pem'
+if (-not (Test-Path $pubKey)) {
+  Write-Warning "No updater pubkey found at $pubKey — generating a DEV-ONLY key. Do NOT ship this build."
+  $tmpPriv = Join-Path $env:TEMP 'opsqai-dev-priv.pem'
+  & openssl genpkey -algorithm ed25519 -out $tmpPriv 2>$null
+  if ($LASTEXITCODE -eq 0) {
+    & openssl pkey -in $tmpPriv -pubout -out $pubKey
+    Remove-Item $tmpPriv -Force -ErrorAction SilentlyContinue
+  } else {
+    "-----BEGIN PUBLIC KEY-----`nDEV-PLACEHOLDER`n-----END PUBLIC KEY-----" | Set-Content $pubKey
+  }
+}
+
 $caddyVersion = '2.8.4'
 $caddyDir = Join-Path $payload 'caddy'
 if (-not (Test-Path (Join-Path $caddyDir 'caddy.exe'))) {
