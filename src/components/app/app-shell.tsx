@@ -550,8 +550,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const sections: Array<{ label: string; items: NavItem[] }> = isMC
     ? [
         { label: "Overview", items: filterNav(mcOverview) },
+        { label: "Enterprise", items: filterNav(mcEnterprise) },
+        { label: "Licensing", items: filterNav(mcLicensing) },
         { label: "Commercial", items: filterNav(mcCommercial) },
-        { label: "Licensing & Releases", items: filterNav(mcLicensing) },
         { label: "Operations", items: filterNav(mcOperations) },
         { label: "Integrations & API", items: filterNav(mcIntegrations) },
         { label: "Platform", items: filterNav(mcPlatformAdmin) },
