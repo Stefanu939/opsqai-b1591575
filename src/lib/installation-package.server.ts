@@ -449,14 +449,12 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
     ".env.template": strToU8(substitutions(ENV_TEMPLATE)),
     "entrypoint.sh": strToU8(ENTRYPOINT_SH),
     "activation-bundle.json": strToU8(JSON.stringify(input.bundle, null, 2)),
-    "README.md": strToU8(
-      renderReadme({
-        install_id: input.install_id,
-        installer_version: input.installer_version,
-        generated_at: generatedAt,
-        company_name: input.company_name,
-      }),
-    ),
+    "README.pdf": await renderReadmePdf({
+      install_id: input.install_id,
+      installer_version: input.installer_version,
+      generated_at: generatedAt,
+      company_name: input.company_name,
+    }),
   };
 
   // Deterministic CHECKSUMS.sha256 (files sorted by name)
