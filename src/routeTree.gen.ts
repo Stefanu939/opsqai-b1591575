@@ -134,6 +134,7 @@ import { Route as AuthenticatedAppAdminSsoSetupRouteImport } from './routes/_aut
 import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/_authenticated/app.admin.sop-generator'
 import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
 import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
+import { Route as AuthenticatedAppAdminModuleCatalogRouteImport } from './routes/_authenticated/app.admin.module-catalog'
 import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
 import { Route as AuthenticatedAppAdminIntegrationsRouteImport } from './routes/_authenticated/app.admin.integrations'
 import { Route as AuthenticatedAppAdminEmailLogsRouteImport } from './routes/_authenticated/app.admin.email-logs'
@@ -833,6 +834,12 @@ const AuthenticatedAppAdminPlatformRoute =
     path: '/admin/platform',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminModuleCatalogRoute =
+  AuthenticatedAppAdminModuleCatalogRouteImport.update({
+    id: '/admin/module-catalog',
+    path: '/admin/module-catalog',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAdminKnowledgeGapsRoute =
   AuthenticatedAppAdminKnowledgeGapsRouteImport.update({
     id: '/admin/knowledge-gaps',
@@ -1120,6 +1127,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
   '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
@@ -1269,6 +1277,7 @@ export interface FileRoutesByTo {
   '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
   '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
   '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
@@ -1426,6 +1435,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
   '/_authenticated/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  '/_authenticated/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
   '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
   '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
   '/_authenticated/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
@@ -1583,6 +1593,7 @@ export interface FileRouteTypes {
     | '/app/admin/email-logs'
     | '/app/admin/integrations'
     | '/app/admin/knowledge-gaps'
+    | '/app/admin/module-catalog'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/sop-generator'
@@ -1732,6 +1743,7 @@ export interface FileRouteTypes {
     | '/app/admin/email-logs'
     | '/app/admin/integrations'
     | '/app/admin/knowledge-gaps'
+    | '/app/admin/module-catalog'
     | '/app/admin/platform'
     | '/app/admin/platform-admins'
     | '/app/admin/sop-generator'
@@ -1888,6 +1900,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/email-logs'
     | '/_authenticated/app/admin/integrations'
     | '/_authenticated/app/admin/knowledge-gaps'
+    | '/_authenticated/app/admin/module-catalog'
     | '/_authenticated/app/admin/platform'
     | '/_authenticated/app/admin/platform-admins'
     | '/_authenticated/app/admin/sop-generator'
@@ -2867,6 +2880,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAdminPlatformRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/admin/module-catalog': {
+      id: '/_authenticated/app/admin/module-catalog'
+      path: '/admin/module-catalog'
+      fullPath: '/app/admin/module-catalog'
+      preLoaderRoute: typeof AuthenticatedAppAdminModuleCatalogRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/admin/knowledge-gaps': {
       id: '/_authenticated/app/admin/knowledge-gaps'
       path: '/admin/knowledge-gaps'
@@ -3207,6 +3227,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminEmailLogsRoute: typeof AuthenticatedAppAdminEmailLogsRoute
   AuthenticatedAppAdminIntegrationsRoute: typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
   AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
+  AuthenticatedAppAdminModuleCatalogRoute: typeof AuthenticatedAppAdminModuleCatalogRoute
   AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
   AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
   AuthenticatedAppAdminSopGeneratorRoute: typeof AuthenticatedAppAdminSopGeneratorRoute
@@ -3261,6 +3282,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAdminIntegrationsRouteWithChildren,
   AuthenticatedAppAdminKnowledgeGapsRoute:
     AuthenticatedAppAdminKnowledgeGapsRoute,
+  AuthenticatedAppAdminModuleCatalogRoute:
+    AuthenticatedAppAdminModuleCatalogRoute,
   AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
   AuthenticatedAppAdminPlatformAdminsRoute:
     AuthenticatedAppAdminPlatformAdminsRoute,
