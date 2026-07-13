@@ -17,7 +17,7 @@ import type { ActivationBundle } from "@/lib/license-activation.functions";
 import installExeAsset from "@/assets/install-exe.asset.json";
 import installMacosAsset from "@/assets/install-macos.asset.json";
 import installLinuxAsset from "@/assets/install-linux.asset.json";
-import { renderReadmePdf } from "@/lib/installation-readme.server";
+import { renderReadmeMarkdown } from "@/lib/installation-readme.server";
 
 // Installer binaries live in Lovable Assets (CDN) because they exceed the
 // per-file repo limit. Fetched once per Worker instance and cached — the
