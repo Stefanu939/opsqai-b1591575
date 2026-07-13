@@ -7,7 +7,6 @@ import {
   Rocket,
   Activity,
   LifeBuoy,
-  Wrench,
   Settings,
   Building2,
 } from "lucide-react";
