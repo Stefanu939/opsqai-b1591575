@@ -89,6 +89,7 @@ import { Route as AuthenticatedPortalTicketsRouteImport } from './routes/_authen
 import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
 import { Route as AuthenticatedPortalContractRouteImport } from './routes/_authenticated/portal.contract'
+import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppPlatformRouteImport } from './routes/_authenticated/app.platform'
@@ -569,6 +570,12 @@ const AuthenticatedPortalContractRoute =
     id: '/contract',
     path: '/contract',
     getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedAppSubscriptionRoute =
+  AuthenticatedAppSubscriptionRouteImport.update({
+    id: '/subscription',
+    path: '/subscription',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppRequestsRoute =
   AuthenticatedAppRequestsRouteImport.update({
@@ -1068,6 +1075,7 @@ export interface FileRoutesByFullPath {
   '/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/portal/contract': typeof AuthenticatedPortalContractRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
@@ -1215,6 +1223,7 @@ export interface FileRoutesByTo {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/portal/contract': typeof AuthenticatedPortalContractRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
@@ -1370,6 +1379,7 @@ export interface FileRoutesById {
   '/_authenticated/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
+  '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/portal/contract': typeof AuthenticatedPortalContractRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
@@ -1525,6 +1535,7 @@ export interface FileRouteTypes {
     | '/app/platform'
     | '/app/profile'
     | '/app/requests'
+    | '/app/subscription'
     | '/portal/contract'
     | '/portal/downloads'
     | '/portal/release-notes'
@@ -1672,6 +1683,7 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/profile'
     | '/app/requests'
+    | '/app/subscription'
     | '/portal/contract'
     | '/portal/downloads'
     | '/portal/release-notes'
@@ -1826,6 +1838,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/platform'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
+    | '/_authenticated/app/subscription'
     | '/_authenticated/portal/contract'
     | '/_authenticated/portal/downloads'
     | '/_authenticated/portal/release-notes'
@@ -2526,6 +2539,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalContractRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/app/subscription': {
+      id: '/_authenticated/app/subscription'
+      path: '/subscription'
+      fullPath: '/app/subscription'
+      preLoaderRoute: typeof AuthenticatedAppSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/requests': {
       id: '/_authenticated/app/requests'
       path: '/requests'
@@ -3144,6 +3164,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPlatformRoute: typeof AuthenticatedAppPlatformRouteWithChildren
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
+  AuthenticatedAppSubscriptionRoute: typeof AuthenticatedAppSubscriptionRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppAcademyAnalyticsRoute: typeof AuthenticatedAppAcademyAnalyticsRoute
   AuthenticatedAppAcademyCertificatesRoute: typeof AuthenticatedAppAcademyCertificatesRoute
@@ -3192,6 +3213,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPlatformRoute: AuthenticatedAppPlatformRouteWithChildren,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
+  AuthenticatedAppSubscriptionRoute: AuthenticatedAppSubscriptionRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppAcademyAnalyticsRoute: AuthenticatedAppAcademyAnalyticsRoute,
   AuthenticatedAppAcademyCertificatesRoute:
