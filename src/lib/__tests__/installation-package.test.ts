@@ -25,8 +25,8 @@ describe("assembleInstallationPackage", () => {
     license_server_url: "https://opsqai.de",
   };
 
-  it("produces a ZIP that contains every required file", () => {
-    const { bytes, file_name, checksum_sha256 } = assembleInstallationPackage(input);
+  it("produces a ZIP that contains every required file", async () => {
+    const { bytes, file_name, checksum_sha256 } = await assembleInstallationPackage(input);
     expect(bytes.byteLength).toBeGreaterThan(100);
     expect(file_name).toBe("opsqai-1.0.0-acme-prod.zip");
     expect(checksum_sha256).toMatch(/^[0-9a-f]{64}$/);
@@ -60,8 +60,9 @@ describe("assembleInstallationPackage", () => {
     expect(parsedBundle.install_id).toBe("acme-prod");
     expect(parsedBundle.module_tokens).toHaveLength(1);
 
-    // Cross-platform installer binaries are present (placeholders until
-    // scripts/build-installer.sh regenerates them from Go source).
+    // Cross-platform installer binaries are present (fetched from Lovable
+    // Assets in production; local fs fallback in tests reads
+    // installer/dist/ placeholders when the CDN isn't reachable).
     expect(files["install.exe"].byteLength).toBeGreaterThan(0);
     expect(files["install-macos"].byteLength).toBeGreaterThan(0);
     expect(files["install-linux"].byteLength).toBeGreaterThan(0);
@@ -74,8 +75,8 @@ describe("assembleInstallationPackage", () => {
     }
   });
 
-  it("install.sh implements the host-side installer contract", () => {
-    const { bytes } = assembleInstallationPackage(input);
+  it("install.sh implements the host-side installer contract", async () => {
+    const { bytes } = await assembleInstallationPackage(input);
     const files = unzipSync(bytes);
     const sh = strFromU8(files["install.sh"]);
     // Prerequisite checks with actionable instructions
@@ -95,9 +96,9 @@ describe("assembleInstallationPackage", () => {
     expect(sh).toContain("opsqai restore");
   });
 
-  it("regeneration for the same install_id keeps install_id + file name stable", () => {
-    const a = assembleInstallationPackage(input);
-    const b = assembleInstallationPackage(input);
+  it("regeneration for the same install_id keeps install_id + file name stable", async () => {
+    const a = await assembleInstallationPackage(input);
+    const b = await assembleInstallationPackage(input);
     expect(a.file_name).toBe(b.file_name);
     // Content changes only via GENERATED_AT timestamp, so checksum may differ,
     // but the identity anchor (install_id) is stable.
@@ -109,8 +110,8 @@ describe("assembleInstallationPackage", () => {
     expect(bundleA.install_id).toBe("acme-prod");
   });
 
-  it("README announces the correct install_id and installer version", () => {
-    const { bytes } = assembleInstallationPackage(input);
+  it("README announces the correct install_id and installer version", async () => {
+    const { bytes } = await assembleInstallationPackage(input);
     const files = unzipSync(bytes);
     const readme = strFromU8(files["README.md"]);
     expect(readme).toContain("Install ID: **acme-prod**");
@@ -118,8 +119,8 @@ describe("assembleInstallationPackage", () => {
     expect(readme).toContain("Acme GmbH");
   });
 
-  it("entrypoint.sh generates infra secrets on first boot", () => {
-    const { bytes } = assembleInstallationPackage(input);
+  it("entrypoint.sh generates infra secrets on first boot", async () => {
+    const { bytes } = await assembleInstallationPackage(input);
     const files = unzipSync(bytes);
     const sh = strFromU8(files["entrypoint.sh"]);
     expect(sh).toContain("POSTGRES_PASSWORD");
