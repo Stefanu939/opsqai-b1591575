@@ -252,3 +252,57 @@ export function effectiveModules(licensed: string[] | null | undefined): ModuleK
   for (const k of licensed ?? []) if (isValidModuleKey(k)) set.add(k);
   return Array.from(set) as ModuleKey[];
 }
+
+// ─── Tier presets ─────────────────────────────────────────────────────────
+// Default add-on modules + seats + duration bundled with each tier at
+// onboarding time. These are UI defaults only — the admin can still override
+// per-license before issuing.
+
+export type TierKey = "basic" | "pro" | "enterprise";
+
+export interface TierPreset {
+  key: TierKey;
+  label: string;
+  tagline: string;
+  seats: number;
+  monthsValid: number;
+  extraModules: ModuleKey[];
+  monthlyPriceCents: number;
+  highlight?: boolean;
+}
+
+export const TIER_PRESETS: TierPreset[] = [
+  {
+    key: "basic",
+    label: "Basic",
+    tagline: "Core knowledge platform for small teams.",
+    seats: 5,
+    monthsValid: 12,
+    extraModules: [],
+    monthlyPriceCents: 4900,
+  },
+  {
+    key: "pro",
+    label: "Pro",
+    tagline: "Adds Academy, Analytics and AI SOP tools.",
+    seats: 25,
+    monthsValid: 12,
+    extraModules: ["academy", "analytics", "ai_sop_generator", "knowledge_gaps"],
+    monthlyPriceCents: 19900,
+    highlight: true,
+  },
+  {
+    key: "enterprise",
+    label: "Enterprise",
+    tagline: "Full suite: governance, RBAC, compliance, exports.",
+    seats: 100,
+    monthsValid: 12,
+    extraModules: ADDON_MODULES.map((m) => m.key),
+    monthlyPriceCents: 49900,
+  },
+];
+
+export function getTierPreset(key: TierKey): TierPreset {
+  return TIER_PRESETS.find((t) => t.key === key) ?? TIER_PRESETS[0];
+}
+

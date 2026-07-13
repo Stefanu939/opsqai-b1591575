@@ -91,6 +91,7 @@ import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_auth
 import { Route as AuthenticatedPortalContractRouteImport } from './routes/_authenticated/portal.contract'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
+import { Route as AuthenticatedAppPlatformRouteImport } from './routes/_authenticated/app.platform'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenticated/app.internal'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
@@ -99,6 +100,7 @@ import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticat
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
+import { Route as AuthenticatedAppPlatformIndexRouteImport } from './routes/_authenticated/app.platform.index'
 import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
 import { Route as AuthenticatedAppDocsIndexRouteImport } from './routes/_authenticated/app.docs.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
@@ -113,6 +115,8 @@ import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppPlatformSetupRouteImport } from './routes/_authenticated/app.platform.setup'
 import { Route as AuthenticatedAppPlatformRecoveryRouteImport } from './routes/_authenticated/app.platform.recovery'
+import { Route as AuthenticatedAppPlatformOverviewRouteImport } from './routes/_authenticated/app.platform.overview'
+import { Route as AuthenticatedAppPlatformOnboardingRouteImport } from './routes/_authenticated/app.platform.onboarding'
 import { Route as AuthenticatedAppPlatformLicensesRouteImport } from './routes/_authenticated/app.platform.licenses'
 import { Route as AuthenticatedAppPlatformLicenseActivationRouteImport } from './routes/_authenticated/app.platform.license-activation'
 import { Route as AuthenticatedAppPlatformDoctorRouteImport } from './routes/_authenticated/app.platform.doctor'
@@ -576,6 +580,12 @@ const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppPlatformRoute =
+  AuthenticatedAppPlatformRouteImport.update({
+    id: '/platform',
+    path: '/platform',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppKnowledgeRoute =
   AuthenticatedAppKnowledgeRouteImport.update({
     id: '/knowledge',
@@ -619,6 +629,12 @@ const AuthenticatedAppWorkspaceIndexRoute =
     id: '/workspace/',
     path: '/workspace/',
     getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppPlatformIndexRoute =
+  AuthenticatedAppPlatformIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
 const AuthenticatedAppInternalIndexRoute =
   AuthenticatedAppInternalIndexRouteImport.update({
@@ -690,33 +706,45 @@ const AuthenticatedAppWorkspaceSessionIdRoute =
   } as any)
 const AuthenticatedAppPlatformSetupRoute =
   AuthenticatedAppPlatformSetupRouteImport.update({
-    id: '/platform/setup',
-    path: '/platform/setup',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/setup',
+    path: '/setup',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
 const AuthenticatedAppPlatformRecoveryRoute =
   AuthenticatedAppPlatformRecoveryRouteImport.update({
-    id: '/platform/recovery',
-    path: '/platform/recovery',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/recovery',
+    path: '/recovery',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
+  } as any)
+const AuthenticatedAppPlatformOverviewRoute =
+  AuthenticatedAppPlatformOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
+  } as any)
+const AuthenticatedAppPlatformOnboardingRoute =
+  AuthenticatedAppPlatformOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
 const AuthenticatedAppPlatformLicensesRoute =
   AuthenticatedAppPlatformLicensesRouteImport.update({
-    id: '/platform/licenses',
-    path: '/platform/licenses',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/licenses',
+    path: '/licenses',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
 const AuthenticatedAppPlatformLicenseActivationRoute =
   AuthenticatedAppPlatformLicenseActivationRouteImport.update({
-    id: '/platform/license-activation',
-    path: '/platform/license-activation',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/license-activation',
+    path: '/license-activation',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
 const AuthenticatedAppPlatformDoctorRoute =
   AuthenticatedAppPlatformDoctorRouteImport.update({
-    id: '/platform/doctor',
-    path: '/platform/doctor',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/doctor',
+    path: '/doctor',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
 const AuthenticatedAppInternalKnowledgeRoute =
   AuthenticatedAppInternalKnowledgeRouteImport.update({
@@ -924,9 +952,9 @@ const ApiPublicV1LicenseHeartbeatRoute =
   } as any)
 const AuthenticatedAppPlatformInstallationPackageInstallIdRoute =
   AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport.update({
-    id: '/platform/installation-package/$installId',
-    path: '/platform/installation-package/$installId',
-    getParentRoute: () => AuthenticatedAppRoute,
+    id: '/installation-package/$installId',
+    path: '/installation-package/$installId',
+    getParentRoute: () => AuthenticatedAppPlatformRoute,
   } as any)
 const AuthenticatedAppInternalKnowledgeSlugRoute =
   AuthenticatedAppInternalKnowledgeSlugRouteImport.update({
@@ -1030,6 +1058,7 @@ export interface FileRoutesByFullPath {
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
+  '/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/portal/contract': typeof AuthenticatedPortalContractRoute
@@ -1083,6 +1112,8 @@ export interface FileRoutesByFullPath {
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
+  '/app/platform/onboarding': typeof AuthenticatedAppPlatformOnboardingRoute
+  '/app/platform/overview': typeof AuthenticatedAppPlatformOverviewRoute
   '/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
   '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -1097,6 +1128,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/docs/': typeof AuthenticatedAppDocsIndexRoute
   '/app/internal/': typeof AuthenticatedAppInternalIndexRoute
+  '/app/platform/': typeof AuthenticatedAppPlatformIndexRoute
   '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1226,6 +1258,8 @@ export interface FileRoutesByTo {
   '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
+  '/app/platform/onboarding': typeof AuthenticatedAppPlatformOnboardingRoute
+  '/app/platform/overview': typeof AuthenticatedAppPlatformOverviewRoute
   '/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
   '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -1240,6 +1274,7 @@ export interface FileRoutesByTo {
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/docs': typeof AuthenticatedAppDocsIndexRoute
   '/app/internal': typeof AuthenticatedAppInternalIndexRoute
+  '/app/platform': typeof AuthenticatedAppPlatformIndexRoute
   '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1323,6 +1358,7 @@ export interface FileRoutesById {
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
+  '/_authenticated/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/portal/contract': typeof AuthenticatedPortalContractRoute
@@ -1376,6 +1412,8 @@ export interface FileRoutesById {
   '/_authenticated/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
   '/_authenticated/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
   '/_authenticated/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
+  '/_authenticated/app/platform/onboarding': typeof AuthenticatedAppPlatformOnboardingRoute
+  '/_authenticated/app/platform/overview': typeof AuthenticatedAppPlatformOverviewRoute
   '/_authenticated/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
   '/_authenticated/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
@@ -1390,6 +1428,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/docs/': typeof AuthenticatedAppDocsIndexRoute
   '/_authenticated/app/internal/': typeof AuthenticatedAppInternalIndexRoute
+  '/_authenticated/app/platform/': typeof AuthenticatedAppPlatformIndexRoute
   '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1473,6 +1512,7 @@ export interface FileRouteTypes {
     | '/app/faq'
     | '/app/internal'
     | '/app/knowledge'
+    | '/app/platform'
     | '/app/profile'
     | '/app/requests'
     | '/portal/contract'
@@ -1526,6 +1566,8 @@ export interface FileRouteTypes {
     | '/app/platform/doctor'
     | '/app/platform/license-activation'
     | '/app/platform/licenses'
+    | '/app/platform/onboarding'
+    | '/app/platform/overview'
     | '/app/platform/recovery'
     | '/app/platform/setup'
     | '/app/workspace/$sessionId'
@@ -1540,6 +1582,7 @@ export interface FileRouteTypes {
     | '/app/chat/'
     | '/app/docs/'
     | '/app/internal/'
+    | '/app/platform/'
     | '/app/workspace/'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
@@ -1669,6 +1712,8 @@ export interface FileRouteTypes {
     | '/app/platform/doctor'
     | '/app/platform/license-activation'
     | '/app/platform/licenses'
+    | '/app/platform/onboarding'
+    | '/app/platform/overview'
     | '/app/platform/recovery'
     | '/app/platform/setup'
     | '/app/workspace/$sessionId'
@@ -1683,6 +1728,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/docs'
     | '/app/internal'
+    | '/app/platform'
     | '/app/workspace'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
@@ -1765,6 +1811,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/faq'
     | '/_authenticated/app/internal'
     | '/_authenticated/app/knowledge'
+    | '/_authenticated/app/platform'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/portal/contract'
@@ -1818,6 +1865,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/platform/doctor'
     | '/_authenticated/app/platform/license-activation'
     | '/_authenticated/app/platform/licenses'
+    | '/_authenticated/app/platform/onboarding'
+    | '/_authenticated/app/platform/overview'
     | '/_authenticated/app/platform/recovery'
     | '/_authenticated/app/platform/setup'
     | '/_authenticated/app/workspace/$sessionId'
@@ -1832,6 +1881,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/docs/'
     | '/_authenticated/app/internal/'
+    | '/_authenticated/app/platform/'
     | '/_authenticated/app/workspace/'
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
@@ -2477,6 +2527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/platform': {
+      id: '/_authenticated/app/platform'
+      path: '/platform'
+      fullPath: '/app/platform'
+      preLoaderRoute: typeof AuthenticatedAppPlatformRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/knowledge': {
       id: '/_authenticated/app/knowledge'
       path: '/knowledge'
@@ -2532,6 +2589,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/workspace/'
       preLoaderRoute: typeof AuthenticatedAppWorkspaceIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/platform/': {
+      id: '/_authenticated/app/platform/'
+      path: '/'
+      fullPath: '/app/platform/'
+      preLoaderRoute: typeof AuthenticatedAppPlatformIndexRouteImport
+      parentRoute: typeof AuthenticatedAppPlatformRoute
     }
     '/_authenticated/app/internal/': {
       id: '/_authenticated/app/internal/'
@@ -2619,38 +2683,52 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/app/platform/setup': {
       id: '/_authenticated/app/platform/setup'
-      path: '/platform/setup'
+      path: '/setup'
       fullPath: '/app/platform/setup'
       preLoaderRoute: typeof AuthenticatedAppPlatformSetupRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppPlatformRoute
     }
     '/_authenticated/app/platform/recovery': {
       id: '/_authenticated/app/platform/recovery'
-      path: '/platform/recovery'
+      path: '/recovery'
       fullPath: '/app/platform/recovery'
       preLoaderRoute: typeof AuthenticatedAppPlatformRecoveryRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppPlatformRoute
+    }
+    '/_authenticated/app/platform/overview': {
+      id: '/_authenticated/app/platform/overview'
+      path: '/overview'
+      fullPath: '/app/platform/overview'
+      preLoaderRoute: typeof AuthenticatedAppPlatformOverviewRouteImport
+      parentRoute: typeof AuthenticatedAppPlatformRoute
+    }
+    '/_authenticated/app/platform/onboarding': {
+      id: '/_authenticated/app/platform/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/platform/onboarding'
+      preLoaderRoute: typeof AuthenticatedAppPlatformOnboardingRouteImport
+      parentRoute: typeof AuthenticatedAppPlatformRoute
     }
     '/_authenticated/app/platform/licenses': {
       id: '/_authenticated/app/platform/licenses'
-      path: '/platform/licenses'
+      path: '/licenses'
       fullPath: '/app/platform/licenses'
       preLoaderRoute: typeof AuthenticatedAppPlatformLicensesRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppPlatformRoute
     }
     '/_authenticated/app/platform/license-activation': {
       id: '/_authenticated/app/platform/license-activation'
-      path: '/platform/license-activation'
+      path: '/license-activation'
       fullPath: '/app/platform/license-activation'
       preLoaderRoute: typeof AuthenticatedAppPlatformLicenseActivationRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppPlatformRoute
     }
     '/_authenticated/app/platform/doctor': {
       id: '/_authenticated/app/platform/doctor'
-      path: '/platform/doctor'
+      path: '/doctor'
       fullPath: '/app/platform/doctor'
       preLoaderRoute: typeof AuthenticatedAppPlatformDoctorRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppPlatformRoute
     }
     '/_authenticated/app/internal/knowledge': {
       id: '/_authenticated/app/internal/knowledge'
@@ -2892,10 +2970,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/app/platform/installation-package/$installId': {
       id: '/_authenticated/app/platform/installation-package/$installId'
-      path: '/platform/installation-package/$installId'
+      path: '/installation-package/$installId'
       fullPath: '/app/platform/installation-package/$installId'
       preLoaderRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+      parentRoute: typeof AuthenticatedAppPlatformRoute
     }
     '/_authenticated/app/internal/knowledge/$slug': {
       id: '/_authenticated/app/internal/knowledge/$slug'
@@ -2983,6 +3061,42 @@ const AuthenticatedAppInternalRouteWithChildren =
     AuthenticatedAppInternalRouteChildren,
   )
 
+interface AuthenticatedAppPlatformRouteChildren {
+  AuthenticatedAppPlatformDoctorRoute: typeof AuthenticatedAppPlatformDoctorRoute
+  AuthenticatedAppPlatformLicenseActivationRoute: typeof AuthenticatedAppPlatformLicenseActivationRoute
+  AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
+  AuthenticatedAppPlatformOnboardingRoute: typeof AuthenticatedAppPlatformOnboardingRoute
+  AuthenticatedAppPlatformOverviewRoute: typeof AuthenticatedAppPlatformOverviewRoute
+  AuthenticatedAppPlatformRecoveryRoute: typeof AuthenticatedAppPlatformRecoveryRoute
+  AuthenticatedAppPlatformSetupRoute: typeof AuthenticatedAppPlatformSetupRoute
+  AuthenticatedAppPlatformIndexRoute: typeof AuthenticatedAppPlatformIndexRoute
+  AuthenticatedAppPlatformInstallationPackageInstallIdRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
+}
+
+const AuthenticatedAppPlatformRouteChildren: AuthenticatedAppPlatformRouteChildren =
+  {
+    AuthenticatedAppPlatformDoctorRoute: AuthenticatedAppPlatformDoctorRoute,
+    AuthenticatedAppPlatformLicenseActivationRoute:
+      AuthenticatedAppPlatformLicenseActivationRoute,
+    AuthenticatedAppPlatformLicensesRoute:
+      AuthenticatedAppPlatformLicensesRoute,
+    AuthenticatedAppPlatformOnboardingRoute:
+      AuthenticatedAppPlatformOnboardingRoute,
+    AuthenticatedAppPlatformOverviewRoute:
+      AuthenticatedAppPlatformOverviewRoute,
+    AuthenticatedAppPlatformRecoveryRoute:
+      AuthenticatedAppPlatformRecoveryRoute,
+    AuthenticatedAppPlatformSetupRoute: AuthenticatedAppPlatformSetupRoute,
+    AuthenticatedAppPlatformIndexRoute: AuthenticatedAppPlatformIndexRoute,
+    AuthenticatedAppPlatformInstallationPackageInstallIdRoute:
+      AuthenticatedAppPlatformInstallationPackageInstallIdRoute,
+  }
+
+const AuthenticatedAppPlatformRouteWithChildren =
+  AuthenticatedAppPlatformRoute._addFileChildren(
+    AuthenticatedAppPlatformRouteChildren,
+  )
+
 interface AuthenticatedAppAdminIntegrationsRouteChildren {
   AuthenticatedAppAdminIntegrationsProviderRoute: typeof AuthenticatedAppAdminIntegrationsProviderRoute
 }
@@ -3004,6 +3118,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppInternalRoute: typeof AuthenticatedAppInternalRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
+  AuthenticatedAppPlatformRoute: typeof AuthenticatedAppPlatformRouteWithChildren
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
@@ -3036,11 +3151,6 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
   AuthenticatedAppAdminWebhooksRoute: typeof AuthenticatedAppAdminWebhooksRoute
   AuthenticatedAppDocsBookRoute: typeof AuthenticatedAppDocsBookRoute
-  AuthenticatedAppPlatformDoctorRoute: typeof AuthenticatedAppPlatformDoctorRoute
-  AuthenticatedAppPlatformLicenseActivationRoute: typeof AuthenticatedAppPlatformLicenseActivationRoute
-  AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
-  AuthenticatedAppPlatformRecoveryRoute: typeof AuthenticatedAppPlatformRecoveryRoute
-  AuthenticatedAppPlatformSetupRoute: typeof AuthenticatedAppPlatformSetupRoute
   AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
   AuthenticatedAppDocsIndexRoute: typeof AuthenticatedAppDocsIndexRoute
@@ -3048,7 +3158,6 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
   AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
   AuthenticatedAppAdminNotificationsProviderRoute: typeof AuthenticatedAppAdminNotificationsProviderRoute
-  AuthenticatedAppPlatformInstallationPackageInstallIdRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -3057,6 +3166,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppInternalRoute: AuthenticatedAppInternalRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
+  AuthenticatedAppPlatformRoute: AuthenticatedAppPlatformRouteWithChildren,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
@@ -3096,12 +3206,6 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
   AuthenticatedAppAdminWebhooksRoute: AuthenticatedAppAdminWebhooksRoute,
   AuthenticatedAppDocsBookRoute: AuthenticatedAppDocsBookRoute,
-  AuthenticatedAppPlatformDoctorRoute: AuthenticatedAppPlatformDoctorRoute,
-  AuthenticatedAppPlatformLicenseActivationRoute:
-    AuthenticatedAppPlatformLicenseActivationRoute,
-  AuthenticatedAppPlatformLicensesRoute: AuthenticatedAppPlatformLicensesRoute,
-  AuthenticatedAppPlatformRecoveryRoute: AuthenticatedAppPlatformRecoveryRoute,
-  AuthenticatedAppPlatformSetupRoute: AuthenticatedAppPlatformSetupRoute,
   AuthenticatedAppWorkspaceSessionIdRoute:
     AuthenticatedAppWorkspaceSessionIdRoute,
   AuthenticatedAppAcademyIndexRoute: AuthenticatedAppAcademyIndexRoute,
@@ -3113,8 +3217,6 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAcademyPathPathIdRoute,
   AuthenticatedAppAdminNotificationsProviderRoute:
     AuthenticatedAppAdminNotificationsProviderRoute,
-  AuthenticatedAppPlatformInstallationPackageInstallIdRoute:
-    AuthenticatedAppPlatformInstallationPackageInstallIdRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
