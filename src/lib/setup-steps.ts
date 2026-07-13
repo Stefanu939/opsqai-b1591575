@@ -5,13 +5,17 @@
 // the wizard route and the doctor panel both consume this list.
 
 export type SetupStepId =
+  | "eula_accepted"
   | "db_ok"
   | "signing_keys"
   | "ai_configured"
   | "storage_ok"
   | "smtp_configured"
+  | "sso_configured"
+  | "backup_configured"
   | "license_imported"
   | "admin_created";
+
 
 export interface SetupStep {
   id: SetupStepId;
