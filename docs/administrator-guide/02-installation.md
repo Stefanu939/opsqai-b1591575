@@ -45,25 +45,30 @@ unzip ~/opsqai-<installer_version>-<install_id>.zip
 # 2. Verify checksums BEFORE running anything
 sha256sum -c CHECKSUMS.sha256   # every line must say OK
 
-# 3. Run the host-side installer
-chmod +x install.sh
-./install.sh
-# install.sh:
+# 3. Run the installer for your OS
+#    Windows: double-click install.exe (opens a console window)
+#    macOS:   chmod +x install-macos && ./install-macos
+#    Linux:   chmod +x install-linux && ./install-linux
+#    Headless / SSH only: chmod +x install.sh && ./install.sh
+#
+# Every installer:
 #   - verifies docker + docker compose plugin are installed
 #   - copies .env.template -> .env (idempotent; skipped if .env exists)
 #   - runs 'docker compose up -d'
 #   - polls the app's /health endpoint until it reports healthy
-#   - prints the URL to open the Setup Wizard
+#   - prints (and, on desktop OS, opens) the URL for the Setup Wizard
 
-# 4. Open the printed URL and paste activation-bundle.json when asked.
+# 4. Paste activation-bundle.json when the wizard asks for it.
 
 # 5. Verify post-setup with the doctor tool
 docker compose exec opsqai opsqai doctor
 ```
 
-To restore from a backup instead of a fresh install, run `./install.sh --restore`.
-This matches DR runbook section 5.5.4 and prompts for the backup archive path
-instead of overwriting `.env` or starting a fresh stack.
+To restore from a backup instead of a fresh install, pass `--restore` to
+whichever installer you are running (e.g. `install.exe --restore` from a
+terminal, or `./install-macos --restore`). This matches DR runbook section
+5.5.4 and prompts for the backup archive path instead of overwriting `.env`
+or starting a fresh stack.
 
 
 ## Regeneration
