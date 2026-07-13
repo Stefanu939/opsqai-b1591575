@@ -82,7 +82,7 @@ export const upsertAcademyDepartment = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const companyId = await resolveCompanyForWrite(context, data.company_id);
+    const companyId = await companyForWrite(context, data.company_id);
     if (data.id) {
       const { error } = await (context.supabase as any)
         .from("academy_departments")
@@ -150,7 +150,7 @@ export const upsertAcademyPath = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => PathInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const companyId = await resolveCompanyForWrite(context, data.company_id);
+    const companyId = await companyForWrite(context, data.company_id);
     const payload: Record<string, unknown> = { ...data, company_id: companyId };
     delete (payload as any).id;
     if (data.id) {
@@ -233,7 +233,7 @@ export const upsertAcademyChapter = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const companyId = await resolveCompanyForWrite(context, data.company_id);
+    const companyId = await companyForWrite(context, data.company_id);
     if (data.id) {
       const { error } = await (context.supabase as any)
         .from("academy_chapters")
@@ -294,7 +294,7 @@ export const upsertAcademyLesson = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => LessonInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const companyId = await resolveCompanyForWrite(context, data.company_id);
+    const companyId = await companyForWrite(context, data.company_id);
     const payload: Record<string, unknown> = { ...data, company_id: companyId };
     delete (payload as any).id;
     if (data.id) {
@@ -511,7 +511,7 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const companyId = await resolveCompanyForWrite(context, data.company_id);
+    const companyId = await companyForWrite(context, data.company_id);
 
     const { data: doc, error: dErr } = await context.supabase
       .from("knowledge_documents")
@@ -606,7 +606,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const companyId = await resolveCompanyForWrite(context, data.company_id);
+    const companyId = await companyForWrite(context, data.company_id);
 
     const { data: docs } = await context.supabase
       .from("knowledge_documents")
@@ -1381,7 +1381,7 @@ export const saveAcademySettings = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
-    const companyId = await resolveCompanyForWrite(context, data.company_id);
+    const companyId = await companyForWrite(context, data.company_id);
     const { error } = await (context.supabase as any).from("academy_settings").upsert(
       {
         company_id: companyId,
