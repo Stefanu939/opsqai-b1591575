@@ -24,7 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { KeyRound, Plus, ShieldOff, Copy, Package, Eye, ArrowLeftRight, LifeBuoy } from "lucide-react";
+import { KeyRound, Plus, ShieldOff, Copy, Package, Eye, ArrowLeftRight, LifeBuoy, Download } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
@@ -385,8 +386,13 @@ function LicensesPage() {
                     {l.revoked ? <Badge variant="destructive">Revoked</Badge> : l.suspended ? <Badge variant="outline">Suspended</Badge> : <Badge>Active</Badge>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
-                    <Button size="sm" variant="ghost" onClick={() => downloadBundle(l.install_id)} title="Download offline activation bundle">
+                    <Button size="sm" variant="ghost" onClick={() => downloadBundle(l.install_id)} title="Download offline activation bundle (JSON)">
                       <Package className="h-4 w-4 mr-1" /> Bundle
+                    </Button>
+                    <Button size="sm" variant="ghost" asChild title="Manage installation package (ZIP + Docker + activation bundle)">
+                      <Link to="/app/platform/installation-package/$installId" params={{ installId: l.install_id }}>
+                        <Download className="h-4 w-4 mr-1" /> Package
+                      </Link>
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => issueDrToken(l.install_id)} title="Issue Bootstrap Recovery Token (DR)">
                       <LifeBuoy className="h-4 w-4 mr-1" /> DR Token

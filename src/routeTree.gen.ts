@@ -149,6 +149,7 @@ import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './route
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
 import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
+import { Route as AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport } from './routes/_authenticated/app.platform.installation-package.$installId'
 import { Route as AuthenticatedAppInternalKnowledgeSlugRouteImport } from './routes/_authenticated/app.internal.knowledge.$slug'
 import { Route as AuthenticatedAppAdminNotificationsProviderRouteImport } from './routes/_authenticated/app.admin.notifications.$provider'
 import { Route as AuthenticatedAppAdminIntegrationsProviderRouteImport } from './routes/_authenticated/app.admin.integrations.$provider'
@@ -915,6 +916,12 @@ const ApiPublicV1LicenseHeartbeatRoute =
     path: '/api/public/v1/license/heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAppPlatformInstallationPackageInstallIdRoute =
+  AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport.update({
+    id: '/platform/installation-package/$installId',
+    path: '/platform/installation-package/$installId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppInternalKnowledgeSlugRoute =
   AuthenticatedAppInternalKnowledgeSlugRouteImport.update({
     id: '/$slug',
@@ -1089,6 +1096,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/app/platform/installation-package/$installId': typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1230,6 +1238,7 @@ export interface FileRoutesByTo {
   '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/app/platform/installation-package/$installId': typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1378,6 +1387,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
   '/_authenticated/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
   '/_authenticated/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
+  '/_authenticated/app/platform/installation-package/$installId': typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1526,6 +1536,7 @@ export interface FileRouteTypes {
     | '/app/admin/integrations/$provider'
     | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
+    | '/app/platform/installation-package/$installId'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   fileRoutesByTo: FileRoutesByTo
@@ -1667,6 +1678,7 @@ export interface FileRouteTypes {
     | '/app/admin/integrations/$provider'
     | '/app/admin/notifications/$provider'
     | '/app/internal/knowledge/$slug'
+    | '/app/platform/installation-package/$installId'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   id:
@@ -1814,6 +1826,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin/integrations/$provider'
     | '/_authenticated/app/admin/notifications/$provider'
     | '/_authenticated/app/internal/knowledge/$slug'
+    | '/_authenticated/app/platform/installation-package/$installId'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   fileRoutesById: FileRoutesById
@@ -2857,6 +2870,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1LicenseHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app/platform/installation-package/$installId': {
+      id: '/_authenticated/app/platform/installation-package/$installId'
+      path: '/platform/installation-package/$installId'
+      fullPath: '/app/platform/installation-package/$installId'
+      preLoaderRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/internal/knowledge/$slug': {
       id: '/_authenticated/app/internal/knowledge/$slug'
       path: '/$slug'
@@ -3008,6 +3028,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
   AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
   AuthenticatedAppAdminNotificationsProviderRoute: typeof AuthenticatedAppAdminNotificationsProviderRoute
+  AuthenticatedAppPlatformInstallationPackageInstallIdRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -3072,6 +3093,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAcademyPathPathIdRoute,
   AuthenticatedAppAdminNotificationsProviderRoute:
     AuthenticatedAppAdminNotificationsProviderRoute,
+  AuthenticatedAppPlatformInstallationPackageInstallIdRoute:
+    AuthenticatedAppPlatformInstallationPackageInstallIdRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =

@@ -2,6 +2,20 @@
 
 All notable changes to OPSQAI are documented here. This project adheres to Semantic Versioning.
 
+## [1.0.0-rc.2] — 2026-07-12
+
+Phase 4.5 Part 2 — Installation Package Generation.
+
+### Added
+- MC generates a signed ZIP installation package per install (`docker-compose.yml`, `.env.template`, `entrypoint.sh`, `activation-bundle.json`, `README.md`, `CHECKSUMS.sha256`).
+- Hybrid secret policy (AD-009): MC ships only `OPSQAI_INSTALL_ID` and the signed activation bundle; `entrypoint.sh` generates infra secrets on first boot.
+- Idempotent regeneration keyed on `install_id`. Previous bundle CRL-revoked by default; escape hatch "Keep previous bundle valid" for backup-restore scenarios.
+- 24-hour signed download URL delivered by email + persistent Customer Portal button, with per-download audit rows (`installation_package_downloads`).
+- Per-license installer-version pin (`licenses.pinned_installer_version`); latest **Stable** channel release used when unpinned.
+- New template `installation-package-ready`.
+- New route `/app/platform/installation-package/$installId` with generate, regenerate, pin, contact, and audit views.
+- Docs: `administrator-guide/02-installation.md`, `engineering/04-issue-a-license.md`, `security-documentation/05-license-security.md` updated; DR runbook Scenario 8 (Installer reissue) added.
+
 ## [1.0.0] — 2026-07-11
 
 First public release. Cuts the platform, licensing model, self-hosted packaging, disaster recovery, customer portal, deployment-mode gate, and the full documentation suite.
