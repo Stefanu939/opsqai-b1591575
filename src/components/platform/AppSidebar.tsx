@@ -8,6 +8,13 @@ import {
   LifeBuoy,
   Settings,
   Building2,
+  Package,
+  Download,
+  ClipboardCheck,
+  Rocket,
+  FileText,
+  CreditCard,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
