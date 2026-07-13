@@ -5,13 +5,17 @@
 // the wizard route and the doctor panel both consume this list.
 
 export type SetupStepId =
+  | "eula_accepted"
   | "db_ok"
   | "signing_keys"
   | "ai_configured"
   | "storage_ok"
   | "smtp_configured"
+  | "sso_configured"
+  | "backup_configured"
   | "license_imported"
   | "admin_created";
+
 
 export interface SetupStep {
   id: SetupStepId;
@@ -24,6 +28,12 @@ export interface SetupStep {
 }
 
 export const SETUP_STEPS: readonly SetupStep[] = [
+  {
+    id: "eula_accepted",
+    label: "EULA accepted",
+    description: "The customer accepted the OPSQAI End-User License Agreement during first-run setup.",
+  },
+
   {
     id: "db_ok",
     label: "Database reachable",
@@ -54,11 +64,24 @@ export const SETUP_STEPS: readonly SetupStep[] = [
     soft: true,
   },
   {
+    id: "sso_configured",
+    label: "SSO configured",
+    description: "SAML or OIDC single sign-on configured (optional — can be added later).",
+    soft: true,
+  },
+  {
+    id: "backup_configured",
+    label: "Backup target",
+    description: "Backup destination selected (local volume, S3, Azure Blob, or NAS).",
+    soft: true,
+  },
+  {
     id: "license_imported",
     label: "Installation License imported",
     description: "A signed Installation License token has been imported and matches this install_id.",
     selfHostedOnly: true,
   },
+
   {
     id: "admin_created",
     label: "First platform admin",

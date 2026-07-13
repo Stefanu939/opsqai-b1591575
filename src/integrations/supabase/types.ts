@@ -2549,10 +2549,13 @@ export type Database = {
       }
       platform_config: {
         Row: {
+          ai_provider_config: Json | null
+          backup_config: Json | null
           break_glass_created_at: string | null
           break_glass_hash: string | null
           break_glass_used_at: string | null
           created_at: string
+          eula_accepted_at: string | null
           id: boolean
           install_id: string | null
           installer_version: string | null
@@ -2564,10 +2567,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_provider_config?: Json | null
+          backup_config?: Json | null
           break_glass_created_at?: string | null
           break_glass_hash?: string | null
           break_glass_used_at?: string | null
           created_at?: string
+          eula_accepted_at?: string | null
           id?: boolean
           install_id?: string | null
           installer_version?: string | null
@@ -2579,10 +2585,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_provider_config?: Json | null
+          backup_config?: Json | null
           break_glass_created_at?: string | null
           break_glass_hash?: string | null
           break_glass_used_at?: string | null
           created_at?: string
+          eula_accepted_at?: string | null
           id?: boolean
           install_id?: string | null
           installer_version?: string | null
@@ -3552,6 +3561,10 @@ export type Database = {
         Returns: number
       }
       ensure_platform_owner: { Args: never; Returns: number }
+      first_run_bootstrap_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       gap_companies: { Args: never; Returns: Json }
       gap_user_questions: {
         Args: {
