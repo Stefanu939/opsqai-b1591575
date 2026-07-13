@@ -104,6 +104,9 @@ describe("assembleInstallationPackage", () => {
     expect(cmd).toContain("install.exe");
     expect(cmd).toContain("OPSQAI_INSTALLER_NO_PAUSE=1");
     expect(cmd).toContain("pause");
+    // ZIP-preview detection path so users get an actionable message.
+    expect(cmd).toContain("ZIP preview");
+    expect(cmd).toContain("Extract All");
   });
 
   it("regeneration for the same install_id keeps install_id + file name stable", async () => {
