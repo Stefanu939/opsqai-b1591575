@@ -399,67 +399,7 @@ pause
 exit /b %EXITCODE%
 `;
 
-function renderReadme(input: {
-  install_id: string;
-  installer_version: string;
-  generated_at: string;
-  company_name: string;
-}): string {
-  return `# OPSQAI Self-Hosted Installation Package
-
-Install ID: **${input.install_id}**
-Customer: ${input.company_name}
-Installer version: ${input.installer_version}
-Generated: ${input.generated_at}
-
-## What is in this ZIP
-
-| File | Purpose |
-| ---- | ------- |
-| \`install.exe\` | Windows host installer — double-click to run |
-| \`install-windows.cmd\` | Windows launcher that keeps the CMD window open so errors stay visible |
-| \`install-macos\` | macOS host installer (universal) — \`chmod +x install-macos && ./install-macos\` |
-| \`install-linux\` | Linux host installer — \`chmod +x install-linux && ./install-linux\` |
-| \`install.sh\` | POSIX shell fallback for headless / SSH-only hosts |
-| \`docker-compose.yml\` | Reference topology (opsqai + postgres + minio) |
-| \`.env.template\` | Copied to \`.env\` by the installer; secrets marked \`__CHANGE_ME__\` |
-| \`activation-bundle.json\` | Ed25519-signed license bundle — install & module tokens + CRL |
-| \`entrypoint.sh\` | Runs inside the container; auto-generates infra secrets on first boot |
-| \`CHECKSUMS.sha256\` | Verify integrity before running any installer |
-
-## Quick start
-
-1. **Extract the ZIP fully first.** On Windows, right-click the downloaded ZIP
-   in File Explorer and choose **Extract All…**. Do NOT double-click files
-   inside the Windows ZIP preview — Explorer only extracts the single file you
-   clicked into a temp folder, so the installer will not find its siblings
-   (e.g. \`install.exe\`).
-2. Open the extracted folder in a terminal (or File Explorer) and \`cd\` into it.
-3. \`sha256sum -c CHECKSUMS.sha256\` — every line must say \`OK\`.
-4. Run the installer for your OS:
-   - **Windows**: double-click \`install-windows.cmd\` (recommended — keeps the
-     CMD window open so you can read the output). \`install.exe\` also works
-     if you prefer to run it directly.
-   - **macOS**: \`chmod +x install-macos && ./install-macos\`
-   - **Linux**: \`chmod +x install-linux && ./install-linux\`
-   - **Headless / SSH**: \`chmod +x install.sh && ./install.sh\`
-
-   Every installer checks Docker prerequisites, copies \`.env.template\` to
-   \`.env\` (only if missing — idempotent), runs \`docker compose up -d\`,
-   waits for the app to report healthy, and prints (and opens) the URL for
-   the Setup Wizard.
-5. Paste \`activation-bundle.json\` when the wizard asks for it.
-
-To restore from a backup instead of a fresh install, pass \`--restore\` to
-whichever installer you are running (matches DR runbook 5.5.4).
-
-
-## Support
-
-Full guide: docs/administrator-guide/02-installation.md
-Disaster-recovery runbook: docs/engineering/runbooks/dr-verify-v1.0.0.md
-`;
-}
+// README.pdf is rendered by src/lib/installation-readme.server.ts (pdf-lib).
 
 function sha256Hex(bytes: Uint8Array): string {
   const buf = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
