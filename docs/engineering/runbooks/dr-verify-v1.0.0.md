@@ -55,6 +55,27 @@ Executed on a clean reference host before every GA. Every scenario is timed and 
 4. Customer imports bundle at `/app/platform/license-activation`.
 5. **Expect:** old tokens rejected; new tokens accepted; doctor green.
 
+## Scenario 8 — Installer reissue (customer lost the ZIP)
+
+1. Customer requests a fresh installation package (host migration, laptop
+   lost, ZIP corrupted).
+2. Platform admin opens **Management Center → Licenses → Package** on the
+   affected install (`/app/platform/installation-package/<install_id>`).
+3. Confirm whether the customer is running a restored backup with the
+   previous bundle:
+   - **Not running a restored backup (default):** leave *Keep previous
+     bundle valid* unchecked and click **Regenerate**. Previous bundle is
+     added to the CRL on the next heartbeat.
+   - **Running a restored backup:** check *Keep previous bundle valid*
+     BEFORE clicking **Regenerate**. The prior bundle remains valid until
+     its own 90-day expiry.
+4. Technical contact receives an email with a 24-hour signed URL. Same
+   URL is also available from the Customer Portal at `/portal/downloads`.
+5. **Expect:** `install_id` unchanged across regeneration; new ZIP boots
+   without re-anchoring; audit log records the regeneration with actor,
+   installer version, and revocation choice.
+6. **SLA:** ≤ 30 min from customer request.
+
 ## Sign-off
 
 Runbook is signed by the release engineer and archived under `docs/engineering/runbooks/dr-verify-<version>.md` after each execution.
