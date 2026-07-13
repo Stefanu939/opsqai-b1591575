@@ -1,9 +1,18 @@
-# GitHub Actions workflow — Phase 1 signed Windows installer build.
-# Requires a self-hosted Windows runner with:
-#   - NSIS 3.09+ on PATH
-#   - Windows SDK (for signtool)
-#   - The EV code-signing token/HSM plugged in and unlocked
-#   - PowerShell 7+
+# GitHub Actions workflow — signed Windows installer build.
+#
+# Self-hosted Windows runner prerequisites (verified once at provisioning):
+#   - Windows 10/11 or Server 2022, PowerShell 7+
+#   - Node.js 20.x LTS + npm on PATH (for `build:selfhosted` + Electron packager)
+#   - NSIS 3.09+ (makensis.exe at %ProgramFiles(x86)%\NSIS\)
+#   - NSIS **EnVar plugin** installed under %ProgramFiles(x86)%\NSIS\Plugins\x86-unicode\
+#     (download: https://nsis.sourceforge.io/EnVar_plug-in)
+#   - Windows 10/11 SDK (signtool.exe on PATH)
+#   - openssl.exe on PATH (only for dev builds without a real updater pubkey)
+#   - EV code-signing token/HSM plugged in and unlocked in the runner session
+#   - Secret file provisioned at
+#     opsqai-windows\payload\updater\pubkey.pem  (production Ed25519 public key,
+#     never committed — restored from GH Actions secret before build.ps1 runs).
+
 
 name: build-windows-installer
 
@@ -41,6 +50,16 @@ jobs:
           if (-not $v) { $v = ('${{ github.ref_name }}' -replace '^win-v','') }
           if (-not $v) { $v = '0.0.0-dev' }
           "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Restore updater public key
+        shell: pwsh
+        working-directory: opsqai-windows
+        env:
+          OPSQAI_UPDATER_PUBKEY: ${{ secrets.OPSQAI_UPDATER_PUBKEY }}
+        run: |
+          if (-not $env:OPSQAI_UPDATER_PUBKEY) { throw "OPSQAI_UPDATER_PUBKEY secret is not set" }
+          New-Item -ItemType Directory -Force -Path payload\updater | Out-Null
+          $env:OPSQAI_UPDATER_PUBKEY | Set-Content -Path payload\updater\pubkey.pem -Encoding ascii
 
       - name: Build installer
         shell: pwsh
