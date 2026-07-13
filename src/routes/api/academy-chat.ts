@@ -93,6 +93,26 @@ export const Route = createFileRoute("/api/academy-chat")({
           if (claimsErr || !claims?.claims?.sub)
             return new Response("Unauthorized", { status: 401 });
 
+          // License enforcement — academy module must be unlocked for caller's company.
+          const userId = claims.claims.sub as string;
+          const { data: profileRow } = await (supabase as any)
+            .from("profiles")
+            .select("company_id")
+            .eq("id", userId)
+            .maybeSingle();
+          const companyIdForLicense = (profileRow as { company_id?: string | null } | null)
+            ?.company_id ?? null;
+          try {
+            const { assertModuleForCompany } = await import("@/lib/license-enforcement.server");
+            await assertModuleForCompany(
+              companyIdForLicense ?? "00000000-0000-0000-0000-000000000000",
+              "academy",
+            );
+          } catch (e) {
+            if (e instanceof Response) return e;
+            throw e;
+          }
+
           const body = (await request.json()) as {
             messages?: UIMessage[];
             lessonId?: string;
