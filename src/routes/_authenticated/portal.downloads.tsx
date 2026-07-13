@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyPortalOverview, downloadMyActivationBundle } from "@/lib/portal.functions";
+import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Package } from "lucide-react";
+import { Download, Package, FileArchive } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/portal/downloads")({
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/portal/downloads")({
 function PortalDownloads() {
   const overview = useServerFn(getMyPortalOverview);
   const download = useServerFn(downloadMyActivationBundle);
+  const downloadZip = useServerFn(getMyInstallationPackageDownloadUrl);
   const { data } = useQuery({
     queryKey: ["portal-overview"],
     queryFn: () => overview({ data: {} } as never),
