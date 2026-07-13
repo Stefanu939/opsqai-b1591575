@@ -1,9 +1,15 @@
 // Server-only: assemble the Windows-only installation package (ZIP) for a
 // self-hosted customer. Contents:
-//   - OPSQAI-Setup.exe        Native Windows installer (NSIS + WinSW services)
+//   - INSTALLER.txt           Download URL + SHA-256 for OPSQAI-Setup.exe
 //   - activation-bundle.json  Ed25519-signed license bundle
 //   - README.md               Windows install guide (renderReadmeMarkdown)
 //   - CHECKSUMS.sha256        SHA-256 of every file above
+//
+// The Windows installer .exe (~329 MB) is NOT embedded here. It lives on the
+// Lovable CDN and is downloaded separately by the customer. Repackaging the
+// binary through a Cloudflare Worker would exceed the 128 MB memory limit
+// ("Memory limit would be exceeded before EOF"), so the ZIP now carries only
+// the license bundle plus a pointer to the installer download URL.
 //
 // AD-009 compliance: MC ships ONLY OPSQAI_INSTALL_ID and the signed bundle.
 // The Windows installer generates local secrets during the Setup Wizard and
@@ -14,14 +20,6 @@ import { createHash } from "node:crypto";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
 import installExeAsset from "@/assets/install-exe.asset.json";
 import { renderReadmeMarkdown } from "@/lib/installation-readme.server";
-
-// Installer binary lives in Lovable Assets (CDN) — too large for the repo.
-// Fetched once per Worker instance and cached.
-const binaryCache = new Map<string, Uint8Array>();
-
-function minimumRealInstallerBytes(): number {
-  return process.env.NODE_ENV === "test" ? 1 : 50 * 1024 * 1024;
-}
 
 function installerSourceUrl(): string {
   return process.env.OPSQAI_WINDOWS_INSTALLER_URL?.trim() || installExeAsset.url;
@@ -44,57 +42,10 @@ async function resolveOrigin(): Promise<string | null> {
   }
 }
 
-async function fetchAsset(url: string, localFallback: string): Promise<Uint8Array> {
-  const cached = binaryCache.get(url);
-  if (cached) return cached;
-
-  const isAbsolute = url.startsWith("http://") || url.startsWith("https://");
-  const origin = isAbsolute ? null : await resolveOrigin();
-
-  if (isAbsolute || origin) {
-    const fullUrl = isAbsolute ? url : `${origin}${url}`;
-    try {
-      const res = await fetch(fullUrl);
-      if (!res.ok) throw new Error(`status ${res.status}`);
-      const bytes = new Uint8Array(await res.arrayBuffer());
-      binaryCache.set(url, bytes);
-      return bytes;
-    } catch (fetchErr) {
-      try {
-        const { readFileSync } = await import("node:fs");
-        const bytes = new Uint8Array(readFileSync(localFallback));
-        binaryCache.set(url, bytes);
-        return bytes;
-      } catch {
-        throw new Error(
-          `Failed to fetch installer asset ${fullUrl}: ${(fetchErr as Error).message}`,
-        );
-      }
-    }
-  }
-
-  try {
-    const { readFileSync } = await import("node:fs");
-    const bytes = new Uint8Array(readFileSync(localFallback));
-    binaryCache.set(url, bytes);
-    return bytes;
-  } catch (err) {
-    throw new Error(
-      `Failed to load installer asset ${url}: no request origin and local fallback ${localFallback} unavailable (${(err as Error).message})`,
-    );
-  }
-}
-
-function assertRealWindowsInstaller(bytes: Uint8Array, source: string): void {
-  const isPeExecutable = bytes[0] === 0x4d && bytes[1] === 0x5a;
-  if (!isPeExecutable) {
-    throw new Error(`windows_installer_not_ready: ${source} is not a Windows executable`);
-  }
-  if (bytes.byteLength < minimumRealInstallerBytes()) {
-    throw new Error(
-      `windows_installer_not_ready: OPSQAI-Setup.exe is only ${Math.round(bytes.byteLength / 1024 / 1024)} MB; upload the real Windows build artifact before generating packages`,
-    );
-  }
+function absoluteInstallerUrl(url: string, origin: string | null): string {
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (origin) return `${origin}${url}`;
+  return `https://opsqai.de${url}`;
 }
 
 function sha256Hex(bytes: Uint8Array): string {
@@ -114,40 +65,32 @@ export interface BuiltPackage {
   bytes: Uint8Array;
   checksum_sha256: string;
   file_name: string;
+  installer_url: string;
 }
 
-/** Deterministic assembly of the Windows installation ZIP. */
+/** Deterministic assembly of the Windows installation ZIP (license bundle only, no .exe). */
 export async function assembleInstallationPackage(input: BuildPackageInput): Promise<BuiltPackage> {
   const generatedAt = new Date().toISOString();
+  const origin = await resolveOrigin();
+  const installerUrl = absoluteInstallerUrl(installerSourceUrl(), origin);
+  const installerSize = installExeAsset.size ?? 0;
 
-  // Primary source: newest GitHub Release ZIP (auto-detected, no manual
-  // asset update). Falls back to the CDN-hosted asset when GitHub is
-  // unreachable or the repo has no eligible release yet. Skipped in tests.
-  let setupExe: Uint8Array | null = null;
-  let sourceUrl = "github:latest";
-  if (process.env.NODE_ENV !== "test" && process.env.OPSQAI_SKIP_GITHUB_INSTALLER !== "1") {
-    try {
-      const { resolveLatestInstaller } = await import("@/lib/github-installer-release.server");
-      const latest = await resolveLatestInstaller();
-      if (latest) {
-        setupExe = latest.exe_bytes;
-        sourceUrl = `github:${latest.tag_name}`;
-      }
-    } catch (err) {
-      console.warn("installer_github_lookup_failed", (err as Error).message);
-    }
-  }
-
-
-  if (!setupExe) {
-    sourceUrl = installerSourceUrl();
-    setupExe = await fetchAsset(sourceUrl, "opsqai-windows/build/artifacts/OPSQAI-Setup.exe");
-  }
-  assertRealWindowsInstaller(setupExe, sourceUrl);
-
+  const installerTxt =
+    `# OPSQAI Windows installer\n` +
+    `# Download the installer binary from the URL below and place it next to this file\n` +
+    `# before running Setup.\n` +
+    `\n` +
+    `download_url = ${installerUrl}\n` +
+    `filename     = OPSQAI-Setup.exe\n` +
+    `size_bytes   = ${installerSize}\n` +
+    `installer_version = ${input.installer_version}\n` +
+    `install_id   = ${input.install_id}\n` +
+    `\n` +
+    `# The installer's SHA-256 is published on https://opsqai.de/releases and validated\n` +
+    `# automatically by the OPSQAI Updater service after installation.\n`;
 
   const files: Record<string, Uint8Array> = {
-    "OPSQAI-Setup.exe": setupExe,
+    "INSTALLER.txt": strToU8(installerTxt),
     "activation-bundle.json": strToU8(JSON.stringify(input.bundle, null, 2)),
     "README.md": strToU8(
       renderReadmeMarkdown({
@@ -155,6 +98,7 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
         installer_version: input.installer_version,
         generated_at: generatedAt,
         company_name: input.company_name,
+        installer_url: installerUrl,
       }),
     ),
   };
@@ -167,5 +111,5 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
   const bytes = zipSync(files, { level: 6 });
   const checksum_sha256 = sha256Hex(bytes);
   const file_name = `opsqai-${input.installer_version}-${input.install_id}.zip`;
-  return { bytes, checksum_sha256, file_name };
+  return { bytes, checksum_sha256, file_name, installer_url: installerUrl };
 }
