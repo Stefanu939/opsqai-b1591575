@@ -37,7 +37,7 @@ describe("assembleInstallationPackage", () => {
       [
         ".env.template",
         "CHECKSUMS.sha256",
-        "README.md",
+        "README.pdf",
         "activation-bundle.json",
         "docker-compose.yml",
         "entrypoint.sh",
@@ -123,13 +123,18 @@ describe("assembleInstallationPackage", () => {
     expect(bundleA.install_id).toBe("acme-prod");
   });
 
-  it("README announces the correct install_id and installer version", async () => {
+  it("README.pdf ships in place of README.md and is a valid PDF", async () => {
     const { bytes } = await assembleInstallationPackage(input);
     const files = unzipSync(bytes);
-    const readme = strFromU8(files["README.md"]);
-    expect(readme).toContain("Install ID: **acme-prod**");
-    expect(readme).toContain("Installer version: 1.0.0");
-    expect(readme).toContain("Acme GmbH");
+    const pdf = files["README.pdf"];
+    expect(pdf).toBeDefined();
+    // PDF header
+    const header = new TextDecoder().decode(pdf.slice(0, 5));
+    expect(header).toBe("%PDF-");
+    // Not a trivial empty PDF — the multi-page guide is at least a few KB.
+    expect(pdf.byteLength).toBeGreaterThan(3000);
+    // README.md must be gone.
+    expect(files["README.md"]).toBeUndefined();
   });
 
   it("entrypoint.sh generates infra secrets on first boot", async () => {
