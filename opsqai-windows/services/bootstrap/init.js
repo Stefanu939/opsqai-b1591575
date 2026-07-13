@@ -9,8 +9,9 @@
 //   4. Trust Caddy's local root CA into LocalMachine\Root.
 //   5. Start OpsqaiCaddy + OpsqaiPlatform, then health-probe https://localhost/health.
 //
-// Wizard integration lands in Phase 3 — this script is the contract the
-// wizard invokes at step 9 (Install).
+// Phase 2.1: readiness now uses pg_isready + TCP, waits up to 120s, and on
+// failure tails the postgres server log and the winsw wrapper logs so the
+// operator has something to act on.
 
 "use strict";
 const fs = require("fs");
@@ -88,7 +89,7 @@ function svcCmd(name, action) {
   const r = spawnSync(svc, [action], { stdio: "inherit" });
   return r.status ?? 0;
 }
-function waitTcp(host, port, ms = 60_000) {
+function waitTcp(host, port, ms) {
   const start = Date.now();
   return new Promise((resolve) => {
     (function attempt() {
@@ -103,6 +104,65 @@ function waitTcp(host, port, ms = 60_000) {
       });
     })();
   });
+}
+function pgIsReady(port, timeoutMs) {
+  const bin = programFiles("pgsql", "bin", "pg_isready.exe");
+  if (!fs.existsSync(bin)) return { available: false };
+  const deadline = Date.now() + timeoutMs;
+  let last = { status: -1, out: "", err: "" };
+  while (Date.now() < deadline) {
+    const r = spawnSync(
+      bin,
+      ["-h", "127.0.0.1", "-p", String(port), "-U", "opsqai", "-d", "postgres", "-t", "3"],
+      { encoding: "utf8" },
+    );
+    last = { status: r.status ?? -1, out: (r.stdout || "").trim(), err: (r.stderr || "").trim() };
+    if (last.status === 0) return { available: true, ready: true, ...last };
+    const wait = spawnSync("cmd", ["/c", "ping", "127.0.0.1", "-n", "2", ">nul"]);
+    void wait;
+  }
+  return { available: true, ready: false, ...last };
+}
+function tailFile(p, lines = 80) {
+  try {
+    if (!fs.existsSync(p)) return null;
+    const txt = fs.readFileSync(p, "utf8").split(/\r?\n/);
+    return txt.slice(-lines).join("\n");
+  } catch (e) {
+    return `(cannot read ${p}: ${e.message})`;
+  }
+}
+function newestFile(dir, pattern) {
+  try {
+    if (!fs.existsSync(dir)) return null;
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => pattern.test(f))
+      .map((f) => ({ f, m: fs.statSync(path.join(dir, f)).mtimeMs }))
+      .sort((a, b) => b.m - a.m);
+    return files.length ? path.join(dir, files[0].f) : null;
+  } catch {
+    return null;
+  }
+}
+function dumpDbDiagnostics() {
+  console.error("[bootstrap] --- database diagnostics ---");
+  const pgLog = newestFile(programData("data", "pgsql", "log"), /\.log$/i);
+  if (pgLog) {
+    console.error(`[bootstrap] postgres log: ${pgLog}`);
+    console.error(tailFile(pgLog) ?? "(empty)");
+  } else {
+    console.error(`[bootstrap] no postgres log file found in ${programData("data", "pgsql", "log")}`);
+  }
+  for (const name of ["OpsqaiDatabase.out.log", "OpsqaiDatabase.err.log", "OpsqaiDatabase.wrapper.log"]) {
+    const p = path.join(programData("logs"), name);
+    const t = tailFile(p);
+    if (t) {
+      console.error(`[bootstrap] ${name}:`);
+      console.error(t);
+    }
+  }
+  console.error("[bootstrap] --- end diagnostics ---");
 }
 function httpsGet(url, ms = 30_000) {
   return new Promise((resolve) => {
@@ -122,15 +182,39 @@ function httpsGet(url, ms = 30_000) {
 (async function main() {
   // --- 1. Start database ---
   if (dbMode === "embedded" && startServices) {
+    // Detect a stale data dir so the operator sees an early warning.
+    const pgVersion = path.join(programData("data", "pgsql"), "PG_VERSION");
+    const pgConf = path.join(programData("data", "pgsql"), "postgresql.conf");
+    if (fs.existsSync(pgVersion) && fs.existsSync(pgConf)) {
+      try {
+        const raw = fs.readFileSync(pgConf, "utf8");
+        if (!raw.includes("# --- OPSQAI ---")) {
+          log("WARN: existing pgsql data dir is missing OPSQAI config block — service will repair on start");
+        }
+      } catch {}
+    }
+
     log("starting OpsqaiDatabase");
     svcCmd("OpsqaiDatabase", "start");
     const port = config.database.embedded.port;
-    const ok = await waitTcp("127.0.0.1", port, 60_000);
-    if (!ok) {
-      console.error("[bootstrap] postgres not ready after 60s");
+
+    const tcpOk = await waitTcp("127.0.0.1", port, 120_000);
+    if (!tcpOk) {
+      console.error(`[bootstrap] postgres TCP port ${port} not reachable after 120s`);
+      dumpDbDiagnostics();
       process.exit(3);
     }
-    log(`postgres ready on 127.0.0.1:${port}`);
+    log(`postgres TCP port ${port} open — running pg_isready`);
+
+    const probe = pgIsReady(port, 30_000);
+    if (probe.available && !probe.ready) {
+      console.error(
+        `[bootstrap] pg_isready never returned 0 (last status=${probe.status}, out='${probe.out}', err='${probe.err}')`,
+      );
+      dumpDbDiagnostics();
+      process.exit(3);
+    }
+    log(`postgres ready on 127.0.0.1:${port}${probe.available ? ` (${probe.out || "pg_isready ok"})` : " (pg_isready.exe missing; TCP-only)"}`);
   }
 
   // --- 2. Run app migrations ---
