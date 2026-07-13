@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
+import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+
+const AI_AUDIT_MODULE = "ai_workspace_audit" as const;
 
 async function ensurePerm(context: any, perm: string) {
   await requirePermission(context, perm);
@@ -443,6 +446,7 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "ai_audit.run");
     const companyId = await resolveCompany(context, data.company_id);
+    await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
 
     const [kpi, health, status, top, critical] = await Promise.all([
       context.supabase.rpc("dashboard_kpis", { p_company: companyId }),
@@ -579,6 +583,8 @@ export const listAiAudits = createServerFn({ method: "POST" })
     z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    const companyId = await resolveCompany(context, data.company_id);
+    await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
     const actor = await getActorRoles(context.supabase, context.userId);
     let query = context.supabase
       .from("ai_audits")
