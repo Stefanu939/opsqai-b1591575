@@ -18,7 +18,10 @@ import { renderReadmeMarkdown } from "@/lib/installation-readme.server";
 // Installer binary lives in Lovable Assets (CDN) — too large for the repo.
 // Fetched once per Worker instance and cached.
 const binaryCache = new Map<string, Uint8Array>();
-const MIN_REAL_INSTALLER_BYTES = process.env.NODE_ENV === "test" ? 1 : 50 * 1024 * 1024;
+
+function minimumRealInstallerBytes(): number {
+  return process.env.NODE_ENV === "test" ? 1 : 50 * 1024 * 1024;
+}
 
 function installerSourceUrl(): string {
   return process.env.OPSQAI_WINDOWS_INSTALLER_URL?.trim() || installExeAsset.url;
@@ -85,7 +88,7 @@ function assertRealWindowsInstaller(bytes: Uint8Array, source: string): void {
   if (!isPeExecutable) {
     throw new Error(`windows_installer_not_ready: ${source} is not a Windows executable`);
   }
-  if (bytes.byteLength < MIN_REAL_INSTALLER_BYTES) {
+  if (bytes.byteLength < minimumRealInstallerBytes()) {
     throw new Error(
       `windows_installer_not_ready: OPSQAI-Setup.exe is only ${Math.round(bytes.byteLength / 1024 / 1024)} MB; upload the real Windows build artifact before generating packages`,
     );
