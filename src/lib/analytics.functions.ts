@@ -1,11 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { requirePermission } from "@/lib/authorization";
+import { requirePermission, getProfileCompany } from "@/lib/authorization";
+import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 
 export const getKnowledgeAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await requirePermission(context, "analytics.view");
+    const companyId = await getProfileCompany(context.supabase, context.userId);
+    await assertModuleForCompany(
+      companyId ?? "00000000-0000-0000-0000-000000000000",
+      "analytics",
+    );
 
     const supa = context.supabase;
     const sinceIso = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
