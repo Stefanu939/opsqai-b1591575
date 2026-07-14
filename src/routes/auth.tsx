@@ -8,11 +8,31 @@ import { Card } from "@/components/ui/card";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand/logo";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
 // Only allow same-origin relative paths as post-login redirect targets.
 function safeNext(raw: string | undefined): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/app";
+  const fallback = getClientDeploymentMode() === "selfhost" ? "/app" : "/portal";
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return fallback;
   return raw;
+}
+
+// Resolve the landing page after sign-in.
+//   - Self-Hosted (Windows install): everyone lands in the operational app.
+//   - Cloud (opsqai.de): route by role. Platform staff → Management Center.
+//     Everyone else → Customer Portal (designated customer contacts).
+//     Company end users do NOT authenticate on the cloud; if one lands here
+//     by mistake, /portal is a safe read-only surface.
+async function resolvePostLoginTarget(userId: string): Promise<string> {
+  if (getClientDeploymentMode() === "selfhost") return "/app";
+  const { data: roles } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+  const isPlatform = (roles ?? []).some(
+    (r) => r.role === "platform_admin" || r.role === "platform_owner",
+  );
+  return isPlatform ? "/management" : "/portal";
 }
 
 export const Route = createFileRoute("/auth")({
