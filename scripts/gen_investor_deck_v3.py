@@ -443,31 +443,31 @@ def s_architecture(i):
     bg(True)
     chrome(i, TOTAL, True, "05 · Architecture")
     kicker("Architecture", 80, H - 150)
-    h1("Two boundaries. One-way communication. Customer keeps sovereignty.",
-       80, H - 220, size=40, max_w=1760)
+    h1("Two boundaries. One-way communication.",
+       80, H - 200, size=36, max_w=1760)
 
     # MC box (top)
-    box(120, 640, 780, 220, True, radius=10, fill=NAVY_2, border=GOLD)
-    label("MANAGEMENT CENTER · opsqai.de", 150, 830, True, 12)
-    c.setFont("SerifBold", 22)
+    box(120, 600, 780, 190, True, radius=10, fill=NAVY_2, border=GOLD)
+    label("MANAGEMENT CENTER · opsqai.de", 150, 760, True, 12)
+    c.setFont("SerifBold", 20)
     c.setFillColorRGB(*IVORY)
-    c.drawString(150, 795, "Cloud (OPSQAI staff)")
+    c.drawString(150, 730, "Cloud (OPSQAI staff)")
     for j, t in enumerate([
         "License issuance (Ed25519 signing)",
         "Activation bundles (offline-capable)",
         "Release manifests & signed updates",
         "Customer portal · Installer distribution",
     ]):
-        c.setFont("Body", 13)
+        c.setFont("Body", 12)
         c.setFillColorRGB(*IVORY_2)
-        c.drawString(150, 760 - j * 22, "· " + t)
+        c.drawString(150, 700 - j * 20, "· " + t)
 
     # Self-hosted install (bottom, larger)
-    box(120, 140, 1680, 460, True, radius=10, fill=NAVY_2, border=GOLD)
-    label("WINDOWS SELF-HOSTED INSTALL · CUSTOMER INFRASTRUCTURE", 150, 570, True, 12)
-    c.setFont("SerifBold", 22)
+    box(120, 130, 1680, 430, True, radius=10, fill=NAVY_2, border=GOLD)
+    label("WINDOWS SELF-HOSTED INSTALL · CUSTOMER INFRASTRUCTURE", 150, 530, True, 12)
+    c.setFont("SerifBold", 20)
     c.setFillColorRGB(*IVORY)
-    c.drawString(150, 535, "The product")
+    c.drawString(150, 500, "The product")
 
     sub = [
         ("OPSQAI Platform", "TanStack Start server\n(Node.js, native Windows service)"),
@@ -478,21 +478,21 @@ def s_architecture(i):
     ]
     xs = [150, 470, 790, 1110, 1430]
     for (x, (t, d)) in zip(xs, sub):
-        box(x, 200, 300, 280, True, radius=8, fill=NAVY, border=GOLD_DIM)
+        box(x, 170, 300, 280, True, radius=8, fill=NAVY, border=GOLD_DIM)
         c.setFont("BodyBold", 14)
         c.setFillColorRGB(*GOLD)
-        c.drawString(x + 20, 440, t)
+        c.drawString(x + 20, 410, t)
         for k, line in enumerate(d.split("\n")):
             c.setFont("Body", 12)
             c.setFillColorRGB(*IVORY_2)
-            c.drawString(x + 20, 410 - k * 20, line)
+            c.drawString(x + 20, 380 - k * 20, line)
 
     # Arrows — MC → install (one-way)
-    arrow(510, 640, 510, 480, True)
+    arrow(510, 600, 510, 450, True)
     c.setFont("BodyItalic", 11)
     c.setFillColorRGB(*GOLD_SOFT)
-    c.drawString(530, 560, "License heartbeat / bundle import (install pulls)")
-    c.drawString(530, 542, "No inbound path from MC to install")
+    c.drawString(530, 555, "License heartbeat / bundle import (install pulls)")
+    c.drawString(530, 538, "No inbound path from MC to install")
 
     source_note("Reflects docs/architecture-book/02-architecture.md and 03-data-flow.md in the OPSQAI repository.")
     c.showPage()
