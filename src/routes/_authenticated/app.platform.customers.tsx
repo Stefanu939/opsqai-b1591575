@@ -141,10 +141,13 @@ function CustomersMc() {
             Toți tenants OPSQAI · plan, status, utilizare, acțiuni rapide.
           </p>
         </div>
-        <NewCompanyDialog
-          onCreate={(v) => createMut.mutate(v)}
-          pending={createMut.isPending}
-        />
+        <Button
+          onClick={() => navigate({ to: "/app/platform/onboarding" })}
+          className="h-9 border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#5b3fd9] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]"
+        >
+          <Plus className="mr-1.5 h-4 w-4" />
+          Client nou
+        </Button>
       </header>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
