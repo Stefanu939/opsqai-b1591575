@@ -1,7 +1,16 @@
-import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState, redirect } from "@tanstack/react-router";
 import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen } from "lucide-react";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
+// Customer Portal — cloud-only surface for designated customer contacts:
+// download installers, retrieve activation bundles, read release notes,
+// open support tickets. Not part of the Self-Hosted Windows product.
 export const Route = createFileRoute("/_authenticated/portal")({
+  beforeLoad: () => {
+    if (getClientDeploymentMode() === "selfhost") {
+      throw redirect({ to: "/app" });
+    }
+  },
   component: PortalLayout,
 });
 

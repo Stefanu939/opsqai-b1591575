@@ -8,11 +8,28 @@ import { Card } from "@/components/ui/card";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand/logo";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
-// Only allow same-origin relative paths as post-login redirect targets.
-function safeNext(raw: string | undefined): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/app";
-  return raw;
+// (Post-login target is computed by resolvePostLoginTarget below; a raw
+// `next=` search param takes precedence when it's a same-origin path.)
+
+
+// Resolve the landing page after sign-in.
+//   - Self-Hosted (Windows install): everyone lands in the operational app.
+//   - Cloud (opsqai.de): route by role. Platform staff → Management Center.
+//     Everyone else → Customer Portal (designated customer contacts).
+//     Company end users do NOT authenticate on the cloud; if one lands here
+//     by mistake, /portal is a safe read-only surface.
+async function resolvePostLoginTarget(userId: string): Promise<string> {
+  if (getClientDeploymentMode() === "selfhost") return "/app";
+  const { data: roles } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+  const isPlatform = (roles ?? []).some(
+    (r) => r.role === "platform_admin" || r.role === "platform_owner",
+  );
+  return isPlatform ? "/management" : "/portal";
 }
 
 export const Route = createFileRoute("/auth")({
@@ -54,7 +71,10 @@ export const Route = createFileRoute("/auth")({
     }
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      const target = safeNext(search.next);
+      const explicit = search.next && search.next.startsWith("/") && !search.next.startsWith("//")
+        ? search.next
+        : null;
+      const target = explicit ?? (await resolvePostLoginTarget(data.session.user.id));
       throw redirect({ href: target });
     }
   },
@@ -71,10 +91,11 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_e, s) => {
       if (s) {
-        const target = safeNext(next);
-        if (target === "/app") {
+        const explicit = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+        const target = explicit ?? (await resolvePostLoginTarget(s.user.id));
+        if (target.startsWith("/app")) {
           navigate({ to: "/app" });
         } else {
           window.location.href = target;
