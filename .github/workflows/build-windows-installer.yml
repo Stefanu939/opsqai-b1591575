@@ -56,9 +56,15 @@ jobs:
         shell: pwsh
         run: |
           $v = '${{ inputs.version }}'
-          if (-not $v) { $v = ('${{ github.ref_name }}' -replace '^win-v','') }
-          if (-not $v) { $v = '1.0.0' }
+          $ref = '${{ github.ref_name }}'
+          if (-not $v -and $ref -match '^win-v(\d+\.\d+\.\d+)$') { $v = $Matches[1] }
+          # NSIS VIProductVersion requires strict X.X.X (three numeric parts).
+          if (-not ($v -match '^\d+\.\d+\.\d+$')) {
+            $build = [int]$env:GITHUB_RUN_NUMBER
+            $v = "0.1.$build"
+          }
           "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Resolved version: $v"
 
       - name: Restore updater public key
         shell: pwsh
