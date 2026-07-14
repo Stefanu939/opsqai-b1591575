@@ -265,8 +265,10 @@ function CustomersMc() {
                         className="h-8 text-[var(--mc-fg-muted)] hover:bg-[var(--mc-surface-3)] hover:text-[var(--mc-gold-glow)]"
                         onClick={() => {
                           setActiveCompanyId(c.id);
-                          toast.success(`Workspace ${c.name} deschis`);
-                          navigate({ to: "/app/admin/users" });
+                          navigate({
+                            to: "/app/platform/licenses",
+                            search: { tab: "licenses", companyId: c.id, companyName: c.name },
+                          });
                         }}
                       >
                         <LogIn className="mr-1 h-3.5 w-3.5" />
