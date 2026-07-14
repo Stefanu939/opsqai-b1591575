@@ -137,56 +137,53 @@ export function AppShell({ children }: { children: ReactNode }) {
   // hidden until the customer licenses the matching module (gate via
   // `module` key + `filterNav`). No item definitions are removed — only the
   // gate values decide visibility.
+  // ── Self-hosted v2 nav — the ten canonical surfaces ─────────────────
+  // Per plan v2.0: /app is the Self-Hosted product for end-users on-prem.
+  // Ten flat items — no admin/platform groups. Platform admins can still
+  // reach ops surfaces via direct URLs; they are not primary navigation.
   const selfhostWorkspace: NavItem[] = [
-    {
-      to: "/app",
-      label: t("dashboard"),
-      icon: LayoutDashboard,
-      exact: true,
-      show: true,
-      module: null,
-    },
-    {
-      to: "/app/chat",
-      label: t("chat"),
-      icon: MessageSquare,
-      show: hasPermission("chat.use") || hasAnyPermission("sop.read", "knowledge.manage"),
-      module: "chat",
-    },
+    { to: "/app", label: "AI Chat", icon: MessageSquare, exact: true, show: true, module: "chat" },
     {
       to: "/app/knowledge",
-      label: t("knowledge"),
+      label: "Knowledge",
       icon: BookOpen,
       show: hasAnyPermission("sop.read", "knowledge.manage", "sop.edit"),
       module: "kb",
     },
     {
       to: "/app/faq",
-      label: t("faq"),
+      label: "FAQ",
       icon: HelpCircle,
       show: hasAnyPermission("faq.read", "faq.edit"),
       module: "faq",
     },
     {
-      to: "/app/workspace",
-      label: t("workspace"),
-      icon: Sparkles,
-      show: hasPermission("workspace.use") || hasPermission("workspace.manage"),
-      module: "ai_workspace_audit",
-    },
-    {
-      to: "/app/requests",
-      label: t("internalRequests"),
-      icon: Inbox,
-      show: true,
-      module: "internal_requests",
-    },
-    {
       to: "/app/academy",
-      label: "My Training",
+      label: "Academy",
       icon: GraduationCap,
       show: hasPermission("academy.learn"),
       module: "academy",
+    },
+    {
+      to: "/app/audit",
+      label: "AI Audit",
+      icon: LineChart,
+      show: hasPermission("ai_audit.run"),
+      module: null,
+    },
+    {
+      to: "/app/users",
+      label: "Users",
+      icon: Users,
+      show: hasAnyPermission("user.create", "user.update", "user.delete"),
+      module: null,
+    },
+    {
+      to: "/app/organization",
+      label: "Organization",
+      icon: Building2,
+      show: true,
+      module: null,
     },
     {
       to: "/app/subscription",
@@ -195,128 +192,25 @@ export function AppShell({ children }: { children: ReactNode }) {
       show: true,
       module: null,
     },
-  ];
-
-  const selfhostAdmin: NavItem[] = [
     {
-      to: "/app/admin/knowledge-gaps",
-      label: "Knowledge Gaps",
-      icon: AlertTriangle,
-      show: hasAnyPermission("knowledge.manage", "analytics.view"),
-      module: null, // Basic per business rule
+      to: "/app/updates",
+      label: "Updates",
+      icon: Download,
+      show: true,
+      module: null,
     },
     {
-      to: "/app/admin/ai-audit",
-      label: "AI Audit",
-      icon: LineChart,
-      show: hasPermission("ai_audit.run"),
-      module: null, // Basic per business rule
-    },
-    {
-      to: "/app/admin/users",
-      label: t("users"),
-      icon: Users,
-      show: hasAnyPermission("user.create", "user.update", "user.delete"),
-      module: null, // Basic per business rule
-    },
-    {
-      to: "/app/admin/command-center",
-      label: "Command Center",
-      icon: LayoutDashboard,
-      show: hasAnyPermission("dashboard.view", "analytics.view", "ai_audit.run"),
-      module: "executive_dashboard",
-    },
-    {
-      to: "/app/admin/sop-generator",
-      label: "AI SOP Generator",
-      icon: Sparkles,
-      show: hasPermission("sop.generate"),
-      module: "ai_sop_generator",
-    },
-    {
-      to: "/app/admin/academy",
-      label: "Academy Manager",
-      icon: GraduationCap,
-      show: hasPermission("academy.manage"),
-      module: "academy",
-    },
-    {
-      to: "/app/admin/analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      show: hasPermission("analytics.view"),
-      module: "analytics",
-    },
-    {
-      to: "/app/admin/integrations",
-      label: "Integrations",
-      icon: Sparkles,
-      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: "rbac",
-    },
-    {
-      to: "/app/admin/sso-setup",
-      label: "SSO / Microsoft",
-      icon: ShieldCheck,
-      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: "rbac",
-    },
-    {
-      to: "/app/admin/webhooks",
-      label: "Webhooks",
-      icon: Webhook,
-      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: "rbac",
-    },
-    {
-      to: "/app/admin/api-keys",
-      label: "API keys",
-      icon: KeyRound,
-      show: isPlatformAdmin || isPlatformOwner || hasAnyPermission("user.create", "user.update"),
-      module: "rbac",
-    },
-    {
-      to: "/app/brand",
-      label: "Brand Center",
-      icon: Sparkles,
-      show: isPlatformAdmin || isPlatformOwner,
-      module: "brand_center",
+      to: "/app/modules",
+      label: "Modules",
+      icon: ClipboardCheck,
+      show: true,
+      module: null,
     },
   ];
 
-  const selfhostPlatform: NavItem[] =
-    isPlatformAdmin || isPlatformOwner
-      ? [
-          {
-            to: "/app/platform/setup",
-            label: "Setup Wizard",
-            icon: Rocket,
-            show: true,
-            module: null,
-          },
-          {
-            to: "/app/platform/doctor",
-            label: "System Doctor",
-            icon: Wrench,
-            show: true,
-            module: null,
-          },
-          {
-            to: "/app/platform/recovery",
-            label: "Disaster Recovery",
-            icon: ShieldAlert,
-            show: true,
-            module: null,
-          },
-          {
-            to: "/app/platform/license-activation",
-            label: "License Activation",
-            icon: KeyRound,
-            show: true,
-            module: null,
-          },
-        ]
-      : [];
+  const selfhostAdmin: NavItem[] = [];
+  const selfhostPlatform: NavItem[] = [];
+
 
 
   // ---- Management Center (platform management ONLY) navigation ----
@@ -573,8 +467,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const handleProfile = () => {
     setMobileOpen(false);
-    navigate({ to: "/app/profile" });
+    navigate({ to: "/app/organization" });
   };
+
 
   const linkCls =
     "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";

@@ -102,15 +102,19 @@ import { Route as AuthenticatedManagementInstallationsRouteImport } from './rout
 import { Route as AuthenticatedManagementCustomersRouteImport } from './routes/_authenticated/management.customers'
 import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_authenticated/management.companies'
 import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_authenticated/management.audit-logs'
+import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
+import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
-import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppPlatformRouteImport } from './routes/_authenticated/app.platform'
+import { Route as AuthenticatedAppOrganizationRouteImport } from './routes/_authenticated/app.organization'
+import { Route as AuthenticatedAppModulesRouteImport } from './routes/_authenticated/app.modules'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenticated/app.internal'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticated/app.brand'
+import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
@@ -675,6 +679,16 @@ const AuthenticatedManagementAuditLogsRoute =
     path: '/audit-logs',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
+const AuthenticatedAppUsersRoute = AuthenticatedAppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppUpdatesRoute = AuthenticatedAppUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppSubscriptionRoute =
   AuthenticatedAppSubscriptionRouteImport.update({
     id: '/subscription',
@@ -687,17 +701,23 @@ const AuthenticatedAppRequestsRoute =
     path: '/requests',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
 const AuthenticatedAppPlatformRoute =
   AuthenticatedAppPlatformRouteImport.update({
     id: '/platform',
     path: '/platform',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppOrganizationRoute =
+  AuthenticatedAppOrganizationRouteImport.update({
+    id: '/organization',
+    path: '/organization',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppModulesRoute = AuthenticatedAppModulesRouteImport.update({
+  id: '/modules',
+  path: '/modules',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppKnowledgeRoute =
   AuthenticatedAppKnowledgeRouteImport.update({
     id: '/knowledge',
@@ -723,6 +743,11 @@ const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
 const AuthenticatedAppBrandRoute = AuthenticatedAppBrandRouteImport.update({
   id: '/brand',
   path: '/brand',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppAuditRoute = AuthenticatedAppAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
@@ -1256,15 +1281,19 @@ export interface FileRoutesByFullPath {
   '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
+  '/app/modules': typeof AuthenticatedAppModulesRoute
+  '/app/organization': typeof AuthenticatedAppOrganizationRoute
   '/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
-  '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
+  '/app/updates': typeof AuthenticatedAppUpdatesRoute
+  '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
@@ -1433,12 +1462,16 @@ export interface FileRoutesByTo {
   '/solutions': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
-  '/app/profile': typeof AuthenticatedAppProfileRoute
+  '/app/modules': typeof AuthenticatedAppModulesRoute
+  '/app/organization': typeof AuthenticatedAppOrganizationRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
+  '/app/updates': typeof AuthenticatedAppUpdatesRoute
+  '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
@@ -1613,15 +1646,19 @@ export interface FileRoutesById {
   '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
   '/_authenticated/app/brand': typeof AuthenticatedAppBrandRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
   '/_authenticated/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
+  '/_authenticated/app/modules': typeof AuthenticatedAppModulesRoute
+  '/_authenticated/app/organization': typeof AuthenticatedAppOrganizationRoute
   '/_authenticated/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
-  '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
+  '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
+  '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
   '/_authenticated/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
   '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/_authenticated/management/customers': typeof AuthenticatedManagementCustomersRoute
@@ -1796,15 +1833,19 @@ export interface FileRouteTypes {
     | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/app/audit'
     | '/app/brand'
     | '/app/chat'
     | '/app/faq'
     | '/app/internal'
     | '/app/knowledge'
+    | '/app/modules'
+    | '/app/organization'
     | '/app/platform'
-    | '/app/profile'
     | '/app/requests'
     | '/app/subscription'
+    | '/app/updates'
+    | '/app/users'
     | '/management/audit-logs'
     | '/management/companies'
     | '/management/customers'
@@ -1973,12 +2014,16 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/app/audit'
     | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
-    | '/app/profile'
+    | '/app/modules'
+    | '/app/organization'
     | '/app/requests'
     | '/app/subscription'
+    | '/app/updates'
+    | '/app/users'
     | '/management/audit-logs'
     | '/management/companies'
     | '/management/customers'
@@ -2152,15 +2197,19 @@ export interface FileRouteTypes {
     | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/app/audit'
     | '/_authenticated/app/brand'
     | '/_authenticated/app/chat'
     | '/_authenticated/app/faq'
     | '/_authenticated/app/internal'
     | '/_authenticated/app/knowledge'
+    | '/_authenticated/app/modules'
+    | '/_authenticated/app/organization'
     | '/_authenticated/app/platform'
-    | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/app/subscription'
+    | '/_authenticated/app/updates'
+    | '/_authenticated/app/users'
     | '/_authenticated/management/audit-logs'
     | '/_authenticated/management/companies'
     | '/_authenticated/management/customers'
@@ -2978,6 +3027,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementAuditLogsRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
+    '/_authenticated/app/users': {
+      id: '/_authenticated/app/users'
+      path: '/users'
+      fullPath: '/app/users'
+      preLoaderRoute: typeof AuthenticatedAppUsersRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/updates': {
+      id: '/_authenticated/app/updates'
+      path: '/updates'
+      fullPath: '/app/updates'
+      preLoaderRoute: typeof AuthenticatedAppUpdatesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/subscription': {
       id: '/_authenticated/app/subscription'
       path: '/subscription'
@@ -2992,18 +3055,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRequestsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/profile': {
-      id: '/_authenticated/app/profile'
-      path: '/profile'
-      fullPath: '/app/profile'
-      preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/platform': {
       id: '/_authenticated/app/platform'
       path: '/platform'
       fullPath: '/app/platform'
       preLoaderRoute: typeof AuthenticatedAppPlatformRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/organization': {
+      id: '/_authenticated/app/organization'
+      path: '/organization'
+      fullPath: '/app/organization'
+      preLoaderRoute: typeof AuthenticatedAppOrganizationRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/modules': {
+      id: '/_authenticated/app/modules'
+      path: '/modules'
+      fullPath: '/app/modules'
+      preLoaderRoute: typeof AuthenticatedAppModulesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/knowledge': {
@@ -3039,6 +3109,13 @@ declare module '@tanstack/react-router' {
       path: '/brand'
       fullPath: '/app/brand'
       preLoaderRoute: typeof AuthenticatedAppBrandRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/audit': {
+      id: '/_authenticated/app/audit'
+      path: '/audit'
+      fullPath: '/app/audit'
+      preLoaderRoute: typeof AuthenticatedAppAuditRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/.mcp/invoke-tool/$tool': {
@@ -3704,15 +3781,19 @@ const AuthenticatedAppAdminIntegrationsRouteWithChildren =
   )
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAuditRoute: typeof AuthenticatedAppAuditRoute
   AuthenticatedAppBrandRoute: typeof AuthenticatedAppBrandRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
   AuthenticatedAppInternalRoute: typeof AuthenticatedAppInternalRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
+  AuthenticatedAppModulesRoute: typeof AuthenticatedAppModulesRoute
+  AuthenticatedAppOrganizationRoute: typeof AuthenticatedAppOrganizationRoute
   AuthenticatedAppPlatformRoute: typeof AuthenticatedAppPlatformRouteWithChildren
-  AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppSubscriptionRoute: typeof AuthenticatedAppSubscriptionRoute
+  AuthenticatedAppUpdatesRoute: typeof AuthenticatedAppUpdatesRoute
+  AuthenticatedAppUsersRoute: typeof AuthenticatedAppUsersRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppAcademyAnalyticsRoute: typeof AuthenticatedAppAcademyAnalyticsRoute
   AuthenticatedAppAcademyCertificatesRoute: typeof AuthenticatedAppAcademyCertificatesRoute
@@ -3761,15 +3842,19 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAuditRoute: AuthenticatedAppAuditRoute,
   AuthenticatedAppBrandRoute: AuthenticatedAppBrandRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
   AuthenticatedAppInternalRoute: AuthenticatedAppInternalRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
+  AuthenticatedAppModulesRoute: AuthenticatedAppModulesRoute,
+  AuthenticatedAppOrganizationRoute: AuthenticatedAppOrganizationRoute,
   AuthenticatedAppPlatformRoute: AuthenticatedAppPlatformRouteWithChildren,
-  AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppSubscriptionRoute: AuthenticatedAppSubscriptionRoute,
+  AuthenticatedAppUpdatesRoute: AuthenticatedAppUpdatesRoute,
+  AuthenticatedAppUsersRoute: AuthenticatedAppUsersRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppAcademyAnalyticsRoute: AuthenticatedAppAcademyAnalyticsRoute,
   AuthenticatedAppAcademyCertificatesRoute:
