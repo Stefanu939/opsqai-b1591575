@@ -10,12 +10,9 @@ import { toast } from "sonner";
 import { LogoMark } from "@/components/brand/logo";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
-// Only allow same-origin relative paths as post-login redirect targets.
-function safeNext(raw: string | undefined): string {
-  const fallback = getClientDeploymentMode() === "selfhost" ? "/app" : "/portal";
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return fallback;
-  return raw;
-}
+// (Post-login target is computed by resolvePostLoginTarget below; a raw
+// `next=` search param takes precedence when it's a same-origin path.)
+
 
 // Resolve the landing page after sign-in.
 //   - Self-Hosted (Windows install): everyone lands in the operational app.
