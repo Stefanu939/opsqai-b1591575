@@ -24,6 +24,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CompanyRouteImport } from './routes/company'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
@@ -174,6 +175,11 @@ const DocumentationRoute = DocumentationRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompanyRoute = CompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -601,6 +607,7 @@ export interface FileRoutesByFullPath {
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
+  '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/documentation': typeof DocumentationRoute
   '/first-run': typeof FirstRunRoute
@@ -693,6 +700,7 @@ export interface FileRoutesByTo {
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
+  '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/documentation': typeof DocumentationRoute
   '/first-run': typeof FirstRunRoute
@@ -783,6 +791,7 @@ export interface FileRoutesById {
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
+  '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/documentation': typeof DocumentationRoute
   '/first-run': typeof FirstRunRoute
@@ -877,6 +886,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/accept-invite'
     | '/auth'
+    | '/company'
     | '/contact'
     | '/documentation'
     | '/first-run'
@@ -969,6 +979,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/accept-invite'
     | '/auth'
+    | '/company'
     | '/contact'
     | '/documentation'
     | '/first-run'
@@ -1058,6 +1069,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/accept-invite'
     | '/auth'
+    | '/company'
     | '/contact'
     | '/documentation'
     | '/first-run'
@@ -1152,6 +1164,7 @@ export interface RootRouteChildren {
   LegalRouteRoute: typeof LegalRouteRouteWithChildren
   AcceptInviteRoute: typeof AcceptInviteRoute
   AuthRoute: typeof AuthRoute
+  CompanyRoute: typeof CompanyRoute
   ContactRoute: typeof ContactRoute
   DocumentationRoute: typeof DocumentationRoute
   FirstRunRoute: typeof FirstRunRoute
@@ -1297,6 +1310,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/company': {
+      id: '/company'
+      path: '/company'
+      fullPath: '/company'
+      preLoaderRoute: typeof CompanyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -2015,6 +2035,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalRouteRoute: LegalRouteRouteWithChildren,
   AcceptInviteRoute: AcceptInviteRoute,
   AuthRoute: AuthRoute,
+  CompanyRoute: CompanyRoute,
   ContactRoute: ContactRoute,
   DocumentationRoute: DocumentationRoute,
   FirstRunRoute: FirstRunRoute,

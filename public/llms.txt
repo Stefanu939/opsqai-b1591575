@@ -1,7 +1,20 @@
 # OPSQAI
 
-> OPSQAI is a multi-tenant AI knowledge assistant for logistics companies — it answers operational questions from SOPs, manuals, and FAQs while enforcing strict company isolation.
+> OPSQAI is an Enterprise Operational AI Platform delivered as a Windows Self-Hosted product. The Windows installation is the product; OPSQAI Cloud (Management Center and Customer Portal) exists only for licensing, releases, installer distribution and customer support. Customers own their data, documents, embeddings and AI provider.
+
+## Product architecture
+
+- Management Center (cloud, OPSQAI staff only): companies, installations, licenses, releases, signing keys, activation bundles, ownership, support, audit.
+- Customer Portal (cloud, customer contacts): installer downloads, updates, activation bundles, documentation, release notes, subscription and support.
+- Self-Hosted (Windows, the actual product): AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, Subscription, Updates, Modules.
 
 ## Pages
 
-- [Sign in](/auth): Sign in or request access to your company workspace.
+- [Home](/): Positioning, architecture, modules, differentiation.
+- [Product](/product): One product, three surfaces.
+- [Modules](/modules): Basic Platform and Premium Modules.
+- [Self-hosted](/self-hosted): Windows deployment, data flow, requirements.
+- [Security](/security): Ed25519 licenses, hash-chained audit, CRL, chunk-level ACL.
+- [Pricing](/pricing): Basic Platform, Premium Modules, Annual Maintenance.
+- [Company](/company): Mission, team, go-to-market.
+- [Contact](/contact): Request pricing, demo or installer.

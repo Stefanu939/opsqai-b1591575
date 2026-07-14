@@ -711,7 +711,7 @@ def s_team(i):
     title_block("Founders and planned hires.", "Team", IVORY, max_w=1400)
 
     people = [
-        ("Ștefan Grigore", "Founder & CEO",
+        ("Ștefan Bari", "Founder & CEO",
          "Founder of OPSQAI. Owns product direction, customer relationships and commercial strategy. "
          "Background and prior experience available on request."),
         ("CTO", "Chief Technology Officer — to be named",

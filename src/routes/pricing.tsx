@@ -9,33 +9,34 @@ const PRICING_FAQS = [
   {
     question: "Is OPSQAI a SaaS product?",
     answer:
-      "No. OPSQAI is a self-hosted product. You buy the Basic platform once, add premium modules as needed, and keep it running under an annual maintenance contract. There is no monthly per-seat cloud subscription.",
+      "No. OPSQAI is a Windows Self-Hosted product. You buy the Basic Platform once, add premium modules as needed, and keep it running under an annual maintenance contract. There is no monthly per-seat cloud subscription.",
   },
   {
-    question: "What does Basic include?",
+    question: "What does the Basic Platform include?",
     answer:
-      "The Basic platform includes AI Chat, Knowledge Base, FAQ Library, notifications, bilingual UI (EN/DE), and PWA support. It runs on your Windows Server with your chosen AI provider.",
+      "AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization and Subscription. It runs on the customer's Windows Server with the customer's chosen AI provider.",
   },
   {
     question: "How are premium modules priced?",
     answer:
-      "Each premium module is a one-time purchase. Prices depend on the module and are quoted per install. Activation is issued by OPSQAI as a signed module license.",
+      "Each premium module is licensed separately. Pricing depends on the module, scope and installation size. Activation is issued by OPSQAI as a signed module license — no reinstall required.",
   },
   {
     question: "What is Annual Maintenance?",
     answer:
-      "Annual Maintenance covers signed updates, security releases, support tickets, and ownership continuity. Without an active maintenance contract, the install continues to work but stops receiving updates and support.",
+      "Annual Maintenance covers signed updates, security releases, support with defined response targets, module compatibility guarantees and ownership continuity. Without an active maintenance contract, the install continues to work but stops receiving updates and support.",
   },
 ];
 
 export const Route = createFileRoute("/pricing")({
   head: () =>
     pageHead({
-      title: "Pricing — OPSQAI",
+      title: "Pricing — OPSQAI Enterprise Operational AI Platform",
       description:
-        "OPSQAI pricing model: one-time Basic platform, premium modules purchased separately, and annual maintenance. No SaaS, no per-seat cloud lock-in.",
+        "OPSQAI pricing model: one-time Basic Platform, premium modules purchased separately, and annual maintenance. Windows Self-Hosted — no SaaS, no per-seat cloud lock-in.",
       path: "/pricing",
-      keywords: "OPSQAI pricing, one-time license, annual maintenance, premium modules, self-hosted AI pricing",
+      keywords:
+        "OPSQAI pricing, one-time license, annual maintenance, premium modules, self-hosted AI pricing",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Pricing", path: "/pricing" },
@@ -49,29 +50,27 @@ const TIERS = [
   {
     icon: Package,
     name: "Basic Platform",
-    tag: "One-time",
-    price: "From €18,000",
-    body: "Perpetual license for the Basic bundle: AI Chat, Knowledge Base, FAQ, notifications, bilingual UI, PWA. Installer, signed license, and initial setup included.",
+    tag: "One-time purchase",
+    body: "Perpetual license for the Basic Platform: AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization and Subscription. Windows installer, signed license and initial setup included.",
     bullets: [
-      "Perpetual, per-install license",
-      "Windows Server deployment",
-      "Bring-your-own AI provider",
-      "EU-compliant by design",
+      "Perpetual, per-installation license",
+      "Windows Self-Hosted",
+      "Customer-owned AI provider",
+      "Signed installer and license",
     ],
-    cta: "Request a quote",
+    cta: "Request pricing",
     to: "/contact",
   },
   {
     icon: Puzzle,
     name: "Premium Modules",
     tag: "One-time, per module",
-    price: "Priced per module",
-    body: "Activate additional capabilities like Academy, Analytics, AI Workspace Audit, Executive Dashboard, Compliance Center, Enterprise Export, and more. Each purchased separately.",
+    body: "Activate additional capabilities on top of the Basic Platform. Each module is licensed separately and activated by OPSQAI through a signed license — no reinstall required.",
     bullets: [
       "Signed module licenses",
       "Activated by OPSQAI",
       "No cross-module dependencies",
-      "Requested from inside the app",
+      "No downtime, no data movement",
     ],
     cta: "Browse modules",
     to: "/modules",
@@ -79,14 +78,13 @@ const TIERS = [
   {
     icon: LifeBuoy,
     name: "Annual Maintenance",
-    tag: "Yearly",
-    price: "20% of license value",
-    body: "Signed updates and security releases, priority support with defined response targets, module compatibility guarantees, and ownership continuity.",
+    tag: "Recurring",
+    body: "Signed updates and security releases, priority support with defined response targets, module compatibility guarantees, and ownership continuity for the installation.",
     bullets: [
-      "Signed releases & updates",
-      "Support with SLA",
+      "Signed releases and updates",
+      "Support with response targets",
       "Compatibility guaranteed",
-      "Renewals handled by OPSQAI",
+      "Managed by OPSQAI",
     ],
     cta: "Talk to sales",
     to: "/contact",
@@ -102,8 +100,9 @@ function PricingPage() {
           Own the platform. Pay for what you use.
         </h1>
         <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI is not a SaaS. You purchase the Basic platform once, activate premium modules as
-          you need them, and keep the install healthy with Annual Maintenance.
+          OPSQAI is not a SaaS. You purchase the Basic Platform once, activate
+          premium modules as you need them, and keep the installation healthy
+          with Annual Maintenance.
         </p>
       </section>
 
@@ -112,9 +111,10 @@ function PricingPage() {
           {TIERS.map((t) => (
             <Card key={t.name} className="p-6 border-border/60 flex flex-col">
               <t.icon className="h-6 w-6 text-primary" />
-              <div className="mt-4 text-xs uppercase tracking-wider text-muted-foreground">{t.tag}</div>
+              <div className="mt-4 text-xs uppercase tracking-wider text-muted-foreground">
+                {t.tag}
+              </div>
               <div className="mt-1 font-semibold text-lg">{t.name}</div>
-              <div className="mt-3 text-2xl font-semibold tracking-tight">{t.price}</div>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{t.body}</p>
               <ul className="mt-4 space-y-1.5 text-xs text-muted-foreground flex-1">
                 {t.bullets.map((b) => (
@@ -130,8 +130,9 @@ function PricingPage() {
             </Card>
           ))}
         </div>
-        <p className="mt-6 text-xs text-muted-foreground text-center">
-          Indicative pricing. Every deployment is quoted based on scope, modules, and support tier.
+        <p className="mt-6 text-xs text-muted-foreground text-center max-w-2xl mx-auto">
+          Pricing depends on company size, selected premium modules and the
+          maintenance tier. Every deployment is quoted individually.
         </p>
       </section>
 
@@ -150,13 +151,14 @@ function PricingPage() {
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight">Get a quote for your operation.</h2>
+        <h2 className="text-3xl font-semibold tracking-tight">Request pricing.</h2>
         <p className="mt-3 text-muted-foreground">
-          Send us your rough scope and we'll come back with a fixed price.
+          Tell us about your operation — company size, target modules and
+          maintenance needs. We come back with a fixed quote.
         </p>
         <div className="mt-6">
           <Button asChild>
-            <Link to="/contact">Request a quote</Link>
+            <Link to="/contact">Request pricing</Link>
           </Button>
         </div>
       </section>
