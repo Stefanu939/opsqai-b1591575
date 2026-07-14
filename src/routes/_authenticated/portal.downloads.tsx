@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyPortalOverview, downloadMyActivationBundle } from "@/lib/portal.functions";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Package, FileArchive } from "lucide-react";
+import { Package, FileArchive, Inbox } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/portal/downloads")({
@@ -47,51 +49,53 @@ function PortalDownloads() {
     }
   }
 
-  return (
-    <div className="p-6 md:p-10 space-y-6 max-w-5xl">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
-          <Download className="h-7 w-7" /> Downloads
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Installation packages and offline activation bundles for the installations tied to your
-          account. Package downloads issue a signed URL valid for 24 hours; every download is logged
-          for audit.
-        </p>
-      </header>
+  const installs = data?.installs ?? [];
 
-      <div className="space-y-3">
-        {(data?.installs ?? []).map((inst) => (
-          <Card key={inst.install_id} className="p-4 flex items-center justify-between gap-3">
-            <div>
-              <div className="font-mono text-sm">{inst.install_id}</div>
-              <div className="text-xs text-muted-foreground">{inst.company_name}</div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => downloadPackage(inst.install_id)}
-                disabled={!inst.install_license || inst.install_license.revoked}
+  return (
+    <div className="p-6 md:p-10 max-w-5xl">
+      <PageHeader
+        eyebrow="Customer portal"
+        title="Downloads"
+        description="Installation packages and offline activation bundles for the installations tied to your account. Package downloads issue a signed URL valid for 24 hours; every download is logged."
+      />
+
+      {installs.length === 0 ? (
+        <EmptyState
+          icon={Inbox}
+          title="No installations tied to your account"
+          description="Downloads become available once an OPSQAI installation is linked to your email."
+        />
+      ) : (
+        <div className="space-y-3">
+          {installs.map((inst) => {
+            const disabled = !inst.install_license || inst.install_license.revoked;
+            return (
+              <Card
+                key={inst.install_id}
+                className="p-4 flex items-center justify-between gap-3 flex-wrap"
               >
-                <FileArchive className="h-4 w-4 mr-1" /> Installation package
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => downloadBundle(inst.install_id)}
-                disabled={!inst.install_license || inst.install_license.revoked}
-              >
-                <Package className="h-4 w-4 mr-1" /> Activation bundle
-              </Button>
-            </div>
-          </Card>
-        ))}
-        {!data?.installs.length ? (
-          <Card className="p-6">
-            <p className="text-sm text-muted-foreground">No installations tied to your account.</p>
-          </Card>
-        ) : null}
-      </div>
+                <div className="min-w-0">
+                  <div className="font-mono text-sm truncate">{inst.install_id}</div>
+                  <div className="text-xs text-muted-foreground">{inst.company_name}</div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => downloadPackage(inst.install_id)} disabled={disabled}>
+                    <FileArchive className="h-4 w-4 mr-1" /> Installation package
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadBundle(inst.install_id)}
+                    disabled={disabled}
+                  >
+                    <Package className="h-4 w-4 mr-1" /> Activation bundle
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
