@@ -125,7 +125,13 @@ export const upsertCustomerContract = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {
+    const patch: {
+      company_id: string;
+      updated_at: string;
+      contract_status?: string | null;
+      renewal_date?: string | null;
+      onboarding_pct?: number | null;
+    } = {
       company_id: data.company_id,
       updated_at: new Date().toISOString(),
     };
