@@ -9,59 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TrustRouteImport } from './routes/trust'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SsoSigninRouteImport } from './routes/sso-signin'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as SelfHostedRouteImport } from './routes/self-hosted'
+import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as McpRouteImport } from './routes/mcp'
-import { Route as IndustriesRouteImport } from './routes/industries'
-import { Route as HelpRouteImport } from './routes/help'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
-import { Route as FeaturesRouteImport } from './routes/features'
-import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SolutionsIndexRouteImport } from './routes/solutions.index'
-import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as DemoIndexRouteImport } from './routes/demo.index'
-import { Route as CaseStudiesIndexRouteImport } from './routes/case-studies.index'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
-import { Route as TrustSelfHostedRouteImport } from './routes/trust.self-hosted'
-import { Route as TrustSecurityArchitectureRouteImport } from './routes/trust.security-architecture'
-import { Route as TrustResponsibleAiRouteImport } from './routes/trust.responsible-ai'
-import { Route as TrustMultiTenantIsolationRouteImport } from './routes/trust.multi-tenant-isolation'
-import { Route as TrustLicensingRouteImport } from './routes/trust.licensing'
-import { Route as TrustIso27001RoadmapRouteImport } from './routes/trust.iso-27001-roadmap'
-import { Route as TrustIncidentResponseRouteImport } from './routes/trust.incident-response'
-import { Route as TrustGdprRouteImport } from './routes/trust.gdpr'
-import { Route as TrustEncryptionRouteImport } from './routes/trust.encryption'
-import { Route as TrustDisasterRecoveryRouteImport } from './routes/trust.disaster-recovery'
-import { Route as TrustDataRetentionRouteImport } from './routes/trust.data-retention'
-import { Route as TrustBackupPolicyRouteImport } from './routes/trust.backup-policy'
-import { Route as TrustAvailabilityRouteImport } from './routes/trust.availability'
-import { Route as TrustAuditLogsRouteImport } from './routes/trust.audit-logs'
-import { Route as SolutionsSlugRouteImport } from './routes/solutions.$slug'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
-import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DemoAppRouteImport } from './routes/demo.app'
-import { Route as CaseStudiesSlugRouteImport } from './routes/case-studies.$slug'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
@@ -194,9 +170,9 @@ import { Route as AuthenticatedAppAdminIntegrationsProviderRouteImport } from '.
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
-const TrustRoute = TrustRouteImport.update({
-  id: '/trust',
-  path: '/trust',
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SsoSigninRoute = SsoSigninRouteImport.update({
@@ -209,9 +185,14 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResourcesRoute = ResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
+const SelfHostedRoute = SelfHostedRouteImport.update({
+  id: '/self-hosted',
+  path: '/self-hosted',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -229,19 +210,14 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModulesRoute = ModulesRouteImport.update({
+  id: '/modules',
+  path: '/modules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndustriesRoute = IndustriesRouteImport.update({
-  id: '/industries',
-  path: '/industries',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HelpRoute = HelpRouteImport.update({
-  id: '/help',
-  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -254,14 +230,9 @@ const FirstRunRoute = FirstRunRouteImport.update({
   path: '/first-run',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FeaturesRoute = FeaturesRouteImport.update({
-  id: '/features',
-  path: '/features',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
+const DocumentationRoute = DocumentationRouteImport.update({
+  id: '/documentation',
+  path: '/documentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -279,11 +250,6 @@ const AcceptInviteRoute = AcceptInviteRouteImport.update({
   path: '/accept-invite',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LegalRouteRoute = LegalRouteRouteImport.update({
   id: '/legal',
   path: '/legal',
@@ -298,111 +264,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SolutionsIndexRoute = SolutionsIndexRouteImport.update({
-  id: '/solutions/',
-  path: '/solutions/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GuidesIndexRoute = GuidesIndexRouteImport.update({
-  id: '/guides/',
-  path: '/guides/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DemoIndexRoute = DemoIndexRouteImport.update({
   id: '/demo/',
   path: '/demo/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CaseStudiesIndexRoute = CaseStudiesIndexRouteImport.update({
-  id: '/case-studies/',
-  path: '/case-studies/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
   id: '/verify/$code',
   path: '/verify/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrustSelfHostedRoute = TrustSelfHostedRouteImport.update({
-  id: '/self-hosted',
-  path: '/self-hosted',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustSecurityArchitectureRoute =
-  TrustSecurityArchitectureRouteImport.update({
-    id: '/security-architecture',
-    path: '/security-architecture',
-    getParentRoute: () => TrustRoute,
-  } as any)
-const TrustResponsibleAiRoute = TrustResponsibleAiRouteImport.update({
-  id: '/responsible-ai',
-  path: '/responsible-ai',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustMultiTenantIsolationRoute =
-  TrustMultiTenantIsolationRouteImport.update({
-    id: '/multi-tenant-isolation',
-    path: '/multi-tenant-isolation',
-    getParentRoute: () => TrustRoute,
-  } as any)
-const TrustLicensingRoute = TrustLicensingRouteImport.update({
-  id: '/licensing',
-  path: '/licensing',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustIso27001RoadmapRoute = TrustIso27001RoadmapRouteImport.update({
-  id: '/iso-27001-roadmap',
-  path: '/iso-27001-roadmap',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustIncidentResponseRoute = TrustIncidentResponseRouteImport.update({
-  id: '/incident-response',
-  path: '/incident-response',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustGdprRoute = TrustGdprRouteImport.update({
-  id: '/gdpr',
-  path: '/gdpr',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustEncryptionRoute = TrustEncryptionRouteImport.update({
-  id: '/encryption',
-  path: '/encryption',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustDisasterRecoveryRoute = TrustDisasterRecoveryRouteImport.update({
-  id: '/disaster-recovery',
-  path: '/disaster-recovery',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustDataRetentionRoute = TrustDataRetentionRouteImport.update({
-  id: '/data-retention',
-  path: '/data-retention',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustBackupPolicyRoute = TrustBackupPolicyRouteImport.update({
-  id: '/backup-policy',
-  path: '/backup-policy',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustAvailabilityRoute = TrustAvailabilityRouteImport.update({
-  id: '/availability',
-  path: '/availability',
-  getParentRoute: () => TrustRoute,
-} as any)
-const TrustAuditLogsRoute = TrustAuditLogsRouteImport.update({
-  id: '/audit-logs',
-  path: '/audit-logs',
-  getParentRoute: () => TrustRoute,
-} as any)
-const SolutionsSlugRoute = SolutionsSlugRouteImport.update({
-  id: '/solutions/$slug',
-  path: '/solutions/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
@@ -435,11 +304,6 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
   path: '/cookies',
   getParentRoute: () => LegalRouteRoute,
 } as any)
-const GuidesSlugRoute = GuidesSlugRouteImport.update({
-  id: '/guides/$slug',
-  path: '/guides/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -448,16 +312,6 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const DemoAppRoute = DemoAppRouteImport.update({
   id: '/demo/app',
   path: '/demo/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CaseStudiesSlugRoute = CaseStudiesSlugRouteImport.update({
-  id: '/case-studies/$slug',
-  path: '/case-studies/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
@@ -1217,24 +1071,22 @@ const AuthenticatedAppAcademyLessonLessonIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/legal': typeof LegalRouteRouteWithChildren
-  '/about': typeof AboutRoute
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/docs': typeof DocsRoute
-  '/features': typeof FeaturesRoute
+  '/documentation': typeof DocumentationRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/help': typeof HelpRoute
-  '/industries': typeof IndustriesRoute
   '/mcp': typeof McpRoute
+  '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
+  '/security': typeof SecurityRoute
+  '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
-  '/trust': typeof TrustRouteWithChildren
+  '/support': typeof SupportRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
@@ -1247,38 +1099,16 @@ export interface FileRoutesByFullPath {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/case-studies/$slug': typeof CaseStudiesSlugRoute
   '/demo/app': typeof DemoAppRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/guides/$slug': typeof GuidesSlugRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
-  '/solutions/$slug': typeof SolutionsSlugRoute
-  '/trust/audit-logs': typeof TrustAuditLogsRoute
-  '/trust/availability': typeof TrustAvailabilityRoute
-  '/trust/backup-policy': typeof TrustBackupPolicyRoute
-  '/trust/data-retention': typeof TrustDataRetentionRoute
-  '/trust/disaster-recovery': typeof TrustDisasterRecoveryRoute
-  '/trust/encryption': typeof TrustEncryptionRoute
-  '/trust/gdpr': typeof TrustGdprRoute
-  '/trust/incident-response': typeof TrustIncidentResponseRoute
-  '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
-  '/trust/licensing': typeof TrustLicensingRoute
-  '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
-  '/trust/responsible-ai': typeof TrustResponsibleAiRoute
-  '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
-  '/trust/self-hosted': typeof TrustSelfHostedRoute
   '/verify/$code': typeof VerifyCodeRoute
-  '/blog/': typeof BlogIndexRoute
-  '/case-studies/': typeof CaseStudiesIndexRoute
   '/demo/': typeof DemoIndexRoute
-  '/guides/': typeof GuidesIndexRoute
-  '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1402,24 +1232,22 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/legal': typeof LegalRouteRouteWithChildren
-  '/about': typeof AboutRoute
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/docs': typeof DocsRoute
-  '/features': typeof FeaturesRoute
+  '/documentation': typeof DocumentationRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/help': typeof HelpRoute
-  '/industries': typeof IndustriesRoute
   '/mcp': typeof McpRoute
+  '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
+  '/security': typeof SecurityRoute
+  '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
-  '/trust': typeof TrustRouteWithChildren
+  '/support': typeof SupportRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/academy-chat': typeof ApiAcademyChatRoute
@@ -1429,37 +1257,15 @@ export interface FileRoutesByTo {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/case-studies/$slug': typeof CaseStudiesSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/guides/$slug': typeof GuidesSlugRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
-  '/solutions/$slug': typeof SolutionsSlugRoute
-  '/trust/audit-logs': typeof TrustAuditLogsRoute
-  '/trust/availability': typeof TrustAvailabilityRoute
-  '/trust/backup-policy': typeof TrustBackupPolicyRoute
-  '/trust/data-retention': typeof TrustDataRetentionRoute
-  '/trust/disaster-recovery': typeof TrustDisasterRecoveryRoute
-  '/trust/encryption': typeof TrustEncryptionRoute
-  '/trust/gdpr': typeof TrustGdprRoute
-  '/trust/incident-response': typeof TrustIncidentResponseRoute
-  '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
-  '/trust/licensing': typeof TrustLicensingRoute
-  '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
-  '/trust/responsible-ai': typeof TrustResponsibleAiRoute
-  '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
-  '/trust/self-hosted': typeof TrustSelfHostedRoute
   '/verify/$code': typeof VerifyCodeRoute
-  '/blog': typeof BlogIndexRoute
-  '/case-studies': typeof CaseStudiesIndexRoute
   '/demo': typeof DemoIndexRoute
-  '/guides': typeof GuidesIndexRoute
-  '/solutions': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1582,24 +1388,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/legal': typeof LegalRouteRouteWithChildren
-  '/about': typeof AboutRoute
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/docs': typeof DocsRoute
-  '/features': typeof FeaturesRoute
+  '/documentation': typeof DocumentationRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/help': typeof HelpRoute
-  '/industries': typeof IndustriesRoute
   '/mcp': typeof McpRoute
+  '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
+  '/security': typeof SecurityRoute
+  '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
-  '/trust': typeof TrustRouteWithChildren
+  '/support': typeof SupportRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
@@ -1612,38 +1416,16 @@ export interface FileRoutesById {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/case-studies/$slug': typeof CaseStudiesSlugRoute
   '/demo/app': typeof DemoAppRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/guides/$slug': typeof GuidesSlugRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
   '/legal/impressum': typeof LegalImpressumRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
-  '/solutions/$slug': typeof SolutionsSlugRoute
-  '/trust/audit-logs': typeof TrustAuditLogsRoute
-  '/trust/availability': typeof TrustAvailabilityRoute
-  '/trust/backup-policy': typeof TrustBackupPolicyRoute
-  '/trust/data-retention': typeof TrustDataRetentionRoute
-  '/trust/disaster-recovery': typeof TrustDisasterRecoveryRoute
-  '/trust/encryption': typeof TrustEncryptionRoute
-  '/trust/gdpr': typeof TrustGdprRoute
-  '/trust/incident-response': typeof TrustIncidentResponseRoute
-  '/trust/iso-27001-roadmap': typeof TrustIso27001RoadmapRoute
-  '/trust/licensing': typeof TrustLicensingRoute
-  '/trust/multi-tenant-isolation': typeof TrustMultiTenantIsolationRoute
-  '/trust/responsible-ai': typeof TrustResponsibleAiRoute
-  '/trust/security-architecture': typeof TrustSecurityArchitectureRoute
-  '/trust/self-hosted': typeof TrustSelfHostedRoute
   '/verify/$code': typeof VerifyCodeRoute
-  '/blog/': typeof BlogIndexRoute
-  '/case-studies/': typeof CaseStudiesIndexRoute
   '/demo/': typeof DemoIndexRoute
-  '/guides/': typeof GuidesIndexRoute
-  '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1769,24 +1551,22 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/legal'
-    | '/about'
     | '/accept-invite'
     | '/auth'
     | '/contact'
-    | '/docs'
-    | '/features'
+    | '/documentation'
     | '/first-run'
     | '/forgot-password'
-    | '/help'
-    | '/industries'
     | '/mcp'
+    | '/modules'
     | '/pricing'
     | '/product'
     | '/reset-password'
-    | '/resources'
+    | '/security'
+    | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
-    | '/trust'
+    | '/support'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/app'
@@ -1799,38 +1579,16 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
-    | '/blog/$slug'
-    | '/case-studies/$slug'
     | '/demo/app'
     | '/email/unsubscribe'
-    | '/guides/$slug'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
-    | '/solutions/$slug'
-    | '/trust/audit-logs'
-    | '/trust/availability'
-    | '/trust/backup-policy'
-    | '/trust/data-retention'
-    | '/trust/disaster-recovery'
-    | '/trust/encryption'
-    | '/trust/gdpr'
-    | '/trust/incident-response'
-    | '/trust/iso-27001-roadmap'
-    | '/trust/licensing'
-    | '/trust/multi-tenant-isolation'
-    | '/trust/responsible-ai'
-    | '/trust/security-architecture'
-    | '/trust/self-hosted'
     | '/verify/$code'
-    | '/blog/'
-    | '/case-studies/'
     | '/demo/'
-    | '/guides/'
-    | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -1954,24 +1712,22 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/legal'
-    | '/about'
     | '/accept-invite'
     | '/auth'
     | '/contact'
-    | '/docs'
-    | '/features'
+    | '/documentation'
     | '/first-run'
     | '/forgot-password'
-    | '/help'
-    | '/industries'
     | '/mcp'
+    | '/modules'
     | '/pricing'
     | '/product'
     | '/reset-password'
-    | '/resources'
+    | '/security'
+    | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
-    | '/trust'
+    | '/support'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/academy-chat'
@@ -1981,37 +1737,15 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
-    | '/blog/$slug'
-    | '/case-studies/$slug'
     | '/email/unsubscribe'
-    | '/guides/$slug'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
-    | '/solutions/$slug'
-    | '/trust/audit-logs'
-    | '/trust/availability'
-    | '/trust/backup-policy'
-    | '/trust/data-retention'
-    | '/trust/disaster-recovery'
-    | '/trust/encryption'
-    | '/trust/gdpr'
-    | '/trust/incident-response'
-    | '/trust/iso-27001-roadmap'
-    | '/trust/licensing'
-    | '/trust/multi-tenant-isolation'
-    | '/trust/responsible-ai'
-    | '/trust/security-architecture'
-    | '/trust/self-hosted'
     | '/verify/$code'
-    | '/blog'
-    | '/case-studies'
     | '/demo'
-    | '/guides'
-    | '/solutions'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -2133,24 +1867,22 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/legal'
-    | '/about'
     | '/accept-invite'
     | '/auth'
     | '/contact'
-    | '/docs'
-    | '/features'
+    | '/documentation'
     | '/first-run'
     | '/forgot-password'
-    | '/help'
-    | '/industries'
     | '/mcp'
+    | '/modules'
     | '/pricing'
     | '/product'
     | '/reset-password'
-    | '/resources'
+    | '/security'
+    | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
-    | '/trust'
+    | '/support'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
@@ -2163,38 +1895,16 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
-    | '/blog/$slug'
-    | '/case-studies/$slug'
     | '/demo/app'
     | '/email/unsubscribe'
-    | '/guides/$slug'
     | '/legal/cookies'
     | '/legal/dpa'
     | '/legal/impressum'
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
-    | '/solutions/$slug'
-    | '/trust/audit-logs'
-    | '/trust/availability'
-    | '/trust/backup-policy'
-    | '/trust/data-retention'
-    | '/trust/disaster-recovery'
-    | '/trust/encryption'
-    | '/trust/gdpr'
-    | '/trust/incident-response'
-    | '/trust/iso-27001-roadmap'
-    | '/trust/licensing'
-    | '/trust/multi-tenant-isolation'
-    | '/trust/responsible-ai'
-    | '/trust/security-architecture'
-    | '/trust/self-hosted'
     | '/verify/$code'
-    | '/blog/'
-    | '/case-studies/'
     | '/demo/'
-    | '/guides/'
-    | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/app/audit'
@@ -2320,24 +2030,22 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LegalRouteRoute: typeof LegalRouteRouteWithChildren
-  AboutRoute: typeof AboutRoute
   AcceptInviteRoute: typeof AcceptInviteRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
-  DocsRoute: typeof DocsRoute
-  FeaturesRoute: typeof FeaturesRoute
+  DocumentationRoute: typeof DocumentationRoute
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
-  HelpRoute: typeof HelpRoute
-  IndustriesRoute: typeof IndustriesRoute
   McpRoute: typeof McpRoute
+  ModulesRoute: typeof ModulesRoute
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ResourcesRoute: typeof ResourcesRoute
+  SecurityRoute: typeof SecurityRoute
+  SelfHostedRoute: typeof SelfHostedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SsoSigninRoute: typeof SsoSigninRoute
-  TrustRoute: typeof TrustRouteWithChildren
+  SupportRoute: typeof SupportRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
@@ -2347,18 +2055,10 @@ export interface RootRouteChildren {
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
-  BlogSlugRoute: typeof BlogSlugRoute
-  CaseStudiesSlugRoute: typeof CaseStudiesSlugRoute
   DemoAppRoute: typeof DemoAppRouteWithChildren
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
-  GuidesSlugRoute: typeof GuidesSlugRoute
-  SolutionsSlugRoute: typeof SolutionsSlugRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
-  BlogIndexRoute: typeof BlogIndexRoute
-  CaseStudiesIndexRoute: typeof CaseStudiesIndexRoute
   DemoIndexRoute: typeof DemoIndexRoute
-  GuidesIndexRoute: typeof GuidesIndexRoute
-  SolutionsIndexRoute: typeof SolutionsIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
@@ -2376,11 +2076,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trust': {
-      id: '/trust'
-      path: '/trust'
-      fullPath: '/trust'
-      preLoaderRoute: typeof TrustRouteImport
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sso-signin': {
@@ -2397,11 +2097,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/resources': {
-      id: '/resources'
-      path: '/resources'
-      fullPath: '/resources'
-      preLoaderRoute: typeof ResourcesRouteImport
+    '/self-hosted': {
+      id: '/self-hosted'
+      path: '/self-hosted'
+      fullPath: '/self-hosted'
+      preLoaderRoute: typeof SelfHostedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -2425,25 +2132,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modules': {
+      id: '/modules'
+      path: '/modules'
+      fullPath: '/modules'
+      preLoaderRoute: typeof ModulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/industries': {
-      id: '/industries'
-      path: '/industries'
-      fullPath: '/industries'
-      preLoaderRoute: typeof IndustriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/help': {
-      id: '/help'
-      path: '/help'
-      fullPath: '/help'
-      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -2460,18 +2160,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FirstRunRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/features': {
-      id: '/features'
-      path: '/features'
-      fullPath: '/features'
-      preLoaderRoute: typeof FeaturesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
+    '/documentation': {
+      id: '/documentation'
+      path: '/documentation'
+      fullPath: '/documentation'
+      preLoaderRoute: typeof DocumentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -2495,13 +2188,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcceptInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/legal': {
       id: '/legal'
       path: '/legal'
@@ -2523,20 +2209,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/solutions/': {
-      id: '/solutions/'
-      path: '/solutions'
-      fullPath: '/solutions/'
-      preLoaderRoute: typeof SolutionsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/guides/': {
-      id: '/guides/'
-      path: '/guides'
-      fullPath: '/guides/'
-      preLoaderRoute: typeof GuidesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/demo/': {
       id: '/demo/'
       path: '/demo'
@@ -2544,130 +2216,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/case-studies/': {
-      id: '/case-studies/'
-      path: '/case-studies'
-      fullPath: '/case-studies/'
-      preLoaderRoute: typeof CaseStudiesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/verify/$code': {
       id: '/verify/$code'
       path: '/verify/$code'
       fullPath: '/verify/$code'
       preLoaderRoute: typeof VerifyCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trust/self-hosted': {
-      id: '/trust/self-hosted'
-      path: '/self-hosted'
-      fullPath: '/trust/self-hosted'
-      preLoaderRoute: typeof TrustSelfHostedRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/security-architecture': {
-      id: '/trust/security-architecture'
-      path: '/security-architecture'
-      fullPath: '/trust/security-architecture'
-      preLoaderRoute: typeof TrustSecurityArchitectureRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/responsible-ai': {
-      id: '/trust/responsible-ai'
-      path: '/responsible-ai'
-      fullPath: '/trust/responsible-ai'
-      preLoaderRoute: typeof TrustResponsibleAiRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/multi-tenant-isolation': {
-      id: '/trust/multi-tenant-isolation'
-      path: '/multi-tenant-isolation'
-      fullPath: '/trust/multi-tenant-isolation'
-      preLoaderRoute: typeof TrustMultiTenantIsolationRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/licensing': {
-      id: '/trust/licensing'
-      path: '/licensing'
-      fullPath: '/trust/licensing'
-      preLoaderRoute: typeof TrustLicensingRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/iso-27001-roadmap': {
-      id: '/trust/iso-27001-roadmap'
-      path: '/iso-27001-roadmap'
-      fullPath: '/trust/iso-27001-roadmap'
-      preLoaderRoute: typeof TrustIso27001RoadmapRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/incident-response': {
-      id: '/trust/incident-response'
-      path: '/incident-response'
-      fullPath: '/trust/incident-response'
-      preLoaderRoute: typeof TrustIncidentResponseRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/gdpr': {
-      id: '/trust/gdpr'
-      path: '/gdpr'
-      fullPath: '/trust/gdpr'
-      preLoaderRoute: typeof TrustGdprRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/encryption': {
-      id: '/trust/encryption'
-      path: '/encryption'
-      fullPath: '/trust/encryption'
-      preLoaderRoute: typeof TrustEncryptionRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/disaster-recovery': {
-      id: '/trust/disaster-recovery'
-      path: '/disaster-recovery'
-      fullPath: '/trust/disaster-recovery'
-      preLoaderRoute: typeof TrustDisasterRecoveryRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/data-retention': {
-      id: '/trust/data-retention'
-      path: '/data-retention'
-      fullPath: '/trust/data-retention'
-      preLoaderRoute: typeof TrustDataRetentionRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/backup-policy': {
-      id: '/trust/backup-policy'
-      path: '/backup-policy'
-      fullPath: '/trust/backup-policy'
-      preLoaderRoute: typeof TrustBackupPolicyRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/availability': {
-      id: '/trust/availability'
-      path: '/availability'
-      fullPath: '/trust/availability'
-      preLoaderRoute: typeof TrustAvailabilityRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/trust/audit-logs': {
-      id: '/trust/audit-logs'
-      path: '/audit-logs'
-      fullPath: '/trust/audit-logs'
-      preLoaderRoute: typeof TrustAuditLogsRouteImport
-      parentRoute: typeof TrustRoute
-    }
-    '/solutions/$slug': {
-      id: '/solutions/$slug'
-      path: '/solutions/$slug'
-      fullPath: '/solutions/$slug'
-      preLoaderRoute: typeof SolutionsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/terms': {
@@ -2712,13 +2265,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalCookiesRouteImport
       parentRoute: typeof LegalRouteRoute
     }
-    '/guides/$slug': {
-      id: '/guides/$slug'
-      path: '/guides/$slug'
-      fullPath: '/guides/$slug'
-      preLoaderRoute: typeof GuidesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
       path: '/email/unsubscribe'
@@ -2731,20 +2277,6 @@ declare module '@tanstack/react-router' {
       path: '/demo/app'
       fullPath: '/demo/app'
       preLoaderRoute: typeof DemoAppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/case-studies/$slug': {
-      id: '/case-studies/$slug'
-      path: '/case-studies/$slug'
-      fullPath: '/case-studies/$slug'
-      preLoaderRoute: typeof CaseStudiesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/workspace-chat': {
@@ -4031,42 +3563,6 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
-interface TrustRouteChildren {
-  TrustAuditLogsRoute: typeof TrustAuditLogsRoute
-  TrustAvailabilityRoute: typeof TrustAvailabilityRoute
-  TrustBackupPolicyRoute: typeof TrustBackupPolicyRoute
-  TrustDataRetentionRoute: typeof TrustDataRetentionRoute
-  TrustDisasterRecoveryRoute: typeof TrustDisasterRecoveryRoute
-  TrustEncryptionRoute: typeof TrustEncryptionRoute
-  TrustGdprRoute: typeof TrustGdprRoute
-  TrustIncidentResponseRoute: typeof TrustIncidentResponseRoute
-  TrustIso27001RoadmapRoute: typeof TrustIso27001RoadmapRoute
-  TrustLicensingRoute: typeof TrustLicensingRoute
-  TrustMultiTenantIsolationRoute: typeof TrustMultiTenantIsolationRoute
-  TrustResponsibleAiRoute: typeof TrustResponsibleAiRoute
-  TrustSecurityArchitectureRoute: typeof TrustSecurityArchitectureRoute
-  TrustSelfHostedRoute: typeof TrustSelfHostedRoute
-}
-
-const TrustRouteChildren: TrustRouteChildren = {
-  TrustAuditLogsRoute: TrustAuditLogsRoute,
-  TrustAvailabilityRoute: TrustAvailabilityRoute,
-  TrustBackupPolicyRoute: TrustBackupPolicyRoute,
-  TrustDataRetentionRoute: TrustDataRetentionRoute,
-  TrustDisasterRecoveryRoute: TrustDisasterRecoveryRoute,
-  TrustEncryptionRoute: TrustEncryptionRoute,
-  TrustGdprRoute: TrustGdprRoute,
-  TrustIncidentResponseRoute: TrustIncidentResponseRoute,
-  TrustIso27001RoadmapRoute: TrustIso27001RoadmapRoute,
-  TrustLicensingRoute: TrustLicensingRoute,
-  TrustMultiTenantIsolationRoute: TrustMultiTenantIsolationRoute,
-  TrustResponsibleAiRoute: TrustResponsibleAiRoute,
-  TrustSecurityArchitectureRoute: TrustSecurityArchitectureRoute,
-  TrustSelfHostedRoute: TrustSelfHostedRoute,
-}
-
-const TrustRouteWithChildren = TrustRoute._addFileChildren(TrustRouteChildren)
-
 interface DemoAppRouteChildren {
   DemoAppAcademyRoute: typeof DemoAppAcademyRoute
   DemoAppAnalyticsRoute: typeof DemoAppAnalyticsRoute
@@ -4096,24 +3592,22 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LegalRouteRoute: LegalRouteRouteWithChildren,
-  AboutRoute: AboutRoute,
   AcceptInviteRoute: AcceptInviteRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
-  DocsRoute: DocsRoute,
-  FeaturesRoute: FeaturesRoute,
+  DocumentationRoute: DocumentationRoute,
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
-  HelpRoute: HelpRoute,
-  IndustriesRoute: IndustriesRoute,
   McpRoute: McpRoute,
+  ModulesRoute: ModulesRoute,
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  ResourcesRoute: ResourcesRoute,
+  SecurityRoute: SecurityRoute,
+  SelfHostedRoute: SelfHostedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SsoSigninRoute: SsoSigninRoute,
-  TrustRoute: TrustRouteWithChildren,
+  SupportRoute: SupportRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
@@ -4124,18 +3618,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
-  BlogSlugRoute: BlogSlugRoute,
-  CaseStudiesSlugRoute: CaseStudiesSlugRoute,
   DemoAppRoute: DemoAppRouteWithChildren,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
-  GuidesSlugRoute: GuidesSlugRoute,
-  SolutionsSlugRoute: SolutionsSlugRoute,
   VerifyCodeRoute: VerifyCodeRoute,
-  BlogIndexRoute: BlogIndexRoute,
-  CaseStudiesIndexRoute: CaseStudiesIndexRoute,
   DemoIndexRoute: DemoIndexRoute,
-  GuidesIndexRoute: GuidesIndexRoute,
-  SolutionsIndexRoute: SolutionsIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
