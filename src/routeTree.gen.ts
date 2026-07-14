@@ -39,7 +39,6 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
-import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
@@ -248,11 +247,6 @@ const ApiTtsRoute = ApiTtsRouteImport.update({
 const ApiInternalChatRoute = ApiInternalChatRouteImport.update({
   id: '/api/internal-chat',
   path: '/api/internal-chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiDemoChatRoute = ApiDemoChatRouteImport.update({
-  id: '/api/demo-chat',
-  path: '/api/demo-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCustomerWriterRoute = ApiCustomerWriterRouteImport.update({
@@ -623,7 +617,6 @@ export interface FileRoutesByFullPath {
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
-  '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -712,7 +705,6 @@ export interface FileRoutesByTo {
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
-  '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -805,7 +797,6 @@ export interface FileRoutesById {
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
-  '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -899,7 +890,6 @@ export interface FileRouteTypes {
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
-    | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
@@ -988,7 +978,6 @@ export interface FileRouteTypes {
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
-    | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
@@ -1080,7 +1069,6 @@ export interface FileRouteTypes {
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
-    | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
@@ -1171,7 +1159,6 @@ export interface RootRouteChildren {
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
-  ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
@@ -1402,13 +1389,6 @@ declare module '@tanstack/react-router' {
       path: '/api/internal-chat'
       fullPath: '/api/internal-chat'
       preLoaderRoute: typeof ApiInternalChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/demo-chat': {
-      id: '/api/demo-chat'
-      path: '/api/demo-chat'
-      fullPath: '/api/demo-chat'
-      preLoaderRoute: typeof ApiDemoChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/customer-writer': {
@@ -2035,7 +2015,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
-  ApiDemoChatRoute: ApiDemoChatRoute,
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
