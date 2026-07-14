@@ -41,9 +41,9 @@ export function PlatformTopbar() {
   const segments = pathname.split("/").filter(Boolean);
   const navigate = useNavigate();
 
+  const { lang, setLang, t } = useT();
   const [email, setEmail] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("mc-lang") as Lang) || "en");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -55,10 +55,11 @@ export function PlatformTopbar() {
     });
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("mc-lang", lang);
-    document.documentElement.setAttribute("lang", lang);
-  }, [lang]);
+  function changeLang(next: Lang) {
+    setLang(next);
+    document.documentElement.setAttribute("lang", next);
+    toast.success(`${t("language") ?? "Language"}: ${LANG_NAME[next]}`);
+  }
 
   const initials = (email || "?").slice(0, 2).toUpperCase();
 
