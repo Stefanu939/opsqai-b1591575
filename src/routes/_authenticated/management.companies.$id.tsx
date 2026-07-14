@@ -85,8 +85,8 @@ function CompanyDetailPage() {
   const downloadMut = useMutation({
     mutationFn: (installId: string) => downloadUrl({ data: { install_id: installId } }),
     onSuccess: (res) => {
-      if (res?.url) {
-        window.open(res.url, "_blank", "noopener");
+      if (res?.signed_url) {
+        window.open(res.signed_url, "_blank", "noopener");
         toast.success("Download started");
       } else {
         toast.error("Package not available yet");
