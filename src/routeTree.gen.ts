@@ -87,10 +87,8 @@ import { Route as DemoAppAuditRouteImport } from './routes/demo.app.audit'
 import { Route as DemoAppAnalyticsRouteImport } from './routes/demo.app.analytics'
 import { Route as DemoAppAcademyRouteImport } from './routes/demo.app.academy'
 import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
-import { Route as AuthenticatedPortalTicketsRouteImport } from './routes/_authenticated/portal.tickets'
 import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
-import { Route as AuthenticatedPortalContractRouteImport } from './routes/_authenticated/portal.contract'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
 import { Route as AuthenticatedManagementSettingsRouteImport } from './routes/_authenticated/management.settings'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
@@ -584,12 +582,6 @@ const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
   path: '/api/public/contact-submit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPortalTicketsRoute =
-  AuthenticatedPortalTicketsRouteImport.update({
-    id: '/tickets',
-    path: '/tickets',
-    getParentRoute: () => AuthenticatedPortalRoute,
-  } as any)
 const AuthenticatedPortalReleaseNotesRoute =
   AuthenticatedPortalReleaseNotesRouteImport.update({
     id: '/release-notes',
@@ -600,12 +592,6 @@ const AuthenticatedPortalDownloadsRoute =
   AuthenticatedPortalDownloadsRouteImport.update({
     id: '/downloads',
     path: '/downloads',
-    getParentRoute: () => AuthenticatedPortalRoute,
-  } as any)
-const AuthenticatedPortalContractRoute =
-  AuthenticatedPortalContractRouteImport.update({
-    id: '/contract',
-    path: '/contract',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
 const AuthenticatedManagementSupportRoute =
@@ -1268,10 +1254,8 @@ export interface FileRoutesByFullPath {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
-  '/portal/contract': typeof AuthenticatedPortalContractRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
-  '/portal/tickets': typeof AuthenticatedPortalTicketsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1441,10 +1425,8 @@ export interface FileRoutesByTo {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
-  '/portal/contract': typeof AuthenticatedPortalContractRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
-  '/portal/tickets': typeof AuthenticatedPortalTicketsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1623,10 +1605,8 @@ export interface FileRoutesById {
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
-  '/_authenticated/portal/contract': typeof AuthenticatedPortalContractRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
-  '/_authenticated/portal/tickets': typeof AuthenticatedPortalTicketsRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1805,10 +1785,8 @@ export interface FileRouteTypes {
     | '/management/releases'
     | '/management/settings'
     | '/management/support'
-    | '/portal/contract'
     | '/portal/downloads'
     | '/portal/release-notes'
-    | '/portal/tickets'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -1978,10 +1956,8 @@ export interface FileRouteTypes {
     | '/management/releases'
     | '/management/settings'
     | '/management/support'
-    | '/portal/contract'
     | '/portal/downloads'
     | '/portal/release-notes'
-    | '/portal/tickets'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -2159,10 +2135,8 @@ export interface FileRouteTypes {
     | '/_authenticated/management/releases'
     | '/_authenticated/management/settings'
     | '/_authenticated/management/support'
-    | '/_authenticated/portal/contract'
     | '/_authenticated/portal/downloads'
     | '/_authenticated/portal/release-notes'
-    | '/_authenticated/portal/tickets'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -2860,13 +2834,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicContactSubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/portal/tickets': {
-      id: '/_authenticated/portal/tickets'
-      path: '/tickets'
-      fullPath: '/portal/tickets'
-      preLoaderRoute: typeof AuthenticatedPortalTicketsRouteImport
-      parentRoute: typeof AuthenticatedPortalRoute
-    }
     '/_authenticated/portal/release-notes': {
       id: '/_authenticated/portal/release-notes'
       path: '/release-notes'
@@ -2879,13 +2846,6 @@ declare module '@tanstack/react-router' {
       path: '/downloads'
       fullPath: '/portal/downloads'
       preLoaderRoute: typeof AuthenticatedPortalDownloadsRouteImport
-      parentRoute: typeof AuthenticatedPortalRoute
-    }
-    '/_authenticated/portal/contract': {
-      id: '/_authenticated/portal/contract'
-      path: '/contract'
-      fullPath: '/portal/contract'
-      preLoaderRoute: typeof AuthenticatedPortalContractRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
     '/_authenticated/management/support': {
@@ -3869,18 +3829,14 @@ const AuthenticatedManagementRouteWithChildren =
   )
 
 interface AuthenticatedPortalRouteChildren {
-  AuthenticatedPortalContractRoute: typeof AuthenticatedPortalContractRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
   AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
-  AuthenticatedPortalTicketsRoute: typeof AuthenticatedPortalTicketsRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
 }
 
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
-  AuthenticatedPortalContractRoute: AuthenticatedPortalContractRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
   AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
-  AuthenticatedPortalTicketsRoute: AuthenticatedPortalTicketsRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
 }
 
