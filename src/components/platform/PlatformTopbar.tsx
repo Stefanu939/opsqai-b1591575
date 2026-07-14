@@ -33,8 +33,8 @@ function labelFor(segment: string) {
   return PATH_LABELS[segment] ?? segment.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-type Lang = "ro" | "de" | "en";
 const LANG_LABEL: Record<Lang, string> = { ro: "RO", de: "DE", en: "EN" };
+const LANG_NAME: Record<Lang, string> = { ro: "Română", de: "Deutsch", en: "English" };
 
 export function PlatformTopbar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
