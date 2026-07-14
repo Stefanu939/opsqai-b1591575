@@ -56,13 +56,13 @@ function AcademyKBPage() {
             </h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
               Lessons, training articles, safety guides, and procedures used exclusively by Academy.
-              Isolated from the operational AI Assistant — protected by the same multi-tenant RLS as
+              Isolated from the operational AI Assistant — protected by the same on-premise RLS as
               the rest of OPSQAI.
             </p>
           </div>
           {canManage && (
             <Link
-              to="/app/admin/academy"
+              to="/app/academy/teacher"
               className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm hover:bg-accent transition-colors"
             >
               <Sparkles className="h-4 w-4 text-primary" /> Open Manager Console
@@ -99,7 +99,7 @@ function AcademyKBPage() {
             <ShieldCheck className="h-5 w-5 mx-auto mb-2 text-muted-foreground/70" />
             No published Academy material yet.{" "}
             {canManage && (
-              <Link to="/app/admin/academy" className="text-primary hover:underline">
+              <Link to="/app/academy/teacher" className="text-primary hover:underline">
                 Create your first lesson →
               </Link>
             )}

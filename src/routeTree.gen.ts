@@ -28,7 +28,6 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoIndexRouteImport } from './routes/demo.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
@@ -37,11 +36,9 @@ import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as DemoAppRouteImport } from './routes/demo.app'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
-import { Route as ApiDemoChatRouteImport } from './routes/api/demo-chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
@@ -50,18 +47,10 @@ import { Route as AuthenticatedManagementRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as DemoAppIndexRouteImport } from './routes/demo.app.index'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as DemoAppUsersRouteImport } from './routes/demo.app.users'
-import { Route as DemoAppKnowledgeRouteImport } from './routes/demo.app.knowledge'
-import { Route as DemoAppFaqRouteImport } from './routes/demo.app.faq'
-import { Route as DemoAppChatRouteImport } from './routes/demo.app.chat'
-import { Route as DemoAppAuditRouteImport } from './routes/demo.app.audit'
-import { Route as DemoAppAnalyticsRouteImport } from './routes/demo.app.analytics'
-import { Route as DemoAppAcademyRouteImport } from './routes/demo.app.academy'
 import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
 import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
 import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
@@ -81,22 +70,14 @@ import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
-import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
-import { Route as AuthenticatedAppPlatformRouteImport } from './routes/_authenticated/app.platform'
 import { Route as AuthenticatedAppOrganizationRouteImport } from './routes/_authenticated/app.organization'
 import { Route as AuthenticatedAppModulesRouteImport } from './routes/_authenticated/app.modules'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
-import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenticated/app.internal'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
-import { Route as AuthenticatedAppBrandRouteImport } from './routes/_authenticated/app.brand'
 import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
-import { Route as AuthenticatedAppWorkspaceIndexRouteImport } from './routes/_authenticated/app.workspace.index'
-import { Route as AuthenticatedAppPlatformIndexRouteImport } from './routes/_authenticated/app.platform.index'
-import { Route as AuthenticatedAppInternalIndexRouteImport } from './routes/_authenticated/app.internal.index'
-import { Route as AuthenticatedAppDocsIndexRouteImport } from './routes/_authenticated/app.docs.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -107,54 +88,7 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1/knowledge'
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
 import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
-import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
-import { Route as AuthenticatedAppPlatformSupportRouteImport } from './routes/_authenticated/app.platform.support'
-import { Route as AuthenticatedAppPlatformSetupRouteImport } from './routes/_authenticated/app.platform.setup'
-import { Route as AuthenticatedAppPlatformRecoveryRouteImport } from './routes/_authenticated/app.platform.recovery'
-import { Route as AuthenticatedAppPlatformOverviewRouteImport } from './routes/_authenticated/app.platform.overview'
-import { Route as AuthenticatedAppPlatformOpsRouteImport } from './routes/_authenticated/app.platform.ops'
-import { Route as AuthenticatedAppPlatformOnboardingRouteImport } from './routes/_authenticated/app.platform.onboarding'
-import { Route as AuthenticatedAppPlatformLicensesRouteImport } from './routes/_authenticated/app.platform.licenses'
-import { Route as AuthenticatedAppPlatformLicenseActivationRouteImport } from './routes/_authenticated/app.platform.license-activation'
-import { Route as AuthenticatedAppPlatformDoctorRouteImport } from './routes/_authenticated/app.platform.doctor'
-import { Route as AuthenticatedAppPlatformCustomersRouteImport } from './routes/_authenticated/app.platform.customers'
-import { Route as AuthenticatedAppPlatformBillingRouteImport } from './routes/_authenticated/app.platform.billing'
-import { Route as AuthenticatedAppPlatformAuditRouteImport } from './routes/_authenticated/app.platform.audit'
-import { Route as AuthenticatedAppPlatformAdministrationRouteImport } from './routes/_authenticated/app.platform.administration'
-import { Route as AuthenticatedAppInternalKnowledgeRouteImport } from './routes/_authenticated/app.internal.knowledge'
-import { Route as AuthenticatedAppInternalAssistantRouteImport } from './routes/_authenticated/app.internal.assistant'
-import { Route as AuthenticatedAppDocsBookRouteImport } from './routes/_authenticated/app.docs.$book'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
-import { Route as AuthenticatedAppAdminWebhooksRouteImport } from './routes/_authenticated/app.admin.webhooks'
-import { Route as AuthenticatedAppAdminUsersRouteImport } from './routes/_authenticated/app.admin.users'
-import { Route as AuthenticatedAppAdminSupportRouteImport } from './routes/_authenticated/app.admin.support'
-import { Route as AuthenticatedAppAdminSubscriptionsRouteImport } from './routes/_authenticated/app.admin.subscriptions'
-import { Route as AuthenticatedAppAdminSsoSetupRouteImport } from './routes/_authenticated/app.admin.sso-setup'
-import { Route as AuthenticatedAppAdminSopGeneratorRouteImport } from './routes/_authenticated/app.admin.sop-generator'
-import { Route as AuthenticatedAppAdminReleaseManagementRouteImport } from './routes/_authenticated/app.admin.release-management'
-import { Route as AuthenticatedAppAdminPlatformAdminsRouteImport } from './routes/_authenticated/app.admin.platform-admins'
-import { Route as AuthenticatedAppAdminPlatformRouteImport } from './routes/_authenticated/app.admin.platform'
-import { Route as AuthenticatedAppAdminMonitoringRouteImport } from './routes/_authenticated/app.admin.monitoring'
-import { Route as AuthenticatedAppAdminModuleCatalogRouteImport } from './routes/_authenticated/app.admin.module-catalog'
-import { Route as AuthenticatedAppAdminMaintenanceRouteImport } from './routes/_authenticated/app.admin.maintenance'
-import { Route as AuthenticatedAppAdminKnowledgeGapsRouteImport } from './routes/_authenticated/app.admin.knowledge-gaps'
-import { Route as AuthenticatedAppAdminIntegrationsRouteImport } from './routes/_authenticated/app.admin.integrations'
-import { Route as AuthenticatedAppAdminInstallationsRouteImport } from './routes/_authenticated/app.admin.installations'
-import { Route as AuthenticatedAppAdminEmailLogsRouteImport } from './routes/_authenticated/app.admin.email-logs'
-import { Route as AuthenticatedAppAdminEmailRouteImport } from './routes/_authenticated/app.admin.email'
-import { Route as AuthenticatedAppAdminDownloadsRouteImport } from './routes/_authenticated/app.admin.downloads'
-import { Route as AuthenticatedAppAdminDashboardRouteImport } from './routes/_authenticated/app.admin.dashboard'
-import { Route as AuthenticatedAppAdminCustomersRouteImport } from './routes/_authenticated/app.admin.customers'
-import { Route as AuthenticatedAppAdminContactsRouteImport } from './routes/_authenticated/app.admin.contacts'
-import { Route as AuthenticatedAppAdminCompaniesRouteImport } from './routes/_authenticated/app.admin.companies'
-import { Route as AuthenticatedAppAdminCommandCenterRouteImport } from './routes/_authenticated/app.admin.command-center'
-import { Route as AuthenticatedAppAdminBillingRouteImport } from './routes/_authenticated/app.admin.billing'
-import { Route as AuthenticatedAppAdminAuditRouteImport } from './routes/_authenticated/app.admin.audit'
-import { Route as AuthenticatedAppAdminApiKeysRouteImport } from './routes/_authenticated/app.admin.api-keys'
-import { Route as AuthenticatedAppAdminApiDocsRouteImport } from './routes/_authenticated/app.admin.api-docs'
-import { Route as AuthenticatedAppAdminAnalyticsRouteImport } from './routes/_authenticated/app.admin.analytics'
-import { Route as AuthenticatedAppAdminAiAuditRouteImport } from './routes/_authenticated/app.admin.ai-audit'
-import { Route as AuthenticatedAppAdminAcademyRouteImport } from './routes/_authenticated/app.admin.academy'
 import { Route as AuthenticatedAppAcademyTeacherRouteImport } from './routes/_authenticated/app.academy.teacher'
 import { Route as AuthenticatedAppAcademySettingsRouteImport } from './routes/_authenticated/app.academy.settings'
 import { Route as AuthenticatedAppAcademyKbRouteImport } from './routes/_authenticated/app.academy.kb'
@@ -163,10 +97,6 @@ import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './route
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
 import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
-import { Route as AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport } from './routes/_authenticated/app.platform.installation-package.$installId'
-import { Route as AuthenticatedAppInternalKnowledgeSlugRouteImport } from './routes/_authenticated/app.internal.knowledge.$slug'
-import { Route as AuthenticatedAppAdminNotificationsProviderRouteImport } from './routes/_authenticated/app.admin.notifications.$provider'
-import { Route as AuthenticatedAppAdminIntegrationsProviderRouteImport } from './routes/_authenticated/app.admin.integrations.$provider'
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
@@ -264,11 +194,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoIndexRoute = DemoIndexRouteImport.update({
-  id: '/demo/',
-  path: '/demo/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
   id: '/verify/$code',
   path: '/verify/$code',
@@ -309,11 +234,6 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoAppRoute = DemoAppRouteImport.update({
-  id: '/demo/app',
-  path: '/demo/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
   path: '/api/workspace-chat',
@@ -327,11 +247,6 @@ const ApiTtsRoute = ApiTtsRouteImport.update({
 const ApiInternalChatRoute = ApiInternalChatRouteImport.update({
   id: '/api/internal-chat',
   path: '/api/internal-chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiDemoChatRoute = ApiDemoChatRouteImport.update({
-  id: '/api/demo-chat',
-  path: '/api/demo-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCustomerWriterRoute = ApiCustomerWriterRouteImport.update({
@@ -376,11 +291,6 @@ const Char91DotmcpChar93ListToolsRoute =
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DemoAppIndexRoute = DemoAppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DemoAppRoute,
-} as any)
 const AuthenticatedPortalIndexRoute =
   AuthenticatedPortalIndexRouteImport.update({
     id: '/',
@@ -402,41 +312,6 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
-} as any)
-const DemoAppUsersRoute = DemoAppUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppKnowledgeRoute = DemoAppKnowledgeRouteImport.update({
-  id: '/knowledge',
-  path: '/knowledge',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppFaqRoute = DemoAppFaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppChatRoute = DemoAppChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppAuditRoute = DemoAppAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppAnalyticsRoute = DemoAppAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppAcademyRoute = DemoAppAcademyRouteImport.update({
-  id: '/academy',
-  path: '/academy',
-  getParentRoute: () => DemoAppRoute,
 } as any)
 const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
   id: '/api/public/contact-submit',
@@ -549,18 +424,6 @@ const AuthenticatedAppSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppRequestsRoute =
-  AuthenticatedAppRequestsRouteImport.update({
-    id: '/requests',
-    path: '/requests',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppPlatformRoute =
-  AuthenticatedAppPlatformRouteImport.update({
-    id: '/platform',
-    path: '/platform',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
 const AuthenticatedAppOrganizationRoute =
   AuthenticatedAppOrganizationRouteImport.update({
     id: '/organization',
@@ -578,12 +441,6 @@ const AuthenticatedAppKnowledgeRoute =
     path: '/knowledge',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppInternalRoute =
-  AuthenticatedAppInternalRouteImport.update({
-    id: '/internal',
-    path: '/internal',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
 const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -592,11 +449,6 @@ const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
 const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
   id: '/chat',
   path: '/chat',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
-const AuthenticatedAppBrandRoute = AuthenticatedAppBrandRouteImport.update({
-  id: '/brand',
-  path: '/brand',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppAuditRoute = AuthenticatedAppAuditRouteImport.update({
@@ -615,30 +467,6 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAppWorkspaceIndexRoute =
-  AuthenticatedAppWorkspaceIndexRouteImport.update({
-    id: '/workspace/',
-    path: '/workspace/',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppPlatformIndexRoute =
-  AuthenticatedAppPlatformIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppInternalIndexRoute =
-  AuthenticatedAppInternalIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedAppInternalRoute,
-  } as any)
-const AuthenticatedAppDocsIndexRoute =
-  AuthenticatedAppDocsIndexRouteImport.update({
-    id: '/docs/',
-    path: '/docs/',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
     id: '/',
@@ -695,293 +523,11 @@ const AuthenticatedManagementCompaniesIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedManagementCompaniesRoute,
   } as any)
-const AuthenticatedAppWorkspaceSessionIdRoute =
-  AuthenticatedAppWorkspaceSessionIdRouteImport.update({
-    id: '/workspace/$sessionId',
-    path: '/workspace/$sessionId',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppPlatformSupportRoute =
-  AuthenticatedAppPlatformSupportRouteImport.update({
-    id: '/support',
-    path: '/support',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformSetupRoute =
-  AuthenticatedAppPlatformSetupRouteImport.update({
-    id: '/setup',
-    path: '/setup',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformRecoveryRoute =
-  AuthenticatedAppPlatformRecoveryRouteImport.update({
-    id: '/recovery',
-    path: '/recovery',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformOverviewRoute =
-  AuthenticatedAppPlatformOverviewRouteImport.update({
-    id: '/overview',
-    path: '/overview',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformOpsRoute =
-  AuthenticatedAppPlatformOpsRouteImport.update({
-    id: '/ops',
-    path: '/ops',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformOnboardingRoute =
-  AuthenticatedAppPlatformOnboardingRouteImport.update({
-    id: '/onboarding',
-    path: '/onboarding',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformLicensesRoute =
-  AuthenticatedAppPlatformLicensesRouteImport.update({
-    id: '/licenses',
-    path: '/licenses',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformLicenseActivationRoute =
-  AuthenticatedAppPlatformLicenseActivationRouteImport.update({
-    id: '/license-activation',
-    path: '/license-activation',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformDoctorRoute =
-  AuthenticatedAppPlatformDoctorRouteImport.update({
-    id: '/doctor',
-    path: '/doctor',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformCustomersRoute =
-  AuthenticatedAppPlatformCustomersRouteImport.update({
-    id: '/customers',
-    path: '/customers',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformBillingRoute =
-  AuthenticatedAppPlatformBillingRouteImport.update({
-    id: '/billing',
-    path: '/billing',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformAuditRoute =
-  AuthenticatedAppPlatformAuditRouteImport.update({
-    id: '/audit',
-    path: '/audit',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppPlatformAdministrationRoute =
-  AuthenticatedAppPlatformAdministrationRouteImport.update({
-    id: '/administration',
-    path: '/administration',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppInternalKnowledgeRoute =
-  AuthenticatedAppInternalKnowledgeRouteImport.update({
-    id: '/knowledge',
-    path: '/knowledge',
-    getParentRoute: () => AuthenticatedAppInternalRoute,
-  } as any)
-const AuthenticatedAppInternalAssistantRoute =
-  AuthenticatedAppInternalAssistantRouteImport.update({
-    id: '/assistant',
-    path: '/assistant',
-    getParentRoute: () => AuthenticatedAppInternalRoute,
-  } as any)
-const AuthenticatedAppDocsBookRoute =
-  AuthenticatedAppDocsBookRouteImport.update({
-    id: '/docs/$book',
-    path: '/docs/$book',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
 const AuthenticatedAppChatThreadIdRoute =
   AuthenticatedAppChatThreadIdRouteImport.update({
     id: '/$threadId',
     path: '/$threadId',
     getParentRoute: () => AuthenticatedAppChatRoute,
-  } as any)
-const AuthenticatedAppAdminWebhooksRoute =
-  AuthenticatedAppAdminWebhooksRouteImport.update({
-    id: '/admin/webhooks',
-    path: '/admin/webhooks',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminUsersRoute =
-  AuthenticatedAppAdminUsersRouteImport.update({
-    id: '/admin/users',
-    path: '/admin/users',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminSupportRoute =
-  AuthenticatedAppAdminSupportRouteImport.update({
-    id: '/admin/support',
-    path: '/admin/support',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminSubscriptionsRoute =
-  AuthenticatedAppAdminSubscriptionsRouteImport.update({
-    id: '/admin/subscriptions',
-    path: '/admin/subscriptions',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminSsoSetupRoute =
-  AuthenticatedAppAdminSsoSetupRouteImport.update({
-    id: '/admin/sso-setup',
-    path: '/admin/sso-setup',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminSopGeneratorRoute =
-  AuthenticatedAppAdminSopGeneratorRouteImport.update({
-    id: '/admin/sop-generator',
-    path: '/admin/sop-generator',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminReleaseManagementRoute =
-  AuthenticatedAppAdminReleaseManagementRouteImport.update({
-    id: '/admin/release-management',
-    path: '/admin/release-management',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminPlatformAdminsRoute =
-  AuthenticatedAppAdminPlatformAdminsRouteImport.update({
-    id: '/admin/platform-admins',
-    path: '/admin/platform-admins',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminPlatformRoute =
-  AuthenticatedAppAdminPlatformRouteImport.update({
-    id: '/admin/platform',
-    path: '/admin/platform',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminMonitoringRoute =
-  AuthenticatedAppAdminMonitoringRouteImport.update({
-    id: '/admin/monitoring',
-    path: '/admin/monitoring',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminModuleCatalogRoute =
-  AuthenticatedAppAdminModuleCatalogRouteImport.update({
-    id: '/admin/module-catalog',
-    path: '/admin/module-catalog',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminMaintenanceRoute =
-  AuthenticatedAppAdminMaintenanceRouteImport.update({
-    id: '/admin/maintenance',
-    path: '/admin/maintenance',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminKnowledgeGapsRoute =
-  AuthenticatedAppAdminKnowledgeGapsRouteImport.update({
-    id: '/admin/knowledge-gaps',
-    path: '/admin/knowledge-gaps',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminIntegrationsRoute =
-  AuthenticatedAppAdminIntegrationsRouteImport.update({
-    id: '/admin/integrations',
-    path: '/admin/integrations',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminInstallationsRoute =
-  AuthenticatedAppAdminInstallationsRouteImport.update({
-    id: '/admin/installations',
-    path: '/admin/installations',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminEmailLogsRoute =
-  AuthenticatedAppAdminEmailLogsRouteImport.update({
-    id: '/admin/email-logs',
-    path: '/admin/email-logs',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminEmailRoute =
-  AuthenticatedAppAdminEmailRouteImport.update({
-    id: '/admin/email',
-    path: '/admin/email',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminDownloadsRoute =
-  AuthenticatedAppAdminDownloadsRouteImport.update({
-    id: '/admin/downloads',
-    path: '/admin/downloads',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminDashboardRoute =
-  AuthenticatedAppAdminDashboardRouteImport.update({
-    id: '/admin/dashboard',
-    path: '/admin/dashboard',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminCustomersRoute =
-  AuthenticatedAppAdminCustomersRouteImport.update({
-    id: '/admin/customers',
-    path: '/admin/customers',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminContactsRoute =
-  AuthenticatedAppAdminContactsRouteImport.update({
-    id: '/admin/contacts',
-    path: '/admin/contacts',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminCompaniesRoute =
-  AuthenticatedAppAdminCompaniesRouteImport.update({
-    id: '/admin/companies',
-    path: '/admin/companies',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminCommandCenterRoute =
-  AuthenticatedAppAdminCommandCenterRouteImport.update({
-    id: '/admin/command-center',
-    path: '/admin/command-center',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminBillingRoute =
-  AuthenticatedAppAdminBillingRouteImport.update({
-    id: '/admin/billing',
-    path: '/admin/billing',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminAuditRoute =
-  AuthenticatedAppAdminAuditRouteImport.update({
-    id: '/admin/audit',
-    path: '/admin/audit',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminApiKeysRoute =
-  AuthenticatedAppAdminApiKeysRouteImport.update({
-    id: '/admin/api-keys',
-    path: '/admin/api-keys',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminApiDocsRoute =
-  AuthenticatedAppAdminApiDocsRouteImport.update({
-    id: '/admin/api-docs',
-    path: '/admin/api-docs',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminAnalyticsRoute =
-  AuthenticatedAppAdminAnalyticsRouteImport.update({
-    id: '/admin/analytics',
-    path: '/admin/analytics',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminAiAuditRoute =
-  AuthenticatedAppAdminAiAuditRouteImport.update({
-    id: '/admin/ai-audit',
-    path: '/admin/ai-audit',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminAcademyRoute =
-  AuthenticatedAppAdminAcademyRouteImport.update({
-    id: '/admin/academy',
-    path: '/admin/academy',
-    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppAcademyTeacherRoute =
   AuthenticatedAppAcademyTeacherRouteImport.update({
@@ -1031,30 +577,6 @@ const ApiPublicV1LicenseHeartbeatRoute =
     path: '/api/public/v1/license/heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedAppPlatformInstallationPackageInstallIdRoute =
-  AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport.update({
-    id: '/installation-package/$installId',
-    path: '/installation-package/$installId',
-    getParentRoute: () => AuthenticatedAppPlatformRoute,
-  } as any)
-const AuthenticatedAppInternalKnowledgeSlugRoute =
-  AuthenticatedAppInternalKnowledgeSlugRouteImport.update({
-    id: '/$slug',
-    path: '/$slug',
-    getParentRoute: () => AuthenticatedAppInternalKnowledgeRoute,
-  } as any)
-const AuthenticatedAppAdminNotificationsProviderRoute =
-  AuthenticatedAppAdminNotificationsProviderRouteImport.update({
-    id: '/admin/notifications/$provider',
-    path: '/admin/notifications/$provider',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppAdminIntegrationsProviderRoute =
-  AuthenticatedAppAdminIntegrationsProviderRouteImport.update({
-    id: '/$provider',
-    path: '/$provider',
-    getParentRoute: () => AuthenticatedAppAdminIntegrationsRoute,
-  } as any)
 const AuthenticatedAppAcademyPathPathIdRoute =
   AuthenticatedAppAcademyPathPathIdRouteImport.update({
     id: '/academy/path/$pathId',
@@ -1095,11 +617,9 @@ export interface FileRoutesByFullPath {
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
-  '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
-  '/demo/app': typeof DemoAppRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -1108,19 +628,14 @@ export interface FileRoutesByFullPath {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
-  '/demo/': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
-  '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/faq': typeof AuthenticatedAppFaqRoute
-  '/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
-  '/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
-  '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -1140,72 +655,17 @@ export interface FileRoutesByFullPath {
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
-  '/demo/app/academy': typeof DemoAppAcademyRoute
-  '/demo/app/analytics': typeof DemoAppAnalyticsRoute
-  '/demo/app/audit': typeof DemoAppAuditRoute
-  '/demo/app/chat': typeof DemoAppChatRoute
-  '/demo/app/faq': typeof DemoAppFaqRoute
-  '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
-  '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/management/': typeof AuthenticatedManagementIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
-  '/demo/app/': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
   '/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
   '/app/academy/kb': typeof AuthenticatedAppAcademyKbRoute
   '/app/academy/settings': typeof AuthenticatedAppAcademySettingsRoute
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
-  '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
-  '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
-  '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
-  '/app/admin/api-docs': typeof AuthenticatedAppAdminApiDocsRoute
-  '/app/admin/api-keys': typeof AuthenticatedAppAdminApiKeysRoute
-  '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
-  '/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
-  '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
-  '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
-  '/app/admin/contacts': typeof AuthenticatedAppAdminContactsRoute
-  '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
-  '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
-  '/app/admin/downloads': typeof AuthenticatedAppAdminDownloadsRoute
-  '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
-  '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
-  '/app/admin/installations': typeof AuthenticatedAppAdminInstallationsRoute
-  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
-  '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
-  '/app/admin/maintenance': typeof AuthenticatedAppAdminMaintenanceRoute
-  '/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
-  '/app/admin/monitoring': typeof AuthenticatedAppAdminMonitoringRoute
-  '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
-  '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
-  '/app/admin/release-management': typeof AuthenticatedAppAdminReleaseManagementRoute
-  '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
-  '/app/admin/sso-setup': typeof AuthenticatedAppAdminSsoSetupRoute
-  '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
-  '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
-  '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
-  '/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
-  '/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
-  '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
-  '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
-  '/app/platform/administration': typeof AuthenticatedAppPlatformAdministrationRoute
-  '/app/platform/audit': typeof AuthenticatedAppPlatformAuditRoute
-  '/app/platform/billing': typeof AuthenticatedAppPlatformBillingRoute
-  '/app/platform/customers': typeof AuthenticatedAppPlatformCustomersRoute
-  '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
-  '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
-  '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
-  '/app/platform/onboarding': typeof AuthenticatedAppPlatformOnboardingRoute
-  '/app/platform/ops': typeof AuthenticatedAppPlatformOpsRoute
-  '/app/platform/overview': typeof AuthenticatedAppPlatformOverviewRoute
-  '/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
-  '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
-  '/app/platform/support': typeof AuthenticatedAppPlatformSupportRoute
-  '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
@@ -1216,16 +676,8 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
-  '/app/docs/': typeof AuthenticatedAppDocsIndexRoute
-  '/app/internal/': typeof AuthenticatedAppInternalIndexRoute
-  '/app/platform/': typeof AuthenticatedAppPlatformIndexRoute
-  '/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
-  '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
-  '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
-  '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
-  '/app/platform/installation-package/$installId': typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1253,7 +705,6 @@ export interface FileRoutesByTo {
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
-  '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
@@ -1265,16 +716,13 @@ export interface FileRoutesByTo {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
-  '/demo': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
-  '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
-  '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -1294,72 +742,17 @@ export interface FileRoutesByTo {
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
-  '/demo/app/academy': typeof DemoAppAcademyRoute
-  '/demo/app/analytics': typeof DemoAppAnalyticsRoute
-  '/demo/app/audit': typeof DemoAppAuditRoute
-  '/demo/app/chat': typeof DemoAppChatRoute
-  '/demo/app/faq': typeof DemoAppFaqRoute
-  '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
-  '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/management': typeof AuthenticatedManagementIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
-  '/demo/app': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
   '/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
   '/app/academy/kb': typeof AuthenticatedAppAcademyKbRoute
   '/app/academy/settings': typeof AuthenticatedAppAcademySettingsRoute
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
-  '/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
-  '/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
-  '/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
-  '/app/admin/api-docs': typeof AuthenticatedAppAdminApiDocsRoute
-  '/app/admin/api-keys': typeof AuthenticatedAppAdminApiKeysRoute
-  '/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
-  '/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
-  '/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
-  '/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
-  '/app/admin/contacts': typeof AuthenticatedAppAdminContactsRoute
-  '/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
-  '/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
-  '/app/admin/downloads': typeof AuthenticatedAppAdminDownloadsRoute
-  '/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
-  '/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
-  '/app/admin/installations': typeof AuthenticatedAppAdminInstallationsRoute
-  '/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
-  '/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
-  '/app/admin/maintenance': typeof AuthenticatedAppAdminMaintenanceRoute
-  '/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
-  '/app/admin/monitoring': typeof AuthenticatedAppAdminMonitoringRoute
-  '/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
-  '/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
-  '/app/admin/release-management': typeof AuthenticatedAppAdminReleaseManagementRoute
-  '/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
-  '/app/admin/sso-setup': typeof AuthenticatedAppAdminSsoSetupRoute
-  '/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
-  '/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
-  '/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
-  '/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
-  '/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
-  '/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
-  '/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
-  '/app/platform/administration': typeof AuthenticatedAppPlatformAdministrationRoute
-  '/app/platform/audit': typeof AuthenticatedAppPlatformAuditRoute
-  '/app/platform/billing': typeof AuthenticatedAppPlatformBillingRoute
-  '/app/platform/customers': typeof AuthenticatedAppPlatformCustomersRoute
-  '/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
-  '/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
-  '/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
-  '/app/platform/onboarding': typeof AuthenticatedAppPlatformOnboardingRoute
-  '/app/platform/ops': typeof AuthenticatedAppPlatformOpsRoute
-  '/app/platform/overview': typeof AuthenticatedAppPlatformOverviewRoute
-  '/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
-  '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
-  '/app/platform/support': typeof AuthenticatedAppPlatformSupportRoute
-  '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
@@ -1370,16 +763,8 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
-  '/app/docs': typeof AuthenticatedAppDocsIndexRoute
-  '/app/internal': typeof AuthenticatedAppInternalIndexRoute
-  '/app/platform': typeof AuthenticatedAppPlatformIndexRoute
-  '/app/workspace': typeof AuthenticatedAppWorkspaceIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
-  '/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
-  '/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
-  '/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
-  '/app/platform/installation-package/$installId': typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1412,11 +797,9 @@ export interface FileRoutesById {
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
-  '/api/demo-chat': typeof ApiDemoChatRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
-  '/demo/app': typeof DemoAppRouteWithChildren
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -1425,19 +808,14 @@ export interface FileRoutesById {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
-  '/demo/': typeof DemoIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
-  '/_authenticated/app/brand': typeof AuthenticatedAppBrandRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
-  '/_authenticated/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/modules': typeof AuthenticatedAppModulesRoute
   '/_authenticated/app/organization': typeof AuthenticatedAppOrganizationRoute
-  '/_authenticated/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
-  '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
@@ -1457,72 +835,17 @@ export interface FileRoutesById {
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
-  '/demo/app/academy': typeof DemoAppAcademyRoute
-  '/demo/app/analytics': typeof DemoAppAnalyticsRoute
-  '/demo/app/audit': typeof DemoAppAuditRoute
-  '/demo/app/chat': typeof DemoAppChatRoute
-  '/demo/app/faq': typeof DemoAppFaqRoute
-  '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
-  '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/management/': typeof AuthenticatedManagementIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
-  '/demo/app/': typeof DemoAppIndexRoute
   '/_authenticated/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
   '/_authenticated/app/academy/certificates': typeof AuthenticatedAppAcademyCertificatesRoute
   '/_authenticated/app/academy/courses': typeof AuthenticatedAppAcademyCoursesRoute
   '/_authenticated/app/academy/kb': typeof AuthenticatedAppAcademyKbRoute
   '/_authenticated/app/academy/settings': typeof AuthenticatedAppAcademySettingsRoute
   '/_authenticated/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
-  '/_authenticated/app/admin/academy': typeof AuthenticatedAppAdminAcademyRoute
-  '/_authenticated/app/admin/ai-audit': typeof AuthenticatedAppAdminAiAuditRoute
-  '/_authenticated/app/admin/analytics': typeof AuthenticatedAppAdminAnalyticsRoute
-  '/_authenticated/app/admin/api-docs': typeof AuthenticatedAppAdminApiDocsRoute
-  '/_authenticated/app/admin/api-keys': typeof AuthenticatedAppAdminApiKeysRoute
-  '/_authenticated/app/admin/audit': typeof AuthenticatedAppAdminAuditRoute
-  '/_authenticated/app/admin/billing': typeof AuthenticatedAppAdminBillingRoute
-  '/_authenticated/app/admin/command-center': typeof AuthenticatedAppAdminCommandCenterRoute
-  '/_authenticated/app/admin/companies': typeof AuthenticatedAppAdminCompaniesRoute
-  '/_authenticated/app/admin/contacts': typeof AuthenticatedAppAdminContactsRoute
-  '/_authenticated/app/admin/customers': typeof AuthenticatedAppAdminCustomersRoute
-  '/_authenticated/app/admin/dashboard': typeof AuthenticatedAppAdminDashboardRoute
-  '/_authenticated/app/admin/downloads': typeof AuthenticatedAppAdminDownloadsRoute
-  '/_authenticated/app/admin/email': typeof AuthenticatedAppAdminEmailRoute
-  '/_authenticated/app/admin/email-logs': typeof AuthenticatedAppAdminEmailLogsRoute
-  '/_authenticated/app/admin/installations': typeof AuthenticatedAppAdminInstallationsRoute
-  '/_authenticated/app/admin/integrations': typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
-  '/_authenticated/app/admin/knowledge-gaps': typeof AuthenticatedAppAdminKnowledgeGapsRoute
-  '/_authenticated/app/admin/maintenance': typeof AuthenticatedAppAdminMaintenanceRoute
-  '/_authenticated/app/admin/module-catalog': typeof AuthenticatedAppAdminModuleCatalogRoute
-  '/_authenticated/app/admin/monitoring': typeof AuthenticatedAppAdminMonitoringRoute
-  '/_authenticated/app/admin/platform': typeof AuthenticatedAppAdminPlatformRoute
-  '/_authenticated/app/admin/platform-admins': typeof AuthenticatedAppAdminPlatformAdminsRoute
-  '/_authenticated/app/admin/release-management': typeof AuthenticatedAppAdminReleaseManagementRoute
-  '/_authenticated/app/admin/sop-generator': typeof AuthenticatedAppAdminSopGeneratorRoute
-  '/_authenticated/app/admin/sso-setup': typeof AuthenticatedAppAdminSsoSetupRoute
-  '/_authenticated/app/admin/subscriptions': typeof AuthenticatedAppAdminSubscriptionsRoute
-  '/_authenticated/app/admin/support': typeof AuthenticatedAppAdminSupportRoute
-  '/_authenticated/app/admin/users': typeof AuthenticatedAppAdminUsersRoute
-  '/_authenticated/app/admin/webhooks': typeof AuthenticatedAppAdminWebhooksRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
-  '/_authenticated/app/docs/$book': typeof AuthenticatedAppDocsBookRoute
-  '/_authenticated/app/internal/assistant': typeof AuthenticatedAppInternalAssistantRoute
-  '/_authenticated/app/internal/knowledge': typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
-  '/_authenticated/app/platform/administration': typeof AuthenticatedAppPlatformAdministrationRoute
-  '/_authenticated/app/platform/audit': typeof AuthenticatedAppPlatformAuditRoute
-  '/_authenticated/app/platform/billing': typeof AuthenticatedAppPlatformBillingRoute
-  '/_authenticated/app/platform/customers': typeof AuthenticatedAppPlatformCustomersRoute
-  '/_authenticated/app/platform/doctor': typeof AuthenticatedAppPlatformDoctorRoute
-  '/_authenticated/app/platform/license-activation': typeof AuthenticatedAppPlatformLicenseActivationRoute
-  '/_authenticated/app/platform/licenses': typeof AuthenticatedAppPlatformLicensesRoute
-  '/_authenticated/app/platform/onboarding': typeof AuthenticatedAppPlatformOnboardingRoute
-  '/_authenticated/app/platform/ops': typeof AuthenticatedAppPlatformOpsRoute
-  '/_authenticated/app/platform/overview': typeof AuthenticatedAppPlatformOverviewRoute
-  '/_authenticated/app/platform/recovery': typeof AuthenticatedAppPlatformRecoveryRoute
-  '/_authenticated/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
-  '/_authenticated/app/platform/support': typeof AuthenticatedAppPlatformSupportRoute
-  '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
   '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
@@ -1533,16 +856,8 @@ export interface FileRoutesById {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
-  '/_authenticated/app/docs/': typeof AuthenticatedAppDocsIndexRoute
-  '/_authenticated/app/internal/': typeof AuthenticatedAppInternalIndexRoute
-  '/_authenticated/app/platform/': typeof AuthenticatedAppPlatformIndexRoute
-  '/_authenticated/app/workspace/': typeof AuthenticatedAppWorkspaceIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
-  '/_authenticated/app/admin/integrations/$provider': typeof AuthenticatedAppAdminIntegrationsProviderRoute
-  '/_authenticated/app/admin/notifications/$provider': typeof AuthenticatedAppAdminNotificationsProviderRoute
-  '/_authenticated/app/internal/knowledge/$slug': typeof AuthenticatedAppInternalKnowledgeSlugRoute
-  '/_authenticated/app/platform/installation-package/$installId': typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1575,11 +890,9 @@ export interface FileRouteTypes {
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
-    | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
-    | '/demo/app'
     | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -1588,19 +901,14 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
-    | '/demo/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
-    | '/app/brand'
     | '/app/chat'
     | '/app/faq'
-    | '/app/internal'
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
-    | '/app/platform'
-    | '/app/requests'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1620,72 +928,17 @@ export interface FileRouteTypes {
     | '/portal/subscription'
     | '/portal/support'
     | '/api/public/contact-submit'
-    | '/demo/app/academy'
-    | '/demo/app/analytics'
-    | '/demo/app/audit'
-    | '/demo/app/chat'
-    | '/demo/app/faq'
-    | '/demo/app/knowledge'
-    | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app/'
     | '/management/'
     | '/portal/'
-    | '/demo/app/'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
     | '/app/academy/courses'
     | '/app/academy/kb'
     | '/app/academy/settings'
     | '/app/academy/teacher'
-    | '/app/admin/academy'
-    | '/app/admin/ai-audit'
-    | '/app/admin/analytics'
-    | '/app/admin/api-docs'
-    | '/app/admin/api-keys'
-    | '/app/admin/audit'
-    | '/app/admin/billing'
-    | '/app/admin/command-center'
-    | '/app/admin/companies'
-    | '/app/admin/contacts'
-    | '/app/admin/customers'
-    | '/app/admin/dashboard'
-    | '/app/admin/downloads'
-    | '/app/admin/email'
-    | '/app/admin/email-logs'
-    | '/app/admin/installations'
-    | '/app/admin/integrations'
-    | '/app/admin/knowledge-gaps'
-    | '/app/admin/maintenance'
-    | '/app/admin/module-catalog'
-    | '/app/admin/monitoring'
-    | '/app/admin/platform'
-    | '/app/admin/platform-admins'
-    | '/app/admin/release-management'
-    | '/app/admin/sop-generator'
-    | '/app/admin/sso-setup'
-    | '/app/admin/subscriptions'
-    | '/app/admin/support'
-    | '/app/admin/users'
-    | '/app/admin/webhooks'
     | '/app/chat/$threadId'
-    | '/app/docs/$book'
-    | '/app/internal/assistant'
-    | '/app/internal/knowledge'
-    | '/app/platform/administration'
-    | '/app/platform/audit'
-    | '/app/platform/billing'
-    | '/app/platform/customers'
-    | '/app/platform/doctor'
-    | '/app/platform/license-activation'
-    | '/app/platform/licenses'
-    | '/app/platform/onboarding'
-    | '/app/platform/ops'
-    | '/app/platform/overview'
-    | '/app/platform/recovery'
-    | '/app/platform/setup'
-    | '/app/platform/support'
-    | '/app/workspace/$sessionId'
     | '/management/companies/$id'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
@@ -1696,16 +949,8 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/app/academy/'
     | '/app/chat/'
-    | '/app/docs/'
-    | '/app/internal/'
-    | '/app/platform/'
-    | '/app/workspace/'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
-    | '/app/admin/integrations/$provider'
-    | '/app/admin/notifications/$provider'
-    | '/app/internal/knowledge/$slug'
-    | '/app/platform/installation-package/$installId'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   fileRoutesByTo: FileRoutesByTo
@@ -1733,7 +978,6 @@ export interface FileRouteTypes {
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
-    | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
@@ -1745,16 +989,13 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
-    | '/demo'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
-    | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
-    | '/app/requests'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1774,72 +1015,17 @@ export interface FileRouteTypes {
     | '/portal/subscription'
     | '/portal/support'
     | '/api/public/contact-submit'
-    | '/demo/app/academy'
-    | '/demo/app/analytics'
-    | '/demo/app/audit'
-    | '/demo/app/chat'
-    | '/demo/app/faq'
-    | '/demo/app/knowledge'
-    | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app'
     | '/management'
     | '/portal'
-    | '/demo/app'
     | '/app/academy/analytics'
     | '/app/academy/certificates'
     | '/app/academy/courses'
     | '/app/academy/kb'
     | '/app/academy/settings'
     | '/app/academy/teacher'
-    | '/app/admin/academy'
-    | '/app/admin/ai-audit'
-    | '/app/admin/analytics'
-    | '/app/admin/api-docs'
-    | '/app/admin/api-keys'
-    | '/app/admin/audit'
-    | '/app/admin/billing'
-    | '/app/admin/command-center'
-    | '/app/admin/companies'
-    | '/app/admin/contacts'
-    | '/app/admin/customers'
-    | '/app/admin/dashboard'
-    | '/app/admin/downloads'
-    | '/app/admin/email'
-    | '/app/admin/email-logs'
-    | '/app/admin/installations'
-    | '/app/admin/integrations'
-    | '/app/admin/knowledge-gaps'
-    | '/app/admin/maintenance'
-    | '/app/admin/module-catalog'
-    | '/app/admin/monitoring'
-    | '/app/admin/platform'
-    | '/app/admin/platform-admins'
-    | '/app/admin/release-management'
-    | '/app/admin/sop-generator'
-    | '/app/admin/sso-setup'
-    | '/app/admin/subscriptions'
-    | '/app/admin/support'
-    | '/app/admin/users'
-    | '/app/admin/webhooks'
     | '/app/chat/$threadId'
-    | '/app/docs/$book'
-    | '/app/internal/assistant'
-    | '/app/internal/knowledge'
-    | '/app/platform/administration'
-    | '/app/platform/audit'
-    | '/app/platform/billing'
-    | '/app/platform/customers'
-    | '/app/platform/doctor'
-    | '/app/platform/license-activation'
-    | '/app/platform/licenses'
-    | '/app/platform/onboarding'
-    | '/app/platform/ops'
-    | '/app/platform/overview'
-    | '/app/platform/recovery'
-    | '/app/platform/setup'
-    | '/app/platform/support'
-    | '/app/workspace/$sessionId'
     | '/management/companies/$id'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
@@ -1850,16 +1036,8 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/app/academy'
     | '/app/chat'
-    | '/app/docs'
-    | '/app/internal'
-    | '/app/platform'
-    | '/app/workspace'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
-    | '/app/admin/integrations/$provider'
-    | '/app/admin/notifications/$provider'
-    | '/app/internal/knowledge/$slug'
-    | '/app/platform/installation-package/$installId'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   id:
@@ -1891,11 +1069,9 @@ export interface FileRouteTypes {
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
-    | '/api/demo-chat'
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
-    | '/demo/app'
     | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -1904,19 +1080,14 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
-    | '/demo/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/app/audit'
-    | '/_authenticated/app/brand'
     | '/_authenticated/app/chat'
     | '/_authenticated/app/faq'
-    | '/_authenticated/app/internal'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/modules'
     | '/_authenticated/app/organization'
-    | '/_authenticated/app/platform'
-    | '/_authenticated/app/requests'
     | '/_authenticated/app/subscription'
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
@@ -1936,72 +1107,17 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/subscription'
     | '/_authenticated/portal/support'
     | '/api/public/contact-submit'
-    | '/demo/app/academy'
-    | '/demo/app/analytics'
-    | '/demo/app/audit'
-    | '/demo/app/chat'
-    | '/demo/app/faq'
-    | '/demo/app/knowledge'
-    | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
     | '/_authenticated/management/'
     | '/_authenticated/portal/'
-    | '/demo/app/'
     | '/_authenticated/app/academy/analytics'
     | '/_authenticated/app/academy/certificates'
     | '/_authenticated/app/academy/courses'
     | '/_authenticated/app/academy/kb'
     | '/_authenticated/app/academy/settings'
     | '/_authenticated/app/academy/teacher'
-    | '/_authenticated/app/admin/academy'
-    | '/_authenticated/app/admin/ai-audit'
-    | '/_authenticated/app/admin/analytics'
-    | '/_authenticated/app/admin/api-docs'
-    | '/_authenticated/app/admin/api-keys'
-    | '/_authenticated/app/admin/audit'
-    | '/_authenticated/app/admin/billing'
-    | '/_authenticated/app/admin/command-center'
-    | '/_authenticated/app/admin/companies'
-    | '/_authenticated/app/admin/contacts'
-    | '/_authenticated/app/admin/customers'
-    | '/_authenticated/app/admin/dashboard'
-    | '/_authenticated/app/admin/downloads'
-    | '/_authenticated/app/admin/email'
-    | '/_authenticated/app/admin/email-logs'
-    | '/_authenticated/app/admin/installations'
-    | '/_authenticated/app/admin/integrations'
-    | '/_authenticated/app/admin/knowledge-gaps'
-    | '/_authenticated/app/admin/maintenance'
-    | '/_authenticated/app/admin/module-catalog'
-    | '/_authenticated/app/admin/monitoring'
-    | '/_authenticated/app/admin/platform'
-    | '/_authenticated/app/admin/platform-admins'
-    | '/_authenticated/app/admin/release-management'
-    | '/_authenticated/app/admin/sop-generator'
-    | '/_authenticated/app/admin/sso-setup'
-    | '/_authenticated/app/admin/subscriptions'
-    | '/_authenticated/app/admin/support'
-    | '/_authenticated/app/admin/users'
-    | '/_authenticated/app/admin/webhooks'
     | '/_authenticated/app/chat/$threadId'
-    | '/_authenticated/app/docs/$book'
-    | '/_authenticated/app/internal/assistant'
-    | '/_authenticated/app/internal/knowledge'
-    | '/_authenticated/app/platform/administration'
-    | '/_authenticated/app/platform/audit'
-    | '/_authenticated/app/platform/billing'
-    | '/_authenticated/app/platform/customers'
-    | '/_authenticated/app/platform/doctor'
-    | '/_authenticated/app/platform/license-activation'
-    | '/_authenticated/app/platform/licenses'
-    | '/_authenticated/app/platform/onboarding'
-    | '/_authenticated/app/platform/ops'
-    | '/_authenticated/app/platform/overview'
-    | '/_authenticated/app/platform/recovery'
-    | '/_authenticated/app/platform/setup'
-    | '/_authenticated/app/platform/support'
-    | '/_authenticated/app/workspace/$sessionId'
     | '/_authenticated/management/companies/$id'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
@@ -2012,16 +1128,8 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
-    | '/_authenticated/app/docs/'
-    | '/_authenticated/app/internal/'
-    | '/_authenticated/app/platform/'
-    | '/_authenticated/app/workspace/'
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
-    | '/_authenticated/app/admin/integrations/$provider'
-    | '/_authenticated/app/admin/notifications/$provider'
-    | '/_authenticated/app/internal/knowledge/$slug'
-    | '/_authenticated/app/platform/installation-package/$installId'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   fileRoutesById: FileRoutesById
@@ -2051,14 +1159,11 @@ export interface RootRouteChildren {
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
-  ApiDemoChatRoute: typeof ApiDemoChatRoute
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
-  DemoAppRoute: typeof DemoAppRouteWithChildren
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
-  DemoIndexRoute: typeof DemoIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
@@ -2209,13 +1314,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/': {
-      id: '/demo/'
-      path: '/demo'
-      fullPath: '/demo/'
-      preLoaderRoute: typeof DemoIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/verify/$code': {
       id: '/verify/$code'
       path: '/verify/$code'
@@ -2272,13 +1370,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/app': {
-      id: '/demo/app'
-      path: '/demo/app'
-      fullPath: '/demo/app'
-      preLoaderRoute: typeof DemoAppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/workspace-chat': {
       id: '/api/workspace-chat'
       path: '/api/workspace-chat'
@@ -2298,13 +1389,6 @@ declare module '@tanstack/react-router' {
       path: '/api/internal-chat'
       fullPath: '/api/internal-chat'
       preLoaderRoute: typeof ApiInternalChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/demo-chat': {
-      id: '/api/demo-chat'
-      path: '/api/demo-chat'
-      fullPath: '/api/demo-chat'
-      preLoaderRoute: typeof ApiDemoChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/customer-writer': {
@@ -2363,13 +1447,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/app/': {
-      id: '/demo/app/'
-      path: '/'
-      fullPath: '/demo/app/'
-      preLoaderRoute: typeof DemoAppIndexRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
     '/_authenticated/portal/': {
       id: '/_authenticated/portal/'
       path: '/'
@@ -2397,55 +1474,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/demo/app/users': {
-      id: '/demo/app/users'
-      path: '/users'
-      fullPath: '/demo/app/users'
-      preLoaderRoute: typeof DemoAppUsersRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/app/knowledge': {
-      id: '/demo/app/knowledge'
-      path: '/knowledge'
-      fullPath: '/demo/app/knowledge'
-      preLoaderRoute: typeof DemoAppKnowledgeRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/app/faq': {
-      id: '/demo/app/faq'
-      path: '/faq'
-      fullPath: '/demo/app/faq'
-      preLoaderRoute: typeof DemoAppFaqRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/app/chat': {
-      id: '/demo/app/chat'
-      path: '/chat'
-      fullPath: '/demo/app/chat'
-      preLoaderRoute: typeof DemoAppChatRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/app/audit': {
-      id: '/demo/app/audit'
-      path: '/audit'
-      fullPath: '/demo/app/audit'
-      preLoaderRoute: typeof DemoAppAuditRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/app/analytics': {
-      id: '/demo/app/analytics'
-      path: '/analytics'
-      fullPath: '/demo/app/analytics'
-      preLoaderRoute: typeof DemoAppAnalyticsRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/app/academy': {
-      id: '/demo/app/academy'
-      path: '/academy'
-      fullPath: '/demo/app/academy'
-      preLoaderRoute: typeof DemoAppAcademyRouteImport
-      parentRoute: typeof DemoAppRoute
     }
     '/api/public/contact-submit': {
       id: '/api/public/contact-submit'
@@ -2580,20 +1608,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSubscriptionRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/requests': {
-      id: '/_authenticated/app/requests'
-      path: '/requests'
-      fullPath: '/app/requests'
-      preLoaderRoute: typeof AuthenticatedAppRequestsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/platform': {
-      id: '/_authenticated/app/platform'
-      path: '/platform'
-      fullPath: '/app/platform'
-      preLoaderRoute: typeof AuthenticatedAppPlatformRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/organization': {
       id: '/_authenticated/app/organization'
       path: '/organization'
@@ -2615,13 +1629,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/internal': {
-      id: '/_authenticated/app/internal'
-      path: '/internal'
-      fullPath: '/app/internal'
-      preLoaderRoute: typeof AuthenticatedAppInternalRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/faq': {
       id: '/_authenticated/app/faq'
       path: '/faq'
@@ -2634,13 +1641,6 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/app/chat'
       preLoaderRoute: typeof AuthenticatedAppChatRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/brand': {
-      id: '/_authenticated/app/brand'
-      path: '/brand'
-      fullPath: '/app/brand'
-      preLoaderRoute: typeof AuthenticatedAppBrandRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/audit': {
@@ -2663,34 +1663,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/.lovable/oauth/consent'
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/app/workspace/': {
-      id: '/_authenticated/app/workspace/'
-      path: '/workspace'
-      fullPath: '/app/workspace/'
-      preLoaderRoute: typeof AuthenticatedAppWorkspaceIndexRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/platform/': {
-      id: '/_authenticated/app/platform/'
-      path: '/'
-      fullPath: '/app/platform/'
-      preLoaderRoute: typeof AuthenticatedAppPlatformIndexRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/internal/': {
-      id: '/_authenticated/app/internal/'
-      path: '/'
-      fullPath: '/app/internal/'
-      preLoaderRoute: typeof AuthenticatedAppInternalIndexRouteImport
-      parentRoute: typeof AuthenticatedAppInternalRoute
-    }
-    '/_authenticated/app/docs/': {
-      id: '/_authenticated/app/docs/'
-      path: '/docs'
-      fullPath: '/app/docs/'
-      preLoaderRoute: typeof AuthenticatedAppDocsIndexRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
@@ -2762,341 +1734,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementCompaniesIdRouteImport
       parentRoute: typeof AuthenticatedManagementCompaniesRoute
     }
-    '/_authenticated/app/workspace/$sessionId': {
-      id: '/_authenticated/app/workspace/$sessionId'
-      path: '/workspace/$sessionId'
-      fullPath: '/app/workspace/$sessionId'
-      preLoaderRoute: typeof AuthenticatedAppWorkspaceSessionIdRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/platform/support': {
-      id: '/_authenticated/app/platform/support'
-      path: '/support'
-      fullPath: '/app/platform/support'
-      preLoaderRoute: typeof AuthenticatedAppPlatformSupportRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/setup': {
-      id: '/_authenticated/app/platform/setup'
-      path: '/setup'
-      fullPath: '/app/platform/setup'
-      preLoaderRoute: typeof AuthenticatedAppPlatformSetupRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/recovery': {
-      id: '/_authenticated/app/platform/recovery'
-      path: '/recovery'
-      fullPath: '/app/platform/recovery'
-      preLoaderRoute: typeof AuthenticatedAppPlatformRecoveryRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/overview': {
-      id: '/_authenticated/app/platform/overview'
-      path: '/overview'
-      fullPath: '/app/platform/overview'
-      preLoaderRoute: typeof AuthenticatedAppPlatformOverviewRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/ops': {
-      id: '/_authenticated/app/platform/ops'
-      path: '/ops'
-      fullPath: '/app/platform/ops'
-      preLoaderRoute: typeof AuthenticatedAppPlatformOpsRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/onboarding': {
-      id: '/_authenticated/app/platform/onboarding'
-      path: '/onboarding'
-      fullPath: '/app/platform/onboarding'
-      preLoaderRoute: typeof AuthenticatedAppPlatformOnboardingRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/licenses': {
-      id: '/_authenticated/app/platform/licenses'
-      path: '/licenses'
-      fullPath: '/app/platform/licenses'
-      preLoaderRoute: typeof AuthenticatedAppPlatformLicensesRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/license-activation': {
-      id: '/_authenticated/app/platform/license-activation'
-      path: '/license-activation'
-      fullPath: '/app/platform/license-activation'
-      preLoaderRoute: typeof AuthenticatedAppPlatformLicenseActivationRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/doctor': {
-      id: '/_authenticated/app/platform/doctor'
-      path: '/doctor'
-      fullPath: '/app/platform/doctor'
-      preLoaderRoute: typeof AuthenticatedAppPlatformDoctorRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/customers': {
-      id: '/_authenticated/app/platform/customers'
-      path: '/customers'
-      fullPath: '/app/platform/customers'
-      preLoaderRoute: typeof AuthenticatedAppPlatformCustomersRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/billing': {
-      id: '/_authenticated/app/platform/billing'
-      path: '/billing'
-      fullPath: '/app/platform/billing'
-      preLoaderRoute: typeof AuthenticatedAppPlatformBillingRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/audit': {
-      id: '/_authenticated/app/platform/audit'
-      path: '/audit'
-      fullPath: '/app/platform/audit'
-      preLoaderRoute: typeof AuthenticatedAppPlatformAuditRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/platform/administration': {
-      id: '/_authenticated/app/platform/administration'
-      path: '/administration'
-      fullPath: '/app/platform/administration'
-      preLoaderRoute: typeof AuthenticatedAppPlatformAdministrationRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/internal/knowledge': {
-      id: '/_authenticated/app/internal/knowledge'
-      path: '/knowledge'
-      fullPath: '/app/internal/knowledge'
-      preLoaderRoute: typeof AuthenticatedAppInternalKnowledgeRouteImport
-      parentRoute: typeof AuthenticatedAppInternalRoute
-    }
-    '/_authenticated/app/internal/assistant': {
-      id: '/_authenticated/app/internal/assistant'
-      path: '/assistant'
-      fullPath: '/app/internal/assistant'
-      preLoaderRoute: typeof AuthenticatedAppInternalAssistantRouteImport
-      parentRoute: typeof AuthenticatedAppInternalRoute
-    }
-    '/_authenticated/app/docs/$book': {
-      id: '/_authenticated/app/docs/$book'
-      path: '/docs/$book'
-      fullPath: '/app/docs/$book'
-      preLoaderRoute: typeof AuthenticatedAppDocsBookRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/chat/$threadId': {
       id: '/_authenticated/app/chat/$threadId'
       path: '/$threadId'
       fullPath: '/app/chat/$threadId'
       preLoaderRoute: typeof AuthenticatedAppChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedAppChatRoute
-    }
-    '/_authenticated/app/admin/webhooks': {
-      id: '/_authenticated/app/admin/webhooks'
-      path: '/admin/webhooks'
-      fullPath: '/app/admin/webhooks'
-      preLoaderRoute: typeof AuthenticatedAppAdminWebhooksRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/users': {
-      id: '/_authenticated/app/admin/users'
-      path: '/admin/users'
-      fullPath: '/app/admin/users'
-      preLoaderRoute: typeof AuthenticatedAppAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/support': {
-      id: '/_authenticated/app/admin/support'
-      path: '/admin/support'
-      fullPath: '/app/admin/support'
-      preLoaderRoute: typeof AuthenticatedAppAdminSupportRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/subscriptions': {
-      id: '/_authenticated/app/admin/subscriptions'
-      path: '/admin/subscriptions'
-      fullPath: '/app/admin/subscriptions'
-      preLoaderRoute: typeof AuthenticatedAppAdminSubscriptionsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/sso-setup': {
-      id: '/_authenticated/app/admin/sso-setup'
-      path: '/admin/sso-setup'
-      fullPath: '/app/admin/sso-setup'
-      preLoaderRoute: typeof AuthenticatedAppAdminSsoSetupRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/sop-generator': {
-      id: '/_authenticated/app/admin/sop-generator'
-      path: '/admin/sop-generator'
-      fullPath: '/app/admin/sop-generator'
-      preLoaderRoute: typeof AuthenticatedAppAdminSopGeneratorRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/release-management': {
-      id: '/_authenticated/app/admin/release-management'
-      path: '/admin/release-management'
-      fullPath: '/app/admin/release-management'
-      preLoaderRoute: typeof AuthenticatedAppAdminReleaseManagementRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/platform-admins': {
-      id: '/_authenticated/app/admin/platform-admins'
-      path: '/admin/platform-admins'
-      fullPath: '/app/admin/platform-admins'
-      preLoaderRoute: typeof AuthenticatedAppAdminPlatformAdminsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/platform': {
-      id: '/_authenticated/app/admin/platform'
-      path: '/admin/platform'
-      fullPath: '/app/admin/platform'
-      preLoaderRoute: typeof AuthenticatedAppAdminPlatformRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/monitoring': {
-      id: '/_authenticated/app/admin/monitoring'
-      path: '/admin/monitoring'
-      fullPath: '/app/admin/monitoring'
-      preLoaderRoute: typeof AuthenticatedAppAdminMonitoringRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/module-catalog': {
-      id: '/_authenticated/app/admin/module-catalog'
-      path: '/admin/module-catalog'
-      fullPath: '/app/admin/module-catalog'
-      preLoaderRoute: typeof AuthenticatedAppAdminModuleCatalogRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/maintenance': {
-      id: '/_authenticated/app/admin/maintenance'
-      path: '/admin/maintenance'
-      fullPath: '/app/admin/maintenance'
-      preLoaderRoute: typeof AuthenticatedAppAdminMaintenanceRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/knowledge-gaps': {
-      id: '/_authenticated/app/admin/knowledge-gaps'
-      path: '/admin/knowledge-gaps'
-      fullPath: '/app/admin/knowledge-gaps'
-      preLoaderRoute: typeof AuthenticatedAppAdminKnowledgeGapsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/integrations': {
-      id: '/_authenticated/app/admin/integrations'
-      path: '/admin/integrations'
-      fullPath: '/app/admin/integrations'
-      preLoaderRoute: typeof AuthenticatedAppAdminIntegrationsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/installations': {
-      id: '/_authenticated/app/admin/installations'
-      path: '/admin/installations'
-      fullPath: '/app/admin/installations'
-      preLoaderRoute: typeof AuthenticatedAppAdminInstallationsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/email-logs': {
-      id: '/_authenticated/app/admin/email-logs'
-      path: '/admin/email-logs'
-      fullPath: '/app/admin/email-logs'
-      preLoaderRoute: typeof AuthenticatedAppAdminEmailLogsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/email': {
-      id: '/_authenticated/app/admin/email'
-      path: '/admin/email'
-      fullPath: '/app/admin/email'
-      preLoaderRoute: typeof AuthenticatedAppAdminEmailRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/downloads': {
-      id: '/_authenticated/app/admin/downloads'
-      path: '/admin/downloads'
-      fullPath: '/app/admin/downloads'
-      preLoaderRoute: typeof AuthenticatedAppAdminDownloadsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/dashboard': {
-      id: '/_authenticated/app/admin/dashboard'
-      path: '/admin/dashboard'
-      fullPath: '/app/admin/dashboard'
-      preLoaderRoute: typeof AuthenticatedAppAdminDashboardRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/customers': {
-      id: '/_authenticated/app/admin/customers'
-      path: '/admin/customers'
-      fullPath: '/app/admin/customers'
-      preLoaderRoute: typeof AuthenticatedAppAdminCustomersRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/contacts': {
-      id: '/_authenticated/app/admin/contacts'
-      path: '/admin/contacts'
-      fullPath: '/app/admin/contacts'
-      preLoaderRoute: typeof AuthenticatedAppAdminContactsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/companies': {
-      id: '/_authenticated/app/admin/companies'
-      path: '/admin/companies'
-      fullPath: '/app/admin/companies'
-      preLoaderRoute: typeof AuthenticatedAppAdminCompaniesRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/command-center': {
-      id: '/_authenticated/app/admin/command-center'
-      path: '/admin/command-center'
-      fullPath: '/app/admin/command-center'
-      preLoaderRoute: typeof AuthenticatedAppAdminCommandCenterRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/billing': {
-      id: '/_authenticated/app/admin/billing'
-      path: '/admin/billing'
-      fullPath: '/app/admin/billing'
-      preLoaderRoute: typeof AuthenticatedAppAdminBillingRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/audit': {
-      id: '/_authenticated/app/admin/audit'
-      path: '/admin/audit'
-      fullPath: '/app/admin/audit'
-      preLoaderRoute: typeof AuthenticatedAppAdminAuditRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/api-keys': {
-      id: '/_authenticated/app/admin/api-keys'
-      path: '/admin/api-keys'
-      fullPath: '/app/admin/api-keys'
-      preLoaderRoute: typeof AuthenticatedAppAdminApiKeysRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/api-docs': {
-      id: '/_authenticated/app/admin/api-docs'
-      path: '/admin/api-docs'
-      fullPath: '/app/admin/api-docs'
-      preLoaderRoute: typeof AuthenticatedAppAdminApiDocsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/analytics': {
-      id: '/_authenticated/app/admin/analytics'
-      path: '/admin/analytics'
-      fullPath: '/app/admin/analytics'
-      preLoaderRoute: typeof AuthenticatedAppAdminAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/ai-audit': {
-      id: '/_authenticated/app/admin/ai-audit'
-      path: '/admin/ai-audit'
-      fullPath: '/app/admin/ai-audit'
-      preLoaderRoute: typeof AuthenticatedAppAdminAiAuditRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/academy': {
-      id: '/_authenticated/app/admin/academy'
-      path: '/admin/academy'
-      fullPath: '/app/admin/academy'
-      preLoaderRoute: typeof AuthenticatedAppAdminAcademyRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/academy/teacher': {
       id: '/_authenticated/app/academy/teacher'
@@ -3154,34 +1797,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1LicenseHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/app/platform/installation-package/$installId': {
-      id: '/_authenticated/app/platform/installation-package/$installId'
-      path: '/installation-package/$installId'
-      fullPath: '/app/platform/installation-package/$installId'
-      preLoaderRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRouteImport
-      parentRoute: typeof AuthenticatedAppPlatformRoute
-    }
-    '/_authenticated/app/internal/knowledge/$slug': {
-      id: '/_authenticated/app/internal/knowledge/$slug'
-      path: '/$slug'
-      fullPath: '/app/internal/knowledge/$slug'
-      preLoaderRoute: typeof AuthenticatedAppInternalKnowledgeSlugRouteImport
-      parentRoute: typeof AuthenticatedAppInternalKnowledgeRoute
-    }
-    '/_authenticated/app/admin/notifications/$provider': {
-      id: '/_authenticated/app/admin/notifications/$provider'
-      path: '/admin/notifications/$provider'
-      fullPath: '/app/admin/notifications/$provider'
-      preLoaderRoute: typeof AuthenticatedAppAdminNotificationsProviderRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/admin/integrations/$provider': {
-      id: '/_authenticated/app/admin/integrations/$provider'
-      path: '/$provider'
-      fullPath: '/app/admin/integrations/$provider'
-      preLoaderRoute: typeof AuthenticatedAppAdminIntegrationsProviderRouteImport
-      parentRoute: typeof AuthenticatedAppAdminIntegrationsRoute
-    }
     '/_authenticated/app/academy/path/$pathId': {
       id: '/_authenticated/app/academy/path/$pathId'
       path: '/academy/path/$pathId'
@@ -3212,117 +1827,13 @@ const AuthenticatedAppChatRouteChildren: AuthenticatedAppChatRouteChildren = {
 const AuthenticatedAppChatRouteWithChildren =
   AuthenticatedAppChatRoute._addFileChildren(AuthenticatedAppChatRouteChildren)
 
-interface AuthenticatedAppInternalKnowledgeRouteChildren {
-  AuthenticatedAppInternalKnowledgeSlugRoute: typeof AuthenticatedAppInternalKnowledgeSlugRoute
-}
-
-const AuthenticatedAppInternalKnowledgeRouteChildren: AuthenticatedAppInternalKnowledgeRouteChildren =
-  {
-    AuthenticatedAppInternalKnowledgeSlugRoute:
-      AuthenticatedAppInternalKnowledgeSlugRoute,
-  }
-
-const AuthenticatedAppInternalKnowledgeRouteWithChildren =
-  AuthenticatedAppInternalKnowledgeRoute._addFileChildren(
-    AuthenticatedAppInternalKnowledgeRouteChildren,
-  )
-
-interface AuthenticatedAppInternalRouteChildren {
-  AuthenticatedAppInternalAssistantRoute: typeof AuthenticatedAppInternalAssistantRoute
-  AuthenticatedAppInternalKnowledgeRoute: typeof AuthenticatedAppInternalKnowledgeRouteWithChildren
-  AuthenticatedAppInternalIndexRoute: typeof AuthenticatedAppInternalIndexRoute
-}
-
-const AuthenticatedAppInternalRouteChildren: AuthenticatedAppInternalRouteChildren =
-  {
-    AuthenticatedAppInternalAssistantRoute:
-      AuthenticatedAppInternalAssistantRoute,
-    AuthenticatedAppInternalKnowledgeRoute:
-      AuthenticatedAppInternalKnowledgeRouteWithChildren,
-    AuthenticatedAppInternalIndexRoute: AuthenticatedAppInternalIndexRoute,
-  }
-
-const AuthenticatedAppInternalRouteWithChildren =
-  AuthenticatedAppInternalRoute._addFileChildren(
-    AuthenticatedAppInternalRouteChildren,
-  )
-
-interface AuthenticatedAppPlatformRouteChildren {
-  AuthenticatedAppPlatformAdministrationRoute: typeof AuthenticatedAppPlatformAdministrationRoute
-  AuthenticatedAppPlatformAuditRoute: typeof AuthenticatedAppPlatformAuditRoute
-  AuthenticatedAppPlatformBillingRoute: typeof AuthenticatedAppPlatformBillingRoute
-  AuthenticatedAppPlatformCustomersRoute: typeof AuthenticatedAppPlatformCustomersRoute
-  AuthenticatedAppPlatformDoctorRoute: typeof AuthenticatedAppPlatformDoctorRoute
-  AuthenticatedAppPlatformLicenseActivationRoute: typeof AuthenticatedAppPlatformLicenseActivationRoute
-  AuthenticatedAppPlatformLicensesRoute: typeof AuthenticatedAppPlatformLicensesRoute
-  AuthenticatedAppPlatformOnboardingRoute: typeof AuthenticatedAppPlatformOnboardingRoute
-  AuthenticatedAppPlatformOpsRoute: typeof AuthenticatedAppPlatformOpsRoute
-  AuthenticatedAppPlatformOverviewRoute: typeof AuthenticatedAppPlatformOverviewRoute
-  AuthenticatedAppPlatformRecoveryRoute: typeof AuthenticatedAppPlatformRecoveryRoute
-  AuthenticatedAppPlatformSetupRoute: typeof AuthenticatedAppPlatformSetupRoute
-  AuthenticatedAppPlatformSupportRoute: typeof AuthenticatedAppPlatformSupportRoute
-  AuthenticatedAppPlatformIndexRoute: typeof AuthenticatedAppPlatformIndexRoute
-  AuthenticatedAppPlatformInstallationPackageInstallIdRoute: typeof AuthenticatedAppPlatformInstallationPackageInstallIdRoute
-}
-
-const AuthenticatedAppPlatformRouteChildren: AuthenticatedAppPlatformRouteChildren =
-  {
-    AuthenticatedAppPlatformAdministrationRoute:
-      AuthenticatedAppPlatformAdministrationRoute,
-    AuthenticatedAppPlatformAuditRoute: AuthenticatedAppPlatformAuditRoute,
-    AuthenticatedAppPlatformBillingRoute: AuthenticatedAppPlatformBillingRoute,
-    AuthenticatedAppPlatformCustomersRoute:
-      AuthenticatedAppPlatformCustomersRoute,
-    AuthenticatedAppPlatformDoctorRoute: AuthenticatedAppPlatformDoctorRoute,
-    AuthenticatedAppPlatformLicenseActivationRoute:
-      AuthenticatedAppPlatformLicenseActivationRoute,
-    AuthenticatedAppPlatformLicensesRoute:
-      AuthenticatedAppPlatformLicensesRoute,
-    AuthenticatedAppPlatformOnboardingRoute:
-      AuthenticatedAppPlatformOnboardingRoute,
-    AuthenticatedAppPlatformOpsRoute: AuthenticatedAppPlatformOpsRoute,
-    AuthenticatedAppPlatformOverviewRoute:
-      AuthenticatedAppPlatformOverviewRoute,
-    AuthenticatedAppPlatformRecoveryRoute:
-      AuthenticatedAppPlatformRecoveryRoute,
-    AuthenticatedAppPlatformSetupRoute: AuthenticatedAppPlatformSetupRoute,
-    AuthenticatedAppPlatformSupportRoute: AuthenticatedAppPlatformSupportRoute,
-    AuthenticatedAppPlatformIndexRoute: AuthenticatedAppPlatformIndexRoute,
-    AuthenticatedAppPlatformInstallationPackageInstallIdRoute:
-      AuthenticatedAppPlatformInstallationPackageInstallIdRoute,
-  }
-
-const AuthenticatedAppPlatformRouteWithChildren =
-  AuthenticatedAppPlatformRoute._addFileChildren(
-    AuthenticatedAppPlatformRouteChildren,
-  )
-
-interface AuthenticatedAppAdminIntegrationsRouteChildren {
-  AuthenticatedAppAdminIntegrationsProviderRoute: typeof AuthenticatedAppAdminIntegrationsProviderRoute
-}
-
-const AuthenticatedAppAdminIntegrationsRouteChildren: AuthenticatedAppAdminIntegrationsRouteChildren =
-  {
-    AuthenticatedAppAdminIntegrationsProviderRoute:
-      AuthenticatedAppAdminIntegrationsProviderRoute,
-  }
-
-const AuthenticatedAppAdminIntegrationsRouteWithChildren =
-  AuthenticatedAppAdminIntegrationsRoute._addFileChildren(
-    AuthenticatedAppAdminIntegrationsRouteChildren,
-  )
-
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAuditRoute: typeof AuthenticatedAppAuditRoute
-  AuthenticatedAppBrandRoute: typeof AuthenticatedAppBrandRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
-  AuthenticatedAppInternalRoute: typeof AuthenticatedAppInternalRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppModulesRoute: typeof AuthenticatedAppModulesRoute
   AuthenticatedAppOrganizationRoute: typeof AuthenticatedAppOrganizationRoute
-  AuthenticatedAppPlatformRoute: typeof AuthenticatedAppPlatformRouteWithChildren
-  AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppSubscriptionRoute: typeof AuthenticatedAppSubscriptionRoute
   AuthenticatedAppUpdatesRoute: typeof AuthenticatedAppUpdatesRoute
   AuthenticatedAppUsersRoute: typeof AuthenticatedAppUsersRoute
@@ -3333,57 +1844,18 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyKbRoute: typeof AuthenticatedAppAcademyKbRoute
   AuthenticatedAppAcademySettingsRoute: typeof AuthenticatedAppAcademySettingsRoute
   AuthenticatedAppAcademyTeacherRoute: typeof AuthenticatedAppAcademyTeacherRoute
-  AuthenticatedAppAdminAcademyRoute: typeof AuthenticatedAppAdminAcademyRoute
-  AuthenticatedAppAdminAiAuditRoute: typeof AuthenticatedAppAdminAiAuditRoute
-  AuthenticatedAppAdminAnalyticsRoute: typeof AuthenticatedAppAdminAnalyticsRoute
-  AuthenticatedAppAdminApiDocsRoute: typeof AuthenticatedAppAdminApiDocsRoute
-  AuthenticatedAppAdminApiKeysRoute: typeof AuthenticatedAppAdminApiKeysRoute
-  AuthenticatedAppAdminAuditRoute: typeof AuthenticatedAppAdminAuditRoute
-  AuthenticatedAppAdminBillingRoute: typeof AuthenticatedAppAdminBillingRoute
-  AuthenticatedAppAdminCommandCenterRoute: typeof AuthenticatedAppAdminCommandCenterRoute
-  AuthenticatedAppAdminCompaniesRoute: typeof AuthenticatedAppAdminCompaniesRoute
-  AuthenticatedAppAdminContactsRoute: typeof AuthenticatedAppAdminContactsRoute
-  AuthenticatedAppAdminCustomersRoute: typeof AuthenticatedAppAdminCustomersRoute
-  AuthenticatedAppAdminDashboardRoute: typeof AuthenticatedAppAdminDashboardRoute
-  AuthenticatedAppAdminDownloadsRoute: typeof AuthenticatedAppAdminDownloadsRoute
-  AuthenticatedAppAdminEmailRoute: typeof AuthenticatedAppAdminEmailRoute
-  AuthenticatedAppAdminEmailLogsRoute: typeof AuthenticatedAppAdminEmailLogsRoute
-  AuthenticatedAppAdminInstallationsRoute: typeof AuthenticatedAppAdminInstallationsRoute
-  AuthenticatedAppAdminIntegrationsRoute: typeof AuthenticatedAppAdminIntegrationsRouteWithChildren
-  AuthenticatedAppAdminKnowledgeGapsRoute: typeof AuthenticatedAppAdminKnowledgeGapsRoute
-  AuthenticatedAppAdminMaintenanceRoute: typeof AuthenticatedAppAdminMaintenanceRoute
-  AuthenticatedAppAdminModuleCatalogRoute: typeof AuthenticatedAppAdminModuleCatalogRoute
-  AuthenticatedAppAdminMonitoringRoute: typeof AuthenticatedAppAdminMonitoringRoute
-  AuthenticatedAppAdminPlatformRoute: typeof AuthenticatedAppAdminPlatformRoute
-  AuthenticatedAppAdminPlatformAdminsRoute: typeof AuthenticatedAppAdminPlatformAdminsRoute
-  AuthenticatedAppAdminReleaseManagementRoute: typeof AuthenticatedAppAdminReleaseManagementRoute
-  AuthenticatedAppAdminSopGeneratorRoute: typeof AuthenticatedAppAdminSopGeneratorRoute
-  AuthenticatedAppAdminSsoSetupRoute: typeof AuthenticatedAppAdminSsoSetupRoute
-  AuthenticatedAppAdminSubscriptionsRoute: typeof AuthenticatedAppAdminSubscriptionsRoute
-  AuthenticatedAppAdminSupportRoute: typeof AuthenticatedAppAdminSupportRoute
-  AuthenticatedAppAdminUsersRoute: typeof AuthenticatedAppAdminUsersRoute
-  AuthenticatedAppAdminWebhooksRoute: typeof AuthenticatedAppAdminWebhooksRoute
-  AuthenticatedAppDocsBookRoute: typeof AuthenticatedAppDocsBookRoute
-  AuthenticatedAppWorkspaceSessionIdRoute: typeof AuthenticatedAppWorkspaceSessionIdRoute
   AuthenticatedAppAcademyIndexRoute: typeof AuthenticatedAppAcademyIndexRoute
-  AuthenticatedAppDocsIndexRoute: typeof AuthenticatedAppDocsIndexRoute
-  AuthenticatedAppWorkspaceIndexRoute: typeof AuthenticatedAppWorkspaceIndexRoute
   AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
   AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
-  AuthenticatedAppAdminNotificationsProviderRoute: typeof AuthenticatedAppAdminNotificationsProviderRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAuditRoute: AuthenticatedAppAuditRoute,
-  AuthenticatedAppBrandRoute: AuthenticatedAppBrandRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
-  AuthenticatedAppInternalRoute: AuthenticatedAppInternalRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppModulesRoute: AuthenticatedAppModulesRoute,
   AuthenticatedAppOrganizationRoute: AuthenticatedAppOrganizationRoute,
-  AuthenticatedAppPlatformRoute: AuthenticatedAppPlatformRouteWithChildren,
-  AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppSubscriptionRoute: AuthenticatedAppSubscriptionRoute,
   AuthenticatedAppUpdatesRoute: AuthenticatedAppUpdatesRoute,
   AuthenticatedAppUsersRoute: AuthenticatedAppUsersRoute,
@@ -3395,57 +1867,11 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAcademyKbRoute: AuthenticatedAppAcademyKbRoute,
   AuthenticatedAppAcademySettingsRoute: AuthenticatedAppAcademySettingsRoute,
   AuthenticatedAppAcademyTeacherRoute: AuthenticatedAppAcademyTeacherRoute,
-  AuthenticatedAppAdminAcademyRoute: AuthenticatedAppAdminAcademyRoute,
-  AuthenticatedAppAdminAiAuditRoute: AuthenticatedAppAdminAiAuditRoute,
-  AuthenticatedAppAdminAnalyticsRoute: AuthenticatedAppAdminAnalyticsRoute,
-  AuthenticatedAppAdminApiDocsRoute: AuthenticatedAppAdminApiDocsRoute,
-  AuthenticatedAppAdminApiKeysRoute: AuthenticatedAppAdminApiKeysRoute,
-  AuthenticatedAppAdminAuditRoute: AuthenticatedAppAdminAuditRoute,
-  AuthenticatedAppAdminBillingRoute: AuthenticatedAppAdminBillingRoute,
-  AuthenticatedAppAdminCommandCenterRoute:
-    AuthenticatedAppAdminCommandCenterRoute,
-  AuthenticatedAppAdminCompaniesRoute: AuthenticatedAppAdminCompaniesRoute,
-  AuthenticatedAppAdminContactsRoute: AuthenticatedAppAdminContactsRoute,
-  AuthenticatedAppAdminCustomersRoute: AuthenticatedAppAdminCustomersRoute,
-  AuthenticatedAppAdminDashboardRoute: AuthenticatedAppAdminDashboardRoute,
-  AuthenticatedAppAdminDownloadsRoute: AuthenticatedAppAdminDownloadsRoute,
-  AuthenticatedAppAdminEmailRoute: AuthenticatedAppAdminEmailRoute,
-  AuthenticatedAppAdminEmailLogsRoute: AuthenticatedAppAdminEmailLogsRoute,
-  AuthenticatedAppAdminInstallationsRoute:
-    AuthenticatedAppAdminInstallationsRoute,
-  AuthenticatedAppAdminIntegrationsRoute:
-    AuthenticatedAppAdminIntegrationsRouteWithChildren,
-  AuthenticatedAppAdminKnowledgeGapsRoute:
-    AuthenticatedAppAdminKnowledgeGapsRoute,
-  AuthenticatedAppAdminMaintenanceRoute: AuthenticatedAppAdminMaintenanceRoute,
-  AuthenticatedAppAdminModuleCatalogRoute:
-    AuthenticatedAppAdminModuleCatalogRoute,
-  AuthenticatedAppAdminMonitoringRoute: AuthenticatedAppAdminMonitoringRoute,
-  AuthenticatedAppAdminPlatformRoute: AuthenticatedAppAdminPlatformRoute,
-  AuthenticatedAppAdminPlatformAdminsRoute:
-    AuthenticatedAppAdminPlatformAdminsRoute,
-  AuthenticatedAppAdminReleaseManagementRoute:
-    AuthenticatedAppAdminReleaseManagementRoute,
-  AuthenticatedAppAdminSopGeneratorRoute:
-    AuthenticatedAppAdminSopGeneratorRoute,
-  AuthenticatedAppAdminSsoSetupRoute: AuthenticatedAppAdminSsoSetupRoute,
-  AuthenticatedAppAdminSubscriptionsRoute:
-    AuthenticatedAppAdminSubscriptionsRoute,
-  AuthenticatedAppAdminSupportRoute: AuthenticatedAppAdminSupportRoute,
-  AuthenticatedAppAdminUsersRoute: AuthenticatedAppAdminUsersRoute,
-  AuthenticatedAppAdminWebhooksRoute: AuthenticatedAppAdminWebhooksRoute,
-  AuthenticatedAppDocsBookRoute: AuthenticatedAppDocsBookRoute,
-  AuthenticatedAppWorkspaceSessionIdRoute:
-    AuthenticatedAppWorkspaceSessionIdRoute,
   AuthenticatedAppAcademyIndexRoute: AuthenticatedAppAcademyIndexRoute,
-  AuthenticatedAppDocsIndexRoute: AuthenticatedAppDocsIndexRoute,
-  AuthenticatedAppWorkspaceIndexRoute: AuthenticatedAppWorkspaceIndexRoute,
   AuthenticatedAppAcademyLessonLessonIdRoute:
     AuthenticatedAppAcademyLessonLessonIdRoute,
   AuthenticatedAppAcademyPathPathIdRoute:
     AuthenticatedAppAcademyPathPathIdRoute,
-  AuthenticatedAppAdminNotificationsProviderRoute:
-    AuthenticatedAppAdminNotificationsProviderRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
@@ -3563,31 +1989,6 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
-interface DemoAppRouteChildren {
-  DemoAppAcademyRoute: typeof DemoAppAcademyRoute
-  DemoAppAnalyticsRoute: typeof DemoAppAnalyticsRoute
-  DemoAppAuditRoute: typeof DemoAppAuditRoute
-  DemoAppChatRoute: typeof DemoAppChatRoute
-  DemoAppFaqRoute: typeof DemoAppFaqRoute
-  DemoAppKnowledgeRoute: typeof DemoAppKnowledgeRoute
-  DemoAppUsersRoute: typeof DemoAppUsersRoute
-  DemoAppIndexRoute: typeof DemoAppIndexRoute
-}
-
-const DemoAppRouteChildren: DemoAppRouteChildren = {
-  DemoAppAcademyRoute: DemoAppAcademyRoute,
-  DemoAppAnalyticsRoute: DemoAppAnalyticsRoute,
-  DemoAppAuditRoute: DemoAppAuditRoute,
-  DemoAppChatRoute: DemoAppChatRoute,
-  DemoAppFaqRoute: DemoAppFaqRoute,
-  DemoAppKnowledgeRoute: DemoAppKnowledgeRoute,
-  DemoAppUsersRoute: DemoAppUsersRoute,
-  DemoAppIndexRoute: DemoAppIndexRoute,
-}
-
-const DemoAppRouteWithChildren =
-  DemoAppRoute._addFileChildren(DemoAppRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -3614,14 +2015,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcademyChatRoute: ApiAcademyChatRoute,
   ApiChatRoute: ApiChatRoute,
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
-  ApiDemoChatRoute: ApiDemoChatRoute,
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
-  DemoAppRoute: DemoAppRouteWithChildren,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   VerifyCodeRoute: VerifyCodeRoute,
-  DemoIndexRoute: DemoIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,

@@ -5,7 +5,7 @@ const Email = (p: { docTitle?: string; reviewerName?: string; reviewUrl?: string
     preview={`Document waiting for your approval: ${p.docTitle ?? ""}`}
     title="A document is waiting for your approval"
     intro={`${p.reviewerName ?? "A team member"} submitted "${p.docTitle ?? "a document"}" for your approval.`}
-    cta={{ label: "Review document", url: p.reviewUrl ?? `${APP_URL}/app/admin/customers` }}
+    cta={{ label: "Review document", url: p.reviewUrl ?? `${APP_URL}/management/customers` }}
   />
 );
 export const template = defineTemplate({

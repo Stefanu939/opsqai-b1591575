@@ -93,14 +93,12 @@ export function SubscriptionStatusBanner() {
             `Subscription renews in ${renewalLeft} day${renewalLeft === 1 ? "" : "s"}.`}
         </span>
       </div>
-      {isPlatformAdmin ? (
-        <Link
-          to="/app/admin/subscriptions"
-          className="underline underline-offset-2 whitespace-nowrap font-medium"
-        >
-          Manage subscription
-        </Link>
-      ) : null}
+      <Link
+        to="/app/subscription"
+        className="underline underline-offset-2 whitespace-nowrap font-medium"
+      >
+        Manage subscription
+      </Link>
     </div>
   );
 }

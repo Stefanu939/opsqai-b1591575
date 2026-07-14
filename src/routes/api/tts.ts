@@ -6,7 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
  * Returns: audio/mpeg (mp3) so the browser can cache it and play with <audio>.
  *
  * Rate limited per-IP to protect paid AI credits from unauthenticated abuse
- * (same in-memory pattern as /api/demo-chat).
+ * (same in-memory pattern as /api/chat).
  */
 
 // Per-IP token bucket: 20 requests / 10 minutes.
@@ -63,8 +63,8 @@ export const Route = createFileRoute("/api/tts")({
         const voice = "alloy";
         const instructions =
           lang === "de"
-            ? "Ruhig, souverän und premium. Sprich langsam, warm und vertrauenswürdig, wie eine Enterprise-SaaS-Produktnarration von Apple oder Stripe. Kurze Pausen zwischen Sätzen."
-            : "Calm, confident, premium. Speak slowly, warm and trustworthy, like an enterprise SaaS product narration from Apple or Stripe. Short pauses between sentences.";
+            ? "Ruhig, souverän und premium. Sprich langsam, warm und vertrauenswürdig, wie eine Enterprise-Produktnarration von Apple oder Stripe. Kurze Pausen zwischen Sätzen."
+            : "Calm, confident, premium. Speak slowly, warm and trustworthy, like an enterprise product narration from Apple or Stripe. Short pauses between sentences.";
         const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
           method: "POST",
           headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },

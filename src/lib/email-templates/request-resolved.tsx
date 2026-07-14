@@ -11,7 +11,7 @@ const Email = (p: {
     title="Your internal request was answered"
     intro={`Hi${p.firstName ? ` ${p.firstName}` : ""}, a manager answered your request${p.question ? ` "${p.question}"` : ""}.`}
     body={p.answer ? `Answer: ${p.answer}` : undefined}
-    cta={{ label: "Open in app", url: p.requestUrl ?? `${APP_URL}/app/requests` }}
+    cta={{ label: "Open in app", url: p.requestUrl ?? `${APP_URL}/app/knowledge` }}
   />
 );
 export const template = defineTemplate({

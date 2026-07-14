@@ -56,7 +56,7 @@ const BOOKS = [
   {
     icon: BookOpen,
     title: "Engineering Handbook",
-    body: "Conventions, release process, adding modules, issuing licenses, adding AI adapters, publishing Docker, migrations, and the pre-release checklist.",
+    body: "Conventions, release process, adding modules, issuing licenses, adding AI adapters, publishing the Windows installer, migrations, and the pre-release checklist.",
     href: "/documentation/engineering",
   },
 ];

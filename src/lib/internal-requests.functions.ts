@@ -145,7 +145,7 @@ export const createInternalRequest = createServerFn({ method: "POST" })
                 ?.first_name ?? (requesterProfile as { full_name?: string } | null)?.full_name,
             question: data.question,
             referenceId: `IRQ-${String(row.id).slice(0, 8).toUpperCase()}`,
-            requestUrl: "https://opsqai.de/app/requests",
+            requestUrl: "https://opsqai.de/app/knowledge",
           },
         });
       }

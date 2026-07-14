@@ -14,7 +14,7 @@ const Email = (p: {
       ...(p.referenceId ? [{ label: "Reference", value: p.referenceId }] : []),
       ...(p.question ? [{ label: "Question", value: p.question }] : []),
     ]}
-    cta={{ label: "Track in app", url: p.requestUrl ?? `${APP_URL}/app/requests` }}
+    cta={{ label: "Track in app", url: p.requestUrl ?? `${APP_URL}/app/knowledge` }}
   />
 );
 export const template = defineTemplate({

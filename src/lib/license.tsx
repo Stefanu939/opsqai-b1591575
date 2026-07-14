@@ -3,7 +3,7 @@
 // Two deployment modes:
 //   - "cloud" (default): running on Lovable Cloud / Edeka evaluation.
 //     All modules are unlocked, no gating. Zero behavior change.
-//   - "selfhost": running behind a customer's Docker install. The signed
+//   - "selfhost": running behind a customer's Windows on-premise install. The signed
 //     license token is provided via VITE_OPSQAI_LICENSE_JWT at build time
 //     or via a runtime bootstrap `window.__OPSQAI_LICENSE__` injected by
 //     the setup wizard. We decode the payload (verification happens

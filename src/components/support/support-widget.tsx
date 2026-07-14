@@ -105,7 +105,7 @@ export function SupportWidget() {
   const isPlatform = auth.isPlatformAdmin;
 
   // Hide bubble when on the platform inbox itself, or when the user lacks permission.
-  const onInbox = routeState.startsWith("/app/admin/support");
+  const onInbox = routeState.startsWith("/management/support");
   const hidden = !canUse || onInbox || !auth.user;
 
   const [open, setOpen] = useState(false);
@@ -538,7 +538,7 @@ export function SupportWidget() {
                       className="w-full"
                       onClick={() => {
                         setOpen(false);
-                        navigate({ to: "/app/admin/support" });
+                        navigate({ to: "/management/support" });
                       }}
                     >
                       Open full inbox →

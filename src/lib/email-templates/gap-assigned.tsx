@@ -6,7 +6,7 @@ const Email = (p: { topic?: string; gapUrl?: string; priority?: string }) => (
     title="A knowledge gap was assigned to you"
     intro={`Your team needs documentation on "${p.topic ?? "a new topic"}". You've been assigned to close this gap.`}
     rows={p.priority ? [{ label: "Priority", value: p.priority }] : []}
-    cta={{ label: "Open knowledge gap", url: p.gapUrl ?? `${APP_URL}/app/admin/knowledge-gaps` }}
+    cta={{ label: "Open knowledge gap", url: p.gapUrl ?? `${APP_URL}/app/knowledge` }}
   />
 );
 export const template = defineTemplate({

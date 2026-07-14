@@ -60,7 +60,7 @@ export const Route = createFileRoute("/")({
       jsonLd: [
         softwareApplicationLd({
           description:
-            "Enterprise AI knowledge platform for logistics and warehouse operations. Ingests SOPs, manuals and FAQs; delivers source-cited answers with multi-tenant isolation and audit logs.",
+            "Enterprise AI knowledge platform for logistics and warehouse operations. Windows on-premise install, single-tenant by design; ingests SOPs, manuals and FAQs, and delivers source-cited answers with full audit logs.",
         }),
       ],
     }),
@@ -152,8 +152,8 @@ function Hero() {
                 size="lg"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]"
               >
-                <Link to="/demo">
-                  Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" />
+                <Link to="/contact">
+                  Book a Demo <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button
@@ -315,7 +315,7 @@ const CAPABILITIES = [
   "Workspace Management",
   "AI-powered Onboarding",
   "Role-based Access",
-  "Multi-company SaaS",
+  "On-premise, single-tenant",
   "Audit & Compliance",
 ];
 
@@ -574,13 +574,13 @@ function Industries() {
 const ENTERPRISE_FEATURES = [
   {
     icon: Network,
-    title: "Multi-company SaaS",
-    body: "Serve multiple companies from one governed platform.",
+    title: "On-premise, single-tenant",
+    body: "One Windows installer per customer. Your data stays on your hardware.",
   },
   {
     icon: Building2,
     title: "Workspace isolation",
-    body: "Each workspace has its own data, users and configuration.",
+    body: "Every install has its own data, users and configuration — no shared runtime.",
   },
   {
     icon: Lock,
@@ -594,8 +594,8 @@ const ENTERPRISE_FEATURES = [
   },
   {
     icon: Layers,
-    title: "Cloud infrastructure",
-    body: "EU hosting, daily backups, point-in-time recovery.",
+    title: "Runs on your infrastructure",
+    body: "Windows server on-premise or in your own private cloud. No vendor cloud lock-in.",
   },
   {
     icon: Sparkles,
@@ -610,7 +610,7 @@ const ENTERPRISE_FEATURES = [
   {
     icon: Users,
     title: "Browser-based",
-    body: "No installation. Works on desktop, tablet and mobile.",
+    body: "No client install. Works on desktop, tablet and mobile.",
   },
 ];
 
@@ -621,7 +621,7 @@ function Enterprise() {
         <SectionHead
           eyebrow="Enterprise"
           title="Built for enterprise operations from day one"
-          intro="Multi-tenant architecture, governance and security engineered for organizations that cannot afford shortcuts. OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center."
+          intro="Single-tenant on-premise architecture, governance and security engineered for organizations that cannot afford shortcuts. OPSQAI itself is not yet SOC 2 or ISO 27001 certified — see the Trust Center."
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ENTERPRISE_FEATURES.map((e) => (
@@ -861,7 +861,7 @@ const COMPARE = [
   },
   { row: "Document management", chatbot: "None", opsqai: "Full knowledge base with versioning" },
   { row: "Permissions", chatbot: "None", opsqai: "Enterprise roles & access control" },
-  { row: "Workspace separation", chatbot: "None", opsqai: "Multi-company SaaS with isolation" },
+  { row: "Workspace separation", chatbot: "None", opsqai: "One dedicated on-premise install per customer" },
   { row: "Onboarding workflows", chatbot: "None", opsqai: "Structured onboarding & assignments" },
   { row: "Auditability", chatbot: "None", opsqai: "Every question and answer logged" },
   { row: "Data residency", chatbot: "Unknown / shared", opsqai: "EU hosting, GDPR-ready" },
@@ -1048,8 +1048,8 @@ const FAQS = [
     a: "Yes. Employees can ask in virtually any language supported by modern AI models, making OPSQAI suitable for international operations.",
   },
   {
-    q: "Can multiple companies use the platform?",
-    a: "Yes. OPSQAI is a true multi-company SaaS. Each customer has an isolated workspace with its own data, users and configuration.",
+    q: "How is OPSQAI deployed?",
+    a: "OPSQAI is delivered as a Windows on-premise installer. Each customer runs their own single-tenant install with its own data, users and configuration — no shared cloud runtime.",
   },
   {
     q: "Can answers include document sources?",
@@ -1108,8 +1108,8 @@ function FinalCTA() {
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]"
           >
-            <Link to="/demo">
-              Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" />
+            <Link to="/contact">
+              Book a Demo <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button

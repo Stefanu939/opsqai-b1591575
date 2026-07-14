@@ -9,15 +9,15 @@ export const OPSQAI_FACTS = {
   website: "https://opsqai.de",
   contact: "hello@opsqai.de",
   description:
-    "OPSQAI is a multi-tenant SaaS knowledge assistant for logistics and warehouse operations. It indexes SOPs, manuals, policies and FAQs into a per-customer knowledge base and answers employee questions with source-grounded citations.",
+    "OPSQAI is a Windows on-premise, single-tenant knowledge assistant for logistics and warehouse operations. It indexes SOPs, manuals, policies and FAQs into a customer-owned knowledge base and answers employee questions with source-grounded citations.",
   positioning: [
     "Source-grounded answers (refusal when no source is found).",
-    "Per-workspace data isolation enforced at the database layer (Row-Level Security).",
+    "Single-tenant install — one dedicated deployment per customer, no shared runtime.",
     "Bilingual interface (DE/EN/RO) with multilingual AI responses.",
     "Confidence scoring, knowledge gap tracking, audit log.",
   ],
   architecture: [
-    "Multi-tenant Postgres with workspace-scoped RLS policies.",
+    "Single-tenant Postgres per install with workspace-scoped RLS policies.",
     "pgvector-powered semantic search.",
     "Server-side RAG with recursive chunking and citation extraction.",
     "Enterprise RBAC with 7 roles (platform_owner → operator).",
