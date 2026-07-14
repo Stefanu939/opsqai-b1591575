@@ -44,9 +44,9 @@ type License = {
 type Admin = {
   id: string;
   email: string;
-  first_name: string | null;
-  last_name: string | null;
-  role: "platform_owner" | "platform_admin";
+  full_name: string | null;
+  last_sign_in_at: string | null;
+  granted_at: string;
 };
 
 function OwnershipPage() {
