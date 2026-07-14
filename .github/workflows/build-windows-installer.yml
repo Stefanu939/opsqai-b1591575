@@ -11,8 +11,14 @@ on:
         type: boolean
         default: false
   push:
+    branches:
+      - main
     tags:
       - "win-v*"
+    paths:
+      - "opsqai-windows/**"
+      - "src/**"
+      - ".github/workflows/build-windows-installer.yml"
 
 concurrency:
   group: windows-installer-${{ github.ref }}
