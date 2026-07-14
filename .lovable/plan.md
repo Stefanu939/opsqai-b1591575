@@ -1,57 +1,47 @@
-## What I'll build
+# OPSQAI Investor Deck — SIventures
 
-### 1. Audience selector on `/auth` (dropdown, EN + DE)
+A polished 16:9 PDF pitch deck, addressed implicitly to Oliver Philipp / SIventures (Leipzig, early-stage B2B, Industrial Tech focus, Mainteny portfolio). Written in the voice of the founding team (CEO / CTO / Head of AI) — first person plural, confident, sober, European industrial tone. Core narrative: **AI that works *for* people in operations, not instead of them.**
 
-Add a **dropdown at the top of the sign-in form** where the visitor picks their audience before entering credentials. Three options:
+## Design
 
-- **Customer Portal** / **Kundenportal** — for designated customer contacts (installer, activation bundle, release notes, support).
-- **Management Center** / **Verwaltungszentrum** — OPSQAI staff only.
-- **Company user (Self-Hosted)** / **Firmenbenutzer (Self-Hosted)** — disabled option that reveals an inline info card: "OPSQAI runs on your company's Windows Server. Sign in there, not here." with a link to `/windows-only`.
+- Format: 1920×1080 landscape, exported as a single high-quality PDF via ReportLab (Platypus + canvas) with DejaVu Sans registered for German umlauts (Schröter, etc.).
+- Palette: **Midnight Executive** — deep navy `#0B1220` background on hero/section slides, ivory `#F5F1E8` content slides, gold accent `#C8A24B` (matches OPSQAI Noir & Gold brand memory), muted slate `#5B6472` for secondary text.
+- Typography: Large editorial headlines (48–96pt), 22–28pt body, 14–16pt captions. No bullet dumps — max 4 lines per idea.
+- One visual motif carried through every slide: a thin gold rule + numbered slide index bottom-right. No AI-cliché accent lines under titles.
+- QA: render each page to JPEG, inspect for overflow / clipping / contrast, iterate until clean.
 
-Behavior:
-- Default = Customer Portal (matches the most common case).
-- Selection persists via `?audience=portal|mc` in the URL so the form is deep-linkable.
-- The submit button label switches: "Sign in to Portal" / "Sign in to Management Center".
-- After a successful login, backend validates the choice against roles:
-  - `audience=mc` but user is not `platform_admin`/`platform_owner` → sign out + toast "This sign-in is reserved for the OPSQAI team."
-  - `audience=portal` for anyone else → land on `/portal`.
-- Existing `?next=` deep-link parameter still wins over audience default (used by invite emails).
+## Slide sequence (14 slides)
 
-### 2. Copy — EN + DE everywhere
+1. **Cover** — OPSQAI wordmark, tagline *"Operational AI that works for your people."*, "Investor Brief — Prepared for SIventures · July 2026".
+2. **The moment** — one line: European industrial operators are drowning in SOPs, manuals, tribal knowledge. Public LLMs can't touch it (compliance, sovereignty).
+3. **Mission** — *We bring AI to work alongside operators, not replace them.* Three tenets: Augment, don't automate away. Sovereignty by default. Auditable by design.
+4. **Problem** — 4 concrete pains: onboarding time, SOP drift, audit exposure, knowledge loss on staff turnover. Backed by short quantified claims.
+5. **Solution** — OPSQAI: a self-hosted, license-gated enterprise AI platform turning the customer's own SOPs, manuals, FAQs into a governed, source-cited answer surface. Screenshot/mock of chat with citations.
+6. **How it works** — 3-step diagram: Ingest & govern → Retrieve with ACL → Answer with citations & audit trail. Emphasize data never leaves the customer boundary.
+7. **Why now** — EU AI Act + data sovereignty + LLM maturity + labor shortage in logistics/industry. SIventures-relevant framing.
+8. **Product** — modules grid: Knowledge Base, SOPs, Academy, Chat, FAQ, Internal Requests, Brand, Workspace. License-gated per module.
+9. **Differentiation** — table vs. ChatGPT Enterprise / Glean / in-house RAG: sovereignty, per-module licensing, offline activation, audit-first, Windows self-hosted installer.
+10. **Traction / proof** — Evertrace referral, self-hosted Windows installer shipping, architecture book & security documentation complete, early logistics/warehouse pilots. Honest phrasing where pre-revenue.
+11. **Business model** — Installation License + per-module licenses + maintenance windows. Land-and-expand inside industrial groups. Rough ACV bands.
+12. **Market** — Bottom-up: EU mid-market industrial & logistics operators (10k+ employees segment), TAM/SAM/SOM sized conservatively.
+13. **Team** — Founders as CEO / CTO / Head of AI with one-line credibility statements. "We're operators who got tired of the answer being 'ask Ștefan'."
+14. **Ask & contact** — What we're raising, what it buys (12–18 months runway: 2 pilots → 6 paying installs, security certifications, sales hire), then: *Next step: 30-min call. stefan@opsqai.de · opsqai.de*.
 
-All new strings go through the existing `useT()` / `i18n` layer so they're switched with the top-right language toggle. The three affected surfaces:
+## Voice guidelines
 
-- `/auth` — audience selector labels, description under each option, submit button, error toasts.
-- `/windows-only` — hero, three-column architecture cards, CTAs.
-- Marketing header signed-in CTA — "Customer Portal" / "Kundenportal".
+- First person plural ("we", "our team"), never "the company".
+- No hype adjectives ("revolutionary", "cutting-edge"). Prefer concrete verbs.
+- Every claim either quantified or explicitly framed as directional.
+- German-market awareness: mention Leipzig/DACH context on the Ask slide without pandering.
 
-### 3. Windows installer build
+## Deliverable
 
-I don't push to git directly (Lovable manages that), but every edit in this turn auto-syncs to the connected GitHub repo. The existing workflow `.github/workflows/build-windows-installer.yml` triggers on push and produces the signed `.exe`. Nothing to change there — the sync-on-save is enough.
+- File: `/mnt/documents/OPSQAI-Investor-Deck-SIventures.pdf`
+- Rendered previews inspected page by page before delivery.
+- Presented back with a `<presentation-artifact>` tag so the user can download and forward directly to `oliver@siventures.de`.
 
-I'll verify the workflow file exists and its trigger matches the branch we're on. If the trigger is `workflow_dispatch` only, I'll adjust it to also run on push to the default branch so a new `.exe` is produced automatically from this change.
+## Technical section
 
-## Technical details
-
-**Files changed**
-- `src/routes/auth.tsx` — add audience dropdown, read/write `?audience=` search param, gate post-login target by both audience and role.
-- `src/i18n/index.tsx` — add EN + DE keys: `audienceLabel`, `audiencePortal`, `audiencePortalHint`, `audienceMc`, `audienceMcHint`, `audienceCompanyUser`, `audienceCompanyUserHint`, `signInToPortal`, `signInToMc`, `mcAccessDenied`.
-- `src/routes/windows-only.tsx` — wire strings through `useT()` so DE works.
-- `src/components/marketing/layout.tsx` — translate the "Customer Portal" CTA.
-- `.github/workflows/build-windows-installer.yml` — verify/adjust trigger only if it's not already `push` to main.
-
-**Data model** — no schema changes. The audience dropdown is UI-only; authorization stays server-side (`platform_admin`/`platform_owner` role → MC access; everyone else → Portal). Company users have no cloud account at all, so the third option is intentionally non-functional and educational.
-
-**Search param contract**
-```
-/auth                       → default = portal
-/auth?audience=mc           → MC form
-/auth?audience=portal       → Portal form
-/auth?next=/portal/downloads → next wins, audience inferred from prefix
-```
-
-## Out of scope for this turn
-
-- No new roles or DB migration.
-- No changes to `/management/*` or `/portal/*` gating — that was done last turn.
-- No marketing hero rewrite on `/`, `/product`, `/pricing` (I'll do the copy sweep there in a follow-up unless you say otherwise).
+- Script: `scripts/gen_investor_deck.py` (ReportLab, DejaVu Sans registered via fontconfig, landscape 1920×1080 via custom pagesize, per-slide canvas draw functions for full layout control).
+- QA loop: `pdftoppm -jpeg -r 100 out.pdf page` → view each `page-*.jpg` → fix → re-render until clean.
+- No app code changes; deck is a standalone artifact.
