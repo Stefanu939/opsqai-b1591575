@@ -280,7 +280,7 @@ def slide_problem(i):
 def slide_solution(i):
     bg(True)
     chrome(i, TOTAL, True, "04 · Solution")
-    slide_title_dark("A self-hosted AI surface over the customer's own knowledge.", "Solution")
+    slide_title_dark("A self-hosted AI surface over the customer's own knowledge.", "Solution", max_w=950)
 
     # Left: description
     y = draw_paragraph(
