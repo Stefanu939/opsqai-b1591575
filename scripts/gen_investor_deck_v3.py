@@ -1333,27 +1333,153 @@ def s_ask(i):
     c.showPage()
 
 
+# ==================================================================
+# Why now?
+# ==================================================================
+def s_why_now(i):
+    bg(True)
+    chrome(i, TOTAL, True, "03 · Why now")
+    kicker("Why now", 80, H - 150)
+    h1("Four forces make 2026 the deployment window for sovereign operational AI.",
+       80, H - 220, size=38, max_w=1760)
+
+    items = [
+        ("EU AI Act in force",
+         "The EU AI Act entered into force on 1 Aug 2024; obligations on "
+         "high-risk and general-purpose AI systems phase in through 2026–2027. "
+         "Industrial operators need AI they can govern, audit and keep inside "
+         "their own boundary.",
+         "European Commission — EU AI Act, Regulation (EU) 2024/1689."),
+        ("Data sovereignty pressure",
+         "BSI C5, Bitkom and national regulators push regulated industries "
+         "toward EU-hosted, customer-controlled AI. Public LLMs cannot be "
+         "pointed at internal SOPs without a compliance question.",
+         "BSI C5:2020 · Bitkom Cloud Monitor 2024."),
+        ("Enterprise GenAI adoption",
+         "Enterprise generative-AI adoption is mainstream, but regulated "
+         "industries lag because they cannot ship SOPs to public providers. "
+         "The gap is a self-hosted, grounded, audited product.",
+         "McKinsey — The state of AI in 2024."),
+        ("Windows still runs the plant",
+         "Industrial and logistics IT is overwhelmingly Windows Server on "
+         "customer infrastructure. A Windows-native, self-hosted product "
+         "meets operators where their servers already live.",
+         "Statista — server OS market share (Windows Server), 2024."),
+    ]
+    y0 = H - 340
+    for j, (t, d, src) in enumerate(items):
+        col = j % 2
+        row = j // 2
+        x = 80 + col * 900
+        y = y0 - row * 320
+        box(x, y - 280, 860, 280, True, radius=10, fill=NAVY_2, border=GOLD)
+        c.setFont("SerifBold", 24)
+        c.setFillColorRGB(*IVORY)
+        c.drawString(x + 30, y - 40, t)
+        body(d, x + 30, y - 80, True, 14, 800, 22)
+        c.setFont("BodyItalic", 10)
+        c.setFillColorRGB(*GOLD_SOFT)
+        c.drawString(x + 30, y - 250, "Source: " + src)
+
+    source_note("EU AI Act (Regulation (EU) 2024/1689), BSI C5, Bitkom Cloud Monitor 2024, McKinsey State of AI 2024, Statista server OS share 2024.")
+    c.showPage()
+
+
+# ==================================================================
+# Customer journey
+# ==================================================================
+def s_journey(i):
+    bg(False)
+    chrome(i, TOTAL, False, "11 · Customer journey")
+    kicker("Customer journey", 80, H - 150, dark=False)
+    h1("From purchase to production, on customer-owned Windows infrastructure.",
+       80, H - 220, dark=False, size=38, max_w=1760)
+
+    steps = [
+        ("Purchase",
+         "Customer orders the Basic Platform and any Premium Modules through OPSQAI."),
+        ("Portal download",
+         "Signed Windows installation package retrieved from the Customer Portal."),
+        ("Windows install",
+         "Installer provisions PostgreSQL + pgvector, storage, services and Caddy on Windows Server."),
+        ("License activation",
+         "Ed25519-signed activation bundle imported into the install; modules unlock as licensed."),
+        ("AI configuration",
+         "Customer picks the AI provider — OpenAI, Azure OpenAI, self-hosted Ollama or a compatible endpoint."),
+        ("In production",
+         "Users invited, SOPs ingested, grounded answers with source citations and AI audit."),
+    ]
+
+    n = len(steps)
+    left = 100
+    right = W - 100
+    spine_y = H - 400
+    c.setStrokeColorRGB(*GOLD_DIM)
+    c.setLineWidth(1.0)
+    c.line(left + 30, spine_y, right - 30, spine_y)
+
+    step_w = (right - left) / n
+    for j, (t, d) in enumerate(steps):
+        cx = left + step_w * j + step_w / 2
+        c.setFillColorRGB(*GOLD)
+        c.circle(cx, spine_y, 18, fill=1, stroke=0)
+        c.setFont("SerifBold", 18)
+        c.setFillColorRGB(*NAVY)
+        c.drawCentredString(cx, spine_y - 6, str(j + 1))
+        card_x = cx - step_w / 2 + 14
+        card_w = step_w - 28
+        card_y = spine_y - 60
+        card_h = 340
+        box(card_x, card_y - card_h, card_w, card_h, dark=False, radius=10,
+            fill=IVORY_2, border=GOLD)
+        c.setFont("BodyBold", 12)
+        c.setFillColorRGB(*GOLD_DIM)
+        c.drawString(card_x + 20, card_y - 34, f"STEP {j + 1:02d}")
+        yy = card_y - 66
+        c.setFont("SerifBold", 18)
+        c.setFillColorRGB(*INK)
+        for line in wrap(t, "SerifBold", 18, card_w - 40):
+            c.drawString(card_x + 20, yy, line)
+            yy -= 22
+        body(d, card_x + 20, yy - 6, dark=False, size=12,
+             max_w=card_w - 40, leading=17)
+
+    box(80, 120, 1760, 90, dark=False, radius=10, fill=IVORY_2, border=GOLD)
+    c.setFont("SerifBold", 20)
+    c.setFillColorRGB(*INK)
+    c.drawString(110, 170, "Cloud is used only for licensing, updates and the Customer Portal.")
+    c.setFont("Body", 14)
+    c.setFillColorRGB(*INK_SOFT)
+    c.drawString(110, 142, "Every operational surface runs inside the customer's Windows install.")
+
+    source_note("Journey matches src/routes/product.tsx, opsqai-windows/ installer and docs/administrator-guide.", dark=False)
+    c.showPage()
+
+
 # ------------------------------------------------------------------
 # Render
 # ------------------------------------------------------------------
 s_cover(1)
 s_problem(2)
-s_market_context(3)
-s_product(4)
-s_why(5)
-s_architecture(6)
-s_how_it_works(7)
-s_mockups_1(8)
-s_mockups_2(9)
-s_mockups_3(10)
-s_business_model(11)
-s_competitive(12)
-s_gtm(13)
-s_traction(14)
-s_roadmap(15)
-s_team(16)
-s_market(17)
-s_ask(18)
+s_why_now(3)
+s_market_context(4)
+s_product(5)
+s_why(6)
+s_architecture(7)
+s_how_it_works(8)
+s_mockups_1(9)
+s_mockups_2(10)
+s_mockups_3(11)
+s_journey(12)
+s_business_model(13)
+s_competitive(14)
+s_gtm(15)
+s_traction(16)
+s_roadmap(17)
+s_team(18)
+s_market(19)
+s_ask(20)
 
 c.save()
 print("wrote", OUT)
+
