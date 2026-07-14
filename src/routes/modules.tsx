@@ -35,9 +35,10 @@ function ModulesPage() {
           Buy the platform once. Add modules as you grow.
         </h1>
         <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI ships with a Basic bundle covering chat, knowledge base, FAQ, notifications,
-          bilingual UI, and PWA. Premium modules unlock deeper capabilities and are licensed
-          separately.
+          The Basic Platform ships with every OPSQAI installation — AI Chat, Knowledge Base,
+          FAQ, Academy, AI Audit, Users, Organization and Subscription. Premium modules
+          unlock deeper capabilities and are licensed separately, activated by OPSQAI
+          through a signed license — no reinstall required.
         </p>
         <div className="mt-8 flex gap-3">
           <Button asChild>
