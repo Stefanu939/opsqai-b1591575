@@ -120,10 +120,12 @@ function AuthPage() {
     if (current !== audience) {
       navigate({
         to: "/auth",
-        search: (prev) => ({ ...prev, audience }),
+        search: (prev: { next?: string; audience?: Audience }) => ({ ...prev, audience }),
         replace: true,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audience]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audience]);
 
