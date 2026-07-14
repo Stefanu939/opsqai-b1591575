@@ -71,11 +71,9 @@ import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
-import { Route as AuthenticatedAppPlatformRouteImport } from './routes/_authenticated/app.platform'
 import { Route as AuthenticatedAppOrganizationRouteImport } from './routes/_authenticated/app.organization'
 import { Route as AuthenticatedAppModulesRouteImport } from './routes/_authenticated/app.modules'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
-import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenticated/app.internal'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
@@ -432,12 +430,6 @@ const AuthenticatedAppSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppPlatformRoute =
-  AuthenticatedAppPlatformRouteImport.update({
-    id: '/platform',
-    path: '/platform',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
 const AuthenticatedAppOrganizationRoute =
   AuthenticatedAppOrganizationRouteImport.update({
     id: '/organization',
@@ -453,12 +445,6 @@ const AuthenticatedAppKnowledgeRoute =
   AuthenticatedAppKnowledgeRouteImport.update({
     id: '/knowledge',
     path: '/knowledge',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppInternalRoute =
-  AuthenticatedAppInternalRouteImport.update({
-    id: '/internal',
-    path: '/internal',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
@@ -654,11 +640,9 @@ export interface FileRoutesByFullPath {
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/faq': typeof AuthenticatedAppFaqRoute
-  '/app/internal': typeof AuthenticatedAppInternalRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
-  '/app/platform': typeof AuthenticatedAppPlatformRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -744,11 +728,9 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
-  '/app/internal': typeof AuthenticatedAppInternalRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
-  '/app/platform': typeof AuthenticatedAppPlatformRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -840,11 +822,9 @@ export interface FileRoutesById {
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
-  '/_authenticated/app/internal': typeof AuthenticatedAppInternalRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/modules': typeof AuthenticatedAppModulesRoute
   '/_authenticated/app/organization': typeof AuthenticatedAppOrganizationRoute
-  '/_authenticated/app/platform': typeof AuthenticatedAppPlatformRoute
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
@@ -936,11 +916,9 @@ export interface FileRouteTypes {
     | '/app/audit'
     | '/app/chat'
     | '/app/faq'
-    | '/app/internal'
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
-    | '/app/platform'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1026,11 +1004,9 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
     | '/app/faq'
-    | '/app/internal'
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
-    | '/app/platform'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1121,11 +1097,9 @@ export interface FileRouteTypes {
     | '/_authenticated/app/audit'
     | '/_authenticated/app/chat'
     | '/_authenticated/app/faq'
-    | '/_authenticated/app/internal'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/modules'
     | '/_authenticated/app/organization'
-    | '/_authenticated/app/platform'
     | '/_authenticated/app/subscription'
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
@@ -1654,13 +1628,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSubscriptionRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/platform': {
-      id: '/_authenticated/app/platform'
-      path: '/platform'
-      fullPath: '/app/platform'
-      preLoaderRoute: typeof AuthenticatedAppPlatformRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/organization': {
       id: '/_authenticated/app/organization'
       path: '/organization'
@@ -1680,13 +1647,6 @@ declare module '@tanstack/react-router' {
       path: '/knowledge'
       fullPath: '/app/knowledge'
       preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/internal': {
-      id: '/_authenticated/app/internal'
-      path: '/internal'
-      fullPath: '/app/internal'
-      preLoaderRoute: typeof AuthenticatedAppInternalRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/faq': {
@@ -1891,11 +1851,9 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAuditRoute: typeof AuthenticatedAppAuditRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
-  AuthenticatedAppInternalRoute: typeof AuthenticatedAppInternalRoute
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppModulesRoute: typeof AuthenticatedAppModulesRoute
   AuthenticatedAppOrganizationRoute: typeof AuthenticatedAppOrganizationRoute
-  AuthenticatedAppPlatformRoute: typeof AuthenticatedAppPlatformRoute
   AuthenticatedAppSubscriptionRoute: typeof AuthenticatedAppSubscriptionRoute
   AuthenticatedAppUpdatesRoute: typeof AuthenticatedAppUpdatesRoute
   AuthenticatedAppUsersRoute: typeof AuthenticatedAppUsersRoute
@@ -1915,11 +1873,9 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAuditRoute: AuthenticatedAppAuditRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
-  AuthenticatedAppInternalRoute: AuthenticatedAppInternalRoute,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppModulesRoute: AuthenticatedAppModulesRoute,
   AuthenticatedAppOrganizationRoute: AuthenticatedAppOrganizationRoute,
-  AuthenticatedAppPlatformRoute: AuthenticatedAppPlatformRoute,
   AuthenticatedAppSubscriptionRoute: AuthenticatedAppSubscriptionRoute,
   AuthenticatedAppUpdatesRoute: AuthenticatedAppUpdatesRoute,
   AuthenticatedAppUsersRoute: AuthenticatedAppUsersRoute,
