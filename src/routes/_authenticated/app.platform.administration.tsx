@@ -19,7 +19,7 @@ interface Node {
 }
 
 const ORG: Node = {
-  id: "1", name: "Alexandru Marin", role: "Owner", color: "#c9a84c",
+  id: "1", name: "Alexandru Marin", role: "Owner", color: "#7c5cff",
   children: [
     {
       id: "2", name: "Ioana Ștefan", role: "COO", color: "#7c5cff",
