@@ -77,7 +77,6 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as DemoAppIndexRouteImport } from './routes/demo.app.index'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
-import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DemoAppUsersRouteImport } from './routes/demo.app.users'
 import { Route as DemoAppKnowledgeRouteImport } from './routes/demo.app.knowledge'
@@ -104,7 +103,6 @@ import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_
 import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_authenticated/management.audit-logs'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
 import { Route as AuthenticatedAppRequestsRouteImport } from './routes/_authenticated/app.requests'
-import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppPlatformRouteImport } from './routes/_authenticated/app.platform'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppInternalRouteImport } from './routes/_authenticated/app.internal'
@@ -535,11 +533,6 @@ const AuthenticatedManagementIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
-const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -687,11 +680,6 @@ const AuthenticatedAppRequestsRoute =
     path: '/requests',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
 const AuthenticatedAppPlatformRoute =
   AuthenticatedAppPlatformRouteImport.update({
     id: '/platform',
@@ -1262,7 +1250,6 @@ export interface FileRoutesByFullPath {
   '/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
-  '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
@@ -1289,7 +1276,6 @@ export interface FileRoutesByFullPath {
   '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/app/': typeof AuthenticatedAppIndexRoute
   '/management/': typeof AuthenticatedManagementIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
   '/demo/app/': typeof DemoAppIndexRoute
@@ -1393,6 +1379,7 @@ export interface FileRoutesByTo {
   '/trust': typeof TrustRouteWithChildren
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
@@ -1436,7 +1423,6 @@ export interface FileRoutesByTo {
   '/app/brand': typeof AuthenticatedAppBrandRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
-  '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
@@ -1463,7 +1449,6 @@ export interface FileRoutesByTo {
   '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/app': typeof AuthenticatedAppIndexRoute
   '/management': typeof AuthenticatedManagementIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
   '/demo/app': typeof DemoAppIndexRoute
@@ -1619,7 +1604,6 @@ export interface FileRoutesById {
   '/_authenticated/app/internal': typeof AuthenticatedAppInternalRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/platform': typeof AuthenticatedAppPlatformRouteWithChildren
-  '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
@@ -1646,7 +1630,6 @@ export interface FileRoutesById {
   '/demo/app/knowledge': typeof DemoAppKnowledgeRoute
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/management/': typeof AuthenticatedManagementIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
   '/demo/app/': typeof DemoAppIndexRoute
@@ -1802,7 +1785,6 @@ export interface FileRouteTypes {
     | '/app/internal'
     | '/app/knowledge'
     | '/app/platform'
-    | '/app/profile'
     | '/app/requests'
     | '/app/subscription'
     | '/management/audit-logs'
@@ -1829,7 +1811,6 @@ export interface FileRouteTypes {
     | '/demo/app/knowledge'
     | '/demo/app/users'
     | '/lovable/email/suppression'
-    | '/app/'
     | '/management/'
     | '/portal/'
     | '/demo/app/'
@@ -1933,6 +1914,7 @@ export interface FileRouteTypes {
     | '/trust'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/app'
     | '/api/academy-chat'
     | '/api/chat'
     | '/api/customer-writer'
@@ -1976,7 +1958,6 @@ export interface FileRouteTypes {
     | '/app/brand'
     | '/app/faq'
     | '/app/knowledge'
-    | '/app/profile'
     | '/app/requests'
     | '/app/subscription'
     | '/management/audit-logs'
@@ -2003,7 +1984,6 @@ export interface FileRouteTypes {
     | '/demo/app/knowledge'
     | '/demo/app/users'
     | '/lovable/email/suppression'
-    | '/app'
     | '/management'
     | '/portal'
     | '/demo/app'
@@ -2158,7 +2138,6 @@ export interface FileRouteTypes {
     | '/_authenticated/app/internal'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/platform'
-    | '/_authenticated/app/profile'
     | '/_authenticated/app/requests'
     | '/_authenticated/app/subscription'
     | '/_authenticated/management/audit-logs'
@@ -2185,7 +2164,6 @@ export interface FileRouteTypes {
     | '/demo/app/knowledge'
     | '/demo/app/users'
     | '/lovable/email/suppression'
-    | '/_authenticated/app/'
     | '/_authenticated/management/'
     | '/_authenticated/portal/'
     | '/demo/app/'
@@ -2803,13 +2781,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementIndexRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
-    '/_authenticated/app/': {
-      id: '/_authenticated/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
@@ -2990,13 +2961,6 @@ declare module '@tanstack/react-router' {
       path: '/requests'
       fullPath: '/app/requests'
       preLoaderRoute: typeof AuthenticatedAppRequestsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/profile': {
-      id: '/_authenticated/app/profile'
-      path: '/profile'
-      fullPath: '/app/profile'
-      preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/platform': {
@@ -3710,10 +3674,8 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppInternalRoute: typeof AuthenticatedAppInternalRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppPlatformRoute: typeof AuthenticatedAppPlatformRouteWithChildren
-  AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppRequestsRoute: typeof AuthenticatedAppRequestsRoute
   AuthenticatedAppSubscriptionRoute: typeof AuthenticatedAppSubscriptionRoute
-  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppAcademyAnalyticsRoute: typeof AuthenticatedAppAcademyAnalyticsRoute
   AuthenticatedAppAcademyCertificatesRoute: typeof AuthenticatedAppAcademyCertificatesRoute
   AuthenticatedAppAcademyCoursesRoute: typeof AuthenticatedAppAcademyCoursesRoute
@@ -3767,10 +3729,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppInternalRoute: AuthenticatedAppInternalRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppPlatformRoute: AuthenticatedAppPlatformRouteWithChildren,
-  AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppRequestsRoute: AuthenticatedAppRequestsRoute,
   AuthenticatedAppSubscriptionRoute: AuthenticatedAppSubscriptionRoute,
-  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppAcademyAnalyticsRoute: AuthenticatedAppAcademyAnalyticsRoute,
   AuthenticatedAppAcademyCertificatesRoute:
     AuthenticatedAppAcademyCertificatesRoute,
