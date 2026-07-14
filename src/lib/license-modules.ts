@@ -48,6 +48,8 @@ export const BASIC_MODULES: ModuleKey[] = [
   "chat",
   "kb",
   "faq",
+  "academy",
+  "audit_log",
   "notifications",
   "bilingual_ui",
   "pwa",
