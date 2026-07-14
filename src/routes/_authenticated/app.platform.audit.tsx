@@ -97,13 +97,25 @@ function AuditAI() {
 
   return (
     <div className="p-6 space-y-6">
-      <header className="flex items-start justify-between">
+      <header className="flex items-start justify-between gap-4">
         <div>
           <div className="mc-eyebrow flex items-center gap-1.5"><Brain className="h-3 w-3 text-[var(--mc-gold)]" /> Intelligence · Audit AI</div>
           <h1 className="mc-heading text-2xl font-semibold text-[var(--mc-fg)] mt-1">Health scoring firme</h1>
-          <p className="text-sm text-[var(--mc-fg-muted)] mt-1">Audit generat AI · retention & churn signals</p>
+          <p className="text-sm text-[var(--mc-fg-muted)] mt-1">
+            Audit generat AI · ultima rulare {lastRun.toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}
+          </p>
         </div>
-        <Button variant="outline" className="border-white/5"><Download className="h-4 w-4 mr-2" /> Export PDF</Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="outline" className="border-white/5"><Download className="h-4 w-4 mr-2" /> Export PDF</Button>
+          <Button
+            onClick={runAudit}
+            disabled={running}
+            className="bg-[var(--mc-gold)] hover:bg-[var(--mc-gold-glow)] text-black font-medium"
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", running && "animate-spin")} />
+            {running ? "Rulează…" : "Rulează audit"}
+          </Button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
