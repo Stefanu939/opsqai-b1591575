@@ -51,84 +51,88 @@
 }
 
 /* ============================================================
-   OPSQAI Enterprise Identity v3 — Calm Enterprise palette
-   Tuned to feel like Notion / Linear / Stripe Dashboard / Anthropic
-   instead of a bright marketing site. Lower-chroma blues, warmer
-   dark surfaces, softer focus rings. Built for 8+ hour usage.
-   WCAG AA verified on body text in both themes.
+   OPSQAI v2.0 — Enterprise Identity
+   White / slate / charcoal / dark-navy accent. No purple, no
+   gradients, no glow. Feels like Linear / Stripe / GitHub
+   Enterprise / M365 Admin / Vercel. Built for 8+ hour usage.
+   WCAG AA verified in both themes.
    ============================================================ */
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.625rem;
 
-  /* Light enterprise canvas (warm-neutral, not pure white) */
-  --background: #f7f8fa;
-  --foreground: #0f1729;
+  /* Surface scale */
+  --background: #ffffff;
+  --surface-0: #ffffff;
+  --surface-1: #f8fafc; /* slate-50 */
+  --surface-2: #f1f5f9; /* slate-100 */
+  --surface-3: #e2e8f0; /* slate-200 */
+  --foreground: #0f172a; /* slate-900 */
   --surface: #ffffff;
 
   --card: #ffffff;
-  --card-foreground: #0f1729;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #0f1729;
+  --popover-foreground: #0f172a;
 
-  /* Primary = calm enterprise indigo, low chroma (Linear/Notion feel) */
-  --primary: #3a5bb8;
-  --primary-foreground: #f7f8fa;
-  --primary-glow: #6a82c8;
+  /* Accent = dark navy — primary actions only, used sparingly */
+  --primary: #0f2547;
+  --primary-foreground: #ffffff;
+  --primary-glow: #17335f;
 
-  --secondary: #eef1f6;
-  --secondary-foreground: #0f1729;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
 
-  --muted: #eef1f6;
-  --muted-foreground: #50607a;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b; /* slate-500 */
 
-  /* Accent = soft muted teal */
-  --accent: #eef7f4;
-  --accent-foreground: #0e7d6f;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f2547;
 
-  --signal: #1f9485;
-  --signal-foreground: #052e29;
+  --signal: #0f2547;
+  --signal-foreground: #ffffff;
 
-  --destructive: #b94545;
-  --destructive-foreground: #f7f8fa;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
 
-  --success: #1a8a6c;
-  --warning: #b8862e;
+  --success: #047857;
+  --warning: #b45309;
 
-  --border: #e4e7ec;
-  --border-strong: #cdd2dc;
-  --input: #e4e7ec;
-  --ring: #6a82c8;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --input: #e2e8f0;
+  --ring: #0f2547;
 
-  --chart-1: #3a5bb8;
-  --chart-2: #1f9485;
-  --chart-3: #7681c4;
-  --chart-4: #1a8a6c;
-  --chart-5: #b8862e;
+  --chart-1: #0f2547;
+  --chart-2: #475569;
+  --chart-3: #94a3b8;
+  --chart-4: #047857;
+  --chart-5: #b45309;
 
-  --sidebar: #f7f8fa;
-  --sidebar-foreground: #0f1729;
-  --sidebar-primary: #3a5bb8;
-  --sidebar-primary-foreground: #f7f8fa;
-  --sidebar-accent: #e8ecf3;
-  --sidebar-accent-foreground: #0f1729;
-  --sidebar-border: #e4e7ec;
-  --sidebar-ring: #6a82c8;
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f2547;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef2f7;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #0f2547;
 
-  --gradient-hero:
-    radial-gradient(60% 80% at 70% 0%, rgba(58, 91, 184, 0.05) 0%, transparent 60%),
-    radial-gradient(50% 70% at 10% 100%, rgba(31, 148, 133, 0.04) 0%, transparent 65%);
-  --gradient-cta: linear-gradient(135deg, #f7f8fa 0%, #e8ecf3 100%);
-  --gradient-primary: linear-gradient(135deg, #3a5bb8 0%, #2f4a99 100%);
-  --gradient-card: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
-  --gradient-sidebar: linear-gradient(180deg, #f7f8fa 0%, #eef1f6 100%);
-  --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+  /* Soft shadows only — no glow, no gradients */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 32px -12px rgba(15, 23, 42, 0.12);
+  --shadow-glow: none;
 
-  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 41, 0.04);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 41, 0.06), 0 1px 2px -1px rgba(15, 23, 41, 0.04);
-  --shadow-md: 0 6px 16px -4px rgba(15, 23, 41, 0.07), 0 2px 6px -2px rgba(15, 23, 41, 0.04);
-  --shadow-lg: 0 20px 48px -12px rgba(15, 23, 41, 0.09), 0 6px 16px -6px rgba(15, 23, 41, 0.05);
-  --shadow-glow: 0 0 0 1px rgba(106, 130, 200, 0.14), 0 6px 24px -8px rgba(106, 130, 200, 0.14);
+  /* Legacy gradient aliases kept solid so any leftover reference
+     renders as a flat surface instead of a colored gradient. Sweep in Step 6. */
+  --gradient-hero: none;
+  --gradient-cta: #f8fafc;
+  --gradient-primary: #0f2547;
+  --gradient-card: #ffffff;
+  --gradient-sidebar: #f8fafc;
+  --gradient-surface: #ffffff;
 }
 
 .dark {
