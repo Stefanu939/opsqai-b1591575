@@ -74,7 +74,10 @@ export const Route = createFileRoute("/auth")({
     }
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      const target = safeNext(search.next);
+      const explicit = search.next && search.next.startsWith("/") && !search.next.startsWith("//")
+        ? search.next
+        : null;
+      const target = explicit ?? (await resolvePostLoginTarget(data.session.user.id));
       throw redirect({ href: target });
     }
   },
@@ -91,10 +94,11 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_e, s) => {
       if (s) {
-        const target = safeNext(next);
-        if (target === "/app") {
+        const explicit = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+        const target = explicit ?? (await resolvePostLoginTarget(s.user.id));
+        if (target.startsWith("/app")) {
           navigate({ to: "/app" });
         } else {
           window.location.href = target;
