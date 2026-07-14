@@ -39,7 +39,7 @@ function ProfilePage() {
     position: "",
     phone: "",
     department_id: "",
-    language_pref: "en" as "de" | "en" | "ro",
+    language_pref: "en" as "de" | "en",
   });
   const [busy, setBusy] = useState(false);
 
@@ -62,7 +62,7 @@ function ProfilePage() {
           position: data.position ?? "",
           phone: (phoneVal as string | null) ?? "",
           department_id: data.department_id ?? "",
-          language_pref: (data.language_pref as "de" | "en" | "ro") ?? "en",
+          language_pref: (data.language_pref === "de" ? "de" : "en"),
         });
       });
   }, [user, fetchDepts]);
@@ -141,7 +141,7 @@ function ProfilePage() {
               <Label className="text-xs">{t("language")}</Label>
               <Select
                 value={form.language_pref}
-                onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" | "ro" })}
+                onValueChange={(v) => setForm({ ...form, language_pref: v as "de" | "en" })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -149,7 +149,6 @@ function ProfilePage() {
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
                   <SelectItem value="de">Deutsch</SelectItem>
-                  <SelectItem value="ro">Română</SelectItem>
                 </SelectContent>
               </Select>
             </div>

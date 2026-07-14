@@ -33,8 +33,8 @@ function labelFor(segment: string) {
   return PATH_LABELS[segment] ?? segment.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-const LANG_LABEL: Record<Lang, string> = { ro: "RO", de: "DE", en: "EN" };
-const LANG_NAME: Record<Lang, string> = { ro: "Română", de: "Deutsch", en: "English" };
+const LANG_LABEL: Record<Lang, string> = { de: "DE", en: "EN" };
+const LANG_NAME: Record<Lang, string> = { de: "Deutsch", en: "English" };
 
 export function PlatformTopbar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
@@ -113,7 +113,7 @@ export function PlatformTopbar() {
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuLabel className="mc-eyebrow">Language</DropdownMenuLabel>
             <DropdownMenuRadioGroup value={lang} onValueChange={(v) => changeLang(v as Lang)}>
-              <DropdownMenuRadioItem value="ro">Română</DropdownMenuRadioItem>
+              
               <DropdownMenuRadioItem value="de">Deutsch</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
