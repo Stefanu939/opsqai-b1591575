@@ -74,11 +74,22 @@ function BillingWizard() {
             Emitere abonament firmă
           </h1>
         </div>
-        <div className="text-right">
-          <div className="mc-eyebrow">Total anual estimat</div>
-          <div className="mc-num mc-gold-text text-2xl font-bold">{fmt(yearTotal)}</div>
+        <div className="flex items-center gap-4">
+          <Button
+            asChild
+            className="h-10 gap-2 bg-gradient-to-b from-[var(--mc-gold)] to-[#5b3fd9] px-4 text-[13px] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,92,255,0.5)] hover:brightness-110"
+          >
+            <Link to="/app/platform/onboarding">
+              <Plus className="h-4 w-4" /> Adaugă firmă nouă
+            </Link>
+          </Button>
+          <div className="text-right">
+            <div className="mc-eyebrow">Total anual estimat</div>
+            <div className="mc-num mc-gold-text text-2xl font-bold">{fmt(yearTotal)}</div>
+          </div>
         </div>
       </header>
+
 
       {/* Stepper */}
       <div className="flex items-center gap-2">
