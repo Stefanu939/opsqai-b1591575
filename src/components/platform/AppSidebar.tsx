@@ -1,20 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  UserPlus,
-  KeyRound,
-  Wrench,
-  Activity,
-  LifeBuoy,
-  Settings,
   Building2,
-  Package,
-  Download,
-  ClipboardCheck,
-  Rocket,
-  FileText,
   CreditCard,
+  MessageSquare,
+  Brain,
   ShieldCheck,
+  Wrench,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,141 +28,65 @@ interface Item {
   url: string;
   icon: typeof LayoutDashboard;
   desc: string;
-  disabled?: boolean;
 }
 
-const GROWTH: Item[] = [
+const DASHBOARD: Item[] = [
   {
     title: "Overview",
     url: "/app/platform/overview",
     icon: LayoutDashboard,
-    desc: "KPI-uri MRR, licențe active, heartbeat, trend-uri.",
-  },
-  {
-    title: "Onboard client",
-    url: "/app/platform/onboarding",
-    icon: UserPlus,
-    desc: "Wizard 4 pași: creează client, emite licență, generează pachet, trimite email.",
-  },
-  {
-    title: "Clienți",
-    url: "/app/platform/customers",
-    icon: Building2,
-    desc: "Lista tenants OPSQAI · plan, status, utilizare, acțiuni.",
-  },
-  {
-    title: "Installations",
-    url: "/app/admin/installations",
-    icon: Package,
-    desc: "Installs înregistrate, heartbeat, versiune installer.",
-  },
-  {
-    title: "Contacts",
-    url: "/app/admin/contacts",
-    icon: UserPlus,
-    desc: "Contact comercial și tehnic per client.",
-  },
-  {
-    title: "Monitoring",
-    url: "/app/admin/monitoring",
-    icon: Activity,
-    desc: "Fleet health, drift instalări, semnale live.",
+    desc: "Salut, KPI, subscripții problemă, sugestii AI, firme care necesită update.",
   },
 ];
 
-const LICENSING: Item[] = [
+const COMPANIES: Item[] = [
   {
-    title: "Licenses & Releases",
-    url: "/app/platform/licenses",
-    icon: KeyRound,
-    desc: "Licențe + module + subscription lifecycle.",
-  },
-  {
-    title: "Module Catalog",
-    url: "/app/admin/module-catalog",
-    icon: ClipboardCheck,
-    desc: "Catalog frozen de module vandabile.",
-  },
-  {
-    title: "Release Management",
-    url: "/app/admin/release-management",
-    icon: Rocket,
-    desc: "Installer builds, signing, canale rollout.",
-  },
-  {
-    title: "Maintenance",
-    url: "/app/admin/maintenance",
-    icon: Wrench,
-    desc: "Ferestre de mentenanță, expirări, renewals.",
-  },
-  {
-    title: "Downloads",
-    url: "/app/admin/downloads",
-    icon: Download,
-    desc: "Installer releases + activation packages servite clienților.",
+    title: "Companies",
+    url: "/app/admin/companies",
+    icon: Building2,
+    desc: "Firme, planuri, licențe, releases și module — totul într-un singur ecran.",
   },
 ];
 
 const COMMERCIAL: Item[] = [
   {
-    title: "Orders & Subscriptions",
-    url: "/app/admin/subscriptions",
-    icon: Package,
-    desc: "Comenzi, abonamente și evenimente billing.",
-  },
-  {
     title: "Billing",
     url: "/app/admin/billing",
     icon: CreditCard,
-    desc: "€15,000 produs one-off + mentenanță €200–€500/lună + module extra.",
+    desc: "Wizard de emitere abonament: pachet, mentenanță, module, rezumat 12 luni.",
   },
   {
     title: "Support Inbox",
     url: "/app/admin/support",
-    icon: LifeBuoy,
-    desc: "Tickete și conversații cu clienții.",
+    icon: MessageSquare,
+    desc: "Conversații cu clienții — WhatsApp premium.",
+  },
+];
+
+const INTELLIGENCE: Item[] = [
+  {
+    title: "Audit AI",
+    url: "/app/admin/ai-audit",
+    icon: Brain,
+    desc: "Health scoring firme, plăți, heartbeat, sugestii audit director-level.",
   },
 ];
 
 const OPERATIONS: Item[] = [
   {
-    title: "Enterprise Documents",
-    url: "/app/admin/customers",
-    icon: FileText,
-    desc: "Contract, DPA, ISO — per client.",
-  },
-  {
-    title: "Setup",
-    url: "/app/platform/setup",
+    title: "Recovery & Maintenance",
+    url: "/app/admin/maintenance",
     icon: Wrench,
-    desc: "Checklist configurare MC.",
-  },
-  {
-    title: "Doctor",
-    url: "/app/platform/doctor",
-    icon: Activity,
-    desc: "Diagnoză health MC + integrări.",
+    desc: "Ferestre mentenanță, DR tokens, restore packages — combinate.",
   },
 ];
 
 const SYSTEM: Item[] = [
   {
-    title: "Team",
-    url: "/app/admin/platform-admins",
-    icon: Settings,
-    desc: "Platform admins, roluri și permisiuni MC.",
-  },
-  {
     title: "Platform Administration",
     url: "/app/admin/platform",
     icon: ShieldCheck,
-    desc: "Setări globale platform.",
-  },
-  {
-    title: "Recovery",
-    url: "/app/platform/recovery",
-    icon: LifeBuoy,
-    desc: "Bootstrap tokens & disaster recovery.",
+    desc: "Organigramă echipa OPSQAI, roluri și governance.",
   },
 ];
 
@@ -185,7 +101,7 @@ function ItemButton({ item, collapsed, active }: { item: Item; collapsed: boolea
         {active && (
           <span
             aria-hidden
-            className="absolute -left-2 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--mc-gold)] shadow-[0_0_8px_rgba(201,168,76,0.6)]"
+            className="absolute -left-2 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--mc-gold)] shadow-[0_0_8px_rgba(124,92,255,0.7)]"
           />
         )}
         <item.icon className="h-4 w-4 shrink-0 text-[var(--mc-fg-muted)] group-hover/mci:text-[var(--mc-gold)] group-data-[active=true]/mci:text-[var(--mc-gold)]" />
@@ -248,11 +164,11 @@ export function PlatformSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-[var(--mc-gold-line)] bg-[#0a0a0a]"
+      className="border-r border-[var(--mc-gold-line)] bg-[#08081a]"
     >
-      <SidebarHeader className="border-b border-[var(--mc-gold-line)] bg-[#080808]">
+      <SidebarHeader className="border-b border-[var(--mc-gold-line)] bg-[#06061a]">
         <div className="flex h-12 items-center gap-2 px-3">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[var(--mc-gold-line-strong)] bg-[var(--mc-surface-2)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[var(--mc-gold-line-strong)] bg-gradient-to-br from-[#2a2060] to-[#12122a] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_18px_-4px_rgba(124,92,255,0.55)]">
             <span className="mc-gold-text text-[10px] font-black tracking-tight">MC</span>
           </div>
           {!collapsed && (
@@ -261,22 +177,23 @@ export function PlatformSidebar() {
                 Mission Control
               </div>
               <div className="mc-eyebrow text-[9px] text-[var(--mc-fg-dim)]">
-                OPSQAI · Platform
+                OPSQAI · Cloud
               </div>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-[#0a0a0a]">
-        <Group label="Growth" items={GROWTH} currentPath={currentPath} collapsed={collapsed} />
-        <Group label="Licensing" items={LICENSING} currentPath={currentPath} collapsed={collapsed} />
+      <SidebarContent className="bg-[#08081a]">
+        <Group label="Dashboard" items={DASHBOARD} currentPath={currentPath} collapsed={collapsed} />
+        <Group label="Companies" items={COMPANIES} currentPath={currentPath} collapsed={collapsed} />
         <Group label="Commercial" items={COMMERCIAL} currentPath={currentPath} collapsed={collapsed} />
+        <Group label="Intelligence" items={INTELLIGENCE} currentPath={currentPath} collapsed={collapsed} />
         <Group label="Operations" items={OPERATIONS} currentPath={currentPath} collapsed={collapsed} />
         <Group label="System" items={SYSTEM} currentPath={currentPath} collapsed={collapsed} />
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-[var(--mc-gold-line)] bg-[#080808]">
+      <SidebarFooter className="border-t border-[var(--mc-gold-line)] bg-[#06061a]">
         {!collapsed && (
           <div className="px-3 py-2 text-[10px] text-[var(--mc-fg-dim)]">
             <div className="mc-num">env · production</div>
