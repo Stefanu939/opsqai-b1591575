@@ -749,41 +749,41 @@ def s_mockups_3(i):
 
     # MC
     _mockup_frame(80, 500, 570, 350, "opsqai.de / management", True)
-    c.setFont("BodyBold", 13)
+    c.setFont("BodyBold", 12)
     c.setFillColorRGB(*GOLD)
-    c.drawString(110, 810, "MANAGEMENT CENTER")
-    c.setFont("Serif", 16)
+    c.drawString(110, 790, "MANAGEMENT CENTER")
+    c.setFont("Serif", 15)
     c.setFillColorRGB(*IVORY)
-    c.drawString(110, 785, "Portal · Customers · Licenses · Releases")
+    c.drawString(110, 768, "Portal · Customers · Licenses · Releases")
     for j, (k, v) in enumerate([
         ("Active installs", "— (Planned)"),
         ("Releases published", "1 · v1.0.0"),
         ("Open tickets", "— (Planned)"),
     ]):
-        y = 745 - j * 60
+        y = 725 - j * 60
         c.setFillColorRGB(*NAVY_2)
         c.roundRect(110, y - 40, 510, 50, 6, fill=1, stroke=0)
         c.setFont("Body", 12)
         c.setFillColorRGB(*IVORY_2)
         c.drawString(125, y - 15, k)
-        c.setFont("SerifBold", 20)
+        c.setFont("SerifBold", 18)
         c.setFillColorRGB(*IVORY)
         c.drawRightString(605, y - 20, v)
 
     # Portal
     _mockup_frame(670, 500, 570, 350, "opsqai.de / portal", True)
-    c.setFont("BodyBold", 13)
+    c.setFont("BodyBold", 12)
     c.setFillColorRGB(*GOLD)
-    c.drawString(700, 810, "CUSTOMER PORTAL")
-    c.setFont("Serif", 16)
+    c.drawString(700, 790, "CUSTOMER PORTAL")
+    c.setFont("Serif", 15)
     c.setFillColorRGB(*IVORY)
-    c.drawString(700, 785, "Contract · Downloads · Release notes · Support")
+    c.drawString(700, 768, "Contract · Downloads · Release notes · Support")
     for j, (t, d) in enumerate([
         ("Installer package", "OPSQAI-Setup-1.0.0.exe · signed"),
         ("Activation bundle", "edeka-prod-01.opsqai-bundle.json"),
         ("Release notes", "v1.0.0 — GA (2026-07-11)"),
     ]):
-        y = 745 - j * 60
+        y = 725 - j * 60
         c.setFillColorRGB(*NAVY_2)
         c.roundRect(700, y - 40, 510, 50, 6, fill=1, stroke=0)
         c.setFont("BodyBold", 12)
@@ -795,12 +795,12 @@ def s_mockups_3(i):
 
     # Installer
     _mockup_frame(1260, 500, 580, 350, "OPSQAI Setup — Windows", True)
-    c.setFont("BodyBold", 13)
+    c.setFont("BodyBold", 12)
     c.setFillColorRGB(*GOLD)
-    c.drawString(1290, 810, "WINDOWS INSTALLER")
-    c.setFont("Serif", 16)
+    c.drawString(1290, 790, "WINDOWS INSTALLER")
+    c.setFont("Serif", 15)
     c.setFillColorRGB(*IVORY)
-    c.drawString(1290, 785, "Signed .exe · resumable Setup Wizard")
+    c.drawString(1290, 768, "Signed .exe · resumable Setup Wizard")
     steps = [
         ("1", "Choose deployment mode"),
         ("2", "Database (embedded or external)"),
@@ -810,8 +810,8 @@ def s_mockups_3(i):
         ("6", "Verify · Start services"),
     ]
     for j, (n, t) in enumerate(steps):
-        y = 755 - j * 42
-        c.setFillColorRGB(*GOLD if j < 6 else NAVY_2)
+        y = 735 - j * 40
+        c.setFillColorRGB(*GOLD)
         c.circle(1300, y + 6, 10, fill=1, stroke=0)
         c.setFont("BodyBold", 11)
         c.setFillColorRGB(*NAVY)
