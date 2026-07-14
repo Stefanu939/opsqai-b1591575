@@ -87,8 +87,11 @@ import { Route as DemoAppAuditRouteImport } from './routes/demo.app.audit'
 import { Route as DemoAppAnalyticsRouteImport } from './routes/demo.app.analytics'
 import { Route as DemoAppAcademyRouteImport } from './routes/demo.app.academy'
 import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
+import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
+import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
 import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
+import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
 import { Route as AuthenticatedManagementSettingsRouteImport } from './routes/_authenticated/management.settings'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
@@ -582,6 +585,18 @@ const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
   path: '/api/public/contact-submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPortalSupportRoute =
+  AuthenticatedPortalSupportRouteImport.update({
+    id: '/support',
+    path: '/support',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedPortalSubscriptionRoute =
+  AuthenticatedPortalSubscriptionRouteImport.update({
+    id: '/subscription',
+    path: '/subscription',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalReleaseNotesRoute =
   AuthenticatedPortalReleaseNotesRouteImport.update({
     id: '/release-notes',
@@ -592,6 +607,12 @@ const AuthenticatedPortalDownloadsRoute =
   AuthenticatedPortalDownloadsRouteImport.update({
     id: '/downloads',
     path: '/downloads',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedPortalDocumentationRoute =
+  AuthenticatedPortalDocumentationRouteImport.update({
+    id: '/documentation',
+    path: '/documentation',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
 const AuthenticatedManagementSupportRoute =
@@ -1254,8 +1275,11 @@ export interface FileRoutesByFullPath {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
+  '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
+  '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
+  '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1425,8 +1449,11 @@ export interface FileRoutesByTo {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
+  '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
+  '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
+  '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1605,8 +1632,11 @@ export interface FileRoutesById {
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
+  '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
+  '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
+  '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/demo/app/academy': typeof DemoAppAcademyRoute
   '/demo/app/analytics': typeof DemoAppAnalyticsRoute
@@ -1785,8 +1815,11 @@ export interface FileRouteTypes {
     | '/management/releases'
     | '/management/settings'
     | '/management/support'
+    | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/release-notes'
+    | '/portal/subscription'
+    | '/portal/support'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -1956,8 +1989,11 @@ export interface FileRouteTypes {
     | '/management/releases'
     | '/management/settings'
     | '/management/support'
+    | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/release-notes'
+    | '/portal/subscription'
+    | '/portal/support'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -2135,8 +2171,11 @@ export interface FileRouteTypes {
     | '/_authenticated/management/releases'
     | '/_authenticated/management/settings'
     | '/_authenticated/management/support'
+    | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
     | '/_authenticated/portal/release-notes'
+    | '/_authenticated/portal/subscription'
+    | '/_authenticated/portal/support'
     | '/api/public/contact-submit'
     | '/demo/app/academy'
     | '/demo/app/analytics'
@@ -2834,6 +2873,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicContactSubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/portal/support': {
+      id: '/_authenticated/portal/support'
+      path: '/support'
+      fullPath: '/portal/support'
+      preLoaderRoute: typeof AuthenticatedPortalSupportRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/portal/subscription': {
+      id: '/_authenticated/portal/subscription'
+      path: '/subscription'
+      fullPath: '/portal/subscription'
+      preLoaderRoute: typeof AuthenticatedPortalSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/release-notes': {
       id: '/_authenticated/portal/release-notes'
       path: '/release-notes'
@@ -2846,6 +2899,13 @@ declare module '@tanstack/react-router' {
       path: '/downloads'
       fullPath: '/portal/downloads'
       preLoaderRoute: typeof AuthenticatedPortalDownloadsRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/portal/documentation': {
+      id: '/_authenticated/portal/documentation'
+      path: '/documentation'
+      fullPath: '/portal/documentation'
+      preLoaderRoute: typeof AuthenticatedPortalDocumentationRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
     '/_authenticated/management/support': {
@@ -3829,14 +3889,20 @@ const AuthenticatedManagementRouteWithChildren =
   )
 
 interface AuthenticatedPortalRouteChildren {
+  AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
   AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
+  AuthenticatedPortalSubscriptionRoute: typeof AuthenticatedPortalSubscriptionRoute
+  AuthenticatedPortalSupportRoute: typeof AuthenticatedPortalSupportRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
 }
 
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
+  AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
   AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
+  AuthenticatedPortalSubscriptionRoute: AuthenticatedPortalSubscriptionRoute,
+  AuthenticatedPortalSupportRoute: AuthenticatedPortalSupportRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
 }
 
