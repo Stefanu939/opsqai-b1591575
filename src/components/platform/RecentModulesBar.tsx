@@ -9,12 +9,12 @@ type Entry = { path: string; label: string };
 
 const LABELS: Record<string, string> = {
   "/app/platform/overview": "Overview",
-  "/app/admin/companies": "Companies",
-  "/app/admin/billing": "Billing",
-  "/app/admin/support": "Support Inbox",
-  "/app/admin/ai-audit": "Audit AI",
-  "/app/admin/maintenance": "Recovery & Maintenance",
-  "/app/admin/platform": "Platform Administration",
+  "/app/platform/customers": "Companies",
+  "/app/platform/billing": "Billing",
+  "/app/platform/support": "Support Inbox",
+  "/app/platform/audit": "Audit AI",
+  "/app/platform/ops": "Recovery & Maintenance",
+  "/app/platform/administration": "Platform Administration",
 };
 
 function labelFor(path: string) {
