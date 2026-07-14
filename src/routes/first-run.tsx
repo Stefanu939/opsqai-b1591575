@@ -675,21 +675,20 @@ function FinishStep({ onDone }: { onDone: () => void }) {
     <>
       <StepHeader
         title="All done"
-        description="Restart the container so entrypoint.sh picks up the new secrets.env values, then sign in with your new admin account."
+        description="Restart the OPSQAI Windows service so the installer picks up the new secrets, then sign in with your new admin account."
       />
       <ol className="text-sm list-decimal ml-5 space-y-1 mb-4">
         <li>
-          Run <code className="text-xs bg-muted px-1 rounded">docker compose restart opsqai</code>{" "}
-          on the host.
+          Restart the <code className="text-xs bg-muted px-1 rounded">OPSQAI</code> Windows service
+          from Services or via{" "}
+          <code className="text-xs bg-muted px-1 rounded">Restart-Service OPSQAI</code>.
         </li>
         <li>
           Sign in at <code className="text-xs bg-muted px-1 rounded">/auth</code> with the admin
           credentials you just created.
         </li>
         <li>
-          Verify green status on{" "}
-          <code className="text-xs bg-muted px-1 rounded">/app/platform/setup</code> (the Doctor
-          panel).
+          Verify green status on the Management Center Doctor panel after activation.
         </li>
       </ol>
       <Button onClick={onDone}>Go to sign-in</Button>
