@@ -286,10 +286,10 @@ export const TIER_PRESETS: TierPreset[] = [
   {
     key: "pro",
     label: "Pro",
-    tagline: "Adds Academy, Analytics and AI SOP tools.",
+    tagline: "Adds Analytics and AI SOP tools on top of the Basic Platform.",
     seats: 25,
     monthsValid: 12,
-    extraModules: ["academy", "analytics", "ai_sop_generator", "knowledge_gaps"],
+    extraModules: ["analytics", "ai_sop_generator", "knowledge_gaps"],
     monthlyPriceCents: 19900,
     highlight: true,
   },
