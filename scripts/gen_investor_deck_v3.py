@@ -702,18 +702,17 @@ def s_mockups_2(i):
     c.setFont("Body", 12)
     c.setFillColorRGB(*IVORY_2)
     c.drawString(1030, 770, "Every prompt, response, citation and user is recorded.")
-    # stats row
+    # stats row — value stacked over label
     for j, (v, k) in enumerate([("1 284", "responses"), ("100%", "with citations"), ("0", "escalations")]):
         x = 1030 + j * 265
         c.setFillColorRGB(*NAVY_2)
-        c.roundRect(x, 690, 245, 55, 8, fill=1, stroke=0)
-        c.setFont("SerifBold", 24)
+        c.roundRect(x, 685, 245, 60, 8, fill=1, stroke=0)
+        c.setFont("SerifBold", 22)
         c.setFillColorRGB(*GOLD)
-        c.drawString(x + 15, 705, v)
+        c.drawString(x + 15, 720, v)
         c.setFont("Body", 11)
         c.setFillColorRGB(*IVORY_2)
-        c.drawString(x + 15, 700, "")
-        c.drawString(x + 100, 707, k)
+        c.drawString(x + 15, 700, k)
     # log
     c.setFont("BodyBold", 11)
     c.setFillColorRGB(*GOLD)
