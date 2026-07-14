@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Check, ChevronRight, CreditCard, Search, Sparkles } from "lucide-react";
+import { Check, ChevronRight, CreditCard, Plus, Search, Sparkles } from "lucide-react";
 import { PremiumCard } from "@/components/platform/PremiumCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
