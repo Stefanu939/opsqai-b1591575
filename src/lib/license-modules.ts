@@ -108,9 +108,9 @@ export const LICENSE_MODULE_CATALOG: LicenseModule[] = [
   {
     key: "academy",
     label: "Academy (LMS)",
-    category: "Experience",
-    defaultPriceCents: 250000,
-    inBasic: false,
+    category: "Basic",
+    defaultPriceCents: 0,
+    inBasic: true,
     description: "Learning paths, courses, certificates, quizzes.",
   },
   {
