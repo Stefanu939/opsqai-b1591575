@@ -112,7 +112,7 @@ export function PlatformTopbar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuLabel className="mc-eyebrow">Language</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={lang} onValueChange={(v) => setLang(v as Lang)}>
+            <DropdownMenuRadioGroup value={lang} onValueChange={(v) => changeLang(v as Lang)}>
               <DropdownMenuRadioItem value="ro">Română</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="de">Deutsch</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
