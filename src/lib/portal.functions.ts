@@ -123,3 +123,37 @@ export const downloadMyActivationBundle = createServerFn({ method: "POST" })
     const { buildActivationBundle } = await import("@/lib/license-activation-core.server");
     return buildActivationBundle(data.install_id);
   });
+
+/** Public list of implemented product documentation, from system_doc_catalog. */
+export const listPortalDocs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("system_doc_catalog")
+      .select("slug, title, category, updated_at")
+      .order("category")
+      .order("title");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const getPortalDoc = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("system_doc_catalog")
+      .select("slug, title, category, body_md, related_slugs, updated_at")
+      .eq("slug", data.slug)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Document not found");
+    return row as {
+      slug: string;
+      title: string;
+      category: string;
+      body_md: string;
+      related_slugs: string[];
+      updated_at: string;
+    };
+  });
