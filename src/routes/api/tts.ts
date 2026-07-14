@@ -63,8 +63,8 @@ export const Route = createFileRoute("/api/tts")({
         const voice = "alloy";
         const instructions =
           lang === "de"
-            ? "Ruhig, souverän und premium. Sprich langsam, warm und vertrauenswürdig, wie eine Enterprise-SaaS-Produktnarration von Apple oder Stripe. Kurze Pausen zwischen Sätzen."
-            : "Calm, confident, premium. Speak slowly, warm and trustworthy, like an enterprise SaaS product narration from Apple or Stripe. Short pauses between sentences.";
+            ? "Ruhig, souverän und premium. Sprich langsam, warm und vertrauenswürdig, wie eine Enterprise-Produktnarration von Apple oder Stripe. Kurze Pausen zwischen Sätzen."
+            : "Calm, confident, premium. Speak slowly, warm and trustworthy, like an enterprise product narration from Apple or Stripe. Short pauses between sentences.";
         const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
           method: "POST",
           headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
