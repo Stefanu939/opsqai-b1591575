@@ -154,9 +154,7 @@ function OwnershipPage() {
       render: (a) => (
         <div className="flex flex-col">
           <span className="font-medium text-foreground">
-            {a.first_name || a.last_name
-              ? `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim()
-              : a.email}
+            {a.full_name || a.email}
           </span>
           <span className="text-xs text-muted-foreground">{a.email}</span>
         </div>
@@ -165,36 +163,38 @@ function OwnershipPage() {
     {
       key: "role",
       header: "Role",
-      render: (a) => (
-        <Badge variant={a.role === "platform_owner" ? "default" : "outline"}>
-          {a.role === "platform_owner" ? (
-            <Crown className="mr-1 h-3 w-3" />
-          ) : (
-            <Shield className="mr-1 h-3 w-3" />
-          )}
-          {a.role}
+      render: () => (
+        <Badge variant="outline">
+          <Shield className="mr-1 h-3 w-3" />
+          platform_admin
         </Badge>
+      ),
+    },
+    {
+      key: "last",
+      header: "Last sign-in",
+      render: (a) => (
+        <span className="text-xs text-muted-foreground">
+          {a.last_sign_in_at ? new Date(a.last_sign_in_at).toLocaleDateString() : "—"}
+        </span>
       ),
     },
     {
       key: "actions",
       header: "",
       align: "right",
-      render: (a) =>
-        a.role === "platform_admin" ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-destructive hover:text-destructive"
-            onClick={() => {
-              if (confirm(`Demote ${a.email}?`)) demoteMut.mutate(a.id);
-            }}
-          >
-            Demote
-          </Button>
-        ) : (
-          <span className="text-xs text-muted-foreground">Owner</span>
-        ),
+      render: (a) => (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-destructive hover:text-destructive"
+          onClick={() => {
+            if (confirm(`Demote ${a.email}?`)) demoteMut.mutate(a.id);
+          }}
+        >
+          Demote
+        </Button>
+      ),
     },
   ];
 
