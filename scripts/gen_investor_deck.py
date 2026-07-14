@@ -43,9 +43,10 @@ def chrome(idx, total, dark=True, section=""):
     c.setFont("SerifBold", 20)
     c.setFillColorRGB(*(GOLD if dark else INK))
     c.drawString(80, H - 60, "OPSQAI")
-    c.setFont("Body", 14)
+    wm_w = pdfmetrics.stringWidth("OPSQAI", "SerifBold", 20)
+    c.setFont("Body", 13)
     c.setFillColorRGB(*(GOLD_SOFT if dark else SLATE))
-    c.drawString(155, H - 60, "· Operational AI, Governed.")
+    c.drawString(80 + wm_w + 14, H - 60, "· Operational AI, Governed.")
 
     # Top-right section label
     if section:
