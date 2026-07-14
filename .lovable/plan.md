@@ -1,47 +1,34 @@
-# OPSQAI Investor Deck — SIventures
+## Verificare
 
-A polished 16:9 PDF pitch deck, addressed implicitly to Oliver Philipp / SIventures (Leipzig, early-stage B2B, Industrial Tech focus, Mainteny portfolio). Written in the voice of the founding team (CEO / CTO / Head of AI) — first person plural, confident, sober, European industrial tone. Core narrative: **AI that works *for* people in operations, not instead of them.**
+Am rulat testele, typecheck și un scan complet al proiectului. Concluzia: **totul e aliniat cu deck-ul v2_2 și nu am găsit bug-uri reale**.
 
-## Design
+### Stare curentă
 
-- Format: 1920×1080 landscape, exported as a single high-quality PDF via ReportLab (Platypus + canvas) with DejaVu Sans registered for German umlauts (Schröter, etc.).
-- Palette: **Midnight Executive** — deep navy `#0B1220` background on hero/section slides, ivory `#F5F1E8` content slides, gold accent `#C8A24B` (matches OPSQAI Noir & Gold brand memory), muted slate `#5B6472` for secondary text.
-- Typography: Large editorial headlines (48–96pt), 22–28pt body, 14–16pt captions. No bullet dumps — max 4 lines per idea.
-- One visual motif carried through every slide: a thin gold rule + numbered slide index bottom-right. No AI-cliché accent lines under titles.
-- QA: render each page to JPEG, inspect for overflow / clipping / contrast, iterate until clean.
+- **Tests:** 78/78 pass (single "failed suite" e un `.cjs` din `opsqai-windows/services/database/__tests__/` pe care vitest nu-l parsează — pre-existent, nu-i introdus de mine).
+- **Typecheck (tsgo):** curat, zero erori.
+- **Runtime errors:** niciunul.
+- **Website ↔ deck ↔ app:** Basic Platform (8 module), Premium Modules, Business Model, TAM/SAM/SOM (€4.8B/€1.1B/€90M), Ask €350K–€750K, echipa Ștefan Bari + CTO/Head of AI planned — toate consistente.
+- **Console log** arată un warning de hydration despre atribute `data-tsd-source` în `__root.tsx` — sunt annotări injectate de tooling-ul Lovable/Vite în dev, nu cod al aplicației. Dispar în build de producție. Nu-i bug real.
 
-## Slide sequence (14 slides)
+### Singurele diferențe reziduale găsite
 
-1. **Cover** — OPSQAI wordmark, tagline *"Operational AI that works for your people."*, "Investor Brief — Prepared for SIventures · July 2026".
-2. **The moment** — one line: European industrial operators are drowning in SOPs, manuals, tribal knowledge. Public LLMs can't touch it (compliance, sovereignty).
-3. **Mission** — *We bring AI to work alongside operators, not replace them.* Three tenets: Augment, don't automate away. Sovereignty by default. Auditable by design.
-4. **Problem** — 4 concrete pains: onboarding time, SOP drift, audit exposure, knowledge loss on staff turnover. Backed by short quantified claims.
-5. **Solution** — OPSQAI: a self-hosted, license-gated enterprise AI platform turning the customer's own SOPs, manuals, FAQs into a governed, source-cited answer surface. Screenshot/mock of chat with citations.
-6. **How it works** — 3-step diagram: Ingest & govern → Retrieve with ACL → Answer with citations & audit trail. Emphasize data never leaves the customer boundary.
-7. **Why now** — EU AI Act + data sovereignty + LLM maturity + labor shortage in logistics/industry. SIventures-relevant framing.
-8. **Product** — modules grid: Knowledge Base, SOPs, Academy, Chat, FAQ, Internal Requests, Brand, Workspace. License-gated per module.
-9. **Differentiation** — table vs. ChatGPT Enterprise / Glean / in-house RAG: sovereignty, per-module licensing, offline activation, audit-first, Windows self-hosted installer.
-10. **Traction / proof** — Evertrace referral, self-hosted Windows installer shipping, architecture book & security documentation complete, early logistics/warehouse pilots. Honest phrasing where pre-revenue.
-11. **Business model** — Installation License + per-module licenses + maintenance windows. Land-and-expand inside industrial groups. Rough ACV bands.
-12. **Market** — Bottom-up: EU mid-market industrial & logistics operators (10k+ employees segment), TAM/SAM/SOM sized conservatively.
-13. **Team** — Founders as CEO / CTO / Head of AI with one-line credibility statements. "We're operators who got tired of the answer being 'ask Ștefan'."
-14. **Ask & contact** — What we're raising, what it buys (12–18 months runway: 2 pilots → 6 paying installs, security certifications, sales hire), then: *Next step: 30-min call. stefan@opsqai.de · opsqai.de*.
+1. `scripts/gen_investor_deck.py` (v1, vechi) încă are `€1.5M` hardcodat. Nu e folosit — versiunea activă e `gen_investor_deck_v2.py`. Dar rămâne o sursă de confuzie dacă îl deschide cineva.
 
-## Voice guidelines
+## Ce propun să fac
 
-- First person plural ("we", "our team"), never "the company".
-- No hype adjectives ("revolutionary", "cutting-edge"). Prefer concrete verbs.
-- Every claim either quantified or explicitly framed as directional.
-- German-market awareness: mention Leipzig/DACH context on the Ask slide without pandering.
+**Cleanup minimal, fără risc:**
 
-## Deliverable
+1. **Șterg `scripts/gen_investor_deck.py`** (v1 vechi, obsolete după rewrite-ul v2). Rămâne doar `scripts/gen_investor_deck_v2.py` ca sursă unică.
+2. **Regenerez PDF-ul deck-ului** din script-ul v2 curent, ca să fie sigur că fișierul din `/mnt/documents/` reflectă exact ultima versiune (Ștefan Bari, €350K–€750K, Basic Platform cu 8 module).
+3. **Un smoke test rapid pe preview** (Playwright headless) pe rutele publice principale — `/`, `/product`, `/pricing`, `/self-hosted`, `/modules`, `/company`, `/security` — ca să confirm vizual că paginile se randează fără erori și copy-ul e cel corect din deck.
 
-- File: `/mnt/documents/OPSQAI-Investor-Deck-SIventures.pdf`
-- Rendered previews inspected page by page before delivery.
-- Presented back with a `<presentation-artifact>` tag so the user can download and forward directly to `oliver@siventures.de`.
+Nu ating cod de business logic, nu ating catalogul de module (deja aliniat), nu ating testele. Nu ating design-ul.
 
-## Technical section
+## De ce nu mai fac altceva
 
-- Script: `scripts/gen_investor_deck.py` (ReportLab, DejaVu Sans registered via fontconfig, landscape 1920×1080 via custom pagesize, per-slide canvas draw functions for full layout control).
-- QA loop: `pdftoppm -jpeg -r 100 out.pdf page` → view each `page-*.jpg` → fix → re-render until clean.
-- No app code changes; deck is a standalone artifact.
+- Runtime `BASIC_MODULES` + catalog: aliniat cu deck-ul, testat, tests pass.
+- Site-ul: aliniat, verificat prin grep.
+- Deck-ul: script-ul v2 e corect (Ștefan Bari, ask 350–750K, arhitectura 3-surfaces).
+- Hydration warning: artefact de dev-tooling, nu bug de produs.
+
+Dacă vrei să adaug ceva concret (ex: să regenerez și decks localizate DE/EN, să adaug o pagină nouă, să extind un modul), spune-mi și fac plan separat.
