@@ -668,13 +668,13 @@ def slide_ask(i):
     # Left: the ask
     c.setFont("BodyBold", 14)
     c.setFillColorRGB(*GOLD)
-    c.drawString(80, H - 320, "SEED ROUND")
+    c.drawString(80, H - 380, "SEED ROUND")
     c.setFont("SerifBold", 96)
     c.setFillColorRGB(*IVORY)
-    c.drawString(80, H - 420, "€1.5M")
+    c.drawString(80, H - 480, "€1.5M")
     c.setFont("Body", 20)
     c.setFillColorRGB(*GOLD_SOFT)
-    c.drawString(80, H - 460, "12–18 months runway · led round preferred")
+    c.drawString(80, H - 520, "12–18 months runway · led round preferred")
 
     uses = [
         ("2 → 6", "Paying self-hosted installs across DACH industrial and logistics."),
@@ -682,7 +682,7 @@ def slide_ask(i):
         ("Team", "First commercial hire (DACH) + one platform engineer."),
         ("Certifications", "License system audit, DR runbook validation, reference-install program."),
     ]
-    y = H - 550
+    y = H - 610
     for h, d in uses:
         c.setFont("BodyBold", 16)
         c.setFillColorRGB(*GOLD)
