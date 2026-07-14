@@ -72,9 +72,9 @@ const PHASES = [
 ];
 
 const MARKET = [
-  { tag: "TAM", value: "Industrial operations in Europe", body: "Every logistics, warehousing and manufacturing operation that needs governed access to operational knowledge." },
-  { tag: "SAM", value: "DACH + adjacent logistics", body: "Operators with the infrastructure, compliance posture and budget to run enterprise software on Windows Server today." },
-  { tag: "SOM", value: "Reference installs first", body: "A focused set of anchor customers, each running the Basic Platform and premium modules on their own Windows Server." },
+  { tag: "TAM", value: "€4.8B", body: "EU industrial, logistics and manufacturing organisations with 250+ employees." },
+  { tag: "SAM", value: "€1.1B", body: "DACH + Benelux + Nordics operators with a regulated SOP surface and enterprise IT budget." },
+  { tag: "SOM", value: "€90M", body: "First-wave design partners: logistics networks, warehouse operators and mid-cap manufacturers." },
 ];
 
 function CompanyPage() {
