@@ -41,7 +41,7 @@ export function PlatformTopbar() {
   const segments = pathname.split("/").filter(Boolean);
   const navigate = useNavigate();
 
-  const { lang, setLang, t } = useT();
+  const { lang, setLang } = useT();
   const [email, setEmail] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -58,7 +58,7 @@ export function PlatformTopbar() {
   function changeLang(next: Lang) {
     setLang(next);
     document.documentElement.setAttribute("lang", next);
-    toast.success(`${t("language") ?? "Language"}: ${LANG_NAME[next]}`);
+    toast.success(`Language: ${LANG_NAME[next]}`);
   }
 
   const initials = (email || "?").slice(0, 2).toUpperCase();
