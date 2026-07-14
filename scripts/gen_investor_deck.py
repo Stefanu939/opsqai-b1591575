@@ -663,7 +663,7 @@ def slide_team(i):
 def slide_ask(i):
     bg(True)
     chrome(i, TOTAL, True, "13 · The Ask")
-    slide_title_dark("What we're raising, and what it buys.", "The ask")
+    slide_title_dark("What we're raising, and what it buys.", "The ask", max_w=1050)
 
     # Left: the ask
     c.setFont("BodyBold", 14)
