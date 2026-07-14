@@ -304,7 +304,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="md:contents">
           <SubscriptionStatusBanner />
-          <WorkspaceContextBanner />
+          
         </div>
         {children}
       </main>
