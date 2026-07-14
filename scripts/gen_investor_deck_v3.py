@@ -371,12 +371,11 @@ def s_product(i):
     rule(710, True, x1=1010, x2=1810)
 
     premium = [
-        ("Knowledge Base", "Ingestion, chunking, retrieval (pgvector)"),
-        ("Chat", "Grounded chat over the knowledge base"),
-        ("Academy", "Lessons, chapters, quizzes, certificates"),
-        ("FAQ", "Curated FAQ with retrieval fallback"),
-        ("SOPs", "Versioned SOPs with acknowledgement"),
+        ("SOPs", "Versioned SOPs with acknowledgement tracking"),
         ("Workspace", "Session-scoped AI with file artifacts"),
+        ("Internal Requests", "Internal ticket triage with AI assist"),
+        ("Brand", "Brand asset library, tone-of-voice rules"),
+        ("More modules", "Delivered on the same per-module licensing model"),
     ]
     for j, (t, d) in enumerate(premium):
         y = 660 - j * 62
@@ -388,6 +387,11 @@ def s_product(i):
         c.setFont("Body", 13)
         c.setFillColorRGB(*IVORY_2)
         c.drawString(1040, y - 20, d)
+
+    # Small caption: platform capabilities that support the product
+    c.setFont("BodyItalic", 11)
+    c.setFillColorRGB(*GOLD_SOFT)
+    c.drawString(110, 210, "Platform capabilities (built-in): Setup Wizard · Doctor · Recovery · Docs Viewer · Health · Audit log.")
 
     source_note("Module list matches docs/product-documentation/04-modules.md in the OPSQAI repository.")
     c.showPage()
