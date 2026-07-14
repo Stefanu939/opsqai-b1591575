@@ -3,6 +3,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ChevronRight, Search, Bell, Command, LogOut, User, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useT, type Lang } from "@/i18n";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
