@@ -107,14 +107,28 @@ try {
   process.exit(1);
 }
 
-fs.mkdirSync(path.join(dataDir, "log"), { recursive: true });
+const logDir = path.join(dataDir, "log");
+fs.mkdirSync(logDir, { recursive: true });
+const pgLogFile = path.join(logDir, "postgres.log");
 
-log(`Starting postgres on 127.0.0.1:${port}`);
-const child = spawn(postgres, ["-D", dataDir], { stdio: "inherit" });
-
-child.on("error", (e) => {
-  log(`FATAL: failed to spawn postgres: ${e.message}`);
-});
+// IMPORTANT: On Windows, postgres.exe refuses to run under an account with
+// administrative privileges (WinSW runs services as LocalSystem by default).
+// pg_ctl detects this case and spawns postgres via CreateRestrictedToken,
+// dropping admin rights before exec. So we MUST use `pg_ctl start` rather
+// than spawning postgres.exe directly — otherwise every start fails with:
+//   "Execution of PostgreSQL by a user with administrative permissions is
+//    not permitted."
+log(`Starting postgres on 127.0.0.1:${port} via pg_ctl (restricted token)`);
+const startRes = spawnSync(
+  pgCtl,
+  ["-D", dataDir, "-l", pgLogFile, "-w", "-t", "60", "start"],
+  { stdio: "inherit" },
+);
+if (startRes.status !== 0) {
+  log(`FATAL: pg_ctl start exited with code ${startRes.status}. See ${pgLogFile}`);
+  process.exit(1);
+}
+log("pg_ctl reported postgres started; entering watchdog loop.");
 
 async function readinessProbe() {
   const deadline = Date.now() + 90_000;
@@ -141,28 +155,47 @@ async function readinessProbe() {
         return;
       }
     } else if (tcpOk) {
-      // pg_isready binary missing — fall back to TCP-only signal.
       log("Postgres TCP socket open (pg_isready.exe not present; accepting).");
       return;
     }
     await new Promise((r) => setTimeout(r, 1000));
   }
   log(`Postgres did not become ready in 90s. tcpOk=${tcpOk} lastProbe='${lastMsg}'`);
-  log(`Check ${path.join(dataDir, "log")}\\ for postgres startup errors.`);
+  log(`Check ${logDir}\\ for postgres startup errors.`);
 }
 
 setTimeout(() => {
   readinessProbe().catch((e) => log(`readiness probe error: ${e.message}`));
-}, 1000);
+}, 500);
 
-for (const sig of ["SIGINT", "SIGTERM"]) {
+let stopping = false;
+function stopPostgres(reason) {
+  if (stopping) return;
+  stopping = true;
+  log(`stopping postgres (${reason})`);
+  spawnSync(pgCtl, ["-D", dataDir, "stop", "-m", "fast", "-w", "-t", "30"], { stdio: "inherit" });
+}
+
+for (const sig of ["SIGINT", "SIGTERM", "SIGHUP", "SIGBREAK"]) {
   process.on(sig, () => {
-    log(`Received ${sig}, stopping postgres...`);
-    spawnSync(pgCtl, ["-D", dataDir, "stop", "-m", "fast", "-w", "-t", "30"], { stdio: "inherit" });
+    stopPostgres(sig);
     process.exit(0);
   });
 }
-child.on("exit", (code, signal) => {
-  log(`postgres exited code=${code} signal=${signal ?? "none"}`);
-  process.exit(code ?? 1);
-});
+process.on("exit", () => stopPostgres("node exit"));
+
+// Watchdog: pg_ctl start returned but postgres runs detached. Poll pg_isready
+// so WinSW sees this node process fail if postgres dies unexpectedly.
+setInterval(() => {
+  if (stopping) return;
+  if (!fs.existsSync(pgIsReady)) return;
+  const r = spawnSync(pgIsReady, ["-h", "127.0.0.1", "-p", String(port), "-U", "opsqai", "-d", "postgres"], {
+    encoding: "utf8",
+  });
+  if (r.status !== 0) {
+    log(`watchdog: pg_isready failed (status=${r.status}): ${(r.stderr || "").trim()}`);
+    // Exit non-zero so WinSW restarts the service. pg_ctl start is idempotent
+    // when postgres is already up.
+    process.exit(1);
+  }
+}, 10_000).unref();
