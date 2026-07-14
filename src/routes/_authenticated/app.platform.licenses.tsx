@@ -291,7 +291,7 @@ function LicensesPage() {
             Emiterea licențelor, module add-on, bundle de activare — plus lifecycle-ul de subscription (trial, grace, suspend).
           </p>
         </div>
-        <Button asChild className="shrink-0 gap-1.5 bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] font-semibold shadow-[0_8px_24px_-8px_rgba(201,168,76,0.45)] hover:brightness-110">
+        <Button asChild className="shrink-0 gap-1.5 bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] text-[#0a0a1a] font-semibold shadow-[0_8px_24px_-8px_rgba(124,92,255,0.45)] hover:brightness-110">
           <Link to="/app/platform/onboarding">
             <Plus className="h-4 w-4" /> Onboard client nou
           </Link>

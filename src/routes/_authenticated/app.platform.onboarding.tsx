@@ -246,7 +246,7 @@ function Stepper({ step }: { step: number }) {
             <div
               className={cn(
                 "flex h-7 items-center gap-2 rounded-md px-3 text-[11px] font-medium transition-all",
-                active && "bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] mc-shadow-gold",
+                active && "bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] text-[#0a0a1a] mc-shadow-gold",
                 done && "border border-[var(--mc-gold-line-strong)] bg-[var(--mc-surface-2)] text-[var(--mc-gold-glow)]",
                 !active && !done && "border border-[var(--mc-gold-line)] bg-transparent text-[var(--mc-fg-muted)]",
               )}
@@ -254,7 +254,7 @@ function Stepper({ step }: { step: number }) {
               <span
                 className={cn(
                   "flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold",
-                  active ? "bg-[#0d0d0d]/20 text-[#0d0d0d]" : "bg-[var(--mc-surface-3)] text-[var(--mc-gold-glow)]",
+                  active ? "bg-[#0a0a1a]/20 text-[#0a0a1a]" : "bg-[var(--mc-surface-3)] text-[var(--mc-gold-glow)]",
                 )}
               >
                 {done ? <Check className="h-2.5 w-2.5" /> : idx + 1}
@@ -374,7 +374,7 @@ function Step1({
                     {preset.label}
                   </div>
                   {isSel && (
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--mc-gold)] text-[#0d0d0d]">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--mc-gold)] text-[#0a0a1a]">
                       <Check className="h-2.5 w-2.5" />
                     </span>
                   )}
@@ -441,7 +441,7 @@ function Step1({
         <Button
           disabled={!canProceed}
           onClick={onNext}
-          className="h-10 gap-2 bg-gradient-to-b from-[#d4b458] to-[#a48633] px-6 text-[13px] font-semibold text-[#0d0d0d] mc-shadow-gold hover:brightness-110 disabled:opacity-40 disabled:mc-shadow-premium"
+          className="h-10 gap-2 bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] px-6 text-[13px] font-semibold text-[#0a0a1a] mc-shadow-gold hover:brightness-110 disabled:opacity-40 disabled:mc-shadow-premium"
         >
           Continuă la module <ChevronRight className="h-4 w-4" />
         </Button>
@@ -517,7 +517,7 @@ function Step2({
                           className={cn(
                             "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
                             checked
-                              ? "border-[var(--mc-gold)] bg-[var(--mc-gold)] text-[#0d0d0d]"
+                              ? "border-[var(--mc-gold)] bg-[var(--mc-gold)] text-[#0a0a1a]"
                               : "border-[var(--mc-fg-dim)]",
                           )}
                         >
@@ -556,7 +556,7 @@ function Step2({
         </Button>
         <Button
           onClick={onNext}
-          className="h-10 gap-2 bg-gradient-to-b from-[#d4b458] to-[#a48633] px-6 text-[13px] font-semibold text-[#0d0d0d] mc-shadow-gold hover:brightness-110"
+          className="h-10 gap-2 bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] px-6 text-[13px] font-semibold text-[#0a0a1a] mc-shadow-gold hover:brightness-110"
         >
           Emite & generează <ChevronRight className="h-4 w-4" />
         </Button>
@@ -627,7 +627,7 @@ function Step3({
           </Button>
           <Button
             onClick={onRetry}
-            className="bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] mc-shadow-gold"
+            className="bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] text-[#0a0a1a] mc-shadow-gold"
           >
             Reîncearcă
           </Button>
@@ -688,7 +688,7 @@ function Step4({
           <div className="flex flex-wrap gap-2">
             <Button
               asChild
-              className="gap-2 bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] mc-shadow-gold hover:brightness-110"
+              className="gap-2 bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] text-[#0a0a1a] mc-shadow-gold hover:brightness-110"
             >
               <a href={result.signed_url} target="_blank" rel="noreferrer">
                 <Download className="h-4 w-4" /> Descarcă ZIP
@@ -744,7 +744,7 @@ function Step4({
         </Button>
         <Button
           onClick={onDone}
-          className="bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] mc-shadow-gold"
+          className="bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] text-[#0a0a1a] mc-shadow-gold"
         >
           Înapoi la overview
         </Button>
