@@ -45,15 +45,24 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BillingPanel } from "@/components/platform/BillingPanel";
 
+type LicensesSearch = {
+  tab: "licenses" | "bundle" | "billing";
+  companyId?: string;
+  companyName?: string;
+};
+
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    tab: (s.tab === "billing" || s.tab === "bundle" ? s.tab : "licenses") as
-      | "licenses"
-      | "bundle"
-      | "billing",
-    companyId: typeof s.companyId === "string" ? s.companyId : undefined,
-    companyName: typeof s.companyName === "string" ? s.companyName : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): LicensesSearch => {
+    const out: LicensesSearch = {
+      tab: (s.tab === "billing" || s.tab === "bundle" ? s.tab : "licenses") as
+        | "licenses"
+        | "bundle"
+        | "billing",
+    };
+    if (typeof s.companyId === "string") out.companyId = s.companyId;
+    if (typeof s.companyName === "string") out.companyName = s.companyName;
+    return out;
+  },
   component: LicensesPage,
 });
 
