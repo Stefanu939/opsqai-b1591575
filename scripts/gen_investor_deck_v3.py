@@ -487,12 +487,12 @@ def s_architecture(i):
             c.setFillColorRGB(*IVORY_2)
             c.drawString(x + 20, 380 - k * 20, line)
 
-    # Arrows — MC → install (one-way)
-    arrow(510, 600, 510, 450, True)
+    # Arrow — MC → install (one-way), sits in the gap between the two boxes
+    arrow(510, 600, 510, 570, True)
     c.setFont("BodyItalic", 11)
     c.setFillColorRGB(*GOLD_SOFT)
-    c.drawString(530, 555, "License heartbeat / bundle import (install pulls)")
-    c.drawString(530, 538, "No inbound path from MC to install")
+    c.drawString(540, 590, "License heartbeat / bundle import (install pulls)")
+    c.drawString(540, 573, "No inbound path from MC to install")
 
     source_note("Reflects docs/architecture-book/02-architecture.md and 03-data-flow.md in the OPSQAI repository.")
     c.showPage()
