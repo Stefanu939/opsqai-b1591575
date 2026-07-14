@@ -5,12 +5,12 @@ import {
 } from "@/lib/license-enforcement.server";
 
 /**
- * End-to-end proof that Academy fns are actually gated by license state.
+ * End-to-end proof that Analytics fns are actually gated by license state.
  *
  * We exercise the same pipe the server fn uses:
- *   handler -> assertModuleForCompany(company_id, "academy")
+ *   handler -> assertModuleForCompany(company_id, "analytics")
  *           -> companies.install_id lookup (admin client)
- *           -> assertModule(install_id, "academy")
+ *           -> assertModule(install_id, "analytics")
  *           -> requireModule (admin licenses read)
  *           -> evaluateModuleAccess (pure)
  *
@@ -68,8 +68,8 @@ async function callProtected(companyId: string): Promise<{ status: number; body:
   // Import lazily so the mock is in place first.
   const { assertModuleForCompany } = await import("@/lib/license-enforcement.server");
   try {
-    await assertModuleForCompany(companyId, "academy");
-    // Simulate an Academy server fn returning something on success.
+    await assertModuleForCompany(companyId, "analytics");
+    // Simulate an Analytics server fn returning something on success.
     return { status: 200, body: { paths: [] } };
   } catch (e) {
     if (e instanceof Response) {
@@ -83,7 +83,7 @@ async function callProtected(companyId: string): Promise<{ status: number; body:
 const COMPANY = "11111111-1111-1111-1111-111111111111";
 const INSTALL = "acme-cloud";
 
-describe("license enforcement — Academy module (end-to-end via assertModuleForCompany)", () => {
+describe("license enforcement — Analytics module (end-to-end via assertModuleForCompany)", () => {
   beforeEach(() => {
     state.companyInstall = {};
     state.licensesByInstall = {};
@@ -91,7 +91,7 @@ describe("license enforcement — Academy module (end-to-end via assertModuleFor
 
   it("(a) NO module license → 403 with reason 'no_module_license'", async () => {
     state.companyInstall[COMPANY] = INSTALL;
-    // Valid install license, but NO academy module license.
+    // Valid install license, but NO analytics module license.
     state.licensesByInstall[INSTALL] = [
       {
         kind: "install",
@@ -106,11 +106,11 @@ describe("license enforcement — Academy module (end-to-end via assertModuleFor
     expect(res.body).toEqual({
       error: "license_denied",
       reason: "no_module_license",
-      module: "academy",
+      module: "analytics",
     });
   });
 
-  it("(b) valid, current, non-revoked academy license → success (200)", async () => {
+  it("(b) valid, current, non-revoked analytics license → success (200)", async () => {
     state.companyInstall[COMPANY] = INSTALL;
     state.licensesByInstall[INSTALL] = [
       {
@@ -122,7 +122,7 @@ describe("license enforcement — Academy module (end-to-end via assertModuleFor
       },
       {
         kind: "module",
-        module_key: "academy",
+        module_key: "analytics",
         revoked: false,
         suspended: false,
         expires_at: "2099-01-01T00:00:00Z",
@@ -133,7 +133,7 @@ describe("license enforcement — Academy module (end-to-end via assertModuleFor
     expect(res.body).toEqual({ paths: [] });
   });
 
-  it("(c) expired academy license → 403 with reason 'module_expired'", async () => {
+  it("(c) expired analytics license → 403 with reason 'module_expired'", async () => {
     state.companyInstall[COMPANY] = INSTALL;
     state.licensesByInstall[INSTALL] = [
       {
@@ -145,7 +145,7 @@ describe("license enforcement — Academy module (end-to-end via assertModuleFor
       },
       {
         kind: "module",
-        module_key: "academy",
+        module_key: "analytics",
         revoked: false,
         suspended: false,
         expires_at: "2020-01-01T00:00:00Z",
@@ -156,11 +156,11 @@ describe("license enforcement — Academy module (end-to-end via assertModuleFor
     expect(res.body).toEqual({
       error: "license_denied",
       reason: "module_expired",
-      module: "academy",
+      module: "analytics",
     });
   });
 
-  it("revoked academy license → 403 with reason 'module_revoked'", async () => {
+  it("revoked analytics license → 403 with reason 'module_revoked'", async () => {
     state.companyInstall[COMPANY] = INSTALL;
     state.licensesByInstall[INSTALL] = [
       {
@@ -172,7 +172,7 @@ describe("license enforcement — Academy module (end-to-end via assertModuleFor
       },
       {
         kind: "module",
-        module_key: "academy",
+        module_key: "analytics",
         revoked: true,
         suspended: false,
         expires_at: "2099-01-01T00:00:00Z",
@@ -214,7 +214,7 @@ describe("license enforcement — pure evaluator", () => {
   });
 
   it("suspended install blocks everything", () => {
-    const r = evaluateModuleAccess([valid({ suspended: true })], "acme", "academy", now);
+    const r = evaluateModuleAccess([valid({ suspended: true })], "acme", "analytics", now);
     expect(r.reason).toBe("install_suspended");
   });
 });
