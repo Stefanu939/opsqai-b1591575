@@ -1148,9 +1148,12 @@ def s_team(i):
     people = [
         ("Ștefan Bari",
          "Founder & CEO",
-         "Owns product direction, customer relationships and commercial "
-         "strategy. Drives OPSQAI's positioning as the operational AI layer "
-         "for industrial companies.",
+         "Background in DACH logistics operations. Saw firsthand how "
+         "operational knowledge stays trapped in shared drives, wikis and "
+         "individual heads — and how public LLMs cannot be pointed at that "
+         "knowledge under EU compliance constraints. Started OPSQAI to build "
+         "the operational AI layer that industrial companies can actually "
+         "deploy on their own servers.",
          True),
         ("CTO",
          "Planned",
