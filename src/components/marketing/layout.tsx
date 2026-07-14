@@ -15,12 +15,12 @@ import {
 
 const NAV = [
   { to: "/product", label: "Product" },
-  { to: "/self-hosted", label: "Self-hosted" },
   { to: "/modules", label: "Modules" },
-  { to: "/pricing", label: "Pricing" },
+  { to: "/self-hosted", label: "Self-hosted" },
   { to: "/security", label: "Security" },
+  { to: "/pricing", label: "Pricing" },
+  { to: "/company", label: "Company" },
   { to: "/documentation", label: "Documentation" },
-  { to: "/support", label: "Support" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
