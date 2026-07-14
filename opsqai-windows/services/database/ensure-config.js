@@ -21,8 +21,7 @@ function opsqaiBlock(port) {
 }
 
 const HBA_CONTENT =
-  `# OPSQAI: loopback-only, scram-sha-256\n` +
-  `local  all  all                scram-sha-256\n` +
+  `# OPSQAI: Windows loopback-only, scram-sha-256\n` +
   `host   all  all  127.0.0.1/32  scram-sha-256\n` +
   `host   all  all  ::1/128       scram-sha-256\n`;
 
