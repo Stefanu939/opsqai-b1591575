@@ -3,6 +3,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ChevronRight, Search, Bell, Command, LogOut, User, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useT, type Lang } from "@/i18n";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,17 +33,17 @@ function labelFor(segment: string) {
   return PATH_LABELS[segment] ?? segment.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-type Lang = "ro" | "de" | "en";
 const LANG_LABEL: Record<Lang, string> = { ro: "RO", de: "DE", en: "EN" };
+const LANG_NAME: Record<Lang, string> = { ro: "Română", de: "Deutsch", en: "English" };
 
 export function PlatformTopbar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const segments = pathname.split("/").filter(Boolean);
   const navigate = useNavigate();
 
+  const { lang, setLang } = useT();
   const [email, setEmail] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("mc-lang") as Lang) || "en");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -53,10 +55,11 @@ export function PlatformTopbar() {
     });
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("mc-lang", lang);
-    document.documentElement.setAttribute("lang", lang);
-  }, [lang]);
+  function changeLang(next: Lang) {
+    setLang(next);
+    document.documentElement.setAttribute("lang", next);
+    toast.success(`Language: ${LANG_NAME[next]}`);
+  }
 
   const initials = (email || "?").slice(0, 2).toUpperCase();
 
@@ -109,7 +112,7 @@ export function PlatformTopbar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuLabel className="mc-eyebrow">Language</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={lang} onValueChange={(v) => setLang(v as Lang)}>
+            <DropdownMenuRadioGroup value={lang} onValueChange={(v) => changeLang(v as Lang)}>
               <DropdownMenuRadioItem value="ro">Română</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="de">Deutsch</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
