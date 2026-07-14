@@ -108,8 +108,11 @@ Section "OPSQAI Core" SEC_CORE
   ; supplied via /CONFIG=<path>. See docs/unattended-install.md.
   IfSilent silent_bootstrap
     DetailPrint "Launching OPSQAI Setup Wizard..."
-    nsExec::ExecToLog '"$INSTDIR\wizard\OPSQAI-Wizard.exe"'
-    Pop $0
+    ; ExecWait (not nsExec::ExecToLog) — the wizard is a GUI Electron app.
+    ; nsExec captures stdio into a pipe and blocks the installer forever
+    ; because Electron never drains it (symptom: NSIS hangs on "Launching
+    ; OPSQAI Setup Wizard..." with no window ever appearing).
+    ExecWait '"$INSTDIR\wizard\OPSQAI-Wizard.exe"' $0
     ${If} $0 <> 0
       DetailPrint "Wizard exited with code $0 — installation not completed"
       Abort "OPSQAI setup was cancelled or failed. See %ProgramData%\OPSQAI\logs for details."
