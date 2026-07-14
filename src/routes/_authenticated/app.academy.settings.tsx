@@ -22,7 +22,7 @@ function SettingsPage() {
             in the Manager Console.
           </p>
           <Link
-            to="/app/admin/academy"
+            to="/app/academy/teacher"
             className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
           >
             Open Manager Console <ArrowRight className="h-4 w-4" />

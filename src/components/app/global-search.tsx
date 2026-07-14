@@ -90,14 +90,12 @@ export function GlobalSearch({ asButton = false }: { asButton?: boolean }) {
     setOpen(false);
     if (r.kind === "sop") navigate({ to: "/app/knowledge" });
     else if (r.kind === "faq") navigate({ to: "/app/faq" });
-    else if (r.kind === "audit") navigate({ to: "/app/admin/audit" });
-    else if (r.kind === "user") navigate({ to: "/app/admin/users" });
-    else if (r.kind === "gap") navigate({ to: "/app/admin/knowledge-gaps" });
-    else if (r.kind === "ai_audit") navigate({ to: "/app/admin/ai-audit" });
+    else if (r.kind === "audit") navigate({ to: "/app/audit" });
+    else if (r.kind === "user") navigate({ to: "/app/users" });
+    else if (r.kind === "gap") navigate({ to: "/app/knowledge" });
+    else if (r.kind === "ai_audit") navigate({ to: "/app/audit" });
     else if (r.kind === "thread")
       navigate({ to: "/app/chat/$threadId", params: { threadId: r.id } });
-    else if (r.kind === "workspace")
-      navigate({ to: "/app/workspace/$sessionId", params: { sessionId: r.id } });
   };
 
   return (
