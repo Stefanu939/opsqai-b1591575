@@ -332,7 +332,10 @@ function LicensesPage() {
         value={tab}
         onValueChange={(v) =>
           navigate({
-            search: (prev) => ({ ...prev, tab: v as "licenses" | "bundle" | "billing" }),
+            search: (prev: Record<string, unknown>) => ({
+              ...prev,
+              tab: v as "licenses" | "bundle" | "billing",
+            }),
             replace: true,
           })
         }
