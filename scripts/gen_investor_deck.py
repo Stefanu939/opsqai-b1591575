@@ -212,10 +212,7 @@ def slide_moment(i):
 def slide_mission(i):
     bg(False)
     chrome(i, TOTAL, False, "02 · Mission")
-    slide_title("We bring AI to work alongside operators,", "Our mission")
-    c.setFont("SerifBold", 68)
-    c.setFillColorRGB(*INK)
-    c.drawString(80, H - 310, "not in place of them.")
+    slide_title("We bring AI to work alongside operators, not in place of them.", "Our mission")
 
     tenets = [
         ("Augment, don't automate away.",
