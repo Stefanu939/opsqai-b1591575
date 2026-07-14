@@ -1,34 +1,72 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ChevronRight, Search, Bell, Command } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronRight, Search, Bell, Command, LogOut, User, Globe } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
 
 const PATH_LABELS: Record<string, string> = {
   app: "OPSQAI",
   platform: "Platform",
   overview: "Overview",
-  onboarding: "Onboarding",
-  licenses: "Licenses",
-  doctor: "Doctor",
-  recovery: "Recovery",
-  setup: "Setup",
-  "license-activation": "License Activation",
-  "installation-package": "Installation Package",
   admin: "Admin",
-  customers: "Customers",
-  "platform-admins": "Platform Admins",
+  companies: "Companies",
+  billing: "Billing",
+  support: "Support Inbox",
+  "ai-audit": "Audit AI",
+  maintenance: "Recovery & Maintenance",
+  platform_: "Platform Administration",
 };
 
 function labelFor(segment: string) {
   return PATH_LABELS[segment] ?? segment.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+type Lang = "ro" | "de" | "en";
+const LANG_LABEL: Record<Lang, string> = { ro: "RO", de: "DE", en: "EN" };
+
 export function PlatformTopbar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const segments = pathname.split("/").filter(Boolean);
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState<string>("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("mc-lang") as Lang) || "en");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      if (!u) return;
+      setEmail(u.email ?? "");
+      const meta = (u.user_metadata ?? {}) as { avatar_url?: string; picture?: string };
+      setAvatarUrl(meta.avatar_url ?? meta.picture ?? null);
+    });
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("mc-lang", lang);
+    document.documentElement.setAttribute("lang", lang);
+  }, [lang]);
+
+  const initials = (email || "?").slice(0, 2).toUpperCase();
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth" });
+  }
 
   return (
-    <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center gap-3 border-b border-[var(--mc-gold-line)] bg-[#0d0d0d]/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-[#0d0d0d]/70">
+    <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center gap-3 border-b border-[var(--mc-gold-line)] bg-[#0a0a1a]/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-[#0a0a1a]/70">
       <SidebarTrigger className="h-8 w-8 shrink-0 rounded-md text-[var(--mc-fg-muted)] hover:bg-[var(--mc-surface-2)] hover:text-[var(--mc-gold)]" />
 
       <div className="flex min-w-0 items-center gap-1 text-[12px]">
@@ -57,24 +95,77 @@ export function PlatformTopbar() {
           <span className="mc-eyebrow text-[var(--mc-fg-muted)]">prod</span>
         </div>
 
-        <Button
-          asChild
-          size="sm"
-          className="h-8 gap-1.5 bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] font-semibold mc-shadow-gold hover:brightness-110"
-        >
-          <Link to="/app/platform/onboarding">
-            <span className="text-[12px]">+ Onboard client</span>
-          </Link>
-        </Button>
+        {/* Language switcher */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-[var(--mc-gold-line)] bg-[var(--mc-surface-2)] px-2 text-[11px] font-semibold text-[var(--mc-fg-muted)] hover:text-[var(--mc-gold-glow)]"
+              aria-label="Language"
+            >
+              <Globe className="h-3.5 w-3.5" />
+              {LANG_LABEL[lang]}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuLabel className="mc-eyebrow">Language</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={lang} onValueChange={(v) => setLang(v as Lang)}>
+              <DropdownMenuRadioItem value="ro">Română</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="de">Deutsch</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
+        {/* Notifications */}
         <button
           type="button"
-          className="relative h-8 w-8 rounded-md border border-[var(--mc-gold-line)] bg-[var(--mc-surface-2)] text-[var(--mc-fg-muted)] hover:text-[var(--mc-gold)]"
+          className="relative h-8 w-8 rounded-md border border-[var(--mc-gold-line)] bg-[var(--mc-surface-2)] text-[var(--mc-fg-muted)] hover:text-[var(--mc-gold-glow)]"
           aria-label="Notifications"
         >
           <Bell className="mx-auto h-3.5 w-3.5" />
           <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[var(--mc-gold)] shadow-[0_0_6px_var(--mc-gold)]" />
         </button>
+
+        {/* Profile */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex h-8 items-center gap-2 rounded-full border border-[var(--mc-gold-line-strong)] bg-gradient-to-br from-[#2a2060] to-[#12122a] pl-0.5 pr-2 text-[11px] font-semibold text-[var(--mc-fg)] hover:brightness-110"
+              aria-label="Profile"
+            >
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="h-7 w-7 rounded-full object-cover ring-1 ring-[var(--mc-gold-line-strong)]"
+                />
+              ) : (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--mc-surface-3)] text-[10px] font-black tracking-tight text-[var(--mc-gold-glow)]">
+                  {initials}
+                </span>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="truncate text-[11px] text-[var(--mc-fg-muted)]">
+              {email || "Signed in"}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/app/profile" className="flex items-center gap-2">
+                <User className="h-3.5 w-3.5" />
+                My profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={signOut} className="text-[var(--mc-danger)] focus:text-[var(--mc-danger)]">
+              <LogOut className="mr-2 h-3.5 w-3.5" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

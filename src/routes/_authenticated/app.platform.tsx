@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { PlatformSidebar } from "@/components/platform/AppSidebar";
 import { PlatformTopbar } from "@/components/platform/PlatformTopbar";
+import { RecentModulesBar } from "@/components/platform/RecentModulesBar";
 
 export const Route = createFileRoute("/_authenticated/app/platform")({
   beforeLoad: async () => {
@@ -31,6 +32,7 @@ function PlatformLayout() {
             <main className="mc-grid-faint flex-1 overflow-x-hidden">
               <Outlet />
             </main>
+            <RecentModulesBar />
           </div>
         </div>
       </SidebarProvider>
