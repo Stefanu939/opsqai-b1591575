@@ -566,7 +566,7 @@ def _mockup_frame(x, y, w, h, title, dark=True):
 def s_mockups_1(i):
     """AI Chat + Knowledge Base — matches src/routes/app/chat and knowledge."""
     bg(True)
-    chrome(i, TOTAL, True, "10 · Product")
+    chrome(i, TOTAL, True, "08 · Product")
     kicker("Product mockups I", 80, H - 150)
     h1("AI Chat & Knowledge Base — the operator surface.",
        80, H - 220, size=38, max_w=1760)
@@ -655,7 +655,7 @@ def s_mockups_1(i):
 def s_mockups_2(i):
     """Module Store + AI Audit."""
     bg(True)
-    chrome(i, TOTAL, True, "10 · Product")
+    chrome(i, TOTAL, True, "09 · Product")
     kicker("Product mockups II", 80, H - 150)
     h1("Module Store & AI Audit — governance surfaces.", 80, H - 220, size=38, max_w=1760)
 
