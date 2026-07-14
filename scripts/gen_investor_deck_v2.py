@@ -751,15 +751,15 @@ def s_team(i):
 def s_ask(i):
     bg(True)
     chrome(i, TOTAL, True, "15 · The Ask")
-    title_block("Raising €1.5M Seed.", "The ask", IVORY, max_w=1400)
+    title_block("Raising €350K–€750K Pre-Seed.", "The ask", IVORY, max_w=1400)
 
     # Left: headline
     c.setFont("BodyBold", 14); c.setFillColorRGB(*GOLD)
-    c.drawString(80, H - 340, "SEED ROUND")
-    c.setFont("SerifBold", 130); c.setFillColorRGB(*IVORY)
-    c.drawString(80, H - 480, "€1.5M")
+    c.drawString(80, H - 340, "PRE-SEED ROUND")
+    c.setFont("SerifBold", 110); c.setFillColorRGB(*IVORY)
+    c.drawString(80, H - 470, "€350K–€750K")
     c.setFont("Body", 20); c.setFillColorRGB(*GOLD_SOFT)
-    c.drawString(80, H - 520, "18–24 months runway · led round preferred")
+    c.drawString(80, H - 510, "12–18 months runway · lead or co-lead welcome")
 
     # Milestones under headline
     c.setFont("BodyBold", 14); c.setFillColorRGB(*GOLD)
