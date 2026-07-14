@@ -195,7 +195,7 @@ def pill(text, x, y, dark=True, muted=False):
     return x + tw + 22
 
 
-TOTAL = 18
+TOTAL = 20
 
 
 # ==================================================================
@@ -287,7 +287,7 @@ def s_problem(i):
 # ==================================================================
 def s_market_context(i):
     bg(False)
-    chrome(i, TOTAL, False, "02 · Market context")
+    chrome(i, TOTAL, False, "03 · Market context")
     kicker("Market context", 80, H - 150, dark=False)
     h1("Enterprise AI is growing fast — but industrial buyers demand sovereignty.",
        80, H - 220, dark=False, size=44, max_w=1760)
@@ -331,7 +331,7 @@ def s_market_context(i):
 # ==================================================================
 def s_product(i):
     bg(True)
-    chrome(i, TOTAL, True, "03 · Product")
+    chrome(i, TOTAL, True, "04 · Product")
     kicker("What OPSQAI is", 80, H - 150)
     h1("An enterprise operational AI platform, delivered as a Windows self-hosted product.",
        80, H - 220, size=42, max_w=1760)
@@ -345,12 +345,12 @@ def s_product(i):
     rule(710, True, x1=110, x2=910)
 
     basic = [
-        ("Platform admin", "Users, roles, integrations, health"),
-        ("Audit log", "Governance-relevant events, exportable"),
-        ("Docs viewer", "In-app product & operator documentation"),
-        ("Setup wizard", "Resumable install configuration"),
-        ("Doctor", "Self-diagnostics + CLI"),
-        ("Recovery", "Break-glass + bootstrap token DR"),
+        ("AI Chat", "Grounded chat over the customer's own knowledge"),
+        ("Knowledge Base", "Ingestion, chunking, retrieval (pgvector)"),
+        ("FAQ", "Curated FAQ with retrieval fallback"),
+        ("Academy", "Lessons, chapters, quizzes, certificates"),
+        ("AI Audit", "Every AI response retrievable, with citations"),
+        ("Users · Organization · Subscription", "Roles, RBAC, tenant admin, license status"),
     ]
     for j, (t, d) in enumerate(basic):
         y = 660 - j * 62
@@ -371,12 +371,11 @@ def s_product(i):
     rule(710, True, x1=1010, x2=1810)
 
     premium = [
-        ("Knowledge Base", "Ingestion, chunking, retrieval (pgvector)"),
-        ("Chat", "Grounded chat over the knowledge base"),
-        ("Academy", "Lessons, chapters, quizzes, certificates"),
-        ("FAQ", "Curated FAQ with retrieval fallback"),
-        ("SOPs", "Versioned SOPs with acknowledgement"),
+        ("SOPs", "Versioned SOPs with acknowledgement tracking"),
         ("Workspace", "Session-scoped AI with file artifacts"),
+        ("Internal Requests", "Internal ticket triage with AI assist"),
+        ("Brand", "Brand asset library, tone-of-voice rules"),
+        ("More modules", "Delivered on the same per-module licensing model"),
     ]
     for j, (t, d) in enumerate(premium):
         y = 660 - j * 62
@@ -389,6 +388,11 @@ def s_product(i):
         c.setFillColorRGB(*IVORY_2)
         c.drawString(1040, y - 20, d)
 
+    # Small caption: platform capabilities that support the product
+    c.setFont("BodyItalic", 11)
+    c.setFillColorRGB(*GOLD_SOFT)
+    c.drawString(110, 210, "Platform capabilities (built-in): Setup Wizard · Doctor · Recovery · Docs Viewer · Health · Audit log.")
+
     source_note("Module list matches docs/product-documentation/04-modules.md in the OPSQAI repository.")
     c.showPage()
 
@@ -398,7 +402,7 @@ def s_product(i):
 # ==================================================================
 def s_why(i):
     bg(False)
-    chrome(i, TOTAL, False, "04 · Why we're different")
+    chrome(i, TOTAL, False, "05 · Why we're different")
     kicker("Why we're different", 80, H - 150, dark=False)
     h1("Twelve properties that no public-cloud AI copilot delivers together.",
        80, H - 220, dark=False, size=40, max_w=1760)
@@ -441,7 +445,7 @@ def s_why(i):
 # ==================================================================
 def s_architecture(i):
     bg(True)
-    chrome(i, TOTAL, True, "05 · Architecture")
+    chrome(i, TOTAL, True, "06 · Architecture")
     kicker("Architecture", 80, H - 150)
     h1("Two boundaries. One-way communication.",
        80, H - 200, size=36, max_w=1760)
@@ -503,7 +507,7 @@ def s_architecture(i):
 # ==================================================================
 def s_how_it_works(i):
     bg(False)
-    chrome(i, TOTAL, False, "06 · How it works")
+    chrome(i, TOTAL, False, "07 · How it works")
     kicker("How it works", 80, H - 150, dark=False)
     h1("Ingest, embed, retrieve, generate — every step inside the install.",
        80, H - 220, dark=False, size=40, max_w=1760)
@@ -562,7 +566,7 @@ def _mockup_frame(x, y, w, h, title, dark=True):
 def s_mockups_1(i):
     """AI Chat + Knowledge Base — matches src/routes/app/chat and knowledge."""
     bg(True)
-    chrome(i, TOTAL, True, "07 · Product")
+    chrome(i, TOTAL, True, "08 · Product")
     kicker("Product mockups I", 80, H - 150)
     h1("AI Chat & Knowledge Base — the operator surface.",
        80, H - 220, size=38, max_w=1760)
@@ -651,7 +655,7 @@ def s_mockups_1(i):
 def s_mockups_2(i):
     """Module Store + AI Audit."""
     bg(True)
-    chrome(i, TOTAL, True, "08 · Product")
+    chrome(i, TOTAL, True, "09 · Product")
     kicker("Product mockups II", 80, H - 150)
     h1("Module Store & AI Audit — governance surfaces.", 80, H - 220, size=38, max_w=1760)
 
@@ -743,7 +747,7 @@ def s_mockups_2(i):
 def s_mockups_3(i):
     """MC + Portal + Installer."""
     bg(True)
-    chrome(i, TOTAL, True, "09 · Product")
+    chrome(i, TOTAL, True, "10 · Product")
     kicker("Product mockups III", 80, H - 150)
     h1("Management Center, Customer Portal & Installer.", 80, H - 220, size=38, max_w=1760)
 
@@ -852,7 +856,7 @@ def s_mockups_3(i):
 # ==================================================================
 def s_business_model(i):
     bg(False)
-    chrome(i, TOTAL, False, "10 · Business model")
+    chrome(i, TOTAL, False, "12 · Business model")
     kicker("Business model", 80, H - 150, dark=False)
     h1("Basic Platform, Premium Modules, and recurring maintenance.",
        80, H - 220, dark=False, size=40, max_w=1760)
@@ -900,7 +904,7 @@ def s_business_model(i):
 # ==================================================================
 def s_competitive(i):
     bg(True)
-    chrome(i, TOTAL, True, "11 · Competition")
+    chrome(i, TOTAL, True, "13 · Competition")
     kicker("Competitive landscape", 80, H - 150)
     h1("Objective comparison across measurable properties.",
        80, H - 220, size=40, max_w=1760)
@@ -948,7 +952,7 @@ def s_competitive(i):
 # ==================================================================
 def s_gtm(i):
     bg(False)
-    chrome(i, TOTAL, False, "12 · Go-to-market")
+    chrome(i, TOTAL, False, "14 · Go-to-market")
     kicker("Go-to-market", 80, H - 150, dark=False)
     h1("Land in DACH logistics. Expand into industrial manufacturing. Then EU.",
        80, H - 220, dark=False, size=38, max_w=1760)
@@ -1003,7 +1007,7 @@ def s_gtm(i):
 # ==================================================================
 def s_traction(i):
     bg(True)
-    chrome(i, TOTAL, True, "13 · Traction")
+    chrome(i, TOTAL, True, "15 · Traction")
     kicker("Traction", 80, H - 150)
     h1("Where we are today — honest and defensible.",
        80, H - 220, size=42, max_w=1760)
@@ -1073,7 +1077,7 @@ def s_traction(i):
 # ==================================================================
 def s_roadmap(i):
     bg(False)
-    chrome(i, TOTAL, False, "14 · Roadmap")
+    chrome(i, TOTAL, False, "16 · Roadmap")
     kicker("Roadmap", 80, H - 150, dark=False)
     h1("Completed, in progress, planned, vision — grounded in the codebase.",
        80, H - 220, dark=False, size=38, max_w=1760)
@@ -1085,7 +1089,7 @@ def s_roadmap(i):
             "Setup Wizard · Doctor · Recovery",
             "Windows installer + native services",
             "Management Center · Customer Portal",
-            "Docker reference deployment",
+            "Signed activation bundles + offline import",
             "Documentation suite v1.0",
         ]),
         ("In progress", "current sprint", (0.75, 0.55, 0.20), [
@@ -1094,7 +1098,7 @@ def s_roadmap(i):
             "AI-adapter registry expansion",
         ]),
         ("Planned", "v1.1 · Q4 2026", (0.55, 0.60, 0.65), [
-            "Helm chart deployment alternative",
+            "Unattended install + group-policy deployment",
             "WebAuthn + TOTP MFA baseline",
             "Anthropic + Mistral hosted adapters",
             "SIEM integrations (Splunk HEC, Elastic)",
@@ -1136,7 +1140,7 @@ def s_roadmap(i):
 # ==================================================================
 def s_team(i):
     bg(True)
-    chrome(i, TOTAL, True, "15 · Team")
+    chrome(i, TOTAL, True, "17 · Team")
     kicker("Team", 80, H - 150)
     h1("A small, deliberate team. Nothing overstated.",
        80, H - 220, size=42, max_w=1760)
@@ -1144,9 +1148,12 @@ def s_team(i):
     people = [
         ("Ștefan Bari",
          "Founder & CEO",
-         "Owns product direction, customer relationships and commercial "
-         "strategy. Drives OPSQAI's positioning as the operational AI layer "
-         "for industrial companies.",
+         "Background in DACH logistics operations. Saw firsthand how "
+         "operational knowledge stays trapped in shared drives, wikis and "
+         "individual heads — and how public LLMs cannot be pointed at that "
+         "knowledge under EU compliance constraints. Started OPSQAI to build "
+         "the operational AI layer that industrial companies can actually "
+         "deploy on their own servers.",
          True),
         ("CTO",
          "Planned",
@@ -1192,7 +1199,7 @@ def s_team(i):
 # ==================================================================
 def s_market(i):
     bg(False)
-    chrome(i, TOTAL, False, "16 · Market")
+    chrome(i, TOTAL, False, "18 · Market")
     kicker("Market sizing", 80, H - 150, dark=False)
     h1("Bottom-up. Sourced. Deliberately conservative.",
        80, H - 220, dark=False, size=42, max_w=1760)
@@ -1240,7 +1247,7 @@ def s_market(i):
 # ==================================================================
 def s_ask(i):
     bg(True)
-    chrome(i, TOTAL, True, "17 · The ask")
+    chrome(i, TOTAL, True, "19 · The ask")
     kicker("The ask", 80, H - 150)
     h1("€350K–€750K Pre-Seed.",
        80, H - 240, size=72, max_w=1760)
@@ -1326,27 +1333,153 @@ def s_ask(i):
     c.showPage()
 
 
+# ==================================================================
+# Why now?
+# ==================================================================
+def s_why_now(i):
+    bg(True)
+    chrome(i, TOTAL, True, "02 · Why now")
+    kicker("Why now", 80, H - 150)
+    h1("Four forces make 2026 the deployment window for sovereign operational AI.",
+       80, H - 220, size=38, max_w=1760)
+
+    items = [
+        ("EU AI Act in force",
+         "The EU AI Act entered into force on 1 Aug 2024; obligations on "
+         "high-risk and general-purpose AI systems phase in through 2026–2027. "
+         "Industrial operators need AI they can govern, audit and keep inside "
+         "their own boundary.",
+         "European Commission — EU AI Act, Regulation (EU) 2024/1689."),
+        ("Data sovereignty pressure",
+         "BSI C5, Bitkom and national regulators push regulated industries "
+         "toward EU-hosted, customer-controlled AI. Public LLMs cannot be "
+         "pointed at internal SOPs without a compliance question.",
+         "BSI C5:2020 · Bitkom Cloud Monitor 2024."),
+        ("Enterprise GenAI adoption",
+         "Enterprise generative-AI adoption is mainstream, but regulated "
+         "industries lag because they cannot ship SOPs to public providers. "
+         "The gap is a self-hosted, grounded, audited product.",
+         "McKinsey — The state of AI in 2024."),
+        ("Windows still runs the plant",
+         "Industrial and logistics IT is overwhelmingly Windows Server on "
+         "customer infrastructure. A Windows-native, self-hosted product "
+         "meets operators where their servers already live.",
+         "Statista — server OS market share (Windows Server), 2024."),
+    ]
+    y0 = H - 340
+    for j, (t, d, src) in enumerate(items):
+        col = j % 2
+        row = j // 2
+        x = 80 + col * 900
+        y = y0 - row * 320
+        box(x, y - 280, 860, 280, True, radius=10, fill=NAVY_2, border=GOLD)
+        c.setFont("SerifBold", 24)
+        c.setFillColorRGB(*IVORY)
+        c.drawString(x + 30, y - 40, t)
+        body(d, x + 30, y - 80, True, 14, 800, 22)
+        c.setFont("BodyItalic", 10)
+        c.setFillColorRGB(*GOLD_SOFT)
+        c.drawString(x + 30, y - 250, "Source: " + src)
+
+    source_note("EU AI Act (Regulation (EU) 2024/1689), BSI C5, Bitkom Cloud Monitor 2024, McKinsey State of AI 2024, Statista server OS share 2024.")
+    c.showPage()
+
+
+# ==================================================================
+# Customer journey
+# ==================================================================
+def s_journey(i):
+    bg(False)
+    chrome(i, TOTAL, False, "11 · Customer journey")
+    kicker("Customer journey", 80, H - 150, dark=False)
+    h1("From purchase to production, on customer-owned Windows infrastructure.",
+       80, H - 220, dark=False, size=38, max_w=1760)
+
+    steps = [
+        ("Purchase",
+         "Customer orders the Basic Platform and any Premium Modules through OPSQAI."),
+        ("Portal download",
+         "Signed Windows installation package retrieved from the Customer Portal."),
+        ("Windows install",
+         "Installer provisions PostgreSQL + pgvector, storage, services and Caddy on Windows Server."),
+        ("License activation",
+         "Ed25519-signed activation bundle imported into the install; modules unlock as licensed."),
+        ("AI configuration",
+         "Customer picks the AI provider — OpenAI, Azure OpenAI, self-hosted Ollama or a compatible endpoint."),
+        ("In production",
+         "Users invited, SOPs ingested, grounded answers with source citations and AI audit."),
+    ]
+
+    n = len(steps)
+    left = 100
+    right = W - 100
+    spine_y = H - 400
+    c.setStrokeColorRGB(*GOLD_DIM)
+    c.setLineWidth(1.0)
+    c.line(left + 30, spine_y, right - 30, spine_y)
+
+    step_w = (right - left) / n
+    for j, (t, d) in enumerate(steps):
+        cx = left + step_w * j + step_w / 2
+        c.setFillColorRGB(*GOLD)
+        c.circle(cx, spine_y, 18, fill=1, stroke=0)
+        c.setFont("SerifBold", 18)
+        c.setFillColorRGB(*NAVY)
+        c.drawCentredString(cx, spine_y - 6, str(j + 1))
+        card_x = cx - step_w / 2 + 14
+        card_w = step_w - 28
+        card_y = spine_y - 60
+        card_h = 340
+        box(card_x, card_y - card_h, card_w, card_h, dark=False, radius=10,
+            fill=IVORY_2, border=GOLD)
+        c.setFont("BodyBold", 12)
+        c.setFillColorRGB(*GOLD_DIM)
+        c.drawString(card_x + 20, card_y - 34, f"STEP {j + 1:02d}")
+        yy = card_y - 66
+        c.setFont("SerifBold", 18)
+        c.setFillColorRGB(*INK)
+        for line in wrap(t, "SerifBold", 18, card_w - 40):
+            c.drawString(card_x + 20, yy, line)
+            yy -= 22
+        body(d, card_x + 20, yy - 6, dark=False, size=12,
+             max_w=card_w - 40, leading=17)
+
+    box(80, 120, 1760, 90, dark=False, radius=10, fill=IVORY_2, border=GOLD)
+    c.setFont("SerifBold", 20)
+    c.setFillColorRGB(*INK)
+    c.drawString(110, 170, "Cloud is used only for licensing, updates and the Customer Portal.")
+    c.setFont("Body", 14)
+    c.setFillColorRGB(*INK_SOFT)
+    c.drawString(110, 142, "Every operational surface runs inside the customer's Windows install.")
+
+    source_note("Journey matches src/routes/product.tsx, opsqai-windows/ installer and docs/administrator-guide.", dark=False)
+    c.showPage()
+
+
 # ------------------------------------------------------------------
 # Render
 # ------------------------------------------------------------------
 s_cover(1)
 s_problem(2)
-s_market_context(3)
-s_product(4)
-s_why(5)
-s_architecture(6)
-s_how_it_works(7)
-s_mockups_1(8)
-s_mockups_2(9)
-s_mockups_3(10)
-s_business_model(11)
-s_competitive(12)
-s_gtm(13)
-s_traction(14)
-s_roadmap(15)
-s_team(16)
-s_market(17)
-s_ask(18)
+s_why_now(3)
+s_market_context(4)
+s_product(5)
+s_why(6)
+s_architecture(7)
+s_how_it_works(8)
+s_mockups_1(9)
+s_mockups_2(10)
+s_mockups_3(11)
+s_journey(12)
+s_business_model(13)
+s_competitive(14)
+s_gtm(15)
+s_traction(16)
+s_roadmap(17)
+s_team(18)
+s_market(19)
+s_ask(20)
 
 c.save()
 print("wrote", OUT)
+
