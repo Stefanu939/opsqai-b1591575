@@ -1,5 +1,5 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -10,39 +10,21 @@ import {
   Menu,
   X,
   Languages,
-  BarChart3,
-  ScrollText,
   UserCircle,
-
   Building2,
-  ShieldCheck,
-  Inbox,
-  AlertTriangle,
   LineChart,
-  Sparkles,
-  ClipboardCheck,
   GraduationCap,
-  KeyRound,
   LifeBuoy,
   Package,
-  FileText,
-  Mail,
-  Wrench,
-  Rocket,
-  ShieldAlert,
-  Webhook,
-  Activity,
   Download,
+  ClipboardCheck,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { useAuth } from "@/lib/auth-context";
-import { useDeploymentInfo } from "@/components/app/deployment-mode-gate";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useT } from "@/i18n";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-
 import {
   Select,
   SelectContent,
@@ -53,7 +35,6 @@ import {
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { WorkspaceContextBanner } from "@/components/app/workspace-context-banner";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
 import { useLicense, hasModule } from "@/lib/license";
 import type { ModuleKey } from "@/lib/license-modules";
@@ -62,65 +43,14 @@ import type { ModuleKey } from "@/lib/license-modules";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
-  const {
-    isPlatformAdmin,
-    isPlatformOwner,
-    signOut,
-    user,
-    companyName,
-    activeCompanyId,
-    setActiveCompanyId,
-    hasPermission,
-    hasAnyPermission,
-  } = auth;
+  const { signOut, user, companyName, hasPermission, hasAnyPermission } = auth;
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const license = useLicense();
   const gate = (m: ModuleKey | null) => (m === null ? true : hasModule(license, m));
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [companies, setCompanies] = useState<
-    Array<{ id: string; name: string; is_system?: boolean }>
-  >([]);
 
-  const deploymentQuery = useDeploymentInfo();
-  const mode = deploymentQuery.data?.mode ?? getClientDeploymentMode();
-  const isMC = mode === "mc";
-  const currentPath = useRouterState({ select: (s) => s.location.pathname });
-
-  // In MC deployment we render ONLY the dedicated Mission Control shell
-  // (Noir & Gold PlatformSidebar via /app/platform/* layout). All other
-  // authenticated routes are redirected there. This keeps the MC surface
-  // clean and prevents the legacy multi-section app sidebar from showing.
-  useEffect(() => {
-    if (!isMC) return;
-    const allowed =
-      currentPath.startsWith("/app/platform") ||
-      currentPath.startsWith("/app/admin") ||
-      currentPath.startsWith("/app/profile") ||
-      currentPath.startsWith("/app/docs") ||
-      currentPath.startsWith("/app/brand") ||
-      currentPath.startsWith("/portal");
-    if (!allowed) {
-      navigate({ to: "/app/platform/overview", replace: true });
-    }
-  }, [isMC, currentPath, navigate]);
-
-  useEffect(() => {
-    if (!isPlatformAdmin) return;
-    supabase
-      .from("companies")
-      .select("id, name, is_system")
-      .order("is_system", { ascending: false })
-      .order("name")
-      .then(({ data }) => {
-        setCompanies((data ?? []) as Array<{ id: string; name: string; is_system?: boolean }>);
-      });
-  }, [isPlatformAdmin]);
-
-  // MC deployment: render children only — /app/platform/* has its own shell.
-  if (isMC) {
-    return <>{children}</>;
-  }
+  const mode = getClientDeploymentMode();
 
   type NavItem = {
     to: string;
@@ -131,17 +61,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     module?: ModuleKey | null;
   };
 
-  // ---- Self-hosted (customer operational) navigation ----
-  // Basic bundle (always visible): Overview, Chat, KB, FAQ, Knowledge Gaps,
-  // AI Audit, Users, Subscription. Every other admin/operational item is
-  // hidden until the customer licenses the matching module (gate via
-  // `module` key + `filterNav`). No item definitions are removed — only the
-  // gate values decide visibility.
-  // ── Self-hosted v2 nav — the ten canonical surfaces ─────────────────
-  // Per plan v2.0: /app is the Self-Hosted product for end-users on-prem.
-  // Ten flat items — no admin/platform groups. Platform admins can still
-  // reach ops surfaces via direct URLs; they are not primary navigation.
-  const selfhostWorkspace: NavItem[] = [
+  // ── Self-hosted v2.0 nav — the ten canonical surfaces ─────────────────
+  // /app/* is the Windows on-premise, single-tenant product for the end
+  // customer. Ten flat items — no admin/platform sub-groups. Platform
+  // operators run separately on the Management Center (/management/*).
+  const workspace: NavItem[] = [
     { to: "/app", label: "AI Chat", icon: MessageSquare, exact: true, show: true, module: "chat" },
     {
       to: "/app/knowledge",
@@ -178,280 +102,17 @@ export function AppShell({ children }: { children: ReactNode }) {
       show: hasAnyPermission("user.create", "user.update", "user.delete"),
       module: null,
     },
-    {
-      to: "/app/organization",
-      label: "Organization",
-      icon: Building2,
-      show: true,
-      module: null,
-    },
-    {
-      to: "/app/subscription",
-      label: "Subscription",
-      icon: Package,
-      show: true,
-      module: null,
-    },
-    {
-      to: "/app/updates",
-      label: "Updates",
-      icon: Download,
-      show: true,
-      module: null,
-    },
-    {
-      to: "/app/modules",
-      label: "Modules",
-      icon: ClipboardCheck,
-      show: true,
-      module: null,
-    },
+    { to: "/app/organization", label: "Organization", icon: Building2, show: true, module: null },
+    { to: "/app/subscription", label: "Subscription", icon: Package, show: true, module: null },
+    { to: "/app/updates", label: "Updates", icon: Download, show: true, module: null },
+    { to: "/app/modules", label: "Modules", icon: ClipboardCheck, show: true, module: null },
   ];
-
-  const selfhostAdmin: NavItem[] = [];
-  const selfhostPlatform: NavItem[] = [];
-
-
-
-  // ---- Management Center (platform management ONLY) navigation ----
-  const mcAdmin = isPlatformAdmin || isPlatformOwner;
-
-  const mcOverview: NavItem[] = [
-    {
-      to: "/app",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      exact: true,
-      show: true,
-      module: null,
-    },
-    {
-      to: "/app/admin/dashboard",
-      label: "Executive Dashboard",
-      icon: BarChart3,
-      show: mcAdmin,
-      module: null,
-    },
-    {
-      to: "/app/admin/analytics",
-      label: "Analytics",
-      icon: LineChart,
-      show: mcAdmin,
-      module: null,
-    },
-    {
-      to: "/app/admin/monitoring",
-      label: "Monitoring",
-      icon: Activity,
-      show: mcAdmin,
-      module: null,
-    },
-  ];
-
-  const mcEnterprise: NavItem[] = mcAdmin
-    ? [
-        {
-          to: "/app/admin/companies",
-          label: "Companies",
-          icon: Building2,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/customers",
-          label: "Enterprise Documents",
-          icon: FileText,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/contacts",
-          label: "Contacts",
-          icon: Users,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/installations",
-          label: "Installations",
-          icon: Package,
-          show: true,
-          module: null,
-        },
-        { to: "/portal", label: "Customer Portal", icon: LifeBuoy, show: true, module: null },
-      ]
-    : [];
-
-  const mcLicensing: NavItem[] = mcAdmin
-    ? [
-        {
-          to: "/app/platform/licenses",
-          label: "Licenses & Releases",
-          icon: KeyRound,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/platform/license-activation",
-          label: "Activation Bundles",
-          icon: Package,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/module-catalog",
-          label: "Module Catalog",
-          icon: ClipboardCheck,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/release-management",
-          label: "Release Management",
-          icon: Rocket,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/maintenance",
-          label: "Maintenance",
-          icon: Wrench,
-          show: true,
-          module: null,
-        },
-      ]
-    : [];
-
-  const mcCommercial: NavItem[] = mcAdmin
-    ? [
-        {
-          to: "/app/admin/subscriptions",
-          label: "Orders & Subscriptions",
-          icon: Package,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/billing",
-          label: "Billing",
-          icon: KeyRound,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/downloads",
-          label: "Downloads",
-          icon: Download,
-          show: true,
-          module: null,
-        },
-      ]
-    : [];
-
-  const mcOperations: NavItem[] = mcAdmin
-    ? [
-        { to: "/app/admin/support", label: "Support Inbox", icon: Inbox, show: true, module: null },
-        {
-          to: "/app/admin/audit",
-          label: t("auditLog"),
-          icon: ScrollText,
-          show: hasPermission("audit.view"),
-          module: null,
-        },
-        { to: "/app/admin/email", label: "Email Settings", icon: Mail, show: true, module: null },
-        {
-          to: "/app/admin/email-logs",
-          label: "Email Logs",
-          icon: ScrollText,
-          show: true,
-          module: null,
-        },
-      ]
-    : [];
-
-  const mcIntegrations: NavItem[] = mcAdmin
-    ? [
-        {
-          to: "/app/admin/integrations",
-          label: "Integrations",
-          icon: Sparkles,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/sso-setup",
-          label: "SSO / SAML / OAuth",
-          icon: ShieldCheck,
-          show: true,
-          module: null,
-        },
-        { to: "/app/admin/webhooks", label: "Webhooks", icon: Webhook, show: true, module: null },
-        { to: "/app/admin/api-keys", label: "API Keys", icon: KeyRound, show: true, module: null },
-        { to: "/app/admin/api-docs", label: "API Docs", icon: FileText, show: true, module: null },
-      ]
-    : [];
-
-  const mcPlatformAdmin: NavItem[] = mcAdmin
-    ? [
-        {
-          to: "/app/admin/platform",
-          label: "Platform Administration",
-          icon: ShieldCheck,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/admin/platform-admins",
-          label: "Users & Roles",
-          icon: Users,
-          show: true,
-          module: null,
-        },
-        { to: "/app/admin/users", label: "Directory", icon: Users, show: true, module: null },
-        { to: "/app/brand", label: "Branding", icon: Sparkles, show: true, module: null },
-        {
-          to: "/app/platform/setup",
-          label: "Setup Wizard",
-          icon: Rocket,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/platform/doctor",
-          label: "System Doctor",
-          icon: Wrench,
-          show: true,
-          module: null,
-        },
-        {
-          to: "/app/platform/recovery",
-          label: "Disaster Recovery",
-          icon: ShieldAlert,
-          show: true,
-          module: null,
-        },
-      ]
-    : [];
-
 
   const filterNav = (items: NavItem[]) => items.filter((i) => i.show && gate(i.module ?? null));
 
-  // Assemble grouped nav sections based on deployment mode.
-  const sections: Array<{ label: string; items: NavItem[] }> = isMC
-    ? [
-        { label: "Overview", items: filterNav(mcOverview) },
-        { label: "Enterprise", items: filterNav(mcEnterprise) },
-        { label: "Licensing", items: filterNav(mcLicensing) },
-        { label: "Commercial", items: filterNav(mcCommercial) },
-        { label: "Operations", items: filterNav(mcOperations) },
-        { label: "Integrations & API", items: filterNav(mcIntegrations) },
-        { label: "Platform", items: filterNav(mcPlatformAdmin) },
-      ]
-    : [
-        { label: "Workspace", items: filterNav(selfhostWorkspace) },
-        { label: t("admin"), items: filterNav(selfhostAdmin) },
-        { label: "Platform", items: filterNav(selfhostPlatform) },
-      ];
+  const sections: Array<{ label: string; items: NavItem[] }> = [
+    { label: "Workspace", items: filterNav(workspace) },
+  ];
 
   // Legacy flat `nav` kept for the mobile bottom-tab bar — primary items only.
   const nav = sections[0]?.items ?? [];
