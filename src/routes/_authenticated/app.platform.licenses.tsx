@@ -91,7 +91,7 @@ function LicensesPage() {
   const { isPlatformAdmin } = useAuth();
   if (!isPlatformAdmin) throw redirect({ to: "/app" });
   const qc = useQueryClient();
-  const { tab } = Route.useSearch();
+  const { tab, companyId, companyName } = Route.useSearch();
   const navigate = Route.useNavigate();
 
   const list = useServerFn(listLicenses);
