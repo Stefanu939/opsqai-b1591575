@@ -284,19 +284,44 @@ function LicensesPage() {
 
   const licenses = (rows ?? []) as LicenseRow[];
 
+  const filteredLicenses = companyName
+    ? licenses.filter((l) => l.company_name?.toLowerCase() === companyName.toLowerCase())
+    : licenses;
+
   return (
     <div className="flex-1 p-6 md:p-10 space-y-6 max-w-6xl">
+      {companyId && (
+        <div className="flex items-center gap-2 text-[11px] text-[var(--mc-fg-dim)]">
+          <Link
+            to="/app/platform/customers"
+            className="hover:text-[var(--mc-gold-glow)] transition-colors"
+          >
+            Companies
+          </Link>
+          <span>›</span>
+          <span className="text-[var(--mc-fg)]">{companyName ?? companyId}</span>
+          <Button
+            asChild
+            size="sm"
+            variant="ghost"
+            className="ml-auto h-7 gap-1.5 text-[var(--mc-fg-muted)] hover:text-[var(--mc-fg)]"
+          >
+            <Link to="/app/platform/customers">← Back</Link>
+          </Button>
+        </div>
+      )}
       <header className="flex items-start justify-between gap-4">
         <div>
           <p className="mc-eyebrow text-[var(--mc-fg-dim)]">Operations</p>
           <h1 className="mc-heading text-3xl font-semibold tracking-tight flex items-center gap-2 text-[var(--mc-fg)]">
-            <KeyRound className="h-7 w-7 text-[var(--mc-gold)]" /> Licențe &amp; Billing
+            <KeyRound className="h-7 w-7 text-[var(--mc-gold)]" />
+            {companyName ? `Licențe · ${companyName}` : "Licențe & Bundle Release"}
           </h1>
           <p className="text-sm text-[var(--mc-fg-muted)] mt-1">
-            Emiterea licențelor, module add-on, bundle de activare — plus lifecycle-ul de subscription (trial, grace, suspend).
+            Emiterea licențelor, module add-on, bundle de activare, chei de semnare, DR tokens și lifecycle-ul de subscription.
           </p>
         </div>
-        <Button asChild className="shrink-0 gap-1.5 bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] text-[#0a0a1a] font-semibold shadow-[0_8px_24px_-8px_rgba(124,92,255,0.45)] hover:brightness-110">
+        <Button asChild className="shrink-0 gap-1.5 bg-gradient-to-b from-[var(--mc-gold)] to-[#5b3fd9] text-white font-semibold shadow-[0_8px_24px_-8px_rgba(124,92,255,0.45)] hover:brightness-110">
           <Link to="/app/platform/onboarding">
             <Plus className="h-4 w-4" /> Onboard client nou
           </Link>
@@ -305,10 +330,16 @@ function LicensesPage() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) => navigate({ search: { tab: v as "licenses" | "billing" }, replace: true })}
+        onValueChange={(v) =>
+          navigate({
+            search: (prev) => ({ ...prev, tab: v as "licenses" | "bundle" | "billing" }),
+            replace: true,
+          })
+        }
       >
         <TabsList>
           <TabsTrigger value="licenses">Licențe</TabsTrigger>
+          <TabsTrigger value="bundle">Bundle Release</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
         </TabsList>
 
@@ -316,42 +347,57 @@ function LicensesPage() {
           <BillingPanel />
         </TabsContent>
 
+        <TabsContent value="bundle" className="mt-6 space-y-6">
+          {pubKey && (
+            <Card className="p-4">
+              <div className="text-sm font-medium mb-1 flex items-center gap-2">
+                <Package className="h-4 w-4" /> Signing public key{" "}
+                <Badge variant="outline">
+                  {pubKey.algorithm} · {pubKey.key_id}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">
+                Ship this PEM with every Self-Hosted build so installs can verify license tokens
+                offline.
+              </p>
+              <pre className="text-xs bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
+                {pubKey.public_key_pem}
+              </pre>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(pubKey.public_key_pem);
+                    toast.success("Copied");
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-1" /> Copy PEM
+                </Button>
+                <Button variant="outline" size="sm" onClick={downloadCrl}>
+                  <ShieldOff className="h-4 w-4 mr-1" /> Export revocation list (CRL)
+                </Button>
+              </div>
+            </Card>
+          )}
+          <Card className="p-4 space-y-2">
+            <div className="text-sm font-medium flex items-center gap-2">
+              <Package className="h-4 w-4" /> Activation bundles & DR tokens
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Bundle-ul de activare (JSON semnat cu install + module licenses + CRL) și
+              Bootstrap Recovery Tokens se generează per-install din tabelul de mai jos, tab-ul
+              <span className="mx-1 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                Licențe
+              </span>
+              — coloana Actions expune butoanele <strong>Bundle</strong>, <strong>Package</strong>{" "}
+              și <strong>DR Token</strong>.
+            </p>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="licenses" className="mt-6 space-y-6">
 
-
-
-      {pubKey && (
-        <Card className="p-4">
-          <div className="text-sm font-medium mb-1 flex items-center gap-2">
-            <Package className="h-4 w-4" /> Signing public key{" "}
-            <Badge variant="outline">
-              {pubKey.algorithm} · {pubKey.key_id}
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground mb-2">
-            Ship this PEM with every Self-Hosted build so installs can verify license tokens
-            offline.
-          </p>
-          <pre className="text-xs bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
-            {pubKey.public_key_pem}
-          </pre>
-          <div className="flex gap-2 mt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                navigator.clipboard?.writeText(pubKey.public_key_pem);
-                toast.success("Copied");
-              }}
-            >
-              <Copy className="h-4 w-4 mr-1" /> Copy PEM
-            </Button>
-            <Button variant="outline" size="sm" onClick={downloadCrl}>
-              <ShieldOff className="h-4 w-4 mr-1" /> Export revocation list
-            </Button>
-          </div>
-        </Card>
-      )}
 
       <Card className="p-4 space-y-4">
         <div className="text-sm font-medium">Issue Installation License</div>
