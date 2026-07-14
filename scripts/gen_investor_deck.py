@@ -145,27 +145,34 @@ def slide_cover(i):
 
 
 # ---------- Generic content slide helpers ----------
-def slide_title(title, kicker):
+def _title(title, kicker, color, max_w=1400):
     c.setFont("Body", 14)
     c.setFillColorRGB(*GOLD)
     c.drawString(80, H - 150, kicker.upper())
-    c.setFont("SerifBold", 68)
-    c.setFillColorRGB(*INK)
-    c.drawString(80, H - 230, title)
+    # Auto-fit font size so title wraps to <=2 lines within max_w
+    size = 60
+    while size > 34:
+        lines = wrap(title, "SerifBold", size, max_w)
+        if len(lines) <= 2:
+            break
+        size -= 4
+    c.setFont("SerifBold", size)
+    c.setFillColorRGB(*color)
+    y = H - 210
+    for line in lines:
+        c.drawString(80, y, line)
+        y -= int(size * 1.05)
     # gold underline
     c.setFillColorRGB(*GOLD)
-    c.rect(80, H - 250, 80, 3, fill=1, stroke=0)
+    c.rect(80, y + int(size * 0.6), 80, 3, fill=1, stroke=0)
 
 
-def slide_title_dark(title, kicker):
-    c.setFont("Body", 14)
-    c.setFillColorRGB(*GOLD)
-    c.drawString(80, H - 150, kicker.upper())
-    c.setFont("SerifBold", 68)
-    c.setFillColorRGB(*IVORY)
-    c.drawString(80, H - 230, title)
-    c.setFillColorRGB(*GOLD)
-    c.rect(80, H - 250, 80, 3, fill=1, stroke=0)
+def slide_title(title, kicker, max_w=1400):
+    _title(title, kicker, INK, max_w)
+
+
+def slide_title_dark(title, kicker, max_w=1400):
+    _title(title, kicker, IVORY, max_w)
 
 
 # ---------- 2. The Moment ----------
