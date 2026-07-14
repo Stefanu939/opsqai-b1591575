@@ -100,12 +100,11 @@ function AuthPage() {
   const contactAdmin =
     lang === "de"
       ? "Wenden Sie sich an Ihren Unternehmensadministrator für den Zugang."
-      : lang === "ro"
-        ? "Contactați administratorul companiei pentru acces."
+      
         : "Contact your company administrator for access.";
 
   const forgotLabel =
-    lang === "de" ? "Passwort vergessen?" : lang === "ro" ? "Ai uitat parola?" : "Forgot password?";
+    lang === "de" ? "Passwort vergessen?"  : "Forgot password?";
 
   return (
     <div
@@ -124,7 +123,7 @@ function AuthPage() {
           <span className="font-semibold tracking-tight text-base md:text-lg">OPSQAI</span>
         </Link>
         <button
-          onClick={() => setLang(lang === "de" ? "en" : lang === "en" ? "ro" : "de")}
+          onClick={() => setLang(lang === "de" ? "en" : "de")}
           aria-label="Change language"
           className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-border/60 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground"
         >
@@ -221,7 +220,7 @@ function AuthPage() {
             </div>
             <div className="rounded-xl md:rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-[13px] md:text-xs md:mt-4">
               <p className="text-muted-foreground">
-                {lang === "de" ? "Kein Konto?" : lang === "ro" ? "Nu ai cont?" : "No account yet?"}
+                {lang === "de" ? "Kein Konto?"  : "No account yet?"}
               </p>
               <Link
                 to="/demo"
@@ -229,15 +228,14 @@ function AuthPage() {
               >
                 {lang === "de"
                   ? "Interaktive Demo starten"
-                  : lang === "ro"
-                    ? "Lansează Demo Interactiv"
+                  
                     : "Launch Interactive Demo"}{" "}
                 →
               </Link>
             </div>
             <p className="text-center text-sm md:text-xs text-muted-foreground pt-2 md:pt-0 md:mt-4">
               <Link to="/" className="inline-flex min-h-11 md:min-h-0 items-center hover:underline">
-                ← {lang === "de" ? "Zurück" : lang === "ro" ? "Înapoi" : "Back"}
+                ← {lang === "de" ? "Zurück"  : "Back"}
               </Link>
             </p>
           </div>

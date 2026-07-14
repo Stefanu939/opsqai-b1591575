@@ -82,8 +82,7 @@ export function ChatSidebar() {
       !confirm(
         lang === "de"
           ? "Diese Unterhaltung löschen?"
-          : lang === "ro"
-            ? "Ștergi conversația?"
+          
             : "Delete this conversation?",
       )
     )
@@ -118,24 +117,22 @@ export function ChatSidebar() {
   };
 
   const labels = {
-    today: lang === "de" ? "Heute" : lang === "ro" ? "Astăzi" : "Today",
-    week: lang === "de" ? "Diese Woche" : lang === "ro" ? "Săptămâna aceasta" : "This week",
-    month: lang === "de" ? "Diesen Monat" : lang === "ro" ? "Luna aceasta" : "This month",
-    older: lang === "de" ? "Älter" : lang === "ro" ? "Mai vechi" : "Older",
+    today: lang === "de" ? "Heute"  : "Today",
+    week: lang === "de" ? "Diese Woche"  : "This week",
+    month: lang === "de" ? "Diesen Monat"  : "This month",
+    older: lang === "de" ? "Älter"  : "Older",
     search:
       lang === "de"
         ? "Unterhaltungen suchen…"
-        : lang === "ro"
-          ? "Caută conversații…"
+        
           : "Search conversations…",
-    newChat: lang === "de" ? "Neue Unterhaltung" : lang === "ro" ? "Conversație nouă" : "New chat",
+    newChat: lang === "de" ? "Neue Unterhaltung"  : "New chat",
     empty:
       lang === "de"
         ? "Noch keine Unterhaltungen"
-        : lang === "ro"
-          ? "Nicio conversație încă"
+        
           : "No conversations yet",
-    history: lang === "de" ? "Verlauf" : lang === "ro" ? "Istoric" : "History",
+    history: lang === "de" ? "Verlauf"  : "History",
   };
 
   return (

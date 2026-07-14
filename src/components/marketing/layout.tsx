@@ -93,7 +93,6 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
   const LANGS: Array<{ code: Lang; label: string }> = [
     { code: "en", label: "English" },
     { code: "de", label: "Deutsch" },
-    { code: "ro", label: "Română" },
   ];
 
   useEffect(() => {

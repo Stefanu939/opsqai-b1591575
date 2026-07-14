@@ -663,7 +663,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="border-t border-sidebar-border p-3 space-y-2">
         <div className="flex items-center gap-2 px-1">
           <Languages className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
-          <Select value={lang} onValueChange={(v) => setLang(v as "de" | "en" | "ro")}>
+          <Select value={lang} onValueChange={(v) => setLang(v as "de" | "en")}>
             <SelectTrigger
               aria-label="Language"
               className="h-8 flex-1 bg-sidebar-accent/40 border-sidebar-border text-xs"
@@ -673,7 +673,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SelectContent>
               <SelectItem value="en">English</SelectItem>
               <SelectItem value="de">Deutsch</SelectItem>
-              <SelectItem value="ro">Română</SelectItem>
             </SelectContent>
           </Select>
         </div>
