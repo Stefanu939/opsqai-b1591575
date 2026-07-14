@@ -139,11 +139,11 @@ export const LICENSE_MODULE_CATALOG: LicenseModule[] = [
   },
   {
     key: "audit_log",
-    label: "Audit Log",
-    category: "Governance",
-    defaultPriceCents: 100000,
-    inBasic: false,
-    description: "Immutable audit trail for compliance.",
+    label: "AI Audit",
+    category: "Basic",
+    defaultPriceCents: 0,
+    inBasic: true,
+    description: "Signed, hash-chained log of every AI interaction with sources.",
   },
   {
     key: "rbac",
