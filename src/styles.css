@@ -136,73 +136,73 @@
 }
 
 .dark {
-  /* Warmer, softer ink canvas (not pure black) */
-  --background: #0b0e14;
-  --foreground: #e7ebf2;
-  --surface: #11151d;
+  --background: #0b1220;
+  --surface-0: #0b1220;
+  --surface-1: #111a2e;
+  --surface-2: #17223a;
+  --surface-3: #1f2c48;
+  --foreground: #e8ecf3;
+  --surface: #111a2e;
 
-  --card: #11151d;
-  --card-foreground: #e7ebf2;
-  --popover: #11151d;
-  --popover-foreground: #e7ebf2;
+  --card: #111a2e;
+  --card-foreground: #e8ecf3;
+  --popover: #111a2e;
+  --popover-foreground: #e8ecf3;
 
-  /* Primary in dark = soft slate-indigo, eye-comfortable */
-  --primary: #6a82c8;
-  --primary-foreground: #0b0e14;
-  --primary-glow: #8597d4;
+  --primary: #e8ecf3;
+  --primary-foreground: #0b1220;
+  --primary-glow: #ffffff;
 
-  --secondary: #1a1f2b;
-  --secondary-foreground: #e7ebf2;
+  --secondary: #17223a;
+  --secondary-foreground: #e8ecf3;
 
-  --muted: #1a1f2b;
-  --muted-foreground: #9aa3b8;
+  --muted: #111a2e;
+  --muted-foreground: #94a3b8;
 
-  --accent: #112e2a;
-  --accent-foreground: #9adbcf;
+  --accent: #17223a;
+  --accent-foreground: #e8ecf3;
 
-  --signal: #36a89a;
-  --signal-foreground: #052e29;
+  --signal: #e8ecf3;
+  --signal-foreground: #0b1220;
 
-  --destructive: #d56a6a;
-  --destructive-foreground: #f7f8fa;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
 
-  --success: #36a89a;
-  --warning: #d4a263;
+  --success: #10b981;
+  --warning: #f59e0b;
 
-  --border: #1e2330;
-  --border-strong: #2a3142;
-  --input: #1e2330;
-  --ring: #6a82c8;
+  --border: #1f2c48;
+  --border-strong: #2a3a5c;
+  --input: #1f2c48;
+  --ring: #e8ecf3;
 
-  --chart-1: #6a82c8;
-  --chart-2: #36a89a;
-  --chart-3: #8a93cf;
-  --chart-4: #4cb591;
-  --chart-5: #d4a263;
+  --chart-1: #e8ecf3;
+  --chart-2: #94a3b8;
+  --chart-3: #64748b;
+  --chart-4: #10b981;
+  --chart-5: #f59e0b;
 
-  --sidebar: #0d1118;
-  --sidebar-foreground: #d6dbe6;
-  --sidebar-primary: #6a82c8;
-  --sidebar-primary-foreground: #0b0e14;
-  --sidebar-accent: #181d28;
-  --sidebar-accent-foreground: #e7ebf2;
-  --sidebar-border: #1e2330;
-  --sidebar-ring: #6a82c8;
+  --sidebar: #0b1220;
+  --sidebar-foreground: #e8ecf3;
+  --sidebar-primary: #e8ecf3;
+  --sidebar-primary-foreground: #0b1220;
+  --sidebar-accent: #17223a;
+  --sidebar-accent-foreground: #e8ecf3;
+  --sidebar-border: #1f2c48;
+  --sidebar-ring: #e8ecf3;
 
-  --gradient-hero:
-    radial-gradient(60% 80% at 70% 0%, rgba(106, 130, 200, 0.1) 0%, transparent 60%),
-    radial-gradient(50% 70% at 10% 100%, rgba(54, 168, 154, 0.06) 0%, transparent 65%);
-  --gradient-cta: linear-gradient(135deg, #11151d 0%, #0b0e14 100%);
-  --gradient-primary: linear-gradient(135deg, #4f6bbf 0%, #3a5392 100%);
-  --gradient-card: linear-gradient(180deg, #131822 0%, #0f131a 100%);
-  --gradient-sidebar: linear-gradient(180deg, #0d1118 0%, #0b0e14 100%);
-  --gradient-surface: linear-gradient(180deg, #131822 0%, #0f131a 100%);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 32px -12px rgba(0, 0, 0, 0.65);
+  --shadow-glow: none;
 
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35), 0 1px 2px -1px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.42), 0 2px 6px -2px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 20px 48px -12px rgba(0, 0, 0, 0.48), 0 6px 16px -6px rgba(0, 0, 0, 0.32);
-  --shadow-glow: 0 0 0 1px rgba(106, 130, 200, 0.16), 0 6px 24px -8px rgba(106, 130, 200, 0.16);
+  --gradient-hero: none;
+  --gradient-cta: #17223a;
+  --gradient-primary: #e8ecf3;
+  --gradient-card: #111a2e;
+  --gradient-sidebar: #0b1220;
+  --gradient-surface: #111a2e;
 }
 
 @layer base {
@@ -220,25 +220,13 @@
   h5,
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.012em;
+    letter-spacing: -0.015em;
   }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-  }
-  .dark body {
-    background-image:
-      radial-gradient(80% 60% at 50% -10%, rgba(106, 130, 200, 0.07), transparent 60%),
-      radial-gradient(60% 50% at 100% 100%, rgba(54, 168, 154, 0.04), transparent 60%);
-    background-attachment: fixed;
-  }
-  :root:not(.dark) body {
-    background-image:
-      radial-gradient(80% 60% at 50% -10%, rgba(58, 91, 184, 0.03), transparent 60%),
-      radial-gradient(60% 50% at 100% 100%, rgba(31, 148, 133, 0.02), transparent 60%);
-    background-attachment: fixed;
   }
   .font-mono,
   code,
