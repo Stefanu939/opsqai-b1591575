@@ -42,7 +42,7 @@ const DASHBOARD: Item[] = [
 const COMPANIES: Item[] = [
   {
     title: "Companies",
-    url: "/app/admin/companies",
+    url: "/app/platform/customers",
     icon: Building2,
     desc: "Firme, planuri, licențe, releases și module — totul într-un singur ecran.",
   },
@@ -51,13 +51,13 @@ const COMPANIES: Item[] = [
 const COMMERCIAL: Item[] = [
   {
     title: "Billing",
-    url: "/app/admin/billing",
+    url: "/app/platform/billing",
     icon: CreditCard,
     desc: "Wizard de emitere abonament: pachet, mentenanță, module, rezumat 12 luni.",
   },
   {
     title: "Support Inbox",
-    url: "/app/admin/support",
+    url: "/app/platform/support",
     icon: MessageSquare,
     desc: "Conversații cu clienții — WhatsApp premium.",
   },
@@ -66,7 +66,7 @@ const COMMERCIAL: Item[] = [
 const INTELLIGENCE: Item[] = [
   {
     title: "Audit AI",
-    url: "/app/admin/ai-audit",
+    url: "/app/platform/audit",
     icon: Brain,
     desc: "Health scoring firme, plăți, heartbeat, sugestii audit director-level.",
   },
@@ -75,7 +75,7 @@ const INTELLIGENCE: Item[] = [
 const OPERATIONS: Item[] = [
   {
     title: "Recovery & Maintenance",
-    url: "/app/admin/maintenance",
+    url: "/app/platform/ops",
     icon: Wrench,
     desc: "Ferestre mentenanță, DR tokens, restore packages — combinate.",
   },
@@ -84,7 +84,7 @@ const OPERATIONS: Item[] = [
 const SYSTEM: Item[] = [
   {
     title: "Platform Administration",
-    url: "/app/admin/platform",
+    url: "/app/platform/administration",
     icon: ShieldCheck,
     desc: "Organigramă echipa OPSQAI, roluri și governance.",
   },
