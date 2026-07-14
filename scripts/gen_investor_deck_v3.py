@@ -1089,7 +1089,7 @@ def s_roadmap(i):
             "Setup Wizard · Doctor · Recovery",
             "Windows installer + native services",
             "Management Center · Customer Portal",
-            "Docker reference deployment",
+            "Signed Windows installer + native services",
             "Documentation suite v1.0",
         ]),
         ("In progress", "current sprint", (0.75, 0.55, 0.20), [
@@ -1098,7 +1098,7 @@ def s_roadmap(i):
             "AI-adapter registry expansion",
         ]),
         ("Planned", "v1.1 · Q4 2026", (0.55, 0.60, 0.65), [
-            "Helm chart deployment alternative",
+            "Unattended install + group-policy deployment",
             "WebAuthn + TOTP MFA baseline",
             "Anthropic + Mistral hosted adapters",
             "SIEM integrations (Splunk HEC, Elastic)",
