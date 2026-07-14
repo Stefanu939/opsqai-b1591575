@@ -61,6 +61,12 @@ type EnrichedEnrollment = {
 export const listMyTraining = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<EnrichedEnrollment[]> => {
+    try {
+      await enforceAcademy(context, null);
+    } catch (e) {
+      if (e instanceof Response) return [];
+      throw e;
+    }
     const supabase = context.supabase as any;
 
     const { data: enrollments, error } = await supabase
@@ -181,7 +187,19 @@ export const listMyTraining = createServerFn({ method: "POST" })
 export const getMyTrainingSummary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await enforceAcademy(context, null);
+    const emptySummary = {
+      mandatory_active: 0,
+      certificates: 0,
+      average_quiz_score: null as number | null,
+      learning_progress_percent: 0,
+      upcoming_deadlines: 0,
+    };
+    try {
+      await enforceAcademy(context, null);
+    } catch (e) {
+      if (e instanceof Response) return emptySummary;
+      throw e;
+    }
     const supabase = context.supabase as any;
 
     const [enrollmentsRes, certsRes, quizzesRes] = await Promise.all([
