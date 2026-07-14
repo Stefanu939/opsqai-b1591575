@@ -407,30 +407,35 @@ body {
    ============================================================ */
 
 .mc-shell {
-  --mc-bg: #0d0d0d;
-  --mc-surface-1: #141414;
-  --mc-surface-2: #1a1a1a;
-  --mc-surface-3: #242424;
-  --mc-gold: #c9a84c;
-  --mc-gold-soft: rgba(201, 168, 76, 0.5);
-  --mc-gold-glow: #f0d78c;
-  --mc-gold-line: rgba(201, 168, 76, 0.18);
-  --mc-gold-line-strong: rgba(201, 168, 76, 0.4);
-  --mc-fg: #f5f0e0;
-  --mc-fg-muted: #8a8578;
-  --mc-fg-dim: #5c5850;
-  --mc-danger: #d97757;
-  --mc-success: #8fbf7a;
+  /* Violet Noir palette — Mission Control Cloud */
+  --mc-bg: #0a0a1a;
+  --mc-surface-1: #12122a;
+  --mc-surface-2: #1a1a3d;
+  --mc-surface-3: #23234d;
+  /* Token names kept for backward-compat; values now violet/indigo */
+  --mc-gold: #7c5cff;
+  --mc-gold-soft: rgba(124, 92, 255, 0.5);
+  --mc-gold-glow: #a78bfa;
+  --mc-gold-line: rgba(124, 92, 255, 0.14);
+  --mc-gold-line-strong: rgba(124, 92, 255, 0.32);
+  --mc-fg: #e8e8ff;
+  --mc-fg-muted: #9a9ac8;
+  --mc-fg-dim: #6666a0;
+  --mc-danger: #f87171;
+  --mc-success: #34d399;
+  --mc-warning: #fbbf24;
+  --mc-cyan: #22d3ee;
+  --mc-magenta: #ec4899;
 
   /* Override shadcn tokens inside MC scope */
   --background: var(--mc-bg);
   --foreground: var(--mc-fg);
-  --card: var(--mc-surface-2);
+  --card: var(--mc-surface-1);
   --card-foreground: var(--mc-fg);
   --popover: var(--mc-surface-3);
   --popover-foreground: var(--mc-fg);
   --primary: var(--mc-gold);
-  --primary-foreground: #0d0d0d;
+  --primary-foreground: #0a0a1a;
   --secondary: var(--mc-surface-3);
   --secondary-foreground: var(--mc-fg);
   --muted: var(--mc-surface-2);
@@ -440,19 +445,19 @@ body {
   --border: var(--mc-gold-line);
   --input: var(--mc-surface-3);
   --ring: var(--mc-gold);
-  --sidebar: #0a0a0a;
+  --sidebar: #08081a;
   --sidebar-foreground: var(--mc-fg);
   --sidebar-primary: var(--mc-gold);
-  --sidebar-primary-foreground: #0d0d0d;
+  --sidebar-primary-foreground: #0a0a1a;
   --sidebar-accent: var(--mc-surface-2);
   --sidebar-accent-foreground: var(--mc-gold-glow);
   --sidebar-border: var(--mc-gold-line);
   --sidebar-ring: var(--mc-gold);
-  --chart-1: #c9a84c;
-  --chart-2: #f0d78c;
-  --chart-3: #8fbf7a;
-  --chart-4: #d97757;
-  --chart-5: #6a7db3;
+  --chart-1: #7c5cff;
+  --chart-2: #a78bfa;
+  --chart-3: #22d3ee;
+  --chart-4: #ec4899;
+  --chart-5: #34d399;
 
   background: var(--mc-bg);
   color: var(--mc-fg);
@@ -497,9 +502,9 @@ body {
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(201, 168, 76, 0) 5%,
-      rgba(201, 168, 76, 0.55) 50%,
-      rgba(201, 168, 76, 0) 95%,
+      rgba(124, 92, 255, 0) 5%,
+      rgba(124, 92, 255, 0.55) 50%,
+      rgba(124, 92, 255, 0) 95%,
       transparent 100%
     );
     pointer-events: none;
@@ -517,12 +522,12 @@ body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 1px 0 rgba(0, 0, 0, 0.5),
-    0 8px 24px -8px rgba(201, 168, 76, 0.45),
-    0 0 0 1px rgba(201, 168, 76, 0.35);
+    0 8px 24px -8px rgba(124, 92, 255, 0.55),
+    0 0 0 1px rgba(124, 92, 255, 0.4);
 }
 
 @utility mc-surface {
-  background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
+  background: linear-gradient(180deg, #16163a 0%, #101028 100%);
   border: 1px solid var(--mc-gold-line);
   border-radius: 0.75rem;
 }
@@ -536,13 +541,13 @@ body {
     transform: translateY(-2px);
     border-color: var(--mc-gold-line-strong);
     box-shadow:
-      0 12px 32px -12px rgba(0, 0, 0, 0.6),
-      0 0 24px -8px rgba(201, 168, 76, 0.18);
+      0 12px 32px -12px rgba(0, 0, 0, 0.7),
+      0 0 24px -8px rgba(124, 92, 255, 0.35);
   }
 }
 
 @utility mc-gold-text {
-  background: linear-gradient(135deg, #f0d78c 0%, #c9a84c 60%, #a48633 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #7c5cff 55%, #22d3ee 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -554,9 +559,15 @@ body {
 
 @utility mc-grid-faint {
   background-image:
-    linear-gradient(to right, rgba(201, 168, 76, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(201, 168, 76, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(124, 92, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 92, 255, 0.05) 1px, transparent 1px);
   background-size: 32px 32px;
+}
+
+@utility mc-glow-violet {
+  box-shadow:
+    0 0 40px -10px rgba(124, 92, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @keyframes mc-fade-in-up {
