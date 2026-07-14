@@ -1089,7 +1089,7 @@ def s_roadmap(i):
             "Setup Wizard · Doctor · Recovery",
             "Windows installer + native services",
             "Management Center · Customer Portal",
-            "Signed Windows installer + native services",
+            "Signed activation bundles + offline import",
             "Documentation suite v1.0",
         ]),
         ("In progress", "current sprint", (0.75, 0.55, 0.20), [
