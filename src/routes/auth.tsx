@@ -220,17 +220,13 @@ function AuthPage() {
             </div>
             <div className="rounded-xl md:rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-[13px] md:text-xs md:mt-4">
               <p className="text-muted-foreground">
-                {lang === "de" ? "Kein Konto?"  : "No account yet?"}
+                {lang === "de" ? "Kein Konto?" : "No account yet?"}
               </p>
               <Link
-                to="/demo"
+                to="/contact"
                 className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline"
               >
-                {lang === "de"
-                  ? "Interaktive Demo starten"
-                  
-                    : "Launch Interactive Demo"}{" "}
-                →
+                {lang === "de" ? "Vertrieb kontaktieren" : "Contact sales"} →
               </Link>
             </div>
             <p className="text-center text-sm md:text-xs text-muted-foreground pt-2 md:pt-0 md:mt-4">

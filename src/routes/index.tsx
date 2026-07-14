@@ -152,8 +152,8 @@ function Hero() {
                 size="lg"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]"
               >
-                <Link to="/demo">
-                  Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" />
+                <Link to="/contact">
+                  Book a Demo <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button
@@ -1108,8 +1108,8 @@ function FinalCTA() {
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_12px_32px_-8px_oklch(0.82_0.14_200/0.55)]"
           >
-            <Link to="/demo">
-              Launch Interactive Demo <ArrowRight className="ml-2 h-4 w-4" />
+            <Link to="/contact">
+              Book a Demo <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button

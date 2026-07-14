@@ -698,7 +698,7 @@ export const Route = createFileRoute("/api/chat")({
                             kind: "new_gap" as const,
                             title: "New knowledge gap detected",
                             body: q.slice(0, 200),
-                            link: `/app/admin/knowledge-gaps?gap=${gapId}`,
+                            link: `/app/knowledge?gap=${gapId}`,
                             payload: {
                               question: q.slice(0, 500),
                               gap_id: gapId,
@@ -727,7 +727,7 @@ export const Route = createFileRoute("/api/chat")({
                         kind: "low_confidence" as const,
                         title: "Low-confidence answer",
                         body: `"${q.slice(0, 160)}" (confidence ${(confidence * 100).toFixed(0)}%)`,
-                        link: `/app/admin/knowledge-gaps`,
+                        link: `/app/knowledge`,
                         payload: { confidence, question: q.slice(0, 500) } as never,
                       })) as never,
                     );
