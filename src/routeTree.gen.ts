@@ -10,18 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrustRouteImport } from './routes/trust'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SsoSigninRouteImport } from './routes/sso-signin'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SelfHostedRouteImport } from './routes/self-hosted'
+import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -199,6 +204,11 @@ const TrustRoute = TrustRouteImport.update({
   path: '/trust',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SsoSigninRoute = SsoSigninRouteImport.update({
   id: '/sso-signin',
   path: '/sso-signin',
@@ -207,6 +217,16 @@ const SsoSigninRoute = SsoSigninRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelfHostedRoute = SelfHostedRouteImport.update({
+  id: '/self-hosted',
+  path: '/self-hosted',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResourcesRoute = ResourcesRouteImport.update({
@@ -227,6 +247,11 @@ const ProductRoute = ProductRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModulesRoute = ModulesRouteImport.update({
+  id: '/modules',
+  path: '/modules',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -257,6 +282,11 @@ const FirstRunRoute = FirstRunRouteImport.update({
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentationRoute = DocumentationRouteImport.update({
+  id: '/documentation',
+  path: '/documentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
@@ -1222,18 +1252,23 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
+  '/documentation': typeof DocumentationRoute
   '/features': typeof FeaturesRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
   '/mcp': typeof McpRoute
+  '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
+  '/security': typeof SecurityRoute
+  '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/support': typeof SupportRoute
   '/trust': typeof TrustRouteWithChildren
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -1407,18 +1442,23 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
+  '/documentation': typeof DocumentationRoute
   '/features': typeof FeaturesRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
   '/mcp': typeof McpRoute
+  '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
+  '/security': typeof SecurityRoute
+  '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/support': typeof SupportRoute
   '/trust': typeof TrustRouteWithChildren
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -1587,18 +1627,23 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
+  '/documentation': typeof DocumentationRoute
   '/features': typeof FeaturesRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
   '/industries': typeof IndustriesRoute
   '/mcp': typeof McpRoute
+  '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
+  '/security': typeof SecurityRoute
+  '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/support': typeof SupportRoute
   '/trust': typeof TrustRouteWithChildren
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -1774,18 +1819,23 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/docs'
+    | '/documentation'
     | '/features'
     | '/first-run'
     | '/forgot-password'
     | '/help'
     | '/industries'
     | '/mcp'
+    | '/modules'
     | '/pricing'
     | '/product'
     | '/reset-password'
     | '/resources'
+    | '/security'
+    | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/support'
     | '/trust'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -1959,18 +2009,23 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/docs'
+    | '/documentation'
     | '/features'
     | '/first-run'
     | '/forgot-password'
     | '/help'
     | '/industries'
     | '/mcp'
+    | '/modules'
     | '/pricing'
     | '/product'
     | '/reset-password'
     | '/resources'
+    | '/security'
+    | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/support'
     | '/trust'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -2138,18 +2193,23 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/docs'
+    | '/documentation'
     | '/features'
     | '/first-run'
     | '/forgot-password'
     | '/help'
     | '/industries'
     | '/mcp'
+    | '/modules'
     | '/pricing'
     | '/product'
     | '/reset-password'
     | '/resources'
+    | '/security'
+    | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/support'
     | '/trust'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -2325,18 +2385,23 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DocsRoute: typeof DocsRoute
+  DocumentationRoute: typeof DocumentationRoute
   FeaturesRoute: typeof FeaturesRoute
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HelpRoute: typeof HelpRoute
   IndustriesRoute: typeof IndustriesRoute
   McpRoute: typeof McpRoute
+  ModulesRoute: typeof ModulesRoute
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
+  SecurityRoute: typeof SecurityRoute
+  SelfHostedRoute: typeof SelfHostedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SsoSigninRoute: typeof SsoSigninRoute
+  SupportRoute: typeof SupportRoute
   TrustRoute: typeof TrustRouteWithChildren
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -2383,6 +2448,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrustRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sso-signin': {
       id: '/sso-signin'
       path: '/sso-signin'
@@ -2395,6 +2467,20 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/self-hosted': {
+      id: '/self-hosted'
+      path: '/self-hosted'
+      fullPath: '/self-hosted'
+      preLoaderRoute: typeof SelfHostedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resources': {
@@ -2423,6 +2509,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modules': {
+      id: '/modules'
+      path: '/modules'
+      fullPath: '/modules'
+      preLoaderRoute: typeof ModulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -2465,6 +2558,13 @@ declare module '@tanstack/react-router' {
       path: '/features'
       fullPath: '/features'
       preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documentation': {
+      id: '/documentation'
+      path: '/documentation'
+      fullPath: '/documentation'
+      preLoaderRoute: typeof DocumentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs': {
@@ -4101,18 +4201,23 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DocsRoute: DocsRoute,
+  DocumentationRoute: DocumentationRoute,
   FeaturesRoute: FeaturesRoute,
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HelpRoute: HelpRoute,
   IndustriesRoute: IndustriesRoute,
   McpRoute: McpRoute,
+  ModulesRoute: ModulesRoute,
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
+  SecurityRoute: SecurityRoute,
+  SelfHostedRoute: SelfHostedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SsoSigninRoute: SsoSigninRoute,
+  SupportRoute: SupportRoute,
   TrustRoute: TrustRouteWithChildren,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:

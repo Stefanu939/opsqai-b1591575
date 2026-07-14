@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Menu, X, Linkedin, Mail, Github, Globe } from "lucide-react";
+import { Menu, X, Linkedin, Mail, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,63 +15,40 @@ import {
 
 const NAV = [
   { to: "/product", label: "Product" },
-  { to: "/features", label: "Features" },
-  { to: "/solutions", label: "Solutions" },
-  { to: "/industries", label: "Industries" },
+  { to: "/self-hosted", label: "Self-hosted" },
+  { to: "/modules", label: "Modules" },
   { to: "/pricing", label: "Pricing" },
-  { to: "/trust", label: "Trust" },
-  { to: "/demo", label: "Demo" },
+  { to: "/security", label: "Security" },
+  { to: "/documentation", label: "Documentation" },
+  { to: "/support", label: "Support" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
 const FOOTER_COLS: Array<{
   title: string;
-  links: Array<{ to: string; label: string; external?: boolean }>;
+  links: Array<{ to: string; label: string }>;
 }> = [
   {
-    title: "Product",
+    title: "Platform",
     links: [
-      { to: "/product", label: "Overview" },
-      { to: "/features", label: "Features" },
+      { to: "/product", label: "Product" },
+      { to: "/self-hosted", label: "Self-hosted" },
+      { to: "/modules", label: "Modules" },
       { to: "/pricing", label: "Pricing" },
-      { to: "/demo", label: "Live demo" },
-    ],
-  },
-  {
-    title: "Solutions",
-    links: [
-      { to: "/solutions", label: "Warehousing" },
-      { to: "/solutions", label: "Transport" },
-      { to: "/solutions", label: "3PL & Logistics" },
-      { to: "/industries", label: "Manufacturing" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { to: "/resources", label: "Resource Hub" },
-      { to: "/blog", label: "Blog" },
-      { to: "/guides", label: "Guides" },
-      { to: "/case-studies", label: "Case Studies" },
-      { to: "/docs", label: "Documentation" },
-      { to: "/help", label: "Help Center" },
-    ],
-  },
-  {
-    title: "Trust",
-    links: [
-      { to: "/trust", label: "Trust Center" },
-      { to: "/trust/responsible-ai", label: "Responsible AI" },
-      { to: "/trust/security-architecture", label: "Security" },
-      { to: "/trust/gdpr", label: "GDPR" },
+      { to: "/documentation", label: "Documentation" },
+      { to: "/support", label: "Support" },
+      { to: "/security", label: "Security" },
     ],
   },
   {
     title: "Company",
     links: [
-      { to: "/about", label: "About" },
       { to: "/contact", label: "Contact" },
-      { to: "/demo", label: "Live demo" },
     ],
   },
   {
@@ -80,7 +57,6 @@ const FOOTER_COLS: Array<{
       { to: "/legal/privacy", label: "Privacy" },
       { to: "/legal/terms", label: "Terms" },
       { to: "/legal/dpa", label: "DPA" },
-      { to: "/legal/cookies", label: "Cookies" },
       { to: "/legal/impressum", label: "Impressum" },
     ],
   },
@@ -103,13 +79,13 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/75 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <LogoMark size={30} className="text-foreground" />
             <span className="font-semibold tracking-tight text-[15px]">OPSQAI</span>
           </Link>
-          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center max-w-2xl">
+          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center max-w-3xl">
             {NAV.map((i) => (
               <Link
                 key={i.to}
@@ -160,12 +136,8 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
                   <Button asChild variant="ghost" size="sm" className="text-foreground/85">
                     <Link to="/auth">Sign in</Link>
                   </Button>
-                  <Button
-                    asChild
-                    size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_oklch(0.82_0.14_200/0.40),0_8px_24px_-8px_oklch(0.82_0.14_200/0.5)]"
-                  >
-                    <Link to="/demo">Launch Interactive Demo</Link>
+                  <Button asChild size="sm">
+                    <Link to="/contact">Request access</Link>
                   </Button>
                 </>
               )}
@@ -203,7 +175,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
                       <Link to="/auth">Sign in</Link>
                     </Button>
                     <Button asChild size="sm" className="flex-1">
-                      <Link to="/demo">Launch Demo</Link>
+                      <Link to="/contact">Request access</Link>
                     </Button>
                   </>
                 )}
@@ -215,21 +187,21 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-border/50 bg-[oklch(0.13_0.03_240)]">
+      <footer className="border-t border-border/50 bg-surface-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-14">
           <div className="grid gap-10 md:grid-cols-12">
-            <div className="md:col-span-3">
+            <div className="md:col-span-4">
               <div className="flex items-center gap-2.5">
                 <LogoMark size={28} className="text-foreground" />
                 <span className="font-semibold tracking-tight">OPSQAI</span>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground leading-relaxed max-w-xs">
-                Enterprise AI knowledge management, operational intelligence and compliance for
-                logistics &amp; supply chain.
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-sm">
+                Enterprise AI knowledge platform for operations. Self-hosted on Windows,
+                managed by OPSQAI, owned by you.
               </p>
               <div className="mt-5 flex items-center gap-2">
                 <a
-                  href="https://www.linkedin.com"
+                  href="https://www.linkedin.com/company/opsqai"
                   target="_blank"
                   rel="noreferrer"
                   aria-label="LinkedIn"
@@ -244,18 +216,9 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
                 >
                   <Mail className="h-4 w-4" />
                 </Link>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="GitHub"
-                  className="h-9 w-9 grid place-items-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
-                >
-                  <Github className="h-4 w-4" />
-                </a>
               </div>
             </div>
-            <div className="md:col-span-9 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+            <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
               {FOOTER_COLS.map((col) => (
                 <div key={col.title}>
                   <div className="text-xs font-semibold uppercase tracking-wider text-foreground/90 mb-3">
@@ -275,16 +238,11 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="mt-12 pt-6 border-t border-border/50 flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span>© {new Date().getFullYear()} OPSQAI. All rights reserved.</span>
+            <div className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} OPSQAI. All rights reserved.
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="chip border-primary/30 !bg-primary/5 !text-primary">
-                EU hosted · Dublin
-              </span>
-              <span className="chip border-primary/30 !bg-primary/5 !text-primary">
-                GDPR aligned
-              </span>
+              <span>EU hosted · GDPR aligned · Self-hosted deployments</span>
             </div>
           </div>
         </div>
