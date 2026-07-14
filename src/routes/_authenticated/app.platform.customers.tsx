@@ -141,10 +141,13 @@ function CustomersMc() {
             Toți tenants OPSQAI · plan, status, utilizare, acțiuni rapide.
           </p>
         </div>
-        <NewCompanyDialog
-          onCreate={(v) => createMut.mutate(v)}
-          pending={createMut.isPending}
-        />
+        <Button
+          onClick={() => navigate({ to: "/app/platform/onboarding" })}
+          className="h-9 border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#5b3fd9] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]"
+        >
+          <Plus className="mr-1.5 h-4 w-4" />
+          Client nou
+        </Button>
       </header>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -265,8 +268,10 @@ function CustomersMc() {
                         className="h-8 text-[var(--mc-fg-muted)] hover:bg-[var(--mc-surface-3)] hover:text-[var(--mc-gold-glow)]"
                         onClick={() => {
                           setActiveCompanyId(c.id);
-                          toast.success(`Workspace ${c.name} deschis`);
-                          navigate({ to: "/app/admin/users" });
+                          navigate({
+                            to: "/app/platform/licenses",
+                            search: { tab: "licenses", companyId: c.id, companyName: c.name },
+                          });
                         }}
                       >
                         <LogIn className="mr-1 h-3.5 w-3.5" />
@@ -388,7 +393,7 @@ function NewCompanyDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-9 border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#a88a35] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]">
+        <Button className="h-9 border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#5b3fd9] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]">
           <Plus className="mr-1.5 h-4 w-4" />
           Client nou
         </Button>
@@ -476,7 +481,7 @@ function NewCompanyDialog({
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={submit} disabled={pending} className="border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#a88a35] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]">
+          <Button onClick={submit} disabled={pending} className="border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#5b3fd9] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]">
             Creează
           </Button>
         </DialogFooter>
@@ -542,7 +547,7 @@ function EditPlanDialog({
             Cancel
           </Button>
           <Button
-            className="border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#a88a35] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]"
+            className="border border-[var(--mc-gold-line-strong)] bg-gradient-to-b from-[var(--mc-gold)] to-[#5b3fd9] text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:from-[var(--mc-gold-glow)] hover:to-[var(--mc-gold)]"
             onClick={() => {
               onSave(plan, max);
               setOpen(false);

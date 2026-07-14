@@ -54,10 +54,10 @@ function timeAgo(iso: string | null) {
 }
 
 const TIER_COLORS: Record<string, string> = {
-  basic: "#6a7db3",
-  standard: "#8fbf7a",
-  business: "#c9a84c",
-  enterprise: "#f0d78c",
+  basic: "#7c5cff",
+  standard: "#22d3ee",
+  business: "#7c5cff",
+  enterprise: "#a78bfa",
 };
 
 function OverviewPage() {
@@ -96,7 +96,7 @@ function OverviewContent() {
   const sparkFromWeeks = data.installsPerWeek.map((w) => ({ v: w.count }));
   const tierMixWithColors = data.tierMix.map((t) => ({
     ...t,
-    fill: TIER_COLORS[t.tier] ?? "#c9a84c",
+    fill: TIER_COLORS[t.tier] ?? "#7c5cff",
   }));
 
   return (
@@ -115,7 +115,7 @@ function OverviewContent() {
         <Button
           asChild
           size="sm"
-          className="h-9 gap-1.5 bg-gradient-to-b from-[#d4b458] to-[#a48633] text-[#0d0d0d] font-semibold mc-shadow-gold hover:brightness-110"
+          className="h-9 gap-1.5 bg-gradient-to-b from-[#7c5cff] to-[#5b3fd9] text-[#0a0a1a] font-semibold mc-shadow-gold hover:brightness-110"
         >
           <Link to="/app/platform/onboarding">
             <UserPlus className="h-4 w-4" /> Onboard client nou
@@ -175,27 +175,27 @@ function OverviewContent() {
               <AreaChart data={data.licensesTimeline}>
                 <defs>
                   <linearGradient id="g-basic" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6a7db3" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#6a7db3" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#7c5cff" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#7c5cff" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="g-standard" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8fbf7a" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#8fbf7a" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="g-business" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#c9a84c" stopOpacity={0.55} />
-                    <stop offset="100%" stopColor="#c9a84c" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#7c5cff" stopOpacity={0.55} />
+                    <stop offset="100%" stopColor="#7c5cff" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="g-enterprise" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f0d78c" stopOpacity={0.6} />
-                    <stop offset="100%" stopColor="#f0d78c" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.6} />
+                    <stop offset="100%" stopColor="#a78bfa" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="rgba(201,168,76,0.06)" vertical={false} />
+                <CartesianGrid stroke="rgba(124,92,255,0.06)" vertical={false} />
                 <XAxis
                   dataKey="month"
                   tick={{ fill: "#8a8578", fontSize: 11 }}
-                  axisLine={{ stroke: "rgba(201,168,76,0.15)" }}
+                  axisLine={{ stroke: "rgba(124,92,255,0.15)" }}
                   tickLine={false}
                 />
                 <YAxis
@@ -206,17 +206,17 @@ function OverviewContent() {
                 <Tooltip
                   contentStyle={{
                     background: "#141414",
-                    border: "1px solid rgba(201,168,76,0.4)",
+                    border: "1px solid rgba(124,92,255,0.4)",
                     borderRadius: 8,
                     fontSize: 12,
-                    color: "#f5f0e0",
+                    color: "#e8e8ff",
                   }}
-                  labelStyle={{ color: "#c9a84c" }}
+                  labelStyle={{ color: "#7c5cff" }}
                 />
-                <Area type="monotone" dataKey="basic" stackId="1" stroke="#6a7db3" fill="url(#g-basic)" strokeWidth={1.5} />
-                <Area type="monotone" dataKey="standard" stackId="1" stroke="#8fbf7a" fill="url(#g-standard)" strokeWidth={1.5} />
-                <Area type="monotone" dataKey="business" stackId="1" stroke="#c9a84c" fill="url(#g-business)" strokeWidth={1.5} />
-                <Area type="monotone" dataKey="enterprise" stackId="1" stroke="#f0d78c" fill="url(#g-enterprise)" strokeWidth={1.5} />
+                <Area type="monotone" dataKey="basic" stackId="1" stroke="#7c5cff" fill="url(#g-basic)" strokeWidth={1.5} />
+                <Area type="monotone" dataKey="standard" stackId="1" stroke="#22d3ee" fill="url(#g-standard)" strokeWidth={1.5} />
+                <Area type="monotone" dataKey="business" stackId="1" stroke="#7c5cff" fill="url(#g-business)" strokeWidth={1.5} />
+                <Area type="monotone" dataKey="enterprise" stackId="1" stroke="#a78bfa" fill="url(#g-enterprise)" strokeWidth={1.5} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -237,17 +237,17 @@ function OverviewContent() {
                   startAngle={90}
                   endAngle={-270}
                 >
-                  <RadialBar dataKey="count" background={{ fill: "rgba(201,168,76,0.06)" }} cornerRadius={6} />
+                  <RadialBar dataKey="count" background={{ fill: "rgba(124,92,255,0.06)" }} cornerRadius={6} />
                   <Legend
                     iconSize={8}
                     layout="vertical"
                     verticalAlign="middle"
                     align="right"
-                    wrapperStyle={{ fontSize: 11, color: "#f5f0e0" }}
+                    wrapperStyle={{ fontSize: 11, color: "#e8e8ff" }}
                     formatter={(_v, entry) => {
                       const p = entry.payload as unknown as { tier: string; count: number };
                       return (
-                        <span style={{ color: "#f5f0e0" }}>
+                        <span style={{ color: "#e8e8ff" }}>
                           {p.tier} · <span style={{ color: "#8a8578" }}>{p.count}</span>
                         </span>
                       );
@@ -256,10 +256,10 @@ function OverviewContent() {
                   <Tooltip
                     contentStyle={{
                       background: "#141414",
-                      border: "1px solid rgba(201,168,76,0.4)",
+                      border: "1px solid rgba(124,92,255,0.4)",
                       borderRadius: 8,
                       fontSize: 12,
-                      color: "#f5f0e0",
+                      color: "#e8e8ff",
                     }}
                   />
                 </RadialBarChart>
@@ -275,24 +275,24 @@ function OverviewContent() {
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.installsPerWeek}>
-                <CartesianGrid stroke="rgba(201,168,76,0.06)" vertical={false} />
-                <XAxis dataKey="week" tick={{ fill: "#8a8578", fontSize: 11 }} axisLine={{ stroke: "rgba(201,168,76,0.15)" }} tickLine={false} />
+                <CartesianGrid stroke="rgba(124,92,255,0.06)" vertical={false} />
+                <XAxis dataKey="week" tick={{ fill: "#8a8578", fontSize: 11 }} axisLine={{ stroke: "rgba(124,92,255,0.15)" }} tickLine={false} />
                 <YAxis tick={{ fill: "#8a8578", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip
-                  cursor={{ fill: "rgba(201,168,76,0.05)" }}
+                  cursor={{ fill: "rgba(124,92,255,0.05)" }}
                   contentStyle={{
                     background: "#141414",
-                    border: "1px solid rgba(201,168,76,0.4)",
+                    border: "1px solid rgba(124,92,255,0.4)",
                     borderRadius: 8,
                     fontSize: 12,
-                    color: "#f5f0e0",
+                    color: "#e8e8ff",
                   }}
                 />
                 <Bar dataKey="count" fill="url(#g-bar)" radius={[4, 4, 0, 0]} />
                 <defs>
                   <linearGradient id="g-bar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f0d78c" />
-                    <stop offset="100%" stopColor="#a48633" />
+                    <stop offset="0%" stopColor="#a78bfa" />
+                    <stop offset="100%" stopColor="#5b3fd9" />
                   </linearGradient>
                 </defs>
               </BarChart>
@@ -374,8 +374,8 @@ function OverviewContent() {
                     <span
                       className="rounded-md border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider"
                       style={{
-                        borderColor: TIER_COLORS[o.tier] ?? "#c9a84c",
-                        color: TIER_COLORS[o.tier] ?? "#c9a84c",
+                        borderColor: TIER_COLORS[o.tier] ?? "#7c5cff",
+                        color: TIER_COLORS[o.tier] ?? "#7c5cff",
                       }}
                     >
                       {o.tier}

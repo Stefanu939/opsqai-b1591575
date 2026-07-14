@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/app/admin/downloads")({
         → Releases.
       </p>
       <Link
-        to="/app/platform/licenses"
+        to="/app/platform/licenses" search={{ tab: "licenses" as const }}
         className="inline-block text-sm underline underline-offset-4"
       >
         Open Releases →

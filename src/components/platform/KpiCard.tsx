@@ -65,25 +65,25 @@ export function KpiCard({
                 <AreaChart data={spark}>
                   <defs>
                     <linearGradient id={`spark-${eyebrow.replace(/\s/g, "")}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#c9a84c" stopOpacity={0.45} />
-                      <stop offset="100%" stopColor="#c9a84c" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#7c5cff" stopOpacity={0.45} />
+                      <stop offset="100%" stopColor="#7c5cff" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <Tooltip
                     contentStyle={{
-                      background: "#1a1a1a",
-                      border: "1px solid rgba(201,168,76,0.4)",
+                      background: "#1a1a3d",
+                      border: "1px solid rgba(124,92,255,0.4)",
                       borderRadius: 6,
                       fontSize: 11,
-                      color: "#f5f0e0",
+                      color: "#e8e8ff",
                     }}
                     labelStyle={{ display: "none" }}
-                    cursor={{ stroke: "#c9a84c", strokeWidth: 1, strokeDasharray: "2 2" }}
+                    cursor={{ stroke: "#7c5cff", strokeWidth: 1, strokeDasharray: "2 2" }}
                   />
                   <Area
                     type="monotone"
                     dataKey="v"
-                    stroke="#c9a84c"
+                    stroke="#7c5cff"
                     strokeWidth={1.5}
                     fill={`url(#spark-${eyebrow.replace(/\s/g, "")})`}
                     isAnimationActive={false}
