@@ -21,6 +21,7 @@ test("creates postgresql.conf and pg_hba.conf on empty data dir", () => {
   assert.ok(conf.includes("port = 55432"));
   assert.ok(conf.includes("listen_addresses = '127.0.0.1'"));
   assert.equal(fs.readFileSync(path.join(d, "pg_hba.conf"), "utf8"), HBA_CONTENT);
+  assert.ok(!HBA_CONTENT.includes("local  all"), "Windows PostgreSQL must not receive Unix-socket local HBA lines");
 });
 
 test("appends OPSQAI block when sentinel is missing (stale initdb-only dir)", () => {
