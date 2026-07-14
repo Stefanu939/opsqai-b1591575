@@ -6,7 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
  * Returns: audio/mpeg (mp3) so the browser can cache it and play with <audio>.
  *
  * Rate limited per-IP to protect paid AI credits from unauthenticated abuse
- * (same in-memory pattern as /api/demo-chat).
+ * (same in-memory pattern as /api/chat).
  */
 
 // Per-IP token bucket: 20 requests / 10 minutes.

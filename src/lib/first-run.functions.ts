@@ -188,7 +188,7 @@ export const firstRunConfigureSso = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => SsoInput.parse(d))
   .handler(async ({ data }) => {
     await assertFirstRunOpen();
-    // Full SSO wiring lives at /app/admin/sso-setup post-install; this step
+    // Full SSO wiring lives at the Management Center post-install; this step
     // only records intent so the wizard can be marked complete.
     await markStep("sso_configured");
     return { ok: true, skipped: data.skip };

@@ -27,7 +27,7 @@ const Email = ({
     title={`Weekly digest · ${rangeLabel ?? "last 7 days"}`}
     intro={`Here's what happened in ${workspaceName ?? "your workspace"} this week.`}
     ctaLabel="Open dashboard"
-    ctaUrl={`${APP_URL}/app/admin/dashboard`}
+    ctaUrl={`${APP_URL}/management`}
   >
     <Text style={row}>
       <strong>Chat sessions:</strong> {chatCount ?? 0}
