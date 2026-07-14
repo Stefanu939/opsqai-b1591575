@@ -145,6 +145,22 @@ const dict = {
     noRequests: "Keine internen Anfragen vorhanden.",
     mine: "Meine",
     allRequests: "Alle",
+    audienceLabel: "Wozu möchten Sie sich anmelden?",
+    audiencePortal: "Kundenportal",
+    audiencePortalHint:
+      "Installer, Aktivierungspakete, Release-Notes und Support-Tickets. Für den benannten Ansprechpartner des Kunden.",
+    audienceMc: "Management Center",
+    audienceMcHint: "Nur für das OPSQAI-Team – Lizenzen, Kunden, Releases.",
+    audienceCompanyUser: "Firmenbenutzer (Self-Hosted)",
+    audienceCompanyUserHint:
+      "OPSQAI läuft auf dem Windows-Server Ihres Unternehmens. Melden Sie sich dort an, nicht hier.",
+    audienceCompanyUserCta: "Was bedeutet das?",
+    signInToPortal: "Beim Portal anmelden",
+    signInToMc: "Beim Management Center anmelden",
+    mcAccessDenied:
+      "Diese Anmeldung ist dem OPSQAI-Team vorbehalten. Bitte verwenden Sie das Kundenportal.",
+    cloudArchitectureNote:
+      "OPSQAI ist ein Windows-Produkt. Firmenbenutzer melden sich nur in der lokalen Installation an.",
   },
   en: {
     appName: "OPSQAI",
@@ -287,6 +303,22 @@ const dict = {
     noRequests: "No internal requests yet.",
     mine: "Mine",
     allRequests: "All",
+    audienceLabel: "What are you signing in to?",
+    audiencePortal: "Customer Portal",
+    audiencePortalHint:
+      "Installer, activation bundles, release notes and support tickets. For the customer's designated contact.",
+    audienceMc: "Management Center",
+    audienceMcHint: "OPSQAI staff only — licenses, customers, releases.",
+    audienceCompanyUser: "Company user (Self-Hosted)",
+    audienceCompanyUserHint:
+      "OPSQAI runs on your company's Windows Server. Sign in there, not here.",
+    audienceCompanyUserCta: "What does this mean?",
+    signInToPortal: "Sign in to Portal",
+    signInToMc: "Sign in to Management Center",
+    mcAccessDenied:
+      "This sign-in is reserved for the OPSQAI team. Please use the Customer Portal.",
+    cloudArchitectureNote:
+      "OPSQAI is a Windows product. Company users sign in only inside their local installation.",
   },
 } as const;
 
