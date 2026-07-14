@@ -384,7 +384,7 @@ def s_selfhosted(i):
     c.setFont("Serif", 22); c.setFillColorRGB(*SLATE)
     yy = H - 540
     for l in not_this:
-        c.drawString(80, yy, "✕  " + l); yy -= 34
+        c.drawString(80, yy, "—  " + l); yy -= 34
 
     c.setFont("Serif", 22); c.setFillColorRGB(*IVORY)
     yy = H - 540
