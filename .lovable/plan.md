@@ -1,34 +1,59 @@
-## Verificare
+## OPSQAI Investor Deck v3 — VC-grade rebuild (revised)
 
-Am rulat testele, typecheck și un scan complet al proiectului. Concluzia: **totul e aliniat cu deck-ul v2_2 și nu am găsit bug-uri reale**.
+### Golden Rule (enforced across every slide)
+**This deck must be defensible under investor due diligence.** Every statement must be something the founders can confidently explain and support in a VC meeting. If a claim cannot be defended with evidence, it is removed. Credibility > ambition.
 
-### Stare curentă
+### Non-negotiable rules
+1. **No fabricated traction.** Never invent customers, pilots, design partners, revenue, downloads, meetings, partnerships, or adoption metrics. Missing info is marked **"Planned"** or the section is removed.
+2. **No fabricated market numbers.** Every TAM/SAM/SOM figure and every stat carries a visible source (Gartner, IDC, Statista, Eurostat, Fortune Business Insights, Grand View, McKinsey, Deloitte, BSI, Bitkom, EU AI Act text) with year, in 9pt slate below the number.
+3. **Mockups must faithfully represent the current OPSQAI product.** No invented screens, no invented features. Only surfaces that exist today in the codebase (`src/routes/*`, `src/components/mc/*`, installer wizard).
+4. **Roadmap:** never mark a feature "Completed" unless it is already implemented and demonstrable in-repo. Otherwise → In Progress / Planned / Vision.
+5. **Competitors:** objective comparisons only. No superiority claim without a measurable differentiator (self-host, sovereignty, module licensing, offline activation, AI audit, source citations).
+6. **Ask:** €350K–€750K **Pre-Seed** (not Seed).
+7. **Business model:** "Annual Maintenance (recurring, typically 15–20% depending on contract)" — no hardcoded 20%.
+8. **Team:** exactly — Founder & CEO **Ștefan Bari**; CTO **Planned**; Head of AI **Planned**. No "to be named".
 
-- **Tests:** 78/78 pass (single "failed suite" e un `.cjs` din `opsqai-windows/services/database/__tests__/` pe care vitest nu-l parsează — pre-existent, nu-i introdus de mine).
-- **Typecheck (tsgo):** curat, zero erori.
-- **Runtime errors:** niciunul.
-- **Website ↔ deck ↔ app:** Basic Platform (8 module), Premium Modules, Business Model, TAM/SAM/SOM (€4.8B/€1.1B/€90M), Ask €350K–€750K, echipa Ștefan Bari + CTO/Head of AI planned — toate consistente.
-- **Console log** arată un warning de hydration despre atribute `data-tsd-source` în `__root.tsx` — sunt annotări injectate de tooling-ul Lovable/Vite în dev, nu cod al aplicației. Dispar în build de producție. Nu-i bug real.
+### Deck structure (18 slides — added "Why we're different")
+1. Cover
+2. Problem — why industrial ops can't put SOPs in public LLMs (EU AI Act, BSI cited)
+3. Market context — enterprise GenAI adoption + regulated-industry constraint (cited)
+4. Product — Basic Platform + Premium Modules (aligned with `docs/product-documentation/04-modules.md`)
+5. **Why we're different** — Windows Native · Self-Hosted · Customer owns data · Customer chooses AI · Offline capable · Modular licensing · Enterprise governance · AI Audit · Source citations · No vendor lock-in · Installer included · Local embeddings
+6. Architecture — MC (licensing/updates/portal/installer) ↔ Windows Self-Hosted (Postgres+pgvector, KB, AI adapter, users)
+7. How it works — ingest → embed → retrieve → grounded generate → audited answer
+8. Product mockups I — AI Chat + Knowledge Base *(faithful to current UI only)*
+9. Product mockups II — Module Store + AI Audit *(faithful to current UI only)*
+10. Product mockups III — Management Center + Customer Portal + Installer *(faithful to current UI only)*
+11. Business model — Basic Platform + Premium Modules + Annual Maintenance (recurring, typically 15–20%) + expansion vectors
+12. Competitive landscape — Copilot, ChatGPT Enterprise, Glean, Guru, Rovo, Coveo, Elastic AI, internal RAG. Matrix on measurable axes only: self-host, data residency, module licensing, offline activation, grounded audit, source citations.
+13. Go-to-market — DACH logistics → industrial manufacturing → EU expansion; dated milestones (all forward-looking marked "Planned")
+14. Traction — only what is real today; everything else marked **Planned** or omitted
+15. Roadmap — Completed (only implemented & demonstrable) / In Progress / Planned / Vision
+16. Team — Ștefan Bari (Founder & CEO); CTO Planned; Head of AI Planned
+17. TAM / SAM / SOM — bottom-up, with methodology box + inline source per number
+18. Ask — €350K–€750K **Pre-Seed**, use of funds (Engineering, AI, Sales, Marketing, CS, Infra), 18-month milestones, contact
 
-### Singurele diferențe reziduale găsite
+### Research pass (before writing)
+Web searches for verifiable inputs to TAM/SAM/SOM and market context:
+- Enterprise GenAI / knowledge-management market — Gartner, IDC, Grand View, Fortune Business Insights
+- DACH logistics operators / 3PL — Fraunhofer SCS, Statista, Eurostat
+- Industrial / manufacturing IT spend — IDC, Deloitte
+- EU sovereignty / AI Act constraints — official EU + BSI + Bitkom
+Every number that survives is cited on the slide with source + year. Anything unverifiable is removed.
 
-1. `scripts/gen_investor_deck.py` (v1, vechi) încă are `€1.5M` hardcodat. Nu e folosit — versiunea activă e `gen_investor_deck_v2.py`. Dar rămâne o sursă de confuzie dacă îl deschide cineva.
+### Visual system
+- Reuse Noir & Gold palette (NAVY #0B1220 / IVORY #F5F1E8 / GOLD #C8A24B) from `src/styles.css` — matches MC shell
+- DejaVu Serif for titles, DejaVu Sans for body (existing v2 registration)
+- Diagrams built with reportlab primitives; mockups hand-drawn to match real routes/components
+- Source line: 9pt slate, bottom-left above page number
 
-## Ce propun să fac
+### Technical
+- New file `scripts/gen_investor_deck_v3.py` → `/mnt/documents/OPSQAI-Investor-Deck-v3.pdf`
+- Keep v2 as fallback
+- **QA loop:** rasterize each slide with `pdftoppm`, inspect with `code--view`, fix overflow / low contrast / overlap, re-render until clean
+- Deliverable includes a per-slide source list
 
-**Cleanup minimal, fără risc:**
+### Out of scope
+No changes to website, app, installer, tests, or catalog.
 
-1. **Șterg `scripts/gen_investor_deck.py`** (v1 vechi, obsolete după rewrite-ul v2). Rămâne doar `scripts/gen_investor_deck_v2.py` ca sursă unică.
-2. **Regenerez PDF-ul deck-ului** din script-ul v2 curent, ca să fie sigur că fișierul din `/mnt/documents/` reflectă exact ultima versiune (Ștefan Bari, €350K–€750K, Basic Platform cu 8 module).
-3. **Un smoke test rapid pe preview** (Playwright headless) pe rutele publice principale — `/`, `/product`, `/pricing`, `/self-hosted`, `/modules`, `/company`, `/security` — ca să confirm vizual că paginile se randează fără erori și copy-ul e cel corect din deck.
-
-Nu ating cod de business logic, nu ating catalogul de module (deja aliniat), nu ating testele. Nu ating design-ul.
-
-## De ce nu mai fac altceva
-
-- Runtime `BASIC_MODULES` + catalog: aliniat cu deck-ul, testat, tests pass.
-- Site-ul: aliniat, verificat prin grep.
-- Deck-ul: script-ul v2 e corect (Ștefan Bari, ask 350–750K, arhitectura 3-surfaces).
-- Hydration warning: artefact de dev-tooling, nu bug de produs.
-
-Dacă vrei să adaug ceva concret (ex: să regenerez și decks localizate DE/EN, să adaug o pagină nouă, să extind un modul), spune-mi și fac plan separat.
+Approve and I start with the research pass, then build.
