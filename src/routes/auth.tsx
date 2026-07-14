@@ -100,12 +100,11 @@ function AuthPage() {
   const contactAdmin =
     lang === "de"
       ? "Wenden Sie sich an Ihren Unternehmensadministrator für den Zugang."
-      : lang === "ro"
-        ? "Contactați administratorul companiei pentru acces."
+      
         : "Contact your company administrator for access.";
 
   const forgotLabel =
-    lang === "de" ? "Passwort vergessen?" : lang === "ro" ? "Ai uitat parola?" : "Forgot password?";
+    lang === "de" ? "Passwort vergessen?"  : "Forgot password?";
 
   return (
     <div
@@ -221,7 +220,7 @@ function AuthPage() {
             </div>
             <div className="rounded-xl md:rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-[13px] md:text-xs md:mt-4">
               <p className="text-muted-foreground">
-                {lang === "de" ? "Kein Konto?" : lang === "ro" ? "Nu ai cont?" : "No account yet?"}
+                {lang === "de" ? "Kein Konto?"  : "No account yet?"}
               </p>
               <Link
                 to="/demo"
@@ -229,15 +228,14 @@ function AuthPage() {
               >
                 {lang === "de"
                   ? "Interaktive Demo starten"
-                  : lang === "ro"
-                    ? "Lansează Demo Interactiv"
+                  
                     : "Launch Interactive Demo"}{" "}
                 →
               </Link>
             </div>
             <p className="text-center text-sm md:text-xs text-muted-foreground pt-2 md:pt-0 md:mt-4">
               <Link to="/" className="inline-flex min-h-11 md:min-h-0 items-center hover:underline">
-                ← {lang === "de" ? "Zurück" : lang === "ro" ? "Înapoi" : "Back"}
+                ← {lang === "de" ? "Zurück"  : "Back"}
               </Link>
             </p>
           </div>

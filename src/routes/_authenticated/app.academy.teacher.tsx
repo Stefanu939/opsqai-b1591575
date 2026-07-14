@@ -147,8 +147,7 @@ function AcademyHome() {
       label:
         lang === "de"
           ? "Training fortsetzen"
-          : lang === "ro"
-            ? "Continuă instruirea"
+          
             : "Continue my training",
       mode: "next",
     },
@@ -156,8 +155,7 @@ function AcademyHome() {
       label:
         lang === "de"
           ? "Heutige Lektion starten"
-          : lang === "ro"
-            ? "Începe lecția de azi"
+          
             : "Start today's lesson",
       mode: "next",
     },
@@ -165,8 +163,7 @@ function AcademyHome() {
       label:
         lang === "de"
           ? "Letztes Kapitel fortsetzen"
-          : lang === "ro"
-            ? "Reia ultimul capitol"
+          
             : "Resume last chapter",
       mode: "next",
     },
@@ -174,8 +171,7 @@ function AcademyHome() {
       label:
         lang === "de"
           ? "Vorherige Lektion ansehen"
-          : lang === "ro"
-            ? "Revizuiește lecția anterioară"
+          
             : "Review previous lesson",
       mode: "previous",
     },
@@ -183,8 +179,7 @@ function AcademyHome() {
       label:
         lang === "de"
           ? "Zum heutigen Thema fragen"
-          : lang === "ro"
-            ? "Întreabă despre subiectul de azi"
+          
             : "Ask about today's topic",
       mode: "next",
     },
@@ -204,15 +199,13 @@ function AcademyHome() {
           <p className="mt-3 text-muted-foreground max-w-lg mx-auto">
             {lang === "de"
               ? "Ich bin dein KI-Trainingsassistent. Ich begleite dich Schritt für Schritt durch dein Onboarding und deine Weiterbildung."
-              : lang === "ro"
-                ? "Sunt asistentul tău AI de instruire. Te ghidez pas cu pas în onboarding și în călătoria ta de învățare."
+              
                 : "I'm your AI Training Assistant. I'll guide you through your onboarding and training journey step by step."}
           </p>
           <p className="mt-4 text-sm text-muted-foreground">
             {lang === "de"
               ? "Was möchtest du heute lernen?"
-              : lang === "ro"
-                ? "Ce vrei să înveți astăzi?"
+              
                 : "What would you like to learn today?"}
           </p>
 
@@ -225,8 +218,7 @@ function AcademyHome() {
               placeholder={
                 lang === "de"
                   ? "Frag den KI-Trainer…"
-                  : lang === "ro"
-                    ? "Întreabă-l pe trainerul AI…"
+                  
                     : "Ask your AI teacher anything…"
               }
               rows={2}
@@ -237,8 +229,7 @@ function AcademyHome() {
                 <Sparkles className="h-3 w-3 text-primary" />
                 {lang === "de"
                   ? "Geerdet in deinem Academy-Lehrplan"
-                  : lang === "ro"
-                    ? "Bazat pe materialele Academy"
+                  
                     : "Grounded in your Academy curriculum"}
               </div>
               <Button onClick={submit} disabled={busy} size="icon" className="h-8 w-8 rounded-full">

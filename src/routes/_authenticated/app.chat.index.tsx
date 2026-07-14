@@ -88,15 +88,13 @@ function ChatWelcome() {
         <p className="mt-3 text-muted-foreground">
           {lang === "de"
             ? "Wie kann ich heute helfen?"
-            : lang === "ro"
-              ? "Cum te pot ajuta astăzi?"
+            
               : "How can I help you today?"}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
           {lang === "de"
             ? "Frag mich zu:"
-            : lang === "ro"
-              ? "Întreabă-mă despre:"
+            
               : "Ask anything about:"}{" "}
           {prompts.map((p, i) => (
             <span key={p}>
@@ -120,8 +118,7 @@ function ChatWelcome() {
             placeholder={
               lang === "de"
                 ? "Stelle eine Frage…"
-                : lang === "ro"
-                  ? "Scrie o întrebare…"
+                
                   : "Send a message…"
             }
             rows={2}
@@ -150,8 +147,7 @@ function ChatWelcome() {
         <p className="mt-6 text-[11px] text-muted-foreground">
           {lang === "de"
             ? "Frühere Unterhaltungen findest du in der Seitenleiste."
-            : lang === "ro"
-              ? "Găsești conversațiile anterioare în bara laterală."
+            
               : "Your past conversations are listed in the sidebar."}
         </p>
       </div>
