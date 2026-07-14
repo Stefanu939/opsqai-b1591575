@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/app/platform/support")({
 });
 
 type ConvStatus = "open" | "pending" | "resolved" | "closed";
-type ConvPriority = "low" | "normal" | "high" | "urgent";
+type ConvPriority = "low" | "normal" | "high" | "critical";
 
 interface Conversation {
   id: string;
@@ -328,7 +328,7 @@ function SupportInbox() {
                         >
                           {c.status}
                         </span>
-                        {c.priority === "high" || c.priority === "urgent" ? (
+                        {c.priority === "high" || c.priority === "critical" ? (
                           <span className="text-[9px] uppercase px-1.5 rounded bg-[var(--mc-danger)]/15 text-[var(--mc-danger)]">
                             {c.priority}
                           </span>
@@ -594,7 +594,7 @@ function NewConversationDialog({
                 <SelectItem value="low">Scăzută</SelectItem>
                 <SelectItem value="normal">Normală</SelectItem>
                 <SelectItem value="high">Ridicată</SelectItem>
-                <SelectItem value="urgent">Urgentă</SelectItem>
+                <SelectItem value="critical">Critică</SelectItem>
               </SelectContent>
             </Select>
           </div>
