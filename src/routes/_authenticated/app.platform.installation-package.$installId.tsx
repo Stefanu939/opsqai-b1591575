@@ -137,7 +137,7 @@ function InstallationPackagePage() {
     return (
       <div className="p-6 space-y-3">
         <Button variant="ghost" size="sm" asChild>
-          <Link to="/app/platform/licenses">
+          <Link to="/app/platform/licenses" search={{ tab: "licenses" as const }}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Back to licenses
           </Link>
         </Button>
@@ -152,7 +152,7 @@ function InstallationPackagePage() {
     <div className="p-6 md:p-10 space-y-6 max-w-5xl">
       <div>
         <Button variant="ghost" size="sm" asChild>
-          <Link to="/app/platform/licenses">
+          <Link to="/app/platform/licenses" search={{ tab: "licenses" as const }}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Back to licenses
           </Link>
         </Button>
