@@ -485,7 +485,7 @@ function LicensesPage() {
             </tr>
           </thead>
           <tbody>
-            {licenses.map((l) => {
+            {filteredLicenses.map((l) => {
               const licensedModuleKeys = new Set(
                 l.modules.filter((m) => !m.revoked).map((m) => m.module_key),
               );
@@ -663,7 +663,7 @@ function LicensesPage() {
                 </tr>
               );
             })}
-            {!licenses.length && (
+            {!filteredLicenses.length && (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                   No licenses yet.
