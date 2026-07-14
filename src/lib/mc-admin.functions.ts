@@ -128,16 +128,16 @@ export const upsertCustomerContract = createServerFn({ method: "POST" })
     const patch: {
       company_id: string;
       updated_at: string;
-      contract_status?: string | null;
-      renewal_date?: string | null;
-      onboarding_pct?: number | null;
+      contract_status?: string;
+      renewal_date?: string;
+      onboarding_pct?: number;
     } = {
       company_id: data.company_id,
       updated_at: new Date().toISOString(),
     };
-    if (data.contract_status !== undefined) patch.contract_status = data.contract_status;
-    if (data.renewal_date !== undefined) patch.renewal_date = data.renewal_date;
-    if (data.onboarding_pct !== undefined) patch.onboarding_pct = data.onboarding_pct;
+    if (data.contract_status) patch.contract_status = data.contract_status;
+    if (data.renewal_date) patch.renewal_date = data.renewal_date;
+    if (data.onboarding_pct != null) patch.onboarding_pct = data.onboarding_pct;
     const { error } = await supabaseAdmin
       .from("customer_profiles")
       .upsert(patch, { onConflict: "company_id" });
