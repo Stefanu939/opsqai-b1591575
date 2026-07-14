@@ -345,12 +345,12 @@ def s_product(i):
     rule(710, True, x1=110, x2=910)
 
     basic = [
-        ("Platform admin", "Users, roles, integrations, health"),
-        ("Audit log", "Governance-relevant events, exportable"),
-        ("Docs viewer", "In-app product & operator documentation"),
-        ("Setup wizard", "Resumable install configuration"),
-        ("Doctor", "Self-diagnostics + CLI"),
-        ("Recovery", "Break-glass + bootstrap token DR"),
+        ("AI Chat", "Grounded chat over the customer's own knowledge"),
+        ("Knowledge Base", "Ingestion, chunking, retrieval (pgvector)"),
+        ("FAQ", "Curated FAQ with retrieval fallback"),
+        ("Academy", "Lessons, chapters, quizzes, certificates"),
+        ("AI Audit", "Every AI response retrievable, with citations"),
+        ("Users · Organization · Subscription", "Roles, RBAC, tenant admin, license status"),
     ]
     for j, (t, d) in enumerate(basic):
         y = 660 - j * 62
