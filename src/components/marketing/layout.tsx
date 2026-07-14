@@ -48,6 +48,7 @@ const FOOTER_COLS: Array<{
   {
     title: "Company",
     links: [
+      { to: "/company", label: "About OPSQAI" },
       { to: "/contact", label: "Contact" },
     ],
   },
