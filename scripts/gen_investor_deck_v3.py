@@ -195,7 +195,7 @@ def pill(text, x, y, dark=True, muted=False):
     return x + tw + 22
 
 
-TOTAL = 18
+TOTAL = 20
 
 
 # ==================================================================
@@ -331,7 +331,7 @@ def s_market_context(i):
 # ==================================================================
 def s_product(i):
     bg(True)
-    chrome(i, TOTAL, True, "03 · Product")
+    chrome(i, TOTAL, True, "04 · Product")
     kicker("What OPSQAI is", 80, H - 150)
     h1("An enterprise operational AI platform, delivered as a Windows self-hosted product.",
        80, H - 220, size=42, max_w=1760)
@@ -402,7 +402,7 @@ def s_product(i):
 # ==================================================================
 def s_why(i):
     bg(False)
-    chrome(i, TOTAL, False, "04 · Why we're different")
+    chrome(i, TOTAL, False, "05 · Why we're different")
     kicker("Why we're different", 80, H - 150, dark=False)
     h1("Twelve properties that no public-cloud AI copilot delivers together.",
        80, H - 220, dark=False, size=40, max_w=1760)
@@ -445,7 +445,7 @@ def s_why(i):
 # ==================================================================
 def s_architecture(i):
     bg(True)
-    chrome(i, TOTAL, True, "05 · Architecture")
+    chrome(i, TOTAL, True, "06 · Architecture")
     kicker("Architecture", 80, H - 150)
     h1("Two boundaries. One-way communication.",
        80, H - 200, size=36, max_w=1760)
@@ -507,7 +507,7 @@ def s_architecture(i):
 # ==================================================================
 def s_how_it_works(i):
     bg(False)
-    chrome(i, TOTAL, False, "06 · How it works")
+    chrome(i, TOTAL, False, "07 · How it works")
     kicker("How it works", 80, H - 150, dark=False)
     h1("Ingest, embed, retrieve, generate — every step inside the install.",
        80, H - 220, dark=False, size=40, max_w=1760)
@@ -566,7 +566,7 @@ def _mockup_frame(x, y, w, h, title, dark=True):
 def s_mockups_1(i):
     """AI Chat + Knowledge Base — matches src/routes/app/chat and knowledge."""
     bg(True)
-    chrome(i, TOTAL, True, "07 · Product")
+    chrome(i, TOTAL, True, "10 · Product")
     kicker("Product mockups I", 80, H - 150)
     h1("AI Chat & Knowledge Base — the operator surface.",
        80, H - 220, size=38, max_w=1760)
@@ -655,7 +655,7 @@ def s_mockups_1(i):
 def s_mockups_2(i):
     """Module Store + AI Audit."""
     bg(True)
-    chrome(i, TOTAL, True, "08 · Product")
+    chrome(i, TOTAL, True, "10 · Product")
     kicker("Product mockups II", 80, H - 150)
     h1("Module Store & AI Audit — governance surfaces.", 80, H - 220, size=38, max_w=1760)
 
@@ -747,7 +747,7 @@ def s_mockups_2(i):
 def s_mockups_3(i):
     """MC + Portal + Installer."""
     bg(True)
-    chrome(i, TOTAL, True, "09 · Product")
+    chrome(i, TOTAL, True, "10 · Product")
     kicker("Product mockups III", 80, H - 150)
     h1("Management Center, Customer Portal & Installer.", 80, H - 220, size=38, max_w=1760)
 
@@ -856,7 +856,7 @@ def s_mockups_3(i):
 # ==================================================================
 def s_business_model(i):
     bg(False)
-    chrome(i, TOTAL, False, "10 · Business model")
+    chrome(i, TOTAL, False, "12 · Business model")
     kicker("Business model", 80, H - 150, dark=False)
     h1("Basic Platform, Premium Modules, and recurring maintenance.",
        80, H - 220, dark=False, size=40, max_w=1760)
@@ -904,7 +904,7 @@ def s_business_model(i):
 # ==================================================================
 def s_competitive(i):
     bg(True)
-    chrome(i, TOTAL, True, "11 · Competition")
+    chrome(i, TOTAL, True, "13 · Competition")
     kicker("Competitive landscape", 80, H - 150)
     h1("Objective comparison across measurable properties.",
        80, H - 220, size=40, max_w=1760)
@@ -952,7 +952,7 @@ def s_competitive(i):
 # ==================================================================
 def s_gtm(i):
     bg(False)
-    chrome(i, TOTAL, False, "12 · Go-to-market")
+    chrome(i, TOTAL, False, "14 · Go-to-market")
     kicker("Go-to-market", 80, H - 150, dark=False)
     h1("Land in DACH logistics. Expand into industrial manufacturing. Then EU.",
        80, H - 220, dark=False, size=38, max_w=1760)
@@ -1007,7 +1007,7 @@ def s_gtm(i):
 # ==================================================================
 def s_traction(i):
     bg(True)
-    chrome(i, TOTAL, True, "13 · Traction")
+    chrome(i, TOTAL, True, "15 · Traction")
     kicker("Traction", 80, H - 150)
     h1("Where we are today — honest and defensible.",
        80, H - 220, size=42, max_w=1760)
@@ -1077,7 +1077,7 @@ def s_traction(i):
 # ==================================================================
 def s_roadmap(i):
     bg(False)
-    chrome(i, TOTAL, False, "14 · Roadmap")
+    chrome(i, TOTAL, False, "16 · Roadmap")
     kicker("Roadmap", 80, H - 150, dark=False)
     h1("Completed, in progress, planned, vision — grounded in the codebase.",
        80, H - 220, dark=False, size=38, max_w=1760)
@@ -1140,7 +1140,7 @@ def s_roadmap(i):
 # ==================================================================
 def s_team(i):
     bg(True)
-    chrome(i, TOTAL, True, "15 · Team")
+    chrome(i, TOTAL, True, "17 · Team")
     kicker("Team", 80, H - 150)
     h1("A small, deliberate team. Nothing overstated.",
        80, H - 220, size=42, max_w=1760)
@@ -1199,7 +1199,7 @@ def s_team(i):
 # ==================================================================
 def s_market(i):
     bg(False)
-    chrome(i, TOTAL, False, "16 · Market")
+    chrome(i, TOTAL, False, "18 · Market")
     kicker("Market sizing", 80, H - 150, dark=False)
     h1("Bottom-up. Sourced. Deliberately conservative.",
        80, H - 220, dark=False, size=42, max_w=1760)
@@ -1247,7 +1247,7 @@ def s_market(i):
 # ==================================================================
 def s_ask(i):
     bg(True)
-    chrome(i, TOTAL, True, "17 · The ask")
+    chrome(i, TOTAL, True, "19 · The ask")
     kicker("The ask", 80, H - 150)
     h1("€350K–€750K Pre-Seed.",
        80, H - 240, size=72, max_w=1760)
