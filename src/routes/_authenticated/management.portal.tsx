@@ -76,20 +76,20 @@ function PortalPage() {
           value={s.activeInstalls}
           hint={`${s.totalInstalls} total`}
           icon={Package}
-          loading={isLoading}
+
         />
         <StatCard
           label="Releases published"
           value={s.releases.length}
           hint="Visible to customers"
           icon={Rocket}
-          loading={isLoading}
+
         />
         <StatCard
           label="Open tickets"
           value={s.openTickets}
           icon={Inbox}
-          loading={isLoading}
+
         />
       </div>
 
@@ -109,7 +109,7 @@ function PortalPage() {
           columns={releaseColumns}
           rows={s.releases}
           rowKey={(r) => r.version + r.channel}
-          loading={isLoading}
+
           empty={{
             icon: LifeBuoy,
             title: "No releases yet",
