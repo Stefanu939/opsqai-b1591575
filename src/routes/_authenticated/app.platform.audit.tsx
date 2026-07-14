@@ -64,6 +64,20 @@ function Donut({ score, size = 56 }: { score: number; size?: number }) {
 function AuditAI() {
   const [filter, setFilter] = useState<typeof FILTERS[number]>("Toate");
   const [selected, setSelected] = useState(COMPANIES[0]);
+  const [running, setRunning] = useState(false);
+  const [lastRun, setLastRun] = useState<Date>(() => new Date(Date.now() - 1000 * 60 * 60 * 4));
+
+  const runAudit = () => {
+    if (running) return;
+    setRunning(true);
+    toast.loading("Audit AI rulează pe toate firmele…", { id: "audit-run" });
+    setTimeout(() => {
+      setRunning(false);
+      setLastRun(new Date());
+      toast.success("Audit finalizat · scoruri actualizate", { id: "audit-run", icon: <CheckCircle2 className="h-4 w-4" /> });
+    }, 2200);
+  };
+
 
   const filtered = COMPANIES.filter(c => {
     if (filter === "Toate") return true;
