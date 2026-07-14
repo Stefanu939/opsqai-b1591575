@@ -116,6 +116,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1/knowledge'
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
+import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
 import { Route as AuthenticatedAppWorkspaceSessionIdRouteImport } from './routes/_authenticated/app.workspace.$sessionId'
 import { Route as AuthenticatedAppPlatformSupportRouteImport } from './routes/_authenticated/app.platform.support'
 import { Route as AuthenticatedAppPlatformSetupRouteImport } from './routes/_authenticated/app.platform.setup'
@@ -739,6 +740,12 @@ const ApiPublicV1FaqsRoute = ApiPublicV1FaqsRouteImport.update({
   path: '/api/public/v1/faqs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedManagementCompaniesIdRoute =
+  AuthenticatedManagementCompaniesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedManagementCompaniesRoute,
+  } as any)
 const AuthenticatedAppWorkspaceSessionIdRoute =
   AuthenticatedAppWorkspaceSessionIdRouteImport.update({
     id: '/workspace/$sessionId',
@@ -1188,7 +1195,7 @@ export interface FileRoutesByFullPath {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
-  '/management/companies': typeof AuthenticatedManagementCompaniesRoute
+  '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/portal/contract': typeof AuthenticatedPortalContractRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
@@ -1260,6 +1267,7 @@ export interface FileRoutesByFullPath {
   '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/app/platform/support': typeof AuthenticatedAppPlatformSupportRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1351,7 +1359,7 @@ export interface FileRoutesByTo {
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/requests': typeof AuthenticatedAppRequestsRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
-  '/management/companies': typeof AuthenticatedManagementCompaniesRoute
+  '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/portal/contract': typeof AuthenticatedPortalContractRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
@@ -1423,6 +1431,7 @@ export interface FileRoutesByTo {
   '/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/app/platform/support': typeof AuthenticatedAppPlatformSupportRoute
   '/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1523,7 +1532,7 @@ export interface FileRoutesById {
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/requests': typeof AuthenticatedAppRequestsRoute
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
-  '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRoute
+  '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/_authenticated/portal/contract': typeof AuthenticatedPortalContractRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
@@ -1595,6 +1604,7 @@ export interface FileRoutesById {
   '/_authenticated/app/platform/setup': typeof AuthenticatedAppPlatformSetupRoute
   '/_authenticated/app/platform/support': typeof AuthenticatedAppPlatformSupportRoute
   '/_authenticated/app/workspace/$sessionId': typeof AuthenticatedAppWorkspaceSessionIdRoute
+  '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1767,6 +1777,7 @@ export interface FileRouteTypes {
     | '/app/platform/setup'
     | '/app/platform/support'
     | '/app/workspace/$sessionId'
+    | '/management/companies/$id'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1930,6 +1941,7 @@ export interface FileRouteTypes {
     | '/app/platform/setup'
     | '/app/platform/support'
     | '/app/workspace/$sessionId'
+    | '/management/companies/$id'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -2101,6 +2113,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/platform/setup'
     | '/_authenticated/app/platform/support'
     | '/_authenticated/app/workspace/$sessionId'
+    | '/_authenticated/management/companies/$id'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -2933,6 +2946,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1FaqsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/management/companies/$id': {
+      id: '/_authenticated/management/companies/$id'
+      path: '/$id'
+      fullPath: '/management/companies/$id'
+      preLoaderRoute: typeof AuthenticatedManagementCompaniesIdRouteImport
+      parentRoute: typeof AuthenticatedManagementCompaniesRoute
+    }
     '/_authenticated/app/workspace/$sessionId': {
       id: '/_authenticated/app/workspace/$sessionId'
       path: '/workspace/$sessionId'
@@ -3614,15 +3634,30 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
 const AuthenticatedAppRouteWithChildren =
   AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
 
+interface AuthenticatedManagementCompaniesRouteChildren {
+  AuthenticatedManagementCompaniesIdRoute: typeof AuthenticatedManagementCompaniesIdRoute
+}
+
+const AuthenticatedManagementCompaniesRouteChildren: AuthenticatedManagementCompaniesRouteChildren =
+  {
+    AuthenticatedManagementCompaniesIdRoute:
+      AuthenticatedManagementCompaniesIdRoute,
+  }
+
+const AuthenticatedManagementCompaniesRouteWithChildren =
+  AuthenticatedManagementCompaniesRoute._addFileChildren(
+    AuthenticatedManagementCompaniesRouteChildren,
+  )
+
 interface AuthenticatedManagementRouteChildren {
-  AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRoute
+  AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRouteWithChildren
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
 }
 
 const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren =
   {
     AuthenticatedManagementCompaniesRoute:
-      AuthenticatedManagementCompaniesRoute,
+      AuthenticatedManagementCompaniesRouteWithChildren,
     AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
   }
 
