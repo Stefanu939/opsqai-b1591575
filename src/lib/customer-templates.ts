@@ -356,7 +356,7 @@ Final values must be agreed jointly with ${v(ctx.companyName)} based on baseline
 ${profileBlock(ctx)}
 
 ## Platform Summary
-OPSQAI is an enterprise Operational Knowledge Intelligence platform, purpose-built for logistics and warehouse operations. It is delivered as multi-tenant SaaS with strict workspace isolation enforced at the database layer.
+OPSQAI is an enterprise Operational Knowledge Intelligence platform, purpose-built for logistics and warehouse operations. It is delivered as a Windows on-premise installer — one single-tenant deployment per customer, with strict workspace isolation enforced at the database layer.
 
 ## Why OPSQAI for ${v(ctx.companyName)}
 - Source-grounded AI answers (no hallucinated content)
@@ -954,7 +954,7 @@ Compliance posture for ${v(ctx.companyName)}:
     build: (ctx) => `${header(ctx, "Technical Proposal")}
 
 ## Platform Architecture
-OPSQAI is a multi-tenant SaaS built on hardened Postgres with strict workspace isolation and pgvector-powered semantic search.
+OPSQAI is a Windows on-premise, single-tenant platform built on hardened Postgres with strict workspace isolation and pgvector-powered semantic search.
 
 ## AI Configuration
 | Setting | Value |
@@ -977,8 +977,8 @@ OPSQAI is a multi-tenant SaaS built on hardened Postgres with strict workspace i
     description: "High-level architecture.",
     build: (ctx) => `${header(ctx, "Architecture Overview")}
 
-Multi-tenant SaaS. Postgres with pgvector. Server-side RAG. RBAC enforced at the database layer.
-Active workspaces, including ${v(ctx.companyName)}, are isolated by RLS policies.
+Windows on-premise, single-tenant install. Postgres with pgvector. Server-side RAG. RBAC enforced at the database layer.
+Every install, including ${v(ctx.companyName)}, is isolated on the customer's own hardware; workspace RLS policies scope data within the install.
 `,
   },
   feature_matrix: {

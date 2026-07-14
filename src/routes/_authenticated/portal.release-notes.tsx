@@ -59,7 +59,7 @@ function PortalReleaseNotes() {
                 ) : null}
               </div>
               <div className="mt-3 text-xs font-mono break-all text-muted-foreground">
-                {r.docker_image}
+                {r.docker_image /* installer package identifier */}
                 {r.checksum ? <div>sha256: {r.checksum}</div> : null}
               </div>
             </Card>

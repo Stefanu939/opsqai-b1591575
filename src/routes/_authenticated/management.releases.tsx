@@ -115,7 +115,7 @@ function ReleasesPage() {
     },
     {
       key: "image",
-      header: "Docker image",
+      header: "Installer package",
       render: (r) => (
         <span className="font-mono text-xs text-muted-foreground">{r.docker_image}</span>
       ),
@@ -239,7 +239,7 @@ function NewReleaseDialog({
 
   const submit = () => {
     if (!version.trim() || !image.trim()) {
-      toast.error("Version and Docker image are required.");
+      toast.error("Version and installer package are required.");
       return;
     }
     onCreate({
@@ -298,7 +298,7 @@ function NewReleaseDialog({
             </div>
           </div>
           <div>
-            <Label>Docker image</Label>
+            <Label>Installer package</Label>
             <Input
               value={image}
               onChange={(e) => setImage(e.target.value)}
