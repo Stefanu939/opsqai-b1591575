@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WindowsOnlyRouteImport } from './routes/windows-only'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SsoSigninRouteImport } from './routes/sso-signin'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -100,6 +101,11 @@ import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/pu
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
 
+const WindowsOnlyRoute = WindowsOnlyRouteImport.update({
+  id: '/windows-only',
+  path: '/windows-only',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -609,6 +615,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
   '/support': typeof SupportRoute
+  '/windows-only': typeof WindowsOnlyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
@@ -700,6 +707,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
   '/support': typeof SupportRoute
+  '/windows-only': typeof WindowsOnlyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/academy-chat': typeof ApiAcademyChatRoute
@@ -789,6 +797,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
   '/support': typeof SupportRoute
+  '/windows-only': typeof WindowsOnlyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
@@ -882,6 +891,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sso-signin'
     | '/support'
+    | '/windows-only'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/app'
@@ -973,6 +983,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sso-signin'
     | '/support'
+    | '/windows-only'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/academy-chat'
@@ -1061,6 +1072,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sso-signin'
     | '/support'
+    | '/windows-only'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
@@ -1154,6 +1166,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SsoSigninRoute: typeof SsoSigninRoute
   SupportRoute: typeof SupportRoute
+  WindowsOnlyRoute: typeof WindowsOnlyRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
@@ -1181,6 +1194,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/windows-only': {
+      id: '/windows-only'
+      path: '/windows-only'
+      fullPath: '/windows-only'
+      preLoaderRoute: typeof WindowsOnlyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
       id: '/support'
       path: '/support'
@@ -2009,6 +2029,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SsoSigninRoute: SsoSigninRoute,
   SupportRoute: SupportRoute,
+  WindowsOnlyRoute: WindowsOnlyRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
