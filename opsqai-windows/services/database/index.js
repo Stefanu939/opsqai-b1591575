@@ -18,7 +18,7 @@
 //     surfaced loudly so bootstrap's log tail is actionable.
 
 "use strict";
-const { spawn, spawnSync } = require("child_process");
+const { spawnSync } = require("child_process");
 const crypto = require("crypto");
 const fs = require("fs");
 const net = require("net");
