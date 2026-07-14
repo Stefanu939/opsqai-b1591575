@@ -47,7 +47,12 @@ import { BillingPanel } from "@/components/platform/BillingPanel";
 
 export const Route = createFileRoute("/_authenticated/app/platform/licenses")({
   validateSearch: (s: Record<string, unknown>) => ({
-    tab: (s.tab === "billing" ? "billing" : "licenses") as "licenses" | "billing",
+    tab: (s.tab === "billing" || s.tab === "bundle" ? s.tab : "licenses") as
+      | "licenses"
+      | "bundle"
+      | "billing",
+    companyId: typeof s.companyId === "string" ? s.companyId : undefined,
+    companyName: typeof s.companyName === "string" ? s.companyName : undefined,
   }),
   component: LicensesPage,
 });
