@@ -70,11 +70,13 @@ import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-wri
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedManagementRouteImport } from './routes/_authenticated/management'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as DemoAppIndexRouteImport } from './routes/demo.app.index'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
+import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DemoAppUsersRouteImport } from './routes/demo.app.users'
@@ -482,6 +484,11 @@ const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedManagementRoute = AuthenticatedManagementRouteImport.update({
+  id: '/management',
+  path: '/management',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -509,6 +516,12 @@ const AuthenticatedPortalIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedManagementIndexRoute =
+  AuthenticatedManagementIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
@@ -1116,6 +1129,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/management': typeof AuthenticatedManagementRouteWithChildren
   '/portal': typeof AuthenticatedPortalRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
@@ -1181,6 +1195,7 @@ export interface FileRoutesByFullPath {
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/management/': typeof AuthenticatedManagementIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
   '/demo/app/': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
@@ -1342,6 +1357,7 @@ export interface FileRoutesByTo {
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/management': typeof AuthenticatedManagementIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
   '/demo/app': typeof DemoAppIndexRoute
   '/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
@@ -1446,6 +1462,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/management': typeof AuthenticatedManagementRouteWithChildren
   '/_authenticated/portal': typeof AuthenticatedPortalRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
   '/api/chat': typeof ApiChatRoute
@@ -1511,6 +1528,7 @@ export interface FileRoutesById {
   '/demo/app/users': typeof DemoAppUsersRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/management/': typeof AuthenticatedManagementIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
   '/demo/app/': typeof DemoAppIndexRoute
   '/_authenticated/app/academy/analytics': typeof AuthenticatedAppAcademyAnalyticsRoute
@@ -1615,6 +1633,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/app'
+    | '/management'
     | '/portal'
     | '/api/academy-chat'
     | '/api/chat'
@@ -1680,6 +1699,7 @@ export interface FileRouteTypes {
     | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app/'
+    | '/management/'
     | '/portal/'
     | '/demo/app/'
     | '/app/academy/analytics'
@@ -1841,6 +1861,7 @@ export interface FileRouteTypes {
     | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/app'
+    | '/management'
     | '/portal'
     | '/demo/app'
     | '/app/academy/analytics'
@@ -1944,6 +1965,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
+    | '/_authenticated/management'
     | '/_authenticated/portal'
     | '/api/academy-chat'
     | '/api/chat'
@@ -2009,6 +2031,7 @@ export interface FileRouteTypes {
     | '/demo/app/users'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
+    | '/_authenticated/management/'
     | '/_authenticated/portal/'
     | '/demo/app/'
     | '/_authenticated/app/academy/analytics'
@@ -2575,6 +2598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/management': {
+      id: '/_authenticated/management'
+      path: '/management'
+      fullPath: '/management'
+      preLoaderRoute: typeof AuthenticatedManagementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app': {
       id: '/_authenticated/app'
       path: '/app'
@@ -2609,6 +2639,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/'
       preLoaderRoute: typeof AuthenticatedPortalIndexRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/management/': {
+      id: '/_authenticated/management/'
+      path: '/'
+      fullPath: '/management/'
+      preLoaderRoute: typeof AuthenticatedManagementIndexRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/app/': {
       id: '/_authenticated/app/'
@@ -3557,6 +3594,20 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
 const AuthenticatedAppRouteWithChildren =
   AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
 
+interface AuthenticatedManagementRouteChildren {
+  AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
+}
+
+const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren =
+  {
+    AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
+  }
+
+const AuthenticatedManagementRouteWithChildren =
+  AuthenticatedManagementRoute._addFileChildren(
+    AuthenticatedManagementRouteChildren,
+  )
+
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalContractRoute: typeof AuthenticatedPortalContractRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
@@ -3578,11 +3629,13 @@ const AuthenticatedPortalRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+  AuthenticatedManagementRoute: typeof AuthenticatedManagementRouteWithChildren
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
+  AuthenticatedManagementRoute: AuthenticatedManagementRouteWithChildren,
   AuthenticatedPortalRoute: AuthenticatedPortalRouteWithChildren,
 }
 
