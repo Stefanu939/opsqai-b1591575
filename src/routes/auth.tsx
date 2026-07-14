@@ -126,8 +126,6 @@ function AuthPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audience]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audience]);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange(async (_e, s) => {
