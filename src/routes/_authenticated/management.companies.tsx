@@ -68,8 +68,26 @@ function CompaniesPage() {
     queryFn: () => list({ data: {} } as never),
   });
 
+  type CreateInput = {
+    name: string;
+    subscription_plan: "free" | "starter" | "pro" | "enterprise";
+    max_users: number;
+    admin_email: string;
+    admin_password: string;
+    admin_first_name?: string;
+    admin_last_name?: string;
+  };
+  type UpdateInput = {
+    id: string;
+    name: string;
+    subscription_plan?: "free" | "starter" | "pro" | "enterprise";
+    max_users?: number;
+    active?: boolean;
+    subscription_status?: "active" | "suspended" | "trial" | "cancelled";
+  };
+
   const createMut = useMutation({
-    mutationFn: (v: Parameters<typeof create>[0]["data"]) => create({ data: v }),
+    mutationFn: (v: CreateInput) => create({ data: v }),
     onSuccess: () => {
       toast.success("Company created");
       qc.invalidateQueries({ queryKey: ["mc-companies"] });
@@ -77,7 +95,7 @@ function CompaniesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
   const updateMut = useMutation({
-    mutationFn: (v: Parameters<typeof update>[0]["data"]) => update({ data: v }),
+    mutationFn: (v: UpdateInput) => update({ data: v }),
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["mc-companies"] });
