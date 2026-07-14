@@ -1138,7 +1138,12 @@ export const removeEnrollment = createServerFn({ method: "POST" })
 export const listMyEnrollments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await enforceAcademyForCurrentUser(context);
+    try {
+      await enforceAcademyForCurrentUser(context);
+    } catch (e) {
+      if (e instanceof Response) return [];
+      throw e;
+    }
     const { data, error } = await (context.supabase as any)
       .from("academy_enrollments")
       .select(
