@@ -125,16 +125,16 @@ export const upsertCustomerContract = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("customer_profiles").upsert(
-      {
-        company_id: data.company_id,
-        contract_status: data.contract_status ?? null,
-        renewal_date: data.renewal_date ?? null,
-        onboarding_pct: data.onboarding_pct ?? null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "company_id" },
-    );
+    const patch: Record<string, unknown> = {
+      company_id: data.company_id,
+      updated_at: new Date().toISOString(),
+    };
+    if (data.contract_status !== undefined) patch.contract_status = data.contract_status;
+    if (data.renewal_date !== undefined) patch.renewal_date = data.renewal_date;
+    if (data.onboarding_pct !== undefined) patch.onboarding_pct = data.onboarding_pct;
+    const { error } = await supabaseAdmin
+      .from("customer_profiles")
+      .upsert(patch, { onConflict: "company_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
