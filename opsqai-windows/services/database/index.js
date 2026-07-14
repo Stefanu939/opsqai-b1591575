@@ -39,7 +39,8 @@ const dataDir = programData("data", "pgsql");
 const pgCtl = path.join(pgBin, "pg_ctl.exe");
 const pgIsReady = path.join(pgBin, "pg_isready.exe");
 const initdb = path.join(pgBin, "initdb.exe");
-const postgres = path.join(pgBin, "postgres.exe");
+// postgres.exe is not spawned directly — pg_ctl start does it under a
+// restricted (non-admin) token, which is required on Windows services.
 
 function log(m) {
   console.log(`[${new Date().toISOString()}] [db] ${m}`);
