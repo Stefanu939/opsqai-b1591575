@@ -287,7 +287,7 @@ def s_problem(i):
 # ==================================================================
 def s_market_context(i):
     bg(False)
-    chrome(i, TOTAL, False, "02 · Market context")
+    chrome(i, TOTAL, False, "03 · Market context")
     kicker("Market context", 80, H - 150, dark=False)
     h1("Enterprise AI is growing fast — but industrial buyers demand sovereignty.",
        80, H - 220, dark=False, size=44, max_w=1760)
@@ -1338,7 +1338,7 @@ def s_ask(i):
 # ==================================================================
 def s_why_now(i):
     bg(True)
-    chrome(i, TOTAL, True, "03 · Why now")
+    chrome(i, TOTAL, True, "02 · Why now")
     kicker("Why now", 80, H - 150)
     h1("Four forces make 2026 the deployment window for sovereign operational AI.",
        80, H - 220, size=38, max_w=1760)
