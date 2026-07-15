@@ -1,183 +1,60 @@
-# OPSQAI — 4 Reality-Based PDF Deliverables
+# OPSQAI — "What is OPSQAI?" plain-language explainer
 
-Four separate PDFs, English, professional layout, generated from a single Python toolchain reusing the v3 investor-deck brand system (Noir & Gold on MC-oriented pages, clean light theme for customer-facing docs, Urbanist/Epilogue via DejaVu fallback for PDF text).
+A 5th PDF alongside the existing four, written for a non-technical audience (family, friends, non-IT colleagues). English, short, friendly, no jargon.
 
-All content is derived **only** from real project artifacts:
+## Output
 
-- `docs/product-documentation/*`
-- `docs/architecture-book/*`
-- `docs/technical-documentation/*`
-- `docs/administrator-guide/*`
-- `docs/security-documentation/*`
-- `docs/engineering/*`
-- `opsqai-windows/*` (installer, services, WinSW configs, unattended install)
-- `installer/*` (Go bootstrap)
-- `src/routes/*`, `src/lib/*` (MC + Portal + Self-Hosted routes)
-- `public/llms.txt`, `ROADMAP.md`, `SECURITY.md`, `RELEASE_NOTES.md`
+- `/mnt/documents/OPSQAI-What-Is-It.pdf` (~6–8 pages, A4)
 
-No invented numbers, no fake customers, no imagined features. If a feature isn't in the code or docs, it's not in the PDFs.
+## Audience & tone
 
----
+- Reader: someone with no software / AI background.
+- Tone: like explaining your job at a family dinner. Short sentences. Analogies. No acronyms without a plain-English gloss (RAG, SOP, LLM, on-prem → all explained in one line the first time).
+- No pricing, no investor claims, no market stats, no fake customers.
 
-## Output files (all in `/mnt/documents/`)
+## Structure
 
-1. `OPSQAI-Sales-Playbook.pdf`
-2. `OPSQAI-Product-Overview.pdf`
-3. `OPSQAI-Self-Hosted-Administrator-Guide.pdf`
-4. `OPSQAI-Internal-Platform-Guide.pdf`
+1. **Cover** — "What is OPSQAI?" + one-sentence answer:
+  *"OPSQAI is a private AI assistant that a company installs on its own computers so its employees can ask questions about the company's own documents and get trustworthy answers."*
+2. **The everyday problem** — Companies have thousands of documents (procedures, manuals, training material). Employees waste hours searching. New hires take months to become useful. Analogy: "imagine your family's recipes scattered across 20 notebooks, 3 phones, and grandma's memory."
+3. **Why they can't just use ChatGPT** — Two plain reasons: (a) company documents are confidential and can't be sent to a public AI, (b) public AI doesn't know your company's rules. One-line analogy.
+4. **What OPSQAI does** — Reads the company's documents, understands them, answers employee questions in normal language, and always shows *where the answer came from* (like footnotes in a book).
+5. **How it works, in 4 pictures** — Simple 4-step diagram: **Documents → OPSQAI reads them → Employee asks a question → OPSQAI answers with sources.** No tech words.
+6. **Where it lives** — Installed on the company's own Windows computers/servers. Not in the cloud. The company's data stays with the company. Analogy: "like installing Microsoft Office, not like using Gmail."
+7. **Who uses it** — Warehouse teams, factory workers, logistics staff, new hires, trainers, quality/compliance people. One line each.
+8. **What makes it different** (3 bullets, plain words):
+  - It only answers from your own documents (won't make things up).
+  - Your data never leaves your company.
+  - You can see exactly which document each answer came from.
+9. **A day with OPSQAI** — Short story: new warehouse employee on day 1 asks "how do I handle a damaged pallet?", gets the exact procedure with the source SOP. 4–5 sentences.
+10. **What OPSQAI is *not*** — Not a chatbot toy. Not a replacement for people. Not a public AI. Not a document storage system.
+11. **In one paragraph, for grandma** — The single paragraph to memorize and repeat at dinner.
+12. **Back cover** — opsqai.de, contact email, tagline.
 
----
+## Visuals (all generated, no fabricated screenshots)
 
-## 1. OPSQAI Sales Playbook (internal — sales team)
+- Cover illustration: stylized speech bubble over a factory/warehouse silhouette.
+- 4-step "how it works" strip (icons: document, brain, question mark, answer with citation).
+- "Where it lives" diagram: a small building labeled "Your company" containing a laptop labeled "OPSQAI" — arrow *not* leaving the building.
+- Tiny module strip (Chat, Knowledge Base, FAQ, Academy, Audit) with one-line plain descriptions.
 
-Audience: OPSQAI sales / founder-led sales.
-Tone: practical, script-like, defensible.
+All visuals are simple ReportLab drawings (boxes, icons, labels) in the same brand palette as the other four PDFs — no invented UI screenshots.
 
-Sections:
+## Content sourcing
 
-- Positioning in one sentence (from `llms.txt` + product docs).
-- Who we sell to (industrial SMB/mid-market on Windows, DACH first — from company/self-hosted routes).
-- Discovery questions (data sovereignty, current AI use, Windows footprint, compliance drivers).
-- The 3-surface pitch (MC / Portal / Self-Hosted) with a diagram.
-- Demo script: Portal download → Windows installer wizard → Setup Wizard → AI Chat on Knowledge Base → AI Audit → License Activation. Each step references the real route/screen.
-- Objection handling (only real answers):
-  - "Why not SaaS?" → sovereignty, EU AI Act, chunk-level ACL, retrieval never leaves install (AD-004).
-  - "Why Windows?" → real customer infra (WinSW services, embedded PostgreSQL, Caddy).
-  - "Vendor lock-in?" → customer owns data, embeddings, AI provider; OpenAI/Azure/Ollama supported.
-  - "What if OPSQAI disappears?" → AD-009, DR anchor is `install_id` + customer backups.
-  - "Updates offline?" → activation bundle + signed manifests.
-- Pricing conversation frame: Basic Platform + Premium Modules + Annual Maintenance (recurring, 15–20% depending on contract). No fixed € numbers invented.
-- Closing checklist: technical contact, install target, AI provider choice, license seats, maintenance term.
-- Handover to delivery (what sales must capture before licensing).
-
-Mockups: pitch flow diagram, demo storyboard (6 screens from real UI surfaces).
-
----
-
-## 2. OPSQAI Product Overview (commercial, pre-demo leave-behind)
-
-Audience: prospect decision-makers.
-Tone: commercial, not technical, not investor.
-
-Sections:
-
-- Problem (operational knowledge locked in docs/tribal knowledge — grounded, no market stats invented).
-- Solution: Enterprise Operational AI, Windows self-hosted.
-- How it works (Ingest → Embed → Retrieve → Generate, from `technical-documentation/05-rag-pipeline.md`).
-- Who it's for (logistics, manufacturing, warehouse, production — as already positioned).
-- Benefits (sovereignty, auditability, no per-seat SaaS lock-in).
-- Modules: Basic Platform (AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, Subscription) + Premium Modules (as listed in `product-documentation/04-modules.md`).
-- Architecture (3 surfaces diagram from `architecture-book/02-architecture.md`).
-- Why Windows self-hosted / why not SaaS (AD-003, AD-004, AD-005).
-- Why OPSQAI (differentiators only from code: signed licenses Ed25519, CRL, hash-chained audit, chunk-level ACL, offline activation bundle, installer with Doctor/Recovery).
-- Usage examples (logistics dispatcher Q&A, warehouse SOP retrieval, manufacturing procedure lookup — described as scenarios, not case studies).
-- Security summary (from `security-documentation/*`).
-- AI providers supported (OpenAI, Azure OpenAI, self-hosted OpenAI-compatible incl. Ollama/vLLM/LM Studio, Lovable AI Gateway).
-- Licensing model (two-axis, from `product-documentation/05-licensing.md`).
-- Customer journey (Portal download → Windows install → activation → configure AI → production use).
-- FAQ (from `product-documentation/11-faq.md`, trimmed).
-
-Mockups: architecture diagram, module map, customer journey strip, 3–4 real UI screenshots-style mockups (Chat, Knowledge Base, AI Audit, License Activation).
-
----
-
-## 3. OPSQAI Self-Hosted Administrator Guide (customer IT admin)
-
-Audience: customer IT administrator. MC never mentioned as accessible.
-
-Sections (each maps 1:1 to an existing doc):
-
-- What OPSQAI is (customer-side only).
-- Prerequisites (`administrator-guide/01`).
-- Installation via `OPSQAI-Setup.exe` — interactive + unattended (`opsqai-windows/docs/unattended-install.md`).
-- Windows services (WinSW): Database, Platform, Worker, Updater, Caddy — real names from `winsw-configs/`.
-- Setup Wizard steps (`administrator-guide/03`).
-- PostgreSQL: embedded (default, `pg_ctl`-managed) or external (`administrator-guide/04`).
-- Object storage: local or S3 (`administrator-guide/05`).
-- SMTP (`06`), SSO (`07`), AI providers (`08` — OpenAI, Azure, self-hosted incl. Ollama, Lovable Gateway).
-- License management: install, module, offline bundle, revocation (`09`).
-- Backups (`10`), Restore (`11`), Updates (`12`).
-- Modules enable/disable + expiry/revocation behavior (`13`).
-- Health & Doctor CLI (`14`).
-- Troubleshooting (`15`) + recent PostgreSQL `pg_ctl` fix note.
-- Security posture (customer-facing subset).
-- Best practices: backup cadence, license storage, provider key rotation.
-- Sales Playbook
-- Eu aș mai adăuga două capitole.
-- Competitor Battle Cards
-- Pentru:
-- Microsoft Copilot
-- ChatGPT Enterprise
-- Glean
-- Guru
-- Nu ca marketing.
-- Ci:
-- when we win
-- when we lose
-- when NOT to sell OPSQAI
-- Foarte puține startup-uri fac asta.
-- Qualification Checklist
-- Înainte de demo.
-- Exemplu:
-- Windows Server?
-- Local IT?
-- Compliance?
-- AI already used?
-- Documents available?
-- English/German?
-- Number of users?
-- Offline requirement?
-
-Mockups: installer wizard step, service manager view, `opsqai doctor` output, Setup Wizard screens, License Activation page.
-
----
-
-## 4. OPSQAI Internal Platform Guide (OPSQAI team)
-
-Audience: OPSQAI staff (founder + future hires).
-Tone: authoritative, complete, cross-surface.
-
-Sections:
-
-- Product philosophy (from architecture-book/01-vision).
-- Full architecture: MC + Portal + Self-Hosted (from architecture-book/02–03; AD-001 through AD-021 summarized).
-- Management Center: companies, installations, licenses, releases, signing keys, activation bundles, ownership transfer, support, audit — with the actual `/app/platform/*` route names.
-- Customer Portal: what a customer contact sees vs. MC platform admin.
-- Self-Hosted internals: WinSW services, bootstrap (`installer/`), migrations, service manager (`opsqai-windows/tools/service-manager`).
-- Licensing internals: token format `opsqai.v1.<b64url>.<sig>`, `license_version:1`, `key_id`, Ed25519, CRL, heartbeat, bundle import (from `technical-documentation/03-license-flow.md`, `security-documentation/05`).
-- Installer generation flow (`docs/engineering/04-issue-a-license.md`): install-id slug is chosen at provisioning time and reused; regeneration + CRL policy.
-- Update system: signed manifests, updater service, offline import (roadmap-only items marked as roadmap).
-- Release management (`engineering/02-release-process.md`).
-- Signing key lifecycle + rotation (`security-documentation/05`).
-- Module system: per-module tokens (AD-006), effect of expiry vs. maintenance vs. revocation, data retention.
-- Operational playbooks:
-  - Deliver a new customer (Prospect → Contract → Company → Install → License → Package → Portal handover).
-  - Issue a license (UI + CLI + `issueLicense` server function).
-  - Generate installation package.
-  - Recover a lost `license_installs` row (DR procedure).
-  - Ownership transfer (`license-transfer.functions.ts`).
-  - Revocation propagation.
-  - Support triage (heartbeat status, doctor bundle, audit log).
-- Access control: who inside OPSQAI can see what (platform_admin gates, `getActorRoles`, MC-only routes).
-- Full end-to-end flow diagram: Prospect → Contract → License → Installer → Portal → Self-Hosted → Support → Updates.
-- Internal Workspace (system docs regeneration) — from `src/lib/system-docs.functions.ts`.
-
-Mockups: MC dashboard, License issue form, Package generation, Portal downloads view, Installer wizard, Self-Hosted admin, end-to-end flow diagram.
-
----
+Same rule as the other four: everything drawn from real project files —
+`docs/product-documentation/01-what-is-opsqai.md`, `02-why-it-exists.md`, `04-modules.md`, `06-how-ai-works.md`, `10-security-overview.md`, `11-faq.md`, `public/llms.txt`, `src/lib/opsqai-facts.ts`. Nothing invented.
 
 ## Technical approach
 
-- One Python generator per PDF under `scripts/gen_*.py` (ReportLab + Platypus), sharing a small `scripts/opsqai_pdf_theme.py` for palette, fonts (DejaVu Sans registered for full Unicode), heading styles, table styles, and diagram primitives.
-- Mockups produced as ReportLab drawings (boxes/labels resembling the real UI) plus a few real SVG/PNG assets already in `public/brand/*`. No fabricated screenshots — mockups are clearly stylized wireframes labeled with the exact route (e.g. `/app/platform/licenses`).
-- Content pulled verbatim (or lightly rephrased) from the doc sources listed above; every factual claim traceable to a file. No invented metrics, no fake customer names, no market stats.
-- QA loop for each PDF: render → `pdftoppm -jpeg -r 150` → view each page → fix layout/overlap/overflow → re-render until clean. Report what was checked and fixed.
+- Extend `scripts/gen_opsqai_pdfs.py` with a 5th builder `build_what_is_opsqai()` reusing `opsqai_pdf_theme.py` (fonts, palette, primitives).
+- Layout: single-column, generous line-height, ~14pt body, big headings — reads like a friendly booklet, not a spec.
+- QA: `pdftoppm -jpeg -r 150` → view every page → fix overflow/overlap/tone (flag any sentence that slips into jargon) → re-render.
 
 ## Out of scope
 
-- No changes to product code, routes, DB, or licensing logic.
-- No new marketing website copy.
-- No investor deck edits (v3 remains as delivered).
-- No printed/branded assets beyond the 4 PDFs.
+- No changes to the existing 4 PDFs.
+- No code/product changes.
+  Scriel In romana pe asta 
 
-Confirm and I'll build all four in the next turn.
+Confirm and I'll build it in the next turn.
