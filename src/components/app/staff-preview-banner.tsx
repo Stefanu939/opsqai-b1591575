@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { Eye } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
+import { DEMO_COMPANY_ID, DEMO_COMPANY_DISPLAY_NAME } from "@/lib/staff-preview";
 
 // Staff Preview banner.
 //
@@ -9,12 +11,24 @@ import { getClientDeploymentMode } from "@/lib/deployment-mode";
 // Center deployment. On real self-hosted Windows installs this component
 // renders nothing, so customers never see it.
 //
-// Purpose: make it impossible for staff to mistake the demo cloud sandbox
-// for a real customer install.
+// Side effect: while mounted, it pins the staff user's active workspace
+// to the seeded demo tenant ("Atlas Logistics GmbH"). All client-side
+// queries in the Self-Hosted UI scope by `scopeCompanyId`, so this makes
+// the preview show demo data — never a real customer tenant that a
+// platform admin might have been inspecting from `/management/*`.
 export function StaffPreviewBanner() {
-  const { isPlatformAdmin } = useAuth();
-  if (getClientDeploymentMode() !== "mc") return null;
-  if (!isPlatformAdmin) return null;
+  const { isPlatformAdmin, activeCompanyId, setActiveCompanyId } = useAuth();
+  const isMc = getClientDeploymentMode() === "mc";
+  const shouldPin = isMc && isPlatformAdmin;
+
+  useEffect(() => {
+    if (!shouldPin) return;
+    if (activeCompanyId !== DEMO_COMPANY_ID) {
+      setActiveCompanyId(DEMO_COMPANY_ID);
+    }
+  }, [shouldPin, activeCompanyId, setActiveCompanyId]);
+
+  if (!shouldPin) return null;
 
   return (
     <div
@@ -27,8 +41,10 @@ export function StaffPreviewBanner() {
           <strong className="font-semibold tracking-wide">STAFF PREVIEW</strong>
           <span className="opacity-80">
             {" "}
-            — you are viewing the Self-Hosted product from the Management Center.
-            This is a demo sandbox. Customers never see this view.
+            — you are viewing the Self-Hosted product from the Management
+            Center. Data shown belongs to the demo tenant{" "}
+            <em className="not-italic font-medium">{DEMO_COMPANY_DISPLAY_NAME}</em>.
+            Customers never see this view.
           </span>
         </span>
       </div>
