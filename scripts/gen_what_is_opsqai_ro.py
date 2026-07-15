@@ -317,7 +317,7 @@ def build():
         canv.restoreState()
 
     # Register the first-page hook
-    doc.pageTemplates[0].onPage = on_first
+    doc.pageTemplates[0].onPageEnd = on_first
     doc.build(S)
     print("Wrote:", OUT)
 
