@@ -149,9 +149,7 @@ def build():
     S = []
     # ===== COVER =====
     S.append(CoverBG(PAGE_W, PAGE_H))
-    # overlay text via canvas trick: use a spacer + paragraphs positioned by adding to frame — easier: build cover with a Table over BG
-    # We used CoverBG which paints background; now add text on next flowables using a KeepTogether table trick.
-    # Simpler: place cover text on second page? No — we draw text directly in CoverBG.
+    S.append(NextPageTemplate("body"))
     S.append(PageBreak())
 
     # ===== 1. Răspuns într-o propoziție =====
