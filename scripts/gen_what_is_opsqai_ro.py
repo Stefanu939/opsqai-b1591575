@@ -74,18 +74,22 @@ class Step(Flowable):
     def draw(self):
         c=self.canv
         c.setFillColor(SOFT); c.roundRect(0,0,self.w,self.h,10,stroke=0,fill=1)
-        c.setFillColor(ACCENT); c.circle(24,self.h-24,14,stroke=0,fill=1)
-        c.setFillColor(colors.white); c.setFont("Body-Bold",12); c.drawCentredString(24,self.h-28,str(self.num))
-        c.setFillColor(NOIR); c.setFont("Body-Bold",11); c.drawString(48,self.h-28,self.title)
-        c.setFillColor(INK); c.setFont("Body",9.5)
-        # wrap text
-        words=self.text.split(); line=""; y=self.h-46
-        for w in words:
-            trial=(line+" "+w).strip()
-            if c.stringWidth(trial,"Body",9.5) > self.w-24:
-                c.drawString(12,y,line); y-=12; line=w
-            else: line=trial
-        if line: c.drawString(12,y,line)
+        c.setFillColor(ACCENT); c.circle(20,self.h-20,12,stroke=0,fill=1)
+        c.setFillColor(colors.white); c.setFont("Body-Bold",11); c.drawCentredString(20,self.h-23,str(self.num))
+        c.setFillColor(NOIR); c.setFont("Body-Bold",10.5)
+        # title wraps too
+        def wrap(text, font, size, maxw, x, y, line_h):
+            words=text.split(); line=""
+            for w in words:
+                trial=(line+" "+w).strip()
+                if c.stringWidth(trial,font,size) > maxw:
+                    c.drawString(x,y,line); y-=line_h; line=w
+                else: line=trial
+            if line: c.drawString(x,y,line)
+            return y
+        y = wrap(self.title, "Body-Bold", 10.5, self.w-16, 8, self.h-44, 13)
+        c.setFillColor(INK); c.setFont("Body",9)
+        wrap(self.text, "Body", 9, self.w-16, 8, y-10, 11)
 
 class HouseDiagram(Flowable):
     def __init__(self,w,h): super().__init__(); self.w=w; self.h=h
