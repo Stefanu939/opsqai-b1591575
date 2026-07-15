@@ -206,7 +206,7 @@ def build():
     row = []
     sw = (PAGE_W - 2*MARGIN - 3*6) / 4
     for n,t,txt in steps:
-        row.append(Step(sw, 100, n, t, txt))
+        row.append(Step(sw, 130, n, t, txt))
     t = Table([row], colWidths=[sw]*4)
     t.setStyle(TableStyle([("VALIGN",(0,0),(-1,-1),"TOP"),("LEFTPADDING",(0,0),(-1,-1),0),("RIGHTPADDING",(0,0),(-1,-1),3)]))
     S.append(t)
