@@ -92,6 +92,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1/knowledge'
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
+import { Route as AuthenticatedPortalNewsSlugRouteImport } from './routes/_authenticated/portal.news.$slug'
 import { Route as AuthenticatedPortalAdminDownloadsRouteImport } from './routes/_authenticated/portal.admin.downloads'
 import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
@@ -550,6 +551,12 @@ const ApiPublicV1FaqsRoute = ApiPublicV1FaqsRouteImport.update({
   path: '/api/public/v1/faqs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPortalNewsSlugRoute =
+  AuthenticatedPortalNewsSlugRouteImport.update({
+    id: '/$slug',
+    path: '/$slug',
+    getParentRoute: () => AuthenticatedPortalNewsRoute,
+  } as any)
 const AuthenticatedPortalAdminDownloadsRoute =
   AuthenticatedPortalAdminDownloadsRouteImport.update({
     id: '/downloads',
@@ -693,7 +700,7 @@ export interface FileRoutesByFullPath {
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
-  '/portal/news': typeof AuthenticatedPortalNewsRoute
+  '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -711,6 +718,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
+  '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -785,7 +793,7 @@ export interface FileRoutesByTo {
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
-  '/portal/news': typeof AuthenticatedPortalNewsRoute
+  '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -803,6 +811,7 @@ export interface FileRoutesByTo {
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
+  '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -884,7 +893,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
-  '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRoute
+  '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -902,6 +911,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/_authenticated/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
+  '/_authenticated/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1001,6 +1011,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/management/companies/$id'
     | '/portal/admin/downloads'
+    | '/portal/news/$slug'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1093,6 +1104,7 @@ export interface FileRouteTypes {
     | '/app/chat/$threadId'
     | '/management/companies/$id'
     | '/portal/admin/downloads'
+    | '/portal/news/$slug'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1191,6 +1203,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/management/companies/$id'
     | '/_authenticated/portal/admin/downloads'
+    | '/_authenticated/portal/news/$slug'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1837,6 +1850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1FaqsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/portal/news/$slug': {
+      id: '/_authenticated/portal/news/$slug'
+      path: '/$slug'
+      fullPath: '/portal/news/$slug'
+      preLoaderRoute: typeof AuthenticatedPortalNewsSlugRouteImport
+      parentRoute: typeof AuthenticatedPortalNewsRoute
+    }
     '/_authenticated/portal/admin/downloads': {
       id: '/_authenticated/portal/admin/downloads'
       path: '/downloads'
@@ -2065,11 +2085,25 @@ const AuthenticatedPortalAdminRouteWithChildren =
     AuthenticatedPortalAdminRouteChildren,
   )
 
+interface AuthenticatedPortalNewsRouteChildren {
+  AuthenticatedPortalNewsSlugRoute: typeof AuthenticatedPortalNewsSlugRoute
+}
+
+const AuthenticatedPortalNewsRouteChildren: AuthenticatedPortalNewsRouteChildren =
+  {
+    AuthenticatedPortalNewsSlugRoute: AuthenticatedPortalNewsSlugRoute,
+  }
+
+const AuthenticatedPortalNewsRouteWithChildren =
+  AuthenticatedPortalNewsRoute._addFileChildren(
+    AuthenticatedPortalNewsRouteChildren,
+  )
+
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRouteWithChildren
   AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
-  AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRoute
+  AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRouteWithChildren
   AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
   AuthenticatedPortalSubscriptionRoute: typeof AuthenticatedPortalSubscriptionRoute
   AuthenticatedPortalSupportRoute: typeof AuthenticatedPortalSupportRoute
@@ -2080,7 +2114,7 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRouteWithChildren,
   AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
-  AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRoute,
+  AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRouteWithChildren,
   AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
   AuthenticatedPortalSubscriptionRoute: AuthenticatedPortalSubscriptionRoute,
   AuthenticatedPortalSupportRoute: AuthenticatedPortalSupportRoute,
