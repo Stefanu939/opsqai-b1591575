@@ -268,6 +268,10 @@ function CompaniesPage() {
         rows={filtered}
         rowKey={(c) => c.id}
         loading={isLoading}
+        onRowClick={(c) => {
+          setActiveCompanyId(c.id);
+          navigate({ to: "/management/companies/$id", params: { id: c.id } });
+        }}
         empty={{
           icon: Building2,
           title: companies.length ? "No matches" : "No companies yet",
@@ -276,6 +280,7 @@ function CompaniesPage() {
             : "Create your first customer company to get started.",
         }}
       />
+
     </div>
   );
 }
