@@ -8,6 +8,9 @@ import {
   setCurrentRelease,
   deleteRelease,
 } from "@/lib/releases.functions";
+import { getPortalSnapshot } from "@/lib/mc-admin.functions";
+import { StatCard } from "@/components/ui/stat-card";
+import { Package, Inbox } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
