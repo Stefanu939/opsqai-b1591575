@@ -123,18 +123,29 @@ export function ManagementShell({ children }: { children: ReactNode }) {
                   to={item.to}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "mx-2 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
+                    "relative mx-2 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
                     active
-                      ? "bg-surface-2 font-medium text-foreground"
+                      ? "font-medium text-foreground"
                       : "text-muted-foreground hover:bg-surface-1 hover:text-foreground",
                   )}
                   style={active ? { backgroundColor: "var(--surface-2)" } : undefined}
                 >
-                  <Icon className="h-4 w-4" strokeWidth={1.75} />
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
+                      style={{ background: "var(--mc-gold, var(--gold))" }}
+                    />
+                  )}
+                  <Icon
+                    className={cn("h-4 w-4", active && "text-[color:var(--mc-gold,var(--gold))]")}
+                    strokeWidth={1.75}
+                  />
                   <span>{item.label}</span>
                 </Link>
               );
             })}
+
           </div>
         ))}
       </nav>
