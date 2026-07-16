@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { KeyRound, Plus, Search } from "lucide-react";
+import { KeyRound, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
