@@ -217,12 +217,15 @@ function ChatInner({
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-6">
           {messages.length === 0 && (
-            <div className="text-center py-12">
-              <LogoMark size={48} className="mx-auto mb-3 text-foreground" />
-              <p className="text-sm text-muted-foreground">{T("askAnything")}</p>
+            <div className="text-center py-16">
+              <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-[var(--gold-soft)] grid place-items-center border border-[var(--gold-line)]">
+                <LogoMark size={28} className="text-gold" />
+              </div>
+              <p className="font-display text-lg font-medium text-foreground">{T("askAnything")}</p>
               <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">{T("ragNote")}</p>
             </div>
           )}
+
           {messages.map((m) => {
             const rawText = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
             const meta = m.metadata as MessageMeta | undefined;
