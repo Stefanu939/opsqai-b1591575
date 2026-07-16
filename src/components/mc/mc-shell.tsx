@@ -41,7 +41,6 @@ const SECTIONS: Section[] = [
   {
     title: "Customers",
     items: [
-      { to: "/management/companies", label: "Companies", icon: Building2 },
       { to: "/management/customers", label: "Customers", icon: Users },
       { to: "/management/installations", label: "Installations", icon: Package },
       { to: "/management/licenses", label: "Licenses", icon: KeyRound },
