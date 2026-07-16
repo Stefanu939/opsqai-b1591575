@@ -94,41 +94,70 @@ const TIERS = [
 function PricingPage() {
   return (
     <MarketingLayout>
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Pricing</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          Own the platform. Pay for what you use.
-        </h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI is not a SaaS. You purchase the Basic Platform once, activate
-          premium modules as you need them, and keep the installation healthy
-          with Annual Maintenance.
-        </p>
+      <section className="relative border-b border-border/50 overflow-hidden">
+        <div className="absolute inset-0 -z-10 [background:radial-gradient(60%_50%_at_50%_0%,rgba(201,162,76,0.08),transparent_75%)]" />
+        <div className="mx-auto max-w-5xl px-4 py-20 md:py-28">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-[color:var(--gold)] font-medium">
+            Pricing
+          </p>
+          <h1 className="mt-3 font-display text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+            Own the platform.
+            <br className="hidden sm:block" />
+            <span className="text-[color:var(--gold)]"> Pay for what you use.</span>
+          </h1>
+          <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-3xl">
+            OPSQAI is not a SaaS. You purchase the Basic Platform once, activate
+            premium modules as you need them, and keep the installation healthy
+            with Annual Maintenance.
+          </p>
+        </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-16">
+      <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid gap-4 md:grid-cols-3">
-          {TIERS.map((t) => (
-            <Card key={t.name} className="p-6 border-border/60 flex flex-col">
-              <t.icon className="h-6 w-6 text-primary" />
-              <div className="mt-4 text-xs uppercase tracking-wider text-muted-foreground">
-                {t.tag}
-              </div>
-              <div className="mt-1 font-semibold text-lg">{t.name}</div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{t.body}</p>
-              <ul className="mt-4 space-y-1.5 text-xs text-muted-foreground flex-1">
-                {t.bullets.map((b) => (
-                  <li key={b} className="flex items-start gap-2">
-                    <Check className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button asChild className="mt-5 w-full">
-                <Link to={t.to}>{t.cta}</Link>
-              </Button>
-            </Card>
-          ))}
+          {TIERS.map((t, i) => {
+            const featured = i === 0;
+            return (
+              <Card
+                key={t.name}
+                className={`relative p-6 flex flex-col transition-all hover:-translate-y-1 hover:shadow-lg ${
+                  featured
+                    ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/25"
+                    : "border-border/60"
+                }`}
+              >
+                {featured && (
+                  <span
+                    aria-hidden
+                    className="absolute top-0 left-6 right-6 h-[3px] rounded-b bg-[color:var(--gold)]"
+                  />
+                )}
+                <div className="h-10 w-10 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center">
+                  <t.icon className="h-5 w-5 text-[color:var(--gold)]" />
+                </div>
+                <div className="mt-5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-medium">
+                  {t.tag}
+                </div>
+                <div className="mt-1 font-display font-semibold text-xl">{t.name}</div>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{t.body}</p>
+                <ul className="mt-5 space-y-2 text-sm flex-1">
+                  {t.bullets.map((b) => (
+                    <li key={b} className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-[color:var(--gold)] shrink-0 mt-0.5" />
+                      <span className="text-foreground/85">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  asChild
+                  variant={featured ? "default" : "outline"}
+                  className="mt-6 w-full"
+                >
+                  <Link to={t.to}>{t.cta}</Link>
+                </Button>
+              </Card>
+            );
+          })}
         </div>
         <p className="mt-6 text-xs text-muted-foreground text-center max-w-2xl mx-auto">
           Pricing depends on company size, selected premium modules and the
