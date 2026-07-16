@@ -39,6 +39,9 @@ import {
   History,
   RotateCcw,
   Download,
+  BookOpen,
+  Archive,
+  Sparkles,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { processDocument, deleteKnowledgeDocument, reprocessDocument } from "@/lib/kb.functions";
