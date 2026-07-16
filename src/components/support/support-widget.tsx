@@ -386,7 +386,7 @@ export function SupportWidget() {
         >
           <MessageCircle className={collapsed ? "h-4 w-4 md:h-6 md:w-6" : "h-6 w-6"} />
           {unread > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
               {unread > 99 ? "99+" : unread}
             </span>
           )}
@@ -397,7 +397,7 @@ export function SupportWidget() {
         <>
           {/* Mobile: full-screen bottom sheet with scrim. Desktop: floating card. */}
           <div
-            className="md:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-fade-in"
+            className="md:hidden fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm animate-fade-in"
             onClick={() => setOpen(false)}
             aria-hidden
           />
