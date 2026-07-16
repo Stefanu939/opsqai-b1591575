@@ -39,7 +39,7 @@ const NAV: readonly NavItem[] = [
 
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isPlatformAdmin } = useAuth();
+  const { isPlatformAdmin, signOut, user } = useAuth();
   const navigate = useNavigate();
   const visible = NAV.filter((item) => {
     if (item.staffOnly) return isPlatformAdmin;
