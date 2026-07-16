@@ -1441,6 +1441,100 @@ export type Database = {
           },
         ]
       }
+      direct_conversation_members: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_conversation_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "direct_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      direct_conversations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          last_message_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string
+        }
+        Relationships: []
+      }
+      direct_messages: {
+        Row: {
+          attachments: Json
+          body: string | null
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          attachments?: Json
+          body?: string | null
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          attachments?: Json
+          body?: string | null
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "direct_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_chunks: {
         Row: {
           chunk_index: number
@@ -3702,6 +3796,10 @@ export type Database = {
         Returns: number
       }
       ensure_platform_owner: { Args: never; Returns: number }
+      find_or_create_direct_conversation: {
+        Args: { _target: string }
+        Returns: string
+      }
       first_run_bootstrap_admin: {
         Args: { _user_id: string }
         Returns: boolean
@@ -3756,6 +3854,10 @@ export type Database = {
         Returns: boolean
       }
       is_demo_company: { Args: { _company_id: string }; Returns: boolean }
+      is_direct_conversation_member: {
+        Args: { _conv: string; _user: string }
+        Returns: boolean
+      }
       is_platform_admin: { Args: never; Returns: boolean }
       is_platform_owner: { Args: { _user_id?: string }; Returns: boolean }
       is_workspace_suspended: { Args: { _company: string }; Returns: boolean }
@@ -3841,6 +3943,17 @@ export type Database = {
       restore_terminated_tenant: {
         Args: { _company: string }
         Returns: boolean
+      }
+      search_chat_contacts: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          avatar_url: string
+          email: string
+          full_name: string
+          id: string
+          is_colleague: boolean
+          is_staff: boolean
+        }[]
       }
       search_everywhere: {
         Args: { p_company: string; p_limit?: number; p_q: string }

@@ -14,7 +14,7 @@ import { LanguageProvider } from "@/i18n";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { SupportWidget } from "@/components/support/support-widget";
+import { ChatGlider } from "@/components/support/chat-glider";
 import { LicenseProvider } from "@/lib/license";
 
 function NotFoundComponent() {
@@ -172,7 +172,7 @@ function RootComponent() {
         <AuthProvider>
           <LicenseProvider>
             <Outlet />
-            <SupportWidget />
+            <ChatGlider />
             <Toaster />
           </LicenseProvider>
         </AuthProvider>
