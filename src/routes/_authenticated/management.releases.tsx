@@ -8,6 +8,9 @@ import {
   setCurrentRelease,
   deleteRelease,
 } from "@/lib/releases.functions";
+import { getPortalSnapshot } from "@/lib/mc-admin.functions";
+import { StatCard } from "@/components/ui/stat-card";
+import { Package, Inbox } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -56,10 +59,21 @@ function ReleasesPage() {
   const create = useServerFn(createRelease);
   const setCurrent = useServerFn(setCurrentRelease);
   const remove = useServerFn(deleteRelease);
+  const snapshot = useServerFn(getPortalSnapshot);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["mc-releases"],
     queryFn: () => list({ data: {} } as never) as Promise<Release[]>,
+  });
+
+  const { data: portal } = useQuery({
+    queryKey: ["mc-portal-snapshot"],
+    queryFn: () =>
+      snapshot({ data: {} } as never) as Promise<{
+        activeInstalls: number;
+        totalInstalls: number;
+        openTickets: number;
+      }>,
   });
 
   const createMut = useMutation({
@@ -197,6 +211,27 @@ function ReleasesPage() {
           />
         }
       />
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <StatCard
+          label="Active installs with portal access"
+          value={portal?.activeInstalls ?? 0}
+          hint={`${portal?.totalInstalls ?? 0} total`}
+          icon={Package}
+        />
+        <StatCard
+          label="Releases published"
+          value={(data as Release[]).length}
+          hint="Visible to customers"
+          icon={Rocket}
+        />
+        <StatCard
+          label="Open tickets"
+          value={portal?.openTickets ?? 0}
+          icon={Inbox}
+        />
+      </div>
+
 
       <DataTable<Release>
         columns={columns}

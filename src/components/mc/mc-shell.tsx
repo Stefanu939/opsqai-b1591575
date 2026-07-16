@@ -50,7 +50,6 @@ const SECTIONS: Section[] = [
     title: "Product",
     items: [
       { to: "/management/releases", label: "Releases", icon: Rocket },
-      { to: "/management/portal", label: "Portal", icon: LifeBuoy },
     ],
   },
   {
