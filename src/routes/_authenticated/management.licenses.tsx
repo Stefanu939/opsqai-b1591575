@@ -65,6 +65,8 @@ function LicensesPage() {
   const issue = useServerFn(issueLicense);
   const issueModule = useServerFn(issueModuleLicense);
   const revoke = useServerFn(revokeLicense);
+  const remove = useServerFn(deleteLicense);
+
 
   const [q, setQ] = useState(installFilter ?? "");
   const [tierFilter, setTierFilter] = useState("all");
