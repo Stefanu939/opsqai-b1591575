@@ -25,12 +25,14 @@ import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CompanyRouteImport } from './routes/company'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
@@ -45,6 +47,7 @@ import { Route as DocumentationProductRouteImport } from './routes/documentation
 import { Route as DocumentationEngineeringRouteImport } from './routes/documentation.engineering'
 import { Route as DocumentationArchitectureRouteImport } from './routes/documentation.architecture'
 import { Route as DocumentationAdministratorGuideRouteImport } from './routes/documentation.administrator-guide'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
@@ -195,6 +198,11 @@ const CompanyRoute = CompanyRouteImport.update({
   path: '/company',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -223,6 +231,11 @@ const DocumentationIndexRoute = DocumentationIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DocumentationRoute,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BlogRoute,
 } as any)
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
   id: '/verify/$code',
@@ -297,6 +310,11 @@ const DocumentationAdministratorGuideRoute =
     path: '/administrator-guide',
     getParentRoute: () => DocumentationRoute,
   } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
   path: '/api/workspace-chat',
@@ -693,6 +711,7 @@ export interface FileRoutesByFullPath {
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
+  '/blog': typeof BlogRouteWithChildren
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -720,6 +739,7 @@ export interface FileRoutesByFullPath {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -734,6 +754,7 @@ export interface FileRoutesByFullPath {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -822,6 +843,7 @@ export interface FileRoutesByTo {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -836,6 +858,7 @@ export interface FileRoutesByTo {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/blog': typeof BlogIndexRoute
   '/documentation': typeof DocumentationIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -901,6 +924,7 @@ export interface FileRoutesById {
   '/legal': typeof LegalRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
+  '/blog': typeof BlogRouteWithChildren
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
   '/documentation': typeof DocumentationRouteWithChildren
@@ -928,6 +952,7 @@ export interface FileRoutesById {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
   '/documentation/architecture': typeof DocumentationArchitectureRoute
   '/documentation/engineering': typeof DocumentationEngineeringRoute
@@ -942,6 +967,7 @@ export interface FileRoutesById {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1009,6 +1035,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/accept-invite'
     | '/auth'
+    | '/blog'
     | '/company'
     | '/contact'
     | '/documentation'
@@ -1036,6 +1063,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/blog/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -1050,6 +1078,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
+    | '/blog/'
     | '/documentation/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1138,6 +1167,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/blog/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -1152,6 +1182,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
+    | '/blog'
     | '/documentation'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1216,6 +1247,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/accept-invite'
     | '/auth'
+    | '/blog'
     | '/company'
     | '/contact'
     | '/documentation'
@@ -1243,6 +1275,7 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/blog/$slug'
     | '/documentation/administrator-guide'
     | '/documentation/architecture'
     | '/documentation/engineering'
@@ -1257,6 +1290,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
+    | '/blog/'
     | '/documentation/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1324,6 +1358,7 @@ export interface RootRouteChildren {
   LegalRouteRoute: typeof LegalRouteRouteWithChildren
   AcceptInviteRoute: typeof AcceptInviteRoute
   AuthRoute: typeof AuthRoute
+  BlogRoute: typeof BlogRouteWithChildren
   CompanyRoute: typeof CompanyRoute
   ContactRoute: typeof ContactRoute
   DocumentationRoute: typeof DocumentationRouteWithChildren
@@ -1479,6 +1514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -1520,6 +1562,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/documentation/'
       preLoaderRoute: typeof DocumentationIndexRouteImport
       parentRoute: typeof DocumentationRoute
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/verify/$code': {
       id: '/verify/$code'
@@ -1618,6 +1667,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/documentation/administrator-guide'
       preLoaderRoute: typeof DocumentationAdministratorGuideRouteImport
       parentRoute: typeof DocumentationRoute
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/api/workspace-chat': {
       id: '/api/workspace-chat'
@@ -2317,6 +2373,18 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 interface DocumentationRouteChildren {
   DocumentationAdministratorGuideRoute: typeof DocumentationAdministratorGuideRoute
   DocumentationArchitectureRoute: typeof DocumentationArchitectureRoute
@@ -2347,6 +2415,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalRouteRoute: LegalRouteRouteWithChildren,
   AcceptInviteRoute: AcceptInviteRoute,
   AuthRoute: AuthRoute,
+  BlogRoute: BlogRouteWithChildren,
   CompanyRoute: CompanyRoute,
   ContactRoute: ContactRoute,
   DocumentationRoute: DocumentationRouteWithChildren,
