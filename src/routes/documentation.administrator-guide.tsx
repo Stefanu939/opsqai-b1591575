@@ -5,9 +5,9 @@ import { DocPage, DocSection, DocCode } from "@/components/docs/doc-page";
 export const Route = createFileRoute("/documentation/administrator-guide")({
   head: () =>
     pageHead({
-      title: "Administrator Guide — OPSQAI Documentation",
+      title: "Administrator Guide — OPSQAI for Windows Server",
       description:
-        "Install, configure and operate OPSQAI self-hosted with Docker Compose: prerequisites, first-run wizard, PostgreSQL, object storage, SMTP, SSO, AI provider, license, backups, updates.",
+        "Install, configure and operate OPSQAI Self-Hosted on Windows Server: prerequisites, OPSQAI-Setup.exe, WinSW services, first-run wizard, PostgreSQL Portable, Caddy, SMTP, SSO, AI provider, licensing, backups, updates.",
       path: "/documentation/administrator-guide",
       breadcrumbs: [
         { name: "Home", path: "/" },
@@ -22,111 +22,152 @@ function AdminGuide() {
   return (
     <DocPage
       eyebrow="Book 1"
-      title="Administrator Guide"
-      intro="Everything an operator needs to install, configure and run an OPSQAI self-hosted instance in production. The platform ships as signed OCI images orchestrated with Docker Compose (Kubernetes manifests are available under a separate SKU)."
+      title="Administrator Guide — Windows Server"
+      intro="Everything an operator needs to install, configure and run an OPSQAI Self-Hosted instance on a dedicated Windows Server. OPSQAI ships as a single signed OPSQAI-Setup.exe (NSIS) that stages a native Windows deployment — no Docker, no WSL, no Hyper-V. All background components run as proper Windows Services via WinSW with Event Log integration and auto-restart."
     >
       <DocSection id="prerequisites" title="1. Prerequisites">
-        <p>Any 64-bit host that can run Docker Engine 24+ and Docker Compose v2:</p>
+        <p>A dedicated 64-bit Windows Server host:</p>
         <ul className="list-disc pl-6 space-y-1">
-          <li>Windows Server 2022 with WSL2 + Docker Desktop, or Ubuntu 22.04/24.04, RHEL 9, Debian 12.</li>
-          <li>4 vCPU / 8 GB RAM minimum, 8 vCPU / 16 GB RAM recommended for &gt; 25 concurrent seats.</li>
-          <li>60 GB SSD for system + volumes; separate volume for <code>pgdata</code> and <code>objects</code>.</li>
-          <li>Outbound HTTPS 443 to <code>mc.opsqai.de</code> for license activation and update manifests.</li>
-          <li>Reverse proxy with TLS (Caddy, Traefik, or nginx) fronting the <code>opsqai-web</code> container on <code>:8080</code>.</li>
+          <li><b>OS:</b> Windows Server 2019, 2022 or 2025 (Standard or Datacenter), or Windows 11 Pro for evaluation. Windows Server Core is supported.</li>
+          <li><b>Hardware:</b> 4 vCPU / 8 GB RAM minimum; 8 vCPU / 16 GB RAM recommended for &gt; 25 concurrent seats.</li>
+          <li><b>Disk:</b> 60 GB NTFS on <code>C:\</code> for the application; a separate volume (e.g. <code>D:\OPSQAI\Data</code>) recommended for <code>pgdata</code>, <code>objects</code> and <code>backups</code>.</li>
+          <li><b>Privileges:</b> a local Administrator account to run <code>OPSQAI-Setup.exe</code> (services are installed under <code>LocalSystem</code> by default; a dedicated service account is supported).</li>
+          <li><b>Network:</b> outbound HTTPS 443 to <code>mc.opsqai.de</code> for license activation and signed update manifests. No inbound Internet required.</li>
+          <li><b>TLS:</b> the bundled Caddy service terminates TLS on <code>:443</code> (self-signed on first boot; replace with your corporate/AD-CS certificate via the Service Manager).</li>
+          <li><b>Not required:</b> Docker Desktop, WSL2, Hyper-V, IIS, .NET, Node.js — everything is bundled in the installer payload.</li>
         </ul>
       </DocSection>
 
-      <DocSection id="install" title="2. Install with Docker Compose">
-        <p>Fetch the signed compose bundle and start the stack:</p>
-        <DocCode>{`# 1. Pull the release bundle
-curl -fsSL https://dl.opsqai.de/selfhost/latest/opsqai-stack.tgz | tar -xz
-cd opsqai-stack
+      <DocSection id="install" title="2. Install with OPSQAI-Setup.exe">
+        <p>Download the signed installer from the Customer Portal, verify the Authenticode signature, then run it on the target server:</p>
+        <DocCode>{`# PowerShell 7 (Administrator)
+# 1. Verify Authenticode signature (issuer: OPSQAI GmbH, EV code-signing)
+Get-AuthenticodeSignature .\\OPSQAI-Setup.exe | Format-List Status, SignerCertificate
 
-# 2. Verify signature (Ed25519, key fingerprint on opsqai.de/security)
-cosign verify-blob --key opsqai-release.pub \\
-  --signature opsqai-stack.tgz.sig opsqai-stack.tgz
+# 2. Interactive install
+.\\OPSQAI-Setup.exe
 
-# 3. Copy env template and edit
-cp .env.example .env
-$EDITOR .env
-
-# 4. Start
-docker compose up -d
-docker compose ps`}</DocCode>
-        <p>The stack exposes the web UI on <code>http://HOST:8080</code>. Point your reverse proxy at that port and terminate TLS there.</p>
+# 2b. Silent / unattended install (see docs/unattended-install.md)
+.\\OPSQAI-Setup.exe /S /D=C:\\Program Files\\OPSQAI`}</DocCode>
+        <p>
+          The installer stages the payload under <code>C:\Program Files\OPSQAI</code>, provisions data
+          folders under <code>C:\ProgramData\OPSQAI</code> (or your chosen data volume), registers the
+          Windows Services listed below, and opens the first-run wizard on <code>https://localhost</code>.
+        </p>
       </DocSection>
 
-      <DocSection id="services" title="3. Services in the stack">
+      <DocSection id="services" title="3. Windows Services (WinSW)">
+        <p>Each service is a WinSW-wrapped Node process registered with the Service Control Manager. Manage them with <code>sc.exe</code>, <code>Get-Service</code>, or the bundled OPSQAI Service Manager.</p>
         <ul className="list-disc pl-6 space-y-1">
-          <li><code>opsqai-web</code> — TanStack Start SSR + API, port 8080.</li>
-          <li><code>opsqai-worker</code> — background jobs: RAG indexing, embeddings, backups.</li>
-          <li><code>postgres</code> — Postgres 16 with pgvector, volume <code>pgdata</code>.</li>
-          <li><code>minio</code> — S3-compatible object storage for documents and backups (swap for external S3/Azure Blob in production).</li>
-          <li><code>redis</code> — job queue + rate limit state.</li>
+          <li><code>OpsqaiCaddy</code> — Caddy reverse proxy, terminates TLS on <code>:443</code>, forwards to the platform on <code>127.0.0.1:8080</code>.</li>
+          <li><code>OpsqaiPlatform</code> — TanStack Start SSR + API (the web application).</li>
+          <li><code>OpsqaiWorker</code> — background jobs: RAG indexing, embeddings, scheduled backups.</li>
+          <li><code>OpsqaiDatabase</code> — PostgreSQL 16 Portable with <code>pgvector</code>, <code>scram-sha-256</code> auth, data in <code>ProgramData\OPSQAI\pgdata</code>.</li>
+          <li><code>OpsqaiUpdater</code> — polls <code>mc.opsqai.de</code> for signed update manifests (Ed25519); applies updates only on operator confirmation.</li>
         </ul>
+        <DocCode>{`Get-Service Opsqai*
+Restart-Service OpsqaiPlatform
+Get-EventLog -LogName Application -Source OpsqaiPlatform -Newest 20`}</DocCode>
       </DocSection>
 
       <DocSection id="first-run" title="4. First-run wizard">
-        <p>Open the web UI at <code>/first-run</code>. The wizard is single-use and self-seals when it completes. It prompts for:</p>
+        <p>After install, open <code>https://localhost</code> on the server (or your DNS name once the certificate is replaced). The wizard is single-use and self-seals when it completes. Steps:</p>
         <ol className="list-decimal pl-6 space-y-1">
+          <li><b>EULA</b> — accept the OPSQAI Self-Hosted licence agreement.</li>
           <li><b>License</b> — Ed25519 token issued by the Management Center; paste as-is.</li>
-          <li><b>AI provider</b> — Lovable AI Gateway, Azure OpenAI, OpenAI-compatible endpoint, or Ollama.</li>
+          <li><b>Database</b> — use the bundled <code>OpsqaiDatabase</code> service, or point at an external PostgreSQL 15+ with <code>pgvector</code>.</li>
+          <li><b>Object storage</b> — local NTFS folder (default: <code>D:\OPSQAI\Data\objects</code>), external S3, or Azure Blob.</li>
+          <li><b>AI provider</b> — Lovable AI Gateway, Azure OpenAI, OpenAI-compatible endpoint, or local Ollama.</li>
           <li><b>SMTP</b> — host, port, TLS mode, username, password, from-address.</li>
-          <li><b>Object storage</b> — internal MinIO, external S3, Azure Blob, or NAS mount.</li>
-          <li><b>Backup destination</b> — S3, Azure Blob, or local path.</li>
+          <li><b>SSO (optional)</b> — SAML or OIDC metadata URL; can be configured post-install.</li>
+          <li><b>Backup destination</b> — local path, S3, Azure Blob, or SMB/NAS.</li>
+          <li><b>Doctor</b> — end-to-end probe (DB, storage, SMTP, AI, license, TLS).</li>
           <li><b>First platform admin</b> — email + password; bootstraps <code>public.user_roles</code>.</li>
         </ol>
-        <p>Each step runs a <b>Doctor</b> probe before it accepts the value. On completion the wizard writes <code>public.platform_config.sealed = true</code>.</p>
+        <p>Each step runs a Doctor probe before it accepts the value. On completion the wizard writes <code>public.platform_config.setup_completed_at</code> and the <code>/first-run</code> route becomes permanently unreachable. A lost admin uses the DR break-glass flow, not this wizard.</p>
       </DocSection>
 
-      <DocSection id="env" title="5. Environment reference (.env)">
+      <DocSection id="paths" title="5. On-disk layout">
+        <DocCode>{`C:\\Program Files\\OPSQAI\\           # binaries (read-only after install)
+├── platform\\                        # OpsqaiPlatform Node bundle
+├── worker\\                          # OpsqaiWorker Node bundle
+├── caddy\\                           # caddy.exe + Caddyfile template
+├── postgres\\                        # PostgreSQL 16 Portable
+├── winsw\\                           # WinSW.exe + service XMLs
+└── tools\\                           # opsqai.cmd, opsqai-migrate.cmd
+
+C:\\ProgramData\\OPSQAI\\              # runtime state (writable)
+├── config\\opsqai.env                # generated by the wizard (ACL: Administrators + service SID)
+├── config\\secrets.env               # 0600-equivalent NTFS ACL; API keys, SMTP password
+├── pgdata\\                          # PostgreSQL cluster (unless external DB)
+├── objects\\                         # object storage (unless external S3/Azure)
+├── backups\\                         # local backup target
+├── logs\\                            # per-service rolling logs
+└── tls\\                             # Caddy-managed or imported certificates`}</DocCode>
+      </DocSection>
+
+      <DocSection id="env" title="6. Configuration (opsqai.env)">
+        <p>The wizard writes <code>C:\ProgramData\OPSQAI\config\opsqai.env</code>. Secrets are kept in a separate <code>secrets.env</code> file with a restricted NTFS ACL and are loaded by WinSW at service start. Edit only when services are stopped.</p>
         <DocCode>{`OPSQAI_MODE=selfhost
-OPSQAI_PUBLIC_URL=https://opsqai.example.com
+OPSQAI_PUBLIC_URL=https://opsqai.contoso.local
 
-# Database
-POSTGRES_PASSWORD=change-me
-DATABASE_URL=postgres://opsqai:change-me@postgres:5432/opsqai
+# Database (bundled PostgreSQL by default)
+DATABASE_URL=postgres://opsqai@127.0.0.1:5432/opsqai
 
-# Object storage (internal MinIO by default)
-S3_ENDPOINT=http://minio:9000
-S3_REGION=us-east-1
-S3_BUCKET=opsqai
-S3_ACCESS_KEY=change-me
-S3_SECRET_KEY=change-me
+# Object storage — local NTFS
+OPSQAI_OBJECT_STORE=local
+OPSQAI_OBJECT_PATH=D:\\OPSQAI\\Data\\objects
 
-# Redis
-REDIS_URL=redis://redis:6379
-
-# License activation
+# Licensing
 OPSQAI_MC_URL=https://mc.opsqai.de
-OPSQAI_LICENSE_TOKEN=
 
-# Signing keys — do not lose these, backups depend on them
+# Signing keys — DO NOT LOSE; backups are encrypted with this key
 OPSQAI_MASTER_KEY=  # 32-byte base64, generated on first boot if empty`}</DocCode>
       </DocSection>
 
-      <DocSection id="backups" title="6. Backups & restore">
-        <p>The worker runs nightly logical backups of Postgres and rsyncs the object bucket to the configured destination. Backups are encrypted with <code>OPSQAI_MASTER_KEY</code>.</p>
+      <DocSection id="backups" title="7. Backups & restore">
+        <p>
+          <code>OpsqaiWorker</code> runs nightly logical backups of PostgreSQL (<code>pg_dump</code> custom format) and copies the object store to the configured destination. Backups are encrypted with <code>OPSQAI_MASTER_KEY</code>. Retention and schedule are set in the Service Manager.
+        </p>
         <DocCode>{`# Manual backup
-docker compose exec worker opsqai backup run --now
+& "C:\\Program Files\\OPSQAI\\tools\\opsqai.cmd" backup run --now
 
-# Restore a specific snapshot
-docker compose exec worker opsqai restore --snapshot 2026-07-15T03:00Z --confirm`}</DocCode>
+# List snapshots
+& "C:\\Program Files\\OPSQAI\\tools\\opsqai.cmd" backup list
+
+# Restore a specific snapshot (services are stopped automatically)
+& "C:\\Program Files\\OPSQAI\\tools\\opsqai.cmd" restore --snapshot 2026-07-15T03-00Z --confirm`}</DocCode>
       </DocSection>
 
-      <DocSection id="updates" title="7. Updates">
-        <p>Update by pulling the next signed bundle and re-running compose. Migrations run automatically on <code>opsqai-web</code> boot behind an advisory lock, so multi-replica upgrades are safe.</p>
-        <DocCode>{`curl -fsSL https://dl.opsqai.de/selfhost/latest/opsqai-stack.tgz | tar -xz
-docker compose pull
-docker compose up -d`}</DocCode>
+      <DocSection id="updates" title="8. Updates">
+        <p>
+          <code>OpsqaiUpdater</code> polls <code>mc.opsqai.de</code> for signed update manifests (Ed25519). Updates are downloaded, signature-verified, and staged; the operator confirms application from the Service Manager (or unattended via <code>opsqai.cmd update apply</code>). Database migrations run automatically on <code>OpsqaiPlatform</code> boot behind a Postgres advisory lock.
+        </p>
+        <DocCode>{`# Check for updates
+& "C:\\Program Files\\OPSQAI\\tools\\opsqai.cmd" update check
+
+# Apply the staged update (stops services, migrates, restarts)
+& "C:\\Program Files\\OPSQAI\\tools\\opsqai.cmd" update apply --confirm`}</DocCode>
       </DocSection>
 
-      <DocSection id="troubleshooting" title="8. Troubleshooting">
+      <DocSection id="migrate" title="9. Migrating from the legacy Docker build">
+        <p>
+          Customers who ran the pre-1.0 Docker Compose reference stack migrate onto Windows-native with the bundled migrator. It exports the Postgres database and object bucket from the Compose deployment, then imports them into the freshly installed Windows services.
+        </p>
+        <DocCode>{`# On the OLD Docker host
+docker compose exec worker opsqai backup run --now --export /backup/export.opsqai
+
+# Copy export.opsqai to the new Windows Server, then:
+& "C:\\Program Files\\OPSQAI\\tools\\opsqai-migrate.cmd" `+"`\n"+`  --from C:\\Transfer\\export.opsqai --confirm`}</DocCode>
+      </DocSection>
+
+      <DocSection id="troubleshooting" title="10. Troubleshooting">
         <ul className="list-disc pl-6 space-y-1">
-          <li><b>Wizard rejects license</b> — check outbound TLS to <code>mc.opsqai.de</code> and that the host clock is within 60 s of NTP.</li>
-          <li><b>Embeddings stuck</b> — <code>docker compose logs worker | grep embed</code>; verify AI provider quota.</li>
-          <li><b>Web returns 502</b> — reverse proxy is up but <code>opsqai-web</code> is not listening; check <code>docker compose logs web</code> for migration errors.</li>
-          <li><b>Doctor page</b> — <code>/admin/doctor</code> re-runs every probe on demand.</li>
+          <li><b>Wizard rejects license</b> — check outbound TLS to <code>mc.opsqai.de</code> and that the host clock is within 60 s of NTP (<code>w32tm /query /status</code>).</li>
+          <li><b>Service will not start</b> — <code>Get-EventLog -LogName Application -Source Opsqai* -Newest 50</code>, or inspect <code>C:\ProgramData\OPSQAI\logs\&lt;service&gt;.out.log</code>.</li>
+          <li><b>Caddy returns 502</b> — <code>OpsqaiPlatform</code> is not listening on <code>127.0.0.1:8080</code>; usually a migration failure — check the platform log.</li>
+          <li><b>Embeddings stuck</b> — <code>Get-Content C:\ProgramData\OPSQAI\logs\worker.out.log -Tail 200</code>; verify AI provider quota.</li>
+          <li><b>Doctor page</b> — <code>https://&lt;host&gt;/admin/doctor</code> re-runs every probe on demand.</li>
         </ul>
       </DocSection>
     </DocPage>
