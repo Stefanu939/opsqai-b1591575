@@ -118,25 +118,38 @@ export function peekTokenKeyId(token: string): string | null {
 
 // ─── Signing key management ─────────────────────────────────────────────
 
-/** Fetch the active signing keypair. Auto-generates one on first call. */
+/** Fetch the active signing keypair. Auto-generates one on first call.
+ *
+ * Private keys are stored encrypted at rest (AES-256-GCM, KEK from the
+ * `LICENSE_SIGNING_KEK` runtime secret). Legacy plaintext rows are decrypted
+ * transparently and re-encrypted lazily on read. See `license-kek.server.ts`. */
 export async function getActiveSigningKey(): Promise<{
   privatePem: string;
   publicPem: string;
   keyId: string;
 }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { decryptPem, encryptPem, isEncryptedPem } = await import("@/lib/license-kek.server");
 
   const { data: existing } = await supabaseAdmin
     .from("license_signing_keys")
-    .select("private_key_pem, public_key_pem, key_id")
+    .select("id, private_key_pem, public_key_pem, key_id")
     .eq("active", true)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (existing?.private_key_pem) {
+    const privatePem = decryptPem(existing.private_key_pem);
+    // Migrate legacy plaintext rows to encrypted at rest.
+    if (!isEncryptedPem(existing.private_key_pem)) {
+      await supabaseAdmin
+        .from("license_signing_keys")
+        .update({ private_key_pem: encryptPem(privatePem) })
+        .eq("id", existing.id);
+    }
     return {
-      privatePem: existing.private_key_pem,
+      privatePem,
       publicPem: existing.public_key_pem,
       keyId: existing.key_id,
     };
@@ -149,7 +162,7 @@ export async function getActiveSigningKey(): Promise<{
 
   const { error } = await supabaseAdmin.from("license_signing_keys").insert({
     algorithm: "ed25519",
-    private_key_pem: privatePem,
+    private_key_pem: encryptPem(privatePem),
     public_key_pem: publicPem,
     key_id: keyId,
     active: true,
