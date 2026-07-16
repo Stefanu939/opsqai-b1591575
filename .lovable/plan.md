@@ -1,119 +1,126 @@
 
-# Tab „Admin" in Kundenportal
+# Chat lateral stil WhatsApp — plan
 
-Un singur tab nou in Kundenportal, vizibil **doar pentru `platform_owner` si `platform_admin`**. In interior, doua sectiuni:
+## 1. Glider lateral (bula ascunsă)
 
-1. **News** — postari stil blog (titlu, imagine cover, corp markdown, pinned, publicat/draft)
-2. **Downloads** — module suplimentare descarcabile de client (titlu, descriere, fisier, versiune, categorie)
+- Nou wrapper `SupportGlider` care înlocuiește FAB-ul rotund actual.
+- Pe margine dreaptă jos apare un **tab îngust vertical** (36×88 px), 70% ascuns în afara ecranului, cu iconiță chat + badge de mesaje necitite.
+- Hover / click → slide-in dinspre dreapta: panou 380×640 px pe desktop, full-screen pe mobil.
+- Închis prin buton × sau click în afara panoului. Se ține minte starea (deschis/închis) în `localStorage`.
+- Vizibil pe orice pagină autentificată (păstrăm montarea din `__root.tsx`).
 
-Clientii obisnuiti (customer_admin / customer_user) **doar vad** continutul pe paginile publice ale portalului (Overview + Downloads), fara sa poata edita.
+## 2. Layout WhatsApp în panou
 
----
+Două view-uri într-un singur panou:
 
-## 1. Baza de date (migrare noua)
+**A. Listă conversații** (view principal la deschidere):
+- Header: „Chat" + buton „New" (creion) + input căutare.
+- Sub-tabs: `All` · `Team` (colegii tăi) · `OPSQAI` (ticketele existente cu suportul).
+- Fiecare rând: avatar (inițiale colorate), nume, ultimul mesaj (preview 1 linie), timp relativ (`12:34` sau `Yesterday`), badge necitite.
+- La click pe rând → intri în view-ul conversației.
 
-### `portal_announcements` (news / blog)
-- `id uuid PK`, `title text not null`, `slug text unique not null`
-- `body_md text not null` (markdown)
-- `cover_image_url text` (poza cover, opțional)
-- `status text` — `draft` / `published`
-- `pinned boolean default false`
-- `published_at timestamptz`, `expires_at timestamptz` (optional)
-- `author_id uuid`, `created_at`, `updated_at`
+**B. View conversație** (după selecție):
+- Header WhatsApp: back arrow, avatar, nume + status („online" / „last seen"), buton info.
+- Bule verzi (mine, aliniate dreapta, culoare `--primary`) și gri (celălalt, aliniate stânga).
+- Grupare mesaje consecutive de la același user, timestamp discret sub bulă.
+- „Ticks" simple: ✓ trimis, ✓✓ citit (bazat pe `read_at`).
+- Compose bar jos: attach (📎 → imagine sau fișier), input text auto-grow, emoji picker, buton send.
+- Auto-scroll la mesaj nou, indicator „typing…" opțional (later).
 
-### `portal_download_modules` (module suplimentare)
-- `id uuid PK`, `title text not null`, `description text`
-- `category text` — ex. „plugin", „template", „document", „tool"
-- `version text`, `file_url text not null`, `file_size_bytes bigint`, `checksum text`
-- `icon_name text` (icon lucide), `status text` (`draft`/`published`)
-- `published_at`, `created_at`, `updated_at`, `author_id`
+## 3. Căutare cu recomandare
 
-### RLS + GRANT
-- `GRANT SELECT` catre `authenticated` (toti userii autentificati citesc doar randurile `published`).
-- Politici SELECT: `authenticated` vad doar `status = 'published'`.
-- Politici INSERT/UPDATE/DELETE: doar `has_role(auth.uid(), 'platform_owner')` sau `platform_admin`.
-- `GRANT ALL ... TO service_role`.
+- Buton „New chat" → deschide un search modal / view.
+- Input text; la ≥ 2 caractere, apel debounced (300 ms) la server function `searchContacts({ q })`.
+- Sursă rezultate = **doar utilizatori din aceeași companie ca tine + staff OPSQAI (`platform_owner`/`platform_admin`)**; niciodată userii altor firme.
+- Match pe `full_name` (ilike `%q%`) sau `email` (ilike `%q%`).
+- Ordonare: colegi întâi, staff OPSQAI la coadă cu tag „OPSQAI Team".
+- Click pe un rezultat → găsește/creează conversația 1:1, deschide direct view-ul B.
 
-### Storage buckets
-- `portal-news-images` — public (poze cover articole).
-- `portal-download-modules` — public (fisierele modulelor).
-- Politici pe `storage.objects`: SELECT public; INSERT/UPDATE/DELETE doar pentru owner/admin platforma.
+## 4. Suport OPSQAI
 
----
+- Sistemul existent (`support_conversations` / `support_messages`) rămâne intact — devine un „canal special" în listă, marcat cu badge „OPSQAI Support".
+- În view-ul conversației arată la fel ca WhatsApp; când răspunde staff, apare cu numele + tag OPSQAI.
 
-## 2. Server functions (`src/lib/portal-admin.functions.ts`)
+## 5. Atașamente (text + imagini + fișiere)
 
-Toate cu `.middleware([requireSupabaseAuth])` + verificare rol platform_owner/platform_admin prin `has_role` inainte de scriere.
+- Bucket **privat** nou `chat-attachments` (max 25 MB / fișier), acces prin signed URL.
+- Path: `{conversation_id}/{message_id}/{filename}`.
+- Preview inline pentru imagini (thumbnail 240 px), card cu iconiță + nume + mărime pentru alte tipuri.
+- MIME acceptate: `image/*`, `application/pdf`, `application/zip`, `text/*`, docs Office.
 
-**News:**
-- `listAnnouncementsAdmin` — toate (inclusiv draft) pentru admin
-- `listAnnouncementsPublic` — doar `published`, ordonate cu pinned primele
-- `getAnnouncement({ id | slug })`
-- `upsertAnnouncement({ id?, title, body_md, cover_image_url?, status, pinned, published_at? })`
-- `deleteAnnouncement({ id })`
+## 6. Model de date (nou)
 
-**Downloads:**
-- `listDownloadModulesAdmin`
-- `listDownloadModulesPublic` (deja folosit in `/portal/downloads` extins)
-- `upsertDownloadModule({...})`
-- `deleteDownloadModule({ id })`
+```text
+direct_conversations
+  id, created_at, last_message_at, is_support (bool)
+  → dacă is_support = true, e ticket OPSQAI (folosim tabela existentă
+     support_conversations în paralel — nu-l dublăm)
 
-**Upload:**
-- Upload cover-uri si fisiere direct din browser cu `supabase.storage.from(...).upload(...)` (client-side), URL-ul se salveaza prin `upsertAnnouncement`/`upsertDownloadModule`.
+direct_conversation_members
+  conversation_id, user_id, joined_at, last_read_at
+  UNIQUE (conversation_id, user_id)
+  → conversație 1:1 = exact 2 rânduri
 
----
+direct_messages
+  id, conversation_id, sender_id, body (text), attachments (jsonb[]),
+  created_at, edited_at, deleted_at
 
-## 3. Rute noi
-
-Adaugat in `NAV`-ul din `src/routes/_authenticated/portal.tsx`:
+direct_message_reads (opțional pentru „✓✓")
+  message_id, user_id, read_at
 ```
-{ to: "/portal/admin", label: "Admin", icon: Shield, staffOnly: true }
-```
-Item-ul se afiseaza doar daca `useAuth()` returneaza rol `platform_owner` sau `platform_admin` (folosim helperul de rol deja existent — hook `useUserRole`/`user_roles` in cod). Pentru client obisnuit tab-ul e ascuns complet.
 
-**Rute noi:**
-- `src/routes/_authenticated/portal.admin.tsx` — layout cu sub-tabs (`News` / `Downloads`) + guard care redirecteaza non-staff la `/portal`.
-- `src/routes/_authenticated/portal.admin.news.tsx` — lista + buton „New post" + editor inline (dialog): titlu, upload cover, textarea markdown cu preview, toggle pinned, status draft/published.
-- `src/routes/_authenticated/portal.admin.downloads.tsx` — lista module + form „Add module" (titlu, descriere, categorie, versiune, upload fisier, publish/draft).
+- **RLS**: doar userii din `direct_conversation_members` pot citi/scrie în conversație.
+- Funcție `find_or_create_direct_conversation(target_user_id)` (SECURITY DEFINER) care verifică că `target_user_id` e coleg sau staff OPSQAI înainte de creare.
+- Realtime activat pe `direct_messages` și `direct_conversation_members` prin `alter publication supabase_realtime add table …`.
 
----
+## 7. Server functions (`src/lib/chat.functions.ts`)
 
-## 4. Vizibilitate pentru clienti
+- `listMyConversations()` — join cu ultimul mesaj + necitite.
+- `searchContacts({ q })` — colegi + staff OPSQAI, doar câmpuri publice (id, full_name, email, avatar).
+- `startDirectConversation({ target_user_id })` — apelează funcția SECURITY DEFINER.
+- `listMessages({ conversation_id, before?, limit })` — paginare invers cronologică.
+- `sendMessage({ conversation_id, body?, attachments? })` — validează membership, inserează, atinge `last_message_at`.
+- `markConversationRead({ conversation_id })` — update `last_read_at`.
+- `signChatAttachment({ path })` — signed URL 1h pentru download.
+- `uploadChatAttachment({ conversation_id, file })` — upload via storage helper server-side.
 
-**Overview (`portal.index.tsx`):**
-- Sectiune noua „What's new" — primele 3 anunturi `published` (pinned primele), fiecare afisat ca un card stil blog (cover + titlu + excerpt + data).
-- Link „See all news" → `/portal/news`.
+## 8. Client (`src/components/support/chat-glider.tsx`)
 
-**Ruta noua `portal.news.tsx`** (lista publica) si `portal.news.$slug.tsx` (detaliu articol cu markdown randat, cover mare, data, autor).
+- Înlocuiește `support-widget.tsx` (păstrăm fișierul vechi doar cât timp migrăm apoi îl ștergem).
+- Hooks:
+  - `useMyConversations()` — query + subscribe la `direct_messages` insert pe conversațiile mele → invalidate.
+  - `useConversationMessages(id)` — query paginat + subscribe realtime pe `conversation_id = eq id`.
+  - `useContactSearch(q)` — `useQuery` debounced.
+- Componente:
+  - `<GliderTab />` — tab îngust cu badge.
+  - `<GliderPanel />` — container animat (Framer/CSS transforms).
+  - `<ConversationList />`, `<ConversationRow />`
+  - `<ConversationView />` cu `<MessageBubble />`, `<Composer />`, `<AttachmentPreview />`.
+  - `<ContactSearchSheet />` cu recomandări live.
+- Design tokens WhatsApp-like adaptați paletei aplicației (verde primary + gri surface — fără hex-uri hardcodate, folosim tokens existenți).
 
-**Downloads (`portal.downloads.tsx`):**
-- Adaugam a doua sectiune „Extra modules" — cardurile din `portal_download_modules` publicate, grupate pe categorie, cu buton „Download".
-- Sectiunea existenta cu installer releases ramane neatinsa.
+## 9. Aspecte de securitate
 
-Clientii doar citesc — niciun buton de editare vizibil.
+- **Nu expunem emailuri între firme**: `searchContacts` returnează doar `same company OR OPSQAI staff`.
+- Chiar dacă cineva ghicește email-ul unui outsider, `find_or_create_direct_conversation` respinge (SECURITY DEFINER cu check explicit).
+- Attachments: bucket privat, signed URL 1h, path derivat din `conversation_id` (RLS pe `storage.objects` verifică membership).
+- Rate limit: max 30 mesaje / minut / user (trigger simplu).
 
----
+## 10. Ce nu facem în această iterație
 
-## 5. Randare markdown + UI
+- Grupuri > 2 persoane (doar 1:1 acum).
+- Voice notes / video call.
+- „Typing indicator" live (mai târziu, prin Presence).
+- Reacții emoji la mesaj (mai târziu).
+- Editare / ștergere mesaj după trimitere (mai târziu — coloanele există în schemă).
 
-- Folosim libraria `react-markdown` (o adaug daca nu exista) + `remark-gfm` pentru markdown safe.
-- Editor: `Textarea` shadcn + tab „Preview" cu render live.
-- Upload imagini: buton „Upload cover" care apeleaza `supabase.storage.upload` si populeaza `cover_image_url`.
-- Design: aliniat cu tokenii portalului (nu MC Noir/Gold — portalul are alt look).
+## Ordinea implementării
 
----
-
-## Detalii tehnice
-
-- Fara noi dependinte in afara de `react-markdown` + `remark-gfm` (fallback: keep-it-simple `<div dangerouslySetInnerHTML>` cu `DOMPurify` daca preferam sa nu adaugam). Recomand `react-markdown`.
-- Buckets create prin tool-ul de storage; RLS pe `storage.objects` prin migrare.
-- Slug generat automat din titlu la upsert daca lipseste.
-- Toate mutatiile invalideaza `queryClient` pe `["portal-announcements"]` / `["portal-download-modules"]`.
-- Guard pe `/portal/admin*`: in `beforeLoad` chemam un server fn `assertPlatformStaff()` care arunca `redirect({ to: "/portal" })` daca userul nu are rolul necesar.
-
----
-
-## Ce ramane la fel
-
-- `/management/releases` si `/management/portal` raman intacte (installer releases oficiale).
-- Sesiunea si autentificarea nu se schimba — tabul apare doar dupa ce te loghezi pe `/portal` cu cont staff (fix-ul deja aplicat in `auth.tsx`).
+1. Migrare DB + storage bucket + RLS + funcția SECURITY DEFINER + realtime publication.
+2. `chat.functions.ts` (toate server functions + Zod validators).
+3. `chat-glider.tsx` cu tab + panou + listă conversații (fără compose încă).
+4. `ConversationView` + compose text.
+5. Search contacte + start conversație.
+6. Atașamente (upload + signed URL + preview).
+7. Integrare cu ticketele OPSQAI existente ca sub-canal.
+8. Migrare montare: scoatem `SupportWidget` din `__root.tsx`, punem `SupportGlider`, ștergem fișierul vechi.
