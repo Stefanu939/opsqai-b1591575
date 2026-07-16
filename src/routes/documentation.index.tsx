@@ -25,7 +25,7 @@ const BOOKS = [
   {
     icon: Wrench,
     title: "Administrator Guide",
-    body: "Install, configure, and operate OPSQAI self-hosted with Docker Compose on Windows Server, Linux, or any OCI host. Prerequisites, first-run wizard, PostgreSQL, object storage, SMTP, SSO, AI provider, license, backups, updates, troubleshooting.",
+    body: "Install, configure, and operate OPSQAI self-hosted on a dedicated Windows Server. Signed installer, native Windows services, PostgreSQL Portable, object storage, SMTP, SSO, AI provider, licence, backups, updates, troubleshooting.",
     href: "/documentation/administrator-guide",
   },
   {
@@ -49,7 +49,7 @@ const BOOKS = [
   {
     icon: Code2,
     title: "Technical Reference",
-    body: "docker-compose reference, environment variables, ports, volumes, AI adapter contract, RAG pipeline internals, embeddings, storage adapters, public API, jobs, database schema.",
+    body: "Windows service reference (Caddy, Platform, Worker, PostgreSQL, Updater), environment variables, ports, on-disk layout, AI adapter contract, RAG pipeline internals, embeddings, storage adapters, public API, jobs, database schema.",
     href: "/documentation/technical",
   },
   {
@@ -69,9 +69,9 @@ function DocumentationIndex() {
           Everything, written down.
         </h1>
         <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI ships as a self-hosted platform. These books cover installation with Docker,
-          architecture, security, product, technical reference, and engineering. Customer-specific
-          runbooks live inside the Customer Portal.
+          OPSQAI ships as a Windows-native self-hosted platform. These books cover installation,
+          architecture, security, product, technical reference, and engineering. For product notes
+          and release announcements see the <Link to="/blog" className="text-[color:var(--gold)] hover:underline">blog</Link>. Customer-specific runbooks live inside the Customer Portal.
         </p>
       </section>
 
