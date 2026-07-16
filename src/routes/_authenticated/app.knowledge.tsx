@@ -463,10 +463,19 @@ function KnowledgePage() {
       </div>
 
       {visibleDocs.length === 0 ? (
-        <Card className="p-12 text-center border-dashed">
-          <div className="mx-auto h-14 w-14 rounded-2xl bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center mb-4">
-            <Archive className="h-6 w-6 text-gold" />
-          </div>
+        <Card className="p-10 text-center border-dashed">
+          {docs.length === 0 ? (
+            <img
+              src={emptyKnowledgeIllustration}
+              alt=""
+              loading="lazy"
+              className="h-40 w-auto mx-auto mb-4 opacity-90 select-none pointer-events-none"
+            />
+          ) : (
+            <div className="mx-auto h-14 w-14 rounded-2xl bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center mb-4">
+              <Archive className="h-6 w-6 text-gold" />
+            </div>
+          )}
           <p className="font-display text-lg font-medium text-foreground">
             {docs.length === 0 ? t("noDocs") : "No documents match your filters"}
           </p>
@@ -482,6 +491,7 @@ function KnowledgePage() {
             </Button>
           )}
         </Card>
+
       ) : (
         <div className="grid gap-3">
           {visibleDocs.map((d) => (
