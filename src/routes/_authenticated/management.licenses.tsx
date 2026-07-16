@@ -33,6 +33,7 @@ import {
 import { KeyRound, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 
 const searchSchema = z.object({ install: z.string().optional() });
 
