@@ -233,7 +233,7 @@ function ChatInner({
             if (m.role === "user") {
               return (
                 <div key={m.id} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">
+                  <div className="max-w-[85%] rounded-2xl bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap shadow-sm">
                     {rawText}
                   </div>
                 </div>
@@ -247,11 +247,12 @@ function ChatInner({
             const showMeta = text && sources.length > 0 && meta?.mode !== "gap";
             return (
               <div key={m.id} className="flex gap-3 group">
-                <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
-                  <LogoMark size={20} className="text-foreground" />
+                <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
+                  <LogoMark size={18} className="text-gold" />
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
-                  <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+                  <div className="text-[15px] leading-relaxed prose prose-sm max-w-none prose-headings:font-display prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+
                     {text ? (
                       <ReactMarkdown>{text}</ReactMarkdown>
                     ) : (
