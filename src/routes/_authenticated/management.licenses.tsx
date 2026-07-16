@@ -117,6 +117,17 @@ function LicensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMut = useMutation({
+    mutationFn: (install_id: string) => remove({ data: { install_id } }),
+    onSuccess: () => {
+      toast.success("License deleted");
+      qc.invalidateQueries({ queryKey: ["mc-licenses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
+
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase();
     return (data as License[]).filter((l) => {
