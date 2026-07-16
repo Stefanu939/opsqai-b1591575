@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link, useRouterState, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, Shield, Newspaper, LogOut } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
@@ -41,6 +42,7 @@ function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isPlatformAdmin, signOut, user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const visible = NAV.filter((item) => {
     if (item.staffOnly) return isPlatformAdmin;
     if (item.customerOnly) return !isPlatformAdmin;
@@ -54,6 +56,8 @@ function PortalLayout() {
     if (!allowed) navigate({ to: "/portal/admin", replace: true });
   }, [isPlatformAdmin, path, visible, navigate]);
   const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await signOut();
     navigate({ to: "/auth", replace: true });
   };
