@@ -33,6 +33,7 @@ import {
 import { KeyRound, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 
 const searchSchema = z.object({ install: z.string().optional() });
 
@@ -473,9 +474,25 @@ function ActivateModuleDialog({
   const [price, setPrice] = useState(0);
   const [expires, setExpires] = useState("");
 
+  const availableModules = useMemo(
+    () =>
+      LICENSE_MODULE_CATALOG.filter(
+        (m) =>
+          !(BASIC_MODULES as readonly string[]).includes(m.key) &&
+          !existing.includes(m.key),
+      ),
+    [existing],
+  );
+
+  const handleModuleChange = (key: string) => {
+    setModuleKey(key);
+    const m = LICENSE_MODULE_CATALOG.find((x) => x.key === key);
+    if (m) setPrice(m.defaultPriceCents / 100);
+  };
+
   const submit = () => {
     if (!moduleKey.trim()) {
-      toast.error("Module key is required.");
+      toast.error("Select a module to activate.");
       return;
     }
     onIssue({
@@ -503,13 +520,26 @@ function ActivateModuleDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <Label>Module key</Label>
-            <Input
-              value={moduleKey}
-              onChange={(e) => setModuleKey(e.target.value)}
-              placeholder="e.g. academy, sop-generator"
-              className="mt-1 font-mono"
-            />
+            <Label>Module</Label>
+            <Select value={moduleKey} onValueChange={handleModuleChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select a module…" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableModules.length === 0 ? (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                    All add-on modules are already active for this install.
+                  </div>
+                ) : (
+                  availableModules.map((m) => (
+                    <SelectItem key={m.key} value={m.key}>
+                      {m.label}{" "}
+                      <span className="text-muted-foreground">({m.key})</span>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
             {existing.length > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
                 Already active: {existing.join(", ")}
@@ -543,7 +573,7 @@ function ActivateModuleDialog({
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={submit} disabled={pending}>
+          <Button onClick={submit} disabled={pending || !moduleKey}>
             {pending ? "Activating…" : "Activate"}
           </Button>
         </DialogFooter>
