@@ -79,7 +79,7 @@ function ChatWelcome() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 min-h-[calc(100vh-3.5rem)] md:min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="w-full max-w-2xl text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-gold-line bg-card/60 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
+        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--gold-line)] bg-card/60 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
           <Sparkles className="h-3 w-3 text-gold" />
           <span className="tracking-wide uppercase">OPSQAI Assistant</span>
         </div>
