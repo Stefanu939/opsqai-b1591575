@@ -21,7 +21,21 @@ import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/management/")({
   component: OverviewPage,
+  errorComponent: ({ error, reset }) => (
+    <div className="mx-auto max-w-2xl p-6 md:p-10 space-y-3">
+      <h1 className="text-xl font-semibold">Something went wrong</h1>
+      <p className="text-sm text-muted-foreground">{error.message}</p>
+      <button
+        type="button"
+        onClick={reset}
+        className="rounded border border-border px-3 py-1.5 text-sm hover:bg-surface-1"
+      >
+        Try again
+      </button>
+    </div>
+  ),
 });
+
 
 type Onboarding = {
   install_id: string;
