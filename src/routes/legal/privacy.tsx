@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { DraftDisclaimer } from "@/components/legal/draft-disclaimer";
 
 export const Route = createFileRoute("/legal/privacy")({
   head: () => ({
@@ -8,13 +7,13 @@ export const Route = createFileRoute("/legal/privacy")({
       {
         name: "description",
         content:
-          "How OPSQAI collects, uses and protects personal data. Draft — pending final legal review.",
+          "How OPSQAI processes personal data on opsqai.de. OPSQAI is a Windows-native self-hosted product — customer content stays on the customer's own server.",
       },
       { property: "og:url", content: "https://opsqai.de/legal/privacy" },
       {
         property: "og:description",
         content:
-          "How OPSQAI collects, uses and protects personal data. Draft — pending final legal review.",
+          "How OPSQAI processes personal data on opsqai.de. OPSQAI is a Windows-native self-hosted product — customer content stays on the customer's own server.",
       },
     ],
     links: [{ rel: "canonical", href: "https://opsqai.de/legal/privacy" }],
@@ -22,126 +21,115 @@ export const Route = createFileRoute("/legal/privacy")({
   component: () => (
     <>
       <h1>Privacy Policy</h1>
-      <DraftDisclaimer />
       <p>
         Last updated: {new Date().getFullYear()}. This Privacy Policy explains how OPSQAI processes
-        personal data when you use opsqai.de (the marketing site) and the OPSQAI application.
+        personal data on <strong>opsqai.de</strong> (the marketing website and the Customer Portal
+        used by our customers' designated contacts to download the installer and manage their
+        licence).
+      </p>
+
+      <h2>Deployment model — what this policy does not cover</h2>
+      <p>
+        OPSQAI is a <strong>Windows-native, self-hosted product</strong>. Once a customer installs
+        OPSQAI on their own dedicated Windows Server, all customer content — documents, SOPs,
+        embeddings, chat questions and answers, audit logs — is processed and stored entirely on
+        the customer's own machines, using the AI provider the customer configures with their own
+        keys. <strong>None of that data is transmitted to OPSQAI or to opsqai.de.</strong> The
+        customer is the sole controller and processor of that data on their premises. This policy
+        therefore only covers the limited personal data we process on opsqai.de.
       </p>
 
       <h2>Who we are</h2>
       <p>
-        OPSQAI provides an AI knowledge management platform for logistics and supply chain
-        operations. Contact: notify@opsqai.de.
+        The operator of opsqai.de is identified in the <a href="/legal/impressum">Impressum</a>.
+        Contact for privacy matters: <a href="mailto:notify@opsqai.de">notify@opsqai.de</a>.
       </p>
 
-      <h2>What we collect</h2>
+      <h2>What we collect on opsqai.de</h2>
       <ul>
-        <li>Account data: name, work email, role, company, language preference.</li>
         <li>
-          Content data: documents and FAQs uploaded by your administrators, and questions asked of
-          the AI.
+          <strong>Customer Portal account</strong> — for the customer contacts we designate at
+          contract signature: work email address and hashed password (managed via our
+          authentication provider), plus their name and role at the customer company.
         </li>
-        <li>Operational data: timestamps, audit logs, IP address for security purposes.</li>
         <li>
-          Marketing site: minimal analytics on aggregate page visits; no advertising trackers.
+          <strong>Contact-form messages</strong> — if you write to us via the contact form or by
+          email: your name, work email, company and the content of your message. Used to reply and
+          for pre-sales / support correspondence.
+        </li>
+        <li>
+          <strong>Minimal server logs</strong> — for each HTTP request: timestamp, IP address, HTTP
+          method, path, response status and user-agent. Used strictly for security, abuse
+          prevention and incident investigation.
         </li>
       </ul>
 
-      <h2>Legal basis</h2>
-      <ul>
-        <li>Performance of contract (operating the service for your employer).</li>
-        <li>Legitimate interest (security, fraud prevention, product improvement).</li>
-        <li>Consent (optional analytics or marketing communications).</li>
-      </ul>
-
-      <h2>Sharing &amp; subprocessors</h2>
-      <p>
-        We share data only with the subprocessors listed in our Trust Center, under contract, and as
-        required by law. We do not sell personal data. OPSQAI's subprocessors are disclosed at three
-        distinct certainty tiers:
-      </p>
+      <h2>What we do NOT collect</h2>
       <ul>
         <li>
-          <strong>Cloudflare, Inc. (USA)</strong> — edge runtime, DNS, DDoS protection. ISO/IEC
-          27001, ISO/IEC 27701, SOC 2 Type II and PCI DSS Level 1 certified. International transfers
-          safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or the EU-U.S. Data Privacy
-          Framework, per Cloudflare's Data Processing Addendum, accepted by OPSQAI. Cloudflare is
-          headquartered in the USA and traffic terminates at the closest Cloudflare point of
-          presence.
+          <strong>No web analytics</strong> — no Google Analytics, Plausible, PostHog, Matomo or
+          equivalent. opsqai.de has no analytics vendor embedded.
         </li>
         <li>
-          <strong>Lovable</strong> — application database (Supabase infrastructure in AWS eu-west-1,
-          Dublin, Ireland), authentication, storage and AI gateway. Lovable holds SOC 2 Type II and
-          ISO 27001:2022 certifications at the company level. Our current subscription is Lovable's
-          Pro tier; Business-tier contractual DPA coverage is being confirmed and documentation will
-          be provided upon request. This does not imply OPSQAI itself is certified.
+          <strong>No advertising or marketing trackers</strong> — no Meta Pixel, LinkedIn Insight
+          Tag, Google Ads, retargeting pixels, or newsletter open/click tracking.
         </li>
         <li>
-          <strong>Google</strong> (<code>gemini-3-flash-preview</code>,{" "}
-          <code>gemini-2.5-flash</code>) and
-          <strong> OpenAI</strong> (<code>gpt-5-mini</code>, <code>gpt-4o-mini-tts</code>,
-          <code> text-embedding-3-small</code>) — AI model providers, accessed indirectly. OPSQAI
-          does not contract directly with Google or OpenAI; both are accessed via the Lovable AI
-          Gateway under Lovable's own agreements with these providers. Customer content is not used
-          to train foundation models, per Lovable's Gateway terms. International transfers
-          safeguarded by Standard Contractual Clauses (Art. 46 GDPR) or an equivalent adequacy
-          mechanism, applied independently to Google and to OpenAI.
+          <strong>No product telemetry from the self-hosted instance</strong> — the OPSQAI software
+          running on the customer's Windows Server does not send usage telemetry to us. The only
+          outbound call to our infrastructure is a periodic licence heartbeat to the Management
+          Center, which carries the licence identifier and heartbeat timestamp; no customer content
+          and no end-user identifiers.
+        </li>
+        <li>
+          <strong>No AI subprocessing by OPSQAI</strong> — opsqai.de does not use AI. The AI
+          provider used by the self-hosted product is chosen and paid for by the customer, under
+          the customer's own agreement with that provider.
         </li>
       </ul>
 
-      <h2>Hosting region</h2>
-      <p>
-        The OPSQAI application database is hosted on managed Supabase infrastructure in
-        <strong> AWS eu-west-1 (Dublin, Ireland)</strong>. Static assets and edge requests are
-        served from Cloudflare's global network (Cloudflare, Inc. is headquartered in the USA — see
-        the subprocessor list above); persistent storage of tenant data stays in the EU region
-        above.
-      </p>
+      <h2>Legal basis (GDPR Art. 6)</h2>
+      <ul>
+        <li>
+          <strong>Performance of contract (Art. 6(1)(b))</strong> — to operate the Customer Portal
+          for our contractual counterparties.
+        </li>
+        <li>
+          <strong>Legitimate interest (Art. 6(1)(f))</strong> — security logging and responding to
+          pre-sales enquiries.
+        </li>
+      </ul>
 
       <h2>Retention</h2>
-      <p>
-        Account and content data are retained for the duration of the customer agreement. On
-        termination the tenant enters a <strong>30-day grace window</strong> during which a full
-        data export can be requested and termination can still be reversed by a Platform
-        Administrator. After the grace window a scheduled database job (
-        <code>purge_terminated_tenants</code>, daily via
-        <code> pg_cron</code>) automatically and permanently deletes the tenant and all related rows
-        (<code>ON DELETE CASCADE</code>). Audit-log entries are anonymized before archival — only
-        module, action, resource, severity, success and event timestamp are kept under a hashed
-        tenant label (no user IDs, no payloads). The anonymized audit archive is retained for a{" "}
-        <strong>rolling 24 months</strong>, then purged. Database backups follow a rolling 30-day
-        retention window on the managed platform. Server request/error logs use a short rolling
-        retention (typically 14 days). Longer retention applies only where required by applicable
-        law.
-      </p>
+      <ul>
+        <li>Customer Portal accounts: for the duration of the customer agreement.</li>
+        <li>
+          Contact-form messages: up to 24 months after the last correspondence, then deleted,
+          unless a subsequent commercial relationship justifies longer retention.
+        </li>
+        <li>Server logs: rolling 14 days, then automatically overwritten.</li>
+      </ul>
 
       <h2>Your rights</h2>
       <p>
-        Under the GDPR you have the right to access, rectify, erase, restrict, port or object to the
-        processing of your personal data. Contact notify@opsqai.de to exercise these rights. You may
-        also lodge a complaint with your local data protection authority.
+        Under the GDPR you have the right to access, rectify, erase, restrict, port or object to
+        the processing of your personal data, and to withdraw consent where processing is based on
+        consent. Contact <a href="mailto:notify@opsqai.de">notify@opsqai.de</a> to exercise these
+        rights. You may also lodge a complaint with your local data protection authority.
       </p>
 
-      <h2>International transfers &amp; AI model providers</h2>
+      <h2>International transfers</h2>
       <p>
-        The OPSQAI application database is operated in the EU. All AI calls are routed through the
-        <strong> Lovable AI Gateway</strong>. The explicit models processing customer content are:
-        <strong> Google Gemini</strong> — <code>gemini-3-flash-preview</code> and{" "}
-        <code>gemini-2.5-flash</code>
-        (chat / retrieval responses); <strong>OpenAI</strong> — <code>gpt-5-mini</code>{" "}
-        (generation),
-        <code> gpt-4o-mini-tts</code> (text-to-speech) and <code>text-embedding-3-small</code>{" "}
-        (embeddings). These providers may process personal data outside the EEA; such transfers are
-        safeguarded by the European Commission's{" "}
-        <strong>Standard Contractual Clauses (SCCs) under Article 46 GDPR</strong>, or an equivalent
-        adequacy mechanism where one applies. Customer content is not used to train Google's or
-        OpenAI's foundation models under the terms of the Lovable AI Gateway.
+        Personal data collected on opsqai.de is processed within the European Economic Area.
+        Where a subprocessor of the marketing site (for example, the email service used to reply
+        to your contact-form message) processes data outside the EEA, transfers are safeguarded by
+        Standard Contractual Clauses under Article 46 GDPR or an equivalent adequacy mechanism.
       </p>
 
       <h2>Changes</h2>
       <p>
-        We update this policy when our practices change. Material changes are notified to
-        administrators in advance.
+        We update this policy when our practices change. Material changes will be announced on
+        this page with an updated date.
       </p>
     </>
   ),

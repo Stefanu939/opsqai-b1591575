@@ -21,6 +21,7 @@ const NAV = [
   { to: "/pricing", label: "Pricing" },
   { to: "/company", label: "Company" },
   { to: "/documentation", label: "Documentation" },
+  { to: "/blog", label: "Blog" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
@@ -41,6 +42,7 @@ const FOOTER_COLS: Array<{
     title: "Resources",
     links: [
       { to: "/documentation", label: "Documentation" },
+      { to: "/blog", label: "Blog" },
       { to: "/support", label: "Support" },
       { to: "/security", label: "Security" },
     ],

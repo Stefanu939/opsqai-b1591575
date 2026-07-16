@@ -47,8 +47,8 @@ export const Route = createFileRoute("/legal")({
           <Outlet />
         </article>
         <p className="mt-12 text-xs text-muted-foreground border-t border-border/60 pt-6">
-          This document is a draft and is being finalized with our legal counsel. For the most
-          current binding version, contact{" "}
+          For the current signed version or a written addendum tailored to your organisation,
+          contact{" "}
           <a href="mailto:notify@opsqai.de" className="underline">
             notify@opsqai.de
           </a>
