@@ -403,16 +403,101 @@ function KnowledgePage() {
         </div>
       </div>
 
-      {docs.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-muted-foreground">{t("noDocs")}</Card>
+      {/* Metrics rail — each stat answers a concrete business question */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <StatTile
+          icon={BookOpen}
+          label="Active documents"
+          value={totalActive}
+          hint="Currently indexed"
+          tone="default"
+        />
+        <StatTile
+          icon={Sparkles}
+          label="Indexed chunks"
+          value={totalChunks.toLocaleString()}
+          hint="AI-searchable knowledge units"
+          tone="gold"
+        />
+        <StatTile
+          icon={ShieldAlert}
+          label="Critical SOPs"
+          value={criticalCount}
+          hint="Require acknowledgement"
+          tone={criticalCount > 0 ? "warning" : "default"}
+        />
+        <StatTile
+          icon={processingCount > 0 ? Loader2 : AlertTriangle}
+          label={processingCount > 0 ? "Processing" : "Failed"}
+          value={processingCount > 0 ? processingCount : failedCount}
+          hint={processingCount > 0 ? "Indexing in progress" : failedCount > 0 ? "Need re-indexing" : "All healthy"}
+          tone={failedCount > 0 ? "danger" : processingCount > 0 ? "info" : "default"}
+          spin={processingCount > 0}
+        />
+      </div>
+
+      {/* Filter bar */}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[220px] max-w-md">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search documents, codes, content…"
+            className="h-9 bg-card"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <FilterChip active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")}>
+            All
+          </FilterChip>
+          {CATEGORIES.map((c) => (
+            <FilterChip
+              key={c}
+              active={categoryFilter === c}
+              onClick={() => setCategoryFilter(c)}
+            >
+              {c}
+            </FilterChip>
+          ))}
+        </div>
+      </div>
+
+      {visibleDocs.length === 0 ? (
+        <Card className="p-12 text-center border-dashed">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center mb-4">
+            <Archive className="h-6 w-6 text-gold" />
+          </div>
+          <p className="font-display text-lg font-medium text-foreground">
+            {docs.length === 0 ? t("noDocs") : "No documents match your filters"}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+            {docs.length === 0
+              ? "Upload your first SOP, manual or procedure to make it searchable by the OPSQAI AI."
+              : "Try a different category or clear the search to see more results."}
+          </p>
+          {canEdit && docs.length === 0 && (
+            <Button className="mt-5" onClick={() => setOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              {t("upload")}
+            </Button>
+          )}
+        </Card>
       ) : (
         <div className="grid gap-3">
-          {docs.map((d) => (
+          {visibleDocs.map((d) => (
             <Card
               key={d.id}
-              className={`p-4 flex items-start gap-3 ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-amber-500/40" : ""}`}
+              className={`relative p-4 flex items-start gap-3 transition-all hover:shadow-md ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/30" : ""}`}
             >
-              <FileText className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+              {d.is_critical && d.is_active && (
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-gold"
+                />
+              )}
+              <div className="h-10 w-10 rounded-lg bg-primary/5 border border-border grid place-items-center shrink-0">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   {d.doc_code && (
