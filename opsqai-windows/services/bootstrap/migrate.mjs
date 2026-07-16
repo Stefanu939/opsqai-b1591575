@@ -74,10 +74,8 @@ function psqlRun(runEnv, args, opts = {}) {
 // decizia (fail vs. continue) stă în caller.
 function databaseExists(adminEnv, name) {
   const r = psqlRun(adminEnv, [
-    "--set",
-    `name=${name}`,
     "-tAc",
-    "SELECT 1 FROM pg_database WHERE datname = :'name'",
+    `SELECT 1 FROM pg_database WHERE datname = '${name}'`,
   ]);
   return {
     ok: r.status === 0,
