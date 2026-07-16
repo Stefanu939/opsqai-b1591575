@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, Link, useRouterState, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState, redirect, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, Shield, Newspaper } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
@@ -21,15 +22,16 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   staffOnly?: boolean;
+  customerOnly?: boolean;
 };
 
 const NAV: readonly NavItem[] = [
-  { to: "/portal", label: "Overview", icon: Home, exact: true },
-  { to: "/portal/news", label: "News", icon: Newspaper },
-  { to: "/portal/downloads", label: "Downloads", icon: Download },
-  { to: "/portal/subscription", label: "Subscription", icon: FileText },
-  { to: "/portal/support", label: "Support", icon: MessagesSquare },
-  { to: "/portal/release-notes", label: "Release notes", icon: Package },
+  { to: "/portal", label: "Overview", icon: Home, exact: true, customerOnly: true },
+  { to: "/portal/news", label: "News", icon: Newspaper, customerOnly: true },
+  { to: "/portal/downloads", label: "Downloads", icon: Download, customerOnly: true },
+  { to: "/portal/subscription", label: "Subscription", icon: FileText, customerOnly: true },
+  { to: "/portal/support", label: "Support", icon: MessagesSquare, customerOnly: true },
+  { to: "/portal/release-notes", label: "Release notes", icon: Package, customerOnly: true },
   { to: "/portal/documentation", label: "Documentation", icon: BookOpen },
   { to: "/portal/admin", label: "Admin", icon: Shield, staffOnly: true },
 ];
@@ -37,7 +39,19 @@ const NAV: readonly NavItem[] = [
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isPlatformAdmin } = useAuth();
-  const visible = NAV.filter((item) => !item.staffOnly || isPlatformAdmin);
+  const navigate = useNavigate();
+  const visible = NAV.filter((item) => {
+    if (item.staffOnly) return isPlatformAdmin;
+    if (item.customerOnly) return !isPlatformAdmin;
+    return true;
+  });
+  useEffect(() => {
+    if (!isPlatformAdmin) return;
+    const allowed = visible.some((item) =>
+      item.exact ? path === item.to : path.startsWith(item.to),
+    );
+    if (!allowed) navigate({ to: "/portal/admin", replace: true });
+  }, [isPlatformAdmin, path, visible, navigate]);
   return (
     <div className="flex-1 flex bg-background">
       <aside className="w-60 border-r border-border bg-surface-1 p-4 space-y-1 shrink-0">
