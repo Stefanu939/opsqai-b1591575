@@ -42,6 +42,7 @@ function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isPlatformAdmin, signOut, user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const visible = NAV.filter((item) => {
     if (item.staffOnly) return isPlatformAdmin;
     if (item.customerOnly) return !isPlatformAdmin;
