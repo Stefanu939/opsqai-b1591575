@@ -233,6 +233,22 @@ function LicensesPage() {
               Revoke
             </Button>
           )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            title="Delete license"
+            onClick={() => {
+              if (
+                confirm(
+                  `Delete license for ${l.company_name} (${l.install_id})? This removes the license and all its module entitlements. This cannot be undone.`,
+                )
+              )
+                deleteMut.mutate(l.install_id);
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
         </div>
       ),
     },
