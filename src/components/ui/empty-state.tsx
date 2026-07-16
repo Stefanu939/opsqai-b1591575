@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
   icon?: LucideIcon;
+  illustration?: string;
   title: string;
   description?: string;
   action?: ReactNode;
@@ -16,6 +17,7 @@ interface EmptyStateProps {
  */
 export function EmptyState({
   icon: Icon,
+  illustration,
   title,
   description,
   action,
@@ -24,15 +26,24 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-surface-1 px-6 py-12 text-center",
+        "flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-surface-1 px-6 py-12 text-center",
         className,
       )}
       style={{ backgroundColor: "var(--surface-1)" }}
     >
-      {Icon && (
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-background text-muted-foreground shadow-xs">
-          <Icon className="h-5 w-5" strokeWidth={1.75} />
-        </div>
+      {illustration ? (
+        <img
+          src={illustration}
+          alt=""
+          loading="lazy"
+          className="h-40 w-auto opacity-90 select-none pointer-events-none"
+        />
+      ) : (
+        Icon && (
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-background text-muted-foreground shadow-xs">
+            <Icon className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+        )
       )}
       <div className="space-y-1">
         <div className="font-display text-base font-semibold text-foreground">
@@ -46,3 +57,4 @@ export function EmptyState({
     </div>
   );
 }
+
