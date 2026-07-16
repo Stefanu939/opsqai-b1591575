@@ -8,7 +8,7 @@ import {
   createSupportConversation,
   postSupportMessage,
 } from "@/lib/support.functions";
-import { PageHeader } from "@/components/ui/page-header";
+
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -178,10 +178,16 @@ function PortalSupport() {
           ) : (
             <ul className="divide-y divide-border">
               {rows.map((r) => (
-                <li key={r.id}>
+                <li key={r.id} className="relative">
+                  {selected === r.id && (
+                    <span
+                      aria-hidden
+                      className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-[color:var(--gold)]"
+                    />
+                  )}
                   <button
                     onClick={() => setSelected(r.id)}
-                    className={`w-full text-left p-3 hover:bg-accent/40 transition-colors ${selected === r.id ? "bg-accent" : ""}`}
+                    className={`w-full text-left p-3 transition-colors ${selected === r.id ? "bg-[var(--gold-soft)]/30" : "hover:bg-accent/40"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-medium text-sm truncate">{r.subject}</div>
