@@ -34,17 +34,21 @@ type Onboarding = {
 };
 
 function OverviewPage() {
+  const { session } = useAuth();
   const overview = useServerFn(getPlatformOverviewStats);
   const stats = useServerFn(platformStats);
 
   const overviewQ = useQuery({
     queryKey: ["mc-overview"],
     queryFn: () => overview({ data: {} } as never),
+    enabled: !!session,
   });
   const statsQ = useQuery({
     queryKey: ["mc-platform-stats"],
     queryFn: () => stats({ data: {} } as never),
+    enabled: !!session,
   });
+
 
   const kpis = overviewQ.data?.kpis;
   const platform = statsQ.data;
