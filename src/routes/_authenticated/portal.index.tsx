@@ -84,6 +84,59 @@ function PortalHome() {
         <StatCard label="Next maintenance renewal" value={fmt(nextMaint)} icon={Download} />
       </div>
 
+      {topNews.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <Newspaper className="h-4 w-4" />
+              What's new
+            </h2>
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/portal/news">
+                See all
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Link>
+            </Button>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {topNews.map((n) => (
+              <Link
+                key={n.id}
+                to="/portal/news/$slug"
+                params={{ slug: n.slug }}
+                className="block"
+              >
+                <Card className="overflow-hidden hover:bg-accent/40 transition-colors h-full">
+                  {covers[n.id] ? (
+                    <img src={covers[n.id]} alt="" className="w-full h-32 object-cover bg-muted" />
+                  ) : (
+                    <div className="w-full h-32 bg-muted flex items-center justify-center text-muted-foreground">
+                      <Newspaper className="h-6 w-6" />
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      {n.pinned && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          <Pin className="h-2.5 w-2.5 mr-0.5" />
+                          pinned
+                        </Badge>
+                      )}
+                      <span className="text-[11px] text-muted-foreground">
+                        {n.published_at ? new Date(n.published_at).toLocaleDateString() : ""}
+                      </span>
+                    </div>
+                    <div className="font-medium line-clamp-2">{n.title}</div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+
+
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : installs.length === 0 ? (
