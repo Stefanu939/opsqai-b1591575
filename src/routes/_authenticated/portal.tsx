@@ -56,6 +56,8 @@ function PortalLayout() {
     if (!allowed) navigate({ to: "/portal/admin", replace: true });
   }, [isPlatformAdmin, path, visible, navigate]);
   const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await signOut();
     navigate({ to: "/auth", replace: true });
   };
