@@ -84,7 +84,9 @@ export const listCustomerProfiles = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: companies, error } = await supabaseAdmin
       .from("companies")
-      .select("id, name, subscription_plan, subscription_status, active, created_at")
+      .select(
+        "id, name, subscription_plan, subscription_status, active, max_users, install_id, created_at",
+      )
       .order("name");
     if (error) throw new Error(error.message);
 
@@ -105,10 +107,49 @@ export const listCustomerProfiles = createServerFn({ method: "POST" })
           updated_at: string | null;
         }> };
 
+    // Counts of active users per company
+    const { data: userRoleRows } = ids.length
+      ? await supabaseAdmin
+          .from("user_roles")
+          .select("company_id")
+          .in("company_id", ids)
+      : { data: [] as Array<{ company_id: string | null }> };
+    const userCounts = new Map<string, number>();
+    for (const r of userRoleRows ?? []) {
+      if (!r.company_id) continue;
+      userCounts.set(r.company_id, (userCounts.get(r.company_id) ?? 0) + 1);
+    }
+
+    // Install-kind licenses per install_id
+    const installIds = (companies ?? [])
+      .map((c) => c.install_id)
+      .filter((v): v is string => !!v);
+    const { data: licenses } = installIds.length
+      ? await supabaseAdmin
+          .from("licenses")
+          .select(
+            "install_id, kind, seats, expires_at, maintenance_expires_at, revoked, suspended, issued_at",
+          )
+          .in("install_id", installIds)
+          .eq("kind", "install")
+      : { data: [] as Array<{
+          install_id: string;
+          kind: string;
+          seats: number | null;
+          expires_at: string | null;
+          maintenance_expires_at: string | null;
+          revoked: boolean | null;
+          suspended: boolean | null;
+          issued_at: string | null;
+        }> };
+    const licByInstall = new Map((licenses ?? []).map((l) => [l.install_id, l]));
+
     const byId = new Map((profiles ?? []).map((p) => [p.company_id, p]));
     return (companies ?? []).map((c) => ({
       ...c,
+      user_count: userCounts.get(c.id) ?? 0,
       profile: byId.get(c.id) ?? null,
+      license: c.install_id ? licByInstall.get(c.install_id) ?? null : null,
     }));
   });
 
