@@ -395,7 +395,7 @@ function SourcesPanel({
     const rel = displayRelevance(s.similarity, !!isPrimary);
     return (
       <div
-        className={`rounded-md border p-3 ${isPrimary ? "border-primary/40 bg-primary/5" : "border-border bg-muted/30"}`}
+        className={`rounded-xl border p-3 transition-colors ${isPrimary ? "border-[var(--gold-line)] bg-[var(--gold-soft)]" : "border-border bg-muted/30"}`}
       >
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           {isPrimary && <Badge className="text-[10px]">Primary</Badge>}
