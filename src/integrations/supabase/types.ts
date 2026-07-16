@@ -1875,7 +1875,7 @@ export type Database = {
             foreignKeyName: "installation_package_downloads_install_id_fkey"
             columns: ["install_id"]
             isOneToOne: false
-            referencedRelation: "licenses"
+            referencedRelation: "license_installs"
             referencedColumns: ["install_id"]
           },
         ]
@@ -2291,15 +2291,7 @@ export type Database = {
           updated_at?: string
           user_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "license_installs_install_id_fkey"
-            columns: ["install_id"]
-            isOneToOne: true
-            referencedRelation: "licenses"
-            referencedColumns: ["install_id"]
-          },
-        ]
+        Relationships: []
       }
       license_orders: {
         Row: {
@@ -2352,7 +2344,7 @@ export type Database = {
             foreignKeyName: "license_orders_install_id_fkey"
             columns: ["install_id"]
             isOneToOne: false
-            referencedRelation: "licenses"
+            referencedRelation: "license_installs"
             referencedColumns: ["install_id"]
           },
         ]
