@@ -39,11 +39,19 @@ const NAV: readonly NavItem[] = [
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isPlatformAdmin } = useAuth();
+  const navigate = useNavigate();
   const visible = NAV.filter((item) => {
     if (item.staffOnly) return isPlatformAdmin;
     if (item.customerOnly) return !isPlatformAdmin;
     return true;
   });
+  useEffect(() => {
+    if (!isPlatformAdmin) return;
+    const allowed = visible.some((item) =>
+      item.exact ? path === item.to : path.startsWith(item.to),
+    );
+    if (!allowed) navigate({ to: "/portal/admin", replace: true });
+  }, [isPlatformAdmin, path, visible, navigate]);
   return (
     <div className="flex-1 flex bg-background">
       <aside className="w-60 border-r border-border bg-surface-1 p-4 space-y-1 shrink-0">
