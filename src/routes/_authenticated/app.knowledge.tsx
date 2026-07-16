@@ -39,6 +39,9 @@ import {
   History,
   RotateCcw,
   Download,
+  BookOpen,
+  Archive,
+  Sparkles,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { processDocument, deleteKnowledgeDocument, reprocessDocument } from "@/lib/kb.functions";
@@ -113,6 +116,9 @@ function KnowledgePage() {
   const [versionsFor, setVersionsFor] = useState<Doc | null>(null);
   const [versions, setVersions] = useState<Doc[]>([]);
   const [exportOpen, setExportOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+
 
   const process = useServerFn(processDocument);
   const del = useServerFn(deleteKnowledgeDocument);
@@ -280,12 +286,34 @@ function KnowledgePage() {
     }
   };
 
+  // Business metrics rail — every stat answers a concrete KB question.
+  const totalActive = docs.filter((d) => d.is_active).length;
+  const criticalCount = docs.filter((d) => d.is_critical && d.is_active).length;
+  const processingCount = docs.filter((d) => d.status === "processing").length;
+  const failedCount = docs.filter((d) => d.status === "failed").length;
+  const totalChunks = docs.reduce((a, d) => a + (d.chunk_count || 0), 0);
+
+  const visibleDocs = docs.filter((d) => {
+    if (categoryFilter !== "all" && d.category !== categoryFilter) return false;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      return (
+        d.title.toLowerCase().includes(q) ||
+        (d.doc_code || "").toLowerCase().includes(q) ||
+        (d.content_text || "").toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
   return (
-    <div className="flex-1 p-4 md:p-8 max-w-5xl w-full mx-auto">
-      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+    <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
+      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("knowledge")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("documentsDesc")}</p>
+          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
+            {t("knowledge")}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-xl">{t("documentsDesc")}</p>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -375,16 +403,101 @@ function KnowledgePage() {
         </div>
       </div>
 
-      {docs.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-muted-foreground">{t("noDocs")}</Card>
+      {/* Metrics rail — each stat answers a concrete business question */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <StatTile
+          icon={BookOpen}
+          label="Active documents"
+          value={totalActive}
+          hint="Currently indexed"
+          tone="default"
+        />
+        <StatTile
+          icon={Sparkles}
+          label="Indexed chunks"
+          value={totalChunks.toLocaleString()}
+          hint="AI-searchable knowledge units"
+          tone="gold"
+        />
+        <StatTile
+          icon={ShieldAlert}
+          label="Critical SOPs"
+          value={criticalCount}
+          hint="Require acknowledgement"
+          tone={criticalCount > 0 ? "warning" : "default"}
+        />
+        <StatTile
+          icon={processingCount > 0 ? Loader2 : AlertTriangle}
+          label={processingCount > 0 ? "Processing" : "Failed"}
+          value={processingCount > 0 ? processingCount : failedCount}
+          hint={processingCount > 0 ? "Indexing in progress" : failedCount > 0 ? "Need re-indexing" : "All healthy"}
+          tone={failedCount > 0 ? "danger" : processingCount > 0 ? "info" : "default"}
+          spin={processingCount > 0}
+        />
+      </div>
+
+      {/* Filter bar */}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[220px] max-w-md">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search documents, codes, content…"
+            className="h-9 bg-card"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <FilterChip active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")}>
+            All
+          </FilterChip>
+          {CATEGORIES.map((c) => (
+            <FilterChip
+              key={c}
+              active={categoryFilter === c}
+              onClick={() => setCategoryFilter(c)}
+            >
+              {c}
+            </FilterChip>
+          ))}
+        </div>
+      </div>
+
+      {visibleDocs.length === 0 ? (
+        <Card className="p-12 text-center border-dashed">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center mb-4">
+            <Archive className="h-6 w-6 text-gold" />
+          </div>
+          <p className="font-display text-lg font-medium text-foreground">
+            {docs.length === 0 ? t("noDocs") : "No documents match your filters"}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+            {docs.length === 0
+              ? "Upload your first SOP, manual or procedure to make it searchable by the OPSQAI AI."
+              : "Try a different category or clear the search to see more results."}
+          </p>
+          {canEdit && docs.length === 0 && (
+            <Button className="mt-5" onClick={() => setOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              {t("upload")}
+            </Button>
+          )}
+        </Card>
       ) : (
         <div className="grid gap-3">
-          {docs.map((d) => (
+          {visibleDocs.map((d) => (
             <Card
               key={d.id}
-              className={`p-4 flex items-start gap-3 ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-amber-500/40" : ""}`}
+              className={`relative p-4 flex items-start gap-3 transition-all hover:shadow-md ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/30" : ""}`}
             >
-              <FileText className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+              {d.is_critical && d.is_active && (
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-gold"
+                />
+              )}
+              <div className="h-10 w-10 rounded-lg bg-primary/5 border border-border grid place-items-center shrink-0">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   {d.doc_code && (
@@ -628,3 +741,70 @@ function StatusBadge({ status }: { status: string }) {
     );
   return <Badge variant="outline">{status}</Badge>;
 }
+
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone = "default",
+  spin = false,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number | string;
+  hint: string;
+  tone?: "default" | "gold" | "warning" | "danger" | "info";
+  spin?: boolean;
+}) {
+  const toneClasses: Record<string, string> = {
+    default: "bg-primary/5 text-primary border-border",
+    gold: "bg-[var(--gold-soft)] text-gold border-[var(--gold-line)]",
+    warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
+    danger: "bg-destructive/10 text-destructive border-destructive/30",
+    info: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  };
+  return (
+    <Card className="p-4 flex items-start gap-3 transition-shadow hover:shadow-sm">
+      <div
+        className={`h-10 w-10 rounded-lg grid place-items-center border shrink-0 ${toneClasses[tone]}`}
+      >
+        <Icon className={`h-5 w-5 ${spin ? "animate-spin" : ""}`} />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[11px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+          {label}
+        </div>
+        <div className="font-display text-2xl font-semibold tabular-nums mt-0.5 text-foreground">
+          {value}
+        </div>
+        <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{hint}</div>
+      </div>
+    </Card>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all border ${
+        active
+          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+          : "bg-card text-muted-foreground border-border hover:border-gold/50 hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
