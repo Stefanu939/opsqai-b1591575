@@ -53,6 +53,12 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    title: "OPSQAI",
+    items: [
+      { to: "/management/team", label: "Team", icon: Users },
+    ],
+  },
+  {
     title: "Operations",
     items: [
       { to: "/management/support", label: "Support", icon: Inbox },

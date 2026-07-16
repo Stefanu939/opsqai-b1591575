@@ -61,6 +61,7 @@ import { Route as AuthenticatedPortalNewsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
 import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
+import { Route as AuthenticatedManagementTeamRouteImport } from './routes/_authenticated/management.team'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
 import { Route as AuthenticatedManagementSettingsRouteImport } from './routes/_authenticated/management.settings'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
@@ -375,6 +376,12 @@ const AuthenticatedPortalAdminRoute =
     id: '/admin',
     path: '/admin',
     getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedManagementTeamRoute =
+  AuthenticatedManagementTeamRouteImport.update({
+    id: '/team',
+    path: '/team',
+    getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementSupportRoute =
   AuthenticatedManagementSupportRouteImport.update({
@@ -697,6 +704,7 @@ export interface FileRoutesByFullPath {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
+  '/management/team': typeof AuthenticatedManagementTeamRoute
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
@@ -791,6 +799,7 @@ export interface FileRoutesByTo {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
+  '/management/team': typeof AuthenticatedManagementTeamRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
@@ -890,6 +899,7 @@ export interface FileRoutesById {
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
+  '/_authenticated/management/team': typeof AuthenticatedManagementTeamRoute
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
@@ -990,6 +1000,7 @@ export interface FileRouteTypes {
     | '/management/releases'
     | '/management/settings'
     | '/management/support'
+    | '/management/team'
     | '/portal/admin'
     | '/portal/documentation'
     | '/portal/downloads'
@@ -1084,6 +1095,7 @@ export interface FileRouteTypes {
     | '/management/releases'
     | '/management/settings'
     | '/management/support'
+    | '/management/team'
     | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
@@ -1182,6 +1194,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/releases'
     | '/_authenticated/management/settings'
     | '/_authenticated/management/support'
+    | '/_authenticated/management/team'
     | '/_authenticated/portal/admin'
     | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
@@ -1633,6 +1646,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalAdminRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/management/team': {
+      id: '/_authenticated/management/team'
+      path: '/team'
+      fullPath: '/management/team'
+      preLoaderRoute: typeof AuthenticatedManagementTeamRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/support': {
       id: '/_authenticated/management/support'
       path: '/support'
@@ -2040,6 +2060,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
   AuthenticatedManagementSettingsRoute: typeof AuthenticatedManagementSettingsRoute
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
+  AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRoute
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
 }
 
@@ -2060,6 +2081,7 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementReleasesRoute: AuthenticatedManagementReleasesRoute,
     AuthenticatedManagementSettingsRoute: AuthenticatedManagementSettingsRoute,
     AuthenticatedManagementSupportRoute: AuthenticatedManagementSupportRoute,
+    AuthenticatedManagementTeamRoute: AuthenticatedManagementTeamRoute,
     AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
   }
 
