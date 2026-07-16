@@ -7,6 +7,7 @@ import {
   issueLicense,
   issueModuleLicense,
   revokeLicense,
+  deleteLicense,
 } from "@/lib/licenses.functions";
 import { PageHeader } from "@/components/ui/page-header";
 import { DataTable, type Column } from "@/components/ui/data-table";
