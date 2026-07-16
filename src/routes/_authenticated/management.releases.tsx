@@ -212,6 +212,27 @@ function ReleasesPage() {
         }
       />
 
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <StatCard
+          label="Active installs with portal access"
+          value={portal?.activeInstalls ?? 0}
+          hint={`${portal?.totalInstalls ?? 0} total`}
+          icon={Package}
+        />
+        <StatCard
+          label="Releases published"
+          value={(data as Release[]).length}
+          hint="Visible to customers"
+          icon={Rocket}
+        />
+        <StatCard
+          label="Open tickets"
+          value={portal?.openTickets ?? 0}
+          icon={Inbox}
+        />
+      </div>
+
+
       <DataTable<Release>
         columns={columns}
         rows={data as Release[]}
