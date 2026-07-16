@@ -70,27 +70,45 @@ function PortalHome() {
     .filter((d): d is string => !!d)
     .sort()[0];
 
+  const expiringSoon = nextMaint
+    ? (new Date(nextMaint).getTime() - Date.now()) / (1000 * 60 * 60 * 24) < 60
+    : false;
+
   return (
     <div className="p-6 md:p-10 max-w-6xl">
-      <PageHeader
-        eyebrow="Customer portal"
-        title="Overview"
-        description={data?.email ? `Signed in as ${data.email}` : "Your OPSQAI Customer Portal"}
-      />
+      <div className="mb-8">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
+          Customer portal
+        </div>
+        <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
+          Overview
+        </h1>
+        <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+          {data?.email ? `Signed in as ${data.email}. ` : ""}
+          Your installations, licenses and announcements at a glance.
+        </p>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
+      <div className="grid gap-4 md:grid-cols-3 mb-8">
         <StatCard label="Active installations" value={active} icon={Package} />
         <StatCard label="Module licenses" value={modules} icon={FileText} />
-        <StatCard label="Next maintenance renewal" value={fmt(nextMaint)} icon={Download} />
+        <StatCard
+          label={expiringSoon ? "Renewal due soon" : "Next maintenance renewal"}
+          value={fmt(nextMaint)}
+          icon={Download}
+        />
       </div>
 
       {topNews.length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
-              <Newspaper className="h-4 w-4" />
-              What's new
-            </h2>
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span aria-hidden className="block w-1 h-6 rounded-full bg-[color:var(--gold)]" />
+              <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+                <Newspaper className="h-4 w-4 text-[color:var(--gold)]" />
+                What's new
+              </h2>
+            </div>
             <Button asChild size="sm" variant="ghost">
               <Link to="/portal/news">
                 See all
@@ -106,7 +124,7 @@ function PortalHome() {
                 params={{ slug: n.slug }}
                 className="block"
               >
-                <Card className="overflow-hidden hover:bg-accent/40 transition-colors h-full">
+                <Card className="overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all h-full">
                   {covers[n.id] ? (
                     <img src={covers[n.id]} alt="" className="w-full h-32 object-cover bg-muted" />
                   ) : (
@@ -134,6 +152,12 @@ function PortalHome() {
           </div>
         </section>
       )}
+
+      <div className="flex items-center gap-3 mb-4">
+        <span aria-hidden className="block w-1 h-6 rounded-full bg-[color:var(--gold)]" />
+        <h2 className="text-lg font-display font-semibold">Your installations</h2>
+      </div>
+
 
 
 
