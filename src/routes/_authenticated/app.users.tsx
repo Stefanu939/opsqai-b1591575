@@ -10,6 +10,7 @@ import {
 } from "@/lib/users.functions";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import emptyTeamIllustration from "@/assets/empty-team.png";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -247,7 +248,7 @@ function UsersPage() {
 
       {rows.length === 0 && !list.isLoading ? (
         <EmptyState
-          icon={Users}
+          illustration={emptyTeamIllustration}
           title="No users yet"
           description="Invite the first workspace member to get started."
         />

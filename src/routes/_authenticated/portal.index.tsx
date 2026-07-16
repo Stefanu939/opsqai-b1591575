@@ -7,6 +7,7 @@ import { listAnnouncementsPublic, signPortalStoragePath } from "@/lib/portal-adm
 
 import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import emptyInstallationsIllustration from "@/assets/empty-installations.png";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -165,7 +166,7 @@ function PortalHome() {
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : installs.length === 0 ? (
         <EmptyState
-          icon={Inbox}
+          illustration={emptyInstallationsIllustration}
           title="No installations linked to your account yet"
           description="If you expect to see one, open a support ticket and we will link it for you."
           action={
