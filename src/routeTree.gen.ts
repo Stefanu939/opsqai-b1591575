@@ -57,6 +57,7 @@ import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.
 import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
 import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
 import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
+import { Route as AuthenticatedPortalNewsRouteImport } from './routes/_authenticated/portal.news'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
 import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
@@ -351,6 +352,11 @@ const AuthenticatedPortalReleaseNotesRoute =
     path: '/release-notes',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalNewsRoute = AuthenticatedPortalNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => AuthenticatedPortalRoute,
+} as any)
 const AuthenticatedPortalDownloadsRoute =
   AuthenticatedPortalDownloadsRouteImport.update({
     id: '/downloads',
@@ -687,6 +693,7 @@ export interface FileRoutesByFullPath {
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/portal/news': typeof AuthenticatedPortalNewsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -778,6 +785,7 @@ export interface FileRoutesByTo {
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/portal/news': typeof AuthenticatedPortalNewsRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -876,6 +884,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRoute
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -974,6 +983,7 @@ export interface FileRouteTypes {
     | '/portal/admin'
     | '/portal/documentation'
     | '/portal/downloads'
+    | '/portal/news'
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
@@ -1065,6 +1075,7 @@ export interface FileRouteTypes {
     | '/management/support'
     | '/portal/documentation'
     | '/portal/downloads'
+    | '/portal/news'
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
@@ -1162,6 +1173,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/admin'
     | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
+    | '/_authenticated/portal/news'
     | '/_authenticated/portal/release-notes'
     | '/_authenticated/portal/subscription'
     | '/_authenticated/portal/support'
@@ -1578,6 +1590,13 @@ declare module '@tanstack/react-router' {
       path: '/release-notes'
       fullPath: '/portal/release-notes'
       preLoaderRoute: typeof AuthenticatedPortalReleaseNotesRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/portal/news': {
+      id: '/_authenticated/portal/news'
+      path: '/news'
+      fullPath: '/portal/news'
+      preLoaderRoute: typeof AuthenticatedPortalNewsRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
     '/_authenticated/portal/downloads': {
@@ -2050,6 +2069,7 @@ interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRouteWithChildren
   AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
+  AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRoute
   AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
   AuthenticatedPortalSubscriptionRoute: typeof AuthenticatedPortalSubscriptionRoute
   AuthenticatedPortalSupportRoute: typeof AuthenticatedPortalSupportRoute
@@ -2060,6 +2080,7 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRouteWithChildren,
   AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
+  AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRoute,
   AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
   AuthenticatedPortalSubscriptionRoute: AuthenticatedPortalSubscriptionRoute,
   AuthenticatedPortalSupportRoute: AuthenticatedPortalSupportRoute,
