@@ -74,10 +74,8 @@ function psqlRun(runEnv, args, opts = {}) {
 // decizia (fail vs. continue) stă în caller.
 function databaseExists(adminEnv, name) {
   const r = psqlRun(adminEnv, [
-    "--set",
-    `name=${name}`,
     "-tAc",
-    "SELECT 1 FROM pg_database WHERE datname = :'name'",
+    `SELECT 1 FROM pg_database WHERE datname = '${name}'`,
   ]);
   return {
     ok: r.status === 0,
@@ -128,12 +126,8 @@ function ensureDatabaseExists(runEnv) {
   // (3) CREATE. Identificatori via format('%I') pe server.
   console.log(`[migrate] creating database "${target}"`);
   const create = psqlRun(adminEnv, [
-    "--set",
-    `name=${target}`,
-    "--set",
-    `owner=${runEnv.PGUSER}`,
     "-c",
-    "SELECT format('CREATE DATABASE %I OWNER %I ENCODING ''UTF8'' TEMPLATE template0', :'name', :'owner') \\gexec",
+    `CREATE DATABASE "${target}" OWNER "${runEnv.PGUSER}" ENCODING 'UTF8' TEMPLATE template0`,
   ]);
 
   // (4) Race-safe re-check. Menținem SELECT / CREATE / SELECT tocmai
