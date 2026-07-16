@@ -22,7 +22,6 @@ import {
   LineChart,
   Download,
   ClipboardCheck,
-  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
