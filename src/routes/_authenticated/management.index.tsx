@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useAuth } from "@/lib/auth-context";
+
 import {
   Building2,
   KeyRound,
@@ -19,7 +21,21 @@ import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/management/")({
   component: OverviewPage,
+  errorComponent: ({ error, reset }) => (
+    <div className="mx-auto max-w-2xl p-6 md:p-10 space-y-3">
+      <h1 className="text-xl font-semibold">Something went wrong</h1>
+      <p className="text-sm text-muted-foreground">{error.message}</p>
+      <button
+        type="button"
+        onClick={reset}
+        className="rounded border border-border px-3 py-1.5 text-sm hover:bg-surface-1"
+      >
+        Try again
+      </button>
+    </div>
+  ),
 });
+
 
 type Onboarding = {
   install_id: string;
@@ -32,17 +48,21 @@ type Onboarding = {
 };
 
 function OverviewPage() {
+  const { session } = useAuth();
   const overview = useServerFn(getPlatformOverviewStats);
   const stats = useServerFn(platformStats);
 
   const overviewQ = useQuery({
     queryKey: ["mc-overview"],
     queryFn: () => overview({ data: {} } as never),
+    enabled: !!session,
   });
   const statsQ = useQuery({
     queryKey: ["mc-platform-stats"],
     queryFn: () => stats({ data: {} } as never),
+    enabled: !!session,
   });
+
 
   const kpis = overviewQ.data?.kpis;
   const platform = statsQ.data;
