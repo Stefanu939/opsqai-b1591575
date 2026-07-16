@@ -24,20 +24,40 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 type Item = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean };
+type Section = { title: string; items: Item[] };
 
-const NAV: Item[] = [
-  { to: "/management", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/management/companies", label: "Companies", icon: Building2 },
-  { to: "/management/customers", label: "Customers", icon: Users },
-  { to: "/management/installations", label: "Installations", icon: Package },
-  { to: "/management/licenses", label: "Licenses", icon: KeyRound },
-  { to: "/management/releases", label: "Releases", icon: Rocket },
-  { to: "/management/portal", label: "Portal", icon: LifeBuoy },
-  { to: "/management/support", label: "Support", icon: Inbox },
-  { to: "/management/ownership", label: "Ownership", icon: Crown },
-  { to: "/management/audit-logs", label: "Audit Logs", icon: ScrollText },
-  { to: "/management/settings", label: "Settings", icon: Settings },
+const SECTIONS: Section[] = [
+  {
+    title: "Overview",
+    items: [{ to: "/management", label: "Overview", icon: LayoutDashboard, exact: true }],
+  },
+  {
+    title: "Customers",
+    items: [
+      { to: "/management/companies", label: "Companies", icon: Building2 },
+      { to: "/management/customers", label: "Customers", icon: Users },
+      { to: "/management/installations", label: "Installations", icon: Package },
+      { to: "/management/licenses", label: "Licenses", icon: KeyRound },
+    ],
+  },
+  {
+    title: "Product",
+    items: [
+      { to: "/management/releases", label: "Releases", icon: Rocket },
+      { to: "/management/portal", label: "Portal", icon: LifeBuoy },
+    ],
+  },
+  {
+    title: "Operations",
+    items: [
+      { to: "/management/support", label: "Support", icon: Inbox },
+      { to: "/management/ownership", label: "Ownership", icon: Crown },
+      { to: "/management/audit-logs", label: "Audit Logs", icon: ScrollText },
+      { to: "/management/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
+
 
 export function ManagementShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
