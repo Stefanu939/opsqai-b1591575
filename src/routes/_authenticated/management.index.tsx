@@ -120,83 +120,130 @@ function OverviewPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
+    <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
       <PageHeader
         eyebrow="Management Center"
-        title="Overview"
-        description="Live state of every installation, license and customer."
+        title="Control Center"
+        description="Live state of every installation, license and customer across the OPSQAI fleet."
       />
 
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard
-          label="Active licenses"
-          value={kpis?.activeLicenses ?? "—"}
-          icon={KeyRound}
-          trend={
-            kpis && kpis.activeLicensesTrend !== 0
-              ? {
-                  value: `${Math.abs(kpis.activeLicensesTrend)}%`,
-                  direction: kpis.activeLicensesTrend > 0 ? "up" : "down",
-                }
-              : undefined
-          }
-          hint="vs previous 30d"
-        />
-        <StatCard
-          label="Online installs"
-          value={kpis?.onlineInstalls ?? "—"}
-          icon={Package}
-          hint="heartbeat < 15 min"
-        />
-        <StatCard
-          label="Expiring soon"
-          value={kpis?.expiringSoon ?? "—"}
-          icon={TrendingUp}
-          hint="within 30 days"
-        />
-        <StatCard
-          label="Revenue (30d)"
-          value={
-            kpis
-              ? new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "EUR",
-                  maximumFractionDigits: 0,
-                }).format(kpis.revenueMonthCents / 100)
-              : "—"
-          }
-          icon={TrendingUp}
-          trend={
-            kpis && kpis.revenueTrend !== 0
-              ? {
-                  value: `${Math.abs(kpis.revenueTrend)}%`,
-                  direction: kpis.revenueTrend > 0 ? "up" : "down",
-                }
-              : undefined
-          }
-        />
+      {/* Commercial KPIs — what the business earns and owes */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="h-1 w-6 rounded-full bg-[color:var(--mc-gold,var(--gold))]" />
+          <h2 className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Commercial
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatCard
+            label="Active licenses"
+            value={kpis?.activeLicenses ?? "—"}
+            icon={KeyRound}
+            trend={
+              kpis && kpis.activeLicensesTrend !== 0
+                ? {
+                    value: `${Math.abs(kpis.activeLicensesTrend)}%`,
+                    direction: kpis.activeLicensesTrend > 0 ? "up" : "down",
+                  }
+                : undefined
+            }
+            hint="vs previous 30d"
+          />
+          <StatCard
+            label="Revenue (30d)"
+            value={
+              kpis
+                ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "EUR",
+                    maximumFractionDigits: 0,
+                  }).format(kpis.revenueMonthCents / 100)
+                : "—"
+            }
+            icon={TrendingUp}
+            trend={
+              kpis && kpis.revenueTrend !== 0
+                ? {
+                    value: `${Math.abs(kpis.revenueTrend)}%`,
+                    direction: kpis.revenueTrend > 0 ? "up" : "down",
+                  }
+                : undefined
+            }
+            hint="Rolling window"
+          />
+          <StatCard
+            label="Expiring soon"
+            value={kpis?.expiringSoon ?? "—"}
+            icon={TrendingUp}
+            hint="Within 30 days"
+            className={
+              kpis && kpis.expiringSoon > 0
+                ? "border-amber-500/30 bg-amber-500/5"
+                : undefined
+            }
+          />
+          <StatCard
+            label="Companies"
+            value={platform?.total_companies ?? "—"}
+            icon={Building2}
+            hint={
+              platform
+                ? `${platform.active_companies} active`
+                : "Total on the platform"
+            }
+          />
+        </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Companies" value={platform?.total_companies ?? "—"} icon={Building2} />
-        <StatCard label="Active companies" value={platform?.active_companies ?? "—"} icon={Building2} />
-        <StatCard label="Users total" value={platform?.total_users ?? "—"} icon={Users} />
-        <StatCard
-          label="Current release"
-          value={releasesLatest?.version ?? "—"}
-          icon={Rocket}
-          hint={releasesLatest?.channel ?? undefined}
-        />
+      {/* Fleet health — what's running right now */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="h-1 w-6 rounded-full bg-[color:var(--mc-gold,var(--gold))]" />
+          <h2 className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Fleet health
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatCard
+            label="Online installs"
+            value={kpis?.onlineInstalls ?? "—"}
+            icon={Package}
+            hint="Heartbeat < 15 min"
+          />
+          <StatCard
+            label="Users total"
+            value={platform?.total_users ?? "—"}
+            icon={Users}
+            hint="Across all tenants"
+          />
+          <StatCard
+            label="Active companies"
+            value={platform?.active_companies ?? "—"}
+            icon={Building2}
+            hint="Have run in last 30d"
+          />
+          <StatCard
+            label="Current release"
+            value={releasesLatest?.version ?? "—"}
+            icon={Rocket}
+            hint={releasesLatest?.channel ?? "No release published"}
+            className="border-[color:var(--mc-gold-line,var(--gold-line))] bg-[color:var(--mc-gold-soft,var(--gold-soft))]/30"
+          />
+        </div>
       </section>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-foreground">
-            Latest onboardings
-          </h2>
+          <div className="flex items-center gap-2">
+            <span className="h-1 w-6 rounded-full bg-[color:var(--mc-gold,var(--gold))]" />
+            <h2 className="font-display text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Latest onboardings
+            </h2>
+          </div>
           <Link
             to="/management/installations"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             View all →
           </Link>
