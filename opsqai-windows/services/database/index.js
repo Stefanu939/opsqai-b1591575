@@ -199,4 +199,4 @@ setInterval(() => {
     // when postgres is already up.
     process.exit(1);
   }
-}, 10_000).unref();
+}, 10_000);
