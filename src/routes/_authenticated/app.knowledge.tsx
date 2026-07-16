@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import emptyKnowledgeIllustration from "@/assets/empty-knowledge.png";
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
