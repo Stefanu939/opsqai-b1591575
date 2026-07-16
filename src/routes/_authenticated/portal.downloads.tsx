@@ -3,11 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyPortalOverview, downloadMyActivationBundle } from "@/lib/portal.functions";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
+import {
+  listDownloadModulesPublic,
+  signPortalStoragePath,
+} from "@/lib/portal-admin.functions";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, FileArchive, Inbox } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Package, FileArchive, Inbox, Download as DownloadIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/portal/downloads")({
