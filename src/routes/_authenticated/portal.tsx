@@ -21,15 +21,16 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   staffOnly?: boolean;
+  customerOnly?: boolean;
 };
 
 const NAV: readonly NavItem[] = [
-  { to: "/portal", label: "Overview", icon: Home, exact: true },
-  { to: "/portal/news", label: "News", icon: Newspaper },
-  { to: "/portal/downloads", label: "Downloads", icon: Download },
-  { to: "/portal/subscription", label: "Subscription", icon: FileText },
-  { to: "/portal/support", label: "Support", icon: MessagesSquare },
-  { to: "/portal/release-notes", label: "Release notes", icon: Package },
+  { to: "/portal", label: "Overview", icon: Home, exact: true, customerOnly: true },
+  { to: "/portal/news", label: "News", icon: Newspaper, customerOnly: true },
+  { to: "/portal/downloads", label: "Downloads", icon: Download, customerOnly: true },
+  { to: "/portal/subscription", label: "Subscription", icon: FileText, customerOnly: true },
+  { to: "/portal/support", label: "Support", icon: MessagesSquare, customerOnly: true },
+  { to: "/portal/release-notes", label: "Release notes", icon: Package, customerOnly: true },
   { to: "/portal/documentation", label: "Documentation", icon: BookOpen },
   { to: "/portal/admin", label: "Admin", icon: Shield, staffOnly: true },
 ];
@@ -37,7 +38,11 @@ const NAV: readonly NavItem[] = [
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isPlatformAdmin } = useAuth();
-  const visible = NAV.filter((item) => !item.staffOnly || isPlatformAdmin);
+  const visible = NAV.filter((item) => {
+    if (item.staffOnly) return isPlatformAdmin;
+    if (item.customerOnly) return !isPlatformAdmin;
+    return true;
+  });
   return (
     <div className="flex-1 flex bg-background">
       <aside className="w-60 border-r border-border bg-surface-1 p-4 space-y-1 shrink-0">
