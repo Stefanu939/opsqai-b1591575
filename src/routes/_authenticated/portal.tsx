@@ -1,8 +1,9 @@
 import { createFileRoute, Outlet, Link, useRouterState, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, Shield, Newspaper } from "lucide-react";
+import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, Shield, Newspaper, LogOut } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
 
 // Customer Portal — cloud-only surface for designated customer contacts:
 // download installers, retrieve activation bundles, read release notes,
