@@ -21,6 +21,7 @@ import {
 import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { Building2, User, Cpu } from "lucide-react";
+import { AvatarUploader } from "@/components/app/avatar-uploader";
 
 export const Route = createFileRoute("/_authenticated/app/organization")({
   head: () => ({ meta: [{ title: "Organization — OPSQAI" }] }),
@@ -158,6 +159,17 @@ function OrganizationPage() {
         </TabsList>
 
         <TabsContent value="profile">
+          <Card className="p-6 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-semibold">Profile picture</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Shown next to your name across OPSQAI.
+                </p>
+              </div>
+            </div>
+            <AvatarUploader size="xl" />
+          </Card>
           <Card className="p-6">
             <form onSubmit={submitProfile} className="space-y-4">
               <div className="space-y-1">
