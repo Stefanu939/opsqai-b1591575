@@ -126,12 +126,8 @@ function ensureDatabaseExists(runEnv) {
   // (3) CREATE. Identificatori via format('%I') pe server.
   console.log(`[migrate] creating database "${target}"`);
   const create = psqlRun(adminEnv, [
-    "--set",
-    `name=${target}`,
-    "--set",
-    `owner=${runEnv.PGUSER}`,
     "-c",
-    "SELECT format('CREATE DATABASE %I OWNER %I ENCODING ''UTF8'' TEMPLATE template0', :'name', :'owner') \\gexec",
+    `CREATE DATABASE "${target}" OWNER "${runEnv.PGUSER}" ENCODING 'UTF8' TEMPLATE template0`,
   ]);
 
   // (4) Race-safe re-check. Menținem SELECT / CREATE / SELECT tocmai
