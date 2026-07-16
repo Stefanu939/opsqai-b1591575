@@ -77,59 +77,35 @@ function ChatWelcome() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 min-h-[calc(100vh-3.5rem)] md:min-h-screen">
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 min-h-[calc(100vh-3.5rem)] md:min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="w-full max-w-2xl text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-[11px] text-muted-foreground">
-          <Sparkles className="h-3 w-3 text-primary" /> AI Assistant
+        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--gold-line)] bg-card/60 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
+          <Sparkles className="h-3 w-3 text-gold" />
+          <span className="tracking-wide uppercase">OPSQAI Assistant</span>
         </div>
-        <h1 className="mt-5 text-3xl md:text-5xl font-semibold tracking-tight">
-          {greet(name, lang)} <span className="inline-block">👋</span>
+        <h1 className="mt-6 font-display text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
+          {greet(name, lang)}
         </h1>
-        <p className="mt-3 text-muted-foreground">
-          {lang === "de"
-            ? "Wie kann ich heute helfen?"
-            
-              : "How can I help you today?"}
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          {lang === "de"
-            ? "Frag mich zu:"
-            
-              : "Ask anything about:"}{" "}
-          {prompts.map((p, i) => (
-            <span key={p}>
-              <button
-                onClick={() => setText(`Tell me about ${p}`)}
-                className="text-primary hover:underline"
-              >
-                {p}
-              </button>
-              {i < prompts.length - 1 && " · "}
-            </span>
-          ))}
+        <p className="mt-3 text-base text-muted-foreground">
+          {lang === "de" ? "Wie kann ich heute helfen?" : "How can I help you today?"}
         </p>
 
-        <div className="mt-8 rounded-2xl border border-border bg-card shadow-lg p-2 focus-within:ring-2 focus-within:ring-primary/30 transition-shadow">
+        <div className="mt-10 rounded-2xl border border-border bg-card shadow-md p-2 focus-within:border-gold/60 focus-within:shadow-lg focus-within:ring-4 focus-within:ring-gold/10 transition-all">
           <Textarea
             ref={ref}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKey}
-            placeholder={
-              lang === "de"
-                ? "Stelle eine Frage…"
-                
-                  : "Send a message…"
-            }
+            placeholder={lang === "de" ? "Stelle eine Frage…" : "Ask anything…"}
             rows={2}
-            className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px] min-h-[60px]"
+            className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px] min-h-[64px] placeholder:text-muted-foreground/60"
           />
           <div className="flex items-center justify-between px-2 py-1">
             <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" className="h-8 w-8" title="Attach" disabled>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title="Attach" disabled>
                 <Paperclip className="h-4 w-4" />
               </Button>
-              <Button size="icon" variant="ghost" className="h-8 w-8" title="Voice" disabled>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title="Voice" disabled>
                 <Mic className="h-4 w-4" />
               </Button>
             </div>
@@ -137,18 +113,29 @@ function ChatWelcome() {
               onClick={submit}
               disabled={!text.trim() || busy}
               size="icon"
-              className="h-8 w-8 rounded-full"
+              className="h-9 w-9 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40"
             >
               <ArrowUp className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <p className="mt-6 text-[11px] text-muted-foreground">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          {prompts.map((p) => (
+            <button
+              key={p}
+              onClick={() => setText(`Tell me about ${p}`)}
+              className="rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs text-muted-foreground hover:border-gold/50 hover:text-foreground transition-colors"
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-8 text-[11px] text-muted-foreground/70">
           {lang === "de"
             ? "Frühere Unterhaltungen findest du in der Seitenleiste."
-            
-              : "Your past conversations are listed in the sidebar."}
+            : "Past conversations are listed in the sidebar."}
         </p>
       </div>
     </div>

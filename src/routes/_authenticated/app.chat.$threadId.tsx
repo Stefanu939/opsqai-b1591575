@@ -217,12 +217,15 @@ function ChatInner({
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-6">
           {messages.length === 0 && (
-            <div className="text-center py-12">
-              <LogoMark size={48} className="mx-auto mb-3 text-foreground" />
-              <p className="text-sm text-muted-foreground">{T("askAnything")}</p>
+            <div className="text-center py-16">
+              <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-[var(--gold-soft)] grid place-items-center border border-[var(--gold-line)]">
+                <LogoMark size={28} className="text-gold" />
+              </div>
+              <p className="font-display text-lg font-medium text-foreground">{T("askAnything")}</p>
               <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">{T("ragNote")}</p>
             </div>
           )}
+
           {messages.map((m) => {
             const rawText = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
             const meta = m.metadata as MessageMeta | undefined;
@@ -230,7 +233,7 @@ function ChatInner({
             if (m.role === "user") {
               return (
                 <div key={m.id} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap">
+                  <div className="max-w-[85%] rounded-2xl bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap shadow-sm">
                     {rawText}
                   </div>
                 </div>
@@ -244,11 +247,12 @@ function ChatInner({
             const showMeta = text && sources.length > 0 && meta?.mode !== "gap";
             return (
               <div key={m.id} className="flex gap-3 group">
-                <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
-                  <LogoMark size={20} className="text-foreground" />
+                <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
+                  <LogoMark size={18} className="text-gold" />
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
-                  <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+                  <div className="text-[15px] leading-relaxed prose prose-sm max-w-none prose-headings:font-display prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+
                     {text ? (
                       <ReactMarkdown>{text}</ReactMarkdown>
                     ) : (
@@ -306,8 +310,8 @@ function ChatInner({
           })}
           {loading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-3">
-              <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
-                <LogoMark size={20} className="text-foreground" />
+              <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
+                <LogoMark size={18} className="text-gold" />
               </div>
               <div className="flex-1 pt-2">
                 <ThinkingDots label={T("searching")} />
@@ -317,35 +321,38 @@ function ChatInner({
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="border-t border-border bg-card">
-        <div className="max-w-3xl mx-auto p-3 md:p-4 flex gap-2 items-end">
-          <Textarea
-            ref={taRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={T("typeMessage")}
-            rows={1}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                onSubmit(e as unknown as React.FormEvent);
-              }
-            }}
-            className="resize-none min-h-[44px] max-h-40"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={loading || !input.trim()}
-            className="h-11 w-11 shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+      <form onSubmit={onSubmit} className="border-t border-border bg-background/80 backdrop-blur">
+        <div className="max-w-3xl mx-auto p-3 md:p-4">
+          <div className="flex gap-2 items-end rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
+            <Textarea
+              ref={taRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={T("typeMessage")}
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  onSubmit(e as unknown as React.FormEvent);
+                }
+              }}
+              className="resize-none min-h-[44px] max-h-40 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px]"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={loading || !input.trim()}
+              className="h-10 w-10 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </form>
     </div>
   );
 }
+
 
 function SourcesPanel({
   sources,
@@ -388,7 +395,7 @@ function SourcesPanel({
     const rel = displayRelevance(s.similarity, !!isPrimary);
     return (
       <div
-        className={`rounded-md border p-3 ${isPrimary ? "border-primary/40 bg-primary/5" : "border-border bg-muted/30"}`}
+        className={`rounded-xl border p-3 transition-colors ${isPrimary ? "border-[var(--gold-line)] bg-[var(--gold-soft)]" : "border-border bg-muted/30"}`}
       >
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           {isPrimary && <Badge className="text-[10px]">Primary</Badge>}
