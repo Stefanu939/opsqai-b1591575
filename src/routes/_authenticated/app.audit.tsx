@@ -30,7 +30,7 @@ interface AuditRow {
 }
 
 function AiAuditPage() {
-  const { hasPermission } = useAuth();
+  const { hasPermission, activeCompanyId } = useAuth();
   const canRun = hasPermission("ai_audit.run");
   const listFn = useServerFn(listAiAudits);
   const runFn = useServerFn(runWorkspaceAudit);
@@ -38,8 +38,8 @@ function AiAuditPage() {
   const [selected, setSelected] = useState<AuditRow | null>(null);
 
   const list = useQuery({
-    queryKey: ["ai-audits"],
-    queryFn: () => listFn({ data: {} }),
+    queryKey: ["ai-audits", activeCompanyId ?? null],
+    queryFn: () => listFn({ data: { company_id: activeCompanyId ?? null } }),
   });
 
   const audits = (list.data?.audits ?? []) as AuditRow[];
@@ -48,7 +48,8 @@ function AiAuditPage() {
   async function run() {
     setRunning(true);
     try {
-      await runFn({ data: {} } as never);
+      await runFn({ data: { company_id: activeCompanyId ?? null } } as never);
+
       toast.success("Audit completed");
       list.refetch();
     } catch (e) {
