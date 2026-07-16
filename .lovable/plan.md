@@ -1,89 +1,186 @@
+## Problem
 
-# Preview Self-Hosted pe Management Center
+`opsqai-windows/services/bootstrap/migrate.mjs` presupune că baza `opsqai` există. `OpsqaiDatabase` face doar `initdb` (cluster + rol `opsqai` + DB de sistem `postgres`), nu creează niciodată DB-ul aplicației. La primul boot:
 
-Deblocare `/app/*` pe cloud (`OPSQAI_MODE=mc`) doar pentru `platform_owner` + `platform_admin`, cu o organizație-demo seed în DB. Clienții rămân blocați exact ca acum.
-
-## 1. Gate-ul pe `/app/*` (frontend)
-
-Fișier: `src/routes/_authenticated/app.tsx`
-
-Comportamentul curent: pe MC → redirect necondiționat la `/windows-only`.
-
-Comportamentul nou pe MC:
-1. Dacă user-ul nu e autentificat → deja gestionat de layout-ul `_authenticated`.
-2. Citește rolurile din `user_roles`.
-3. Dacă `platform_owner` sau `platform_admin` → lasă să treacă și setează în context `staff_preview: true`.
-4. Altfel (client / member / manager / guest) → redirect la `/windows-only` (comportament actual, neschimbat pentru clienți).
-
-Pe self-host (`OPSQAI_MODE=selfhost`) nimic nu se schimbă — toți utilizatorii intră normal.
-
-## 2. Banner vizibil de mod preview
-
-Componentă nouă `src/components/app/staff-preview-banner.tsx`, montată în `app-shell.tsx` doar când `staff_preview === true`. Text scurt, culoare de avertisment din tokenii MC (Noir/Gold):
-
-> **STAFF PREVIEW — Demo Sandbox.** You are viewing the Self-Hosted product from the Management Center. Data here is demo-only. Customers cannot see this view.
-
-Rol: elimină riscul ca un staff să creadă că vede date reale de client.
-
-## 3. Server-side hardening
-
-Toate `createServerFn` care servesc modulele Self-Hosted (chat, knowledge, faq, academy, audit, users, org, subscription) trebuie să accepte apeluri de la staff pe MC **doar pentru organizația demo**. Trei modificări:
-
-- Un helper nou `src/lib/staff-preview.server.ts`:
-  - `isStaffPreviewCaller(context)` — verifică `has_role(auth.uid(), 'platform_admin')` sau `platform_owner`.
-  - `getDemoOrgId()` — citește `demo_org_id` din tabelul nou `platform_config` (vezi §4).
-- Elimină `assertMode('selfhost')` acolo unde blochează staff-ul pe MC și înlocuiește cu:
-  ```
-  if (mode === 'mc' && !(await isStaffPreviewCaller(context))) throw ModeAssertionError
-  ```
-- Pentru staff pe MC, forțează `organization_id = demoOrgId` la citiri/scrieri prin RLS. Datele reale ale clienților nu există oricum pe cloud (AD-009), dar previne accidente dacă în viitor cineva pune ceva sensibil în DB.
-
-## 4. Organizația-demo (seed)
-
-Migrare nouă: `supabase/migrations/*_staff_preview_demo_org.sql`
-- Inserează un rând în `organizations` cu id fix (constant `DEMO_ORG_ID` în cod), name = "OPSQAI Demo Company".
-- Inserează în `platform_config`: `demo_org_id`.
-- Seed determinist (INSERT în aceeași migrație, conform regulii proiectului — fără server-fn de seed):
-  - 3 documente knowledge base cu conținut fictiv despre o companie manufacturing generică.
-  - 10 FAQ-uri.
-  - 1 curs Academy cu 2 lecții.
-  - 1 thread AI Chat cu 2 mesaje de exemplu.
-  - Câțiva "useri" fictivi în tabela care ține membership-uri pe org (fără `auth.users` reali — doar rânduri pentru display).
-- Nu se inserează nicio licență reală. `subscription` afișează un mock "Demo — nu se aplică billing".
-
-RLS: policies existente rămân. Staff-ul MC accesează org-ul demo pentru că `has_role('platform_admin')` va fi adăugat ca ramură de acces în policy-urile modulelor SH, `AND organization_id = demoOrgId`.
-
-## 5. Chat AI pe demo
-
-Endpoint-ul `src/routes/api/chat.ts` folosește deja Lovable AI Gateway. Nu se schimbă — merge nativ pe cloud.
-
-## 6. Ce NU se atinge
-
-- `/portal/*` (Customer Portal) — clientul continuă să intre acolo pe cloud.
-- `/management/*` — neschimbat.
-- Instalările Windows reale ale clienților — nu se conectează la MC pentru asta (rămâne AD-009).
-- Rolurile clienților (member/manager/admin/guest) — nu primesc niciun acces nou.
-
-## Tehnic — fișiere atinse
-
-```text
-src/routes/_authenticated/app.tsx           ← noul gate cu ramură staff
-src/components/app/app-shell.tsx            ← montează banner-ul
-src/components/app/staff-preview-banner.tsx ← nou
-src/lib/staff-preview.server.ts             ← nou (isStaffPreviewCaller, getDemoOrgId)
-src/lib/deployment-mode.server.ts           ← assertMode acceptă bypass staff
-src/lib/{chat,knowledge,faq,academy,audit,users,organization,subscription}
-  .functions.ts                             ← ramură staff-preview pe MC → demoOrgId
-supabase/migrations/*_staff_preview.sql     ← platform_config.demo_org_id + seed
+```
+FATAL: database "opsqai" does not exist
 ```
 
-Testare:
-- Login ca `platform_admin` pe opsqai.de → `/app` deschide UI-ul Self-Hosted cu banner și date demo.
-- Login ca client normal pe opsqai.de → `/app` redirectează la `/windows-only` (regresie zero).
-- Pe build self-host → `/app` merge exact ca înainte, fără banner.
+## Fix
 
-## În afara scope-ului
+Adaugă în `migrate.mjs`, înainte de bucla de migrații, un pas idempotent și race-safe care garantează existența DB-ului `opsqai`. Race-safety prin **re-check după CREATE**. Stil consistent cu restul modulului (`fail()`, fără throw). Validare explicită a `PGDATABASE`, mesaje de eroare care includ mereu host/port, logging de producție minimal.
 
-- Un rol nou dedicat (`staff_preview`) — folosim rolurile existente.
-- Editarea datelor demo dintr-un UI dedicat (staff poate deja edita direct în MC dacă e nevoie).
-- Multiplu tenant demo (o singură companie demo, suficientă pentru sales/QA).
+### Locul modificării
+
+`opsqai-windows/services/bootstrap/migrate.mjs`, între construirea `env` și bucla `for (const file of files)`.
+
+### Algoritm
+
+1. Validează `PGDATABASE`.
+2. Sanity check pe `postgres`.
+3. Check existență target.
+4. Lipsește → CREATE DATABASE.
+5. CREATE eșuează → re-check:
+   - re-check însuși eșuează → `fail()` cu ambele erori (dublă eroare).
+   - re-check spune că există → race câștigat de alt bootstrap, continuăm (fără log zgomotos).
+   - re-check spune că nu există → `fail()` cu eroarea originală de la CREATE.
+6. Log final unic `database "<name>" ready`.
+
+### Implementare
+
+```js
+// Embedded PostgreSQL initializes only the cluster and the "postgres"
+// database. The application database is created lazily here before
+// running migrations. Safe to execute on every bootstrap.
+
+function psqlRun(env, args, opts = {}) {
+  return spawnSync(psql, ["-v", "ON_ERROR_STOP=1", ...args], {
+    env,
+    encoding: "utf8",
+    windowsHide: true,
+    ...opts,
+  });
+}
+
+// Pur, fără throw. Erorile sunt raportate prin obiect-rezultat.
+function databaseExists(adminEnv, name) {
+  const r = psqlRun(adminEnv, [
+    "--set", `name=${name}`,
+    "-tAc", "SELECT 1 FROM pg_database WHERE datname = :'name'",
+  ]);
+  return {
+    ok: r.status === 0,
+    exists: r.stdout.trim() === "1",
+    status: r.status,
+    stderr: r.stderr || "",
+  };
+}
+
+function endpointOf(env) {
+  return `${env.PGUSER}@${env.PGHOST}:${env.PGPORT}`;
+}
+
+function ensureDatabaseExists(env) {
+  const target = env.PGDATABASE;
+
+  // (0) Validează configurarea — fără asta CREATE DATABASE "" ar trece
+  //     de checks și ar produce un diagnostic complet neutil.
+  if (!target) {
+    fail("PGDATABASE is not configured", 1);
+  }
+
+  const adminEnv = { ...env, PGDATABASE: "postgres" };
+  const at = endpointOf(env);
+
+  // (1) Sanity check pe DB-ul de sistem.
+  const ping = psqlRun(adminEnv, ["-tAc", "SELECT 1"]);
+  if (ping.status !== 0) {
+    fail(
+      `cannot connect to system database "postgres" as ${at}: ${ping.stderr}`,
+      ping.status || 1,
+    );
+  }
+
+  // (2) Check.
+  const first = databaseExists(adminEnv, target);
+  if (!first.ok) {
+    fail(
+      `pg_database lookup for "${target}" failed on ${at} (exit ${first.status}): ${first.stderr || "(no stderr)"}`,
+      first.status || 1,
+    );
+  }
+  if (first.exists) {
+    console.log(`[migrate] database "${target}" ready`);
+    return;
+  }
+
+  // (3) CREATE. Identificatori via format('%I') pe server.
+  console.log(`[migrate] creating database "${target}"`);
+  const create = psqlRun(adminEnv, [
+    "--set", `name=${target}`,
+    "--set", `owner=${env.PGUSER}`,
+    "-c",
+    "SELECT format('CREATE DATABASE %I OWNER %I ENCODING ''UTF8'' TEMPLATE template0', :'name', :'owner') \\gexec",
+  ]);
+
+  // (4) Race-safe re-check. Menținem SELECT / CREATE / SELECT tocmai
+  //     pentru a NU depinde de textul mesajului sau de SQLSTATE.
+  if (create.status !== 0) {
+    const second = databaseExists(adminEnv, target);
+
+    // Dublă eroare: CREATE a picat ȘI nu putem verifica starea reală.
+    if (!second.ok) {
+      fail(
+        `CREATE DATABASE "${target}" failed on ${at} and existence could not be re-verified. ` +
+          `CREATE (exit ${create.status}): ${create.stderr || "(no stderr)"} | ` +
+          `re-check (exit ${second.status}): ${second.stderr || "(no stderr)"}`,
+        second.status || create.status || 1,
+      );
+    }
+
+    if (second.exists) {
+      // Race câștigat de alt bootstrap. Nu logăm zgomotos în producție —
+      // rezultatul final e același: baza e gata.
+      console.log(`[migrate] database "${target}" ready`);
+      return;
+    }
+
+    fail(
+      `CREATE DATABASE "${target}" failed while connected to "postgres" as ${at} (exit ${create.status}): ${create.stderr || "(no stderr)"}`,
+      create.status || 1,
+    );
+  }
+
+  console.log(`[migrate] database "${target}" ready`);
+}
+```
+
+Apel:
+```js
+const env = { ...process.env, ...databaseEnv(), ON_ERROR_STOP: "1" };
+ensureDatabaseExists(env);
+console.log(`[migrate] applying ${files.length} migrations from ${migrationsDir}`);
+```
+
+### De ce merge pe embedded și pe external
+
+- **Embedded**: `PGUSER=opsqai` e superuser (via `initdb -U opsqai`) → poate `CREATE DATABASE`.
+- **External**: dacă DBA-ul a pre-creat DB-ul, ramura `ready` iese silent. Altfel `CREATE DATABASE` reușește dacă rolul are `CREATEDB` — documentat în admin-guide.
+
+### Robustețe
+
+- `PGDATABASE` validat înainte de orice comandă.
+- Query-uri parametrizate → fără SQL injection.
+- Re-check după CREATE → race-safe, independent de versiune psql / localizare / SQLSTATE.
+- `databaseExists()` întoarce obiect-rezultat → consistent cu `fail()`, fără try/catch.
+- Trei ramuri de diagnostic distincte după CREATE eșuat: dublă eroare, race, eroare originală.
+- Toate mesajele de eroare includ `user@host:port` — trasabilitate uniformă.
+- Log de producție minim și consistent cu stilul `postgres ready` / `config ready`.
+
+## Despre readiness `initdb` vs `pg_isready`
+
+În `services/database/index.js`, `initdb` rulează sincron (`spawnSync`) **înainte** de `pg_ctl start -w`. Când `bootstrap/init.js` sondează portul, cluster-ul, rolul `opsqai` și DB-ul `postgres` sunt garantat gata. Gap-ul real e doar DB-ul aplicației, acoperit de fix.
+
+## Fișiere modificate
+
+- `opsqai-windows/services/bootstrap/migrate.mjs` — helpers `psqlRun` / `databaseExists` / `endpointOf`, funcția `ensureDatabaseExists` + apel + comentarii.
+
+## Test manual
+
+Primul boot:
+```
+[migrate] creating database "opsqai"
+[migrate] database "opsqai" ready
+[migrate] applying N migrations from ...
+[migrate] complete
+```
+Re-run:
+```
+[migrate] database "opsqai" ready
+[migrate] applying N migrations from ...
+[migrate] complete
+```
+
+## Neafectate
+
+Cloud / MC / TanStack app, schema DB, RLS, GRANTs, `OpsqaiDatabase` service, `ensure-config.js`, `pg_hba.conf` — toate nemodificate.
