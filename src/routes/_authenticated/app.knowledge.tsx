@@ -116,6 +116,9 @@ function KnowledgePage() {
   const [versionsFor, setVersionsFor] = useState<Doc | null>(null);
   const [versions, setVersions] = useState<Doc[]>([]);
   const [exportOpen, setExportOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+
 
   const process = useServerFn(processDocument);
   const del = useServerFn(deleteKnowledgeDocument);
