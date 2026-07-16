@@ -45,8 +45,9 @@ async function resolvePostLoginTarget(
     return { target: "/management" };
   }
   // Portal (and any accidental "company" pick — company users have no cloud
-  // account and never reach a successful sign-in here anyway).
-  return { target: isPlatform ? "/management" : "/portal" };
+  // account and never reach a successful sign-in here anyway). Platform staff
+  // can still enter the customer portal if they explicitly picked it.
+  return { target: "/portal" };
 }
 
 export const Route = createFileRoute("/auth")({
