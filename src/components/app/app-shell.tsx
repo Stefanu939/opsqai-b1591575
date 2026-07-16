@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
+import { AvatarUploader } from "@/components/app/avatar-uploader";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
 import { StaffPreviewBanner } from "@/components/app/staff-preview-banner";
@@ -211,10 +212,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg px-3 py-2 bg-sidebar-accent/30">
-          <span className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-sidebar-primary/40 to-sidebar-primary/10 border border-sidebar-primary/30 grid place-items-center text-sidebar-primary text-[11px] font-semibold uppercase">
-            {user?.email?.slice(0, 2) ?? "OP"}
-          </span>
+        <div className="flex items-center gap-2 rounded-lg px-2 py-2 bg-sidebar-accent/30">
+          <AvatarUploader size="sm" />
           <span className="truncate flex-1 text-left text-[12px] text-sidebar-foreground/85">
             {user?.email}
           </span>
