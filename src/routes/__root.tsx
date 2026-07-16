@@ -172,7 +172,7 @@ function RootComponent() {
         <AuthProvider>
           <LicenseProvider>
             <Outlet />
-            <SupportWidget />
+            <ChatGlider />
             <Toaster />
           </LicenseProvider>
         </AuthProvider>
