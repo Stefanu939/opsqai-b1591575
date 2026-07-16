@@ -221,11 +221,19 @@ export const createTeamMember = createServerFn({ method: "POST" })
       .eq("id", created.user.id);
 
     await supabaseAdmin.from("user_roles").delete().eq("user_id", created.user.id);
-    const rolesToInsert: Array<{
+    type UserRoleInsert = {
       user_id: string;
-      role: string;
+      role:
+        | "admin"
+        | "manager"
+        | "team_leader"
+        | "employee"
+        | "platform_admin";
       company_id: string;
-    }> = [{ user_id: created.user.id, role: data.role, company_id: systemCompany }];
+    };
+    const rolesToInsert: UserRoleInsert[] = [
+      { user_id: created.user.id, role: data.role, company_id: systemCompany },
+    ];
     if (data.make_platform_admin) {
       rolesToInsert.push({
         user_id: created.user.id,
