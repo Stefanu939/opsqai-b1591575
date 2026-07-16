@@ -22,10 +22,43 @@ function fmt(d: string | null | undefined) {
 
 function PortalHome() {
   const fn = useServerFn(getMyPortalOverview);
+  const listNews = useServerFn(listAnnouncementsPublic);
+  const sign = useServerFn(signPortalStoragePath);
   const { data, isLoading } = useQuery({
     queryKey: ["portal-overview"],
     queryFn: () => fn({ data: {} } as never),
   });
+  const { data: news = [] } = useQuery({
+    queryKey: ["portal-announcements-public"],
+    queryFn: () => listNews({ data: {} } as never),
+  });
+  const topNews = news.slice(0, 3);
+  const [covers, setCovers] = useState<Record<string, string>>({});
+  useEffect(() => {
+    (async () => {
+      const out: Record<string, string> = {};
+      for (const r of topNews) {
+        if (r.cover_image_url?.startsWith("portal-news-images/")) {
+          try {
+            const { url } = await sign({
+              data: {
+                bucket: "portal-news-images",
+                path: r.cover_image_url.slice("portal-news-images/".length),
+                expiresIn: 3600,
+              },
+            });
+            out[r.id] = url;
+          } catch {
+            /* skip */
+          }
+        } else if (r.cover_image_url) {
+          out[r.id] = r.cover_image_url;
+        }
+      }
+      setCovers(out);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [news.length]);
 
   const installs = data?.installs ?? [];
   const active = installs.filter(
