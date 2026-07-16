@@ -23,9 +23,15 @@ function PortalDownloads() {
   const overview = useServerFn(getMyPortalOverview);
   const download = useServerFn(downloadMyActivationBundle);
   const downloadZip = useServerFn(getMyInstallationPackageDownloadUrl);
+  const listModules = useServerFn(listDownloadModulesPublic);
+  const signUrl = useServerFn(signPortalStoragePath);
   const { data } = useQuery({
     queryKey: ["portal-overview"],
     queryFn: () => overview({ data: {} } as never),
+  });
+  const { data: modules = [] } = useQuery({
+    queryKey: ["portal-modules-public"],
+    queryFn: () => listModules({ data: {} } as never),
   });
 
   async function downloadBundle(install_id: string) {
