@@ -92,71 +92,78 @@ function PortalSupport() {
 
   return (
     <div className="p-6 md:p-10 max-w-6xl">
-      <PageHeader
-        eyebrow="Customer portal"
-        title="Support"
-        description="Open a support ticket with the OPSQAI team. All conversations are private to your company."
-        actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-1" /> New ticket
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Open a support ticket</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input
-                    id="subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Short summary"
-                  />
-                </div>
-                <div>
-                  <Label>Priority</Label>
-                  <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="body">Message</Label>
-                  <Textarea
-                    id="body"
-                    rows={6}
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    placeholder="Describe the issue…"
-                  />
-                </div>
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
+            Customer portal
+          </div>
+          <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight">
+            Support
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+            Open a support ticket with the OPSQAI team. All conversations are private to your
+            company.
+          </p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-1" /> New ticket
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Open a support ticket</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="subject">Subject</Label>
+                <Input
+                  id="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Short summary"
+                />
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => create.mutate()}
-                  disabled={!subject.trim() || !body.trim() || create.isPending}
-                >
-                  Open ticket
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        }
-      />
+              <div>
+                <Label>Priority</Label>
+                <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="body">Message</Label>
+                <Textarea
+                  id="body"
+                  rows={6}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="Describe the issue…"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => create.mutate()}
+                disabled={!subject.trim() || !body.trim() || create.isPending}
+              >
+                Open ticket
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       <div className="grid md:grid-cols-[320px_1fr] gap-4">
         <Card className="p-0 overflow-hidden">
