@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import heroImage from "@/assets/marketing-hero.jpg";
 import {
   ArrowRight,
   Brain,
@@ -113,17 +114,27 @@ function SectionHead({
 function Hero() {
   return (
     <section className="relative overflow-hidden border-b border-border/50">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-background to-surface-1" />
-      <div className="absolute inset-0 -z-10 opacity-40 [background:radial-gradient(60%_50%_at_50%_0%,hsl(var(--primary)/0.12),transparent_70%)]" />
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+      <div className="absolute inset-0 -z-10">
+        <img
+          src={heroImage}
+          alt=""
+          width={1920}
+          height={1088}
+          className="w-full h-full object-cover object-center opacity-30 dark:opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/95 to-background" />
+        <div className="absolute inset-0 [background:radial-gradient(70%_55%_at_50%_0%,rgba(201,162,76,0.10),transparent_75%)]" />
+      </div>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-20 pb-24 md:pt-32 md:pb-36">
         <div className="max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface-1/60 px-3 py-1 text-[11px] tracking-wider uppercase text-muted-foreground">
-            <Sparkles className="h-3 w-3 text-primary" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--gold-line)] bg-[var(--gold-soft)]/40 px-3 py-1 text-[11px] tracking-[0.16em] uppercase text-[color:var(--gold)] font-medium">
+            <Sparkles className="h-3 w-3" />
             Enterprise Operational AI Platform
           </div>
-          <h1 className="mt-6 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+          <h1 className="mt-6 font-display text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-semibold tracking-tight leading-[1.03]">
             The operating system for
-            <span className="text-primary"> operational knowledge.</span>
+            <br className="hidden sm:block" />
+            <span className="text-[color:var(--gold)]"> operational knowledge.</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl">
             OPSQAI is a Windows Self-Hosted platform that brings governed AI to
@@ -143,7 +154,7 @@ function Hero() {
             </Button>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl">
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl">
             {[
               { icon: HardDrive, label: "Windows Self-Hosted" },
               { icon: ShieldCheck, label: "Sovereign by design" },
@@ -152,10 +163,10 @@ function Hero() {
             ].map((b) => (
               <div
                 key={b.label}
-                className="flex items-center gap-2 text-xs text-muted-foreground border border-border/50 rounded-md bg-surface-1/40 px-3 py-2"
+                className="flex items-center gap-2 text-xs text-foreground/80 border border-border/60 rounded-lg bg-surface-1/70 backdrop-blur-sm px-3 py-2.5"
               >
-                <b.icon className="h-3.5 w-3.5 text-primary" />
-                <span className="truncate">{b.label}</span>
+                <b.icon className="h-3.5 w-3.5 text-[color:var(--gold)]" />
+                <span className="truncate font-medium">{b.label}</span>
               </div>
             ))}
           </div>
