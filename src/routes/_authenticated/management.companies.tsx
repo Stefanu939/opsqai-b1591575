@@ -178,28 +178,19 @@ function CompaniesPage() {
       header: "",
       align: "right",
       render: (c) => (
-        <div className="flex justify-end gap-1">
+        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => {
-              setActiveCompanyId(c.id);
-              navigate({ to: "/management/companies/$id", params: { id: c.id } });
-            }}
-          >
-            Open
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() =>
+            onClick={(e) => {
+              e.stopPropagation();
               updateMut.mutate({
                 id: c.id,
                 name: c.name,
                 active: !c.active,
                 subscription_status: c.active ? "suspended" : "active",
-              })
-            }
+              });
+            }}
           >
             {c.active ? "Suspend" : "Activate"}
           </Button>
@@ -207,7 +198,8 @@ function CompaniesPage() {
             size="sm"
             variant="ghost"
             className="text-destructive hover:text-destructive"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (confirm(`Delete ${c.name}? All data will be lost.`))
                 removeMut.mutate(c.id);
             }}
@@ -216,6 +208,7 @@ function CompaniesPage() {
           </Button>
         </div>
       ),
+
     },
   ];
 
@@ -275,6 +268,10 @@ function CompaniesPage() {
         rows={filtered}
         rowKey={(c) => c.id}
         loading={isLoading}
+        onRowClick={(c) => {
+          setActiveCompanyId(c.id);
+          navigate({ to: "/management/companies/$id", params: { id: c.id } });
+        }}
         empty={{
           icon: Building2,
           title: companies.length ? "No matches" : "No companies yet",
@@ -283,6 +280,7 @@ function CompaniesPage() {
             : "Create your first customer company to get started.",
         }}
       />
+
     </div>
   );
 }
