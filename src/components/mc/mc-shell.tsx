@@ -166,7 +166,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-foreground/40"
             onClick={() => setMobileOpen(false)}
           />
           <div className="relative z-50">{Sidebar}</div>

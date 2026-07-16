@@ -244,7 +244,7 @@ function ConversationsListView({
           <Button
             size="icon"
             variant="ghost"
-            className="text-primary-foreground hover:bg-white/10"
+            className="text-primary-foreground hover:bg-primary-foreground/10"
             onClick={onNew}
             aria-label="New chat"
           >
@@ -253,7 +253,7 @@ function ConversationsListView({
           <Button
             size="icon"
             variant="ghost"
-            className="text-primary-foreground hover:bg-white/10"
+            className="text-primary-foreground hover:bg-primary-foreground/10"
             onClick={onClose}
             aria-label="Close chat"
           >
@@ -441,7 +441,7 @@ function ConversationView({
         <Button
           size="icon"
           variant="ghost"
-          className="text-primary-foreground hover:bg-white/10 h-9 w-9"
+          className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onBack}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -462,7 +462,7 @@ function ConversationView({
         <Button
           size="icon"
           variant="ghost"
-          className="text-primary-foreground hover:bg-white/10 h-9 w-9"
+          className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onClose}
         >
           <X className="h-4 w-4" />
@@ -625,7 +625,7 @@ function MessageBubble({
               rel="noopener"
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2 py-1.5 mb-1 text-xs",
-                mine ? "bg-white/10" : "bg-muted",
+                mine ? "bg-primary-foreground/10" : "bg-muted",
               )}
             >
               <FileText className="h-4 w-4 shrink-0" />
@@ -707,7 +707,7 @@ function NewChatView({
         <Button
           size="icon"
           variant="ghost"
-          className="text-primary-foreground hover:bg-white/10 h-9 w-9"
+          className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onBack}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -716,7 +716,7 @@ function NewChatView({
         <Button
           size="icon"
           variant="ghost"
-          className="text-primary-foreground hover:bg-white/10 h-9 w-9"
+          className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onClose}
         >
           <X className="h-4 w-4" />

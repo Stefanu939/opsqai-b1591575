@@ -48,6 +48,10 @@
   --color-surface: var(--surface);
   --color-signal: var(--signal);
   --color-signal-foreground: var(--signal-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
 }
 
 /* ============================================================
@@ -59,150 +63,174 @@
    ============================================================ */
 
 :root {
-  --radius: 0.625rem;
+  /* v3 radius scale — 10 / 14 / 20 */
+  --radius: 0.875rem; /* 14px card default */
+  --radius-panel: 1.25rem; /* 20px large panels */
 
-  /* Surface scale */
-  --background: #ffffff;
+  /* Surface scale — Soft White / Light Gray */
+  --background: #fbfbfc; /* Soft White */
   --surface-0: #ffffff;
-  --surface-1: #f8fafc; /* slate-50 */
-  --surface-2: #f1f5f9; /* slate-100 */
-  --surface-3: #e2e8f0; /* slate-200 */
-  --foreground: #0f172a; /* slate-900 */
+  --surface-1: #f6f7f9;
+  --surface-2: #eef1f5;
+  --surface-3: #e2e6ec;
+  --foreground: #0b1e3b; /* Deep Navy */
   --surface: #ffffff;
 
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #0b1e3b;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #0b1e3b;
 
-  /* Accent = dark navy — primary actions only, used sparingly */
-  --primary: #0f2547;
-  --primary-foreground: #ffffff;
-  --primary-glow: #17335f;
+  /* Primary — Deep Navy */
+  --primary: #0b1e3b;
+  --primary-foreground: #fbfbfc;
+  --primary-glow: #142c55;
 
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary: #eef1f5;
+  --secondary-foreground: #0b1e3b;
 
-  --muted: #f8fafc;
-  --muted-foreground: #64748b; /* slate-500 */
+  --muted: #f6f7f9;
+  --muted-foreground: #5b6b83;
 
-  --accent: #f1f5f9;
-  --accent-foreground: #0f2547;
+  --accent: #eef1f5;
+  --accent-foreground: #0b1e3b;
 
-  --signal: #0f2547;
-  --signal-foreground: #ffffff;
+  --signal: #0b1e3b;
+  --signal-foreground: #fbfbfc;
 
-  --destructive: #b91c1c;
+  /* OPSQAI Gold — restrained accent */
+  --gold: #c9a24c;
+  --gold-foreground: #0b1e3b;
+  --gold-soft: rgba(201, 162, 76, 0.18);
+  --gold-line: rgba(201, 162, 76, 0.35);
+
+  --destructive: #b3261e;
   --destructive-foreground: #ffffff;
 
-  --success: #047857;
-  --warning: #b45309;
+  --success: #0f7a55;
+  --success-foreground: #ffffff;
+  --warning: #a76a12;
+  --warning-foreground: #ffffff;
 
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --input: #e2e8f0;
-  --ring: #0f2547;
+  --border: #e2e6ec;
+  --border-strong: #cbd2dc;
+  --input: #e2e6ec;
+  --ring: #c9a24c; /* gold focus ring */
 
-  --chart-1: #0f2547;
-  --chart-2: #475569;
-  --chart-3: #94a3b8;
-  --chart-4: #047857;
-  --chart-5: #b45309;
+  /* Muted, business-legible chart palette (navy / slate / gold / emerald / clay) */
+  --chart-1: #0b1e3b;
+  --chart-2: #5b6b83;
+  --chart-3: #c9a24c;
+  --chart-4: #0f7a55;
+  --chart-5: #a05a3a;
 
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #0f2547;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eef2f7;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #0f2547;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0b1e3b;
+  --sidebar-primary: #0b1e3b;
+  --sidebar-primary-foreground: #fbfbfc;
+  --sidebar-accent: #f4f6f9;
+  --sidebar-accent-foreground: #0b1e3b;
+  --sidebar-border: #e6e9ef;
+  --sidebar-ring: #c9a24c;
 
-  /* Soft shadows only — no glow, no gradients */
-  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 4px 12px -4px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 12px 32px -12px rgba(15, 23, 42, 0.12);
+  /* Layered soft shadows — two shadow tokens matter (rest / raised) */
+  --shadow-xs: 0 1px 2px 0 rgba(11, 30, 59, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(11, 30, 59, 0.05);
+  --shadow-md: 0 6px 16px -6px rgba(11, 30, 59, 0.10);
+  --shadow-lg: 0 18px 40px -18px rgba(11, 30, 59, 0.18);
   --shadow-glow: none;
 
-  /* Legacy gradient aliases kept solid so any leftover reference
-     renders as a flat surface instead of a colored gradient. Sweep in Step 6. */
+  /* Motion tokens */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fast: 180ms;
+  --motion-base: 240ms;
+  --motion-slow: 320ms;
+
+  /* Legacy gradient aliases kept flat — sweep in later phases. */
   --gradient-hero: none;
-  --gradient-cta: #f8fafc;
-  --gradient-primary: #0f2547;
+  --gradient-cta: #f6f7f9;
+  --gradient-primary: #0b1e3b;
   --gradient-card: #ffffff;
-  --gradient-sidebar: #f8fafc;
+  --gradient-sidebar: #ffffff;
   --gradient-surface: #ffffff;
 }
 
 .dark {
-  --background: #0b1220;
-  --surface-0: #0b1220;
-  --surface-1: #111a2e;
-  --surface-2: #17223a;
-  --surface-3: #1f2c48;
-  --foreground: #e8ecf3;
-  --surface: #111a2e;
+  /* Deep Navy dark — same identity, less brightness */
+  --background: #0a1729;
+  --surface-0: #0a1729;
+  --surface-1: #0f2140;
+  --surface-2: #142a52;
+  --surface-3: #1c3767;
+  --foreground: #f2f4f8;
+  --surface: #0f2140;
 
-  --card: #111a2e;
-  --card-foreground: #e8ecf3;
-  --popover: #111a2e;
-  --popover-foreground: #e8ecf3;
+  --card: #0f2140;
+  --card-foreground: #f2f4f8;
+  --popover: #0f2140;
+  --popover-foreground: #f2f4f8;
 
-  --primary: #e8ecf3;
-  --primary-foreground: #0b1220;
+  --primary: #fbfbfc;
+  --primary-foreground: #0a1729;
   --primary-glow: #ffffff;
 
-  --secondary: #17223a;
-  --secondary-foreground: #e8ecf3;
+  --secondary: #142a52;
+  --secondary-foreground: #f2f4f8;
 
-  --muted: #111a2e;
-  --muted-foreground: #94a3b8;
+  --muted: #0f2140;
+  --muted-foreground: #9aa8be;
 
-  --accent: #17223a;
-  --accent-foreground: #e8ecf3;
+  --accent: #142a52;
+  --accent-foreground: #f2f4f8;
 
-  --signal: #e8ecf3;
-  --signal-foreground: #0b1220;
+  --signal: #c9a24c;
+  --signal-foreground: #0a1729;
+
+  --gold: #c9a24c;
+  --gold-foreground: #0a1729;
+  --gold-soft: rgba(201, 162, 76, 0.22);
+  --gold-line: rgba(201, 162, 76, 0.4);
 
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
   --success: #10b981;
-  --warning: #f59e0b;
+  --success-foreground: #052e22;
+  --warning: #f5b301;
+  --warning-foreground: #2a1a00;
 
-  --border: #1f2c48;
-  --border-strong: #2a3a5c;
-  --input: #1f2c48;
-  --ring: #e8ecf3;
+  --border: #1c3767;
+  --border-strong: #2a4a86;
+  --input: #1c3767;
+  --ring: #c9a24c;
 
-  --chart-1: #e8ecf3;
-  --chart-2: #94a3b8;
-  --chart-3: #64748b;
+  --chart-1: #f2f4f8;
+  --chart-2: #9aa8be;
+  --chart-3: #c9a24c;
   --chart-4: #10b981;
-  --chart-5: #f59e0b;
+  --chart-5: #d18a5a;
 
-  --sidebar: #0b1220;
-  --sidebar-foreground: #e8ecf3;
-  --sidebar-primary: #e8ecf3;
-  --sidebar-primary-foreground: #0b1220;
-  --sidebar-accent: #17223a;
-  --sidebar-accent-foreground: #e8ecf3;
-  --sidebar-border: #1f2c48;
-  --sidebar-ring: #e8ecf3;
+  --sidebar: #0a1729;
+  --sidebar-foreground: #f2f4f8;
+  --sidebar-primary: #fbfbfc;
+  --sidebar-primary-foreground: #0a1729;
+  --sidebar-accent: #142a52;
+  --sidebar-accent-foreground: #f2f4f8;
+  --sidebar-border: #1c3767;
+  --sidebar-ring: #c9a24c;
 
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 12px 32px -12px rgba(0, 0, 0, 0.65);
+  --shadow-md: 0 8px 20px -8px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 20px 44px -20px rgba(0, 0, 0, 0.7);
   --shadow-glow: none;
 
   --gradient-hero: none;
-  --gradient-cta: #17223a;
-  --gradient-primary: #e8ecf3;
-  --gradient-card: #111a2e;
-  --gradient-sidebar: #0b1220;
-  --gradient-surface: #111a2e;
+  --gradient-cta: #142a52;
+  --gradient-primary: #fbfbfc;
+  --gradient-card: #0f2140;
+  --gradient-sidebar: #0a1729;
+  --gradient-surface: #0f2140;
 }
 
 @layer base {

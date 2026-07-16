@@ -139,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const ActiveIndicator = () => (
     <span
       aria-hidden
-      className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-sidebar-primary opacity-0 group-data-[status=active]:opacity-100 shadow-[0_0_12px_var(--color-sidebar-primary)]"
+      className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gold opacity-0 group-data-[status=active]:opacity-100 transition-opacity"
     />
   );
 
@@ -180,7 +180,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   className={linkCls}
                 >
                   <ActiveIndicator />
-                  <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-sidebar-primary transition-colors" />
+                  <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-gold transition-colors" />
                   <span className="truncate">{item.label}</span>
                 </Link>
               ))}
@@ -259,7 +259,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-background">
-      <aside className="hidden md:flex w-64 shrink-0 border-r border-sidebar-border">
+      <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border">
         <SidebarContent />
       </aside>
 
