@@ -1,8 +1,9 @@
 import { createFileRoute, Outlet, Link, useRouterState, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, Shield, Newspaper } from "lucide-react";
+import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, Shield, Newspaper, LogOut } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
 
 // Customer Portal — cloud-only surface for designated customer contacts:
 // download installers, retrieve activation bundles, read release notes,
@@ -38,7 +39,7 @@ const NAV: readonly NavItem[] = [
 
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isPlatformAdmin } = useAuth();
+  const { isPlatformAdmin, signOut, user } = useAuth();
   const navigate = useNavigate();
   const visible = NAV.filter((item) => {
     if (item.staffOnly) return isPlatformAdmin;
@@ -52,27 +53,49 @@ function PortalLayout() {
     );
     if (!allowed) navigate({ to: "/portal/admin", replace: true });
   }, [isPlatformAdmin, path, visible, navigate]);
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/auth", replace: true });
+  };
   return (
     <div className="flex-1 flex bg-background">
-      <aside className="w-60 border-r border-border bg-surface-1 p-4 space-y-1 shrink-0">
+      <aside className="w-60 border-r border-border bg-surface-1 p-4 flex flex-col shrink-0">
         <div className="flex items-center gap-2 mb-4 px-2">
           <LifeBuoy className="h-5 w-5" />
           <span className="font-display font-semibold">Customer Portal</span>
         </div>
-        {visible.map((item) => {
-          const active = item.exact ? path === item.to : path.startsWith(item.to);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${active ? "bg-accent text-accent-foreground font-medium" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"}`}
-            >
-              <Icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        })}
+        <div className="space-y-1 flex-1">
+          {visible.map((item) => {
+            const active = item.exact ? path === item.to : path.startsWith(item.to);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${active ? "bg-accent text-accent-foreground font-medium" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"}`}
+              >
+                <Icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="pt-3 mt-3 border-t border-border space-y-2">
+          {user?.email && (
+            <div className="px-2 text-xs text-muted-foreground truncate" title={user.email}>
+              {user.email}
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </Button>
+        </div>
       </aside>
       <main className="flex-1 min-w-0">
         <Outlet />
