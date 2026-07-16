@@ -59,10 +59,21 @@ function ReleasesPage() {
   const create = useServerFn(createRelease);
   const setCurrent = useServerFn(setCurrentRelease);
   const remove = useServerFn(deleteRelease);
+  const snapshot = useServerFn(getPortalSnapshot);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["mc-releases"],
     queryFn: () => list({ data: {} } as never) as Promise<Release[]>,
+  });
+
+  const { data: portal } = useQuery({
+    queryKey: ["mc-portal-snapshot"],
+    queryFn: () =>
+      snapshot({ data: {} } as never) as Promise<{
+        activeInstalls: number;
+        totalInstalls: number;
+        openTickets: number;
+      }>,
   });
 
   const createMut = useMutation({
