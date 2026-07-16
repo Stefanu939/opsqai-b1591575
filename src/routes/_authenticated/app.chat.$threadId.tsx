@@ -310,8 +310,8 @@ function ChatInner({
           })}
           {loading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-3">
-              <div className="h-8 w-8 rounded-md bg-primary/10 grid place-items-center shrink-0">
-                <LogoMark size={20} className="text-foreground" />
+              <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
+                <LogoMark size={18} className="text-gold" />
               </div>
               <div className="flex-1 pt-2">
                 <ThinkingDots label={T("searching")} />
@@ -321,35 +321,38 @@ function ChatInner({
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="border-t border-border bg-card">
-        <div className="max-w-3xl mx-auto p-3 md:p-4 flex gap-2 items-end">
-          <Textarea
-            ref={taRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={T("typeMessage")}
-            rows={1}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                onSubmit(e as unknown as React.FormEvent);
-              }
-            }}
-            className="resize-none min-h-[44px] max-h-40"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={loading || !input.trim()}
-            className="h-11 w-11 shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+      <form onSubmit={onSubmit} className="border-t border-border bg-background/80 backdrop-blur">
+        <div className="max-w-3xl mx-auto p-3 md:p-4">
+          <div className="flex gap-2 items-end rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
+            <Textarea
+              ref={taRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={T("typeMessage")}
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  onSubmit(e as unknown as React.FormEvent);
+                }
+              }}
+              className="resize-none min-h-[44px] max-h-40 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px]"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={loading || !input.trim()}
+              className="h-10 w-10 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </form>
     </div>
   );
 }
+
 
 function SourcesPanel({
   sources,
