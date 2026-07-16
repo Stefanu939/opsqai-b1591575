@@ -30,6 +30,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
@@ -38,6 +39,12 @@ import { Route as LegalImpressumRouteImport } from './routes/legal/impressum'
 import { Route as LegalDpaRouteImport } from './routes/legal/dpa'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as DocumentationTechnicalRouteImport } from './routes/documentation.technical'
+import { Route as DocumentationSecurityRouteImport } from './routes/documentation.security'
+import { Route as DocumentationProductRouteImport } from './routes/documentation.product'
+import { Route as DocumentationEngineeringRouteImport } from './routes/documentation.engineering'
+import { Route as DocumentationArchitectureRouteImport } from './routes/documentation.architecture'
+import { Route as DocumentationAdministratorGuideRouteImport } from './routes/documentation.administrator-guide'
 import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-chat'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
@@ -212,6 +219,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocumentationIndexRoute = DocumentationIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocumentationRoute,
+} as any)
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
   id: '/verify/$code',
   path: '/verify/$code',
@@ -252,6 +264,39 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocumentationTechnicalRoute = DocumentationTechnicalRouteImport.update({
+  id: '/technical',
+  path: '/technical',
+  getParentRoute: () => DocumentationRoute,
+} as any)
+const DocumentationSecurityRoute = DocumentationSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => DocumentationRoute,
+} as any)
+const DocumentationProductRoute = DocumentationProductRouteImport.update({
+  id: '/product',
+  path: '/product',
+  getParentRoute: () => DocumentationRoute,
+} as any)
+const DocumentationEngineeringRoute =
+  DocumentationEngineeringRouteImport.update({
+    id: '/engineering',
+    path: '/engineering',
+    getParentRoute: () => DocumentationRoute,
+  } as any)
+const DocumentationArchitectureRoute =
+  DocumentationArchitectureRouteImport.update({
+    id: '/architecture',
+    path: '/architecture',
+    getParentRoute: () => DocumentationRoute,
+  } as any)
+const DocumentationAdministratorGuideRoute =
+  DocumentationAdministratorGuideRouteImport.update({
+    id: '/administrator-guide',
+    path: '/administrator-guide',
+    getParentRoute: () => DocumentationRoute,
+  } as any)
 const ApiWorkspaceChatRoute = ApiWorkspaceChatRouteImport.update({
   id: '/api/workspace-chat',
   path: '/api/workspace-chat',
@@ -650,7 +695,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
-  '/documentation': typeof DocumentationRoute
+  '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/mcp': typeof McpRoute
@@ -675,6 +720,12 @@ export interface FileRoutesByFullPath {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
+  '/documentation/architecture': typeof DocumentationArchitectureRoute
+  '/documentation/engineering': typeof DocumentationEngineeringRoute
+  '/documentation/product': typeof DocumentationProductRoute
+  '/documentation/security': typeof DocumentationSecurityRoute
+  '/documentation/technical': typeof DocumentationTechnicalRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -683,6 +734,7 @@ export interface FileRoutesByFullPath {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/documentation/': typeof DocumentationIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -749,7 +801,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
-  '/documentation': typeof DocumentationRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/mcp': typeof McpRoute
@@ -771,6 +822,12 @@ export interface FileRoutesByTo {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
+  '/documentation/architecture': typeof DocumentationArchitectureRoute
+  '/documentation/engineering': typeof DocumentationEngineeringRoute
+  '/documentation/product': typeof DocumentationProductRoute
+  '/documentation/security': typeof DocumentationSecurityRoute
+  '/documentation/technical': typeof DocumentationTechnicalRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -779,6 +836,7 @@ export interface FileRoutesByTo {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/documentation': typeof DocumentationIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -845,7 +903,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/company': typeof CompanyRoute
   '/contact': typeof ContactRoute
-  '/documentation': typeof DocumentationRoute
+  '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/mcp': typeof McpRoute
@@ -870,6 +928,12 @@ export interface FileRoutesById {
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/workspace-chat': typeof ApiWorkspaceChatRoute
+  '/documentation/administrator-guide': typeof DocumentationAdministratorGuideRoute
+  '/documentation/architecture': typeof DocumentationArchitectureRoute
+  '/documentation/engineering': typeof DocumentationEngineeringRoute
+  '/documentation/product': typeof DocumentationProductRoute
+  '/documentation/security': typeof DocumentationSecurityRoute
+  '/documentation/technical': typeof DocumentationTechnicalRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/dpa': typeof LegalDpaRoute
@@ -878,6 +942,7 @@ export interface FileRoutesById {
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/documentation/': typeof DocumentationIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
@@ -971,6 +1036,12 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/documentation/administrator-guide'
+    | '/documentation/architecture'
+    | '/documentation/engineering'
+    | '/documentation/product'
+    | '/documentation/security'
+    | '/documentation/technical'
     | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -979,6 +1050,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
+    | '/documentation/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -1045,7 +1117,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/company'
     | '/contact'
-    | '/documentation'
     | '/first-run'
     | '/forgot-password'
     | '/mcp'
@@ -1067,6 +1138,12 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/documentation/administrator-guide'
+    | '/documentation/architecture'
+    | '/documentation/engineering'
+    | '/documentation/product'
+    | '/documentation/security'
+    | '/documentation/technical'
     | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -1075,6 +1152,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
+    | '/documentation'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -1165,6 +1243,12 @@ export interface FileRouteTypes {
     | '/api/internal-chat'
     | '/api/tts'
     | '/api/workspace-chat'
+    | '/documentation/administrator-guide'
+    | '/documentation/architecture'
+    | '/documentation/engineering'
+    | '/documentation/product'
+    | '/documentation/security'
+    | '/documentation/technical'
     | '/email/unsubscribe'
     | '/legal/cookies'
     | '/legal/dpa'
@@ -1173,6 +1257,7 @@ export interface FileRouteTypes {
     | '/legal/responsible-ai'
     | '/legal/terms'
     | '/verify/$code'
+    | '/documentation/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/app/audit'
@@ -1241,7 +1326,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CompanyRoute: typeof CompanyRoute
   ContactRoute: typeof ContactRoute
-  DocumentationRoute: typeof DocumentationRoute
+  DocumentationRoute: typeof DocumentationRouteWithChildren
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   McpRoute: typeof McpRoute
@@ -1429,6 +1514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/documentation/': {
+      id: '/documentation/'
+      path: '/'
+      fullPath: '/documentation/'
+      preLoaderRoute: typeof DocumentationIndexRouteImport
+      parentRoute: typeof DocumentationRoute
+    }
     '/verify/$code': {
       id: '/verify/$code'
       path: '/verify/$code'
@@ -1484,6 +1576,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/documentation/technical': {
+      id: '/documentation/technical'
+      path: '/technical'
+      fullPath: '/documentation/technical'
+      preLoaderRoute: typeof DocumentationTechnicalRouteImport
+      parentRoute: typeof DocumentationRoute
+    }
+    '/documentation/security': {
+      id: '/documentation/security'
+      path: '/security'
+      fullPath: '/documentation/security'
+      preLoaderRoute: typeof DocumentationSecurityRouteImport
+      parentRoute: typeof DocumentationRoute
+    }
+    '/documentation/product': {
+      id: '/documentation/product'
+      path: '/product'
+      fullPath: '/documentation/product'
+      preLoaderRoute: typeof DocumentationProductRouteImport
+      parentRoute: typeof DocumentationRoute
+    }
+    '/documentation/engineering': {
+      id: '/documentation/engineering'
+      path: '/engineering'
+      fullPath: '/documentation/engineering'
+      preLoaderRoute: typeof DocumentationEngineeringRouteImport
+      parentRoute: typeof DocumentationRoute
+    }
+    '/documentation/architecture': {
+      id: '/documentation/architecture'
+      path: '/architecture'
+      fullPath: '/documentation/architecture'
+      preLoaderRoute: typeof DocumentationArchitectureRouteImport
+      parentRoute: typeof DocumentationRoute
+    }
+    '/documentation/administrator-guide': {
+      id: '/documentation/administrator-guide'
+      path: '/administrator-guide'
+      fullPath: '/documentation/administrator-guide'
+      preLoaderRoute: typeof DocumentationAdministratorGuideRouteImport
+      parentRoute: typeof DocumentationRoute
     }
     '/api/workspace-chat': {
       id: '/api/workspace-chat'
@@ -2183,6 +2317,30 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
   LegalRouteRouteChildren,
 )
 
+interface DocumentationRouteChildren {
+  DocumentationAdministratorGuideRoute: typeof DocumentationAdministratorGuideRoute
+  DocumentationArchitectureRoute: typeof DocumentationArchitectureRoute
+  DocumentationEngineeringRoute: typeof DocumentationEngineeringRoute
+  DocumentationProductRoute: typeof DocumentationProductRoute
+  DocumentationSecurityRoute: typeof DocumentationSecurityRoute
+  DocumentationTechnicalRoute: typeof DocumentationTechnicalRoute
+  DocumentationIndexRoute: typeof DocumentationIndexRoute
+}
+
+const DocumentationRouteChildren: DocumentationRouteChildren = {
+  DocumentationAdministratorGuideRoute: DocumentationAdministratorGuideRoute,
+  DocumentationArchitectureRoute: DocumentationArchitectureRoute,
+  DocumentationEngineeringRoute: DocumentationEngineeringRoute,
+  DocumentationProductRoute: DocumentationProductRoute,
+  DocumentationSecurityRoute: DocumentationSecurityRoute,
+  DocumentationTechnicalRoute: DocumentationTechnicalRoute,
+  DocumentationIndexRoute: DocumentationIndexRoute,
+}
+
+const DocumentationRouteWithChildren = DocumentationRoute._addFileChildren(
+  DocumentationRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -2191,7 +2349,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CompanyRoute: CompanyRoute,
   ContactRoute: ContactRoute,
-  DocumentationRoute: DocumentationRoute,
+  DocumentationRoute: DocumentationRouteWithChildren,
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   McpRoute: McpRoute,
