@@ -174,10 +174,17 @@ export function ChatSidebar() {
                     return (
                       <div
                         key={t.id}
-                        className={`group flex items-center gap-1 rounded-md px-2 py-1.5 text-[13px] transition-colors ${
+                        className={`group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-[13px] transition-colors ${
                           isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent/60"
                         }`}
                       >
+                        {isActive && (
+                          <span
+                            aria-hidden
+                            className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-gold"
+                          />
+                        )}
+
                         {isEditing ? (
                           <>
                             <Input
