@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
 import { getMyPortalOverview } from "@/lib/portal.functions";
+import { listAnnouncementsPublic, signPortalStoragePath } from "@/lib/portal-admin.functions";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, Download, FileText, MessagesSquare, Inbox } from "lucide-react";
+import { Package, Download, FileText, MessagesSquare, Inbox, Newspaper, Pin, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/portal/")({
   component: PortalHome,
@@ -20,10 +22,43 @@ function fmt(d: string | null | undefined) {
 
 function PortalHome() {
   const fn = useServerFn(getMyPortalOverview);
+  const listNews = useServerFn(listAnnouncementsPublic);
+  const sign = useServerFn(signPortalStoragePath);
   const { data, isLoading } = useQuery({
     queryKey: ["portal-overview"],
     queryFn: () => fn({ data: {} } as never),
   });
+  const { data: news = [] } = useQuery({
+    queryKey: ["portal-announcements-public"],
+    queryFn: () => listNews({ data: {} } as never),
+  });
+  const topNews = news.slice(0, 3);
+  const [covers, setCovers] = useState<Record<string, string>>({});
+  useEffect(() => {
+    (async () => {
+      const out: Record<string, string> = {};
+      for (const r of topNews) {
+        if (r.cover_image_url?.startsWith("portal-news-images/")) {
+          try {
+            const { url } = await sign({
+              data: {
+                bucket: "portal-news-images",
+                path: r.cover_image_url.slice("portal-news-images/".length),
+                expiresIn: 3600,
+              },
+            });
+            out[r.id] = url;
+          } catch {
+            /* skip */
+          }
+        } else if (r.cover_image_url) {
+          out[r.id] = r.cover_image_url;
+        }
+      }
+      setCovers(out);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [news.length]);
 
   const installs = data?.installs ?? [];
   const active = installs.filter(
@@ -48,6 +83,59 @@ function PortalHome() {
         <StatCard label="Module licenses" value={modules} icon={FileText} />
         <StatCard label="Next maintenance renewal" value={fmt(nextMaint)} icon={Download} />
       </div>
+
+      {topNews.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <Newspaper className="h-4 w-4" />
+              What's new
+            </h2>
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/portal/news">
+                See all
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Link>
+            </Button>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {topNews.map((n) => (
+              <Link
+                key={n.id}
+                to="/portal/news/$slug"
+                params={{ slug: n.slug }}
+                className="block"
+              >
+                <Card className="overflow-hidden hover:bg-accent/40 transition-colors h-full">
+                  {covers[n.id] ? (
+                    <img src={covers[n.id]} alt="" className="w-full h-32 object-cover bg-muted" />
+                  ) : (
+                    <div className="w-full h-32 bg-muted flex items-center justify-center text-muted-foreground">
+                      <Newspaper className="h-6 w-6" />
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      {n.pinned && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          <Pin className="h-2.5 w-2.5 mr-0.5" />
+                          pinned
+                        </Badge>
+                      )}
+                      <span className="text-[11px] text-muted-foreground">
+                        {n.published_at ? new Date(n.published_at).toLocaleDateString() : ""}
+                      </span>
+                    </div>
+                    <div className="font-medium line-clamp-2">{n.title}</div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+
 
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>

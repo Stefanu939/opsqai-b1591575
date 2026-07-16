@@ -57,8 +57,10 @@ import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.
 import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
 import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
 import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
+import { Route as AuthenticatedPortalNewsRouteImport } from './routes/_authenticated/portal.news'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
 import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
+import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
 import { Route as AuthenticatedManagementSettingsRouteImport } from './routes/_authenticated/management.settings'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
@@ -80,6 +82,7 @@ import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as AuthenticatedPortalAdminIndexRouteImport } from './routes/_authenticated/portal.admin.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -89,6 +92,8 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1/knowledge'
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
+import { Route as AuthenticatedPortalNewsSlugRouteImport } from './routes/_authenticated/portal.news.$slug'
+import { Route as AuthenticatedPortalAdminDownloadsRouteImport } from './routes/_authenticated/portal.admin.downloads'
 import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAcademyTeacherRouteImport } from './routes/_authenticated/app.academy.teacher'
@@ -348,6 +353,11 @@ const AuthenticatedPortalReleaseNotesRoute =
     path: '/release-notes',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalNewsRoute = AuthenticatedPortalNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => AuthenticatedPortalRoute,
+} as any)
 const AuthenticatedPortalDownloadsRoute =
   AuthenticatedPortalDownloadsRouteImport.update({
     id: '/downloads',
@@ -358,6 +368,12 @@ const AuthenticatedPortalDocumentationRoute =
   AuthenticatedPortalDocumentationRouteImport.update({
     id: '/documentation',
     path: '/documentation',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
+const AuthenticatedPortalAdminRoute =
+  AuthenticatedPortalAdminRouteImport.update({
+    id: '/admin',
+    path: '/admin',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
 const AuthenticatedManagementSupportRoute =
@@ -479,6 +495,12 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPortalAdminIndexRoute =
+  AuthenticatedPortalAdminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPortalAdminRoute,
+  } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
     id: '/',
@@ -529,6 +551,18 @@ const ApiPublicV1FaqsRoute = ApiPublicV1FaqsRouteImport.update({
   path: '/api/public/v1/faqs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPortalNewsSlugRoute =
+  AuthenticatedPortalNewsSlugRouteImport.update({
+    id: '/$slug',
+    path: '/$slug',
+    getParentRoute: () => AuthenticatedPortalNewsRoute,
+  } as any)
+const AuthenticatedPortalAdminDownloadsRoute =
+  AuthenticatedPortalAdminDownloadsRouteImport.update({
+    id: '/downloads',
+    path: '/downloads',
+    getParentRoute: () => AuthenticatedPortalAdminRoute,
+  } as any)
 const AuthenticatedManagementCompaniesIdRoute =
   AuthenticatedManagementCompaniesIdRouteImport.update({
     id: '/$id',
@@ -663,8 +697,10 @@ export interface FileRoutesByFullPath {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
+  '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -681,6 +717,8 @@ export interface FileRoutesByFullPath {
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
+  '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -690,6 +728,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/portal/admin/': typeof AuthenticatedPortalAdminIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
@@ -754,6 +793,7 @@ export interface FileRoutesByTo {
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -770,6 +810,8 @@ export interface FileRoutesByTo {
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
+  '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -779,6 +821,7 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
+  '/portal/admin': typeof AuthenticatedPortalAdminIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
@@ -847,8 +890,10 @@ export interface FileRoutesById {
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
+  '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
+  '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -865,6 +910,8 @@ export interface FileRoutesById {
   '/_authenticated/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/_authenticated/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
+  '/_authenticated/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -874,6 +921,7 @@ export interface FileRoutesById {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/_authenticated/portal/admin/': typeof AuthenticatedPortalAdminIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
@@ -942,8 +990,10 @@ export interface FileRouteTypes {
     | '/management/releases'
     | '/management/settings'
     | '/management/support'
+    | '/portal/admin'
     | '/portal/documentation'
     | '/portal/downloads'
+    | '/portal/news'
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
@@ -960,6 +1010,8 @@ export interface FileRouteTypes {
     | '/app/academy/teacher'
     | '/app/chat/$threadId'
     | '/management/companies/$id'
+    | '/portal/admin/downloads'
+    | '/portal/news/$slug'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -969,6 +1021,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/app/academy/'
     | '/app/chat/'
+    | '/portal/admin/'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
     | '/api/public/v1/license/heartbeat'
@@ -1033,6 +1086,7 @@ export interface FileRouteTypes {
     | '/management/support'
     | '/portal/documentation'
     | '/portal/downloads'
+    | '/portal/news'
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
@@ -1049,6 +1103,8 @@ export interface FileRouteTypes {
     | '/app/academy/teacher'
     | '/app/chat/$threadId'
     | '/management/companies/$id'
+    | '/portal/admin/downloads'
+    | '/portal/news/$slug'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1058,6 +1114,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/app/academy'
     | '/app/chat'
+    | '/portal/admin'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
     | '/api/public/v1/license/heartbeat'
@@ -1125,8 +1182,10 @@ export interface FileRouteTypes {
     | '/_authenticated/management/releases'
     | '/_authenticated/management/settings'
     | '/_authenticated/management/support'
+    | '/_authenticated/portal/admin'
     | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
+    | '/_authenticated/portal/news'
     | '/_authenticated/portal/release-notes'
     | '/_authenticated/portal/subscription'
     | '/_authenticated/portal/support'
@@ -1143,6 +1202,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/academy/teacher'
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/management/companies/$id'
+    | '/_authenticated/portal/admin/downloads'
+    | '/_authenticated/portal/news/$slug'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1152,6 +1213,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
+    | '/_authenticated/portal/admin/'
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
     | '/api/public/v1/license/heartbeat'
@@ -1543,6 +1605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalReleaseNotesRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/news': {
+      id: '/_authenticated/portal/news'
+      path: '/news'
+      fullPath: '/portal/news'
+      preLoaderRoute: typeof AuthenticatedPortalNewsRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/downloads': {
       id: '/_authenticated/portal/downloads'
       path: '/downloads'
@@ -1555,6 +1624,13 @@ declare module '@tanstack/react-router' {
       path: '/documentation'
       fullPath: '/portal/documentation'
       preLoaderRoute: typeof AuthenticatedPortalDocumentationRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
+    '/_authenticated/portal/admin': {
+      id: '/_authenticated/portal/admin'
+      path: '/admin'
+      fullPath: '/portal/admin'
+      preLoaderRoute: typeof AuthenticatedPortalAdminRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
     '/_authenticated/management/support': {
@@ -1704,6 +1780,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/portal/admin/': {
+      id: '/_authenticated/portal/admin/'
+      path: '/'
+      fullPath: '/portal/admin/'
+      preLoaderRoute: typeof AuthenticatedPortalAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedPortalAdminRoute
+    }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
       path: '/'
@@ -1766,6 +1849,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/v1/faqs'
       preLoaderRoute: typeof ApiPublicV1FaqsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/portal/news/$slug': {
+      id: '/_authenticated/portal/news/$slug'
+      path: '/$slug'
+      fullPath: '/portal/news/$slug'
+      preLoaderRoute: typeof AuthenticatedPortalNewsSlugRouteImport
+      parentRoute: typeof AuthenticatedPortalNewsRoute
+    }
+    '/_authenticated/portal/admin/downloads': {
+      id: '/_authenticated/portal/admin/downloads'
+      path: '/downloads'
+      fullPath: '/portal/admin/downloads'
+      preLoaderRoute: typeof AuthenticatedPortalAdminDownloadsRouteImport
+      parentRoute: typeof AuthenticatedPortalAdminRoute
     }
     '/_authenticated/management/companies/$id': {
       id: '/_authenticated/management/companies/$id'
@@ -1971,9 +2068,42 @@ const AuthenticatedManagementRouteWithChildren =
     AuthenticatedManagementRouteChildren,
   )
 
+interface AuthenticatedPortalAdminRouteChildren {
+  AuthenticatedPortalAdminDownloadsRoute: typeof AuthenticatedPortalAdminDownloadsRoute
+  AuthenticatedPortalAdminIndexRoute: typeof AuthenticatedPortalAdminIndexRoute
+}
+
+const AuthenticatedPortalAdminRouteChildren: AuthenticatedPortalAdminRouteChildren =
+  {
+    AuthenticatedPortalAdminDownloadsRoute:
+      AuthenticatedPortalAdminDownloadsRoute,
+    AuthenticatedPortalAdminIndexRoute: AuthenticatedPortalAdminIndexRoute,
+  }
+
+const AuthenticatedPortalAdminRouteWithChildren =
+  AuthenticatedPortalAdminRoute._addFileChildren(
+    AuthenticatedPortalAdminRouteChildren,
+  )
+
+interface AuthenticatedPortalNewsRouteChildren {
+  AuthenticatedPortalNewsSlugRoute: typeof AuthenticatedPortalNewsSlugRoute
+}
+
+const AuthenticatedPortalNewsRouteChildren: AuthenticatedPortalNewsRouteChildren =
+  {
+    AuthenticatedPortalNewsSlugRoute: AuthenticatedPortalNewsSlugRoute,
+  }
+
+const AuthenticatedPortalNewsRouteWithChildren =
+  AuthenticatedPortalNewsRoute._addFileChildren(
+    AuthenticatedPortalNewsRouteChildren,
+  )
+
 interface AuthenticatedPortalRouteChildren {
+  AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRouteWithChildren
   AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
+  AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRouteWithChildren
   AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
   AuthenticatedPortalSubscriptionRoute: typeof AuthenticatedPortalSubscriptionRoute
   AuthenticatedPortalSupportRoute: typeof AuthenticatedPortalSupportRoute
@@ -1981,8 +2111,10 @@ interface AuthenticatedPortalRouteChildren {
 }
 
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
+  AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRouteWithChildren,
   AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
+  AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRouteWithChildren,
   AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
   AuthenticatedPortalSubscriptionRoute: AuthenticatedPortalSubscriptionRoute,
   AuthenticatedPortalSupportRoute: AuthenticatedPortalSupportRoute,

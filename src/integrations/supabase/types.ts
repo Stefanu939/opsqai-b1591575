@@ -2721,6 +2721,102 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_announcements: {
+        Row: {
+          author_id: string | null
+          body_md: string
+          cover_image_url: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          pinned: boolean
+          published_at: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body_md?: string
+          cover_image_url?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pinned?: boolean
+          published_at?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body_md?: string
+          cover_image_url?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pinned?: boolean
+          published_at?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      portal_download_modules: {
+        Row: {
+          author_id: string | null
+          category: string
+          checksum: string | null
+          created_at: string
+          description: string | null
+          file_size_bytes: number | null
+          file_url: string
+          icon_name: string | null
+          id: string
+          published_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string
+          checksum?: string | null
+          created_at?: string
+          description?: string | null
+          file_size_bytes?: number | null
+          file_url: string
+          icon_name?: string | null
+          id?: string
+          published_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string
+          checksum?: string | null
+          created_at?: string
+          description?: string | null
+          file_size_bytes?: number | null
+          file_url?: string
+          icon_name?: string | null
+          id?: string
+          published_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company_id: string
