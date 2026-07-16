@@ -741,3 +741,70 @@ function StatusBadge({ status }: { status: string }) {
     );
   return <Badge variant="outline">{status}</Badge>;
 }
+
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone = "default",
+  spin = false,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number | string;
+  hint: string;
+  tone?: "default" | "gold" | "warning" | "danger" | "info";
+  spin?: boolean;
+}) {
+  const toneClasses: Record<string, string> = {
+    default: "bg-primary/5 text-primary border-border",
+    gold: "bg-[var(--gold-soft)] text-gold border-[var(--gold-line)]",
+    warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
+    danger: "bg-destructive/10 text-destructive border-destructive/30",
+    info: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  };
+  return (
+    <Card className="p-4 flex items-start gap-3 transition-shadow hover:shadow-sm">
+      <div
+        className={`h-10 w-10 rounded-lg grid place-items-center border shrink-0 ${toneClasses[tone]}`}
+      >
+        <Icon className={`h-5 w-5 ${spin ? "animate-spin" : ""}`} />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[11px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+          {label}
+        </div>
+        <div className="font-display text-2xl font-semibold tabular-nums mt-0.5 text-foreground">
+          {value}
+        </div>
+        <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{hint}</div>
+      </div>
+    </Card>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all border ${
+        active
+          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+          : "bg-card text-muted-foreground border-border hover:border-gold/50 hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
