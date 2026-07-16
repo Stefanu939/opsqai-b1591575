@@ -249,6 +249,26 @@ export const revokeLicense = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ─── Delete (hard remove license and its module rows) ───────────────────
+
+export const deleteLicense = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ install_id: InstallIdSchema }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("licenses")
+      .delete()
+      .eq("install_id", data.install_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
+
 // ─── Signing public key (for installer bundling) ────────────────────────
 
 export const getLicensePublicKey = createServerFn({ method: "POST" })

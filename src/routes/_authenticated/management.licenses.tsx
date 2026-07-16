@@ -7,6 +7,7 @@ import {
   issueLicense,
   issueModuleLicense,
   revokeLicense,
+  deleteLicense,
 } from "@/lib/licenses.functions";
 import { PageHeader } from "@/components/ui/page-header";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -29,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { KeyRound, Plus, Search } from "lucide-react";
+import { KeyRound, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -64,6 +65,8 @@ function LicensesPage() {
   const issue = useServerFn(issueLicense);
   const issueModule = useServerFn(issueModuleLicense);
   const revoke = useServerFn(revokeLicense);
+  const remove = useServerFn(deleteLicense);
+
 
   const [q, setQ] = useState(installFilter ?? "");
   const [tierFilter, setTierFilter] = useState("all");
@@ -113,6 +116,17 @@ function LicensesPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const deleteMut = useMutation({
+    mutationFn: (install_id: string) => remove({ data: { install_id } }),
+    onSuccess: () => {
+      toast.success("License deleted");
+      qc.invalidateQueries({ queryKey: ["mc-licenses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
 
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -219,6 +233,22 @@ function LicensesPage() {
               Revoke
             </Button>
           )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            title="Delete license"
+            onClick={() => {
+              if (
+                confirm(
+                  `Delete license for ${l.company_name} (${l.install_id})? This removes the license and all its module entitlements. This cannot be undone.`,
+                )
+              )
+                deleteMut.mutate(l.install_id);
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
         </div>
       ),
     },
