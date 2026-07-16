@@ -286,12 +286,34 @@ function KnowledgePage() {
     }
   };
 
+  // Business metrics rail — every stat answers a concrete KB question.
+  const totalActive = docs.filter((d) => d.is_active).length;
+  const criticalCount = docs.filter((d) => d.is_critical && d.is_active).length;
+  const processingCount = docs.filter((d) => d.status === "processing").length;
+  const failedCount = docs.filter((d) => d.status === "failed").length;
+  const totalChunks = docs.reduce((a, d) => a + (d.chunk_count || 0), 0);
+
+  const visibleDocs = docs.filter((d) => {
+    if (categoryFilter !== "all" && d.category !== categoryFilter) return false;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      return (
+        d.title.toLowerCase().includes(q) ||
+        (d.doc_code || "").toLowerCase().includes(q) ||
+        (d.content_text || "").toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
   return (
-    <div className="flex-1 p-4 md:p-8 max-w-5xl w-full mx-auto">
-      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+    <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
+      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("knowledge")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("documentsDesc")}</p>
+          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
+            {t("knowledge")}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-xl">{t("documentsDesc")}</p>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
