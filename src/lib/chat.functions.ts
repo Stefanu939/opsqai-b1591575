@@ -110,7 +110,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
     if (peerIds.length > 0) {
       const { data: profs } = await context.supabase
         .from("profiles")
-        .select("id, full_name, first_name, last_name")
+        .select("id, full_name, first_name, last_name, avatar_url")
         .in("id", peerIds);
       // Emails come from contact search RPC on demand; for peer display we
       // fall back to the name only (email isn't stored on profiles).
@@ -119,6 +119,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
         full_name: string | null;
         first_name: string | null;
         last_name: string | null;
+        avatar_url: string | null;
       }>) {
         const name =
           p.full_name ||
@@ -127,7 +128,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
         peerProfiles.set(p.id, {
           full_name: name,
           email: "",
-          avatar_url: null,
+          avatar_url: p.avatar_url ?? null,
         });
       }
     }
