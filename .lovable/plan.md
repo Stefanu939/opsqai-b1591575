@@ -1,126 +1,157 @@
 
-# Chat lateral stil WhatsApp — plan
+# OPSQAI Enterprise Design System v3 — Redesign Plan (revised)
 
-## 1. Glider lateral (bula ascunsă)
+Locked decisions from your feedback:
+- **Fonts:** Space Grotesk (headings) + Inter (body)
+- **Gold:** `#C9A24C`
+- **Sidebar:** 240px compact, icon + label
+- **Execution rule:** phases run strictly in order. No phase starts before the previous one is fully complete and approved against the Definition of Done.
+- **Visual identity split:** Management Center is the *only* product allowed to use Noir & Gold. Customer Portal and Self-Hosted share the same enterprise design language (Deep Navy / Soft White / Gold accent), adapted for their audience.
 
-- Nou wrapper `SupportGlider` care înlocuiește FAB-ul rotund actual.
-- Pe margine dreaptă jos apare un **tab îngust vertical** (36×88 px), 70% ascuns în afara ecranului, cu iconiță chat + badge de mesaje necitite.
-- Hover / click → slide-in dinspre dreapta: panou 380×640 px pe desktop, full-screen pe mobil.
-- Închis prin buton × sau click în afara panoului. Se ține minte starea (deschis/închis) în `localStorage`.
-- Vizibil pe orice pagină autentificată (păstrăm montarea din `__root.tsx`).
+---
 
-## 2. Layout WhatsApp în panou
+## Design Principles (govern every phase)
 
-Două view-uri într-un singur panou:
+- Enterprise-first
+- Calm interface
+- Information over decoration
+- Premium but efficient
+- Every page solves one business task
+- Beauty never reduces productivity
+- Charts must always answer a business question — never decoration
+- Visual elements must provide context, not decoration — images reinforce the business purpose of the page
+- Every animation must have a purpose — never animate for the sake of animation
 
-**A. Listă conversații** (view principal la deschidere):
-- Header: „Chat" + buton „New" (creion) + input căutare.
-- Sub-tabs: `All` · `Team` (colegii tăi) · `OPSQAI` (ticketele existente cu suportul).
-- Fiecare rând: avatar (inițiale colorate), nume, ultimul mesaj (preview 1 linie), timp relativ (`12:34` sau `Yesterday`), badge necitite.
-- La click pe rând → intri în view-ul conversației.
+---
 
-**B. View conversație** (după selecție):
-- Header WhatsApp: back arrow, avatar, nume + status („online" / „last seen"), buton info.
-- Bule verzi (mine, aliniate dreapta, culoare `--primary`) și gri (celălalt, aliniate stânga).
-- Grupare mesaje consecutive de la același user, timestamp discret sub bulă.
-- „Ticks" simple: ✓ trimis, ✓✓ citit (bazat pe `read_at`).
-- Compose bar jos: attach (📎 → imagine sau fișier), input text auto-grow, emoji picker, buton send.
-- Auto-scroll la mesaj nou, indicator „typing…" opțional (later).
+## Phase −1 — UX Audit (no visual changes yet)
 
-## 3. Căutare cu recomandare
+Before redesigning anything, inventory what exists and produce an audit report:
+- Duplicate components (buttons, cards, dialogs, tables)
+- Unused / obsolete pages and routes
+- Inconsistencies (spacing, radius, shadow, colors)
+- Typography inconsistencies (font sizes, weights, line-heights in the wild)
+- Iconography inconsistencies (mixed icon libraries, sizes, weights)
+- Accessibility gaps (focus states, contrast, aria labels, keyboard nav)
+- Layout shift and overflow hotspots
 
-- Buton „New chat" → deschide un search modal / view.
-- Input text; la ≥ 2 caractere, apel debounced (300 ms) la server function `searchContacts({ q })`.
-- Sursă rezultate = **doar utilizatori din aceeași companie ca tine + staff OPSQAI (`platform_owner`/`platform_admin`)**; niciodată userii altor firme.
-- Match pe `full_name` (ilike `%q%`) sau `email` (ilike `%q%`).
-- Ordonare: colegi întâi, staff OPSQAI la coadă cu tag „OPSQAI Team".
-- Click pe un rezultat → găsește/creează conversația 1:1, deschide direct view-ul B.
+**Deliverable:** `.lovable/audit.md` with findings grouped by severity, plus a consolidation list ("keep / merge / delete"). No UI changes ship in this phase.
 
-## 4. Suport OPSQAI
+---
 
-- Sistemul existent (`support_conversations` / `support_messages`) rămâne intact — devine un „canal special" în listă, marcat cu badge „OPSQAI Support".
-- În view-ul conversației arată la fel ca WhatsApp; când răspunde staff, apare cu numele + tag OPSQAI.
+## Phase 0 — Foundations
 
-## 5. Atașamente (text + imagini + fișiere)
+Rebuild the design tokens and primitives every later phase depends on.
 
-- Bucket **privat** nou `chat-attachments` (max 25 MB / fișier), acces prin signed URL.
-- Path: `{conversation_id}/{message_id}/{filename}`.
-- Preview inline pentru imagini (thumbnail 240 px), card cu iconiță + nume + mărime pentru alte tipuri.
-- MIME acceptate: `image/*`, `application/pdf`, `application/zip`, `text/*`, docs Office.
+**Tokens (`src/styles.css`)**
+- Palette: Deep Navy primary `#0B1E3B`, Soft White `#FBFBFC`, Light Gray surfaces, OPSQAI Gold `#C9A24C`, Emerald success, Amber warning, Red danger. Muted chart palette (navy, slate, gold, emerald, clay).
+- No purple. No neon. Gradients confined to marketing hero only.
+- Typography: Space Grotesk (display) + Inter (body), tabular numerals, generous line-height, tight tracking on headings, large H1 (40–56px).
+- Radius scale 10 / 14 / 20, layered soft shadows, 8px spacing grid with 4px sub-grid.
+- Motion tokens: `--ease-out-expo`, 180 / 240 / 320ms.
+- Dark mode: charcoal navy background, warm off-white foreground, same gold accent.
 
-## 6. Model de date (nou)
+**Primitives**
+- `Card`, `Button`, `Table` (sticky header, hover, status pills, bulk bar, pagination), `StatCard`, `EmptyState` (illustration + copy + action), `SectionHeader`, `Breadcrumbs`, `PageShell`, chart wrappers on top of Recharts.
 
-```text
-direct_conversations
-  id, created_at, last_message_at, is_support (bool)
-  → dacă is_support = true, e ticket OPSQAI (folosim tabela existentă
-     support_conversations în paralel — nu-l dublăm)
+**App shell (self-hosted + portal)**
+- 240px sidebar, icon + label, grouped sections, thin gold left-bar active indicator.
+- Top bar: ⌘K global search, notifications, profile menu with avatar.
+- Page transitions via Framer Motion.
 
-direct_conversation_members
-  conversation_id, user_id, joined_at, last_read_at
-  UNIQUE (conversation_id, user_id)
-  → conversație 1:1 = exact 2 rânduri
+---
 
-direct_messages
-  id, conversation_id, sender_id, body (text), attachments (jsonb[]),
-  created_at, edited_at, deleted_at
+## Phase 1 — Profile pictures
 
-direct_message_reads (opțional pentru „✓✓")
-  message_id, user_id, read_at
-```
+Ships with Phase 0 so the new avatar in the top bar is real.
+- Storage bucket `avatars` (public read, authenticated write to `{user_id}/…`).
+- `profiles.avatar_url` (verify column exists; add if missing).
+- `AvatarUploader`: click / drag, square crop, ≤2MB, jpg/png/webp, live preview.
+- Wired into top-bar menu, `/settings/profile`, Team member cards (MC), Support chat, message bubbles.
+- Fallback: initials on soft navy tile.
 
-- **RLS**: doar userii din `direct_conversation_members` pot citi/scrie în conversație.
-- Funcție `find_or_create_direct_conversation(target_user_id)` (SECURITY DEFINER) care verifică că `target_user_id` e coleg sau staff OPSQAI înainte de creare.
-- Realtime activat pe `direct_messages` și `direct_conversation_members` prin `alter publication supabase_realtime add table …`.
+---
 
-## 7. Server functions (`src/lib/chat.functions.ts`)
+## Phase 2 — AI Chat (self-hosted hero surface)
 
-- `listMyConversations()` — join cu ultimul mesaj + necitite.
-- `searchContacts({ q })` — colegi + staff OPSQAI, doar câmpuri publice (id, full_name, email, avatar).
-- `startDirectConversation({ target_user_id })` — apelează funcția SECURITY DEFINER.
-- `listMessages({ conversation_id, before?, limit })` — paginare invers cronologică.
-- `sendMessage({ conversation_id, body?, attachments? })` — validează membership, inserează, atinge `last_message_at`.
-- `markConversationRead({ conversation_id })` — update `last_read_at`.
-- `signChatAttachment({ path })` — signed URL 1h pentru download.
-- `uploadChatAttachment({ conversation_id, file })` — upload via storage helper server-side.
+Large centered composer, elegant bubbles (assistant on surface, user in navy pill), streaming indicator, markdown + code, inline citation chips opening a Sources drawer with document previews, confidence indicator, suggested follow-ups, left rail with history / pinned / bookmarks / search. AI Elements primitives per `chat-ui-composition`.
 
-## 8. Client (`src/components/support/chat-glider.tsx`)
+---
 
-- Înlocuiește `support-widget.tsx` (păstrăm fișierul vechi doar cât timp migrăm apoi îl ștergem).
-- Hooks:
-  - `useMyConversations()` — query + subscribe la `direct_messages` insert pe conversațiile mele → invalidate.
-  - `useConversationMessages(id)` — query paginat + subscribe realtime pe `conversation_id = eq id`.
-  - `useContactSearch(q)` — `useQuery` debounced.
-- Componente:
-  - `<GliderTab />` — tab îngust cu badge.
-  - `<GliderPanel />` — container animat (Framer/CSS transforms).
-  - `<ConversationList />`, `<ConversationRow />`
-  - `<ConversationView />` cu `<MessageBubble />`, `<Composer />`, `<AttachmentPreview />`.
-  - `<ContactSearchSheet />` cu recomandări live.
-- Design tokens WhatsApp-like adaptați paletei aplicației (verde primary + gri surface — fără hex-uri hardcodate, folosim tokens existenți).
+## Phase 3 — Knowledge Base
 
-## 9. Aspecte de securitate
+Document previews (real PDF/DOCX thumbnails), folder cards, upload progress, processing animation, Recent + Recently-used rails, ingestion donut, knowledge-growth line chart — each chart tied to a specific business question.
 
-- **Nu expunem emailuri între firme**: `searchContacts` returnează doar `same company OR OPSQAI staff`.
-- Chiar dacă cineva ghicește email-ul unui outsider, `find_or_create_direct_conversation` respinge (SECURITY DEFINER cu check explicit).
-- Attachments: bucket privat, signed URL 1h, path derivat din `conversation_id` (RLS pe `storage.objects` verifică membership).
-- Rate limit: max 30 mesaje / minut / user (trigger simplu).
+---
 
-## 10. Ce nu facem în această iterație
+## Phase 4 — AI Audit
 
-- Grupuri > 2 persoane (doar 1:1 acum).
-- Voice notes / video call.
-- „Typing indicator" live (mai târziu, prin Presence).
-- Reacții emoji la mesaj (mai târziu).
-- Editare / ștergere mesaj după trimitere (mai târziu — coloanele există în schemă).
+Vertical timeline, risk pills, filters, latency line, token usage area, provider donut, per-source bars — every chart answers a concrete audit question (cost, latency, provider mix, retrieval coverage).
 
-## Ordinea implementării
+---
 
-1. Migrare DB + storage bucket + RLS + funcția SECURITY DEFINER + realtime publication.
-2. `chat.functions.ts` (toate server functions + Zod validators).
-3. `chat-glider.tsx` cu tab + panou + listă conversații (fără compose încă).
-4. `ConversationView` + compose text.
-5. Search contacte + start conversație.
-6. Atașamente (upload + signed URL + preview).
-7. Integrare cu ticketele OPSQAI existente ca sub-canal.
-8. Migrare montare: scoatem `SupportWidget` din `__root.tsx`, punem `SupportGlider`, ștergem fișierul vechi.
+## Phase 5 — Management Center (Noir & Gold, refined)
+
+Only MC uses Noir & Gold. Companies / Installations / Licenses / Releases / Support / Team all upgraded to the new premium tables, StatCards, empty states, detail drawers. Dashboard becomes a real Control Center: fleet map, license usage donut, revenue line, active-installs sparkline, support inbox summary, recent releases. Support chat keeps the WhatsApp/Teams layout, polished bubbles + avatars.
+
+---
+
+## Phase 6 — Customer Portal (enterprise identity, not Noir & Gold)
+
+Download cards, License card with progress ring, support timeline, docs cards, invoices table, release notes cards.
+
+---
+
+## Phase 7 — Marketing site polish
+
+Home / Product / Pricing / Security / Self-hosted / Contact — hero imagery (warehouse, factory, distribution center, knowledge graph), architecture diagram, elegant pricing table.
+
+---
+
+## Phase 8 — Empty states, illustrations, imagery pass
+
+Generated illustrations for every empty state (no docs, no conversations, no licenses, no team members). Warehouse / factory / knowledge-graph hero images generated once and reused.
+
+---
+
+## Definition of Done (every phase)
+
+A phase is complete only when all of the following pass:
+
+✓ Desktop looks polished
+✓ Tablet works
+✓ Mobile works where applicable
+✓ Dark mode verified
+✓ Keyboard navigation works
+✓ Loading states implemented
+✓ Empty states implemented
+✓ Error states implemented
+✓ Success states implemented
+✓ Accessibility checked
+✓ No layout shifts
+✓ No overflowing text
+✓ No placeholder icons
+✓ No lorem ipsum
+✓ Typecheck passes
+✓ Build passes
+
+---
+
+## Execution order
+
+Phase −1 → 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8. No skipping. No mixing new elements with old inside a shipped phase. Each phase is presented for approval against the Definition of Done before the next begins.
+
+On approval, I start with **Phase −1 (UX Audit)** — no visual changes, just the audit report.
+
+---
+
+## Technical notes
+
+- All colors via semantic tokens in `src/styles.css`; components never hardcode hex.
+- Tailwind v4 `@theme` + `@utility` conventions (already in place).
+- Framer Motion for purposeful motion only.
+- Recharts wrappers apply the muted palette; every chart carries a title stating the business question it answers.
+- Avatar upload via Lovable Cloud storage; RLS on `storage.objects` scoped to `auth.uid()`.
+- Every route gets proper `head()` title + description + og:image where a hero image exists.
+- Zero regressions to Team, Support, Releases, Licenses activate-module, or self-hosted client — behavior preserved, chrome upgraded.
+- MC visual identity (Noir & Gold) is scoped strictly under the `.mc-shell` wrapper; portal/self-hosted routes never load it.
