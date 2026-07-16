@@ -8,7 +8,7 @@ import {
   createSupportConversation,
   postSupportMessage,
 } from "@/lib/support.functions";
-import { PageHeader } from "@/components/ui/page-header";
+
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -92,71 +92,78 @@ function PortalSupport() {
 
   return (
     <div className="p-6 md:p-10 max-w-6xl">
-      <PageHeader
-        eyebrow="Customer portal"
-        title="Support"
-        description="Open a support ticket with the OPSQAI team. All conversations are private to your company."
-        actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-1" /> New ticket
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Open a support ticket</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input
-                    id="subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Short summary"
-                  />
-                </div>
-                <div>
-                  <Label>Priority</Label>
-                  <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="body">Message</Label>
-                  <Textarea
-                    id="body"
-                    rows={6}
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    placeholder="Describe the issue…"
-                  />
-                </div>
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
+            Customer portal
+          </div>
+          <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight">
+            Support
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+            Open a support ticket with the OPSQAI team. All conversations are private to your
+            company.
+          </p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-1" /> New ticket
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Open a support ticket</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="subject">Subject</Label>
+                <Input
+                  id="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Short summary"
+                />
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => create.mutate()}
-                  disabled={!subject.trim() || !body.trim() || create.isPending}
-                >
-                  Open ticket
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        }
-      />
+              <div>
+                <Label>Priority</Label>
+                <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="body">Message</Label>
+                <Textarea
+                  id="body"
+                  rows={6}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="Describe the issue…"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => create.mutate()}
+                disabled={!subject.trim() || !body.trim() || create.isPending}
+              >
+                Open ticket
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       <div className="grid md:grid-cols-[320px_1fr] gap-4">
         <Card className="p-0 overflow-hidden">
@@ -171,10 +178,16 @@ function PortalSupport() {
           ) : (
             <ul className="divide-y divide-border">
               {rows.map((r) => (
-                <li key={r.id}>
+                <li key={r.id} className="relative">
+                  {selected === r.id && (
+                    <span
+                      aria-hidden
+                      className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-[color:var(--gold)]"
+                    />
+                  )}
                   <button
                     onClick={() => setSelected(r.id)}
-                    className={`w-full text-left p-3 hover:bg-accent/40 transition-colors ${selected === r.id ? "bg-accent" : ""}`}
+                    className={`w-full text-left p-3 transition-colors ${selected === r.id ? "bg-[var(--gold-soft)]/30" : "hover:bg-accent/40"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-medium text-sm truncate">{r.subject}</div>

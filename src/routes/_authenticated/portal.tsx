@@ -63,12 +63,17 @@ function PortalLayout() {
   };
   return (
     <div className="flex-1 flex bg-background">
-      <aside className="w-60 border-r border-border bg-surface-1 p-4 flex flex-col shrink-0">
-        <div className="flex items-center gap-2 mb-4 px-2">
-          <LifeBuoy className="h-5 w-5" />
-          <span className="font-display font-semibold">Customer Portal</span>
+      <aside className="w-60 border-r border-border bg-surface-1 flex flex-col shrink-0">
+        <div className="flex items-center gap-2 px-5 h-16 border-b border-border">
+          <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center">
+            <LifeBuoy className="h-4 w-4 text-[color:var(--gold)]" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-display font-semibold text-sm leading-tight">Customer Portal</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">OPSQAI</div>
+          </div>
         </div>
-        <div className="space-y-1 flex-1">
+        <nav className="p-3 space-y-0.5 flex-1">
           {visible.map((item) => {
             const active = item.exact ? path === item.to : path.startsWith(item.to);
             const Icon = item.icon;
@@ -76,15 +81,21 @@ function PortalLayout() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${active ? "bg-accent text-accent-foreground font-medium" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"}`}
+                className={`relative flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${active ? "text-foreground font-medium" : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"}`}
               >
-                <Icon className="h-4 w-4" />
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-[color:var(--gold)]"
+                  />
+                )}
+                <Icon className={`h-4 w-4 ${active ? "text-[color:var(--gold)]" : ""}`} />
                 {item.label}
               </Link>
             );
           })}
-        </div>
-        <div className="pt-3 mt-3 border-t border-border space-y-2">
+        </nav>
+        <div className="p-3 border-t border-border space-y-2">
           {user?.email && (
             <div className="px-2 text-xs text-muted-foreground truncate" title={user.email}>
               {user.email}
