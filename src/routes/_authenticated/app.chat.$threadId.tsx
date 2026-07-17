@@ -113,8 +113,8 @@ function ChatThread() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      tokenRef.current = sess.session?.access_token ?? "";
+      const sess = await getBrowserAuthProvider().getSession();
+      tokenRef.current = sess?.accessToken ?? "";
       const { data } = await supabase
         .from("messages")
         .select("id, role, content, parts, sources, created_at")

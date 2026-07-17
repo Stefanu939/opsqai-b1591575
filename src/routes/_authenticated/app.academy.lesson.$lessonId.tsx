@@ -75,11 +75,11 @@ function LessonPage() {
       try {
         const [l, sess] = await Promise.all([
           get({ data: { id: lessonId } }) as Promise<any>,
-          supabase.auth.getSession(),
+          getBrowserAuthProvider().getSession(),
         ]);
         if (!alive) return;
         setLesson(l);
-        setToken(sess.data.session?.access_token ?? "");
+        setToken(sess?.accessToken ?? "");
       } catch (e: any) {
         if (!alive) return;
         setError(e?.message ?? "Could not load the lesson.");
