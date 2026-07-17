@@ -124,6 +124,37 @@ export const downloadMyActivationBundle = createServerFn({ method: "POST" })
     return buildActivationBundle(data.install_id);
   });
 
+const ModuleDownloadInput = z.object({
+  install_id: z.string().min(3).max(64),
+  module_key: z.string().min(1).max(64),
+});
+
+/**
+ * Ownership-checked per-module license bundle download. Verifies the caller
+ * owns the install AND that a non-revoked license exists for `module_key`.
+ */
+export const downloadMyModuleLicense = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => ModuleDownloadInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const email = (context.claims as { email?: string } | undefined)?.email ?? null;
+    if (!email) throw new Error("No email on session");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: owner } = await supabaseAdmin
+      .from("licenses")
+      .select("install_id")
+      .eq("install_id", data.install_id)
+      .eq("contact_email", email)
+      .eq("kind", "module")
+      .eq("module_key", data.module_key)
+      .eq("revoked", false)
+      .maybeSingle();
+    if (!owner) throw new Error("Not authorized for this module license");
+
+    const { buildModuleLicenseBundle } = await import("@/lib/license-activation-core.server");
+    return buildModuleLicenseBundle(data.install_id, data.module_key);
+  });
+
 /** Public list of implemented product documentation, from system_doc_catalog. */
 export const listPortalDocs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
