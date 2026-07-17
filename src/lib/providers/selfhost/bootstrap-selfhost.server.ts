@@ -21,6 +21,15 @@ import {
   setActiveEdition,
 } from "@/lib/platform";
 import { createPgUserRepository } from "./pg-user-repository.server";
+import { createPgProfileRepository } from "./pg-profile-repository.server";
+import { createPgRoleRepository } from "./pg-role-repository.server";
+import {
+  registerAdminProfileRepositoryFactory,
+  registerAdminRoleRepositoryFactory,
+  registerProfileRepositoryFactory,
+  registerRoleRepositoryFactory,
+} from "@/lib/providers/registry";
+
 import { createLocalAuthProvider } from "./local-auth.server";
 import { createNtfsStorageProvider } from "./ntfs-storage.server";
 import { createSmtpNotificationProvider } from "./smtp-notification.server";
