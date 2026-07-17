@@ -33,10 +33,10 @@ import { createSupabaseStorageProvider } from "./supabase-storage.server";
 // exist so `getRegisteredX()` never returns null in production.
 
 class CloudUserRepository implements IUserRepository {
-  async findById() {
+  async findById(): Promise<null> {
     throw new Error("cloud user repo: use Supabase client directly (MC-managed)");
   }
-  async findByEmail() {
+  async findByEmail(): Promise<null> {
     throw new Error("cloud user repo: use Supabase client directly (MC-managed)");
   }
   async createFirstAdmin(): Promise<never> {

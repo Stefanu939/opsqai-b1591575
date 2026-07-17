@@ -19,13 +19,15 @@ export function createSupabaseStorageProvider(): IStorageProvider {
 
     async put(input: StoragePutInput): Promise<StorageObject> {
       const client = await admin();
-      const body =
+      const body: Blob =
         input.body instanceof Uint8Array
-          ? Buffer.from(input.body)
-          : (input.body as unknown as ReadableStream);
+          ? new Blob([input.body as unknown as BlobPart], {
+              type: input.contentType ?? "application/octet-stream",
+            })
+          : (input.body as unknown as Blob);
       const { error } = await client.storage
         .from(input.bucket)
-        .upload(input.key, body as Blob, {
+        .upload(input.key, body, {
           upsert: true,
           contentType: input.contentType,
         });
