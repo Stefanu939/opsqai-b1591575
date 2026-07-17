@@ -12,10 +12,14 @@ import type {
   IBrowserAuthProvider,
   ILicensingProvider,
   INotificationProvider,
+  IProfileRepository,
+  IRoleRepository,
   ISecretsCipher,
   IStorageProvider,
   ITelemetrySink,
   IUserRepository,
+  ProfileRepositoryFactory,
+  RoleRepositoryFactory,
 } from "./interfaces";
 
 interface Registry {
@@ -28,7 +32,12 @@ interface Registry {
   cipher?: ISecretsCipher;
   backup?: IBackupService;
   telemetry?: ITelemetrySink;
+  profileFactory?: ProfileRepositoryFactory;
+  adminProfileFactory?: ProfileRepositoryFactory;
+  roleFactory?: RoleRepositoryFactory;
+  adminRoleFactory?: RoleRepositoryFactory;
 }
+
 
 const registry: Registry = {};
 
