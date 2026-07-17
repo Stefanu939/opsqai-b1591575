@@ -9,6 +9,7 @@ import { Capability } from "@/lib/platform";
 import type {
   IAuthProvider,
   IBackupService,
+  IBrowserAuthProvider,
   ILicensingProvider,
   INotificationProvider,
   ISecretsCipher,
@@ -19,6 +20,7 @@ import type {
 
 interface Registry {
   auth?: IAuthProvider;
+  browserAuth?: IBrowserAuthProvider;
   users?: IUserRepository;
   storage?: IStorageProvider;
   notifications?: INotificationProvider;
@@ -32,6 +34,9 @@ const registry: Registry = {};
 
 export function registerAuthProvider(p: IAuthProvider): void {
   registry.auth = p;
+}
+export function registerBrowserAuthProvider(p: IBrowserAuthProvider): void {
+  registry.browserAuth = p;
 }
 export function registerUserRepository(p: IUserRepository): void {
   registry.users = p;
@@ -67,6 +72,9 @@ function required<T>(value: T | undefined, capability: Capability): T {
 
 export const getAuthProvider = (): IAuthProvider =>
   required(registry.auth, Capability.Authentication);
+export const getBrowserAuthProvider = (): IBrowserAuthProvider =>
+  required(registry.browserAuth, Capability.Authentication);
+export const hasBrowserAuthProvider = (): boolean => Boolean(registry.browserAuth);
 export const getUserRepository = (): IUserRepository =>
   required(registry.users, Capability.Authentication);
 export const getStorageProvider = (): IStorageProvider =>
@@ -89,6 +97,7 @@ export const getTelemetrySink = (): ITelemetrySink =>
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
   registry.auth = undefined;
+  registry.browserAuth = undefined;
   registry.users = undefined;
   registry.storage = undefined;
   registry.notifications = undefined;

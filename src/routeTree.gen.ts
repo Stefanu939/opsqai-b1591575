@@ -68,6 +68,13 @@ import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metric
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicDoctorRouteImport } from './routes/api/public/doctor'
 import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
+import { Route as ApiAuthUpdatePasswordRouteImport } from './routes/api/auth/update-password'
+import { Route as ApiAuthSignoutRouteImport } from './routes/api/auth/signout'
+import { Route as ApiAuthSigninRouteImport } from './routes/api/auth/signin'
+import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
+import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
+import { Route as ApiAuthPasswordResetRequestRouteImport } from './routes/api/auth/password-reset-request'
+import { Route as ApiAuthPasswordResetConfirmRouteImport } from './routes/api/auth/password-reset-confirm'
 import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
 import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
 import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
@@ -423,6 +430,43 @@ const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
   path: '/api/public/contact-submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthUpdatePasswordRoute = ApiAuthUpdatePasswordRouteImport.update({
+  id: '/api/auth/update-password',
+  path: '/api/auth/update-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSignoutRoute = ApiAuthSignoutRouteImport.update({
+  id: '/api/auth/signout',
+  path: '/api/auth/signout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSigninRoute = ApiAuthSigninRouteImport.update({
+  id: '/api/auth/signin',
+  path: '/api/auth/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
+  id: '/api/auth/session',
+  path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRefreshRoute = ApiAuthRefreshRouteImport.update({
+  id: '/api/auth/refresh',
+  path: '/api/auth/refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthPasswordResetRequestRoute =
+  ApiAuthPasswordResetRequestRouteImport.update({
+    id: '/api/auth/password-reset-request',
+    path: '/api/auth/password-reset-request',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAuthPasswordResetConfirmRoute =
+  ApiAuthPasswordResetConfirmRouteImport.update({
+    id: '/api/auth/password-reset-confirm',
+    path: '/api/auth/password-reset-confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedPortalSupportRoute =
   AuthenticatedPortalSupportRouteImport.update({
     id: '/support',
@@ -809,6 +853,13 @@ export interface FileRoutesByFullPath {
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
+  '/api/auth/password-reset-confirm': typeof ApiAuthPasswordResetConfirmRoute
+  '/api/auth/password-reset-request': typeof ApiAuthPasswordResetRequestRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/signin': typeof ApiAuthSigninRoute
+  '/api/auth/signout': typeof ApiAuthSignoutRoute
+  '/api/auth/update-password': typeof ApiAuthUpdatePasswordRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/api/public/doctor': typeof ApiPublicDoctorRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -915,6 +966,13 @@ export interface FileRoutesByTo {
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
+  '/api/auth/password-reset-confirm': typeof ApiAuthPasswordResetConfirmRoute
+  '/api/auth/password-reset-request': typeof ApiAuthPasswordResetRequestRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/signin': typeof ApiAuthSigninRoute
+  '/api/auth/signout': typeof ApiAuthSignoutRoute
+  '/api/auth/update-password': typeof ApiAuthUpdatePasswordRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/api/public/doctor': typeof ApiPublicDoctorRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1030,6 +1088,13 @@ export interface FileRoutesById {
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
+  '/api/auth/password-reset-confirm': typeof ApiAuthPasswordResetConfirmRoute
+  '/api/auth/password-reset-request': typeof ApiAuthPasswordResetRequestRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/signin': typeof ApiAuthSigninRoute
+  '/api/auth/signout': typeof ApiAuthSignoutRoute
+  '/api/auth/update-password': typeof ApiAuthUpdatePasswordRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
   '/api/public/doctor': typeof ApiPublicDoctorRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1145,6 +1210,13 @@ export interface FileRouteTypes {
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
+    | '/api/auth/password-reset-confirm'
+    | '/api/auth/password-reset-request'
+    | '/api/auth/refresh'
+    | '/api/auth/session'
+    | '/api/auth/signin'
+    | '/api/auth/signout'
+    | '/api/auth/update-password'
     | '/api/public/contact-submit'
     | '/api/public/doctor'
     | '/api/public/health'
@@ -1251,6 +1323,13 @@ export interface FileRouteTypes {
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
+    | '/api/auth/password-reset-confirm'
+    | '/api/auth/password-reset-request'
+    | '/api/auth/refresh'
+    | '/api/auth/session'
+    | '/api/auth/signin'
+    | '/api/auth/signout'
+    | '/api/auth/update-password'
     | '/api/public/contact-submit'
     | '/api/public/doctor'
     | '/api/public/health'
@@ -1365,6 +1444,13 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/release-notes'
     | '/_authenticated/portal/subscription'
     | '/_authenticated/portal/support'
+    | '/api/auth/password-reset-confirm'
+    | '/api/auth/password-reset-request'
+    | '/api/auth/refresh'
+    | '/api/auth/session'
+    | '/api/auth/signin'
+    | '/api/auth/signout'
+    | '/api/auth/update-password'
     | '/api/public/contact-submit'
     | '/api/public/doctor'
     | '/api/public/health'
@@ -1435,6 +1521,13 @@ export interface RootRouteChildren {
   VerifyCodeRoute: typeof VerifyCodeRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiAuthPasswordResetConfirmRoute: typeof ApiAuthPasswordResetConfirmRoute
+  ApiAuthPasswordResetRequestRoute: typeof ApiAuthPasswordResetRequestRoute
+  ApiAuthRefreshRoute: typeof ApiAuthRefreshRoute
+  ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiAuthSigninRoute: typeof ApiAuthSigninRoute
+  ApiAuthSignoutRoute: typeof ApiAuthSignoutRoute
+  ApiAuthUpdatePasswordRoute: typeof ApiAuthUpdatePasswordRoute
   ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
   ApiPublicDoctorRoute: typeof ApiPublicDoctorRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
@@ -1865,6 +1958,55 @@ declare module '@tanstack/react-router' {
       path: '/api/public/contact-submit'
       fullPath: '/api/public/contact-submit'
       preLoaderRoute: typeof ApiPublicContactSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/update-password': {
+      id: '/api/auth/update-password'
+      path: '/api/auth/update-password'
+      fullPath: '/api/auth/update-password'
+      preLoaderRoute: typeof ApiAuthUpdatePasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/signout': {
+      id: '/api/auth/signout'
+      path: '/api/auth/signout'
+      fullPath: '/api/auth/signout'
+      preLoaderRoute: typeof ApiAuthSignoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/signin': {
+      id: '/api/auth/signin'
+      path: '/api/auth/signin'
+      fullPath: '/api/auth/signin'
+      preLoaderRoute: typeof ApiAuthSigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/session': {
+      id: '/api/auth/session'
+      path: '/api/auth/session'
+      fullPath: '/api/auth/session'
+      preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/refresh': {
+      id: '/api/auth/refresh'
+      path: '/api/auth/refresh'
+      fullPath: '/api/auth/refresh'
+      preLoaderRoute: typeof ApiAuthRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/password-reset-request': {
+      id: '/api/auth/password-reset-request'
+      path: '/api/auth/password-reset-request'
+      fullPath: '/api/auth/password-reset-request'
+      preLoaderRoute: typeof ApiAuthPasswordResetRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/password-reset-confirm': {
+      id: '/api/auth/password-reset-confirm'
+      path: '/api/auth/password-reset-confirm'
+      fullPath: '/api/auth/password-reset-confirm'
+      preLoaderRoute: typeof ApiAuthPasswordResetConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/portal/support': {
@@ -2525,6 +2667,13 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyCodeRoute: VerifyCodeRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiAuthPasswordResetConfirmRoute: ApiAuthPasswordResetConfirmRoute,
+  ApiAuthPasswordResetRequestRoute: ApiAuthPasswordResetRequestRoute,
+  ApiAuthRefreshRoute: ApiAuthRefreshRoute,
+  ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiAuthSigninRoute: ApiAuthSigninRoute,
+  ApiAuthSignoutRoute: ApiAuthSignoutRoute,
+  ApiAuthUpdatePasswordRoute: ApiAuthUpdatePasswordRoute,
   ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
   ApiPublicDoctorRoute: ApiPublicDoctorRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
