@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  clearMyAvatarPath,
+  getMyAvatarPath,
+  setMyAvatarPath,
+} from "@/lib/profile.functions";
 
 const SIGNED_TTL_SECONDS = 60 * 60; // 1h — refreshed on mount
 
