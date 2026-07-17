@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles } from "@/lib/authorization";
 import { SYSTEM_DOC_CATALOG, type SystemDocEntry } from "@/lib/system-docs/catalog";
 import { FEATURE_CATALOG } from "@/lib/feature-catalog";
@@ -27,7 +27,7 @@ function implementedEntries(): SystemDocEntry[] {
 }
 
 export const getInternalWorkspaceInfo = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requireInternalAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -57,7 +57,7 @@ export const getInternalWorkspaceInfo = createServerFn({ method: "GET" })
   });
 
 export const listSystemDocs = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requireInternalAccess(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -87,7 +87,7 @@ export const listSystemDocs = createServerFn({ method: "GET" })
   });
 
 export const getSystemDoc = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
     await requireInternalAccess(context);
@@ -109,7 +109,7 @@ export const getSystemDoc = createServerFn({ method: "POST" })
   });
 
 export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ force: z.boolean().optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);

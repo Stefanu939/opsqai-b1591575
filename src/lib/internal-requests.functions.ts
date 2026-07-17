@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission } from "@/lib/authorization";
 
@@ -33,7 +33,7 @@ async function isStaff(supabase: any, userId: string) {
 }
 
 export const listInternalRequests = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -92,7 +92,7 @@ export const listInternalRequests = createServerFn({ method: "POST" })
   });
 
 export const createInternalRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -157,7 +157,7 @@ export const createInternalRequest = createServerFn({ method: "POST" })
   });
 
 export const updateInternalRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -231,7 +231,7 @@ export const updateInternalRequest = createServerFn({ method: "POST" })
   });
 
 export const promoteRequestToFaq = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -278,7 +278,7 @@ export const promoteRequestToFaq = createServerFn({ method: "POST" })
   });
 
 export const promoteRequestToKb = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -355,7 +355,7 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
   });
 
 export const countOpenRequests = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const staff = await isStaff(context.supabase, context.userId);
     if (!staff.isStaff) return { count: 0 };

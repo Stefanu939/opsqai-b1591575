@@ -50,6 +50,17 @@ export interface IAuthProvider extends Provider {
   requestPasswordReset(email: string): Promise<void>;
   confirmPasswordReset(token: string, newPassword: string): Promise<void>;
   verifyAccessToken(token: string): Promise<AuthenticatedContext>;
+  /**
+   * Wave C bridge: return an opaque per-request data-access handle for
+   * server functions running under `requireAuth`. On Cloud this is a
+   * user-scoped Supabase client (`SupabaseClient<Database>`). On
+   * Self-Hosted this is a throwing proxy — every un-migrated
+   * `context.supabase.from(...)` call throws until the owning feature
+   * is moved to a proper repository in Wave C.2. Type is `unknown` so
+   * `interfaces.ts` stays free of Supabase imports; the `requireAuth`
+   * middleware casts to `SupabaseClient<Database>` for consumer types.
+   */
+  getDataContext(token: string): Promise<unknown>;
 }
 
 // --------------------------------------------------------------------

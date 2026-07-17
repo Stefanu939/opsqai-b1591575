@@ -10,7 +10,7 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import JSZip from "jszip";
 import { createHash } from "node:crypto";
@@ -291,7 +291,7 @@ async function buildPackage(
 /* ----------------------------------------------------------------- */
 
 export const runExport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { actor, companyId } = await resolveScope(
@@ -471,7 +471,7 @@ async function performDelete(supabase: any, kind: Kind, companyId: string) {
 }
 
 export const listExports = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("exports")
@@ -485,7 +485,7 @@ export const listExports = createServerFn({ method: "GET" })
   });
 
 export const getExportDownloadUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -507,7 +507,7 @@ export const getExportDownloadUrl = createServerFn({ method: "POST" })
 /* ----------------------------------------------------------------- */
 
 export const listGapCompanies = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase.rpc("gap_companies");
     if (error) throw new Error(error.message);
@@ -515,7 +515,7 @@ export const listGapCompanies = createServerFn({ method: "GET" })
   });
 
 export const listGapUsers = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     if (!data.company_id) return [];
@@ -527,7 +527,7 @@ export const listGapUsers = createServerFn({ method: "POST" })
   });
 
 export const listGapUserQuestions = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -555,7 +555,7 @@ export const listGapUserQuestions = createServerFn({ method: "POST" })
   });
 
 export const getKnowledgeHealth = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     if (!data.company_id) return null;
@@ -567,7 +567,7 @@ export const getKnowledgeHealth = createServerFn({ method: "POST" })
   });
 
 export const listAuditCompanies = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await enforceAudit(context, null);
     const { data, error } = await context.supabase.rpc("audit_companies");
@@ -576,7 +576,7 @@ export const listAuditCompanies = createServerFn({ method: "GET" })
   });
 
 export const listAuditUsers = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAudit(context, (data as any)?.company_id ?? null);
@@ -589,7 +589,7 @@ export const listAuditUsers = createServerFn({ method: "POST" })
   });
 
 export const listAuditEntries = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({

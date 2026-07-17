@@ -3,7 +3,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 
 const STAFF_ROLES = ["platform_owner", "platform_admin"] as const;
 
@@ -51,7 +51,7 @@ export type PortalAnnouncement = {
 };
 
 export const listAnnouncementsAdmin = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalAnnouncement[]> => {
     await assertStaff(context.supabase as never, context.userId);
     const { data, error } = await context.supabase
@@ -64,7 +64,7 @@ export const listAnnouncementsAdmin = createServerFn({ method: "GET" })
   });
 
 export const listAnnouncementsPublic = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalAnnouncement[]> => {
     const { data, error } = await context.supabase
       .from("portal_announcements")
@@ -77,7 +77,7 @@ export const listAnnouncementsPublic = createServerFn({ method: "GET" })
   });
 
 export const getAnnouncement = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { slug?: string; id?: string }) =>
     z.object({ slug: z.string().optional(), id: z.string().uuid().optional() }).parse(d),
   )
@@ -102,7 +102,7 @@ const AnnouncementInput = z.object({
 });
 
 export const upsertAnnouncement = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => AnnouncementInput.parse(d))
   .handler(async ({ data, context }): Promise<PortalAnnouncement> => {
     await assertStaff(context.supabase as never, context.userId);
@@ -144,7 +144,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
   });
 
 export const deleteAnnouncement = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase as never, context.userId);
@@ -175,7 +175,7 @@ export type PortalDownloadModule = {
 };
 
 export const listDownloadModulesAdmin = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalDownloadModule[]> => {
     await assertStaff(context.supabase as never, context.userId);
     const { data, error } = await context.supabase
@@ -187,7 +187,7 @@ export const listDownloadModulesAdmin = createServerFn({ method: "GET" })
   });
 
 export const listDownloadModulesPublic = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalDownloadModule[]> => {
     const { data, error } = await context.supabase
       .from("portal_download_modules")
@@ -213,7 +213,7 @@ const ModuleInput = z.object({
 });
 
 export const upsertDownloadModule = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ModuleInput.parse(d))
   .handler(async ({ data, context }): Promise<PortalDownloadModule> => {
     await assertStaff(context.supabase as never, context.userId);
@@ -254,7 +254,7 @@ export const upsertDownloadModule = createServerFn({ method: "POST" })
   });
 
 export const deleteDownloadModule = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertStaff(context.supabase as never, context.userId);
@@ -268,7 +268,7 @@ export const deleteDownloadModule = createServerFn({ method: "POST" })
 
 // Sign a storage path for download/preview (private buckets).
 export const signPortalStoragePath = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { bucket: string; path: string; expiresIn?: number }) =>
     z
       .object({

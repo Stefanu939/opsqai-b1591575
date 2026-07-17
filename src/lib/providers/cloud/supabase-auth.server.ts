@@ -60,5 +60,18 @@ export function createSupabaseAuthProvider(): IAuthProvider {
         claims: data.claims as Record<string, unknown>,
       };
     },
+    async getDataContext(token: string): Promise<unknown> {
+      // Wave C bridge: user-scoped Supabase client. Existing server-fn
+      // bodies still call `context.supabase.from(...)`. Wave C.2 will
+      // replace those with repository interfaces.
+      const { createClient } = await import("@supabase/supabase-js");
+      const url = process.env.SUPABASE_URL;
+      const anon = process.env.SUPABASE_PUBLISHABLE_KEY;
+      if (!url || !anon) throw new Error("Supabase env missing");
+      return createClient(url, anon, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+        auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+      });
+    },
   };
 }

@@ -8,7 +8,7 @@
  * All three server fns are auth-gated to the active company admins.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 
 /** Events any admin can opt into. Keep in sync with UI catalog. */
@@ -84,7 +84,7 @@ async function postWebhook(
 const ProviderSchema = z.enum(["slack", "teams"]);
 
 export const getNotificationConfig = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ provider: ProviderSchema }).parse(d))
   .handler(async ({ data, context }) => {
     // Get user's active company
@@ -120,7 +120,7 @@ const SaveInput = z.object({
 });
 
 export const saveNotificationConfig = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => SaveInput.parse(d))
   .handler(async ({ data, context }) => {
     // Constrain host to the provider's official webhook domain — prevents
@@ -160,7 +160,7 @@ export const saveNotificationConfig = createServerFn({ method: "POST" })
   });
 
 export const testNotification = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ provider: ProviderSchema }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase
@@ -206,7 +206,7 @@ export const testNotification = createServerFn({ method: "POST" })
   });
 
 export const disconnectNotification = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ provider: ProviderSchema }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase

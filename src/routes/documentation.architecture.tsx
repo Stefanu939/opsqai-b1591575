@@ -72,7 +72,7 @@ function Architecture() {
       <DocSection id="security-model" title="5. Security model">
         <ul className="list-disc pl-6 space-y-1">
           <li>Every app query runs as the authenticated user; RLS is the enforcement boundary.</li>
-          <li>Server functions requiring auth use the <code>requireSupabaseAuth</code> middleware; admin server functions verify roles via a security-definer <code>has_role()</code> before touching the admin client.</li>
+          <li>Server functions requiring auth use the <code>requireAuth</code> middleware; admin server functions verify roles via a security-definer <code>has_role()</code> before touching the admin client.</li>
           <li>Roles live in <code>public.user_roles</code> — never on <code>profiles</code>.</li>
           <li>Object storage uses per-tenant path prefixes plus signed URLs; direct bucket access is blocked at the proxy.</li>
         </ul>

@@ -7,7 +7,7 @@
 //     screen to activate/refresh their install.
 
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 
@@ -31,7 +31,7 @@ export interface ActivationBundle {
 }
 
 export const exportActivationBundle = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }): Promise<ActivationBundle> => {
     await requirePlatformAdmin(context);
@@ -40,7 +40,7 @@ export const exportActivationBundle = createServerFn({ method: "POST" })
   });
 
 export const exportRevocationList = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { buildAndSignCrl } = await import("@/lib/license-crl.server");
@@ -61,7 +61,7 @@ const ImportTokenInput = z.object({
 });
 
 export const importActivationToken = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ImportTokenInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -77,7 +77,7 @@ export const importActivationToken = createServerFn({ method: "POST" })
 // ─── Self-Hosted: dry-run verify (no DB write) ──────────────────────────
 
 export const previewActivationToken = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ImportTokenInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -107,7 +107,7 @@ const BundleInput = z.object({
 });
 
 export const importActivationBundle = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => BundleInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -153,7 +153,7 @@ export const importActivationBundle = createServerFn({ method: "POST" })
 // ─── Self-Hosted: import a standalone CRL ───────────────────────────────
 
 export const importRevocationListFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ token: z.string().min(20).max(65536) }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);

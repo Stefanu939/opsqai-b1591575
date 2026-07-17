@@ -11,7 +11,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 import { DR_SCENARIOS } from "@/lib/dr-scenarios";
@@ -19,7 +19,7 @@ import { DR_SCENARIOS } from "@/lib/dr-scenarios";
 // ─── Self-hosted: recovery state ────────────────────────────────────────
 
 export const getRecoveryState = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { data, error } = await context.supabase
@@ -51,7 +51,7 @@ const RegenBreakGlassInput = z.object({ replace_existing: z.boolean().default(fa
  * Returns the plaintext EXACTLY ONCE — the hash is what persists.
  */
 export const generateBreakGlass = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => RegenBreakGlassInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -86,7 +86,7 @@ const RedeemBreakGlassInput = z.object({
 });
 
 export const redeemBreakGlass = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => RedeemBreakGlassInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -132,7 +132,7 @@ const IssueBootstrapInput = z.object({
 });
 
 export const issueBootstrapToken = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => IssueBootstrapInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -163,7 +163,7 @@ export const issueBootstrapToken = createServerFn({ method: "POST" })
 const ListBootstrapInput = z.object({ install_id: z.string().min(3).max(64) });
 
 export const listBootstrapTokens = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ListBootstrapInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -185,7 +185,7 @@ const RedeemBootstrapInput = z.object({
 });
 
 export const redeemBootstrapToken = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => RedeemBootstrapInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -238,7 +238,7 @@ export const redeemBootstrapToken = createServerFn({ method: "POST" })
   });
 
 export const exitRecoveryMode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -257,7 +257,7 @@ export const exitRecoveryMode = createServerFn({ method: "POST" })
 // ─── DR scenarios list ──────────────────────────────────────────────────
 
 export const listDrScenarios = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     return DR_SCENARIOS;

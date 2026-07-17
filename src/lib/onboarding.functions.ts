@@ -3,7 +3,7 @@
 // A generation failure does NOT rollback the issued license.
 
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey } from "@/lib/license-modules";
@@ -41,7 +41,7 @@ export type OnboardResult = {
 };
 
 export const onboardCustomer = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => OnboardInput.parse(d))
   .handler(async ({ data, context }): Promise<OnboardResult> => {
     await requirePlatformAdmin(context);

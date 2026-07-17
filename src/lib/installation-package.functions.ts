@@ -8,7 +8,7 @@
 //   - updateTechnicalContactEmail:  edit tech contact (for notifications)
 
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 
@@ -42,7 +42,7 @@ async function resolveLatestStableInstallerVersion(
 }
 
 export const generateInstallationPackage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => GenerateInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -190,7 +190,7 @@ export const generateInstallationPackage = createServerFn({ method: "POST" })
 // ─── Re-mint download URL (admin) ───────────────────────────────────────
 
 export const getInstallationPackageDownloadUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -224,7 +224,7 @@ export const getInstallationPackageDownloadUrl = createServerFn({ method: "POST"
 // ─── Re-mint download URL (customer portal, own installs only) ──────────
 
 export const getMyInstallationPackageDownloadUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }) => {
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
@@ -269,7 +269,7 @@ export const getMyInstallationPackageDownloadUrl = createServerFn({ method: "POS
 // ─── Metadata read (admin) ──────────────────────────────────────────────
 
 export const getInstallationPackageStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -309,7 +309,7 @@ export const getInstallationPackageStatus = createServerFn({ method: "POST" })
 // ─── Pin installer version ──────────────────────────────────────────────
 
 export const setInstallerPin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -340,7 +340,7 @@ export const setInstallerPin = createServerFn({ method: "POST" })
 // ─── Update technical contact email ─────────────────────────────────────
 
 export const setTechnicalContactEmail = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({

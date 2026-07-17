@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 
 export const acknowledgeSop = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ document_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: doc } = await context.supabase
@@ -23,7 +23,7 @@ export const acknowledgeSop = createServerFn({ method: "POST" })
   });
 
 export const listPendingCriticalSops = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { data: docs } = await context.supabase
       .from("knowledge_documents")

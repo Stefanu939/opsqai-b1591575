@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import {
   companyFromStoragePath,
@@ -19,7 +19,7 @@ const ReplaceInput = z.object({
 });
 
 export const replaceDocumentVersion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ReplaceInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit", "sop.publish"]);
@@ -112,7 +112,7 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
   });
 
 export const rollbackToVersion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit", "sop.publish"]);
@@ -140,7 +140,7 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
   });
 
 export const setCriticalFlag = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ id: z.string().uuid(), is_critical: z.boolean() }).parse(d),
   )

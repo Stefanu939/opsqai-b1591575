@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
@@ -42,7 +42,7 @@ const RevokeInput = z.object({
 // ─── Read ───────────────────────────────────────────────────────────────
 
 export const listLicenses = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { data, error } = await context.supabase
@@ -90,7 +90,7 @@ export const listLicenses = createServerFn({ method: "POST" })
 // ─── Issue Installation License ─────────────────────────────────────────
 
 export const issueLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => IssueInstallInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -137,7 +137,7 @@ export const issueLicense = createServerFn({ method: "POST" })
 // ─── Issue Module License ───────────────────────────────────────────────
 
 export const issueModuleLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => IssueModuleInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -227,7 +227,7 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
 // ─── Revoke ─────────────────────────────────────────────────────────────
 
 export const revokeLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => RevokeInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -252,7 +252,7 @@ export const revokeLicense = createServerFn({ method: "POST" })
 // ─── Delete (hard remove license and its module rows) ───────────────────
 
 export const deleteLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ install_id: InstallIdSchema }).parse(d),
   )
@@ -272,7 +272,7 @@ export const deleteLicense = createServerFn({ method: "POST" })
 // ─── Signing public key (for installer bundling) ────────────────────────
 
 export const getLicensePublicKey = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { data } = await context.supabase
@@ -293,7 +293,7 @@ export const getLicensePublicKey = createServerFn({ method: "POST" })
 // ─── View a module token (re-copy from admin UI) ────────────────────────
 
 export const getModuleToken = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -330,7 +330,7 @@ const TransferOwnershipInput = z.object({
 });
 
 export const transferOwnership = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => TransferOwnershipInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
