@@ -98,12 +98,22 @@ function assertContains(parent, child, label) {
     }
     Copy-Item $migSrc (Join-Path $appStage 'migrations') -Recurse -Force
     # Extra guardrail: fail the build if any Supabase-shaped statement slipped in.
-    $bad = Select-String -Path (Join-Path $appStage 'migrations\*.sql') `
-      -Pattern 'auth\.uid|auth\.users|to authenticated|to anon|to service_role' `
-      -SimpleMatch:$false -List -ErrorAction SilentlyContinue
-    if ($bad) {
-      throw "Supabase-shaped SQL detected in Self-Hosted migrations: $($bad.Path -join ', ')"
+    # Line-based scan that ignores SQL comments (`--`) so documentation like
+    # "no auth.uid() here" in a comment never trips the check.
+    $badFiles = @()
+    foreach ($sql in Get-ChildItem (Join-Path $appStage 'migrations\*.sql')) {
+      $codeLines = Get-Content -LiteralPath $sql.FullName | ForEach-Object {
+        # Drop full-line comments and inline `-- ...` tails before matching.
+        ($_ -replace '--.*$', '')
+      }
+      if ($codeLines -match 'auth\.uid|auth\.users|to authenticated|to anon|to service_role') {
+        $badFiles += $sql.FullName
+      }
     }
+    if ($badFiles) {
+      throw "Supabase-shaped SQL detected in Self-Hosted migrations: $($badFiles -join ', ')"
+    }
+
 
     # Phase 9 — bundle scan. Refuse to package if any Cloud-only surface
     # (Supabase URLs, publishable/anon/service keys, `client.server` import,
