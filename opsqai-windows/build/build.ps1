@@ -262,6 +262,7 @@ Assert-Exists (Join-Path $payload 'services\bootstrap\init.js') 'bootstrap servi
 Assert-Exists (Join-Path $payload 'services\bootstrap\migrate.mjs') 'migration runner source'
 Assert-Exists (Join-Path $payload 'app\server\index.mjs') 'self-hosted app bundle'
 Assert-Exists (Join-Path $payload 'app\server\migrate.mjs') 'staged migration runner'
+Assert-Exists (Join-Path $payload 'app\server\admin-seed.mjs') 'staged admin seeder'
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
 if (-not $SkipPostgres) {
   Assert-Exists (Join-Path $payload 'pgsql\bin\postgres.exe') 'PostgreSQL runtime'
