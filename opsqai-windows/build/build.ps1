@@ -260,6 +260,7 @@ Assert-Exists (Join-Path $payload 'winsw\OpsqaiPlatform.exe') 'WinSW service wra
 Assert-Exists (Join-Path $payload 'wizard\OPSQAI-Wizard.exe') 'Electron setup wizard'
 Assert-Exists (Join-Path $payload 'services\bootstrap\init.js') 'bootstrap service'
 Assert-Exists (Join-Path $payload 'services\bootstrap\migrate.mjs') 'migration runner source'
+Assert-Exists (Join-Path $payload 'services\updater\apply.js') 'update apply orchestrator'
 Assert-Exists (Join-Path $payload 'app\server\index.mjs') 'self-hosted app bundle'
 Assert-Exists (Join-Path $payload 'app\server\migrate.mjs') 'staged migration runner'
 Assert-Exists (Join-Path $payload 'app\server\admin-seed.mjs') 'staged admin seeder'
