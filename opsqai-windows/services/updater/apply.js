@@ -178,11 +178,17 @@ function snapshot(stamp) {
   const events = [];
   const dir = programData("backups", stamp);
   fs.mkdirSync(dir, { recursive: true });
-  events.push(log("snapshot", `writing to ${dir}`));
+  events.push(log("snapshot", `writing pre-update snapshot`));
   const opsqaiCmd = programFiles("service-manager", "opsqai.cmd");
   if (fs.existsSync(opsqaiCmd)) {
-    const r = spawnSync(opsqaiCmd, ["backup", dir], { stdio: "inherit" });
-    if ((r.status ?? 1) !== 0) throw new Error("opsqai backup failed");
+    // Phase 6: tagged snapshot recorded in platform_snapshots so the
+    // rollback path can `opsqai backup restore <id>` deterministically.
+    const r = spawnSync(
+      opsqaiCmd,
+      ["backup", "create", "--kind", "pre-update", "--tag", `pre-update-${stamp}`],
+      { stdio: "inherit" },
+    );
+    if ((r.status ?? 1) !== 0) throw new Error("opsqai backup create failed");
   } else {
     events.push(log("snapshot", "opsqai.cmd not present — skipping (dev environment)"));
   }

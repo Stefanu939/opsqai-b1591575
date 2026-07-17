@@ -4,9 +4,12 @@
 //   opsqai start | stop | restart [service]
 //   opsqai logs <service> [--tail 200]
 //   opsqai health
-//   opsqai update check
-//   opsqai update apply         # runs the staged installer, exits current node
-//   opsqai backup <path>        # pg_dump + storage copy
+//   opsqai update check | apply | history
+//   opsqai backup create [--tag T] [--kind K] | list | prune [days]
+//   opsqai backup verify <id> | restore <id> | schedule | unschedule
+//   opsqai backup <folder>                              (legacy ad-hoc dump)
+//   opsqai telemetry status | enable | disable | full
+//   opsqai metrics
 //   opsqai config get|set <key> [value]
 //
 // Runs elevated (checks IsUserAnAdmin via `net session`). Everything the
@@ -168,8 +171,116 @@ const cmds = {
     die(`unknown update subcommand: ${sub}`);
   },
 
-  backup(dest) {
-    if (!dest) die("usage: opsqai backup <folder>");
+  backup(sub, ...rest) {
+    // Legacy: `opsqai backup <folder>` still supported so pre-Phase-6
+    // callers (external scripts, older docs) keep working.
+    if (sub && sub !== "create" && sub !== "list" && sub !== "prune" &&
+        sub !== "verify" && sub !== "restore" && sub !== "schedule" &&
+        sub !== "unschedule") {
+      return cmds._backupLegacy(sub);
+    }
+    sub = sub || "list";
+
+    if (sub === "list") {
+      const script = path.resolve(__dirname, "..", "..", "services", "backup", "list.js");
+      const staged = programFiles("services", "backup", "list.js");
+      const s = fs.existsSync(staged) ? staged : script;
+      if (!fs.existsSync(s)) die("backup list script missing");
+      const r = spawnSync(process.execPath, [s], { stdio: "inherit" });
+      process.exit(r.status ?? 1);
+    }
+    if (sub === "create") {
+      if (!isAdmin()) die("backup create requires administrator.");
+      // Parse --tag / --kind from rest.
+      const args = { tag: null, kind: "manual" };
+      for (let i = 0; i < rest.length; i++) {
+        if (rest[i] === "--tag") args.tag = rest[++i];
+        else if (rest[i] === "--kind") args.kind = rest[++i];
+      }
+      const script = path.resolve(__dirname, "..", "..", "services", "backup", "create.js");
+      const staged = programFiles("services", "backup", "create.js");
+      const s = fs.existsSync(staged) ? staged : script;
+      if (!fs.existsSync(s)) die("backup create script missing");
+      const r = spawnSync(process.execPath, [s, args.kind, args.tag || ""], {
+        stdio: "inherit",
+      });
+      process.exit(r.status ?? 1);
+    }
+    if (sub === "prune") {
+      if (!isAdmin()) die("backup prune requires administrator.");
+      const days = Number(rest[0] || 14);
+      const script = path.resolve(__dirname, "..", "..", "services", "backup", "prune.js");
+      const staged = programFiles("services", "backup", "prune.js");
+      const s = fs.existsSync(staged) ? staged : script;
+      if (!fs.existsSync(s)) die("backup prune script missing");
+      const r = spawnSync(process.execPath, [s, String(days)], { stdio: "inherit" });
+      process.exit(r.status ?? 1);
+    }
+    if (sub === "verify") {
+      const id = rest[0];
+      if (!id) die("usage: opsqai backup verify <snapshot-id>");
+      const script = path.resolve(__dirname, "..", "..", "services", "backup", "verify.js");
+      const staged = programFiles("services", "backup", "verify.js");
+      const s = fs.existsSync(staged) ? staged : script;
+      const r = spawnSync(process.execPath, [s, id], { stdio: "inherit" });
+      process.exit(r.status ?? 1);
+    }
+    if (sub === "restore") {
+      const id = rest[0];
+      if (!id) die("usage: opsqai backup restore <snapshot-id>");
+      if (!isAdmin()) die("backup restore requires administrator.");
+      const script = path.resolve(__dirname, "..", "..", "services", "backup", "restore.js");
+      const staged = programFiles("services", "backup", "restore.js");
+      const s = fs.existsSync(staged) ? staged : script;
+      if (!fs.existsSync(s)) die("backup restore script missing");
+      const r = spawnSync(process.execPath, [s, id], { stdio: "inherit" });
+      process.exit(r.status ?? 1);
+    }
+    if (sub === "schedule") {
+      if (!isAdmin()) die("backup schedule requires administrator.");
+      // Register a daily 02:15 Task Scheduler entry that runs the
+      // bundled scheduled.js. Idempotent — /F overwrites.
+      const scheduled =
+        programFiles("services", "backup", "scheduled.js") ||
+        path.resolve(__dirname, "..", "..", "services", "backup", "scheduled.js");
+      const node = process.execPath;
+      const cmdLine = `"${node}" "${scheduled}"`;
+      const r = spawnSync(
+        "schtasks.exe",
+        [
+          "/Create",
+          "/F",
+          "/SC",
+          "DAILY",
+          "/ST",
+          "02:15",
+          "/RL",
+          "HIGHEST",
+          "/RU",
+          "SYSTEM",
+          "/TN",
+          "OPSQAI\\DailyBackup",
+          "/TR",
+          cmdLine,
+        ],
+        { stdio: "inherit" },
+      );
+      process.exit(r.status ?? 1);
+    }
+    if (sub === "unschedule") {
+      if (!isAdmin()) die("backup unschedule requires administrator.");
+      const r = spawnSync(
+        "schtasks.exe",
+        ["/Delete", "/F", "/TN", "OPSQAI\\DailyBackup"],
+        { stdio: "inherit" },
+      );
+      process.exit(r.status ?? 1);
+    }
+    die(`unknown backup subcommand: ${sub}`);
+  },
+
+  // Legacy `opsqai backup <folder>` — ad-hoc dump into an operator dir.
+  _backupLegacy(dest) {
     if (!isAdmin()) die("backup requires administrator.");
     fs.mkdirSync(dest, { recursive: true });
     const cfg = loadConfig();
@@ -189,19 +300,8 @@ const cmds = {
       const pgDump = programFiles("pgsql", "bin", "pg_dump.exe");
       execFileSync(
         pgDump,
-        [
-          "-h",
-          ext.host,
-          "-p",
-          String(ext.port),
-          "-U",
-          ext.username,
-          "-F",
-          "c",
-          "-f",
-          dumpFile,
-          ext.database,
-        ],
+        ["-h", ext.host, "-p", String(ext.port), "-U", ext.username, "-F", "c",
+         "-f", dumpFile, ext.database],
         { stdio: "inherit", env: { ...process.env, PGPASSWORD: ext.password } },
       );
     }
@@ -216,6 +316,53 @@ const cmds = {
       console.log(`storage -> ${storageDest}`);
     }
     console.log("backup complete");
+  },
+
+  telemetry(sub) {
+    const cfg = loadConfig();
+    cfg.telemetry = cfg.telemetry || { level: "anonymous" };
+    if (!sub || sub === "status") {
+      console.log(`telemetry level: ${cfg.telemetry.level}`);
+      console.log(`log dir:         ${programData("logs", "telemetry")}`);
+      return;
+    }
+    if (sub === "enable" || sub === "anonymous") {
+      if (!isAdmin()) die("telemetry change requires administrator.");
+      cfg.telemetry.level = "anonymous";
+      saveConfig(cfg);
+      return console.log("telemetry: anonymous (restart OpsqaiPlatform to apply)");
+    }
+    if (sub === "full") {
+      if (!isAdmin()) die("telemetry change requires administrator.");
+      cfg.telemetry.level = "full";
+      saveConfig(cfg);
+      return console.log("telemetry: full (restart OpsqaiPlatform to apply)");
+    }
+    if (sub === "disable") {
+      if (!isAdmin()) die("telemetry change requires administrator.");
+      cfg.telemetry.level = "disabled";
+      saveConfig(cfg);
+      return console.log("telemetry: disabled (restart OpsqaiPlatform to apply)");
+    }
+    die(`unknown telemetry subcommand: ${sub}`);
+  },
+
+  async metrics() {
+    const r = await new Promise((resolve) => {
+      https
+        .get(
+          "https://localhost/api/public/metrics",
+          { rejectUnauthorized: false, timeout: 5000 },
+          (res) => {
+            let body = "";
+            res.on("data", (c) => (body += c));
+            res.on("end", () => resolve({ status: res.statusCode, body }));
+          },
+        )
+        .on("error", (e) => resolve({ status: 0, error: e.message }));
+    });
+    if (!r.status) die(`metrics unreachable: ${r.error}`);
+    process.stdout.write(r.body);
   },
 
   config(op, key, ...rest) {
@@ -247,14 +394,17 @@ const cmds = {
 };
 
 const [, , cmd, ...args] = process.argv;
-if (!cmd || !cmds[cmd]) {
+if (!cmd || !cmds[cmd] || cmd.startsWith("_")) {
   console.log("OPSQAI Service Manager");
   console.log("  opsqai status");
   console.log("  opsqai start|stop|restart [service]");
   console.log("  opsqai logs <service> [--tail N]");
   console.log("  opsqai health");
   console.log("  opsqai update check|apply|history");
-  console.log("  opsqai backup <folder>");
+  console.log("  opsqai backup create|list|prune|verify|restore|schedule|unschedule");
+  console.log("  opsqai backup <folder>                       (legacy)");
+  console.log("  opsqai telemetry status|enable|disable|full");
+  console.log("  opsqai metrics");
   console.log("  opsqai config get|set <dotted.key> [value]");
   process.exit(cmd ? 1 : 0);
 }

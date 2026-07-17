@@ -1,43 +1,71 @@
 // Windows-native IBackupService for OPSQAI Self-Hosted.
 //
-// Runs `pg_dump.exe` against the embedded (or external) PostgreSQL,
-// pipes the output into a compressed archive under
-// %ProgramData%\OPSQAI\backups\, and records each snapshot in the
-// `platform_snapshots` table for the installer's Backup / Restore UI.
-//
-// Snapshots ALSO include the storage/ directory (NTFS) — pg_dump is not
-// enough on its own because file bytes live outside Postgres.
+// Phase 6 responsibilities:
+//   - snapshot()          pg_dump + storage tree -> single .tar.gz,
+//                         SHA-256 the archive, insert a row with
+//                         optional { tag, kind }.
+//   - list()              return every snapshot, newest first.
+//   - prune(days)         drop rows + files older than N days,
+//                         except those marked kind='pre-update'
+//                         (those are pruned by the updater's own
+//                         retention logic in `services/updater/apply.js`).
+//   - restore(id)         surface the archive path — the actual
+//                         restore is orchestrated by
+//                         `services/backup/restore.js` under a
+//                         stopped OpsqaiPlatform. Doing it in-process
+//                         would DROP-and-CREATE the database we're
+//                         currently connected to.
+//   - verifyIntegrity(id) recompute SHA-256; update verified_at on match.
 
 import { spawn } from "node:child_process";
-import { promises as fs, createWriteStream } from "node:fs";
+import { promises as fs, createReadStream } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import type { Pool } from "pg";
 
-import type { BackupSnapshot, IBackupService } from "@/lib/providers/interfaces";
+import type {
+  BackupSnapshot,
+  IBackupService,
+  SnapshotOptions,
+} from "@/lib/providers/interfaces";
 
 export interface WindowsBackupDeps {
   pool: Pool;
-  /** Path to `pg_dump.exe`. Installer discovers this from the bundled PG. */
   pgDumpPath: string;
-  /** Fully-qualified DSN passed to pg_dump (no need to escape). */
   databaseUrl: string;
-  /** Storage base dir (mirrors NtfsStorageDeps.baseDir). */
   storageBaseDir: string;
-  /** Where snapshots are written, default `%ProgramData%\\OPSQAI\\backups`. */
   backupDir: string;
-  /** Path to a working tar executable — Windows 10+ ships `tar.exe`. */
   tarPath?: string;
 }
 
-async function runProcess(exe: string, args: string[], env?: NodeJS.ProcessEnv): Promise<void> {
+async function sha256File(filePath: string): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
+    const hash = createHash("sha256");
+    const stream = createReadStream(filePath);
+    stream.on("data", (c) => hash.update(c));
+    stream.on("error", reject);
+    stream.on("end", () => resolve(hash.digest("hex")));
+  });
+}
+
+async function runProcess(
+  exe: string,
+  args: string[],
+  env?: NodeJS.ProcessEnv,
+): Promise<void> {
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(exe, args, { env: { ...process.env, ...env }, windowsHide: true });
+    const child = spawn(exe, args, {
+      env: { ...process.env, ...env },
+      windowsHide: true,
+    });
     const errChunks: Buffer[] = [];
     child.stderr.on("data", (c: Buffer) => errChunks.push(c));
     child.on("error", reject);
     child.on("close", (code) => {
       if (code !== 0) {
-        reject(new Error(`${exe} exit ${code}: ${Buffer.concat(errChunks).toString()}`));
+        reject(
+          new Error(`${exe} exit ${code}: ${Buffer.concat(errChunks).toString()}`),
+        );
       } else {
         resolve();
       }
@@ -45,46 +73,57 @@ async function runProcess(exe: string, args: string[], env?: NodeJS.ProcessEnv):
   });
 }
 
+function rowToSnapshot(r: Record<string, unknown>): BackupSnapshot {
+  return {
+    id: r.id as string,
+    createdAt: (r.created_at as Date).toISOString(),
+    path: r.path as string,
+    sizeBytes: Number(r.size_bytes),
+    sha256: (r.sha256 as string | null) ?? undefined,
+    tag: (r.tag as string | null) ?? undefined,
+    kind: (r.kind as string | null) ?? undefined,
+    verifiedAt: r.verified_at ? (r.verified_at as Date).toISOString() : undefined,
+  };
+}
+
 export function createWindowsBackupService(deps: WindowsBackupDeps): IBackupService {
   const tar = deps.tarPath ?? "tar.exe";
 
   async function ensureTables(): Promise<void> {
+    // Idempotent — mirrors migration 0005 for dev/test environments that
+    // haven't run migrations yet.
     await deps.pool.query(`
       CREATE TABLE IF NOT EXISTS public.platform_snapshots (
         id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
         path         TEXT NOT NULL,
         size_bytes   BIGINT NOT NULL,
-        detail       JSONB NOT NULL DEFAULT '{}'::JSONB
+        detail       JSONB NOT NULL DEFAULT '{}'::JSONB,
+        sha256       TEXT,
+        verified_at  TIMESTAMPTZ,
+        tag          TEXT,
+        kind         TEXT NOT NULL DEFAULT 'manual'
       )
     `);
   }
 
   return {
-    async snapshot(): Promise<BackupSnapshot> {
+    async snapshot(options?: SnapshotOptions): Promise<BackupSnapshot> {
       await ensureTables();
       await fs.mkdir(deps.backupDir, { recursive: true });
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const dumpPath = path.resolve(deps.backupDir, `db-${stamp}.dump`);
       const archivePath = path.resolve(deps.backupDir, `opsqai-${stamp}.tar.gz`);
 
-      // 1. pg_dump → custom format (compact, restore-friendly).
-      await new Promise<void>((resolve, reject) => {
-        const child = spawn(
-          deps.pgDumpPath,
-          ["--format=custom", "--file", dumpPath, deps.databaseUrl],
-          { windowsHide: true },
-        );
-        const err: Buffer[] = [];
-        child.stderr.on("data", (c) => err.push(c));
-        child.on("error", reject);
-        child.on("close", (code) => {
-          if (code !== 0) reject(new Error(`pg_dump exit ${code}: ${Buffer.concat(err)}`));
-          else resolve();
-        });
-      });
+      // 1. pg_dump → custom format.
+      await runProcess(deps.pgDumpPath, [
+        "--format=custom",
+        "--file",
+        dumpPath,
+        deps.databaseUrl,
+      ]);
 
-      // 2. Bundle db dump + storage tree into one .tar.gz.
+      // 2. Bundle dump + storage tree.
       await runProcess(tar, [
         "-czf",
         archivePath,
@@ -95,23 +134,25 @@ export function createWindowsBackupService(deps: WindowsBackupDeps): IBackupServ
         path.dirname(deps.storageBaseDir),
         path.basename(deps.storageBaseDir),
       ]);
-
-      // 3. Drop the intermediate dump — the archive contains it.
       await fs.rm(dumpPath, { force: true });
 
       const st = await fs.stat(archivePath);
+      const digest = await sha256File(archivePath);
+
       const { rows } = await deps.pool.query(
-        `INSERT INTO public.platform_snapshots (path, size_bytes)
-         VALUES ($1, $2)
-         RETURNING id, created_at`,
-        [archivePath, st.size],
+        `INSERT INTO public.platform_snapshots
+           (path, size_bytes, sha256, tag, kind, verified_at)
+         VALUES ($1, $2, $3, $4, $5, now())
+         RETURNING id, created_at, path, size_bytes, sha256, tag, kind, verified_at`,
+        [
+          archivePath,
+          st.size,
+          digest,
+          options?.tag ?? null,
+          options?.kind ?? "manual",
+        ],
       );
-      return {
-        id: rows[0].id as string,
-        createdAt: (rows[0].created_at as Date).toISOString(),
-        path: archivePath,
-        sizeBytes: st.size,
-      };
+      return rowToSnapshot(rows[0]);
     },
 
     async restore(id: string): Promise<void> {
@@ -122,51 +163,65 @@ export function createWindowsBackupService(deps: WindowsBackupDeps): IBackupServ
       );
       const archive = rows[0]?.path as string | undefined;
       if (!archive) throw new Error(`Snapshot ${id} not found`);
-      // Restore is an installer-only, service-stopped operation. We
-      // deliberately DO NOT run pg_restore from within the running app —
-      // it must be invoked by the Windows service under maintenance mode.
-      // This method surfaces the archive path; the updater does the work.
       throw new Error(
-        `Restore of snapshot ${id} must be run by the OpsqaiUpdater service ` +
-          `against ${archive} while the OpsqaiPlatform service is stopped.`,
+        `In-process restore is unsafe while the platform is running. ` +
+          `Run:  opsqai backup restore ${id}   (services/backup/restore.js). ` +
+          `Archive: ${archive}`,
       );
     },
 
     async list(): Promise<BackupSnapshot[]> {
       await ensureTables();
       const { rows } = await deps.pool.query(
-        "SELECT id, created_at, path, size_bytes FROM public.platform_snapshots ORDER BY created_at DESC",
+        `SELECT id, created_at, path, size_bytes, sha256, tag, kind, verified_at
+           FROM public.platform_snapshots
+          ORDER BY created_at DESC`,
       );
-      return rows.map((r) => ({
-        id: r.id as string,
-        createdAt: (r.created_at as Date).toISOString(),
-        path: r.path as string,
-        sizeBytes: Number(r.size_bytes),
-      }));
+      return rows.map(rowToSnapshot);
     },
 
     async prune(retainDays: number): Promise<number> {
       await ensureTables();
+      // Never auto-prune pre-update snapshots — those are owned by the
+      // updater's own 7-day retention window in apply.js.
       const { rows } = await deps.pool.query(
         `DELETE FROM public.platform_snapshots
-          WHERE created_at < now() - ($1::TEXT || ' days')::INTERVAL
-        RETURNING path`,
+           WHERE created_at < now() - ($1::TEXT || ' days')::INTERVAL
+             AND kind <> 'pre-update'
+         RETURNING path`,
         [String(retainDays)],
       );
       let removed = 0;
       for (const row of rows) {
         try {
           await fs.rm(row.path as string, { force: true });
-          removed++;
         } catch {
-          // Missing file — count the row as pruned regardless.
-          removed++;
+          /* file may already be gone */
         }
+        removed++;
       }
       return removed;
     },
+
+    async verifyIntegrity(id: string): Promise<boolean> {
+      await ensureTables();
+      const { rows } = await deps.pool.query(
+        "SELECT path, sha256 FROM public.platform_snapshots WHERE id = $1",
+        [id],
+      );
+      if (!rows[0]) throw new Error(`Snapshot ${id} not found`);
+      const filePath = rows[0].path as string;
+      const stored = rows[0].sha256 as string | null;
+      if (!stored) return false;
+      const actual = await sha256File(filePath);
+      const ok = actual.toLowerCase() === stored.toLowerCase();
+      if (ok) {
+        await deps.pool.query(
+          "UPDATE public.platform_snapshots SET verified_at = now() WHERE id = $1",
+          [id],
+        );
+      }
+      return ok;
+    },
   };
 }
-
-// Silence "unused" warning for helper reserved for future granular ops.
-void runProcess;

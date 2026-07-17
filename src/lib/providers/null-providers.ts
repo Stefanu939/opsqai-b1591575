@@ -40,6 +40,9 @@ export class NoopBackupService implements IBackupService {
   async prune(): Promise<number> {
     return 0;
   }
+  async verifyIntegrity(): Promise<boolean> {
+    return true;
+  }
 }
 
 export class NoopTelemetrySink implements ITelemetrySink {
