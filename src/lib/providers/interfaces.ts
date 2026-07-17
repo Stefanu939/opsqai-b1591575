@@ -169,13 +169,28 @@ export interface BackupSnapshot {
   createdAt: string;
   path: string;
   sizeBytes: number;
+  /** Hex SHA-256 of the archive at snapshot time. */
+  sha256?: string;
+  /** Free-form label — e.g. `pre-update-1.2.3`, `scheduled-daily`. */
+  tag?: string;
+  /** `manual` | `scheduled` | `pre-update`. */
+  kind?: string;
+  /** Last time the archive was re-hashed and matched sha256. */
+  verifiedAt?: string;
+}
+
+export interface SnapshotOptions {
+  tag?: string;
+  kind?: "manual" | "scheduled" | "pre-update";
 }
 
 export interface IBackupService {
-  snapshot(): Promise<BackupSnapshot>;
+  snapshot(options?: SnapshotOptions): Promise<BackupSnapshot>;
   restore(id: string): Promise<void>;
   list(): Promise<BackupSnapshot[]>;
   prune(retainDays: number): Promise<number>;
+  /** Recompute sha256 for a stored snapshot; updates verified_at on match. */
+  verifyIntegrity(id: string): Promise<boolean>;
 }
 
 // --------------------------------------------------------------------

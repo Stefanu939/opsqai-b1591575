@@ -391,6 +391,39 @@ function httpsGet(url, ms = 30_000) {
     }
   }
 
+  // --- 6. Register daily backup task (Phase 6) ---
+  try {
+    const scheduled = programFiles("services", "backup", "scheduled.js");
+    const node = programFiles("runtime", "node", "node.exe");
+    if (fs.existsSync(scheduled) && fs.existsSync(node)) {
+      log("registering scheduled task OPSQAI\\DailyBackup (02:15 daily)");
+      execFileSync(
+        "schtasks.exe",
+        [
+          "/Create",
+          "/F",
+          "/SC",
+          "DAILY",
+          "/ST",
+          "02:15",
+          "/RL",
+          "HIGHEST",
+          "/RU",
+          "SYSTEM",
+          "/TN",
+          "OPSQAI\\DailyBackup",
+          "/TR",
+          `"${node}" "${scheduled}"`,
+        ],
+        { stdio: "inherit" },
+      );
+    } else {
+      log("scheduled backup script/node missing — skipping schtasks registration");
+    }
+  } catch (e) {
+    console.warn(`[bootstrap] schtasks register failed (non-fatal): ${e.message}`);
+  }
+
   log("done");
 })().catch((e) => {
   console.error(`[bootstrap] fatal: ${e.stack || e.message}`);
