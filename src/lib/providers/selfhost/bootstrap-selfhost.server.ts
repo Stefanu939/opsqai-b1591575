@@ -218,4 +218,17 @@ export async function bootstrapSelfHosted(): Promise<void> {
     telemetry: telemetryFinal,
     capabilities: caps,
   });
+
+  // Wave C.2a.1 — profile + role repositories.
+  // Self-Hosted is single-tenant: synthetic company id derived from the
+  // installation id. Every ProfileRecord returned by the pg repo will
+  // carry this same value in `companyId`.
+  const tenantCompanyId = env.OPSQAI_INSTALL_ID;
+  const profileRepo = createPgProfileRepository({ pool, tenantCompanyId });
+  const roleRepo = createPgRoleRepository({ pool });
+  registerProfileRepositoryFactory(() => profileRepo);
+  registerAdminProfileRepositoryFactory(() => profileRepo);
+  registerRoleRepositoryFactory(() => roleRepo);
+  registerAdminRoleRepositoryFactory(() => roleRepo);
 }
+
