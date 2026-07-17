@@ -4,6 +4,7 @@
 //   opsqai start | stop | restart [service]
 //   opsqai logs <service> [--tail 200]
 //   opsqai health
+//   opsqai doctor
 //   opsqai update check | apply | history
 //   opsqai backup create [--tag T] [--kind K] | list | prune [days]
 //   opsqai backup verify <id> | restore <id> | schedule | unschedule
@@ -450,6 +451,7 @@ if (!cmd || !cmds[cmd] || cmd.startsWith("_")) {
   console.log("  opsqai start|stop|restart [service]");
   console.log("  opsqai logs <service> [--tail N]");
   console.log("  opsqai health");
+  console.log("  opsqai doctor");
   console.log("  opsqai update check|apply|history");
   console.log("  opsqai backup create|list|prune|verify|restore|schedule|unschedule");
   console.log("  opsqai backup <folder>                       (legacy)");
