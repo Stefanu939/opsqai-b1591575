@@ -104,6 +104,17 @@ function assertContains(parent, child, label) {
     if ($bad) {
       throw "Supabase-shaped SQL detected in Self-Hosted migrations: $($bad.Path -join ', ')"
     }
+
+    # Phase 9 — bundle scan. Refuse to package if any Cloud-only surface
+    # (Supabase URLs, publishable/anon/service keys, `client.server` import,
+    # `VITE_SUPABASE_*` env references) leaked into the Self-Hosted output.
+    Write-Host "Verifying Self-Hosted bundle (Phase 9 guardrails)..."
+    $nodeExe = Join-Path $payload 'runtime\node\node.exe'
+    $nodeCmd = if (Test-Path $nodeExe) { $nodeExe } else { 'node' }
+    & $nodeCmd (Join-Path $root 'build\verify-bundle.mjs') --dir (Join-Path $projectRoot '.output')
+    if ($LASTEXITCODE -ne 0) {
+      throw "verify-bundle.mjs failed — Self-Hosted bundle contains Cloud-only surface. See output above."
+    }
   } finally { Pop-Location }
 } else {
   Write-Host "Skipping OPSQAI app build (--SkipApp)"
