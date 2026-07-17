@@ -1,4 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+//
+// Wave C.2a.1.b: authorization helpers now resolve roles and profile
+// company through the repository layer (`getRoleRepository`,
+// `getProfileRepository`). Signatures are unchanged so existing server
+// functions keep compiling; the `context.supabase` argument is passed
+// through as the opaque `dataCtx` the factories expect.
+//
+// `hasPermission` still uses `context.supabase.rpc("has_permission")`
+// on Cloud. On Self-Hosted the throwing data-context proxy will surface
+// this as a "feature not migrated (Wave C.2)" diagnostic — permissions
+// derived from roles will move to `IRoleRepository.listPermissionsForRole`
+// in a later sub-wave.
+
+import { getProfileRepository, getRoleRepository } from "@/lib/providers/registry";
 
 const PLATFORM_ROLES = new Set(["platform_owner", "platform_admin"]);
 
@@ -7,12 +21,7 @@ export function roleNames(rows: Array<{ role: string }> | null | undefined) {
 }
 
 export async function getActorRoles(supabase: any, userId: string) {
-  const { data, error } = await supabase
-    .from("user_roles")
-    .select("role, company_id")
-    .eq("user_id", userId);
-  if (error) throw new Error(error.message);
-  const roles = roleNames(data as Array<{ role: string }>);
+  const roles = await getRoleRepository(supabase).listRolesForUser(userId);
   return {
     roles,
     isPlatformOwner: roles.includes("platform_owner"),
@@ -69,13 +78,8 @@ export async function requireCustomerManagerAccess(context: { supabase: any; use
 }
 
 export async function getProfileCompany(supabase: any, userId: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("company_id")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data?.company_id ?? null;
+  const profile = await getProfileRepository(supabase).findByUserId(userId);
+  return profile?.companyId ?? null;
 }
 
 export function companyFromStoragePath(path: string | null | undefined): string | null {
@@ -94,6 +98,9 @@ export async function resolveCompanyForWrite(
   const companyId = await getProfileCompany(context.supabase, context.userId);
   if (companyId) return companyId;
   if (actor.isPlatformAdmin) {
+    // `companies` table is not yet abstracted (Wave C.2a.2). This branch
+    // stays on the raw data context and will throw on Self-Hosted's
+    // throwing proxy until then — matches the documented C.2 exception.
     const { data, error } = await context.supabase
       .from("companies")
       .select("id")
