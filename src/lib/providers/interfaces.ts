@@ -329,9 +329,3 @@ export interface IBrowserAuthProvider {
    */
   setSessionFromUrl(): Promise<SetSessionFromUrlResult>;
 }
-
-// Import kept at bottom so it's visible to the new interface without
-// disturbing the top of the file.
-import type { Capability as _Cap } from "@/lib/platform";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _CapabilityAlias = _Cap;
