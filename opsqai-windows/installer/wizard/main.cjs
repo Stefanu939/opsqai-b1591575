@@ -181,6 +181,12 @@ ipcMain.handle("wizard:install", async (event, config) => {
   if (config.storage.mode === "s3") {
     args.push("--storage-s3", JSON.stringify(config.storage.s3));
   }
+  if (config.license && config.license.contents) {
+    args.push("--license", config.license.contents);
+  }
+  if (config.smtp && config.smtp.host) {
+    args.push("--smtp", JSON.stringify(config.smtp));
+  }
 
   const send = (line) => event.sender.send("wizard:install-log", line);
   send(`> Launching bootstrap: ${nodeExe}`);
