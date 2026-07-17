@@ -5,7 +5,7 @@
  * see/manage all conversations across all companies.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { getActorRoles, requirePermission } from "@/lib/authorization";
 
@@ -22,7 +22,7 @@ async function isPlatform(ctx: { supabase: any; userId: string }) {
 }
 
 export const listSupportConversations = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -55,7 +55,7 @@ export const listSupportConversations = createServerFn({ method: "POST" })
   });
 
 export const getSupportConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "support.use");
@@ -81,7 +81,7 @@ export const getSupportConversation = createServerFn({ method: "POST" })
   });
 
 export const createSupportConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -132,7 +132,7 @@ export const createSupportConversation = createServerFn({ method: "POST" })
   });
 
 export const postSupportMessage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -162,7 +162,7 @@ export const postSupportMessage = createServerFn({ method: "POST" })
   });
 
 export const markSupportRead = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const platform = await isPlatform(context);
@@ -176,7 +176,7 @@ export const markSupportRead = createServerFn({ method: "POST" })
   });
 
 export const updateSupportConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -202,7 +202,7 @@ export const updateSupportConversation = createServerFn({ method: "POST" })
   });
 
 export const createSupportAttachmentUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -231,7 +231,7 @@ export const createSupportAttachmentUrl = createServerFn({ method: "POST" })
   });
 
 export const getSupportAttachmentUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ path: z.string() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "support.use");
@@ -243,7 +243,7 @@ export const getSupportAttachmentUrl = createServerFn({ method: "POST" })
   });
 
 export const getSupportUnreadCount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const platform = await isPlatform(context);
     const column = platform ? "unread_for_platform" : "unread_for_customer";

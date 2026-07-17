@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { getActorRoles, requirePermission } from "@/lib/authorization";
 
 export const getAdminStats = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePermission(context, "dashboard.view");
     const { isPlatformAdmin } = await getActorRoles(context.supabase, context.userId);
@@ -128,7 +128,7 @@ export const getAdminStats = createServerFn({ method: "POST" })
   });
 
 export const listAuditLog = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator(
     (
       input:

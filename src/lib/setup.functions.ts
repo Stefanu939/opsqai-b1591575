@@ -6,7 +6,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 import { SETUP_STEPS, computeSetupComplete, type SetupStepId } from "@/lib/setup-steps";
@@ -15,7 +15,7 @@ import { runDoctorReport } from "@/lib/doctor.server";
 const VALID_STEP_IDS = new Set<string>(SETUP_STEPS.map((s) => s.id));
 
 export const getSetupState = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { data, error } = await context.supabase
@@ -43,7 +43,7 @@ const MarkStepInput = z.object({
 });
 
 export const markSetupStep = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => MarkStepInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -100,7 +100,7 @@ const RegisterInstallInput = z.object({
  * install_id matches — protects against accidental cross-install mixups.
  */
 export const registerInstall = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => RegisterInstallInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -131,7 +131,7 @@ export const registerInstall = createServerFn({ method: "POST" })
   });
 
 export const runDoctor = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     return runDoctorReport();

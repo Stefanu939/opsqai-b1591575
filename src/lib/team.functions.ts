@@ -11,7 +11,7 @@
  * owner flag is never granted here — kept sacred).
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { getActorRoles } from "@/lib/authorization";
 
@@ -35,7 +35,7 @@ async function getSystemCompanyId(supabaseAdmin: any): Promise<string> {
 }
 
 export const listTeamMembers = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatform(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -103,7 +103,7 @@ export const listTeamMembers = createServerFn({ method: "POST" })
   });
 
 export const listTeamDepartments = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatform(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -118,7 +118,7 @@ export const listTeamDepartments = createServerFn({ method: "GET" })
   });
 
 export const createTeamDepartment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ name: z.string().trim().min(1).max(80) }).parse(d),
   )
@@ -143,7 +143,7 @@ export const createTeamDepartment = createServerFn({ method: "POST" })
   });
 
 export const deleteTeamDepartment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
@@ -166,7 +166,7 @@ export const deleteTeamDepartment = createServerFn({ method: "POST" })
   });
 
 export const createTeamMember = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -248,7 +248,7 @@ export const createTeamMember = createServerFn({ method: "POST" })
   });
 
 export const updateTeamMember = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -322,7 +322,7 @@ export const updateTeamMember = createServerFn({ method: "POST" })
   });
 
 export const promoteToPlatformAdmin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
@@ -354,7 +354,7 @@ export const promoteToPlatformAdmin = createServerFn({ method: "POST" })
   });
 
 export const demoteFromPlatformAdmin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
@@ -382,7 +382,7 @@ export const demoteFromPlatformAdmin = createServerFn({ method: "POST" })
   });
 
 export const deleteTeamMember = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
@@ -412,7 +412,7 @@ export const deleteTeamMember = createServerFn({ method: "POST" })
   });
 
 export const resetTeamMemberPassword = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({

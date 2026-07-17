@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
 
@@ -14,7 +14,7 @@ const FaqInput = z.object({
 });
 
 export const upsertFaq = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => FaqInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["faq.edit", "faq.create", "knowledge.manage"]);
@@ -61,7 +61,7 @@ export const upsertFaq = createServerFn({ method: "POST" })
   });
 
 export const deleteFaq = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["faq.delete", "knowledge.manage"]);

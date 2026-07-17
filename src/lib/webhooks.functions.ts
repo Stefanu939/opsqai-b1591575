@@ -13,7 +13,7 @@
  * The delivery is logged to webhook_deliveries for audit/troubleshooting.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { createHmac, randomBytes, randomUUID } from "crypto";
 
@@ -105,7 +105,7 @@ const CreateInput = z.object({
 });
 
 export const createWebhookEndpoint = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CreateInput.parse(d))
   .handler(async ({ data, context }) => {
     // Validate URL server-side (SSRF guard).
@@ -139,7 +139,7 @@ export const createWebhookEndpoint = createServerFn({ method: "POST" })
   });
 
 export const testWebhook = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => TestInput.parse(d))
   .handler(async ({ data, context }) => {
     const { data: ep, error } = await context.supabase
@@ -227,7 +227,7 @@ export const testWebhook = createServerFn({ method: "POST" })
 
 /** Generate a fresh HMAC signing secret (48 hex chars). */
 export const generateWebhookSecret = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async () => ({ secret: randomBytes(24).toString("hex") }));
 
 const EMIT_EVENTS = [
@@ -248,7 +248,7 @@ const EmitInput = z.object({
  * (endpoint subscription, signature, delivery log) end-to-end.
  */
 export const emitTestEvent = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => EmitInput.parse(d))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase

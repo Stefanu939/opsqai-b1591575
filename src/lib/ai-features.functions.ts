@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
@@ -51,7 +51,7 @@ const GenInput = z.object({
  * Does NOT publish; the user reviews & clicks publish separately.
  */
 export const generateSop = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => GenInput.parse(d))
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "sop.generate");
@@ -80,7 +80,7 @@ const ValInput = z.object({
 });
 /** AI SOP Validator — scores draft and returns suggestions / risk warnings. */
 export const validateSop = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ValInput.parse(d))
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "sop.generate");
@@ -121,7 +121,7 @@ const PublishInput = z.object({
 });
 /** Publish a generated SOP straight into knowledge_documents (as a synthetic text file). */
 export const publishGeneratedSop = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => PublishInput.parse(d))
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "sop.publish");
@@ -439,7 +439,7 @@ function buildHeuristicReport(input: any) {
 
 /** AI Workspace Audit — Enterprise Operational Maturity Assessment. */
 export const runWorkspaceAudit = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
   )
@@ -578,7 +578,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
   });
 
 export const listAiAudits = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
   )

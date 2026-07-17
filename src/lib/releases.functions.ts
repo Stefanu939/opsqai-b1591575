@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 
 export const listReleases = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { data, error } = await context.supabase
@@ -29,7 +29,7 @@ const CreateReleaseInput = z.object({
 });
 
 export const createRelease = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CreateReleaseInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -63,7 +63,7 @@ export const createRelease = createServerFn({ method: "POST" })
   });
 
 export const setCurrentRelease = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -91,7 +91,7 @@ export const setCurrentRelease = createServerFn({ method: "POST" })
   });
 
 export const deleteRelease = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -105,7 +105,7 @@ export const deleteRelease = createServerFn({ method: "POST" })
   });
 
 export const listInstallations = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { data: installs, error } = await context.supabase

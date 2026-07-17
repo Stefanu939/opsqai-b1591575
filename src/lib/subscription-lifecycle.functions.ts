@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { requirePlatformAdmin, getProfileCompany, getActorRoles } from "@/lib/authorization";
 
@@ -51,7 +51,7 @@ async function notify(companyId: string, kind: string, title: string, body: stri
 
 /** Read the current lifecycle state for a company. */
 export const getSubscriptionState = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCompanyOrPlatform(context, data.company_id);
@@ -64,7 +64,7 @@ export const getSubscriptionState = createServerFn({ method: "POST" })
 
 /** List all companies' subscription state (platform admin only). */
 export const listWorkspaceLifecycle = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -80,7 +80,7 @@ export const listWorkspaceLifecycle = createServerFn({ method: "POST" })
   });
 
 export const listSubscriptionEvents = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({ company_id: z.string().uuid(), limit: z.number().int().min(1).max(200).optional() })
@@ -103,7 +103,7 @@ export const listSubscriptionEvents = createServerFn({ method: "POST" })
 
 /** Change status (activate / suspend / cancel-suspension / cancel / trial / grace). */
 export const changeSubscriptionStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -162,7 +162,7 @@ export const changeSubscriptionStatus = createServerFn({ method: "POST" })
 
 /** Adjust the grace period end date (extend or shorten). */
 export const adjustGracePeriod = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -212,7 +212,7 @@ export const adjustGracePeriod = createServerFn({ method: "POST" })
 
 /** Update renewal date. */
 export const updateRenewalDate = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -248,7 +248,7 @@ export const updateRenewalDate = createServerFn({ method: "POST" })
 
 /** Set/unset the billing override (bypass all suspensions). */
 export const setBillingOverride = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -276,7 +276,7 @@ export const setBillingOverride = createServerFn({ method: "POST" })
 
 /** Attach or replace the internal admin note. */
 export const setInternalNotes = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ company_id: z.string().uuid(), notes: z.string().max(5000).nullable() }).parse(d),
   )
@@ -298,7 +298,7 @@ export const setInternalNotes = createServerFn({ method: "POST" })
 
 /** Record a successful payment (also triggers automatic reactivation on next tick). */
 export const recordPayment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -350,7 +350,7 @@ export const recordPayment = createServerFn({ method: "POST" })
 
 /** Run the automation tick immediately. */
 export const runLifecycleTick = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -361,7 +361,7 @@ export const runLifecycleTick = createServerFn({ method: "POST" })
 
 /** Configure grace period length. */
 export const setGracePeriodDays = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ company_id: z.string().uuid(), days: z.number().int().min(0).max(90) }).parse(d),
   )

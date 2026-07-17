@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { createHash, randomBytes } from "crypto";
 
 export type ApiKeyRow = {
@@ -28,7 +28,7 @@ function hashKey(raw: string): string {
 }
 
 export const listApiKeys = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const companyId = await resolveCompanyId(context.supabase, context.userId);
     const { data, error } = await context.supabase
@@ -41,7 +41,7 @@ export const listApiKeys = createServerFn({ method: "GET" })
   });
 
 export const createApiKey = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((input: { name: string }) => {
     const name = (input?.name ?? "").trim();
     if (!name) throw new Error("Name is required");
@@ -72,7 +72,7 @@ export const createApiKey = createServerFn({ method: "POST" })
   });
 
 export const revokeApiKey = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((input: { id: string }) => {
     if (!input?.id) throw new Error("id required");
     return { id: input.id };

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { requirePlatformAdmin } from "@/lib/authorization";
 
 const QuerySchema = z.object({
@@ -29,7 +29,7 @@ interface LogRow {
  * Platform admin only — reads via service role to bypass row-level visibility.
  */
 export const listEmailLogs = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => QuerySchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -85,7 +85,7 @@ export const listEmailLogs = createServerFn({ method: "POST" })
   });
 
 export const listSuppressedEmails = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

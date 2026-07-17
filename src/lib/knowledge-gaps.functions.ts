@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { requireAnyPermission } from "@/lib/authorization";
 
 export const listKnowledgeGaps = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("knowledge_gaps")
@@ -70,7 +70,7 @@ export const listKnowledgeGaps = createServerFn({ method: "GET" })
   });
 
 export const updateKnowledgeGap = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -99,7 +99,7 @@ export const updateKnowledgeGap = createServerFn({ method: "POST" })
   });
 
 export const deleteKnowledgeGap = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "analytics.view"]);
@@ -109,7 +109,7 @@ export const deleteKnowledgeGap = createServerFn({ method: "POST" })
   });
 
 export const getKnowledgeGapStats = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { data: gaps } = await context.supabase
       .from("knowledge_gaps")

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/authorization";
 
@@ -12,7 +12,7 @@ const CompanyInput = z.object({
 });
 
 export const listCompanies = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -47,7 +47,7 @@ export const listCompanies = createServerFn({ method: "POST" })
   });
 
 export const createCompany = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     CompanyInput.extend({
       admin_email: z.string().email(),
@@ -104,7 +104,7 @@ export const createCompany = createServerFn({ method: "POST" })
   });
 
 export const updateCompany = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyInput.extend({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -116,7 +116,7 @@ export const updateCompany = createServerFn({ method: "POST" })
   });
 
 export const deleteCompany = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -129,7 +129,7 @@ export const deleteCompany = createServerFn({ method: "POST" })
   });
 
 export const platformStats = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -153,7 +153,7 @@ export const platformStats = createServerFn({ method: "POST" })
 // ============= Platform Super Admin management =============
 
 export const listPlatformAdmins = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     // Data API reads use the user-scoped client (platform admin has RLS access).
@@ -190,7 +190,7 @@ export const listPlatformAdmins = createServerFn({ method: "POST" })
   });
 
 export const promotePlatformAdmin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ email: z.string().email() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -220,7 +220,7 @@ export const promotePlatformAdmin = createServerFn({ method: "POST" })
   });
 
 export const demotePlatformAdmin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);

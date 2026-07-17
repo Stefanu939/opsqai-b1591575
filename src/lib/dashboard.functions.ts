@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 
@@ -28,7 +28,7 @@ async function resolveCompany(context: { supabase: any; userId: string }, hint?:
 const CompanyArg = z.object({ companyId: z.string().uuid().optional().nullable() }).optional();
 
 export const getDashboardOverview = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyArg.parse(d) ?? {})
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data?.companyId ?? null);
@@ -57,7 +57,7 @@ const ActivityArg = z.object({
   bucket: z.enum(["hour", "day", "week"]).default("day"),
 });
 export const getDashboardActivity = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ActivityArg.parse(d))
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data.companyId ?? null);
@@ -76,7 +76,7 @@ export const getDashboardActivity = createServerFn({ method: "POST" })
  * Strict: only renders facts already computed; the LLM only summarises numbers.
  */
 export const getExecutiveInsights = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyArg.parse(d) ?? {})
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data?.companyId ?? null);
@@ -128,7 +128,7 @@ function buildFallbackInsights(o: { kpis: any; health: any; top: any; status: an
 
 const SaveLayoutArg = z.object({ layout: z.any() });
 export const saveDashboardLayout = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => SaveLayoutArg.parse(d))
   .handler(async ({ data, context }) => {
     await context.supabase
@@ -139,7 +139,7 @@ export const saveDashboardLayout = createServerFn({ method: "POST" })
   });
 
 export const getDashboardLayout = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("profiles")
@@ -154,7 +154,7 @@ const SearchArg = z.object({
   companyId: z.string().uuid().optional().nullable(),
 });
 export const globalSearch = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => SearchArg.parse(d))
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data.companyId ?? null);

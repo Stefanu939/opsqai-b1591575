@@ -2,7 +2,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 
 export type ChatContact = {
   id: string;
@@ -50,7 +50,7 @@ const uuid = z.string().uuid();
 // ---------------- Contacts ----------------
 
 export const searchChatContacts = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ q: z.string().min(1).max(120) }).parse(d),
   )
@@ -66,7 +66,7 @@ export const searchChatContacts = createServerFn({ method: "POST" })
 // ---------------- Conversations ----------------
 
 export const listMyConversations = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<ChatConversation[]> => {
     const me = context.userId;
 
@@ -200,7 +200,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
   });
 
 export const startDirectConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ target_user_id: uuid }).parse(d),
   )
@@ -216,7 +216,7 @@ export const startDirectConversation = createServerFn({ method: "POST" })
 // ---------------- Messages ----------------
 
 export const listMessages = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -240,7 +240,7 @@ export const listMessages = createServerFn({ method: "POST" })
   });
 
 export const sendMessage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -279,7 +279,7 @@ export const sendMessage = createServerFn({ method: "POST" })
   });
 
 export const markConversationRead = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ conversation_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
@@ -294,7 +294,7 @@ export const markConversationRead = createServerFn({ method: "POST" })
 // ---------------- Attachments ----------------
 
 export const signChatAttachment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ path: z.string().min(1).max(400) }).parse(d),
   )
@@ -319,7 +319,7 @@ export const signChatAttachment = createServerFn({ method: "POST" })
   });
 
 export const createChatUploadUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({

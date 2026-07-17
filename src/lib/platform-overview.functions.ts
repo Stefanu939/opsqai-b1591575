@@ -1,7 +1,7 @@
 // Aggregated KPI + timeline stats for the MC overview dashboard.
 
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { requirePlatformAdmin } from "@/lib/authorization";
 
 export interface OverviewStats {
@@ -42,7 +42,7 @@ export interface OverviewStats {
 const HEARTBEAT_ONLINE_MS = 15 * 60 * 1000;
 
 export const getPlatformOverviewStats = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<OverviewStats> => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

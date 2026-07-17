@@ -9,11 +9,11 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 
 /** All licenses (install + module) tied to the current user's email. */
 export const getMyPortalOverview = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) return { email: null, installs: [] as PortalInstall[] };
@@ -80,7 +80,7 @@ export interface PortalInstall {
 
 /** Public release list. Only the release manifest metadata — no secrets. */
 export const listPortalReleases = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ channel: z.string().max(32).optional() }).parse(d ?? {}),
   )
@@ -105,7 +105,7 @@ const DownloadInput = z.object({ install_id: z.string().min(3).max(64) });
  * matches the license contact before delegating to the MC bundle exporter.
  */
 export const downloadMyActivationBundle = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => DownloadInput.parse(d))
   .handler(async ({ data, context }) => {
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
@@ -134,7 +134,7 @@ const ModuleDownloadInput = z.object({
  * owns the install AND that a non-revoked license exists for `module_key`.
  */
 export const downloadMyModuleLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ModuleDownloadInput.parse(d))
   .handler(async ({ data, context }) => {
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
@@ -157,7 +157,7 @@ export const downloadMyModuleLicense = createServerFn({ method: "POST" })
 
 /** Public list of implemented product documentation, from system_doc_catalog. */
 export const listPortalDocs = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("system_doc_catalog")
@@ -169,7 +169,7 @@ export const listPortalDocs = createServerFn({ method: "POST" })
   });
 
 export const getPortalDoc = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase

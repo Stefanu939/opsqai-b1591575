@@ -5,7 +5,7 @@
  * Legacy functions in academy.functions.ts stay intact for backward compatibility.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import {
   requirePermission,
@@ -59,7 +59,7 @@ type EnrichedEnrollment = {
 
 /** Enriched list of the current user's training enrollments (card view). */
 export const listMyTraining = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<EnrichedEnrollment[]> => {
     try {
       await enforceAcademy(context, null);
@@ -185,7 +185,7 @@ export const listMyTraining = createServerFn({ method: "POST" })
 
 /** Summary widget for the Employee dashboard. */
 export const getMyTrainingSummary = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     const emptySummary = {
       mandatory_active: 0,
@@ -276,7 +276,7 @@ export const getMyTrainingSummary = createServerFn({ method: "POST" })
 
 /** Persist personal notes on a lesson for the current learner. */
 export const saveLessonNotes = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -317,7 +317,7 @@ export const saveLessonNotes = createServerFn({ method: "POST" })
  * ============================================================ */
 
 export const assignTraining = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -430,7 +430,7 @@ export const assignTraining = createServerFn({ method: "POST" })
  * ============================================================ */
 
 export const listCourseAnalytics = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
   )
@@ -510,7 +510,7 @@ export const listCourseAnalytics = createServerFn({ method: "POST" })
   });
 
 export const listCourseCohort = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
@@ -598,7 +598,7 @@ export const listCourseCohort = createServerFn({ method: "POST" })
 
 /** Assignable targets for the manager's company (users, departments, roles, paths). */
 export const listAssignTargets = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await enforceAcademy(context, null);
     await requirePermission(context, "academy.assign");

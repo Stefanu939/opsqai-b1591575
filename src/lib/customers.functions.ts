@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { requireCustomerManagerAccess } from "@/lib/authorization";
 import { z } from "zod";
 import { FEATURE_CATALOG, COMPLIANCE_AREAS, SECURITY_AREAS } from "@/lib/feature-catalog";
@@ -24,7 +24,7 @@ const CompanyOnly = z.object({ company_id: Uuid });
 // ------- Profile -------
 
 export const getCustomerProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -60,7 +60,7 @@ const ProfilePatch = z.object({
 });
 
 export const upsertCustomerProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ProfilePatch.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -75,7 +75,7 @@ export const upsertCustomerProfile = createServerFn({ method: "POST" })
 // ------- Features -------
 
 export const listCustomerFeatures = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -107,7 +107,7 @@ const FeatureUpsert = z.object({
 });
 
 export const upsertCustomerFeature = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => FeatureUpsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -122,7 +122,7 @@ export const upsertCustomerFeature = createServerFn({ method: "POST" })
 // ------- Compliance -------
 
 export const listCustomerCompliance = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -158,7 +158,7 @@ const ComplianceUpsert = z.object({
 });
 
 export const upsertCustomerCompliance = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ComplianceUpsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -173,7 +173,7 @@ export const upsertCustomerCompliance = createServerFn({ method: "POST" })
 // ------- Security -------
 
 export const listCustomerSecurity = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -207,7 +207,7 @@ const SecurityUpsert = z.object({
 });
 
 export const upsertCustomerSecurity = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => SecurityUpsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -222,7 +222,7 @@ export const upsertCustomerSecurity = createServerFn({ method: "POST" })
 // ------- Health -------
 
 export const customerHealth = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -237,7 +237,7 @@ export const customerHealth = createServerFn({ method: "POST" })
 // ------- Timeline -------
 
 export const listCustomerTimeline = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -260,7 +260,7 @@ const TimelineInsert = z.object({
 });
 
 export const addCustomerTimelineEvent = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => TimelineInsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -276,7 +276,7 @@ export const addCustomerTimelineEvent = createServerFn({ method: "POST" })
 // ------- Documents -------
 
 export const listCustomerDocuments = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -293,7 +293,7 @@ export const listCustomerDocuments = createServerFn({ method: "POST" })
   });
 
 export const getCustomerDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -407,7 +407,7 @@ const GenerateInput = z.object({
 });
 
 export const generateCustomerDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => GenerateInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -481,7 +481,7 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
   });
 
 export const regenerateCustomerDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -499,7 +499,7 @@ export const regenerateCustomerDocument = createServerFn({ method: "POST" })
   });
 
 export const generateAllStandardDocuments = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -537,7 +537,7 @@ export const generateAllStandardDocuments = createServerFn({ method: "POST" })
  * summary the UI can show as a toast.
  */
 export const generateCustomerPackage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -586,7 +586,7 @@ const DocPatch = z.object({
 });
 
 export const updateCustomerDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => DocPatch.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -598,7 +598,7 @@ export const updateCustomerDocument = createServerFn({ method: "POST" })
   });
 
 export const deleteCustomerDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -609,7 +609,7 @@ export const deleteCustomerDocument = createServerFn({ method: "POST" })
   });
 
 export const deleteAllCustomerDocuments = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -653,7 +653,7 @@ export const deleteAllCustomerDocuments = createServerFn({ method: "POST" })
   });
 
 export const restoreCustomerDocumentVersion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ document_id: Uuid, version_id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -884,7 +884,7 @@ const ExportInput = z.object({
 });
 
 export const exportCustomerDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => ExportInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
@@ -1066,7 +1066,7 @@ const DownloadInput = z.object({
 });
 
 export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => DownloadInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);

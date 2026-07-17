@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { requirePlatformAdmin } from "@/lib/authorization";
 
 const SettingsSchema = z.object({
@@ -21,7 +21,7 @@ const SettingsSchema = z.object({
 });
 
 export const getEmailSettings = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { data, error } = await context.supabase
@@ -34,7 +34,7 @@ export const getEmailSettings = createServerFn({ method: "GET" })
   });
 
 export const updateEmailSettings = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => SettingsSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -47,7 +47,7 @@ export const updateEmailSettings = createServerFn({ method: "POST" })
   });
 
 export const sendTestEmail = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ to: z.string().email() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);

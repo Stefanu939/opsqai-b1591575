@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 
 const UUID_RE =
@@ -12,7 +12,7 @@ const optionalUiUuid = z.preprocess((value) => {
 }, z.string().optional());
 
 export const createThread = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { title?: string; companyId?: string | null }) =>
     z
       .object({
@@ -55,7 +55,7 @@ export const createThread = createServerFn({ method: "POST" })
   });
 
 export const deleteThread = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("threads").delete().eq("id", data.id);
@@ -64,7 +64,7 @@ export const deleteThread = createServerFn({ method: "POST" })
   });
 
 export const listThreads = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { companyId?: string | null }) =>
     z.object({ companyId: optionalUiUuid }).parse(d ?? {}),
   )
@@ -82,7 +82,7 @@ export const listThreads = createServerFn({ method: "GET" })
   });
 
 export const renameThread = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: { id: string; title: string }) =>
     z.object({ id: z.string().uuid(), title: z.string().min(1).max(120) }).parse(d),
   )

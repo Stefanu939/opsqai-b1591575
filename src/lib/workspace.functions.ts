@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { z } from "zod";
 import { extractWorkspaceText } from "@/lib/workspace.extract.server";
 import {
@@ -43,7 +43,7 @@ async function ensureWorkspaceRole(context: { supabase: any; userId: string }) {
 }
 
 export const listWorkspaceSessions = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await ensureWorkspaceRole(context);
     const { data, error } = await context.supabase
@@ -56,7 +56,7 @@ export const listWorkspaceSessions = createServerFn({ method: "GET" })
   });
 
 export const createWorkspaceSession = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -82,7 +82,7 @@ export const createWorkspaceSession = createServerFn({ method: "POST" })
   });
 
 export const getWorkspaceSession = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
@@ -124,7 +124,7 @@ export const getWorkspaceSession = createServerFn({ method: "POST" })
   });
 
 export const renameWorkspaceSession = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z.object({ id: z.string().uuid(), title: z.string().trim().min(1).max(120) }).parse(d),
   )
@@ -139,7 +139,7 @@ export const renameWorkspaceSession = createServerFn({ method: "POST" })
   });
 
 export const deleteWorkspaceSession = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
@@ -164,7 +164,7 @@ export const deleteWorkspaceSession = createServerFn({ method: "POST" })
 
 // Client uploads the file to storage at `${companyId}/${sessionId}/${id}-${name}` then calls this.
 export const registerWorkspaceFile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -223,7 +223,7 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
   });
 
 export const deleteWorkspaceFile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
@@ -241,7 +241,7 @@ export const deleteWorkspaceFile = createServerFn({ method: "POST" })
   });
 
 export const downloadArtifactUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
@@ -259,7 +259,7 @@ export const downloadArtifactUrl = createServerFn({ method: "POST" })
   });
 
 export const updateCompanyRetention = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({

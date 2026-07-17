@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/providers/require-auth.server";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 
@@ -14,7 +14,7 @@ const AuditFilters = z.object({
 });
 
 export const listPlatformAuditLog = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => AuditFilters.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -38,7 +38,7 @@ export const listPlatformAuditLog = createServerFn({ method: "POST" })
 // ── Platform Config (AI + Backup) ─────────────────────────────────────
 
 export const getPlatformConfig = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -62,7 +62,7 @@ const AiConfigSchema = z.object({
 });
 
 export const savePlatformAiConfig = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => AiConfigSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -78,7 +78,7 @@ export const savePlatformAiConfig = createServerFn({ method: "POST" })
 // ── Customer Profiles (CRM) ───────────────────────────────────────────
 
 export const listCustomerProfiles = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -161,7 +161,7 @@ const UpsertContractSchema = z.object({
 });
 
 export const upsertCustomerContract = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((d: unknown) => UpsertContractSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -189,7 +189,7 @@ export const upsertCustomerContract = createServerFn({ method: "POST" })
 // ── Portal snapshot (what customers see) ──────────────────────────────
 
 export const getPortalSnapshot = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
