@@ -5,7 +5,7 @@
 .DESCRIPTION
   Phase 2 pipeline:
     1. Build the OPSQAI app in Node-server mode (npm run build:selfhosted).
-    2. Stage the built app bundle + supabase migrations into payload\app.
+    2. Stage the built app bundle + Self-Hosted migrations (migrations\selfhost) into payload\app.
     3. Download + stage Node runtime, WinSW, Caddy, PostgreSQL Portable.
     4. Copy service entrypoints and WinSW XML into payload/.
     5. Run makensis to produce OPSQAI-Setup.exe.
@@ -88,10 +88,20 @@ function assertContains(parent, child, label) {
     }
     # migrate.mjs is authored outside payload\app so staging cannot delete it.
     Copy-Item (Join-Path $root 'services\bootstrap\migrate.mjs') (Join-Path $appStage 'server\migrate.mjs') -Force
-    # Ship supabase migrations alongside the app so migrate.mjs can find them.
-    $migSrc = Join-Path $projectRoot 'supabase\migrations'
-    if (Test-Path $migSrc) {
-      Copy-Item $migSrc (Join-Path $appStage 'migrations') -Recurse -Force
+    # Self-Hosted uses its own, vanilla-PostgreSQL migration set. The
+    # Supabase set (auth.*, RLS via auth.uid(), authenticated/anon/service_role)
+    # is Cloud-only and MUST NEVER be copied into the Windows payload.
+    $migSrc = Join-Path $projectRoot 'migrations\selfhost'
+    if (-not (Test-Path $migSrc)) {
+      throw "Self-Hosted migrations missing at $migSrc. Aborting build to avoid shipping Supabase migrations."
+    }
+    Copy-Item $migSrc (Join-Path $appStage 'migrations') -Recurse -Force
+    # Extra guardrail: fail the build if any Supabase-shaped statement slipped in.
+    $bad = Select-String -Path (Join-Path $appStage 'migrations\*.sql') `
+      -Pattern 'auth\.uid|auth\.users|to authenticated|to anon|to service_role' `
+      -SimpleMatch:$false -List -ErrorAction SilentlyContinue
+    if ($bad) {
+      throw "Supabase-shaped SQL detected in Self-Hosted migrations: $($bad.Path -join ', ')"
     }
   } finally { Pop-Location }
 } else {

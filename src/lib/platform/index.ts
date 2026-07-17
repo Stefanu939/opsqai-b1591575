@@ -19,3 +19,9 @@ export {
   listActiveCapabilities,
 } from "./capabilities";
 export { setActiveEdition, getActiveEdition, atLeastEdition } from "./edition";
+export { bootstrapPlatform, defaultCapabilitiesFor } from "./bootstrap";
+export type { PlatformBootstrap } from "./bootstrap";
+export { runHealthCheck } from "./health";
+export type { HealthReport, HealthCheckResult, CheckStatus } from "./health";
+export { runDoctor } from "./doctor";
+export type { DoctorReport, DoctorFinding, DoctorSeverity } from "./doctor";
