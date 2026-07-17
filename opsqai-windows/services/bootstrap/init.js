@@ -93,10 +93,61 @@ const config = {
 };
 
 fs.mkdirSync(programData("config"), { recursive: true });
+fs.mkdirSync(programData("config", "keys"), { recursive: true });
 fs.mkdirSync(programData("data", "storage"), { recursive: true });
 fs.mkdirSync(programData("logs"), { recursive: true });
 saveConfig(config);
 log(`wrote config`);
+
+// --- Write license file (if provided) --------------------------------------
+if (licenseContents) {
+  const licPath = path.join(programData("config"), "license.opsqai");
+  try {
+    fs.writeFileSync(licPath, licenseContents, { encoding: "utf8", mode: 0o600 });
+    log(`wrote license file (${licenseContents.length} bytes)`);
+    try {
+      execFileSync(
+        "icacls.exe",
+        [licPath, "/inheritance:r", "/grant:r", "SYSTEM:F", "/grant:r", "BUILTIN\\Administrators:F"],
+        { stdio: "ignore" },
+      );
+    } catch {}
+  } catch (e) {
+    console.warn(`[bootstrap] cannot write license: ${e.message}`);
+  }
+}
+
+// --- Generate JWT signing keypair (Ed25519) if not present -----------------
+const jwtPriv = path.join(programData("config", "keys"), "jwt-signing.key");
+const jwtPub = path.join(programData("config", "keys"), "jwt-signing.pub");
+if (!fs.existsSync(jwtPriv) || !fs.existsSync(jwtPub)) {
+  const { generateKeyPairSync } = require("crypto");
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  fs.writeFileSync(jwtPriv, privateKey.export({ type: "pkcs8", format: "pem" }), { mode: 0o600 });
+  fs.writeFileSync(jwtPub, publicKey.export({ type: "spki", format: "pem" }));
+  log("generated Ed25519 JWT signing keypair");
+  try {
+    execFileSync(
+      "icacls.exe",
+      [jwtPriv, "/inheritance:r", "/grant:r", "SYSTEM:F", "/grant:r", "BUILTIN\\Administrators:F"],
+      { stdio: "ignore" },
+    );
+  } catch {}
+}
+
+// --- Stage bundled license verification public key -------------------------
+// The updater ships pubkey.pem inside the payload; we copy it into
+// config\keys so local-licensing.server.ts can find it via env.
+const bundledLicensePub = programFiles("payload", "updater", "pubkey.pem");
+const configLicensePub = path.join(programData("config", "keys"), "license-verify.pub");
+if (fs.existsSync(bundledLicensePub) && !fs.existsSync(configLicensePub)) {
+  try {
+    fs.copyFileSync(bundledLicensePub, configLicensePub);
+    log("staged license verification public key");
+  } catch (e) {
+    console.warn(`[bootstrap] cannot stage license verify key: ${e.message}`);
+  }
+}
 
 // Lock config file ACL — Administrators + SYSTEM only.
 try {
