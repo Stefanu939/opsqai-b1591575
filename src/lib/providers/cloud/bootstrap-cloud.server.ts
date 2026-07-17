@@ -24,8 +24,20 @@ import type {
   IUserRepository,
 } from "@/lib/providers/interfaces";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+import {
+  registerAdminProfileRepositoryFactory,
+  registerAdminRoleRepositoryFactory,
+  registerProfileRepositoryFactory,
+  registerRoleRepositoryFactory,
+} from "@/lib/providers/registry";
+
 import { createSupabaseAuthProvider } from "./supabase-auth.server";
 import { createSupabaseStorageProvider } from "./supabase-storage.server";
+import { createSupabaseProfileRepository } from "./supabase-profile-repository.server";
+import { createSupabaseRoleRepository } from "./supabase-role-repository.server";
+
 
 // Placeholder cloud providers for capabilities where MC does not yet
 // have a dedicated adapter — MC's existing feature code continues to
