@@ -253,7 +253,7 @@ if (!cmd || !cmds[cmd]) {
   console.log("  opsqai start|stop|restart [service]");
   console.log("  opsqai logs <service> [--tail N]");
   console.log("  opsqai health");
-  console.log("  opsqai update check|apply");
+  console.log("  opsqai update check|apply|history");
   console.log("  opsqai backup <folder>");
   console.log("  opsqai config get|set <dotted.key> [value]");
   process.exit(cmd ? 1 : 0);
