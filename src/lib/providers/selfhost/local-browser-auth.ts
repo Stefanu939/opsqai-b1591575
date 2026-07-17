@@ -210,7 +210,7 @@ export function createLocalBrowserAuthProvider(): IBrowserAuthProvider {
       return toOpsqaiSession(stored) as OpsqaiSession;
     },
 
-    async signInWithSSO(_: { providerId: string } & SignInWithSSOOptions): Promise<void> {
+    async signInWithSSO(_: { providerId: string } & SignInWithSSOOptions): Promise<{ url?: string }> {
       throw new Error(
         "SSO sign-in is not available on Self-Hosted. Configure a local admin account instead.",
       );
