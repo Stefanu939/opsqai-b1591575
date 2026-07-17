@@ -309,7 +309,9 @@ export interface IBrowserAuthProvider {
 
   signInWithPassword(input: { email: string; password: string }): Promise<OpsqaiSession>;
   /** SSO via configured SAML/OIDC provider id. */
-  signInWithSSO(input: { providerId: string } & SignInWithSSOOptions): Promise<void>;
+  signInWithSSO(
+    input: { providerId: string } & SignInWithSSOOptions,
+  ): Promise<{ url?: string }>;
   /** OAuth via Google/Apple/etc. Cloud routes via Lovable broker. */
   signInWithOAuth(
     provider: "google" | "apple",
