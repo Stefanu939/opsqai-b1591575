@@ -36,3 +36,44 @@ export async function buildActivationBundle(install_id: string): Promise<Activat
     issued_at: Math.floor(Date.now() / 1000),
   };
 }
+
+/**
+ * Single-module license bundle. Same envelope shape as buildActivationBundle,
+ * but `module_tokens` contains only the requested module. Consumed by the
+ * offline importer to apply a single module without re-issuing every token.
+ */
+export async function buildModuleLicenseBundle(
+  install_id: string,
+  module_key: string,
+): Promise<ActivationBundle> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: rows, error } = await supabaseAdmin
+    .from("licenses")
+    .select("kind, module_key, signed_token, revoked")
+    .eq("install_id", install_id);
+  if (error) throw new Error(error.message);
+
+  const install = (rows ?? []).find((r) => r.kind === "install" && !r.revoked);
+  if (!install?.signed_token) throw new Error("No active Installation License for this install_id");
+
+  const mod = (rows ?? []).find(
+    (r) => r.kind === "module" && r.module_key === module_key && !r.revoked,
+  );
+  if (!mod?.signed_token) throw new Error(`No active license for module "${module_key}"`);
+
+  const { getActiveSigningKey } = await import("@/lib/license-signing.server");
+  const { buildAndSignCrl } = await import("@/lib/license-crl.server");
+  const key = await getActiveSigningKey();
+  const { token: crlToken } = await buildAndSignCrl();
+
+  return {
+    bundle_version: 1,
+    install_id,
+    public_key_pem: key.publicPem,
+    key_id: key.keyId,
+    install_token: install.signed_token as string,
+    module_tokens: [{ module_key, signed_token: mod.signed_token as string }],
+    crl_token: crlToken,
+    issued_at: Math.floor(Date.now() / 1000),
+  };
+}
