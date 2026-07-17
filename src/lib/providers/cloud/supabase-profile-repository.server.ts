@@ -95,13 +95,14 @@ export function createSupabaseProfileRepository(client: Client): IProfileReposit
     async updateByUserId(userId, patch) {
       const { data, error } = await client
         .from("profiles")
-        .update(mapPatch(patch))
+        .update(mapPatch(patch) as never)
         .eq("id", userId)
         .select(COLS)
         .single();
       if (error) throw error;
       return mapRow(data as ProfilesRow);
     },
+
 
     async listByCompany(companyId) {
       const { data, error } = await client
