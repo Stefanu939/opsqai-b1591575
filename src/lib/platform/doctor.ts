@@ -182,6 +182,15 @@ async function probeCipher(): Promise<DoctorFinding> {
 
 async function probeBackupFreshness(): Promise<DoctorFinding> {
   try {
+    const svc = getBackupService() as unknown as { isNoop?: boolean };
+    if (svc.isNoop) {
+      return {
+        id: "backup.freshness",
+        category: "backup",
+        severity: "n/a",
+        message: "Backups managed by hosting infrastructure",
+      };
+    }
     const snapshots = await getBackupService().list();
     if (!snapshots.length) {
       return {

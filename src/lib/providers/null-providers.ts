@@ -25,6 +25,8 @@ export class NullCipher implements ISecretsCipher {
 }
 
 export class NoopBackupService implements IBackupService {
+  /** Marker so probes can distinguish "not configured" from "empty". */
+  readonly isNoop = true as const;
   async snapshot() {
     return {
       id: "noop",
