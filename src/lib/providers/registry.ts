@@ -116,6 +116,38 @@ export const getBackupService = (): IBackupService => {
 export const getTelemetrySink = (): ITelemetrySink =>
   required(registry.telemetry, Capability.Telemetry);
 
+/**
+ * Resolve a request-scoped profile repository. `dataCtx` is the opaque
+ * data-access handle produced by `requireAuth` (Cloud: user-scoped
+ * SupabaseClient; Self-Hosted: ignored — the factory captured its pg
+ * pool at bootstrap).
+ */
+export function getProfileRepository(dataCtx: unknown): IProfileRepository {
+  if (!registry.profileFactory) {
+    throw new Error("No profile repository factory registered");
+  }
+  return registry.profileFactory(dataCtx);
+}
+/** Admin-privileged profile repository (Cloud: service-role; Self-Hosted: same as user-scoped). */
+export function getAdminProfileRepository(): IProfileRepository {
+  if (!registry.adminProfileFactory) {
+    throw new Error("No admin profile repository factory registered");
+  }
+  return registry.adminProfileFactory(undefined);
+}
+export function getRoleRepository(dataCtx: unknown): IRoleRepository {
+  if (!registry.roleFactory) {
+    throw new Error("No role repository factory registered");
+  }
+  return registry.roleFactory(dataCtx);
+}
+export function getAdminRoleRepository(): IRoleRepository {
+  if (!registry.adminRoleFactory) {
+    throw new Error("No admin role repository factory registered");
+  }
+  return registry.adminRoleFactory(undefined);
+}
+
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
   registry.auth = undefined;
@@ -127,4 +159,9 @@ export function __resetProviderRegistryForTests(): void {
   registry.cipher = undefined;
   registry.backup = undefined;
   registry.telemetry = undefined;
+  registry.profileFactory = undefined;
+  registry.adminProfileFactory = undefined;
+  registry.roleFactory = undefined;
+  registry.adminRoleFactory = undefined;
 }
+
