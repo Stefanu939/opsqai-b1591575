@@ -203,3 +203,135 @@ export interface ITelemetrySink extends Provider {
   readonly level: TelemetryLevel;
   event(name: string, payload?: Record<string, unknown>): Promise<void>;
 }
+
+// --------------------------------------------------------------------
+// Browser-side authentication surface (Capability.Authentication)
+// --------------------------------------------------------------------
+//
+// `IAuthProvider` above is the server-side surface (token minting/
+// verification, password reset persistence). `IBrowserAuthProvider` is
+// what UI code sees: current session, sign in/out, session-change
+// notifications. Provider-agnostic — Cloud maps Supabase session/user
+// types to these shapes; Self-Hosted derives them from local JWT claims.
+// Feature code must never import Supabase types directly.
+
+/** Roles carried in the current session's claims. */
+export type OpsqaiRole = string;
+
+export interface OpsqaiUser {
+  id: UserId;
+  email: string | null;
+  /** Provider-specific display name; may be null on Self-Hosted first login. */
+  displayName?: string | null;
+}
+
+export interface OpsqaiClaims {
+  /** Subject — same as user id. */
+  sub: UserId;
+  email: string | null;
+  roles: OpsqaiRole[];
+  /** Epoch seconds. */
+  exp?: number;
+  /** Session id, if the provider tracks one. */
+  sid?: string;
+  /** Additional provider-specific claims. Consumers should not depend on shape. */
+  [key: string]: unknown;
+}
+
+export interface OpsqaiSession {
+  user: OpsqaiUser;
+  /** Bearer token for authenticated requests to the app's server functions. */
+  accessToken: string;
+  /** Epoch seconds when accessToken expires. */
+  expiresAt: number;
+  /** Opaque refresh handle. Never surfaced outside the provider. */
+  refreshToken?: string;
+}
+
+export type SessionChangeEvent =
+  | "SIGNED_IN"
+  | "SIGNED_OUT"
+  | "TOKEN_REFRESHED"
+  | "USER_UPDATED"
+  | "INITIAL_SESSION"
+  | "PASSWORD_RECOVERY";
+
+export interface SessionChangeListener {
+  (event: SessionChangeEvent, session: OpsqaiSession | null): void;
+}
+
+export interface Unsubscribe {
+  (): void;
+}
+
+export interface RequestPasswordResetOptions {
+  /** Absolute URL the reset email should link back to. */
+  redirectTo?: string;
+}
+
+export interface SignInWithOAuthOptions {
+  /** Absolute URL the provider redirects to after consent. */
+  redirectTo?: string;
+}
+
+export interface SignInWithSSOOptions {
+  /** Absolute URL the IdP redirects to after login. */
+  redirectTo?: string;
+}
+
+export interface SetSessionFromUrlResult {
+  session: OpsqaiSession | null;
+  /**
+   * `password_recovery` means the URL was a password-reset link; the
+   * app should render the update-password form instead of navigating.
+   */
+  kind: "sign_in" | "password_recovery" | "invite" | "unknown";
+}
+
+/**
+ * Browser-side auth surface. Wraps the concrete auth SDK so feature code
+ * never imports it. Bootstrap picks Cloud (Supabase-backed) or
+ * Self-Hosted (local JWT) implementation at app startup.
+ */
+export interface IBrowserAuthProvider {
+  readonly capability: Capability;
+  readonly name: string;
+
+  /** Current session, or null if signed out. */
+  getSession(): Promise<OpsqaiSession | null>;
+  /** Current user (revalidated against the auth server). */
+  getUser(): Promise<OpsqaiUser | null>;
+  /** Claims for the current access token (roles, sub, etc.). */
+  getClaims(): Promise<OpsqaiClaims | null>;
+
+  /** Subscribe to session-change events. Returns an unsubscribe function. */
+  onSessionChange(listener: SessionChangeListener): Unsubscribe;
+
+  signInWithPassword(input: { email: string; password: string }): Promise<OpsqaiSession>;
+  /** SSO via configured SAML/OIDC provider id. */
+  signInWithSSO(input: { providerId: string } & SignInWithSSOOptions): Promise<void>;
+  /** OAuth via Google/Apple/etc. Cloud routes via Lovable broker. */
+  signInWithOAuth(
+    provider: "google" | "apple",
+    options?: SignInWithOAuthOptions,
+  ): Promise<void>;
+
+  signOut(): Promise<void>;
+
+  requestPasswordReset(email: string, options?: RequestPasswordResetOptions): Promise<void>;
+  /** Update the current signed-in user's password. */
+  updatePassword(newPassword: string): Promise<void>;
+
+  /**
+   * Parse an auth URL hash/fragment (from a magic link, invite, or
+   * password-reset email) and set the session. Called by the public
+   * accept-invite and reset-password routes when they load.
+   */
+  setSessionFromUrl(): Promise<SetSessionFromUrlResult>;
+}
+
+// Import kept at bottom so it's visible to the new interface without
+// disturbing the top of the file.
+import type { Capability as _Cap } from "@/lib/platform";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _CapabilityAlias = _Cap;
