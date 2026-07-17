@@ -284,6 +284,30 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
         claims: claims as Record<string, unknown>,
       };
     },
+
+    async getDataContext(_token: string): Promise<unknown> {
+      // Wave C bridge: Self-Hosted has no Supabase client. Any server
+      // function whose body still calls `context.supabase.from(...)`
+      // hasn't been migrated to a repository yet. Return a proxy that
+      // throws with a clear diagnostic so partial migration surfaces
+      // as a runtime error rather than silent corruption. Wave C.2
+      // replaces every consumer with `getXRepository()` calls, after
+      // which this proxy is unreachable.
+      const notMigrated = () => {
+        throw new Error(
+          "Self-Hosted: this feature still uses the Supabase data " +
+            "client and has not been migrated to a repository yet " +
+            "(Wave C.2). Do not call it from Self-Hosted code paths.",
+        );
+      };
+      return new Proxy(
+        {},
+        {
+          get: notMigrated,
+          apply: notMigrated,
+        },
+      );
+    },
   };
 
   return provider;
