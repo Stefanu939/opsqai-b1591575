@@ -25,8 +25,10 @@
           <li data-step="6"><span class="idx">6</span> Database</li>
           <li data-step="7"><span class="idx">7</span> Storage</li>
           <li data-step="8"><span class="idx">8</span> AI provider</li>
-          <li data-step="9"><span class="idx">9</span> Review</li>
-          <li data-step="10"><span class="idx">10</span> Install</li>
+          <li data-step="9"><span class="idx">9</span> License key</li>
+          <li data-step="10"><span class="idx">10</span> Email (SMTP)</li>
+          <li data-step="11"><span class="idx">11</span> Review</li>
+          <li data-step="12"><span class="idx">12</span> Install</li>
         </ol>
         <div class="footer-brand">© OPSQAI</div>
       </aside>
@@ -254,8 +256,70 @@
           </div>
         </section>
 
-        <!-- 9 Review -->
+        <!-- 9 License key -->
         <section class="pane" data-pane="9" hidden>
+          <h1>License key</h1>
+          <p class="lead">
+            Paste the contents of the <code>.opsqai</code> license file we sent you, or load it from
+            disk. Community edition ships without a license — leave this blank to run in evaluation
+            mode.
+          </p>
+          <div class="form">
+            <label
+              >License key (JWT)
+              <textarea
+                id="license-key"
+                rows="6"
+                spellcheck="false"
+                placeholder="eyJhbGciOi..."
+              ></textarea>
+            </label>
+            <div class="row" style="display:flex;gap:.5rem;align-items:center">
+              <button type="button" class="btn" id="btn-license-load">Load from file…</button>
+              <button type="button" class="btn" id="btn-license-check">Validate</button>
+              <span id="license-status" class="hint"></span>
+            </div>
+            <div id="license-claims" class="kv" hidden></div>
+          </div>
+        </section>
+
+        <!-- 10 SMTP -->
+        <section class="pane" data-pane="10" hidden>
+          <h1>Email delivery (SMTP)</h1>
+          <p class="lead">
+            OPSQAI uses SMTP to send password resets, notifications and reports. You can skip this
+            step and configure email later from the admin console.
+          </p>
+          <label class="checkbox">
+            <input type="checkbox" id="smtp-enable" />
+            <span>Configure SMTP now</span>
+          </label>
+          <div class="form" id="smtp-fields" hidden>
+            <label>SMTP host<input id="smtp-host" placeholder="smtp.acme.com" /></label>
+            <div class="grid-2">
+              <label>Port<input id="smtp-port" type="number" value="587" /></label>
+              <label class="checkbox" style="align-self:end">
+                <input type="checkbox" id="smtp-secure" />
+                <span>TLS on connect (usually port 465)</span>
+              </label>
+            </div>
+            <div class="grid-2">
+              <label>Username<input id="smtp-user" placeholder="apikey / user" /></label>
+              <label>Password<input id="smtp-pass" type="password" /></label>
+            </div>
+            <div class="grid-2">
+              <label>From address<input id="smtp-from" placeholder="opsqai@acme.com" /></label>
+              <label>From name<input id="smtp-from-name" placeholder="OPSQAI" /></label>
+            </div>
+            <div class="row" style="display:flex;gap:.5rem;align-items:center">
+              <button type="button" class="btn" id="btn-smtp-test">Test connection</button>
+              <span id="smtp-status" class="hint"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 11 Review -->
+        <section class="pane" data-pane="11" hidden>
           <h1>Review your settings</h1>
           <p class="lead">
             Nothing has been installed yet. Click <strong>Install</strong> on the next step to apply
@@ -264,8 +328,8 @@
           <div class="review" id="review"></div>
         </section>
 
-        <!-- 10 Install -->
-        <section class="pane" data-pane="10" hidden>
+        <!-- 12 Install -->
+        <section class="pane" data-pane="12" hidden>
           <h1 id="install-title">Installing OPSQAI…</h1>
           <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
           <pre id="log" class="log"></pre>

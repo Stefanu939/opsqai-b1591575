@@ -4,7 +4,7 @@
 
 const state = {
   step: 1,
-  total: 10,
+  total: 12,
   installId: crypto.randomUUID(),
   data: {},
 };
@@ -32,6 +32,85 @@ $$('input[name="storage-mode"]').forEach((r) =>
     $("#storage-s3").hidden = r.value !== "s3" || !r.checked;
   }),
 );
+$("#smtp-enable")?.addEventListener("change", (e) => {
+  $("#smtp-fields").hidden = !e.target.checked;
+});
+
+// License key handlers ------------------------------------------------------
+$("#btn-license-load")?.addEventListener("click", async () => {
+  const r = await window.opsqai.pickLicenseFile();
+  if (r.cancelled) return;
+  if (!r.ok) {
+    setLicenseStatus(r.error || "Could not read file", "err");
+    return;
+  }
+  $("#license-key").value = r.contents;
+  await checkLicense();
+});
+$("#btn-license-check")?.addEventListener("click", checkLicense);
+
+async function checkLicense() {
+  const contents = $("#license-key").value.trim();
+  if (!contents) {
+    setLicenseStatus("No license entered — Community edition", "info");
+    $("#license-claims").hidden = true;
+    return;
+  }
+  const r = await window.opsqai.validateLicense(contents);
+  if (!r.ok) {
+    setLicenseStatus(r.error, "err");
+    $("#license-claims").hidden = true;
+    return;
+  }
+  setLicenseStatus("License structure looks valid", "ok");
+  const c = r.claims;
+  $("#license-claims").hidden = false;
+  $("#license-claims").innerHTML = [
+    ["Edition", c.edition],
+    ["Seats", c.seats ?? "—"],
+    ["Customer", c.customer ?? "—"],
+    ["Expires", c.exp ? new Date(c.exp * 1000).toLocaleDateString() : "—"],
+    ["Modules", c.modules?.length ? c.modules.join(", ") : "—"],
+  ]
+    .map(([k, v]) => `<div><span>${k}</span><code>${v}</code></div>`)
+    .join("");
+}
+function setLicenseStatus(msg, kind) {
+  const el = $("#license-status");
+  el.textContent = msg;
+  el.style.color =
+    kind === "err" ? "var(--danger, #c33)" : kind === "ok" ? "var(--gold, #C9A24C)" : "";
+}
+
+// SMTP test -----------------------------------------------------------------
+$("#btn-smtp-test")?.addEventListener("click", async () => {
+  const cfg = readSmtp();
+  if (!cfg.host) {
+    setSmtpStatus("Enter an SMTP host first", "err");
+    return;
+  }
+  setSmtpStatus("Testing…", "info");
+  const r = await window.opsqai.testSmtp(cfg);
+  if (r.ok) setSmtpStatus("SMTP connection OK", "ok");
+  else setSmtpStatus(`Failed: ${r.error}`, "err");
+});
+function readSmtp() {
+  return {
+    host: $("#smtp-host").value.trim(),
+    port: Number($("#smtp-port").value) || 587,
+    secure: $("#smtp-secure").checked,
+    username: $("#smtp-user").value.trim(),
+    password: $("#smtp-pass").value,
+    fromAddress: $("#smtp-from").value.trim(),
+    fromName: $("#smtp-from-name").value.trim(),
+  };
+}
+function setSmtpStatus(msg, kind) {
+  const el = $("#smtp-status");
+  el.textContent = msg;
+  el.style.color =
+    kind === "err" ? "var(--danger, #c33)" : kind === "ok" ? "var(--gold, #C9A24C)" : "";
+}
 
 $("#btn-cancel").addEventListener("click", () => window.opsqai.cancel());
 $("#btn-back").addEventListener("click", () => goto(state.step - 1));
@@ -44,12 +123,12 @@ function render() {
     li.classList.toggle("active", n === state.step);
     li.classList.toggle("done", n < state.step);
   });
-  $("#btn-back").disabled = state.step === 1 || state.step === 10;
+  $("#btn-back").disabled = state.step === 1 || state.step === state.total;
   const nextBtn = $("#btn-next");
-  if (state.step === 9) {
+  if (state.step === state.total - 1) {
     nextBtn.textContent = "Install";
     nextBtn.classList.add("btn-primary");
-  } else if (state.step === 10) {
+  } else if (state.step === state.total) {
     nextBtn.textContent = "Finish";
     nextBtn.disabled = true;
   } else {
@@ -165,6 +244,33 @@ async function validate() {
         provider === "none" ? { provider: "none" } : { provider, apiKey: key || null };
       return true;
     }
+    case 9: {
+      const contents = $("#license-key").value.trim();
+      if (!contents) {
+        state.data.license = null;
+        return true;
+      }
+      const r = await window.opsqai.validateLicense(contents);
+      if (!r.ok) {
+        alert(`License is not valid: ${r.error}`);
+        return false;
+      }
+      state.data.license = { contents, claims: r.claims };
+      return true;
+    }
+    case 10: {
+      if (!$("#smtp-enable").checked) {
+        state.data.smtp = null;
+        return true;
+      }
+      const cfg = readSmtp();
+      if (!cfg.host || !cfg.fromAddress) {
+        alert("SMTP host and From address are required.");
+        return false;
+      }
+      state.data.smtp = cfg;
+      return true;
+    }
     default:
       return true;
   }
@@ -191,6 +297,11 @@ function renderReview() {
     ["Mode", d.storage?.mode === "local" ? "Local file system" : `S3 (${d.storage?.s3?.bucket})`],
     ["section", "AI provider"],
     ["Provider", d.ai?.provider === "none" ? "Not configured" : d.ai?.provider],
+    ["section", "License"],
+    ["Edition", d.license?.claims?.edition ?? "Community (no license)"],
+    ["Seats", d.license?.claims?.seats ?? "—"],
+    ["section", "Email (SMTP)"],
+    ["Mode", d.smtp?.host ? `${d.smtp.host}:${d.smtp.port}` : "Not configured"],
   ];
   $("#review").innerHTML = rows
     .map(([k, v]) =>
@@ -210,6 +321,8 @@ async function runInstall() {
     database: state.data.database,
     storage: state.data.storage,
     ai: state.data.ai,
+    license: state.data.license,
+    smtp: state.data.smtp,
   };
   const log = $("#log");
   const bar = $("#progress-bar");
@@ -218,9 +331,9 @@ async function runInstall() {
   window.opsqai.onInstallLog((line) => {
     log.textContent += line + "\n";
     log.scrollTop = log.scrollHeight;
-    // Coarse progress hints
     if (line.includes("postgres ready")) setBar(30);
     else if (line.includes("running app migrations")) setBar(50);
+    else if (line.includes("admin seeded")) setBar(60);
     else if (line.includes("Caddy root CA trusted")) setBar(75);
     else if (line.includes("health OK")) setBar(95);
   });
@@ -247,13 +360,13 @@ function setBar(pct) {
 // -------- Navigation --------------------------------------------------------
 async function onNext() {
   if (!(await validate())) return;
-  if (state.step === 9) {
-    goto(10);
+  if (state.step === state.total - 1) {
+    goto(state.total);
     await runInstall();
     return;
   }
   goto(state.step + 1);
-  if (state.step === 9) renderReview();
+  if (state.step === state.total - 1) renderReview();
 }
 
 render();

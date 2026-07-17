@@ -36,12 +36,32 @@ const adminEmail = arg("admin-email");
 const adminPassword = arg("admin-password");
 const dbMode = arg("db-mode", "embedded");
 const storageMode = arg("storage-mode", "local");
+const licenseContents = arg("license", "");
+const smtpJson = arg("smtp", "");
 const startServices = arg("start-services", "true") !== "false";
 
 if (!adminEmail || !adminPassword) {
   console.error("Usage: init.js --admin-email <e> --admin-password <p> [--company <name>]");
   process.exit(2);
 }
+
+// Parse license claims (structural only — real verification runs in the
+// platform via local-licensing.server.ts once services start).
+let licenseClaims = null;
+if (licenseContents) {
+  try {
+    const parts = licenseContents.split(".");
+    if (parts.length === 3) {
+      licenseClaims = JSON.parse(
+        Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+      );
+    }
+  } catch (e) {
+    console.warn(`[bootstrap] cannot parse license claims: ${e.message}`);
+  }
+}
+
+const smtpCfg = smtpJson ? JSON.parse(smtpJson) : null;
 
 const config = {
   version: "1.0.0",
@@ -56,6 +76,16 @@ const config = {
       ? { mode: "local", local: { path: programData("data", "storage") } }
       : { mode: "s3", s3: JSON.parse(arg("storage-s3", "{}")) },
   ai: JSON.parse(arg("ai", '{"provider":"none"}')),
+  smtp: smtpCfg,
+  license: licenseClaims
+    ? {
+        edition: licenseClaims.edition ?? licenseClaims.tier ?? "community",
+        seats: licenseClaims.seats ?? null,
+        customer: licenseClaims.customer ?? licenseClaims.sub ?? null,
+        exp: licenseClaims.exp ?? null,
+        modules: Array.isArray(licenseClaims.modules) ? licenseClaims.modules : [],
+      }
+    : { edition: "community" },
   updates: {
     channel: "stable",
     manifestUrl: "https://updates.opsqai.de/channel/stable/manifest.json",
@@ -63,10 +93,61 @@ const config = {
 };
 
 fs.mkdirSync(programData("config"), { recursive: true });
+fs.mkdirSync(programData("config", "keys"), { recursive: true });
 fs.mkdirSync(programData("data", "storage"), { recursive: true });
 fs.mkdirSync(programData("logs"), { recursive: true });
 saveConfig(config);
 log(`wrote config`);
+
+// --- Write license file (if provided) --------------------------------------
+if (licenseContents) {
+  const licPath = path.join(programData("config"), "license.opsqai");
+  try {
+    fs.writeFileSync(licPath, licenseContents, { encoding: "utf8", mode: 0o600 });
+    log(`wrote license file (${licenseContents.length} bytes)`);
+    try {
+      execFileSync(
+        "icacls.exe",
+        [licPath, "/inheritance:r", "/grant:r", "SYSTEM:F", "/grant:r", "BUILTIN\\Administrators:F"],
+        { stdio: "ignore" },
+      );
+    } catch {}
+  } catch (e) {
+    console.warn(`[bootstrap] cannot write license: ${e.message}`);
+  }
+}
+
+// --- Generate JWT signing keypair (Ed25519) if not present -----------------
+const jwtPriv = path.join(programData("config", "keys"), "jwt-signing.key");
+const jwtPub = path.join(programData("config", "keys"), "jwt-signing.pub");
+if (!fs.existsSync(jwtPriv) || !fs.existsSync(jwtPub)) {
+  const { generateKeyPairSync } = require("crypto");
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  fs.writeFileSync(jwtPriv, privateKey.export({ type: "pkcs8", format: "pem" }), { mode: 0o600 });
+  fs.writeFileSync(jwtPub, publicKey.export({ type: "spki", format: "pem" }));
+  log("generated Ed25519 JWT signing keypair");
+  try {
+    execFileSync(
+      "icacls.exe",
+      [jwtPriv, "/inheritance:r", "/grant:r", "SYSTEM:F", "/grant:r", "BUILTIN\\Administrators:F"],
+      { stdio: "ignore" },
+    );
+  } catch {}
+}
+
+// --- Stage bundled license verification public key -------------------------
+// The updater ships pubkey.pem inside the payload; we copy it into
+// config\keys so local-licensing.server.ts can find it via env.
+const bundledLicensePub = programFiles("payload", "updater", "pubkey.pem");
+const configLicensePub = path.join(programData("config", "keys"), "license-verify.pub");
+if (fs.existsSync(bundledLicensePub) && !fs.existsSync(configLicensePub)) {
+  try {
+    fs.copyFileSync(bundledLicensePub, configLicensePub);
+    log("staged license verification public key");
+  } catch (e) {
+    console.warn(`[bootstrap] cannot stage license verify key: ${e.message}`);
+  }
+}
 
 // Lock config file ACL — Administrators + SYSTEM only.
 try {
@@ -237,6 +318,29 @@ function httpsGet(url, ms = 30_000) {
     }
   } else {
     log(`app migrator not present at ${migrator} — skipping (Phase 2 skeleton)`);
+  }
+
+  // --- 2b. Seed initial admin user (argon2id + user_roles) ---
+  const seeder = programFiles("app", "server", "admin-seed.mjs");
+  if (fs.existsSync(seeder)) {
+    log("seeding admin account");
+    try {
+      execFileSync(programFiles("runtime", "node", "node.exe"), [seeder], {
+        stdio: "inherit",
+        env: {
+          ...process.env,
+          OPSQAI_ADMIN_EMAIL: adminEmail,
+          OPSQAI_ADMIN_PASSWORD: adminPassword,
+          OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
+        },
+      });
+      log("admin seeded");
+    } catch (e) {
+      console.error(`[bootstrap] admin seed failed: ${e.message}`);
+      process.exit(6);
+    }
+  } else {
+    log(`admin seeder not present at ${seeder} — skipping`);
   }
 
   // --- 3. Start Caddy so it emits the local CA, then trust it ---
