@@ -45,24 +45,41 @@ describe("verify-bundle.mjs", () => {
     expect(r.stdout).toMatch(/OK — no banned/);
   });
 
-  it("fails when a Supabase project URL leaks in", () => {
+  it("fails when the OPSQAI Cloud project URL leaks in", () => {
     writeFileSync(
       join(scratch, "server", "index.mjs"),
       "const u = 'https://klisqgrabmwqijbmjzsb.supabase.co';\n",
     );
     const r = runVerifier(scratch);
     expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/supabase-project-url/);
+    expect(r.stderr).toMatch(/opsqai-cloud-project-ref/);
   });
 
-  it("fails on a Supabase publishable key", () => {
+  it("fails on the OPSQAI Cloud publishable key", () => {
     writeFileSync(
       join(scratch, "server", "chunk.mjs"),
-      "const k = 'sb_publishable_abcdefghijklmnopqrstuv';\n",
+      "const k = 'sb_publishable_jNON1nS79Q9dcrUHJKCE9w_xN7c56E5';\n",
     );
     const r = runVerifier(scratch);
     expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/supabase-publishable-key/);
+    expect(r.stderr).toMatch(/opsqai-cloud-publishable-key/);
+  });
+
+  it("passes on generic Supabase library boilerplate (no Cloud identity)", () => {
+    // A vendored @supabase/* asset may reference the string `service_role`
+    // in a JWT role enum, or `example-project.supabase.co` in default URL
+    // docs. Those must NOT count as leaks.
+    writeFileSync(
+      join(scratch, "server", "vendor.mjs"),
+      [
+        "export const Roles = { ANON: 'anon', SERVICE: 'service_role' };",
+        "const DEFAULT_URL = 'https://example-project.supabase.co';",
+        "const ENV_NAME = 'VITE_SUPABASE_URL';",
+        "export { DEFAULT_URL, ENV_NAME };",
+      ].join("\n"),
+    );
+    const r = runVerifier(scratch);
+    expect(r.code).toBe(0);
   });
 
   it("fails when client.server is imported into the bundle", () => {
@@ -75,14 +92,14 @@ describe("verify-bundle.mjs", () => {
     expect(r.stderr).toMatch(/supabase-client-server-import/);
   });
 
-  it("fails on VITE_SUPABASE_URL leaking into output", () => {
+  it("fails when SUPABASE_SERVICE_ROLE_KEY env is referenced outside client.server", () => {
     writeFileSync(
       join(scratch, "server", "env.mjs"),
-      "const x = import.meta.env.VITE_SUPABASE_URL;\n",
+      "const k = process.env.SUPABASE_SERVICE_ROLE_KEY;\n",
     );
     const r = runVerifier(scratch);
     expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/vite-supabase-env/);
+    expect(r.stderr).toMatch(/supabase-service-role-env/);
   });
 
   it("exits 2 when the scan directory is missing", () => {
