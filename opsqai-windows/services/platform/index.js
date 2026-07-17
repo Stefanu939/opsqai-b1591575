@@ -23,16 +23,57 @@ function buildDatabaseUrl() {
   return `postgres://${auth}@${e.host}:${e.port}/${e.database}`;
 }
 
+const programData = process.env.ProgramData || "C:\\ProgramData";
+const opsqaiData = path.join(programData, "OPSQAI");
+
 const env = {
   ...process.env,
   NODE_ENV: "production",
   PORT: String(appPort),
   HOST: "127.0.0.1",
   DATABASE_URL: buildDatabaseUrl(),
+
+  // --- Platform mode --------------------------------------------------
+  OPSQAI_PLATFORM_MODE: "selfhost",
+  OPSQAI_DEPLOYMENT_TYPE: "SelfHosted",
+  OPSQAI_EDITION: cfg.license?.edition || "community",
   OPSQAI_INSTALL_ID: cfg.installId || "",
-  OPSQAI_STORAGE_MODE: cfg.storage.mode,
-  OPSQAI_STORAGE_LOCAL_PATH: cfg.storage.local?.path || "",
-  // Storage / AI secrets injected in Phase 3 from Credential Manager.
+
+  // --- Filesystem layout (all under %ProgramData%\OPSQAI\) ------------
+  OPSQAI_CONFIG_DIR: path.join(opsqaiData, "config"),
+  OPSQAI_STORAGE_LOCAL_PATH:
+    cfg.storage?.local?.path || path.join(opsqaiData, "storage"),
+  OPSQAI_BACKUP_DIR: path.join(opsqaiData, "backups"),
+  OPSQAI_LOG_DIR: path.join(opsqaiData, "logs"),
+
+  // --- Crypto keys (populated by the installer's first-run step) ------
+  OPSQAI_JWT_PRIVATE_KEY_PATH:
+    process.env.OPSQAI_JWT_PRIVATE_KEY_PATH ||
+    path.join(opsqaiData, "config", "keys", "jwt-signing.key"),
+  OPSQAI_JWT_PUBLIC_KEY_PATH:
+    process.env.OPSQAI_JWT_PUBLIC_KEY_PATH ||
+    path.join(opsqaiData, "config", "keys", "jwt-signing.pub"),
+  OPSQAI_LICENSE_PUBLIC_KEY_PATH:
+    process.env.OPSQAI_LICENSE_PUBLIC_KEY_PATH ||
+    path.join(opsqaiData, "config", "keys", "license-verify.pub"),
+  OPSQAI_LICENSE_FILE_PATH:
+    process.env.OPSQAI_LICENSE_FILE_PATH ||
+    path.join(opsqaiData, "config", "license.opsqai"),
+  OPSQAI_CIPHER_MODE: process.env.OPSQAI_CIPHER_MODE || "dpapi",
+
+  // --- Optional integrations ------------------------------------------
+  OPSQAI_PG_DUMP_PATH: process.env.OPSQAI_PG_DUMP_PATH || "",
+  OPSQAI_HEARTBEAT_URL: cfg.licensing?.heartbeatUrl || "",
+  OPSQAI_TELEMETRY_LEVEL: cfg.telemetry?.level || "anonymous",
+
+  // --- SMTP (only set when configured in the installer) ---------------
+  OPSQAI_SMTP_HOST: cfg.smtp?.host || "",
+  OPSQAI_SMTP_PORT: cfg.smtp?.port ? String(cfg.smtp.port) : "",
+  OPSQAI_SMTP_SECURE: cfg.smtp?.secure ? "true" : "false",
+  OPSQAI_SMTP_USER: cfg.smtp?.username || "",
+  OPSQAI_SMTP_PASSWORD: cfg.smtp?.password || "",
+  OPSQAI_SMTP_FROM: cfg.smtp?.fromAddress || "",
+  OPSQAI_SMTP_FROM_NAME: cfg.smtp?.fromName || "",
 };
 
 console.log(`[platform] Launching app on 127.0.0.1:${appPort}`);
