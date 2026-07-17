@@ -87,6 +87,93 @@ export interface IUserRepository {
 }
 
 // --------------------------------------------------------------------
+// Profile repository (Wave C.2a.1) — Cloud reads/writes public.profiles;
+// Self-Hosted stores the same fields on public.users (single-tenant).
+// --------------------------------------------------------------------
+
+export interface ProfileRecord {
+  userId: UserId;
+  companyId: string;
+  /** Populated on Self-Hosted from public.users.email; null on Cloud (email lives on auth.users). */
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string | null;
+  avatarUrl: string | null;
+  phone: string | null;
+  position: string | null;
+  department: string | null;
+  departmentId: string | null;
+  isActive: boolean;
+  languagePref: string;
+  dashboardLayout: unknown | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProfilePatch {
+  companyId?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+  avatarUrl?: string | null;
+  phone?: string | null;
+  position?: string | null;
+  department?: string | null;
+  departmentId?: string | null;
+  isActive?: boolean;
+  languagePref?: string;
+  dashboardLayout?: unknown | null;
+}
+
+export interface ProfileCreateInput extends ProfilePatch {
+  userId: UserId;
+  companyId: string;
+}
+
+export interface IProfileRepository {
+  findByUserId(userId: UserId): Promise<ProfileRecord | null>;
+  updateByUserId(userId: UserId, patch: ProfilePatch): Promise<ProfileRecord>;
+  listByCompany(companyId: string): Promise<ProfileRecord[]>;
+  create(input: ProfileCreateInput): Promise<ProfileRecord>;
+  deleteByUserId(userId: UserId): Promise<void>;
+}
+
+// --------------------------------------------------------------------
+// Role repository (Wave C.2a.1) — wraps user_roles + role_permissions.
+// --------------------------------------------------------------------
+
+export type RoleName = string;
+
+export interface RoleAssignment {
+  userId: UserId;
+  role: RoleName;
+}
+
+export interface IRoleRepository {
+  listRolesForUser(userId: UserId): Promise<RoleName[]>;
+  hasRole(userId: UserId, role: RoleName): Promise<boolean>;
+  addRole(userId: UserId, role: RoleName): Promise<void>;
+  removeRole(userId: UserId, role: RoleName): Promise<void>;
+  removeAllRoles(userId: UserId): Promise<void>;
+  /** If `userIds` is omitted, returns all assignments. */
+  listAssignments(userIds?: UserId[]): Promise<RoleAssignment[]>;
+  listPermissionsForRole(role: RoleName): Promise<string[]>;
+}
+
+/**
+ * Per-request factories. Cloud implementations receive a user-scoped
+ * `SupabaseClient<Database>` from `requireAuth`'s data context; the
+ * admin variant receives the service-role client. Self-Hosted
+ * implementations ignore the `dataCtx` argument and bind to the pg pool
+ * captured at bootstrap.
+ */
+export type ProfileRepositoryFactory = (dataCtx: unknown) => IProfileRepository;
+export type RoleRepositoryFactory = (dataCtx: unknown) => IRoleRepository;
+
+
+
+// --------------------------------------------------------------------
 // Storage (Capability.Storage)
 // --------------------------------------------------------------------
 
