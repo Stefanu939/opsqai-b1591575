@@ -1,157 +1,274 @@
 
-# OPSQAI Enterprise Design System v3 — Redesign Plan (revised)
+# OPSQAI Self-Hosted Refactor — Plan
 
-Locked decisions from your feedback:
-- **Fonts:** Space Grotesk (headings) + Inter (body)
-- **Gold:** `#C9A24C`
-- **Sidebar:** 240px compact, icon + label
-- **Execution rule:** phases run strictly in order. No phase starts before the previous one is fully complete and approved against the Definition of Done.
-- **Visual identity split:** Management Center is the *only* product allowed to use Noir & Gold. Customer Portal and Self-Hosted share the same enterprise design language (Deep Navy / Soft White / Gold accent), adapted for their audience.
+**Status:** Approved Architecture
+**Version:** 1.0
+**Last Updated:** 2026-07-17
 
----
+Every path, permission, service name and tool in this plan is Windows-native. No Linux idioms.
 
-## Design Principles (govern every phase)
+## Governing principle
 
-- Enterprise-first
-- Calm interface
-- Information over decoration
-- Premium but efficient
-- Every page solves one business task
-- Beauty never reduces productivity
-- Charts must always answer a business question — never decoration
-- Visual elements must provide context, not decoration — images reinforce the business purpose of the page
-- Every animation must have a purpose — never animate for the sake of animation
+**Cloud and Self-Hosted are independent deployment targets that share business logic, not infrastructure.** Any infrastructure-specific implementation (authentication, storage, migrations, licensing, updates, background services) must be isolated behind provider interfaces. New features must be implemented once in the shared business layer and integrated through providers rather than conditional platform logic.
 
----
+## Non-negotiable rule
 
-## Phase −1 — UX Audit (no visual changes yet)
+**The Self-Hosted product must have zero runtime dependency on Supabase.** This includes authentication, storage, migrations, generated clients, environment variables, SDKs, and imports. Enforced by an ESLint rule and a Vite build guard that fails the Self-Hosted build if `@supabase/*` or `src/integrations/supabase/*` appear in the emitted bundles.
 
-Before redesigning anything, inventory what exists and produce an audit report:
-- Duplicate components (buttons, cards, dialogs, tables)
-- Unused / obsolete pages and routes
-- Inconsistencies (spacing, radius, shadow, colors)
-- Typography inconsistencies (font sizes, weights, line-heights in the wild)
-- Iconography inconsistencies (mixed icon libraries, sizes, weights)
-- Accessibility gaps (focus states, contrast, aria labels, keyboard nav)
-- Layout shift and overflow hotspots
+## Goals
 
-**Deliverable:** `.lovable/audit.md` with findings grouped by severity, plus a consolidation list ("keep / merge / delete"). No UI changes ship in this phase.
+- Cloud (opsqai.de / MC / Portal) stays byte-identical.
+- Self-Hosted becomes fully independent on vanilla PostgreSQL + local auth + local Windows storage.
+- Cloud contact from Self-Hosted is limited to license validation, heartbeat, update manifest, signed update download.
 
----
+## Supported platforms (v1)
 
-## Phase 0 — Foundations
+- Windows Server 2022
+- Windows Server 2025
+- Windows 11 Pro / Enterprise (evaluation only)
 
-Rebuild the design tokens and primitives every later phase depends on.
+### Minimum requirements
 
-**Tokens (`src/styles.css`)**
-- Palette: Deep Navy primary `#0B1E3B`, Soft White `#FBFBFC`, Light Gray surfaces, OPSQAI Gold `#C9A24C`, Emerald success, Amber warning, Red danger. Muted chart palette (navy, slate, gold, emerald, clay).
-- No purple. No neon. Gradients confined to marketing hero only.
-- Typography: Space Grotesk (display) + Inter (body), tabular numerals, generous line-height, tight tracking on headings, large H1 (40–56px).
-- Radius scale 10 / 14 / 20, layered soft shadows, 8px spacing grid with 4px sub-grid.
-- Motion tokens: `--ease-out-expo`, 180 / 240 / 320ms.
-- Dark mode: charcoal navy background, warm off-white foreground, same gold accent.
+- CPU: 4 physical cores, x86_64
+- RAM: 16 GB
+- Storage: 100 GB free NTFS on the OPSQAI drive (`pgdata`, `objects`, `backups`)
+- .NET / IIS / WSL / Hyper-V: **not required**
 
-**Primitives**
-- `Card`, `Button`, `Table` (sticky header, hover, status pills, bulk bar, pagination), `StatCard`, `EmptyState` (illustration + copy + action), `SectionHeader`, `Breadcrumbs`, `PageShell`, chart wrappers on top of Recharts.
+## Out of scope (v1)
 
-**App shell (self-hosted + portal)**
-- 240px sidebar, icon + label, grouped sections, thin gold left-bar active indicator.
-- Top bar: ⌘K global search, notifications, profile menu with avatar.
-- Page transitions via Framer Motion.
+The following are explicitly excluded and must not be implemented in v1:
 
----
+- Linux deployment
+- Docker / Docker Compose deployment
+- Kubernetes deployment
+- Multi-node clustering
+- High Availability (HA) topologies
+- PostgreSQL replication (streaming/logical)
+- Multi-region deployments
+- In-place upgrades from a legacy Supabase-shaped Self-Hosted database
 
-## Phase 1 — Profile pictures
+## Breaking changes policy
 
-Ships with Phase 0 so the new avatar in the top bar is real.
-- Storage bucket `avatars` (public read, authenticated write to `{user_id}/…`).
-- `profiles.avatar_url` (verify column exists; add if missing).
-- `AvatarUploader`: click / drag, square crop, ≤2MB, jpg/png/webp, live preview.
-- Wired into top-bar menu, `/settings/profile`, Team member cards (MC), Support chat, message bubbles.
-- Fallback: initials on soft navy tile.
+Once Self-Hosted v1 is released, changes to the database schema, provider interfaces, installer configuration, or licensing protocol must remain backward compatible whenever possible. Any breaking change requires:
+
+- An explicit migration path (data + config).
+- A `schema_version` / `installer_version` increment.
+- A documented upgrade note in the release manifest.
+
+## API versioning
+
+All Self-Hosted → Cloud endpoints are versioned under `/v1/`. Incompatible changes ship under `/v2/` alongside the existing `/v1/` route so existing installations keep working until they update on their own schedule. `/v1/` is not retired without an announced deprecation window.
+
+## Root cause of current installer error
+
+`services/bootstrap/migrate.mjs` applies whatever SQL lives in `<install>\app\migrations`. Today that's the Supabase set (99 files) referencing `auth.users`, `auth.uid()`, `authenticated`, `service_role`, `anon` — none exist in vanilla Postgres.
 
 ---
 
-## Phase 2 — AI Chat (self-hosted hero surface)
+## Core architectural primitives
 
-Large centered composer, elegant bubbles (assistant on surface, user in navy pill), streaming indicator, markdown + code, inline citation chips opening a Sources drawer with document previews, confidence indicator, suggested follow-ups, left rail with history / pinned / bookmarks / search. AI Elements primitives per `chat-ui-composition`.
+### DeploymentType (how the product is distributed)
 
----
+```text
+enum DeploymentType { Cloud, SelfHosted }   // future: Hybrid, DedicatedSaaS
+```
 
-## Phase 3 — Knowledge Base
+### PlatformMode (internal runtime mode of the app)
 
-Document previews (real PDF/DOCX thumbnails), folder cards, upload progress, processing animation, Recent + Recently-used rails, ingestion donut, knowledge-growth line chart — each chart tied to a specific business question.
+```text
+enum PlatformMode { Cloud, SelfHosted }
+```
 
----
+Today `PlatformMode` mirrors `DeploymentType`, but they are separate concepts so a future Hybrid or Dedicated-SaaS distribution can pick a `PlatformMode` independently of how it was delivered. All code reads the enums, never a raw string.
 
-## Phase 4 — AI Audit
+### Capabilities (feature-based, not mode-based)
 
-Vertical timeline, risk pills, filters, latency line, token usage area, provider donut, per-source bars — every chart answers a concrete audit question (cost, latency, provider mix, retrieval coverage).
+```text
+enum Capability {
+  Authentication, Storage, SMTP, AI, Updates,
+  Licensing, OfflineMode, Telemetry, SSO
+}
+```
 
----
+Providers advertise capabilities; code asks the capability registry, not the mode.
 
-## Phase 5 — Management Center (Noir & Gold, refined)
+### Edition
 
-Only MC uses Noir & Gold. Companies / Installations / Licenses / Releases / Support / Team all upgraded to the new premium tables, StatCards, empty states, detail drawers. Dashboard becomes a real Control Center: fleet map, license usage donut, revenue line, active-installs sparkline, support inbox summary, recent releases. Support chat keeps the WhatsApp/Teams layout, polished bubbles + avatars.
+```text
+enum Edition { Community, Professional, Enterprise }
+```
 
----
+Read from the validated license. Feature gates key off `Edition` + `Capability`, never off `PlatformMode`.
 
-## Phase 6 — Customer Portal (enterprise identity, not Noir & Gold)
+### Feature flags (developer-facing)
 
-Download cards, License card with progress ring, support timeline, docs cards, invoices table, release notes cards.
+Table `feature_flags(key TEXT PRIMARY KEY, enabled BOOLEAN, edition_min TEXT, notes TEXT)`. Initial keys: `ai_agents`, `ocr`, `academy`, `support_portal`, `saml`.
 
----
+## Decisions locked
 
-## Phase 7 — Marketing site polish
+- **In-place upgrades**: refused in v1. Legacy Supabase-shaped DB → "Clean install required".
+- **`has_role(uuid, app_role)`**: same signature everywhere; two implementations.
+- **SSO roadmap**: v1 local; v1.1 SAML; v1.2 OIDC + Entra ID + Google Workspace + Okta.
+- **JWT**: EdDSA (Ed25519).
+- **Machine fingerprint**: only SHA-256 of the normalized fingerprint stored; raw values never persisted.
+- **Installation ID**: UUID v4, generated once, immutable — not regenerated on update/restart/repair.
+- **Update rollback**: fully automatic, no manual intervention.
+- **AI "Configure Later"**: valid, complete configuration — no warning.
+- **License validation cadence**: at install, on heartbeat, and before update. Not on each login. Offline grace runs the app while the network is down.
+- **Audit log**: append-only. No `UPDATE`, no `DELETE`. Enforced via grants + rule.
+- **Telemetry**: `Disabled | Anonymous | Full`. Default `Disabled`.
 
-Home / Product / Pricing / Security / Self-hosted / Contact — hero imagery (warehouse, factory, distribution center, knowledge graph), architecture diagram, elegant pricing table.
+## Windows storage & permissions
 
----
+- Config: `%ProgramData%\OPSQAI\config\config.json` (non-secret only).
+- Secrets: `%ProgramData%\OPSQAI\config\secrets.env`, ACL-locked to `NT AUTHORITY\SYSTEM` and `BUILTIN\Administrators` (inheritance disabled, `icacls`/`SetNamedSecurityInfo`).
+- Data: `%ProgramData%\OPSQAI\pgdata`, `\objects`, `\backups`, `\rollback`, `\logs`, `\tls`.
+- Binaries: `%ProgramFiles%\OPSQAI\`.
+- Services (WinSW): `OpsqaiCaddy`, `OpsqaiDatabase`, `OpsqaiPlatform`, `OpsqaiWorker`, `OpsqaiUpdater`.
 
-## Phase 8 — Empty states, illustrations, imagery pass
-
-Generated illustrations for every empty state (no docs, no conversations, no licenses, no team members). Warehouse / factory / knowledge-graph hero images generated once and reused.
-
----
-
-## Definition of Done (every phase)
-
-A phase is complete only when all of the following pass:
-
-✓ Desktop looks polished
-✓ Tablet works
-✓ Mobile works where applicable
-✓ Dark mode verified
-✓ Keyboard navigation works
-✓ Loading states implemented
-✓ Empty states implemented
-✓ Error states implemented
-✓ Success states implemented
-✓ Accessibility checked
-✓ No layout shifts
-✓ No overflowing text
-✓ No placeholder icons
-✓ No lorem ipsum
-✓ Typecheck passes
-✓ Build passes
-
----
-
-## Execution order
-
-Phase −1 → 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8. No skipping. No mixing new elements with old inside a shipped phase. Each phase is presented for approval against the Definition of Done before the next begins.
-
-On approval, I start with **Phase −1 (UX Audit)** — no visual changes, just the audit report.
+`secrets.env` holds: `JWT_ED25519_PRIVATE_KEY`, `JWT_ED25519_PUBLIC_KEY`, `OPSQAI_ENCRYPTION_KEY` (AES-256-GCM), `POSTGRES_PASSWORD`, `SMTP_PASSWORD?`, `AI_PROVIDER_API_KEY?`, `S3_SECRET_KEY?`, `LICENSE_TOKEN`. Sensitive DB columns encrypted at rest via `AesGcmCipher`.
 
 ---
 
-## Technical notes
+## Phase 1 — Split the migration sets
 
-- All colors via semantic tokens in `src/styles.css`; components never hardcode hex.
-- Tailwind v4 `@theme` + `@utility` conventions (already in place).
-- Framer Motion for purposeful motion only.
-- Recharts wrappers apply the muted palette; every chart carries a title stating the business question it answers.
-- Avatar upload via Lovable Cloud storage; RLS on `storage.objects` scoped to `auth.uid()`.
-- Every route gets proper `head()` title + description + og:image where a hero image exists.
-- Zero regressions to Team, Support, Releases, Licenses activate-module, or self-hosted client — behavior preserved, chrome upgraded.
-- MC visual identity (Noir & Gold) is scoped strictly under the `.mc-shell` wrapper; portal/self-hosted routes never load it.
+```text
+supabase/migrations/       ← Cloud, untouched
+migrations/selfhost/       ← new, PostgreSQL-native only
+```
+
+Windows payload pulls only from `migrations/selfhost/`. Single owner role `opsqai`. No `auth.*`, no `authenticated`/`anon`/`service_role`, no RLS via `auth.uid()`. Self-Hosted ships its own `public.has_role(uuid, app_role)`.
+
+New table `platform_metadata(platform_version, schema_version, installer_version, build_number, installation_id)`.
+
+Initial table list: `users`, `sessions`, `refresh_tokens`, `password_resets`, `roles`, `permissions`, `role_permissions`, `user_roles`, `companies`, `departments`, `profiles`, `knowledge_documents`, `document_chunks`, `faqs`, `messages`, `threads`, `audit_log` (append-only), `notifications`, `sop_acknowledgements`, `academy_*`, `workspace_*`, `support_*`, `contact_submissions`, `licenses` (local mirror), `platform_config`, `platform_metadata`, `installation`, `feature_flags`.
+
+## Phase 2 — Local authentication (Self-Hosted)
+
+argon2id password hashing. JWT EdDSA (Ed25519). Module `services/auth-local/`: `login`, `logout`, `refresh`, `resetRequest`, `resetConfirm`, `me`. SAML in v1.1, OIDC in v1.2.
+
+## Phase 3 — Provider abstraction
+
+```text
+src/lib/providers/
+  auth/           IAuthProvider           → SupabaseAuthProvider   | LocalAuthProvider
+  users/          IUserRepository         → SupabaseUserRepo       | PostgresUserRepo
+  storage/        IStorageProvider        → SupabaseStorage        | FsStorage | S3Storage
+  notifications/  INotificationProvider   → SupabaseEmail          | SmtpEmail
+  licensing/      ILicensingProvider      → CloudLicensing         | SelfHostLicensing
+  crypto/         ISecretsCipher          → NullCipher             | AesGcmCipher
+  backup/         IBackupService          → NoopBackup             | WindowsBackupService (pg_dump today, VSS-ready)
+  telemetry/      ITelemetrySink          → NoopTelemetry          | AnonymousTelemetry | FullTelemetry
+```
+
+Bound once at boot from `PlatformMode` + Capabilities. Cloud keeps Supabase implementations — zero behavior change.
+
+## Phase 4 — Storage
+
+- Cloud unchanged.
+- Self-Hosted default: NTFS at `%ProgramData%\OPSQAI\objects\<bucket>\<key>`.
+- Optional S3-compatible provider with Test Connection.
+
+## Phase 5 — Cloud contact surface
+
+Only:
+
+- `POST /api/public/v1/license/validate`
+- `POST /api/public/v1/license/heartbeat`
+- `GET  /api/public/v1/license/releases`
+- `GET  <signed url>` — signed update artifact
+
+Every request carries `installation_id` and `machine_fingerprint_sha256`. Fingerprint drift is logged; not a hard block.
+
+## Phase 6 — Installer wizard (Windows, 15 pages)
+
+1. Welcome
+2. EULA
+3. Installation License (online validate or offline activation file)
+4. License Details — Customer, Seats, Expiration, Support, Channel, Edition
+5. Company Information (prefilled from license)
+6. Administrator Account
+7. Installation Location (`%ProgramFiles%\OPSQAI`, `%ProgramData%\OPSQAI`)
+8. Database — Embedded default; External reveals fields + Test Connection
+9. Storage — Local NTFS default; S3 reveals fields + Test Connection
+10. AI Provider — default "Configure Later" (valid)
+11. SMTP (Optional) — with Send Test Email
+12. Telemetry — Disabled (default) / Anonymous / Full
+13. Review (full summary)
+14. Installing (live checklist)
+15. Complete — Launch OPSQAI · Open Admin Console · View Installation Log
+
+Installer writes `config.json`, ACL-locked `secrets.env`, immutable `installation_id`, `machine_fingerprint_sha256`, populates `platform_metadata`, seeds `feature_flags` per Edition. Legacy Supabase-shaped DB → clean-install screen.
+
+## Phase 7 — Update pipeline with automatic rollback
+
+1. Pre-flight (license, disk, no active repair)
+2. `BackupService.snapshot()` → `%ProgramData%\OPSQAI\backups\<ts>\`
+3. Copy `%ProgramFiles%\OPSQAI` → `%ProgramData%\OPSQAI\rollback\<ts>\`
+4. Stop services → new binaries → new migrations → start services
+5. Health check
+6. Failure → fully automatic rollback (binaries + `BackupService.restore(<ts>)` + audit entry)
+7. Success → retain snapshot 7 days
+
+## Phase 8 — Health check + OPSQAI Doctor
+
+**Health check** (installer + Admin Console + updater gate):
+
+- PostgreSQL `SELECT 1`
+- Platform API `/health`
+- Web UI `/`
+- AI provider (if configured)
+- Storage probe (write + read + delete)
+- License signature valid + not expired
+- Encryption key available (decrypt canary)
+- Migration version matches application version
+- Background jobs alive with fresh heartbeat
+
+**OPSQAI Doctor** (Admin Console + `opsqai doctor` CLI):
+
+- Services stopped or in non-running state
+- Free disk thresholds (`pgdata`, `objects`, `backups`)
+- TLS certificates near expiry
+- Backups older than policy
+- License near expiry
+- AI provider unreachable
+- PostgreSQL slow queries / long transactions
+- Missing indexes on hot tables
+- Fingerprint drift since last successful heartbeat
+- Feature-flag / edition mismatch vs license
+
+Doctor produces a structured report (JSON + rendered green/amber/red) and can be scheduled by `OpsqaiWorker`.
+
+## Phase 9 — Windows build pipeline
+
+- `opsqai-windows/build/build.ps1` copies `migrations/selfhost/` into the payload, never `supabase/migrations/`.
+- Vite with `PlatformMode=SelfHosted` swaps providers and excludes Supabase modules.
+- Build guard fails Self-Hosted build if any `@supabase/*` module ID appears in emitted bundles.
+- `services/bootstrap/init.js` on first run: generate immutable `installation_id`, compute `machine_fingerprint_sha256`, generate `OPSQAI_ENCRYPTION_KEY` + Ed25519 keypair, write ACL-locked `secrets.env`, populate `platform_metadata`, `createFirstAdmin(...)`, mark setup complete.
+
+## Phase 10 — Verification
+
+- `bun run build` for both `PlatformMode.Cloud` and `PlatformMode.SelfHosted` (guard catches Supabase leakage on Self-Hosted).
+- Clean Windows Server VM: install → license activate → admin created → login → upload document → simulate failed update → automatic rollback → Health + Doctor green.
+- Cloud regression: existing Playwright/portal flows green on `opsqai.de`.
+
+---
+
+## Non-goals
+
+- Editing `supabase/migrations/` or `src/integrations/supabase/*`.
+- MC / Portal / marketing site.
+- In-place migration from a pre-existing Self-Hosted DB.
+
+## Execution order once approved
+
+1. Introduce `DeploymentType`, `PlatformMode`, `Capability`, `Edition` enums + provider registry.
+2. Provider interfaces + Cloud implementations bound (no behavior change).
+3. `migrations/selfhost/` authored (incl. `platform_metadata`, `feature_flags`, append-only `audit_log`); Windows payload switched over.
+4. Local auth (Ed25519) + `PostgresUserRepo`.
+5. `AesGcmCipher` + Windows ACL secrets flow.
+6. Storage providers (NTFS + S3 with Test Connection).
+7. Wizard rewrite (15 pages) + immutable `installation_id` + fingerprint hash + clean-install guard.
+8. Update pipeline with fully automatic rollback + Health check.
+9. OPSQAI Doctor module + Admin Console screen + `opsqai doctor` CLI.
+10. Cloud + Self-Hosted end-to-end verification and Supabase-import build guard.
