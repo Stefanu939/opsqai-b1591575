@@ -68,6 +68,19 @@ export function registerBackupService(p: IBackupService): void {
 export function registerTelemetrySink(p: ITelemetrySink): void {
   registry.telemetry = p;
 }
+export function registerProfileRepositoryFactory(f: ProfileRepositoryFactory): void {
+  registry.profileFactory = f;
+}
+export function registerAdminProfileRepositoryFactory(f: ProfileRepositoryFactory): void {
+  registry.adminProfileFactory = f;
+}
+export function registerRoleRepositoryFactory(f: RoleRepositoryFactory): void {
+  registry.roleFactory = f;
+}
+export function registerAdminRoleRepositoryFactory(f: RoleRepositoryFactory): void {
+  registry.adminRoleFactory = f;
+}
+
 
 function required<T>(value: T | undefined, capability: Capability): T {
   if (!value) {
