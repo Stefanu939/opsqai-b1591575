@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import type { OpsqaiSession, OpsqaiUser } from "@/lib/providers/interfaces";
 import type { Permission } from "@/lib/permissions";
+import { bootstrapSession } from "@/lib/session.functions";
 
 interface AuthState {
   session: OpsqaiSession | null;
@@ -84,28 +85,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loadProfile = (uid: string) => {
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .then(({ data }) => {
-        setRoles((data ?? []).map((r) => r.role));
-      });
-    supabase.rpc("my_permissions").then(({ data }) => {
-      setPermissions(
-        new Set(((data ?? []) as Array<{ permission: string }>).map((r) => r.permission)),
-      );
-    });
-    supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", uid)
-      .maybeSingle()
-      .then(({ data }) => {
-        const cid = data?.company_id ?? null;
+  const loadProfile = (_uid: string) => {
+    bootstrapSession()
+      .then((boot) => {
+        setRoles(boot.roles);
+        setPermissions(new Set(boot.permissions));
+        const cid = boot.companyId;
         setCompanyId(cid);
         if (cid) {
+          // companies table not yet abstracted (Wave C.2a.2); read via
+          // browser client for now. Cloud only — Self-Hosted is
+          // single-tenant and has no companies table.
           supabase
             .from("companies")
             .select("name")
@@ -117,6 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setCompanyName(null);
         }
+      })
+      .catch(() => {
+        setRoles([]);
+        setPermissions(new Set());
+        setCompanyId(null);
+        setCompanyName(null);
       });
   };
 

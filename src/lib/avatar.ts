@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  clearMyAvatarPath,
+  getMyAvatarPath,
+  setMyAvatarPath,
+} from "@/lib/profile.functions";
 
 const SIGNED_TTL_SECONDS = 60 * 60; // 1h — refreshed on mount
 
@@ -84,30 +89,18 @@ export async function uploadMyAvatar(
     .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
   if (upErr) throw upErr;
 
-  const { error: profErr } = await supabase
-    .from("profiles")
-    .update({ avatar_url: path })
-    .eq("id", userId);
-  if (profErr) throw profErr;
+  await setMyAvatarPath({ data: { path } });
 
   return { path };
 }
 
 /** Clear the current user's avatar (removes the DB pointer; file left for history). */
-export async function clearMyAvatar(userId: string): Promise<void> {
-  const { error } = await supabase
-    .from("profiles")
-    .update({ avatar_url: null })
-    .eq("id", userId);
-  if (error) throw error;
+export async function clearMyAvatar(_userId: string): Promise<void> {
+  await clearMyAvatarPath();
 }
 
 /** Read `profiles.avatar_url` for the given user id. */
-export async function readAvatarPath(userId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("avatar_url")
-    .eq("id", userId)
-    .maybeSingle();
-  return (data?.avatar_url as string | null) ?? null;
+export async function readAvatarPath(_userId: string): Promise<string | null> {
+  const { path } = await getMyAvatarPath();
+  return path;
 }
