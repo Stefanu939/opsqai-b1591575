@@ -131,7 +131,7 @@ export function createSupabaseProfileRepository(client: Client): IProfileReposit
       };
       const { data, error } = await client
         .from("profiles")
-        .insert(row)
+        .insert(row as never)
         .select(COLS)
         .single();
       if (error) throw error;
