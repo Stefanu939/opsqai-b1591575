@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,14 +22,16 @@ function ResetPassword() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Supabase appends a recovery session in the URL hash and sets the session automatically.
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const auth = getBrowserAuthProvider();
+    // Cloud parses the recovery session from the URL hash automatically.
+    // Self-Hosted signals `password_recovery` via a ?reset_token= query param.
+    const unsubscribe = auth.onSessionChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
+    auth.setSessionFromUrl().then((r) => {
+      if (r.session || r.kind === "password_recovery") setReady(true);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -44,8 +46,7 @@ function ResetPassword() {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      await getBrowserAuthProvider().updatePassword(password);
       toast.success("Password updated. You're signed in.");
       navigate({ to: "/app" });
     } catch (err) {
