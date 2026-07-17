@@ -162,8 +162,55 @@ function ensureDatabaseExists(runEnv) {
 
 ensureDatabaseExists(env);
 
-console.log(`[migrate] applying ${files.length} migrations from ${migrationsDir}`);
-for (const file of files) {
+// ---------------------------------------------------------------------------
+// Applied-migration tracking. `public.schema_migrations` records each file
+// that has already run so re-invoking the bootstrap (updates, repairs) does
+// not re-apply migrations. The table itself is created idempotently before
+// the migration loop.
+// ---------------------------------------------------------------------------
+const ensureTracking = spawnSync(
+  psql,
+  [
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-c",
+    "CREATE TABLE IF NOT EXISTS public.schema_migrations (" +
+      "  filename TEXT PRIMARY KEY," +
+      "  applied_at TIMESTAMPTZ NOT NULL DEFAULT now()" +
+      ")",
+  ],
+  { env, encoding: "utf8", windowsHide: true },
+);
+if (ensureTracking.status !== 0) {
+  fail(
+    `could not create schema_migrations table: ${ensureTracking.stderr || "(no stderr)"}`,
+    ensureTracking.status || 1,
+  );
+}
+
+const appliedProbe = spawnSync(
+  psql,
+  ["-tAc", "SELECT filename FROM public.schema_migrations"],
+  { env, encoding: "utf8", windowsHide: true },
+);
+if (appliedProbe.status !== 0) {
+  fail(`could not read schema_migrations: ${appliedProbe.stderr || "(no stderr)"}`, appliedProbe.status || 1);
+}
+const applied = new Set(
+  (appliedProbe.stdout || "")
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
+
+const pending = files.filter((f) => !applied.has(f));
+if (pending.length === 0) {
+  console.log("[migrate] no pending migrations");
+  process.exit(0);
+}
+
+console.log(`[migrate] applying ${pending.length} pending migration(s) from ${migrationsDir}`);
+for (const file of pending) {
   const full = join(migrationsDir, file);
   console.log(`[migrate] ${file}`);
   const result = spawnSync(psql, ["--set", "ON_ERROR_STOP=1", "--file", full], {
@@ -173,6 +220,23 @@ for (const file of files) {
   });
   if (result.status !== 0)
     fail(`${file} failed with exit code ${result.status}`, result.status || 1);
+
+  const record = spawnSync(
+    psql,
+    [
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-c",
+      `INSERT INTO public.schema_migrations(filename) VALUES ('${file.replace(/'/g, "''")}')`,
+    ],
+    { env, encoding: "utf8", windowsHide: true },
+  );
+  if (record.status !== 0) {
+    fail(
+      `could not record applied migration ${file}: ${record.stderr || "(no stderr)"}`,
+      record.status || 1,
+    );
+  }
 }
 
 console.log("[migrate] complete");
