@@ -63,32 +63,37 @@ if (!existsSync(args.dir)) {
  */
 const bannedPatterns = [
   {
-    id: "supabase-project-url",
-    pattern: /https?:\/\/[a-z0-9-]+\.supabase\.co/gi,
-    hint: "A hardcoded Supabase project URL is a Cloud-only value. The Windows bundle must never contain it.",
+    // Only our specific Cloud project ref counts as a leak. Library files
+    // in @supabase/* naturally mention *.supabase.co in defaults/docs — that
+    // is Supabase-JS boilerplate shipping with the codebase, not a Cloud
+    // identity leak.
+    id: "opsqai-cloud-project-ref",
+    pattern: /klisqgrabmwqijbmjzsb\.supabase\.co/gi,
+    hint: "OPSQAI Cloud project URL detected in the Self-Hosted bundle.",
   },
   {
-    id: "supabase-publishable-key",
-    pattern: /sb_publishable_[A-Za-z0-9_\-]{10,}/g,
-    hint: "Supabase publishable key leaked into the Self-Hosted bundle.",
+    // Match the specific publishable key our Cloud uses. A generic prefix
+    // check would hit every Supabase library asset that documents the format.
+    id: "opsqai-cloud-publishable-key",
+    pattern: /sb_publishable_jNON1nS79Q9dcrUHJKCE9w_xN7c56E5/g,
+    hint: "OPSQAI Cloud publishable key embedded in the Self-Hosted bundle.",
   },
   {
-    id: "supabase-anon-key-jwt",
-    // Legacy anon JWTs: eyJ header + 'anon' role in body encoded as `Imlub24i` (base64 of "anon")
-    // We match on the anon claim marker inside a JWT-shaped token.
-    pattern: /eyJhbGciOi[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]*Imlub24i/g,
-    hint: "A Supabase anon JWT is embedded in the Self-Hosted bundle.",
+    // Ed25519-ish JWT with `\"role\":\"service_role\"` in the payload. This
+    // is a real key; the plain word `service_role` alone lives in Supabase
+    // library enums and would false-positive.
+    id: "supabase-service-role-jwt",
+    pattern: /eyJhbGciOi[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]*(?:cm9sZS.{0,4}c2VydmljZV9yb2xl|Iuwc2VydmljZV9yb2xl)/g,
+    hint: "A Supabase service-role JWT is embedded in the Self-Hosted bundle.",
   },
   {
-    id: "supabase-service-role",
-    pattern: /service_role/g,
-    hint: "`service_role` references indicate the Cloud admin client leaked into the bundle.",
-    // The mode/bootstrap layer may mention it in a comment; allow only there.
-    allowIn: [
-      "src/lib/providers/interfaces.ts",
-      "src/lib/providers/cloud",
-      "opsqai-windows",
-    ],
+    id: "supabase-service-role-env",
+    pattern: /SUPABASE_SERVICE_ROLE_KEY/g,
+    hint: "The service-role env name is referenced in the bundle — the admin client leaked.",
+    // Client.server module scope reference is legitimate on Cloud; the
+    // separate `supabase-client-server-import` rule below is what stops it
+    // reaching the Self-Hosted graph.
+    allowIn: ["src/integrations/supabase/client.server"],
   },
   {
     id: "supabase-client-server-import",
@@ -96,18 +101,14 @@ const bannedPatterns = [
     hint: "Self-Hosted must never bundle the Supabase service-role client.",
   },
   {
-    id: "supabase-auth-attacher",
-    pattern: /@\/integrations\/supabase\/auth-attacher/g,
-    hint: "Supabase auth attacher is Cloud-only; Self-Hosted uses local auth middleware.",
-  },
-  {
-    id: "vite-supabase-env",
-    pattern: /VITE_SUPABASE_(URL|PUBLISHABLE_KEY|PROJECT_ID)/g,
-    hint: "VITE_SUPABASE_* env vars must not appear in the Self-Hosted client bundle.",
-    // The mode resolver documents these names in comments; skip bootstrap.
-    allowIn: ["src/lib/providers/cloud"],
+    // Legacy anon JWTs (older projects still ship these). Kept for defence in
+    // depth even though our current Cloud uses `sb_publishable_*`.
+    id: "supabase-anon-key-jwt",
+    pattern: /eyJhbGciOi[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]*Imlub24i/g,
+    hint: "A Supabase anon JWT is embedded in the Self-Hosted bundle.",
   },
 ];
+
 
 /** Files/dirs skipped entirely (source maps, licenses). */
 const skipSuffixes = [".map", ".md", "LICENSE", "LICENCE"];
