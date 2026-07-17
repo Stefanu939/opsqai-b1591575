@@ -111,4 +111,45 @@ export function bootstrapCloud(): void {
     telemetry: new NoopTelemetrySink(),
     capabilities: defaultCapabilitiesFor(PlatformMode.Cloud),
   });
+
+  // Wave C.2a.1 — profile + role repositories.
+  registerProfileRepositoryFactory((ctx) =>
+    createSupabaseProfileRepository(ctx as SupabaseClient<Database>),
+  );
+  registerRoleRepositoryFactory((ctx) =>
+    createSupabaseRoleRepository(ctx as SupabaseClient<Database>),
+  );
+  // Admin flavour: lazy-load service-role client so this module does not
+  // pull `client.server.ts` into the client graph.
+  let adminClient: SupabaseClient<Database> | null = null;
+  const getAdmin = async (): Promise<SupabaseClient<Database>> => {
+    if (adminClient) return adminClient;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    adminClient = supabaseAdmin as SupabaseClient<Database>;
+    return adminClient;
+  };
+  registerAdminProfileRepositoryFactory(() => {
+    // Return an async-resolving proxy: each method awaits the admin client.
+    const repo: import("@/lib/providers/interfaces").IProfileRepository = {
+      findByUserId: async (id) => (await createSupabaseProfileRepository(await getAdmin())).findByUserId(id),
+      updateByUserId: async (id, patch) => (await createSupabaseProfileRepository(await getAdmin())).updateByUserId(id, patch),
+      listByCompany: async (cid) => (await createSupabaseProfileRepository(await getAdmin())).listByCompany(cid),
+      create: async (input) => (await createSupabaseProfileRepository(await getAdmin())).create(input),
+      deleteByUserId: async (id) => (await createSupabaseProfileRepository(await getAdmin())).deleteByUserId(id),
+    };
+    return repo;
+  });
+  registerAdminRoleRepositoryFactory(() => {
+    const repo: import("@/lib/providers/interfaces").IRoleRepository = {
+      listRolesForUser: async (id) => (await createSupabaseRoleRepository(await getAdmin())).listRolesForUser(id),
+      hasRole: async (id, r) => (await createSupabaseRoleRepository(await getAdmin())).hasRole(id, r),
+      addRole: async (id, r) => (await createSupabaseRoleRepository(await getAdmin())).addRole(id, r),
+      removeRole: async (id, r) => (await createSupabaseRoleRepository(await getAdmin())).removeRole(id, r),
+      removeAllRoles: async (id) => (await createSupabaseRoleRepository(await getAdmin())).removeAllRoles(id),
+      listAssignments: async (ids) => (await createSupabaseRoleRepository(await getAdmin())).listAssignments(ids),
+      listPermissionsForRole: async (r) => (await createSupabaseRoleRepository(await getAdmin())).listPermissionsForRole(r),
+    };
+    return repo;
+  });
 }
+
