@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import type { OpsqaiSession, OpsqaiUser } from "@/lib/providers/interfaces";
 import type { Permission } from "@/lib/permissions";
+import { bootstrapSession } from "@/lib/session.functions";
 
 interface AuthState {
   session: OpsqaiSession | null;
