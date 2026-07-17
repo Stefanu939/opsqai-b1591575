@@ -44,7 +44,7 @@ export function AvatarUploader({
   const fileInput = useRef<HTMLInputElement | null>(null);
   const signedUrl = useAvatarUrl(path);
   const initials = initialsOf({
-    fullName: (user?.user_metadata?.full_name as string) ?? null,
+    fullName: (user?.metadata?.full_name as string) ?? null,
     email: user?.email ?? null,
   });
 
