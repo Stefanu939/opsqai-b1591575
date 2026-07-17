@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyPortalOverview, downloadMyActivationBundle } from "@/lib/portal.functions";
+import { getMyPortalOverview, downloadMyActivationBundle, downloadMyModuleLicense } from "@/lib/portal.functions";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
 import {
   listDownloadModulesPublic,
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/_authenticated/portal/downloads")({
 function PortalDownloads() {
   const overview = useServerFn(getMyPortalOverview);
   const download = useServerFn(downloadMyActivationBundle);
+  const downloadModule = useServerFn(downloadMyModuleLicense);
   const downloadZip = useServerFn(getMyInstallationPackageDownloadUrl);
   const listModules = useServerFn(listDownloadModulesPublic);
   const signUrl = useServerFn(signPortalStoragePath);
@@ -45,6 +46,22 @@ function PortalDownloads() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Activation bundle downloaded");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  async function downloadModuleLic(install_id: string, module_key: string) {
+    try {
+      const bundle = await downloadModule({ data: { install_id, module_key } });
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `opsqai-module-${module_key}-${install_id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`License for "${module_key}" downloaded`);
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -90,30 +107,82 @@ function PortalDownloads() {
             return (
               <Card
                 key={inst.install_id}
-                className="p-4 flex items-center justify-between gap-4 flex-wrap hover:shadow-md transition-shadow"
+                className="p-4 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-10 w-10 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center shrink-0">
-                    <FileArchive className="h-5 w-5 text-[color:var(--gold)]" />
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-10 w-10 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center shrink-0">
+                      <FileArchive className="h-5 w-5 text-[color:var(--gold)]" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-mono text-sm truncate">{inst.install_id}</div>
+                      <div className="text-xs text-muted-foreground">{inst.company_name}</div>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <div className="font-mono text-sm truncate">{inst.install_id}</div>
-                    <div className="text-xs text-muted-foreground">{inst.company_name}</div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => downloadPackage(inst.install_id)} disabled={disabled}>
+                      <FileArchive className="h-4 w-4 mr-1" /> Installation package
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadBundle(inst.install_id)}
+                      disabled={disabled}
+                    >
+                      <Package className="h-4 w-4 mr-1" /> Activation bundle
+                    </Button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => downloadPackage(inst.install_id)} disabled={disabled}>
-                    <FileArchive className="h-4 w-4 mr-1" /> Installation package
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => downloadBundle(inst.install_id)}
-                    disabled={disabled}
-                  >
-                    <Package className="h-4 w-4 mr-1" /> Activation bundle
-                  </Button>
-                </div>
+
+                {inst.module_licenses.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-border/60">
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+                      Module licenses
+                    </div>
+                    <div className="space-y-1.5">
+                      {inst.module_licenses.map((ml) => {
+                        const expired = ml.expires_at
+                          ? new Date(ml.expires_at).getTime() < Date.now()
+                          : false;
+                        return (
+                          <div
+                            key={ml.module_key}
+                            className="flex items-center justify-between gap-3 flex-wrap py-1"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <span className="font-mono text-sm truncate">{ml.module_key}</span>
+                              {ml.expires_at && (
+                                <span className="text-xs text-muted-foreground">
+                                  expires {ml.expires_at.slice(0, 10)}
+                                </span>
+                              )}
+                              {ml.suspended && (
+                                <Badge variant="outline" className="text-amber-600 border-amber-500/40">
+                                  suspended
+                                </Badge>
+                              )}
+                              {expired && !ml.suspended && (
+                                <Badge variant="outline" className="text-destructive border-destructive/40">
+                                  expired
+                                </Badge>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadModuleLic(inst.install_id, ml.module_key)}
+                              disabled={ml.revoked}
+                            >
+                              <DownloadIcon className="h-4 w-4 mr-1" />
+                              Download license
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </Card>
             );
           })}
