@@ -19,7 +19,7 @@ async function resolveAccessToken(timeoutMs = 1500): Promise<string | null> {
     const finish = (token: string | null) => {
       if (done) return;
       done = true;
-      sub.subscription.unsubscribe();
+      sub.data.subscription.unsubscribe();
       clearTimeout(timer);
       resolve(token);
     };
