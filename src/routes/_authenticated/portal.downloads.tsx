@@ -22,6 +22,7 @@ export const Route = createFileRoute("/_authenticated/portal/downloads")({
 function PortalDownloads() {
   const overview = useServerFn(getMyPortalOverview);
   const download = useServerFn(downloadMyActivationBundle);
+  const downloadModule = useServerFn(downloadMyModuleLicense);
   const downloadZip = useServerFn(getMyInstallationPackageDownloadUrl);
   const listModules = useServerFn(listDownloadModulesPublic);
   const signUrl = useServerFn(signPortalStoragePath);
@@ -45,6 +46,22 @@ function PortalDownloads() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Activation bundle downloaded");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  async function downloadModuleLic(install_id: string, module_key: string) {
+    try {
+      const bundle = await downloadModule({ data: { install_id, module_key } });
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `opsqai-module-${module_key}-${install_id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`License for "${module_key}" downloaded`);
     } catch (e) {
       toast.error((e as Error).message);
     }
