@@ -36,12 +36,32 @@ const adminEmail = arg("admin-email");
 const adminPassword = arg("admin-password");
 const dbMode = arg("db-mode", "embedded");
 const storageMode = arg("storage-mode", "local");
+const licenseContents = arg("license", "");
+const smtpJson = arg("smtp", "");
 const startServices = arg("start-services", "true") !== "false";
 
 if (!adminEmail || !adminPassword) {
   console.error("Usage: init.js --admin-email <e> --admin-password <p> [--company <name>]");
   process.exit(2);
 }
+
+// Parse license claims (structural only — real verification runs in the
+// platform via local-licensing.server.ts once services start).
+let licenseClaims = null;
+if (licenseContents) {
+  try {
+    const parts = licenseContents.split(".");
+    if (parts.length === 3) {
+      licenseClaims = JSON.parse(
+        Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+      );
+    }
+  } catch (e) {
+    console.warn(`[bootstrap] cannot parse license claims: ${e.message}`);
+  }
+}
+
+const smtpCfg = smtpJson ? JSON.parse(smtpJson) : null;
 
 const config = {
   version: "1.0.0",
@@ -56,6 +76,16 @@ const config = {
       ? { mode: "local", local: { path: programData("data", "storage") } }
       : { mode: "s3", s3: JSON.parse(arg("storage-s3", "{}")) },
   ai: JSON.parse(arg("ai", '{"provider":"none"}')),
+  smtp: smtpCfg,
+  license: licenseClaims
+    ? {
+        edition: licenseClaims.edition ?? licenseClaims.tier ?? "community",
+        seats: licenseClaims.seats ?? null,
+        customer: licenseClaims.customer ?? licenseClaims.sub ?? null,
+        exp: licenseClaims.exp ?? null,
+        modules: Array.isArray(licenseClaims.modules) ? licenseClaims.modules : [],
+      }
+    : { edition: "community" },
   updates: {
     channel: "stable",
     manifestUrl: "https://updates.opsqai.de/channel/stable/manifest.json",
