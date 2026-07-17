@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyPortalOverview, downloadMyActivationBundle } from "@/lib/portal.functions";
+import { getMyPortalOverview, downloadMyActivationBundle, downloadMyModuleLicense } from "@/lib/portal.functions";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
 import {
   listDownloadModulesPublic,
