@@ -27,6 +27,7 @@ const fakeAuth: IAuthProvider = {
   async requestPasswordReset() {},
   async confirmPasswordReset() {},
   async verifyAccessToken() { return { userId: "u", email: null, claims: {} }; },
+  async getDataContext() { return {}; },
 };
 const fakeUsers: IUserRepository = {
   async findById() { return null; },
