@@ -223,6 +223,11 @@ export interface OpsqaiUser {
   email: string | null;
   /** Provider-specific display name; may be null on Self-Hosted first login. */
   displayName?: string | null;
+  /**
+   * Free-form profile metadata (avatar, full_name, locale). Shape is
+   * provider-defined; consumers must not assume required fields.
+   */
+  metadata?: Record<string, unknown>;
 }
 
 export interface OpsqaiClaims {
