@@ -115,6 +115,56 @@ const cmds = {
     process.exit(r.status && r.status < 500 ? 0 : 1);
   },
 
+  async doctor() {
+    // Phase 8: hits /api/public/doctor and pretty-prints the report.
+    // Exit codes: 0 green, 1 amber, 2 red, 3 unreachable.
+    const r = await new Promise((resolve) => {
+      https
+        .get(
+          "https://localhost/api/public/doctor",
+          { rejectUnauthorized: false, timeout: 10_000 },
+          (res) => {
+            let body = "";
+            res.on("data", (c) => (body += c));
+            res.on("end", () => resolve({ status: res.statusCode, body }));
+          },
+        )
+        .on("error", (e) => resolve({ status: 0, error: e.message }))
+        .on("timeout", function () {
+          this.destroy();
+          resolve({ status: 0, error: "timeout" });
+        });
+    });
+    if (!r.status) {
+      console.error(`doctor: unreachable (${r.error})`);
+      process.exit(3);
+    }
+    let report;
+    try {
+      report = JSON.parse(r.body);
+    } catch {
+      console.error("doctor: invalid JSON response");
+      process.exit(3);
+    }
+    const glyph = { green: "●", amber: "◐", red: "○", "n/a": "·" };
+    console.log(`OPSQAI Doctor  —  overall: ${report.overall.toUpperCase()}`);
+    console.log("─".repeat(72));
+    for (const f of report.findings || []) {
+      const g = glyph[f.severity] || "?";
+      console.log(`  ${g}  [${f.category.padEnd(11)}] ${f.id.padEnd(22)} ${f.message}`);
+      if (f.actionable) console.log(`         → ${f.actionable}`);
+    }
+    console.log("─".repeat(72));
+    console.log(`generated: ${report.generatedAt}`);
+    process.exit(
+      report.overall === "green" || report.overall === "n/a"
+        ? 0
+        : report.overall === "amber"
+          ? 1
+          : 2,
+    );
+  },
+
   update(sub = "check") {
     const stateFile = programData("updates", "state.json");
     let state = {};
