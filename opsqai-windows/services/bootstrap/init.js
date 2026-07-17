@@ -320,6 +320,29 @@ function httpsGet(url, ms = 30_000) {
     log(`app migrator not present at ${migrator} — skipping (Phase 2 skeleton)`);
   }
 
+  // --- 2b. Seed initial admin user (argon2id + user_roles) ---
+  const seeder = programFiles("app", "server", "admin-seed.mjs");
+  if (fs.existsSync(seeder)) {
+    log("seeding admin account");
+    try {
+      execFileSync(programFiles("runtime", "node", "node.exe"), [seeder], {
+        stdio: "inherit",
+        env: {
+          ...process.env,
+          OPSQAI_ADMIN_EMAIL: adminEmail,
+          OPSQAI_ADMIN_PASSWORD: adminPassword,
+          OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
+        },
+      });
+      log("admin seeded");
+    } catch (e) {
+      console.error(`[bootstrap] admin seed failed: ${e.message}`);
+      process.exit(6);
+    }
+  } else {
+    log(`admin seeder not present at ${seeder} — skipping`);
+  }
+
   // --- 3. Start Caddy so it emits the local CA, then trust it ---
   if (startServices) {
     log("starting OpsqaiCaddy");
