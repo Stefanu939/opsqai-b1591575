@@ -3,7 +3,7 @@
 // A generation failure does NOT rollback the issued license.
 
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey } from "@/lib/license-modules";

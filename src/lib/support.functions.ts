@@ -5,7 +5,7 @@
  * see/manage all conversations across all companies.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, requirePermission } from "@/lib/authorization";
 

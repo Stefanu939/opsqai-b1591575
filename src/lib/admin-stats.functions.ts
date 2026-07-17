@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles, requirePermission } from "@/lib/authorization";
 
 export const getAdminStats = createServerFn({ method: "POST" })

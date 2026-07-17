@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";

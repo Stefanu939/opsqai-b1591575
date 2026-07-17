@@ -8,7 +8,7 @@
  * All three server fns are auth-gated to the active company admins.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 
 /** Events any admin can opt into. Keep in sync with UI catalog. */

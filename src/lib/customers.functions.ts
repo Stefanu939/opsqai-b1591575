@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requireCustomerManagerAccess } from "@/lib/authorization";
 import { z } from "zod";
 import { FEATURE_CATALOG, COMPLIANCE_AREAS, SECURITY_AREAS } from "@/lib/feature-catalog";

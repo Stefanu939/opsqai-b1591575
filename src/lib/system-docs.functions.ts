@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles } from "@/lib/authorization";
 import { SYSTEM_DOC_CATALOG, type SystemDocEntry } from "@/lib/system-docs/catalog";
 import { FEATURE_CATALOG } from "@/lib/feature-catalog";

@@ -10,7 +10,7 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import JSZip from "jszip";
 import { createHash } from "node:crypto";

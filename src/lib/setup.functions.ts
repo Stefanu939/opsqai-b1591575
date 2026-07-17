@@ -6,7 +6,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 import { SETUP_STEPS, computeSetupComplete, type SetupStepId } from "@/lib/setup-steps";

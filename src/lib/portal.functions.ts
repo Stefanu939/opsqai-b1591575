@@ -9,7 +9,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 
 /** All licenses (install + module) tied to the current user's email. */
 export const getMyPortalOverview = createServerFn({ method: "POST" })

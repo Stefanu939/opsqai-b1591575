@@ -13,7 +13,7 @@
  * The delivery is logged to webhook_deliveries for audit/troubleshooting.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { requireAuth } from "@/lib/providers/require-auth.server";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { createHmac, randomBytes, randomUUID } from "crypto";
 
