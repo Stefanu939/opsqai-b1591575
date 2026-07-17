@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
-const SCRIPT = resolve(__dirname, "..", "build", "verify-bundle.mjs");
+const SCRIPT = resolve(__dirname, "..", "verify-bundle.mjs");
 
 function runVerifier(dir: string) {
   const res = spawnSync(process.execPath, [SCRIPT, "--dir", dir], {
