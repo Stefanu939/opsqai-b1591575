@@ -158,14 +158,14 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const unsubscribe = getBrowserAuthProvider().onSessionChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
         router.invalidate();
         if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
       }
     });
     import("@/lib/register-sw").then((m) => m.registerServiceWorker()).catch(() => {});
-    return () => sub.subscription.unsubscribe();
+    return () => unsubscribe();
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
