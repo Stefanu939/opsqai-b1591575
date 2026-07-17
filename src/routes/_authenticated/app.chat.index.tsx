@@ -42,7 +42,7 @@ function ChatWelcome() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
-  const name = (user?.user_metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
+  const name = (user?.metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
 
   const submit = async () => {
     const q = text.trim();

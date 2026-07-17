@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,14 +89,14 @@ export const Route = createFileRoute("/auth")({
     } catch (err) {
       if (err && typeof err === "object" && "to" in (err as Record<string, unknown>)) throw err;
     }
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
+    const session = await getBrowserAuthProvider().getSession();
+    if (session) {
       const explicit =
         search.next && search.next.startsWith("/") && !search.next.startsWith("//")
           ? search.next
           : null;
       const { target } = await resolvePostLoginTarget(
-        data.session.user.id,
+        session.user.id,
         parseAudience(search.audience),
       );
       throw redirect({ href: explicit ?? target });
@@ -129,14 +130,15 @@ function AuthPage() {
   }, [audience]);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_e, s) => {
-      if (!s) return;
+    const auth = getBrowserAuthProvider();
+    const unsubscribe = auth.onSessionChange(async (event, s) => {
+      if (!s || (event !== "SIGNED_IN" && event !== "USER_UPDATED")) return;
       const explicit =
         nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
       const { target, deny } = await resolvePostLoginTarget(s.user.id, audience);
       if (deny) {
         toast.error(t(deny as "mcAccessDenied"));
-        await supabase.auth.signOut();
+        await auth.signOut();
         return;
       }
       const dest = explicit ?? target;
@@ -146,7 +148,7 @@ function AuthPage() {
         window.location.href = dest;
       }
     });
-    return () => sub.subscription.unsubscribe();
+    return () => unsubscribe();
   }, [navigate, nextParam, audience, t]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -158,8 +160,7 @@ function AuthPage() {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      await getBrowserAuthProvider().signInWithPassword({ email, password });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("errorOccurred"));
     } finally {

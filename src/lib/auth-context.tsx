@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
+import type { OpsqaiSession, OpsqaiUser } from "@/lib/providers/interfaces";
 import type { Permission } from "@/lib/permissions";
 
 interface AuthState {
-  session: Session | null;
-  user: User | null;
+  session: OpsqaiSession | null;
+  user: OpsqaiUser | null;
   roles: string[];
   permissions: Set<string>;
   companyId: string | null;
@@ -54,7 +55,7 @@ function readStoredActiveCompanyId() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<OpsqaiSession | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [permissions, setPermissions] = useState<Set<string>>(new Set());
   const [companyId, setCompanyId] = useState<string | null>(null);
@@ -120,7 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const auth = getBrowserAuthProvider();
+    const unsubscribe = auth.onSessionChange((_event, s) => {
       setSession(s);
       if (s?.user) setTimeout(() => loadProfile(s.user.id), 0);
       else {
@@ -131,12 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setActiveCompanyId(null);
       }
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    auth.getSession().then((s) => {
+      setSession(s);
       setLoading(false);
-      if (data.session?.user) loadProfile(data.session.user.id);
+      if (s?.user) loadProfile(s.user.id);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   // Keep companyName in sync with the active workspace (platform admins can switch).
@@ -158,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [activeCompanyId, companyId, session?.user?.id]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await getBrowserAuthProvider().signOut();
   };
 
   const isPlatformOwner = roles.includes("platform_owner");

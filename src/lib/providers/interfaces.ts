@@ -223,6 +223,11 @@ export interface OpsqaiUser {
   email: string | null;
   /** Provider-specific display name; may be null on Self-Hosted first login. */
   displayName?: string | null;
+  /**
+   * Free-form profile metadata (avatar, full_name, locale). Shape is
+   * provider-defined; consumers must not assume required fields.
+   */
+  metadata?: Record<string, unknown>;
 }
 
 export interface OpsqaiClaims {
@@ -309,7 +314,9 @@ export interface IBrowserAuthProvider {
 
   signInWithPassword(input: { email: string; password: string }): Promise<OpsqaiSession>;
   /** SSO via configured SAML/OIDC provider id. */
-  signInWithSSO(input: { providerId: string } & SignInWithSSOOptions): Promise<void>;
+  signInWithSSO(
+    input: { providerId: string } & SignInWithSSOOptions,
+  ): Promise<{ url?: string }>;
   /** OAuth via Google/Apple/etc. Cloud routes via Lovable broker. */
   signInWithOAuth(
     provider: "google" | "apple",

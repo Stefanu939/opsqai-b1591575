@@ -79,7 +79,7 @@ function MyTrainingHome() {
   const [q, setQ] = useState("");
   const [assignOpen, setAssignOpen] = useState(false);
 
-  const name = (user?.user_metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
+  const name = (user?.metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
 
   useEffect(() => {
     void (async () => {

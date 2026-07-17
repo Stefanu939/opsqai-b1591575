@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Menu, X, Linkedin, Mail, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { LogoMark } from "@/components/brand/logo";
 import { useT, type Lang } from "@/i18n";
 import {
@@ -75,9 +75,10 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
   ];
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
-    return () => sub.subscription.unsubscribe();
+    const auth = getBrowserAuthProvider();
+    auth.getSession().then((s) => setSignedIn(!!s));
+    const unsubscribe = auth.onSessionChange((_e, s) => setSignedIn(!!s));
+    return () => unsubscribe();
   }, []);
 
   return (

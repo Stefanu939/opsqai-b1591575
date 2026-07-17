@@ -13,7 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "@/i18n";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { ChatGlider } from "@/components/support/chat-glider";
 import { LicenseProvider } from "@/lib/license";
 
@@ -158,14 +158,14 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const unsubscribe = getBrowserAuthProvider().onSessionChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
         router.invalidate();
         if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
       }
     });
     import("@/lib/register-sw").then((m) => m.registerServiceWorker()).catch(() => {});
-    return () => sub.subscription.unsubscribe();
+    return () => unsubscribe();
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>

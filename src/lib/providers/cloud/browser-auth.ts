@@ -45,14 +45,14 @@ interface SupabaseUserLike {
 
 function toUser(u: SupabaseUserLike | null | undefined): OpsqaiUser | null {
   if (!u) return null;
-  const meta = (u.user_metadata ?? {}) as { display_name?: unknown; full_name?: unknown };
+  const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
   const displayName =
     typeof meta.display_name === "string"
-      ? meta.display_name
+      ? (meta.display_name as string)
       : typeof meta.full_name === "string"
-        ? meta.full_name
+        ? (meta.full_name as string)
         : null;
-  return { id: u.id, email: u.email ?? null, displayName };
+  return { id: u.id, email: u.email ?? null, displayName, metadata: meta };
 }
 
 function toSession(s: SupabaseSessionLike | null | undefined): OpsqaiSession | null {
@@ -134,11 +134,12 @@ export function createSupabaseBrowserAuthProvider(): IBrowserAuthProvider {
     },
 
     async signInWithSSO({ providerId, redirectTo }: { providerId: string } & SignInWithSSOOptions) {
-      const { error } = await supabase.auth.signInWithSSO({
+      const { data, error } = await supabase.auth.signInWithSSO({
         domain: providerId,
         options: redirectTo ? { redirectTo } : undefined,
       });
       if (error) throw error;
+      return { url: data?.url };
     },
 
     async signInWithOAuth(

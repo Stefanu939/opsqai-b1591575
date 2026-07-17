@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,32 +28,10 @@ function AcceptInvitePage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    // Supabase auto-parses the access_token from the URL hash on load
-    // and emits SIGNED_IN. We confirm we actually have a session before
-    // showing the password form.
+    // On Cloud the provider parses the invite hash and yields a session;
+    // on Self-Hosted it returns kind=invite with no session (Wave B does
+    // not yet ship the local invite flow — Wave C).
     let cancelled = false;
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (cancelled) return;
-      if (!data.session) {
-        // Give Supabase a brief moment to process the hash, then re-check.
-        setTimeout(async () => {
-          const { data: d2 } = await supabase.auth.getSession();
-          if (cancelled) return;
-          if (!d2.session) {
-            setInvalid(true);
-          } else {
-            setEmail(d2.session.user.email ?? null);
-            await loadCompany(d2.session.user.id);
-            setReady(true);
-          }
-        }, 400);
-        return;
-      }
-      setEmail(data.session.user.email ?? null);
-      await loadCompany(data.session.user.id);
-      setReady(true);
-    };
     const loadCompany = async (uid: string) => {
       const { data: prof } = await supabase
         .from("profiles")
@@ -61,6 +40,25 @@ function AcceptInvitePage() {
         .maybeSingle();
       const joined = (prof as { companies?: { name?: string } | null } | null)?.companies;
       setCompany(joined?.name ?? null);
+    };
+    const init = async () => {
+      const auth = getBrowserAuthProvider();
+      const first = await auth.setSessionFromUrl();
+      if (cancelled) return;
+      let session = first.session ?? (await auth.getSession());
+      if (!session) {
+        // Give the provider a brief moment to process the hash, then re-check.
+        await new Promise((r) => setTimeout(r, 400));
+        session = await auth.getSession();
+        if (cancelled) return;
+      }
+      if (!session) {
+        setInvalid(true);
+        return;
+      }
+      setEmail(session.user.email ?? null);
+      await loadCompany(session.user.id);
+      setReady(true);
     };
     init();
     return () => {
@@ -79,12 +77,14 @@ function AcceptInvitePage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await getBrowserAuthProvider().updatePassword(password);
+    } catch (err) {
+      setBusy(false);
+      toast.error(err instanceof Error ? err.message : "Could not update password");
       return;
     }
+    setBusy(false);
     toast.success("Password set. Welcome to OPSQAI.");
     navigate({ to: "/app" });
   };

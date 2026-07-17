@@ -6,6 +6,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { getAcademyLesson, generateAcademyQuiz, submitAcademyQuiz } from "@/lib/academy.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -75,11 +76,11 @@ function LessonPage() {
       try {
         const [l, sess] = await Promise.all([
           get({ data: { id: lessonId } }) as Promise<any>,
-          supabase.auth.getSession(),
+          getBrowserAuthProvider().getSession(),
         ]);
         if (!alive) return;
         setLesson(l);
-        setToken(sess.data.session?.access_token ?? "");
+        setToken(sess?.accessToken ?? "");
       } catch (e: any) {
         if (!alive) return;
         setError(e?.message ?? "Could not load the lesson.");
