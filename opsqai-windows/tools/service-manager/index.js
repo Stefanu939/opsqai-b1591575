@@ -131,9 +131,39 @@ const cmds = {
         die(
           "update apply requires administrator (right-click Command Prompt → Run as administrator).",
         );
-      console.log(`Launching installer: ${state.lastStaged.path}`);
-      spawn(state.lastStaged.path, [], { detached: true, stdio: "ignore" }).unref();
-      process.exit(0);
+
+      // Phase 7 orchestrated apply: pre-flight → snapshot → binary
+      // copy → installer swap → migrate → health probe → auto rollback.
+      // apply.js exits with 0 on success, 4 on rollback, 99 on fatal.
+      const applyScript = path.resolve(__dirname, "..", "..", "services", "updater", "apply.js");
+      const stagedApply = programFiles("services", "updater", "apply.js");
+      const script = fs.existsSync(stagedApply) ? stagedApply : applyScript;
+      console.log(`Orchestrating update: ${state.lastStaged.version}`);
+      const r = spawnSync(process.execPath, [script], { stdio: "inherit" });
+      process.exit(r.status ?? 1);
+    }
+    if (sub === "history") {
+      const jsonl = programData("logs", "update-history.jsonl");
+      if (!fs.existsSync(jsonl)) return console.log("(no history yet)");
+      const rows = fs
+        .readFileSync(jsonl, "utf8")
+        .split(/\r?\n/)
+        .filter(Boolean)
+        .slice(-20)
+        .map((l) => {
+          try {
+            return JSON.parse(l);
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean);
+      for (const r of rows) {
+        console.log(
+          `${r.started_at}  ${r.from_version} → ${r.to_version}  ${r.outcome}${r.failed_step ? " (" + r.failed_step + ")" : ""}`,
+        );
+      }
+      return;
     }
     die(`unknown update subcommand: ${sub}`);
   },
