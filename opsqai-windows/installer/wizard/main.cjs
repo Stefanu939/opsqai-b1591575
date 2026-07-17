@@ -80,6 +80,82 @@ ipcMain.handle("wizard:validatePort", async (_e, port) => {
   return { ok: true };
 });
 
+// -------- License file picker + shallow validation -------------------------
+// The bundled OPSQAI license is a JWT (three base64url parts separated by
+// dots) signed with Ed25519. We only check structural shape here; the
+// authoritative verification happens inside the platform at bootstrap
+// via local-licensing.server.ts.
+ipcMain.handle("wizard:pickLicenseFile", async () => {
+  const r = await dialog.showOpenDialog(win, {
+    title: "Select OPSQAI license file",
+    properties: ["openFile"],
+    filters: [
+      { name: "OPSQAI license", extensions: ["opsqai", "lic", "jwt", "txt"] },
+      { name: "All files", extensions: ["*"] },
+    ],
+  });
+  if (r.canceled || !r.filePaths.length) return { ok: false, cancelled: true };
+  try {
+    const contents = fs.readFileSync(r.filePaths[0], "utf8").trim();
+    return { ok: true, path: r.filePaths[0], contents };
+  } catch (e) {
+    return { ok: false, error: `Cannot read license: ${e.message}` };
+  }
+});
+
+ipcMain.handle("wizard:validateLicense", async (_e, contents) => {
+  const s = String(contents || "").trim();
+  if (!s) return { ok: false, error: "License is empty" };
+  const parts = s.split(".");
+  if (parts.length !== 3) {
+    return { ok: false, error: "Not a valid OPSQAI license (expected JWT format)" };
+  }
+  try {
+    const payload = JSON.parse(
+      Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+    );
+    return {
+      ok: true,
+      claims: {
+        edition: payload.edition ?? payload.tier ?? "community",
+        seats: payload.seats ?? null,
+        exp: payload.exp ?? null,
+        customer: payload.customer ?? payload.sub ?? null,
+        modules: Array.isArray(payload.modules) ? payload.modules : [],
+      },
+    };
+  } catch (e) {
+    return { ok: false, error: `License payload is not valid JSON: ${e.message}` };
+  }
+});
+
+// -------- SMTP connection test ---------------------------------------------
+// Uses nodemailer bundled inside the installer's wizard node_modules to
+// verify the SMTP credentials the operator entered. We do NOT send a real
+// message here — verify() opens the connection, authenticates, then quits.
+ipcMain.handle("wizard:testSmtp", async (_e, cfg) => {
+  try {
+    // Loaded lazily so the wizard still starts on machines where the
+    // optional dependency was pruned. The build script bundles it.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const nodemailer = require("nodemailer");
+    const transporter = nodemailer.createTransport({
+      host: cfg.host,
+      port: Number(cfg.port) || 587,
+      secure: !!cfg.secure,
+      auth: cfg.username ? { user: cfg.username, pass: cfg.password || "" } : undefined,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
+    });
+    await transporter.verify();
+    transporter.close();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+});
+
 ipcMain.handle("wizard:install", async (event, config) => {
   win.__installing = true;
   const args = [
