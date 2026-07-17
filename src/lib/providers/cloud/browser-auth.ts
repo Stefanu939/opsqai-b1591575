@@ -134,11 +134,12 @@ export function createSupabaseBrowserAuthProvider(): IBrowserAuthProvider {
     },
 
     async signInWithSSO({ providerId, redirectTo }: { providerId: string } & SignInWithSSOOptions) {
-      const { error } = await supabase.auth.signInWithSSO({
+      const { data, error } = await supabase.auth.signInWithSSO({
         domain: providerId,
         options: redirectTo ? { redirectTo } : undefined,
       });
       if (error) throw error;
+      return { url: data?.url };
     },
 
     async signInWithOAuth(
