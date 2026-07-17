@@ -66,6 +66,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicDoctorRouteImport } from './routes/api/public/doctor'
 import { Route as ApiPublicContactSubmitRouteImport } from './routes/api.public.contact-submit'
 import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
 import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
@@ -410,6 +411,11 @@ const ApiPublicMetricsRoute = ApiPublicMetricsRouteImport.update({
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDoctorRoute = ApiPublicDoctorRouteImport.update({
+  id: '/api/public/doctor',
+  path: '/api/public/doctor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicContactSubmitRoute = ApiPublicContactSubmitRouteImport.update({
@@ -804,6 +810,7 @@ export interface FileRoutesByFullPath {
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/api/public/doctor': typeof ApiPublicDoctorRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
@@ -909,6 +916,7 @@ export interface FileRoutesByTo {
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/api/public/doctor': typeof ApiPublicDoctorRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
@@ -1023,6 +1031,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/public/contact-submit': typeof ApiPublicContactSubmitRoute
+  '/api/public/doctor': typeof ApiPublicDoctorRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
@@ -1137,6 +1146,7 @@ export interface FileRouteTypes {
     | '/portal/subscription'
     | '/portal/support'
     | '/api/public/contact-submit'
+    | '/api/public/doctor'
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
@@ -1242,6 +1252,7 @@ export interface FileRouteTypes {
     | '/portal/subscription'
     | '/portal/support'
     | '/api/public/contact-submit'
+    | '/api/public/doctor'
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
@@ -1355,6 +1366,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/subscription'
     | '/_authenticated/portal/support'
     | '/api/public/contact-submit'
+    | '/api/public/doctor'
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
@@ -1424,6 +1436,7 @@ export interface RootRouteChildren {
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicContactSubmitRoute: typeof ApiPublicContactSubmitRoute
+  ApiPublicDoctorRoute: typeof ApiPublicDoctorRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
@@ -1838,6 +1851,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/health'
       fullPath: '/api/public/health'
       preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/doctor': {
+      id: '/api/public/doctor'
+      path: '/api/public/doctor'
+      fullPath: '/api/public/doctor'
+      preLoaderRoute: typeof ApiPublicDoctorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/contact-submit': {
@@ -2506,6 +2526,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicContactSubmitRoute: ApiPublicContactSubmitRoute,
+  ApiPublicDoctorRoute: ApiPublicDoctorRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
