@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,32 +42,29 @@ function SsoSignInPage() {
     const domain = trimmed.slice(at + 1);
     setBusy(true);
     try {
-      const { data, error } = await supabase.auth.signInWithSSO({
-        domain,
-        options: { redirectTo: `${window.location.origin}/app` },
+      const { url } = await getBrowserAuthProvider().signInWithSSO({
+        providerId: domain,
+        redirectTo: `${window.location.origin}/app`,
       });
-      if (error) {
-        const msg = error.message?.toLowerCase() ?? "";
-        if (
-          msg.includes("no sso") ||
-          msg.includes("not found") ||
-          msg.includes("no provider") ||
-          msg.includes("unsupported") ||
-          msg.includes("domain")
-        ) {
-          setNotConfigured(domain);
-        } else {
-          setErrorMsg(error.message);
-        }
-        return;
-      }
-      if (data?.url) {
-        window.location.href = data.url;
+      if (url) {
+        window.location.href = url;
       } else {
         setErrorMsg("Unexpected response from identity provider.");
       }
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Could not start SSO sign-in.");
+      const raw = err instanceof Error ? err.message : "Could not start SSO sign-in.";
+      const msg = raw.toLowerCase();
+      if (
+        msg.includes("no sso") ||
+        msg.includes("not found") ||
+        msg.includes("no provider") ||
+        msg.includes("unsupported") ||
+        msg.includes("domain")
+      ) {
+        setNotConfigured(domain);
+      } else {
+        setErrorMsg(raw);
+      }
     } finally {
       setBusy(false);
     }
