@@ -1,100 +1,169 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
+import { z } from "zod";
+import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
+
+async function resolveCompany(context: { supabase: any; userId: string }, hint?: string | null) {
+  await requirePermission(context, "dashboard.view");
+  const actor = await getActorRoles(getCloudSupabase(context, "dashboard"), context.userId);
+  const isPlatform = actor.isPlatformAdmin;
+  let companyId = hint ?? null;
+  if (!companyId || !isPlatform) {
+    companyId = (await getProfileCompany(getCloudSupabase(context, "dashboard"), context.userId)) ?? companyId;
+  }
+  if (!companyId && isPlatform) {
+    const { data: firstCompany } = await getCloudSupabase(context, "dashboard")
+      .from("companies")
+      .select("id")
+      .eq("active", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    companyId = firstCompany?.id ?? null;
+  }
+  if (!companyId) throw new Error("No company");
+  return { companyId, isPlatform };
+}
+
+const CompanyArg = z.object({ companyId: z.string().uuid().optional().nullable() }).optional();
+
+export const getDashboardOverview = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => CompanyArg.parse(d) ?? {})
+  .handler(async ({ data, context }) => {
+    const { companyId } = await resolveCompany(context, data?.companyId ?? null);
+    const [kpis, health, status, top, critical, lastAudit] = await Promise.all([
+      getCloudSupabase(context, "dashboard").rpc("dashboard_kpis", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_health", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_knowledge_status", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 5 }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_critical_sops", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_last_ai_audit", { p_company: companyId }),
+    ]);
+    return {
+      kpis: kpis.data ?? {},
+      health: health.data ?? { score: 0, label: "—", breakdown: {} },
+      knowledgeStatus: status.data ?? { complete: 0, inProgress: 0, missing: 0 },
+      topSops: top.data ?? [],
+      criticalSops: critical.data ?? [],
+      lastAudit: lastAudit.data ?? null,
+    };
+  });
+
+const ActivityArg = z.object({
+  companyId: z.string().uuid().optional().nullable(),
+  from: z.string(),
+  to: z.string(),
+  bucket: z.enum(["hour", "day", "week"]).default("day"),
+});
+export const getDashboardActivity = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => ActivityArg.parse(d))
+  .handler(async ({ data, context }) => {
+    const { companyId } = await resolveCompany(context, data.companyId ?? null);
+    const { data: rows, error } = await getCloudSupabase(context, "dashboard").rpc("dashboard_activity", {
+      p_company: companyId,
+      p_from: data.from,
+      p_to: data.to,
+      p_bucket: data.bucket,
+    });
+    if (error) throw new Error(error.message);
+    return { rows: rows ?? [] };
+  });
 
 /**
- * Lightweight overview counts for the Self-Hosted dashboard empty state.
- * All queries scope naturally under the caller's RLS / actor company —
- * no admin privileges required.
+ * AI-generated operational insights (executive bullets).
+ * Strict: only renders facts already computed; the LLM only summarises numbers.
  */
-export const getDashboardOverview = createServerFn({ method: "GET" })
+export const getExecutiveInsights = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .handler(async ({ context }) => {
-    const sb = context.supabase as {
-      from: (t: string) => {
-        select: (c: string, o?: { count?: "exact"; head?: boolean }) => Promise<{
-          count: number | null;
-          error: unknown;
-        }> & {
-          eq: (
-            k: string,
-            v: string,
-          ) => Promise<{ count: number | null; error: unknown }>;
-          maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
-        };
-      };
-    };
-
-    const safeCount = async (
-      p: Promise<{ count: number | null; error: unknown }>,
-    ): Promise<number> => {
-      try {
-        const r = await p;
-        return r.count ?? 0;
-      } catch {
-        return 0;
-      }
-    };
-
-    const [documents, users, departments] = await Promise.all([
-      safeCount(
-        sb
-          .from("knowledge_documents")
-          .select("id", { count: "exact", head: true }) as unknown as Promise<{
-          count: number | null;
-          error: unknown;
-        }>,
-      ),
-      safeCount(
-        sb.from("profiles").select("id", { count: "exact", head: true }) as unknown as Promise<{
-          count: number | null;
-          error: unknown;
-        }>,
-      ),
-      safeCount(
-        sb
-          .from("departments")
-          .select("id", { count: "exact", head: true }) as unknown as Promise<{
-          count: number | null;
-          error: unknown;
-        }>,
-      ),
+  .inputValidator((d: unknown) => CompanyArg.parse(d) ?? {})
+  .handler(async ({ data, context }) => {
+    const { companyId } = await resolveCompany(context, data?.companyId ?? null);
+    const [{ data: kpis }, { data: health }, { data: top }, { data: status }] = await Promise.all([
+      getCloudSupabase(context, "dashboard").rpc("dashboard_kpis", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_health", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 3 }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_knowledge_status", { p_company: companyId }),
     ]);
 
-    // Fetch caller display name (best-effort; empty on failure).
-    let displayName = "";
-    let companyName = "";
+    const apiKey = process.env.LOVABLE_API_KEY;
+    const fallback = buildFallbackInsights({ kpis, health, top, status });
+    if (!apiKey) return { insights: fallback };
     try {
-      const profile = (await (sb.from("profiles") as unknown as {
-        select: (c: string) => {
-          eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> };
-        };
-      })
-        .select("full_name, company_id")
-        .eq("user_id", context.userId)
-        .maybeSingle()) as { data: { full_name?: string; company_id?: string } | null };
-      displayName = profile.data?.full_name ?? "";
-      const companyId = profile.data?.company_id;
-      if (companyId) {
-        const company = (await (sb.from("companies") as unknown as {
-          select: (c: string) => {
-            eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> };
-          };
-        })
-          .select("name")
-          .eq("id", companyId)
-          .maybeSingle()) as { data: { name?: string } | null };
-        companyName = company.data?.name ?? "";
+      const { generateText } = await import("ai");
+      const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
+      const gw = createLovableAiGatewayProvider(apiKey);
+      const { text } = await generateText({
+        model: gw("google/gemini-3-flash-preview"),
+        temperature: 0.4,
+        prompt: `You are an operations analyst. Produce exactly 4 short executive insights (max 18 words each) as plain JSON array of strings. Base ONLY on this JSON, do not invent numbers.\n\n${JSON.stringify({ kpis, health, topSops: top, knowledgeStatus: status })}\n\nReturn JSON only, e.g. ["...","...","...","..."].`,
+      });
+      const m = text.match(/\[[\s\S]*\]/);
+      if (m) {
+        const arr = JSON.parse(m[0]);
+        if (Array.isArray(arr) && arr.length > 0) return { insights: arr.slice(0, 6).map(String) };
       }
     } catch {
-      /* non-fatal */
+      /* fall through */
     }
+    return { insights: fallback };
+  });
 
-    return {
-      documents,
-      users,
-      departments,
-      displayName,
-      companyName,
-      isEmpty: documents === 0 && users <= 1 && departments === 0,
-    };
+function buildFallbackInsights(o: { kpis: any; health: any; top: any; status: any }): string[] {
+  const out: string[] = [];
+  if (o.health?.score != null)
+    out.push(`Workspace health is ${o.health.score}/100 — ${o.health.label}.`);
+  if (o.kpis?.openGaps > 0) out.push(`${o.kpis.openGaps} open knowledge gap(s) require attention.`);
+  if (o.kpis?.questionsToday != null)
+    out.push(
+      `${o.kpis.questionsToday} questions answered today (last 30d: ${o.kpis.questions30d}).`,
+    );
+  if (Array.isArray(o.top) && o.top[0]?.title)
+    out.push(`Most accessed SOP this month: ${o.top[0].title}.`);
+  if (o.status?.missing > 0)
+    out.push(`${o.status.missing} missing knowledge items detected from gap analysis.`);
+  return out.length ? out : ["Workspace is quiet — no significant operational signals."];
+}
+
+const SaveLayoutArg = z.object({ layout: z.any() });
+export const saveDashboardLayout = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => SaveLayoutArg.parse(d))
+  .handler(async ({ data, context }) => {
+    await getCloudSupabase(context, "dashboard")
+      .from("profiles")
+      .update({ dashboard_layout: data.layout })
+      .eq("id", context.userId);
+    return { ok: true };
+  });
+
+export const getDashboardLayout = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const { data } = await getCloudSupabase(context, "dashboard")
+      .from("profiles")
+      .select("dashboard_layout")
+      .eq("id", context.userId)
+      .maybeSingle();
+    return { layout: data?.dashboard_layout ?? null };
+  });
+
+const SearchArg = z.object({
+  q: z.string().min(1),
+  companyId: z.string().uuid().optional().nullable(),
+});
+export const globalSearch = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => SearchArg.parse(d))
+  .handler(async ({ data, context }) => {
+    const { companyId } = await resolveCompany(context, data.companyId ?? null);
+    const { data: rows, error } = await getCloudSupabase(context, "dashboard").rpc("search_everywhere", {
+      p_company: companyId,
+      p_q: data.q,
+      p_limit: 8,
+    });
+    if (error) throw new Error(error.message);
+    return { results: rows ?? [] };
   });
