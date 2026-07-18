@@ -222,12 +222,13 @@ function isStepDone(step: StepId, done: Set<string>): boolean {
 
 function StepHeader({ title, description }: { title: string; description: string }) {
   return (
-    <header className="mb-4 space-y-1">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <p className="text-sm text-muted-foreground">{description}</p>
+    <header className="mb-6 space-y-2 pb-4 border-b border-border/60">
+      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </header>
   );
 }
+
 
 function EulaStep({ onDone }: { onDone: () => void }) {
   const [checked, setChecked] = useState(false);
