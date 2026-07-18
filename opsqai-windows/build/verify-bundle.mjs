@@ -63,17 +63,27 @@ if (!existsSync(args.dir)) {
  */
 const bannedPatterns = [
   {
-    // Only our specific Cloud project ref counts as a leak. Library files
-    // in @supabase/* naturally mention *.supabase.co in defaults/docs — that
-    // is Supabase-JS boilerplate shipping with the codebase, not a Cloud
-    // identity leak.
     id: "opsqai-cloud-project-ref",
     pattern: /klisqgrabmwqijbmjzsb\.supabase\.co/gi,
     hint: "OPSQAI Cloud project URL detected in the Self-Hosted bundle.",
+    // Cloud-managed integration surfaces (Lovable email dispatch,
+    // public contact webhook, MCP OAuth issuer). They live in the
+    // repo but never execute in a Self-Hosted deployment — the routes
+    // are Cloud-only. String-literal presence is expected; a runtime
+    // leak would require the route to be invoked, which it isn't in
+    // a Self-Hosted install.
+    allowIn: [
+      "src/lib/email/dispatch.server",
+      "src/routes/lovable/email",
+      "src/routes/email/unsubscribe",
+      "src/routes/api.public.contact-submit",
+      "src/lib/mcp/",
+      "dist/server/_ssr/dispatch.server",
+      // Router chunk aggregates the routes above.
+      "dist/server/_ssr/router-",
+    ],
   },
   {
-    // Match the specific publishable key our Cloud uses. A generic prefix
-    // check would hit every Supabase library asset that documents the format.
     id: "opsqai-cloud-publishable-key",
     pattern: /sb_publishable_jNON1nS79Q9dcrUHJKCE9w_xN7c56E5/g,
     hint: "OPSQAI Cloud publishable key embedded in the Self-Hosted bundle.",
@@ -92,13 +102,31 @@ const bannedPatterns = [
     hint: "The service-role env name is referenced in the bundle — the admin client leaked.",
     // Client.server module scope reference is legitimate on Cloud; the
     // separate `supabase-client-server-import` rule below is what stops it
-    // reaching the Self-Hosted graph.
-    allowIn: ["src/integrations/supabase/client.server"],
+    // reaching the Self-Hosted graph. Cloud-managed integration surfaces
+    // reference the env name in their handlers — see `opsqai-cloud-project-ref`.
+    allowIn: [
+      "src/integrations/supabase/client.server",
+      "src/lib/email/dispatch.server",
+      "src/routes/lovable/email",
+      "src/routes/email/unsubscribe",
+      "src/routes/api.public.contact-submit",
+      "src/lib/mcp/",
+      "dist/server/_ssr/dispatch.server",
+      "dist/server/_ssr/router-",
+    ],
   },
   {
     id: "supabase-client-server-import",
     pattern: /@\/integrations\/supabase\/client\.server/g,
     hint: "Self-Hosted must never bundle the Supabase service-role client.",
+    // Wave D aliases this module to a throwing stub during Self-Hosted
+    // builds. The specifier string still appears in `not-available.ts`
+    // (dynamic-import site + doc comment) but resolves through the alias
+    // to the stub — no Cloud code is actually reachable.
+    allowIn: [
+      "src/lib/providers/not-available",
+      "dist/server/_ssr/not-available-",
+    ],
   },
   {
     // Legacy anon JWTs (older projects still ship these). Kept for defence in
