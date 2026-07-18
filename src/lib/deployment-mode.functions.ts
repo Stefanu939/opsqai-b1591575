@@ -12,7 +12,7 @@ export const getDeploymentInfo = createServerFn({ method: "GET" }).handler(async
   let installId: string | null = null;
   let installerVersion: string | null = null;
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("deployment-mode");
     const { data } = await supabaseAdmin
       .from("platform_config")
       .select("install_id, installer_version")

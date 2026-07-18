@@ -19,7 +19,7 @@ import { runDoctorReport } from "@/lib/doctor.server";
 const VALID_STEP_IDS = new Set<string>(SETUP_STEPS.map((s) => s.id));
 
 async function markStep(stepId: SetupStepId): Promise<void> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
   const { data: cfg } = await supabaseAdmin
     .from("platform_config")
     .select("setup_progress")
@@ -43,7 +43,7 @@ export const getFirstRunGate = createServerFn({ method: "GET" }).handler(async (
 /** Public: current wizard progress (non-secret step IDs only). */
 export const getFirstRunProgress = createServerFn({ method: "GET" }).handler(async () => {
   await assertFirstRunOpen();
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
   const { data } = await supabaseAdmin
     .from("platform_config")
     .select(
@@ -67,7 +67,7 @@ export const acceptEula = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AcceptEulaInput.parse(d))
   .handler(async () => {
     await assertFirstRunOpen();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
     await supabaseAdmin
       .from("platform_config")
       .update({ eula_accepted_at: new Date().toISOString() })
@@ -90,7 +90,7 @@ export const firstRunImportLicense = createServerFn({ method: "POST" })
 
 export const firstRunTestStorage = createServerFn({ method: "POST" }).handler(async () => {
   await assertFirstRunOpen();
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
   const bucket = process.env.OPSQAI_UPLOADS_BUCKET || "uploads";
   const probeKey = `.first-run-probe-${Date.now()}.txt`;
   const { error: upErr } = await supabaseAdmin.storage
@@ -138,7 +138,7 @@ export const firstRunSetAiProvider = createServerFn({ method: "POST" })
       await writeSecretsEnv({ [envKey]: data.api_key, AI_PROVIDER: data.provider });
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
     await supabaseAdmin
       .from("platform_config")
       .update({ ai_provider_config: publicConfig })
@@ -221,7 +221,7 @@ export const firstRunSetBackupTarget = createServerFn({ method: "POST" })
       });
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
     await supabaseAdmin
       .from("platform_config")
       .update({ backup_config: publicConfig })
@@ -248,7 +248,7 @@ export const firstRunCreateAdmin = createServerFn({ method: "POST" })
     // `first_run_bootstrap_admin` is the authoritative race guard.
     await assertFirstRunOpen();
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
 
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,

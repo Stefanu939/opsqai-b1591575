@@ -950,7 +950,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
     // SECURITY: score/passed are guarded by a BEFORE UPDATE trigger that
     // rejects non-service-role writes, so we grade with the admin client.
     // The caller was already authorized above (attempt.user_id check).
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("academy");
     await (supabaseAdmin as any)
       .from("academy_quiz_attempts")
       .update({
@@ -1221,7 +1221,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
     });
 
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supabaseAdmin = await getCloudSupabaseAdmin("academy");
       const { data: learnerAuth } = await supabaseAdmin.auth.admin.getUserById(
         (enroll as any).user_id,
       );
@@ -1292,7 +1292,7 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
     if (!(cert as any).pdf_path) throw new Error("PDF not generated yet");
     // Use the admin client for signed URL generation so it works regardless of
     // RLS storage-read scoping (the row-level cert check above is the gate).
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("academy");
     const { data: url, error } = await supabaseAdmin.storage
       .from("academy-certificates")
       .createSignedUrl((cert as any).pdf_path, 600, {

@@ -9,7 +9,7 @@ export const getAdminStats = createServerFn({ method: "POST" })
     await requirePermission(context, "dashboard.view");
     const { isPlatformAdmin } = await getActorRoles(getCloudSupabase(context, "admin-stats"), context.userId);
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("admin-stats");
     const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     // For company admins, scope everything to their company
@@ -146,7 +146,7 @@ export const listAuditLog = createServerFn({ method: "POST" })
     await requirePermission(context, "audit.view");
     const { isPlatformAdmin } = await getActorRoles(getCloudSupabase(context, "admin-stats"), context.userId);
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("admin-stats");
 
     // Tenant scoping — platform admins see everything, others only their own company.
     let companyFilter: string | null = null;

@@ -56,7 +56,7 @@ export const generateBreakGlass = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => RegenBreakGlassInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("dr");
     const { generateBreakGlassSecret } = await import("@/lib/break-glass.server");
 
     const { data: cfg } = await supabaseAdmin
@@ -95,7 +95,7 @@ export const redeemBreakGlass = createServerFn({ method: "POST" })
     // sense — it's a local one-shot recovery token — but reason field is
     // still blacklist-scanned.
     assertNoBlacklistedSecrets({ reason: data.reason }, "redeemBreakGlass input");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("dr");
     const { verifyBreakGlassSecret } = await import("@/lib/break-glass.server");
 
     const { data: cfg } = await supabaseAdmin
@@ -140,7 +140,7 @@ export const issueBootstrapToken = createServerFn({ method: "POST" })
     assertNoBlacklistedSecrets(data, "issueBootstrapToken input");
 
     const { signBootstrapToken } = await import("@/lib/dr-tokens.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("dr");
 
     const { token, payload } = await signBootstrapToken({
       install_id: data.install_id,
@@ -192,7 +192,7 @@ export const redeemBootstrapToken = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     assertNoBlacklistedSecrets({ reason: data.reason }, "redeemBootstrapToken input");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("dr");
     const { verifyBootstrapToken, peekBootstrapKeyId } = await import("@/lib/dr-tokens.server");
 
     const { data: cfg } = await supabaseAdmin
@@ -242,7 +242,7 @@ export const exitRecoveryMode = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("dr");
     const { error } = await supabaseAdmin
       .from("platform_config")
       .update({

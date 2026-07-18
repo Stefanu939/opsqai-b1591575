@@ -113,7 +113,7 @@ export const issueLicense = createServerFn({ method: "POST" })
       maintenance_expires_at: maintSec,
     });
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
     const { error } = await supabaseAdmin.from("licenses").insert({
       install_id: data.install_id,
       kind: "install",
@@ -143,7 +143,7 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     assertNoBlacklistedSecrets(data, "issueModuleLicense input");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
 
     // Installation License must exist first.
     const { data: install } = await supabaseAdmin
@@ -259,7 +259,7 @@ export const deleteLicense = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
     const { error } = await supabaseAdmin
       .from("licenses")
       .delete()
@@ -337,7 +337,7 @@ export const transferOwnership = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     assertNoBlacklistedSecrets(data, "transferOwnership input");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
     const { data: current } = await supabaseAdmin
       .from("licenses")
       .select("id, owner_type, handed_over_at")

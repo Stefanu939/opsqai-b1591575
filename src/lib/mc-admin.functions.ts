@@ -18,7 +18,7 @@ export const listPlatformAuditLog = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AuditFilters.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     let q = supabaseAdmin
       .from("audit_log")
       .select(
@@ -41,7 +41,7 @@ export const getPlatformConfig = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const { data, error } = await supabaseAdmin
       .from("platform_config")
       .select(
@@ -66,7 +66,7 @@ export const savePlatformAiConfig = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AiConfigSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const { error } = await supabaseAdmin
       .from("platform_config")
       .update({ ai_provider_config: data, updated_at: new Date().toISOString() })
@@ -81,7 +81,7 @@ export const listCustomerProfiles = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const { data: companies, error } = await supabaseAdmin
       .from("companies")
       .select(
@@ -165,7 +165,7 @@ export const upsertCustomerContract = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => UpsertContractSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const patch: {
       company_id: string;
       updated_at: string;
@@ -192,7 +192,7 @@ export const getPortalSnapshot = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const [releasesRes, licensesRes, ticketsRes] = await Promise.all([
       supabaseAdmin
         .from("license_releases")

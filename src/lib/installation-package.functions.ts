@@ -47,7 +47,7 @@ export const generateInstallationPackage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
     const { buildActivationBundle } = await import("@/lib/license-activation-core.server");
     const { assembleInstallationPackage } = await import("@/lib/installation-package.server");
 
@@ -194,7 +194,7 @@ export const getInstallationPackageDownloadUrl = createServerFn({ method: "POST"
   .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
 
     const { data: inst } = await supabaseAdmin
       .from("license_installs")
@@ -230,7 +230,7 @@ export const getMyInstallationPackageDownloadUrl = createServerFn({ method: "POS
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) throw new Error("unauthenticated");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
     const { data: lic } = await supabaseAdmin
       .from("licenses")
       .select("install_id")
@@ -273,7 +273,7 @@ export const getInstallationPackageStatus = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
 
     const [instRes, licRes, dlRes] = await Promise.all([
       supabaseAdmin
@@ -320,7 +320,7 @@ export const setInstallerPin = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
     const { error } = await supabaseAdmin
       .from("licenses")
       .update({ pinned_installer_version: data.pinned_installer_version })
@@ -351,7 +351,7 @@ export const setTechnicalContactEmail = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
     const { error } = await supabaseAdmin
       .from("licenses")
       .update({ technical_contact_email: data.technical_contact_email })

@@ -28,7 +28,7 @@ export const getCustomerProfile = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const [{ data: company }, { data: profile }] = await Promise.all([
       supabaseAdmin
         .from("companies")
@@ -64,7 +64,7 @@ export const upsertCustomerProfile = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ProfilePatch.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { error } = await supabaseAdmin
       .from("customer_profiles")
       .upsert({ ...data }, { onConflict: "company_id" });
@@ -79,7 +79,7 @@ export const listCustomerFeatures = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: rows, error } = await supabaseAdmin
       .from("customer_features")
       .select("*")
@@ -111,7 +111,7 @@ export const upsertCustomerFeature = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => FeatureUpsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { error } = await supabaseAdmin
       .from("customer_features")
       .upsert(data, { onConflict: "company_id,feature_key" });
@@ -126,7 +126,7 @@ export const listCustomerCompliance = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: rows, error } = await supabaseAdmin
       .from("customer_compliance")
       .select("*")
@@ -162,7 +162,7 @@ export const upsertCustomerCompliance = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ComplianceUpsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { error } = await supabaseAdmin
       .from("customer_compliance")
       .upsert(data, { onConflict: "company_id,area" });
@@ -177,7 +177,7 @@ export const listCustomerSecurity = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: rows, error } = await supabaseAdmin
       .from("customer_security")
       .select("*")
@@ -211,7 +211,7 @@ export const upsertCustomerSecurity = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => SecurityUpsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { error } = await supabaseAdmin
       .from("customer_security")
       .upsert(data, { onConflict: "company_id,area" });
@@ -226,7 +226,7 @@ export const customerHealth = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: rpc, error } = await (supabaseAdmin as any).rpc("customer_health", {
       p_company: data.company_id,
     });
@@ -241,7 +241,7 @@ export const listCustomerTimeline = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: rows, error } = await supabaseAdmin
       .from("customer_timeline")
       .select("id, event_type, title, payload, occurred_at, created_by")
@@ -264,7 +264,7 @@ export const addCustomerTimelineEvent = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => TimelineInsert.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { error } = await supabaseAdmin.from("customer_timeline").insert({
       ...data,
       created_by: context.userId,
@@ -280,7 +280,7 @@ export const listCustomerDocuments = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: rows, error } = await supabaseAdmin
       .from("customer_documents")
       .select(
@@ -297,7 +297,7 @@ export const getCustomerDocument = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: doc, error } = await supabaseAdmin
       .from("customer_documents")
       .select("*")
@@ -413,7 +413,7 @@ export const generateCustomerDocument = createServerFn({ method: "POST" })
     await requireCustomerManagerAccess(context);
     const tpl = TEMPLATES[data.template as TemplateKey];
     if (!tpl) throw new Error("Unknown template");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const [{ data: company }, { data: profile }] = await Promise.all([
       supabaseAdmin.from("companies").select("name").eq("id", data.company_id).maybeSingle(),
       supabaseAdmin
@@ -485,7 +485,7 @@ export const regenerateCustomerDocument = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: doc } = await supabaseAdmin
       .from("customer_documents")
       .select("id, company_id, doc_type")
@@ -503,7 +503,7 @@ export const generateAllStandardDocuments = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: profile } = await supabaseAdmin
       .from("customer_profiles")
       .select("commercial")
@@ -541,7 +541,7 @@ export const generateCustomerPackage = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: existing } = await supabaseAdmin
       .from("customer_documents")
       .select("id, doc_type")
@@ -590,7 +590,7 @@ export const updateCustomerDocument = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => DocPatch.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { id, ...patch } = data;
     const { error } = await supabaseAdmin.from("customer_documents").update(patch).eq("id", id);
     if (error) throw new Error(error.message);
@@ -602,7 +602,7 @@ export const deleteCustomerDocument = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { error } = await supabaseAdmin.from("customer_documents").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -613,7 +613,7 @@ export const deleteAllCustomerDocuments = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyOnly.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: rows, error: selErr } = await supabaseAdmin
       .from("customer_documents")
       .select("id")
@@ -657,7 +657,7 @@ export const restoreCustomerDocumentVersion = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ document_id: Uuid, version_id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: ver, error } = await supabaseAdmin
       .from("customer_document_versions")
       .select("title, markdown, metadata")
@@ -888,7 +888,7 @@ export const exportCustomerDocument = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ExportInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: doc } = await supabaseAdmin
       .from("customer_documents")
       .select("id, company_id, title, markdown, version, doc_type")
@@ -1070,7 +1070,7 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => DownloadInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireCustomerManagerAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("customers");
     const { data: company } = await supabaseAdmin
       .from("companies")
       .select("name")
@@ -1140,7 +1140,7 @@ export const downloadCustomerDocumentsZip = createServerFn({ method: "POST" })
 export async function loadCustomerContextForAi(
   companyId: string,
 ): Promise<CustomerContext & { _systemBlock: string }> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = await getCloudSupabaseAdmin("customers");
   const [{ data: company }, { data: profile }] = await Promise.all([
     supabaseAdmin.from("companies").select("name").eq("id", companyId).maybeSingle(),
     supabaseAdmin.from("customer_profiles").select("*").eq("company_id", companyId).maybeSingle(),
