@@ -313,6 +313,123 @@ export type RoleRepositoryFactory = (dataCtx: unknown) => IRoleRepository;
 export type CompanyRepositoryFactory = (dataCtx: unknown) => ICompanyRepository;
 export type DepartmentRepositoryFactory = (dataCtx: unknown) => IDepartmentRepository;
 
+// --------------------------------------------------------------------
+// Wave C.2b.1 — chat / feedback / integration repositories.
+// Every write is user-scoped through `dataCtx` (Cloud: user-scoped
+// SupabaseClient enforcing RLS; Self-Hosted: shared pg pool where the
+// caller's identity is enforced in the repository by explicit filters).
+// --------------------------------------------------------------------
+
+export interface ThreadRecord {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  companyId: string;
+  userId: string;
+}
+
+export interface IThreadRepository {
+  create(input: { userId: string; companyId: string; title: string }): Promise<
+    Pick<ThreadRecord, "id" | "title" | "createdAt" | "updatedAt">
+  >;
+  deleteOwned(id: string, userId: string): Promise<void>;
+  listForUser(
+    userId: string,
+    opts?: { companyId?: string | null; limit?: number },
+  ): Promise<
+    Array<Pick<ThreadRecord, "id" | "title" | "createdAt" | "updatedAt" | "companyId">>
+  >;
+  renameOwned(id: string, userId: string, title: string): Promise<void>;
+}
+
+export interface AssistantMessage {
+  id: string;
+  threadId: string;
+  confidence: number | null;
+  createdAt: string;
+}
+
+export interface PreviousUserMessage {
+  id: string;
+  content: string;
+}
+
+export interface IMessageRepository {
+  findAssistantById(id: string): Promise<AssistantMessage | null>;
+  findLastUserBefore(
+    threadId: string,
+    beforeCreatedAt: string,
+  ): Promise<PreviousUserMessage | null>;
+}
+
+export interface FeedbackUpsertInput {
+  messageId: string;
+  userId: string;
+  companyId: string;
+  rating: 1 | -1;
+  comment: string | null;
+}
+
+export interface IFeedbackRepository {
+  upsertRating(input: FeedbackUpsertInput): Promise<void>;
+}
+
+export interface KnowledgeGapCreateInput {
+  companyId: string;
+  questionNormalized: string;
+  questionSample: string;
+  departmentId: string | null;
+  createdBy: string;
+  confidence: number | null;
+  sourceThreadId: string;
+  sourceMessageId: string;
+}
+
+export interface IKnowledgeGapRepository {
+  /**
+   * Semantic-or-text match. Cloud: `match_knowledge_gap` RPC (pgvector).
+   * Self-Hosted: exact match on `question_normalized` scoped to the company.
+   */
+  matchExisting(companyId: string, questionNormalized: string): Promise<string | null>;
+  incrementOccurrence(id: string): Promise<void>;
+  create(input: KnowledgeGapCreateInput): Promise<{ id: string }>;
+}
+
+export interface IntegrationRecord {
+  companyId: string;
+  provider: string;
+  status: string;
+  config: Record<string, unknown>;
+  connectedAt: string | null;
+  lastError: string | null;
+}
+
+export interface IIntegrationRepository {
+  find(companyId: string, provider: string): Promise<IntegrationRecord | null>;
+  upsert(input: {
+    companyId: string;
+    provider: string;
+    status: string;
+    config: Record<string, unknown>;
+    connectedAt: string;
+    connectedBy: string;
+  }): Promise<void>;
+  update(
+    companyId: string,
+    provider: string,
+    patch: Partial<Pick<IntegrationRecord, "status" | "config" | "lastError">>,
+  ): Promise<void>;
+}
+
+export type ThreadRepositoryFactory = (dataCtx: unknown) => IThreadRepository;
+export type MessageRepositoryFactory = (dataCtx: unknown) => IMessageRepository;
+export type FeedbackRepositoryFactory = (dataCtx: unknown) => IFeedbackRepository;
+export type KnowledgeGapRepositoryFactory = (dataCtx: unknown) => IKnowledgeGapRepository;
+export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRepository;
+
+
+
 
 
 
