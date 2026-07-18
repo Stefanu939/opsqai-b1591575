@@ -1,8 +1,8 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
+import { getFaqRepository } from "@/lib/providers/registry";
 
 const FaqInput = z.object({
   id: z.string().uuid().optional(),
@@ -21,37 +21,29 @@ export const upsertFaq = createServerFn({ method: "POST" })
     await requireAnyPermission(context, ["faq.edit", "faq.create", "knowledge.manage"]);
 
     const { emitWebhookEvent } = await import("@/lib/webhook-dispatch.server");
+    const repo = getFaqRepository(context.supabase);
+
+    const patch = {
+      question_de: data.question_de,
+      question_en: data.question_en,
+      answer_de: data.answer_de,
+      answer_en: data.answer_en,
+      category: data.category,
+    };
 
     if (data.id) {
-      const { id, company_id: _companyIgnore, ...patch } = data;
-      void id;
-      void _companyIgnore;
-      const { error } = await getCloudSupabase(context, "faqs").from("faqs").update(patch).eq("id", data.id);
-      if (error) throw new Error(error.message);
-      const { data: row } = await getCloudSupabase(context, "faqs")
-        .from("faqs")
-        .select("company_id, category, question_en")
-        .eq("id", data.id)
-        .maybeSingle();
-      if (row?.company_id) {
-        void emitWebhookEvent(row.company_id as string, "faq.updated", {
+      await repo.update(data.id, patch);
+      const meta = await repo.getMetaById(data.id);
+      if (meta?.company_id) {
+        void emitWebhookEvent(meta.company_id, "faq.updated", {
           id: data.id,
-          category: row.category,
-          question_en: row.question_en,
+          category: meta.category,
+          question_en: meta.question_en,
         });
       }
     } else {
-      const { id: _ignore, ...insert } = data;
-      void _ignore;
       const companyId = await resolveCompanyForWrite(context, data.company_id);
-      const { company_id: _companyIgnore, ...safeInsert } = insert;
-      void _companyIgnore;
-      const { data: inserted, error } = await getCloudSupabase(context, "faqs")
-        .from("faqs")
-        .insert({ ...safeInsert, company_id: companyId })
-        .select("id, category, question_en")
-        .single();
-      if (error) throw new Error(error.message);
+      const inserted = await repo.insert(companyId, patch);
       void emitWebhookEvent(companyId, "faq.created", {
         id: inserted.id,
         category: inserted.category,
@@ -66,7 +58,6 @@ export const deleteFaq = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["faq.delete", "knowledge.manage"]);
-    const { error } = await getCloudSupabase(context, "faqs").from("faqs").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await getFaqRepository(context.supabase).delete(data.id);
     return { ok: true };
   });
