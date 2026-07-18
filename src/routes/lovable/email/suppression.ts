@@ -1,4 +1,3 @@
-import { createClient } from "@supabase/supabase-js";
 import { WebhookError, verifyWebhookRequest } from "@lovable.dev/webhooks-js";
 import { createFileRoute } from "@tanstack/react-router";
 
