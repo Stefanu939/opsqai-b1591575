@@ -50,6 +50,8 @@
   --color-signal-foreground: var(--signal-foreground);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-line: var(--gold-line);
   --color-success: var(--success);
   --color-warning: var(--warning);
 }
@@ -622,4 +624,18 @@ body {
   );
   background-size: 200% 100%;
   animation: mc-shimmer 2.4s ease-in-out infinite;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────
+   Respect the OS-level preference. Kill non-essential animation and
+   transitions so long-running screens stay comfortable. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
