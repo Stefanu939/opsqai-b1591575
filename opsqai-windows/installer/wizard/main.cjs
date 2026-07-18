@@ -39,6 +39,8 @@ function createWindow() {
     autoHideMenuBar: true,
     title: "OPSQAI Self-Hosted Setup",
     icon: path.join(__dirname, "assets", "opsqai.ico"),
+    backgroundColor: "#0f172a",
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
@@ -47,7 +49,40 @@ function createWindow() {
     },
   });
   win.setMenu(null);
-  win.loadFile(path.join(__dirname, "renderer", "index.html"));
+
+  // Show the window only once the renderer has painted, so a slow load
+  // never leaves the operator staring at a black frame.
+  win.once("ready-to-show", () => win.show());
+
+  // Surface load failures instead of failing silently to a black window.
+  win.webContents.on("did-fail-load", (_e, code, desc, url) => {
+    const msg = `Renderer failed to load: ${desc} (${code})\nURL: ${url}`;
+    console.error(msg);
+    dialog.showErrorBox("OPSQAI Setup", msg);
+  });
+  win.webContents.on("render-process-gone", (_e, details) => {
+    dialog.showErrorBox(
+      "OPSQAI Setup",
+      `Renderer crashed: ${details.reason} (exit ${details.exitCode}).`,
+    );
+  });
+
+  // Auto-open DevTools when launched with --enable-logging or --debug,
+  // matching the flag the operator already used from PowerShell.
+  const debug =
+    process.argv.includes("--enable-logging") ||
+    process.argv.includes("--debug") ||
+    process.env.OPSQAI_WIZARD_DEBUG === "1";
+  if (debug) win.webContents.openDevTools({ mode: "detach" });
+
+  const indexPath = path.join(__dirname, "renderer", "index.html");
+  win.loadFile(indexPath).catch((err) => {
+    dialog.showErrorBox(
+      "OPSQAI Setup",
+      `Could not load wizard UI:\n${indexPath}\n\n${err.message}`,
+    );
+  });
+
   win.on("close", (e) => {
     if (win.__installing) {
       e.preventDefault();

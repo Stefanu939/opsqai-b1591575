@@ -11,9 +11,22 @@
 
 const HERO_STEPS = new Set([1, 9]);
 const TOTAL = 9;
+function makeUuid() {
+  try {
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+      return globalThis.crypto.randomUUID();
+    }
+  } catch (_) {}
+  // RFC4122-ish fallback so a missing secure-context crypto never blanks the UI.
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 const state = {
   step: 1,
-  installId: crypto.randomUUID(),
+  installId: makeUuid(),
   data: {
     licenseValidated: false,
     licenseCommunity: false,
@@ -21,6 +34,20 @@ const state = {
     dbConnectionTested: false,
   },
 };
+
+// Global error surface — if anything below throws, the operator sees it
+// instead of a black window with no clue what happened.
+window.addEventListener("error", (e) => {
+  const msg = `Wizard error: ${e.message}\n${e.filename}:${e.lineno}:${e.colno}`;
+  console.error(msg, e.error);
+  try {
+    const pre = document.createElement("pre");
+    pre.style.cssText =
+      "position:fixed;inset:0;margin:0;padding:24px;background:#0f172a;color:#f5f7fa;font:12px/1.5 monospace;white-space:pre-wrap;z-index:99999;overflow:auto;";
+    pre.textContent = msg + "\n\n" + (e.error?.stack || "");
+    document.body.appendChild(pre);
+  } catch (_) {}
+});
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
