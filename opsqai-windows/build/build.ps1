@@ -101,6 +101,7 @@ function assertContains(parent, child, label) {
     # Line-based scan that ignores SQL comments (`--`) so documentation like
     # "no auth.uid() here" in a comment never trips the check.
     $badFiles = @()
+    $citextFiles = @()
     foreach ($sql in Get-ChildItem (Join-Path $appStage 'migrations\*.sql')) {
       $codeLines = Get-Content -LiteralPath $sql.FullName | ForEach-Object {
         # Drop full-line comments and inline `-- ...` tails before matching.
@@ -109,9 +110,19 @@ function assertContains(parent, child, label) {
       if ($codeLines -match 'auth\.uid|auth\.users|to authenticated|to anon|to service_role') {
         $badFiles += $sql.FullName
       }
+      # Bootstrap must not depend on the `citext` extension — portable
+      # PostgreSQL builds don't always ship it, and we already switched to
+      # a functional lower(email) unique index. Fail the build if any
+      # staged migration re-introduces CITEXT or CREATE EXTENSION citext.
+      if ($codeLines -match '\bCITEXT\b|EXTENSION\s+(IF\s+NOT\s+EXISTS\s+)?citext') {
+        $citextFiles += $sql.FullName
+      }
     }
     if ($badFiles) {
       throw "Supabase-shaped SQL detected in Self-Hosted migrations: $($badFiles -join ', ')"
+    }
+    if ($citextFiles) {
+      throw "citext dependency detected in Self-Hosted migrations (portable PostgreSQL may not ship it). Use lower(email) unique index instead: $($citextFiles -join ', ')"
     }
 
 

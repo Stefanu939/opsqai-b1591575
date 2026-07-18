@@ -349,8 +349,7 @@ ipcMain.handle("wizard:testDatabase", async (_e, cfg) => {
 
 
 
-ipcMain.handle("wizard:install", async (event, config) => {
-  win.__installing = true;
+function buildBootstrapArgs(config, extraFlags = []) {
   const args = [
     bootstrap,
     "--install-id",
@@ -380,14 +379,19 @@ ipcMain.handle("wizard:install", async (event, config) => {
   if (config.smtp && config.smtp.host) {
     args.push("--smtp", JSON.stringify(config.smtp));
   }
+  return args.concat(extraFlags);
+}
 
+function runBootstrap(event, config, extraFlags = []) {
+  win.__installing = true;
+  const args = buildBootstrapArgs(config, extraFlags);
   const send = (line) => event.sender.send("wizard:install-log", line);
-  send(`> Launching bootstrap: ${nodeExe}`);
+  send(`> Launching bootstrap: ${nodeExe}${extraFlags.length ? " " + extraFlags.join(" ") : ""}`);
 
   if (!fs.existsSync(nodeExe) || !fs.existsSync(bootstrap)) {
     send(`ERROR: bootstrap payload missing (${nodeExe} / ${bootstrap})`);
     win.__installing = false;
-    return { code: 127 };
+    return Promise.resolve({ code: 127 });
   }
 
   return new Promise((resolve) => {
@@ -414,6 +418,23 @@ ipcMain.handle("wizard:install", async (event, config) => {
       resolve({ code: code ?? 1 });
     });
   });
+}
+
+ipcMain.handle("wizard:install", (event, config) => runBootstrap(event, config, []));
+ipcMain.handle("wizard:resetAndInstall", (event, config) =>
+  runBootstrap(event, config, ["--reset-embedded-db"]),
+);
+
+ipcMain.handle("wizard:openLog", async (_e, logPath) => {
+  const target =
+    logPath && fs.existsSync(logPath)
+      ? logPath
+      : path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "logs");
+  await shell.openPath(target);
+});
+ipcMain.handle("wizard:openLogsFolder", async () => {
+  const dir = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "logs");
+  await shell.openPath(dir);
 });
 
 ipcMain.handle("wizard:finish", (_e, launch) => {

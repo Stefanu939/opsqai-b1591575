@@ -12,7 +12,6 @@
 -- not used because there is no per-request Postgres role.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE EXTENSION IF NOT EXISTS citext;
 
 -- --------------------------------------------------------------------
 -- Platform metadata (single-row table)
@@ -26,6 +25,24 @@ CREATE TABLE IF NOT EXISTS public.platform_metadata (
   build_number      TEXT        NOT NULL,
   installed_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   machine_fingerprint_sha256 TEXT NOT NULL
+);
+
+-- --------------------------------------------------------------------
+-- Installation state — BOOTSTRAP-ONLY.
+--
+-- This table is written EXCLUSIVELY by
+--   opsqai-windows/services/bootstrap/init.js
+-- to track the first-run installer state machine. Do NOT reuse it for
+-- upgrade, backup, licensing, or any other lifecycle state — those have
+-- their own tables. Keeping this table strictly scoped prevents it from
+-- becoming a catch-all bottleneck.
+-- --------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.installation_state (
+  singleton   BOOLEAN     PRIMARY KEY DEFAULT TRUE CHECK (singleton),
+  state       TEXT        NOT NULL CHECK (state IN ('bootstrapping','complete','failed')),
+  stage       TEXT,             -- 'migrate' | 'seed' | 'services' | 'ready'
+  last_error  JSONB,            -- {code, sqlstate, file, line, message, log_path}
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- --------------------------------------------------------------------
@@ -50,16 +67,23 @@ END$$;
 
 -- --------------------------------------------------------------------
 -- Users (local auth). No dependency on auth.users.
+--
+-- Email is stored as plain TEXT and compared case-insensitively via a
+-- functional UNIQUE index on lower(email). This avoids the `citext`
+-- extension (not present in every portable PostgreSQL build) while
+-- keeping the same user-facing behavior.
 -- --------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.users (
   id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  email          CITEXT      UNIQUE, -- CITEXT provided by 'citext' extension below
+  email          TEXT,
   display_name   TEXT,
   password_hash  TEXT        NOT NULL,           -- argon2id
   disabled       BOOLEAN     NOT NULL DEFAULT FALSE,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_login_at  TIMESTAMPTZ
 );
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx
+  ON public.users (lower(email));
 
 
 

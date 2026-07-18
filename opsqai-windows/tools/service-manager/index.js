@@ -222,6 +222,43 @@ const cmds = {
     die(`unknown update subcommand: ${sub}`);
   },
 
+  db(sub, ...rest) {
+    if (sub !== "reset") die("usage: opsqai db reset [--yes] [--force]");
+    const yes = rest.includes("--yes");
+    const force = rest.includes("--force");
+    if (!yes) die("refusing to reset without --yes. usage: opsqai db reset --yes [--force]");
+    if (!isAdmin()) die("db reset requires administrator.");
+    const cfg = loadConfig();
+    if (cfg.database?.mode !== "embedded") {
+      die("db reset is only supported for the embedded database. External PostgreSQL is never modified.");
+    }
+    // Guard: refuse on a completed install unless --force.
+    if (!force) {
+      const psql = programFiles("pgsql", "bin", "psql.exe");
+      const port = String(cfg.database.embedded.port);
+      const r = spawnSync(
+        psql,
+        ["-h", "127.0.0.1", "-p", port, "-U", "opsqai", "-d", "opsqai", "-tAc",
+         "SELECT state FROM public.installation_state WHERE singleton"],
+        { encoding: "utf8", env: { ...process.env, PGPASSWORD: cfg.database.embedded.password || "" } },
+      );
+      if (r.status === 0 && (r.stdout || "").trim() === "complete") {
+        die("installation_state is 'complete'. Pass --force to reset anyway (destructive).");
+      }
+    }
+    // Delegate to init.js --reset-embedded-db. It needs admin credentials
+    // for the seed step; --start-services=false leaves everything stopped
+    // and only performs the reset + migrations + seed.
+    const bootstrap = path.resolve(__dirname, "..", "..", "services", "bootstrap", "init.js");
+    const staged = programFiles("services", "bootstrap", "init.js");
+    const s = fs.existsSync(staged) ? staged : bootstrap;
+    if (!fs.existsSync(s)) die("bootstrap init.js not found");
+    const email = cfg.company?.contactEmail || "admin@localhost";
+    const args = [s, "--reset-embedded-db", "--admin-email", email, "--admin-password", "ChangeMe-Reset-1234", "--company", cfg.company?.name || "OPSQAI"];
+    const r = spawnSync(process.execPath, args, { stdio: "inherit" });
+    process.exit(r.status ?? 1);
+  },
+
   backup(sub, ...rest) {
     // Legacy: `opsqai backup <folder>` still supported so pre-Phase-6
     // callers (external scripts, older docs) keep working.
@@ -453,6 +490,7 @@ if (!cmd || !cmds[cmd] || cmd.startsWith("_")) {
   console.log("  opsqai health");
   console.log("  opsqai doctor");
   console.log("  opsqai update check|apply|history");
+  console.log("  opsqai db reset --yes [--force]");
   console.log("  opsqai backup create|list|prune|verify|restore|schedule|unschedule");
   console.log("  opsqai backup <folder>                       (legacy)");
   console.log("  opsqai telemetry status|enable|disable|full");

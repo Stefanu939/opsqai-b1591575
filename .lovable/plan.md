@@ -1,81 +1,114 @@
-## 1. Installer: remove the .NET requirement
+## Plan
 
-**Finding (verified by grep across the whole repo):** no OPSQAI service uses .NET at runtime. All Windows services (`platform`, `worker`, `hello`, `updater`, `database`, `caddy`, `backup`) are Node.js scripts under `opsqai-windows/services/`, wrapped by WinSW (a self-contained Go binary). PostgreSQL 16 is bundled. Caddy is a static binary. Nothing invokes `dotnet`.
+### 1. Fix the failing migration (root cause)
 
-The `.NET 8 runtime` probe is a leftover from an early scaffold. It currently runs `dotnet --list-runtimes` and fails on every clean Windows machine even though the product does not need it.
+`migrations/selfhost/0001_bootstrap.sql`:
+- Remove `CREATE EXTENSION citext`; `email CITEXT UNIQUE` → `email TEXT`.
+- Add `CREATE UNIQUE INDEX users_email_lower_idx ON public.users (lower(email));` for case-insensitive uniqueness.
 
-**Action:** drop the check entirely rather than bundle a runtime the app doesn't use.
+### 2. `installation_state` — scoped to bootstrap only
 
-- `opsqai-windows/installer/wizard/renderer/wizard.js`
-  - remove the `<li data-check="dotnet">` item from the System-check pane markup (line ~160)
-  - remove the `["dotnet", ".NET 8 runtime"]` entry from the label map (line ~437)
+New table, deliberately narrow. Documented in the migration as **bootstrap-only**; upgrade / backup / license state stay in their own tables and never write here.
+
+```
+CREATE TABLE public.installation_state (
+  singleton   BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (singleton),
+  state       TEXT NOT NULL CHECK (state IN ('bootstrapping','complete','failed')),
+  stage       TEXT,           -- 'migrate' | 'seed' | 'services' | 'ready'
+  last_error  JSONB,          -- {code, sqlstate, file, line, message}
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+Allowed writers: `init.js` only. A code comment in the migration + a `// installation_state is bootstrap-only` guard comment in `init.js` document the invariant.
+
+### 3. OPSQAI-E**** stable error codes
+
+New file `opsqai-windows/services/bootstrap/errors.js` — single source of truth. Each entry: `{ code, category, title, docsAnchor }`.
+
+Initial catalog:
+- `OPSQAI-E1001` migration failed (any SQLSTATE)
+- `OPSQAI-E1002` migration health probe failed (post-run)
+- `OPSQAI-E1101` database unreachable / connect failure
+- `OPSQAI-E1102` embedded postgres failed to start
+- `OPSQAI-E1201` admin seed failed
+- `OPSQAI-E1301` services failed to start
+- `OPSQAI-E1901` unknown bootstrap failure
+
+Every failure surface (log, wizard UI, `installation_state.last_error.code`) uses these codes. Docs page `docs/administrator-guide/15-troubleshooting.md` gains an "Error codes" section keyed by `OPSQAI-E****`.
+
+### 4. Precise migration errors + per-install log file
+
+`migrate.mjs`:
+- Capture psql stderr, parse `ERROR: ...` / `LINE N:` / `SQLSTATE`.
+- Emit one structured line:
+  ```
+  [migrate] FAIL code=OPSQAI-E1001 file=0001_bootstrap.sql line=61 sqlstate=42704 message="type \"citext\" does not exist"
+  ```
+- Post-run health probes: `SELECT count(*) FROM public.schema_migrations`, `to_regclass('public.users')`; a failure emits `OPSQAI-E1002`.
+
+`init.js` — unique per-install log:
+- Open `%ProgramData%\OPSQAI\logs\bootstrap-YYYYMMDD-HHMMSS.log` and tee bootstrap + spawned `migrate.mjs` output.
+- Store path in `installation_state.last_error.log_path` and print `[bootstrap] log: <path>` as the final line (success and failure).
+
+### 5. Retry vs Reset — smart, not identical
+
+Wizard tracks `attempts[]` in-memory for the current session: each entry `{ code, sqlstate, file, line }`.
+
+Buttons rendered on failure:
+```
+Installation failed — OPSQAI-E1001
+
+File:      0001_bootstrap.sql
+Line:      61
+SQLSTATE:  42704
+Reason:    type "citext" does not exist
+
+[Retry]                        (enabled by default)
+[Reset embedded database & retry]
+[Open Log]
+```
+
+Behavior:
+- **Retry** — re-runs bootstrap with existing DB state. Meant for transient issues (port busy, service race, transient FS lock).
+- After **two consecutive attempts with the same signature** (same `code + sqlstate + file + line`), the wizard:
+  1. Disables **Retry** (grayed with tooltip: "Same error repeated — retrying will not help").
+  2. Highlights **Reset embedded database & retry** as the recommended next action.
+  3. Adds a banner: `Migration keeps failing with OPSQAI-E1001 at 0001_bootstrap.sql:61. The embedded database is likely in a bad state.`
+- Transient categories (`OPSQAI-E1101`, `OPSQAI-E1301`) never suggest reset — those are service/port problems, not corruption.
+
+External-database mode: **Reset** button is hidden entirely. UI shows the reassurance line at all times when reset is offered:
+```
+Resetting the embedded database only affects the bundled PostgreSQL instance.
+External PostgreSQL installations are never modified.
+```
+
+### 6. Reset routine — bounded backups
+
+`init.js --reset-embedded-db` (embedded only; refuses to run if `database.mode == "external"`):
+1. Stop `OpsqaiDatabase` via winsw.
+2. Move `%ProgramData%\OPSQAI\data\pgsql` → `pgsql.failed-YYYYMMDD-HHMMSS`.
+3. Prune failed backups by **both** limits, whichever hits first:
+   - keep at most **3 most recent** `pgsql.failed-*` folders;
+   - delete any older than **14 days**.
+4. Start `OpsqaiDatabase`, wait for readiness.
+5. Re-run migrations exactly once; second failure → surface the structured error and stop. Never loops.
+
+Also exposed as `opsqai db reset --yes` (guarded: refuses if `installation_state.state == 'complete'` unless `--force`).
+
+### 7. Build-time guardrail
+
+`opsqai-windows/build/build.ps1` — after staging `payload\app\migrations`, fail the build if any staged SQL references `CITEXT` or the `citext` extension. Prevents shipping a stale payload again.
+
+### Files touched
+
+- `migrations/selfhost/0001_bootstrap.sql`
+- `opsqai-windows/services/bootstrap/errors.js` (new)
+- `opsqai-windows/services/bootstrap/init.js`
+- `opsqai-windows/services/bootstrap/migrate.mjs`
+- `opsqai-windows/tools/service-manager/index.js`
 - `opsqai-windows/installer/wizard/main.cjs`
-  - delete `checkDotnet()` and the `results.dotnet = checkDotnet()` line
-  - keep the other probes (Windows version, CPU, RAM, disk, PostgreSQL 16, ports, elevation)
-
-No bundled runtime, no manual install step for the customer.
-
-## 2. MC → Issue License: pick an existing company
-
-`src/lib/companies.functions.ts` already exports `listCompanies` (returns `id, name, subscription_status, subscription_plan, max_users, active, created_at`). We'll extend the read to also select `contact_email` (already stored on `companies` via onboarding) so we can pre-fill it, and add a slug helper for a default `install_id` suggestion.
-
-`src/routes/_authenticated/management.licenses.tsx` → `IssueLicenseDialog`:
-
-- Add a `useQuery(['companies'], listCompanies)` at the top of the dialog.
-- Replace the free-text **Company name** input with a `Combobox` (shadcn `Command` + `Popover`) listing existing companies, plus a "+ New company" sentinel that falls back to a free-text input.
-- On selection, auto-fill:
-  - `company_name` ← company.name (still editable)
-  - `contact_email` ← company.contact_email (still editable)
-  - `install_id` ← slugified company name (e.g. "Acme GmbH" → `acme-gmbh`), only if the field is empty or was itself auto-derived; user can override.
-  - `seats` ← company.max_users when present (still editable)
-- All four fields remain regular editable inputs after auto-fill, exactly as today. No server-side change to `issueLicense`.
-
-No new tables, no schema changes.
-
-## 3. License artifact format: always JWT, never JSON
-
-Current state:
-
-- Signed tokens use a custom compact envelope `opsqai.v1.<payloadB64>.<sigB64>` — close to JWT but missing the JOSE header segment.
-- Downloadable artifacts from the Customer Portal (`portal.downloads.tsx`) wrap the tokens in a **JSON** envelope (`opsqai-activation-<id>.json`, `opsqai-module-<key>-<id>.json`).
-
-Target: every license artifact a customer or installer touches is a standards-compliant compact JWS/JWT (`base64url(header).base64url(payload).base64url(sig)`), `alg: "EdDSA"`, `typ: "JWT"`, `kid: <key_id>`. Downloads are `.jwt` files with `application/jwt` MIME.
-
-### 3a. Signing (`src/lib/license-signing.server.ts`)
-
-- Add `signJwt(payload, privatePem, kid)` producing `b64url({"alg":"EdDSA","typ":"JWT","kid":kid}).b64url(payloadJson).b64url(sig)` where `sig = Ed25519(header + "." + payload)` per RFC 7515/8037.
-- `signInstallLicense` / `signModuleLicense` return the new JWT string in the same `token` field (drop the `opsqai.v1.` prefix from new tokens).
-- Verifier (`splitAndVerify`, `peekTokenKeyId`) is rewritten to parse three-segment JOSE tokens, read `kid` from the header, and verify with the matching public key. Reject tokens whose header `alg ≠ "EdDSA"` or `typ ≠ "JWT"`.
-- Backward-compat: keep the old `opsqai.v1.*` parser behind a `legacy` branch invoked only if the string starts with `opsqai.v1.` — so existing installs continue to boot until their next activation-bundle refresh. New issuances are always JWT.
-
-### 3b. Activation bundle (`buildActivationBundle`, `buildModuleLicenseBundle`)
-
-- Wrap the bundle claims (`install_token`, `module_tokens[]`, `crl_token`, `bundle_version`, `iat`, `install_id`) as the **payload of a signed JWT** rather than a separate JSON-with-signature file.
-- Callers now receive a single JWT string. The Portal writes it as `opsqai-activation-<install_id>.jwt` / `opsqai-module-<key>-<install_id>.jwt`, MIME `application/jwt`.
-- Installer's offline importer is updated to accept a JWT bundle (three segments, `typ: "opsqai-bundle+jwt"`) and, for one release, still accept the old JSON shape.
-
-### 3c. Installation package (installation-package.server.ts)
-
-- `activation-bundle.json` inside the generated ZIP becomes `activation-bundle.jwt`. `entrypoint.sh` and the Windows first-run wizard already read the file by name — update the two references.
-
-### 3d. Portal & MC UI
-
-- `portal.downloads.tsx` → replace both `new Blob([JSON.stringify(bundle)], {type:"application/json"})` blocks with `new Blob([bundleJwt], {type:"application/jwt"})` and rename downloads to `.jwt`.
-- MC license row "Copy token" already copies the raw token string — that continues to work since the string is now a JWT.
-
-### 3e. Guardrails
-
-- Add a unit test that asserts every issuing path returns a string matching `^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$` and that its decoded header is `{alg:"EdDSA", typ:"JWT", kid:...}`.
-- Add a test that the legacy `opsqai.v1.` parser still verifies a fixture token so we don't break existing installs.
-
-## Order of implementation
-
-1. .NET removal (isolated, ~10 lines).
-2. Issue-License dropdown (frontend only, uses existing `listCompanies`).
-3. JWT migration (signing → bundle → package → downloads → tests), keeping the legacy verifier branch on for one release.
-
-## Out of scope
-
-- Bundling a .NET runtime (not needed — removed instead).
-- Rotating existing signing keys (JWT change is envelope-only, same Ed25519 keys).
-- Migrating already-issued `opsqai.v1.*` tokens in the DB (they keep working via the legacy parser; the next re-issue produces a JWT).
+- `opsqai-windows/installer/wizard/preload.cjs`
+- `opsqai-windows/installer/wizard/renderer/wizard.js`
+- `opsqai-windows/build/build.ps1`
+- `docs/administrator-guide/15-troubleshooting.md` (error-code reference)
