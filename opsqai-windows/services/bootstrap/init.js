@@ -261,6 +261,12 @@ function httpsGet(url, ms = 30_000) {
 }
 
 (async function main() {
+  // Emit explicit stage markers the wizard renderer keys off (see
+  // STAGE_MARKERS in renderer/wizard.js). Order matches the 7 progress rows.
+  const stage = (name) => log(`STAGE ${name}`);
+
+  stage("preparing installation");
+
   // --- 1. Start database ---
   if (dbMode === "embedded" && startServices) {
     // Detect a stale data dir so the operator sees an early warning.
@@ -275,8 +281,10 @@ function httpsGet(url, ms = 30_000) {
       } catch {}
     }
 
-    log("starting OpsqaiDatabase");
+    stage("installing services (winsw)");
+    log("starting OpsqaiDatabase (postgres)");
     svcCmd("OpsqaiDatabase", "start");
+
     const port = config.database.embedded.port;
 
     const tcpOk = await waitTcp("127.0.0.1", port, 120_000);
