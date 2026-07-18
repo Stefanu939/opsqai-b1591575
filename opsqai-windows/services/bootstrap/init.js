@@ -304,26 +304,44 @@ function psqlExec(sql) {
   const psql = programFiles("pgsql", "bin", "psql.exe");
   if (!fs.existsSync(psql)) return { status: -1 };
   const { host, port, user, db, pw } = pgArgs();
-  return spawnSync(psql, ["-v", "ON_ERROR_STOP=1", "-h", host, "-p", String(port), "-U", user, "-d", db, "-c", sql], {
-    env: { ...process.env, PGPASSWORD: pw || process.env.PGPASSWORD || "" },
-    encoding: "utf8",
-    windowsHide: true,
-  });
+  try {
+    // -w: never prompt for password (would block on a headless child).
+    // timeout: hard cap so a misconfigured pg_hba can never stall bootstrap.
+    return spawnSync(
+      psql,
+      ["-w", "-v", "ON_ERROR_STOP=1", "-h", host, "-p", String(port), "-U", user, "-d", db, "-c", sql],
+      {
+        env: { ...process.env, PGPASSWORD: pw || process.env.PGPASSWORD || "" },
+        encoding: "utf8",
+        windowsHide: true,
+        timeout: 10_000,
+        killSignal: "SIGKILL",
+      },
+    );
+  } catch (e) {
+    return { status: -1, error: e.message };
+  }
 }
 function writeInstallState(state, stage, lastError) {
-  // Best-effort: if the DB is unreachable (embedded not up yet) we silently
-  // skip. State is a debugging aid, not a correctness gate.
-  const detail = lastError
-    ? { ...lastError, log_path: LOG_PATH }
-    : { log_path: LOG_PATH };
-  const json = JSON.stringify(detail).replace(/'/g, "''");
-  const sql =
-    `INSERT INTO public.installation_state(singleton, state, stage, last_error, updated_at) ` +
-    `VALUES (TRUE, '${state}', ${stage ? `'${stage}'` : "NULL"}, '${json}'::jsonb, now()) ` +
-    `ON CONFLICT (singleton) DO UPDATE SET state = EXCLUDED.state, stage = EXCLUDED.stage, ` +
-    `last_error = EXCLUDED.last_error, updated_at = now()`;
-  psqlExec(sql);
+  // Best-effort: if the DB is unreachable (embedded not up yet, or app db
+  // does not exist before migrations) we silently skip. State is a
+  // debugging aid, not a correctness gate — NEVER let it stall bootstrap.
+  try {
+    const detail = lastError
+      ? { ...lastError, log_path: LOG_PATH }
+      : { log_path: LOG_PATH };
+    const json = JSON.stringify(detail).replace(/'/g, "''");
+    const sql =
+      `INSERT INTO public.installation_state(singleton, state, stage, last_error, updated_at) ` +
+      `VALUES (TRUE, '${state}', ${stage ? `'${stage}'` : "NULL"}, '${json}'::jsonb, now()) ` +
+      `ON CONFLICT (singleton) DO UPDATE SET state = EXCLUDED.state, stage = EXCLUDED.stage, ` +
+      `last_error = EXCLUDED.last_error, updated_at = now()`;
+    psqlExec(sql);
+  } catch (e) {
+    console.warn(`[bootstrap] writeInstallState skipped: ${e.message}`);
+  }
 }
+
 
 // ─── Reset embedded database (destructive, embedded only) ─────────────────
 function resetEmbeddedDatabase() {
