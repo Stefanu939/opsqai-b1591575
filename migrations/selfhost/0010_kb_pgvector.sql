@@ -18,7 +18,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS public.knowledge_documents (
     id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id          uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+    company_id          uuid NOT NULL,
     title               text NOT NULL,
     category            text NOT NULL DEFAULT 'general',
     doc_code            text,
