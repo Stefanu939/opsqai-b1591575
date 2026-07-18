@@ -354,6 +354,9 @@ function httpsGet(url, ms = 30_000) {
 
   // --- 3. Start Caddy so it emits the local CA, then trust it ---
   if (startServices) {
+    stage("ai engine (skipped: configure post-install)");
+    stage("knowledge base storage ready");
+    stage("finalizing");
     log("starting OpsqaiCaddy");
     svcCmd("OpsqaiCaddy", "start");
     // Caddy writes root.crt within a few seconds of first start.
@@ -384,6 +387,7 @@ function httpsGet(url, ms = 30_000) {
 
     // --- 5. Health probe ---
     log("probing https://localhost/health");
+
     let ok = false;
     for (let i = 0; i < 30; i++) {
       const r = await httpsGet("https://localhost/health", 5000);
