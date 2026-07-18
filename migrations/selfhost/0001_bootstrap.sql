@@ -12,6 +12,7 @@
 -- not used because there is no per-request Postgres role.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS citext;
 
 -- --------------------------------------------------------------------
 -- Platform metadata (single-row table)
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   last_login_at  TIMESTAMPTZ
 );
 
-CREATE EXTENSION IF NOT EXISTS citext;
+
 
 -- --------------------------------------------------------------------
 -- Sessions + refresh tokens
