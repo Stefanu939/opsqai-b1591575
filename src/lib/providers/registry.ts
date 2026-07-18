@@ -231,6 +231,30 @@ export function getAdminDepartmentRepository(): IDepartmentRepository {
   }
   return registry.adminDepartmentFactory(undefined);
 }
+export function getThreadRepository(dataCtx: unknown): IThreadRepository {
+  if (!registry.threadFactory) throw new Error("No thread repository factory registered");
+  return registry.threadFactory(dataCtx);
+}
+export function getMessageRepository(dataCtx: unknown): IMessageRepository {
+  if (!registry.messageFactory) throw new Error("No message repository factory registered");
+  return registry.messageFactory(dataCtx);
+}
+export function getFeedbackRepository(dataCtx: unknown): IFeedbackRepository {
+  if (!registry.feedbackFactory) throw new Error("No feedback repository factory registered");
+  return registry.feedbackFactory(dataCtx);
+}
+export function getKnowledgeGapRepository(dataCtx: unknown): IKnowledgeGapRepository {
+  if (!registry.knowledgeGapFactory) {
+    throw new Error("No knowledge gap repository factory registered");
+  }
+  return registry.knowledgeGapFactory(dataCtx);
+}
+export function getIntegrationRepository(dataCtx: unknown): IIntegrationRepository {
+  if (!registry.integrationFactory) {
+    throw new Error("No integration repository factory registered");
+  }
+  return registry.integrationFactory(dataCtx);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
@@ -252,4 +276,10 @@ export function __resetProviderRegistryForTests(): void {
   registry.adminCompanyFactory = undefined;
   registry.departmentFactory = undefined;
   registry.adminDepartmentFactory = undefined;
+  registry.threadFactory = undefined;
+  registry.messageFactory = undefined;
+  registry.feedbackFactory = undefined;
+  registry.knowledgeGapFactory = undefined;
+  registry.integrationFactory = undefined;
 }
+
