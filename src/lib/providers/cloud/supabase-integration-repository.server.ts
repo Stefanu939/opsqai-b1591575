@@ -62,7 +62,7 @@ export function createSupabaseIntegrationRepository(client: Client): IIntegratio
       if (Object.keys(row).length === 0) return;
       const { error } = await client
         .from("company_integrations")
-        .update(row)
+        .update(row as never)
         .eq("company_id", companyId)
         .eq("provider", provider);
       if (error) throw new Error(error.message);
