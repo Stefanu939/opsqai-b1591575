@@ -13,6 +13,7 @@ import type {
   IBrowserAuthProvider,
   ICompanyRepository,
   IDepartmentRepository,
+  IFaqRepository,
   IFeedbackRepository,
   IIntegrationRepository,
   IKnowledgeGapRepository,
@@ -28,6 +29,7 @@ import type {
   IUserRepository,
   CompanyRepositoryFactory,
   DepartmentRepositoryFactory,
+  FaqRepositoryFactory,
   FeedbackRepositoryFactory,
   IntegrationRepositoryFactory,
   KnowledgeGapRepositoryFactory,
@@ -61,6 +63,7 @@ interface Registry {
   feedbackFactory?: FeedbackRepositoryFactory;
   knowledgeGapFactory?: KnowledgeGapRepositoryFactory;
   integrationFactory?: IntegrationRepositoryFactory;
+  faqFactory?: FaqRepositoryFactory;
 }
 
 
