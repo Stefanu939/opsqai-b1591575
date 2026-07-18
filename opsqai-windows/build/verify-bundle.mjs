@@ -95,7 +95,7 @@ const bannedPatterns = [
     // to the stub — no Cloud code is actually reachable.
     allowIn: [
       "src/lib/providers/not-available",
-      "dist/server/_ssr/not-available-",
+      "server/_ssr/not-available-",
     ],
   },
   {
