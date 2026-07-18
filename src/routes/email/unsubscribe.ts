@@ -51,10 +51,10 @@ export const Route = createFileRoute("/email/unsubscribe")({
       },
 
       POST: async ({ request }) => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
+        let supabase;
+        try {
+          supabase = await serviceRoleClient();
+        } catch {
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
 
@@ -93,7 +93,6 @@ export const Route = createFileRoute("/email/unsubscribe")({
           return Response.json({ error: "Token is required" }, { status: 400 });
         }
 
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         // Look up the token
         const { data: tokenRecord, error: lookupError } = await supabase
