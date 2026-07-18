@@ -1,4 +1,4 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
+import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -127,7 +127,7 @@ export const createInternalRequest = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supabaseAdmin = await getCloudSupabaseAdmin("internal-requests");
       const { data: requesterAuth } = await supabaseAdmin.auth.admin.getUserById(context.userId);
       const requesterEmail = requesterAuth?.user?.email;
       const { data: requesterProfile } = await supabaseAdmin

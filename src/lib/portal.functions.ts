@@ -1,4 +1,4 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
+import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-available";
 // Phase 6.5 — Customer Portal server functions.
 //
 // The Customer Portal is intentionally narrow: downloads, contract summary,
@@ -19,7 +19,7 @@ export const getMyPortalOverview = createServerFn({ method: "POST" })
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) return { email: null, installs: [] as PortalInstall[] };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("portal");
     const { data: rows } = await supabaseAdmin
       .from("licenses")
       .select(
@@ -111,7 +111,7 @@ export const downloadMyActivationBundle = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) throw new Error("No email on session");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("portal");
     const { data: owner } = await supabaseAdmin
       .from("licenses")
       .select("install_id")
@@ -140,7 +140,7 @@ export const downloadMyModuleLicense = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
     if (!email) throw new Error("No email on session");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("portal");
     const { data: owner } = await supabaseAdmin
       .from("licenses")
       .select("install_id")

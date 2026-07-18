@@ -1,4 +1,4 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
+import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -27,7 +27,7 @@ async function logEvent(
     actor_kind?: "system" | "platform_admin" | "company_admin";
   },
 ) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
   await supabaseAdmin.from("subscription_events").insert({
     company_id: args.company_id,
     event_type: args.event_type,
@@ -41,7 +41,7 @@ async function logEvent(
 }
 
 async function notify(companyId: string, kind: string, title: string, body: string) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
   await supabaseAdmin.rpc("subscription_notify_admins", {
     _company: companyId,
     _kind: kind,
@@ -68,7 +68,7 @@ export const listWorkspaceLifecycle = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { data, error } = await supabaseAdmin
       .from("companies")
       .select(
@@ -89,7 +89,7 @@ export const listSubscriptionEvents = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireCompanyOrPlatform(context, data.company_id);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { data: rows, error } = await supabaseAdmin
       .from("subscription_events")
       .select(
@@ -116,7 +116,7 @@ export const changeSubscriptionStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { data: cur } = await supabaseAdmin
       .from("companies")
       .select("subscription_status, name")
@@ -176,7 +176,7 @@ export const adjustGracePeriod = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { data: cur } = await supabaseAdmin
       .from("companies")
       .select("grace_period_ends_at, subscription_status")
@@ -226,7 +226,7 @@ export const updateRenewalDate = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const patch: Record<string, unknown> = { renewal_date: data.renewal_date };
     if (data.next_invoice_due_at !== undefined)
       patch.next_invoice_due_at = data.next_invoice_due_at;
@@ -261,7 +261,7 @@ export const setBillingOverride = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { error } = await supabaseAdmin
       .from("companies")
       .update({ billing_override: data.enabled })
@@ -283,7 +283,7 @@ export const setInternalNotes = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { error } = await supabaseAdmin
       .from("companies")
       .update({ internal_notes: data.notes })
@@ -312,7 +312,7 @@ export const recordPayment = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const paidAt = data.paid_at ?? new Date().toISOString();
     const { error } = await supabaseAdmin
       .from("companies")
@@ -354,7 +354,7 @@ export const runLifecycleTick = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { data, error } = await supabaseAdmin.rpc("subscription_lifecycle_tick");
     if (error) throw new Error(error.message);
     return data as Record<string, number | string>;
@@ -368,7 +368,7 @@ export const setGracePeriodDays = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("subscription-lifecycle");
     const { error } = await supabaseAdmin
       .from("companies")
       .update({ grace_period_days: data.days })

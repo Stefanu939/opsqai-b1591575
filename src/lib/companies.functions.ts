@@ -1,4 +1,4 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
+import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -16,7 +16,7 @@ export const listCompanies = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { data: companies, error } = await supabaseAdmin
       .from("companies")
       .select("id, name, subscription_status, subscription_plan, max_users, active, created_at")
@@ -59,7 +59,7 @@ export const createCompany = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { data: company, error } = await supabaseAdmin
       .from("companies")
       .insert({
@@ -109,7 +109,7 @@ export const updateCompany = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyInput.extend({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { id, ...patch } = data;
     const { error } = await supabaseAdmin.from("companies").update(patch).eq("id", id);
     if (error) throw new Error(error.message);
@@ -123,7 +123,7 @@ export const deleteCompany = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     if (data.id === "00000000-0000-0000-0000-000000000001")
       throw new Error("Cannot delete Default Company");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { error } = await supabaseAdmin.from("companies").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -133,7 +133,7 @@ export const platformStats = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const [companies, profiles, docs, audit] = await Promise.all([
       supabaseAdmin.from("companies").select("id, active", { count: "exact" }),
       supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
@@ -167,7 +167,7 @@ export const listPlatformAdmins = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!roleRows?.length) return [];
     const ids = roleRows.map((r) => r.user_id);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const [{ data: profiles }, usersResp] = await Promise.all([
       getCloudSupabase(context, "companies")
         .from("profiles")
@@ -195,7 +195,7 @@ export const promotePlatformAdmin = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ email: z.string().email() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     // Auth Admin API is fine with the service-role key; Data API reads go
     // through the user-scoped client (RLS allows platform admins).
     let target: { id: string } | undefined;
