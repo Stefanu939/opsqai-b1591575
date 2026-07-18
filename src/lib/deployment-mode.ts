@@ -23,8 +23,11 @@ export function getClientDeploymentMode(): DeploymentMode {
     const injected = (window as unknown as { __OPSQAI_MODE__?: string }).__OPSQAI_MODE__;
     if (injected === "selfhost" || injected === "mc") return injected;
   }
-  const viteMode = (import.meta as unknown as { env?: Record<string, string | undefined> }).env
-    ?.VITE_OPSQAI_MODE;
+  // Direct property access so Vite statically replaces this with the
+  // string literal at build time (any indirection through
+  // `import.meta.env` forces a whole-env-object inline that leaks all
+  // VITE_* vars into the bundle).
+  const viteMode = import.meta.env.VITE_OPSQAI_MODE as string | undefined;
   if (viteMode === "selfhost" || viteMode === "mc") return viteMode;
   return "mc";
 }
