@@ -32,10 +32,11 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
+        let supabase;
+        try {
+          const mod = await import("@/lib/providers/cloud/service-role.server");
+          supabase = mod.createServiceRoleClient();
+        } catch {
           console.error("Missing required environment variables");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
@@ -48,7 +49,6 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         }
 
         const token = authHeader.slice("Bearer ".length).trim();
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const {
           data: { user },
           error: authError,
