@@ -59,7 +59,7 @@ CREATE TRIGGER trg_knowledge_documents_updated_at
 CREATE TABLE IF NOT EXISTS public.document_chunks (
     id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id  uuid NOT NULL REFERENCES public.knowledge_documents(id) ON DELETE CASCADE,
-    company_id   uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+    company_id   uuid NOT NULL,
     chunk_index  integer NOT NULL,
     content      text NOT NULL,
     token_count  integer,
