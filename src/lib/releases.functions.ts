@@ -34,7 +34,7 @@ export const createRelease = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CreateReleaseInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getCloudSupabase(context, "releases");
 
     if (data.is_current) {
       await supabaseAdmin
@@ -68,7 +68,7 @@ export const setCurrentRelease = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getCloudSupabase(context, "releases");
     const { data: rel, error: relErr } = await supabaseAdmin
       .from("license_releases")
       .select("channel")
@@ -96,7 +96,7 @@ export const deleteRelease = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getCloudSupabase(context, "releases");
     const { error } = await supabaseAdmin
       .from("license_releases")
       .delete()

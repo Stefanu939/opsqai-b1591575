@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export interface OverviewStats {
   kpis: {
@@ -45,7 +46,7 @@ export const getPlatformOverviewStats = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<OverviewStats> => {
     await requirePlatformAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getCloudSupabase(context, "platform-overview");
 
     const now = Date.now();
     const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
