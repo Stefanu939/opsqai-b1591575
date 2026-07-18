@@ -145,6 +145,9 @@ export function registerIntegrationRepositoryFactory(f: IntegrationRepositoryFac
 export function registerFaqRepositoryFactory(f: FaqRepositoryFactory): void {
   registry.faqFactory = f;
 }
+export function registerKnowledgeRepositoryFactory(f: KnowledgeRepositoryFactory): void {
+  registry.knowledgeFactory = f;
+}
 
 
 
