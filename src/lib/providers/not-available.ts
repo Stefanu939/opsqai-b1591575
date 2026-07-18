@@ -43,3 +43,21 @@ export function getCloudSupabase<T>(
   if (getPlatformMode() !== PlatformMode.Cloud) notAvailable(feature);
   return context.supabase;
 }
+
+/**
+ * Cloud-only service-role client accessor. On SH, throws
+ * `FeatureNotAvailableError` before touching any Supabase module. Confines
+ * the `@/integrations/supabase/client.server` import to a single
+ * Cloud-gated location so SH bundles never reach it via app code.
+ *
+ * Use inside `.handler(...)`:
+ *
+ *     const admin = await getCloudSupabaseAdmin("mc-admin");
+ *     await admin.from("companies").select("*");
+ */
+export async function getCloudSupabaseAdmin(feature: string) {
+  if (getPlatformMode() !== PlatformMode.Cloud) notAvailable(feature);
+  const mod = await import("@/integrations/supabase/client.server");
+  return mod.supabaseAdmin;
+}
+
