@@ -4,12 +4,15 @@
  * Uses incoming-webhook URLs stored per-company in `company_integrations.config`:
  *   { webhook_url: string, events: string[] }
  *
- * Zero secrets in code; the customer paste their webhook URL themselves.
- * All three server fns are auth-gated to the active company admins.
+ * Zero secrets in code; the customer pastes their webhook URL themselves.
+ * All server fns are auth-gated to the active company's members.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
+
+import { getProfileCompany } from "@/lib/authorization";
+import { getIntegrationRepository } from "@/lib/providers/registry";
 
 /** Events any admin can opt into. Keep in sync with UI catalog. */
 export const NOTIFICATION_EVENTS = [
@@ -40,7 +43,6 @@ function slackPayload(event: string, title: string, body: string) {
 }
 
 function teamsPayload(event: string, title: string, body: string) {
-  // MessageCard schema — supported by Teams incoming webhooks.
   return {
     "@type": "MessageCard",
     "@context": "https://schema.org/extensions",
@@ -83,33 +85,28 @@ async function postWebhook(
 
 const ProviderSchema = z.enum(["slack", "teams"]);
 
+async function actorCompany(ctx: { supabase: unknown; userId: string }): Promise<string> {
+  const id = await getProfileCompany(ctx.supabase, ctx.userId);
+  if (!id) throw new Error("No active company");
+  return id;
+}
+
 export const getNotificationConfig = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ provider: ProviderSchema }).parse(d))
   .handler(async ({ data, context }) => {
-    // Get user's active company
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    const companyId = profile?.company_id;
-    if (!companyId) throw new Error("No active company");
-
-    const { data: row } = await context.supabase
-      .from("company_integrations")
-      .select("status, config, connected_at, last_error")
-      .eq("company_id", companyId)
-      .eq("provider", data.provider)
-      .maybeSingle();
-
+    const companyId = await actorCompany(context);
+    const row = await getIntegrationRepository(context.supabase).find(
+      companyId,
+      data.provider,
+    );
     const cfg = (row?.config ?? {}) as Config;
     return {
       status: row?.status ?? "disconnected",
       webhook_url: cfg.webhook_url ?? "",
       events: (cfg.events ?? []) as NotificationEvent[],
-      connected_at: row?.connected_at ?? null,
-      last_error: row?.last_error ?? null,
+      connected_at: row?.connectedAt ?? null,
+      last_error: row?.lastError ?? null,
     };
   });
 
@@ -134,28 +131,16 @@ export const saveNotificationConfig = createServerFn({ method: "POST" })
       if (!ok) throw new Error("Teams webhook must be on *.webhook.office.com");
     }
 
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    const companyId = profile?.company_id;
-    if (!companyId) throw new Error("No active company");
-
+    const companyId = await actorCompany(context);
     const config: Config = { webhook_url: data.webhook_url, events: data.events };
-    const { error } = await context.supabase.from("company_integrations").upsert(
-      {
-        company_id: companyId,
-        provider: data.provider,
-        status: "connected",
-        config,
-        connected_at: new Date().toISOString(),
-        connected_by: context.userId,
-        last_error: null,
-      },
-      { onConflict: "company_id,provider" },
-    );
-    if (error) throw new Error(error.message);
+    await getIntegrationRepository(context.supabase).upsert({
+      companyId,
+      provider: data.provider,
+      status: "connected",
+      config: config as Record<string, unknown>,
+      connectedAt: new Date().toISOString(),
+      connectedBy: context.userId,
+    });
     return { ok: true };
   });
 
@@ -163,20 +148,9 @@ export const testNotification = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ provider: ProviderSchema }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    const companyId = profile?.company_id;
-    if (!companyId) throw new Error("No active company");
-
-    const { data: row } = await context.supabase
-      .from("company_integrations")
-      .select("config")
-      .eq("company_id", companyId)
-      .eq("provider", data.provider)
-      .maybeSingle();
+    const companyId = await actorCompany(context);
+    const repo = getIntegrationRepository(context.supabase);
+    const row = await repo.find(companyId, data.provider);
     const url = ((row?.config ?? {}) as Config).webhook_url;
     if (!url) throw new Error("No webhook URL configured");
 
@@ -188,20 +162,9 @@ export const testNotification = createServerFn({ method: "POST" })
       "If you can see this, live notifications are wired up correctly.",
     );
 
-    // Persist last_error on failure so admins can see what went wrong later.
-    if (!result.ok) {
-      await context.supabase
-        .from("company_integrations")
-        .update({ last_error: `Test failed (${result.status}): ${result.body}` })
-        .eq("company_id", companyId)
-        .eq("provider", data.provider);
-    } else {
-      await context.supabase
-        .from("company_integrations")
-        .update({ last_error: null })
-        .eq("company_id", companyId)
-        .eq("provider", data.provider);
-    }
+    await repo.update(companyId, data.provider, {
+      lastError: result.ok ? null : `Test failed (${result.status}): ${result.body}`,
+    });
     return result;
   });
 
@@ -209,18 +172,11 @@ export const disconnectNotification = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ provider: ProviderSchema }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    const companyId = profile?.company_id;
-    if (!companyId) throw new Error("No active company");
-    const { error } = await context.supabase
-      .from("company_integrations")
-      .update({ status: "disconnected", config: {}, last_error: null })
-      .eq("company_id", companyId)
-      .eq("provider", data.provider);
-    if (error) throw new Error(error.message);
+    const companyId = await actorCompany(context);
+    await getIntegrationRepository(context.supabase).update(companyId, data.provider, {
+      status: "disconnected",
+      config: {},
+      lastError: null,
+    });
     return { ok: true };
   });
