@@ -82,23 +82,38 @@ const b64url = (buf: Buffer | string) =>
 const b64urlDecode = (s: string) =>
   Buffer.from(s.replaceAll("-", "+").replaceAll("_", "/"), "base64");
 
-function signPayloadWithKey(payloadObj: object, privatePem: string): string {
+function signPayloadWithKey(payloadObj: { key_id?: string }, privatePem: string): string {
+  // Standard JWS/JWT compact serialization with EdDSA (Ed25519).
+  const header = { alg: "EdDSA", typ: "JWT", kid: payloadObj.key_id ?? undefined };
+  const headerB64 = b64url(JSON.stringify(header));
   const payloadB64 = b64url(JSON.stringify(payloadObj));
+  const signingInput = `${headerB64}.${payloadB64}`;
   const key = createPrivateKey(privatePem);
-  const sig = edSign(null, Buffer.from(payloadB64), key);
-  return `opsqai.v1.${payloadB64}.${b64url(sig)}`;
+  const sig = edSign(null, Buffer.from(signingInput), key);
+  return `${signingInput}.${b64url(sig)}`;
 }
 
-/** Split a compact token and verify signature against a public PEM. Pure. */
+/** Split a compact token (JWT or legacy `opsqai.v1.*`) and verify. Pure. */
 function splitAndVerify(token: string, publicPem: string): unknown | null {
   const parts = token.split(".");
-  if (parts.length !== 4 || parts[0] !== "opsqai" || parts[1] !== "v1") return null;
-  const [, , payloadB64, sigB64] = parts;
   try {
     const key = createPublicKey(publicPem);
-    const ok = edVerify(null, Buffer.from(payloadB64), key, b64urlDecode(sigB64));
-    if (!ok) return null;
-    return JSON.parse(b64urlDecode(payloadB64).toString("utf-8"));
+    // JWT: header.payload.signature
+    if (parts.length === 3) {
+      const [headerB64, payloadB64, sigB64] = parts;
+      const signingInput = `${headerB64}.${payloadB64}`;
+      const ok = edVerify(null, Buffer.from(signingInput), key, b64urlDecode(sigB64));
+      if (!ok) return null;
+      return JSON.parse(b64urlDecode(payloadB64).toString("utf-8"));
+    }
+    // Legacy compact: opsqai.v1.payload.sig
+    if (parts.length === 4 && parts[0] === "opsqai" && parts[1] === "v1") {
+      const [, , payloadB64, sigB64] = parts;
+      const ok = edVerify(null, Buffer.from(payloadB64), key, b64urlDecode(sigB64));
+      if (!ok) return null;
+      return JSON.parse(b64urlDecode(payloadB64).toString("utf-8"));
+    }
+    return null;
   } catch {
     return null;
   }
