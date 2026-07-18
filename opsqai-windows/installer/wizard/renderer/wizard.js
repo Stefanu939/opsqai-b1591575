@@ -688,21 +688,49 @@ const STAGE_MARKERS = [
 ];
 let currentStageIdx = -1;
 
+// Per-session attempt tracking. Each entry: {code, sqlstate, file, line, logPath}.
+const attempts = [];
+let lastConfig = null;
+let currentLogPath = null;
+let lastFailure = null;
+
 async function onNext() {
   if (!isStepValid()) return;
-  if (state.step === 7) { goto(8); await runInstall(); return; }
+  if (state.step === 7) { goto(8); await runInstall(false); return; }
   goto(state.step + 1);
 }
 
-async function runInstall() {
+function parseFailLine(line) {
+  const m = /\[(\w+)\]\s+FAIL\s+(.*)$/.exec(String(line || ""));
+  if (!m) return null;
+  const out = { component: m[1] };
+  const re = /(\w+)=("(?:[^"\\]|\\.)*"|\S+)/g;
+  let match;
+  while ((match = re.exec(m[2])) !== null) {
+    let v = match[2];
+    if (v.startsWith('"') && v.endsWith('"')) {
+      try { v = JSON.parse(v); } catch { v = v.slice(1, -1); }
+    }
+    out[match[1]] = v;
+  }
+  return out;
+}
+
+async function runInstall(withReset) {
   buildConfig();
   $("#btn-cancel").disabled = true;
   $("#btn-next").disabled = true;
+
+  // Reset install UI (in case this is a retry).
+  document.querySelectorAll(".stages li").forEach((li) => li.removeAttribute("data-state"));
+  currentStageIdx = -1;
+  $("#install-title").textContent = "Installing OPSQAI…";
+  $("#install-sub").textContent = "Please keep this window open until setup finishes.";
+  const failCard = document.getElementById("fail-card");
+  if (failCard) failCard.remove();
   markStage(0, "run");
 
-  // Build the IPC config. Storage/AI/SMTP get sensible defaults; the
-  // admin console configures them post-install. IPC contract unchanged.
-  const config = {
+  const config = lastConfig || {
     installId: state.installId,
     company: {
       name: state.data.license?.claims?.customer || deriveCompany(state.data.admin.email),
@@ -716,6 +744,8 @@ async function runInstall() {
     license: state.data.license || null,
     smtp: null,
   };
+  lastConfig = config;
+  lastFailure = null;
 
   const log = $("#log");
   const bar = $("#progress-bar");
@@ -724,6 +754,18 @@ async function runInstall() {
   window.opsqai.onInstallLog((line) => {
     log.textContent += line + "\n";
     log.scrollTop = log.scrollHeight;
+
+    // Capture the per-install log path as it's announced.
+    const m = /^\[bootstrap\]\s+log:\s+(.+)$/.exec(line.trim());
+    if (m) currentLogPath = m[1];
+
+    // Capture structured failures.
+    const parsed = parseFailLine(line);
+    if (parsed && (parsed.component === "bootstrap" || parsed.component === "migrate")) {
+      lastFailure = parsed;
+      if (parsed.log_path) currentLogPath = parsed.log_path;
+    }
+
     for (let i = 0; i < STAGE_MARKERS.length; i++) {
       if (STAGE_MARKERS[i].match.test(line) && i > currentStageIdx) {
         for (let j = 0; j <= i - 1; j++) markStage(j, "done");
@@ -734,7 +776,9 @@ async function runInstall() {
     }
   });
 
-  const res = await window.opsqai.install(config);
+  const res = withReset
+    ? await window.opsqai.resetAndInstall(config)
+    : await window.opsqai.install(config);
   bar.classList.remove("indeterminate");
 
   if (res.code === 0) {
@@ -745,14 +789,76 @@ async function runInstall() {
     wireFinish();
   } else {
     if (currentStageIdx >= 0) markStage(currentStageIdx, "err");
-    $("#install-title").textContent = `Installation failed (code ${res.code})`;
-    $("#install-sub").textContent = "Review the log below and contact support if needed.";
-    $("#log").hidden = false;
-    $("#btn-cancel").disabled = false;
-    $("#btn-cancel").textContent = "Close";
-    $("#btn-cancel").onclick = () => window.close();
+    renderFailureCard(res.code);
   }
 }
+
+function renderFailureCard(exitCode) {
+  const f = lastFailure || { code: "OPSQAI-E1901", message: `bootstrap exit ${exitCode}` };
+  attempts.push({
+    code: f.code || "OPSQAI-E1901",
+    sqlstate: f.sqlstate || "",
+    file: f.file || "",
+    line: f.line || "",
+  });
+
+  const dbMode = state.data.database?.mode || "embedded";
+  const transient = /E1101|E1301/.test(f.code || "");
+  const sameSig = (() => {
+    if (attempts.length < 2) return false;
+    const a = attempts[attempts.length - 1];
+    const b = attempts[attempts.length - 2];
+    return a.code === b.code && a.sqlstate === b.sqlstate && a.file === b.file && a.line === b.line;
+  })();
+
+  $("#install-title").textContent = `Installation failed — ${f.code || "OPSQAI-E1901"}`;
+  $("#install-sub").textContent = "Review the details below.";
+  $("#log").hidden = false;
+
+  const card = document.createElement("div");
+  card.id = "fail-card";
+  card.className = "fail-card";
+  const rows = [
+    ["Error", f.code || "OPSQAI-E1901"],
+    f.file ? ["File", f.file] : null,
+    f.line ? ["Line", f.line] : null,
+    f.sqlstate ? ["SQLSTATE", f.sqlstate] : null,
+    ["Reason", f.message || "(no details)"],
+  ].filter(Boolean);
+  const rowsHtml = rows
+    .map(([k, v]) => `<div class="row"><span>${k}</span><strong>${escapeHtml(String(v))}</strong></div>`)
+    .join("");
+
+  const showReset = dbMode === "embedded" && !transient;
+  const banner = sameSig && showReset
+    ? `<div class="fail-banner">Same error repeated (${escapeHtml(f.code)}${f.file ? ` at ${escapeHtml(String(f.file))}:${escapeHtml(String(f.line))}` : ""}). The embedded database is likely in a bad state — Reset embedded database & retry is recommended.</div>`
+    : "";
+  const resetHint = showReset
+    ? `<p class="fail-hint">Resetting the embedded database only affects the bundled PostgreSQL instance. External PostgreSQL installations are never modified.</p>`
+    : "";
+
+  card.innerHTML = `
+    ${banner}
+    <div class="fail-rows">${rowsHtml}</div>
+    ${resetHint}
+    <div class="fail-actions">
+      <button class="btn" id="fail-retry"${sameSig ? " disabled title=\"Same error repeated — retrying will not help\"" : ""}>Retry</button>
+      ${showReset ? `<button class="btn btn-primary" id="fail-reset">Reset embedded database &amp; retry</button>` : ""}
+      <button class="btn btn-ghost" id="fail-log">Open Log</button>
+    </div>
+  `;
+  const pane = document.querySelector('.pane[data-pane="8"]');
+  pane.appendChild(card);
+
+  document.getElementById("fail-retry")?.addEventListener("click", () => runInstall(false));
+  document.getElementById("fail-reset")?.addEventListener("click", () => runInstall(true));
+  document.getElementById("fail-log")?.addEventListener("click", () => window.opsqai.openLog(currentLogPath));
+
+  $("#btn-cancel").disabled = false;
+  $("#btn-cancel").textContent = "Close";
+  $("#btn-cancel").onclick = () => window.close();
+}
+
 function markStage(idx, s) {
   const li = document.querySelector(`.stages li[data-stage="${STAGE_MARKERS[idx].stage}"]`);
   if (li) li.setAttribute("data-state", s);
@@ -777,7 +883,7 @@ function deriveCompany(email) {
 function wireFinish() {
   $("#btn-finish").onclick = () => window.opsqai.finish($("#launch-app").checked);
   $("#btn-open-folder").onclick = () => window.opsqai.openExternal("file:///C:/Program%20Files/OPSQAI");
-  $("#btn-view-logs").onclick = () => window.opsqai.openExternal("file:///C:/ProgramData/OPSQAI/logs");
+  $("#btn-view-logs").onclick = () => window.opsqai.openLogsFolder();
 }
 
 // ── Utils ──────────────────────────────────────────────────────────
