@@ -53,13 +53,19 @@ export const Route = createFileRoute("/lovable/email/suppression")({
     handlers: {
       POST: async ({ request }) => {
         const apiKey = process.env.LOVABLE_API_KEY;
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
+        let supabase;
+        try {
+          const mod = await import("@/lib/providers/cloud/service-role.server");
+          supabase = mod.createServiceRoleClient();
+        } catch {
           console.error("Missing required environment variables");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
+        if (!apiKey) {
+          console.error("Missing required environment variables");
+          return Response.json({ error: "Server configuration error" }, { status: 500 });
+        }
+
 
         // Verify HMAC signature using the Lovable API Key (same as auth-email-hook)
         let payload: SuppressionPayload;
