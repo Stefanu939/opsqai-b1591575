@@ -54,7 +54,7 @@ It refuses to run against a successfully completed install unless
 ## OPSQAI-E1902 — Installer payload incomplete
 
 The bootstrap detected that a required file inside the installed payload
-is missing (for example `errors.js` next to `migrate.mjs` under
+is missing (for example `errors.cjs` next to `migrate.mjs` under
 `%ProgramFiles%\OPSQAI\app\server\`). This is a packaging/integrity
 issue, not a database problem — the "Reset embedded database" option is
 intentionally not offered for this code because it cannot help.
