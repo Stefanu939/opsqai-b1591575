@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld("opsqai", {
   pickLicenseFile: () => ipcRenderer.invoke("wizard:pickLicenseFile"),
   validateLicense: (contents) => ipcRenderer.invoke("wizard:validateLicense", contents),
   testSmtp: (cfg) => ipcRenderer.invoke("wizard:testSmtp", cfg),
+  runSystemChecks: () => ipcRenderer.invoke("wizard:runSystemChecks"),
+  testDatabase: (cfg) => ipcRenderer.invoke("wizard:testDatabase", cfg),
   install: (cfg) => ipcRenderer.invoke("wizard:install", cfg),
   onInstallLog: (fn) => ipcRenderer.on("wizard:install-log", (_e, line) => fn(line)),
   finish: (launch) => ipcRenderer.invoke("wizard:finish", launch),
