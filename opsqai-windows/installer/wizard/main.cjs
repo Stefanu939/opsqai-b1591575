@@ -285,7 +285,7 @@ ipcMain.handle("wizard:runSystemChecks", async () => {
     detail: freeGb < 0 ? "Unable to determine" : `${freeGb} GB free`,
   };
 
-  results.dotnet = checkDotnet();
+  // No .NET check — OPSQAI does not use .NET at runtime.
 
   const bundledPg = path.join(installRoot, "payload", "pgsql", "bin", "postgres.exe");
   const stagedPg = path.join(installRoot, "pgsql", "bin", "postgres.exe");
