@@ -41,6 +41,7 @@ import {
   registerFeedbackRepositoryFactory,
   registerIntegrationRepositoryFactory,
   registerFaqRepositoryFactory,
+  registerKnowledgeRepositoryFactory,
   registerKnowledgeGapRepositoryFactory,
   registerMessageRepositoryFactory,
   registerProfileRepositoryFactory,
@@ -61,6 +62,7 @@ import { createSupabaseFeedbackRepository } from "./supabase-feedback-repository
 import { createSupabaseKnowledgeGapRepository } from "./supabase-knowledge-gap-repository.server";
 import { createSupabaseIntegrationRepository } from "./supabase-integration-repository.server";
 import { createSupabaseFaqRepository } from "./supabase-faq-repository.server";
+import { createSupabaseKnowledgeRepository } from "./supabase-knowledge-repository.server";
 
 
 class CloudUserRepository implements IUserRepository {
@@ -240,6 +242,9 @@ export function bootstrapCloud(): void {
   );
   registerFaqRepositoryFactory((ctx) =>
     createSupabaseFaqRepository(ctx as SupabaseClient<Database>),
+  );
+  registerKnowledgeRepositoryFactory((ctx) =>
+    createSupabaseKnowledgeRepository(ctx as SupabaseClient<Database>),
   );
 
 
