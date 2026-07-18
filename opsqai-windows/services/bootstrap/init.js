@@ -448,13 +448,20 @@ function resetEmbeddedDatabase() {
     log(`postgres ready on 127.0.0.1:${port}${probe.available ? ` (${probe.out || "pg_isready ok"})` : " (pg_isready.exe missing; TCP-only)"}`);
   }
 
-  writeInstallState("bootstrapping", "migrate", null);
+  // NOTE: do NOT write installation_state here — on a fresh install the
+  // `opsqai` database and role do not exist until the migrator creates
+  // them. Emit a STAGE marker (wizard progress) and defer the DB write
+  // until after the migrator succeeds.
 
   // --- 2. Run app migrations ---
+  console.log("[bootstrap] locating migrate.mjs");
   const migrator = programFiles("app", "server", "migrate.mjs");
+  console.log("[bootstrap] migrator =", migrator);
+  console.log("[bootstrap] exists   =", fs.existsSync(migrator));
   if (fs.existsSync(migrator)) {
+    console.log("[bootstrap] before stage(running app migrations)");
     stage("running app migrations");
-    log("running app migrations");
+    console.log("[bootstrap] launching migrate.mjs");
     const child = spawnSync(programFiles("runtime", "node", "node.exe"), [migrator], {
       encoding: "utf8",
       env: {
@@ -464,7 +471,10 @@ function resetEmbeddedDatabase() {
         OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
       },
       windowsHide: true,
+      timeout: 300_000,
+      killSignal: "SIGKILL",
     });
+    console.log("[bootstrap] migrate.mjs exited status =", child.status);
     if (child.stdout) process.stdout.write(child.stdout);
     if (child.stderr) process.stderr.write(child.stderr);
     if (child.status !== 0) {
@@ -477,7 +487,13 @@ function resetEmbeddedDatabase() {
       }
       const errFields = fail
         ? { code: fail.code, file: fail.file, line: fail.line, sqlstate: fail.sqlstate, message: fail.message }
-        : { code: "OPSQAI-E1001", message: `migrator exited with code ${child.status}` };
+        : {
+            code: "OPSQAI-E1001",
+            message:
+              child.error && child.error.code === "ETIMEDOUT"
+                ? "migrator timed out after 300s"
+                : `migrator exited with code ${child.status}`,
+          };
       writeInstallState("failed", "migrate", errFields);
       // Re-emit at bootstrap level so wizard renders the failure card.
       console.log(
@@ -486,6 +502,7 @@ function resetEmbeddedDatabase() {
           line: errFields.line,
           sqlstate: errFields.sqlstate,
           message: errFields.message,
+
           log_path: LOG_PATH,
         }),
       );
