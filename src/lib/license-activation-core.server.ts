@@ -3,7 +3,28 @@
 // Callers (Management Center exporter, Customer Portal downloader) both
 // need the same bundle shape. Auth is the caller's responsibility.
 
+import { createPrivateKey, sign as edSign } from "node:crypto";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
+
+const b64urlBundle = (buf: Buffer | string) =>
+  (typeof buf === "string" ? Buffer.from(buf) : buf)
+    .toString("base64")
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/, "");
+
+/** Sign an activation bundle as a compact JWS/JWT (EdDSA). */
+export async function signBundleAsJwt(bundle: ActivationBundle): Promise<string> {
+  const { getActiveSigningKey } = await import("@/lib/license-signing.server");
+  const { privatePem, keyId } = await getActiveSigningKey();
+  const header = { alg: "EdDSA", typ: "JWT", kid: keyId, cty: "opsqai-activation-bundle+json" };
+  const headerB64 = b64urlBundle(JSON.stringify(header));
+  const payloadB64 = b64urlBundle(JSON.stringify(bundle));
+  const signingInput = `${headerB64}.${payloadB64}`;
+  const sig = edSign(null, Buffer.from(signingInput), createPrivateKey(privatePem));
+  return `${signingInput}.${b64urlBundle(sig)}`;
+}
+
 
 export async function buildActivationBundle(install_id: string): Promise<ActivationBundle> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
