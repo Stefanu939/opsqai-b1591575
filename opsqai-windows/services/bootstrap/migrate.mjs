@@ -3,7 +3,7 @@
 //
 // Emits structured failure lines the wizard renderer keys off:
 //   [migrate] FAIL code=OPSQAI-E1001 file=0001_bootstrap.sql line=61 sqlstate=42704 message="..."
-// See services/bootstrap/errors.js for the code catalog.
+// See services/bootstrap/errors.cjs for the code catalog.
 
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
