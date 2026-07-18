@@ -804,6 +804,7 @@ function renderFailureCard(exitCode) {
 
   const dbMode = state.data.database?.mode || "embedded";
   const transient = /E1101|E1301/.test(f.code || "");
+  const isPackaging = /E1902/.test(f.code || "");
   const sameSig = (() => {
     if (attempts.length < 2) return false;
     const a = attempts[attempts.length - 1];
@@ -829,7 +830,7 @@ function renderFailureCard(exitCode) {
     .map(([k, v]) => `<div class="row"><span>${k}</span><strong>${escapeHtml(String(v))}</strong></div>`)
     .join("");
 
-  const showReset = dbMode === "embedded" && !transient;
+  const showReset = dbMode === "embedded" && !transient && !isPackaging;
   const banner = sameSig && showReset
     ? `<div class="fail-banner">Same error repeated (${escapeHtml(f.code)}${f.file ? ` at ${escapeHtml(String(f.file))}:${escapeHtml(String(f.line))}` : ""}). The embedded database is likely in a bad state — Reset embedded database & retry is recommended.</div>`
     : "";
