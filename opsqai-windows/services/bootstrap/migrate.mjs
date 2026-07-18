@@ -231,8 +231,18 @@ if (pending.length === 0) {
     if (result.stderr) process.stderr.write(result.stderr);
     if (result.status !== 0) {
       const parsed = parsePsqlError(result.stderr, file);
+      // Map known packaging failures to stable, actionable codes.
+      // 0A000 "extension \"vector\" is not available" means the pgvector
+      // files were not staged into pgsql\lib and pgsql\share\extension by
+      // the build. A Reset & Retry cannot fix this — the operator must
+      // reinstall from a correctly built installer.
+      const msg = parsed.message || "";
+      const isPgvectorMissing =
+        (parsed.sqlstate === "0A000" || /0A000/.test(msg)) &&
+        /extension\s+"vector"\s+is not available/i.test(msg);
+      const code = isPgvectorMissing ? "OPSQAI-E1010" : "OPSQAI-E1001";
       fail(
-        "OPSQAI-E1001",
+        code,
         {
           file,
           line: parsed.line ?? "",
