@@ -50,6 +50,8 @@
   --color-signal-foreground: var(--signal-foreground);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-line: var(--gold-line);
   --color-success: var(--success);
   --color-warning: var(--warning);
 }
