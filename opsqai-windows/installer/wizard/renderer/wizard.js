@@ -783,9 +783,14 @@ async function runInstall(withReset) {
     }
   });
 
-  const res = withReset
-    ? await window.opsqai.resetAndInstall(config)
-    : await window.opsqai.install(config);
+  let res;
+  try {
+    res = withReset
+      ? await window.opsqai.resetAndInstall(config)
+      : await window.opsqai.install(config);
+  } finally {
+    installInFlight = false;
+  }
   bar.classList.remove("indeterminate");
 
   if (res.code === 0) {
