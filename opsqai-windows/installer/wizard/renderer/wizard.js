@@ -168,21 +168,27 @@ $$('input[name="db-mode"], #db-host, #db-port, #db-name, #db-user, #db-pass').fo
 });
 $("#btn-db-test").addEventListener("click", async () => {
   setDbStatus("Testing…", "info");
-  // Phase A stub. Phase B wires window.opsqai.testDatabase(cfg).
   const host = $("#db-host").value.trim();
   const port = Number($("#db-port").value);
-  const db = $("#db-name").value.trim();
+  const database = $("#db-name").value.trim();
   const user = $("#db-user").value.trim();
-  const pass = $("#db-pass").value;
-  if (!host || !port || !db || !user || !pass) {
+  const password = $("#db-pass").value;
+  if (!host || !port || !database || !user || !password) {
     setDbStatus("Fill in all fields first", "err");
     return;
   }
-  await sleep(600);
-  setDbStatus("Connected (Test simulated — Phase B)", "ok");
+  const r = await window.opsqai.testDatabase({ host, port, database, user, password });
+  if (!r?.ok) {
+    setDbStatus(r?.error || "Connection failed", "err");
+    state.data.dbConnectionTested = false;
+    updateNextButton();
+    return;
+  }
+  setDbStatus("Connected · " + (r.version || "ok"), "ok");
   state.data.dbConnectionTested = true;
   updateNextButton();
 });
+
 function setDbStatus(msg, kind) {
   const el = $("#db-status");
   if (!msg) { el.hidden = true; return; }
