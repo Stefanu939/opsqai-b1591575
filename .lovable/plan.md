@@ -1,67 +1,104 @@
+## Root cause
 
-# Fix: bootstrap hangs silently at 40%
-
-## Root cause (confirmed by reading init.js)
-
-Between `postgres ready …` and `STAGE running app migrations`, the only work is:
+Bootstrap log:
 
 ```
-writeInstallState("bootstrapping", "migrate", null)   // init.js:433
-  → psqlExec(sql)                                     // init.js:303
-    → spawnSync("psql.exe", ["-h","-p","-U opsqai","-d opsqai", ...])
+Error: Cannot find module './errors.js'
+Require stack:
+- C:\Program Files\OPSQAI\app\server\migrate.mjs
 ```
 
-On a fresh install:
-- database `opsqai` does not exist yet (migrator creates it),
-- role `opsqai` may require a password per `pg_hba.conf` (`scram-sha-256`),
-- `psqlExec` does **not** pass `-w` / `--no-password`,
-- `spawnSync` has **no `timeout`**.
+`migrate.mjs` is staged into `payload\app\server\` but `errors.js` is only staged under `payload\services\bootstrap\`. The `require('./errors.js')` inside `migrate.mjs` fails immediately, before any SQL runs.
 
-Result: `psql.exe` tries to prompt for a password on a non-existent console and blocks forever. No error is ever printed → wizard stays at 40% "silenced".
+## Plan
 
-The user's proposed breadcrumb logs would confirm this — the last line printed would be `[bootstrap] before writeInstallState` and nothing after — but the real fix is to make the psql call incapable of hanging and to only write installation_state after the database exists.
+### 1. Fix staging (build.ps1)
 
-## Fix (only `opsqai-windows/services/bootstrap/init.js`)
+- After copying `migrate.mjs` and `admin-seed.mjs` into `payload\app\server\`, also copy `services\bootstrap\errors.js` to `payload\app\server\errors.js`.
+- Add `Assert-Exists (Join-Path $payload 'app\server\errors.js') 'staged migration error catalog'` to the payload guardrails so a future regression fails the build.
 
-### 1. Make `psqlExec` non-blocking under all conditions
+### 2. Runtime payload guard in init.js
 
-- Add `-w` (never prompt for password) to the psql arg list.
-- Add `timeout: 10_000` and `killSignal: "SIGKILL"` to the `spawnSync` options.
-- Wrap in try/catch so `writeInstallState` is truly best-effort — a psql failure must never stall bootstrap.
-
-### 2. Do not write `installation_state` before the DB/role exist
-
-Move the **first** `writeInstallState("bootstrapping", "migrate", null)` call from **before** the migrator to **after** the migrator succeeds (schema, role, and `installation_state` table all exist at that point). Keep the failure-path `writeInstallState("failed", "migrate", errFields)` — it will now silently no-op on a truly dead DB instead of hanging.
-
-For the *early* progress marker (before migrations), just emit a `STAGE` log line — the wizard already keys progress off `STAGE` markers, not off the DB row.
-
-### 3. Keep the user's breadcrumb logs
-
-Add exactly the logs the user proposed around the migrator lookup + spawn, so any future hang in this window is instantly diagnosable:
+Before spawning `migrate.mjs`, verify all required bootstrap files exist. Emit a structured, stable failure instead of letting Node crash with a raw stack:
 
 ```js
-console.log("[bootstrap] locating migrate.mjs");
-const migrator = programFiles("app", "server", "migrate.mjs");
-console.log("[bootstrap] migrator =", migrator);
-console.log("[bootstrap] exists   =", fs.existsSync(migrator));
-console.log("[bootstrap] before stage(running app migrations)");
-stage("running app migrations");
-console.log("[bootstrap] launching migrate.mjs");
+const migratorDir = programFiles("app", "server");
+const required = ["migrate.mjs", "errors.js"];
+const missing = required.filter(f => !fs.existsSync(path.join(migratorDir, f)));
+if (missing.length) {
+  console.log(formatFail("bootstrap", "OPSQAI-E1902", {
+    message: `Installer payload incomplete. Missing: ${missing.join(", ")}`,
+    dir: migratorDir,
+  }));
+  process.exit(5);
+}
 ```
 
-### 4. Belt-and-suspenders: also add `timeout` to the migrator spawn
+This runs immediately before `[bootstrap] launching migrate.mjs`, so the user sees:
 
-`spawnSync(node, [migrator], { timeout: 300_000 })` so a stuck migrator surfaces as `OPSQAI-E1001` after 5 minutes instead of an indefinite wait.
+```
+Installer payload incomplete.
+Missing: errors.js
+```
 
-## Out of scope
+instead of a Node module resolution stack.
 
-- No changes to migrations, wizard renderer, or IPC layer.
-- No changes to `installation_state` schema — it stays bootstrap-only per the memory rule.
-- No behavior change on happy path; only failure/edge paths become observable and time-bounded.
+### 3. New stable error code
 
-## Verification
+Add `OPSQAI-E1902` to `services/bootstrap/errors.js`:
 
-1. Fresh install on a clean VM: log should now go
-   `postgres ready … → locating migrate.mjs → exists=true → STAGE running app migrations → …` with no gap.
-2. Simulate hang: point psqlExec at an unreachable port; bootstrap must proceed past `writeInstallState` within 10s instead of stalling.
-3. `%ProgramData%\OPSQAI\logs\bootstrap-<ts>.log` shows the new breadcrumbs, so support can pinpoint any future stall in one look.
+- category: `packaging`
+- title: `Installer payload incomplete`
+- Mark it as non-transient AND non-database — so it never suggests "Reset embedded database & retry".
+
+### 4. Wizard classification
+
+In `renderer/wizard.js` (`renderFailureCard`), extend the "don't offer database reset" check to include packaging codes:
+
+```js
+const isPackaging = /E1902/.test(f.code || "");
+const showReset = dbMode === "embedded" && !transient && !isPackaging;
+```
+
+Also add an in-flight guard so double-clicking Retry/Reset can't launch two bootstrap children concurrently (the pasted log showed every line duplicated, indicating two runs at the same timestamp): disable both buttons immediately on click and re-enable them only after `runInstall` returns.
+
+### 5. Fallback resolution in migrate.mjs (defense in depth)
+
+Update `migrate.mjs` so the errors module can be found from either layout:
+
+```js
+const errorsPath = fs.existsSync(join(here, "errors.js"))
+  ? join(here, "errors.js")
+  : join(installRoot, "..", "services", "bootstrap", "errors.js");
+```
+
+If neither exists, emit an `OPSQAI-E1902` FAIL line directly (no `require('./errors.js')`), so migrate.mjs never crashes with an unstructured Node error again.
+
+### 6. Docs
+
+Append `OPSQAI-E1902 — Installer payload incomplete` to `docs/administrator-guide/15-troubleshooting.md` with the resolution ("re-run the installer; if it recurs, the setup .exe is corrupted — re-download").
+
+## Files touched
+
+- `opsqai-windows/build/build.ps1` — stage `errors.js`; add guardrail assertion.
+- `opsqai-windows/services/bootstrap/init.js` — pre-flight required-files check before launching migrator.
+- `opsqai-windows/services/bootstrap/errors.js` — add `OPSQAI-E1902`.
+- `opsqai-windows/services/bootstrap/migrate.mjs` — resilient errors.js resolution + safe fallback FAIL.
+- `opsqai-windows/installer/wizard/renderer/wizard.js` — packaging classification + in-flight guard.
+- `docs/administrator-guide/15-troubleshooting.md` — new code entry.
+
+## Expected next run
+
+```
+[bootstrap] launching migrate.mjs
+[migrate] applying 1 pending migration(s) ...
+```
+
+If (hypothetically) a file is still missing, the wizard shows a clear card:
+
+```
+Error       OPSQAI-E1902
+Reason      Installer payload incomplete. Missing: errors.js
+```
+
+with only **Retry** and **Open Log** — no misleading "Reset embedded database" suggestion.

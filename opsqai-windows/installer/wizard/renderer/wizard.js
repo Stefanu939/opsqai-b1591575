@@ -716,7 +716,14 @@ function parseFailLine(line) {
   return out;
 }
 
+let installInFlight = false;
+
 async function runInstall(withReset) {
+  // Guard against double-clicks (Retry / Reset & Retry). The pasted log
+  // showed every bootstrap line duplicated, which meant two concurrent
+  // spawns of init.js. One at a time — always.
+  if (installInFlight) return;
+  installInFlight = true;
   buildConfig();
   $("#btn-cancel").disabled = true;
   $("#btn-next").disabled = true;
@@ -776,9 +783,14 @@ async function runInstall(withReset) {
     }
   });
 
-  const res = withReset
-    ? await window.opsqai.resetAndInstall(config)
-    : await window.opsqai.install(config);
+  let res;
+  try {
+    res = withReset
+      ? await window.opsqai.resetAndInstall(config)
+      : await window.opsqai.install(config);
+  } finally {
+    installInFlight = false;
+  }
   bar.classList.remove("indeterminate");
 
   if (res.code === 0) {
@@ -804,6 +816,7 @@ function renderFailureCard(exitCode) {
 
   const dbMode = state.data.database?.mode || "embedded";
   const transient = /E1101|E1301/.test(f.code || "");
+  const isPackaging = /E1902/.test(f.code || "");
   const sameSig = (() => {
     if (attempts.length < 2) return false;
     const a = attempts[attempts.length - 1];
@@ -829,7 +842,7 @@ function renderFailureCard(exitCode) {
     .map(([k, v]) => `<div class="row"><span>${k}</span><strong>${escapeHtml(String(v))}</strong></div>`)
     .join("");
 
-  const showReset = dbMode === "embedded" && !transient;
+  const showReset = dbMode === "embedded" && !transient && !isPackaging;
   const banner = sameSig && showReset
     ? `<div class="fail-banner">Same error repeated (${escapeHtml(f.code)}${f.file ? ` at ${escapeHtml(String(f.file))}:${escapeHtml(String(f.line))}` : ""}). The embedded database is likely in a bad state — Reset embedded database & retry is recommended.</div>`
     : "";
@@ -850,8 +863,12 @@ function renderFailureCard(exitCode) {
   const pane = document.querySelector('.pane[data-pane="8"]');
   pane.appendChild(card);
 
-  document.getElementById("fail-retry")?.addEventListener("click", () => runInstall(false));
-  document.getElementById("fail-reset")?.addEventListener("click", () => runInstall(true));
+  const disableAll = () => {
+    document.getElementById("fail-retry")?.setAttribute("disabled", "");
+    document.getElementById("fail-reset")?.setAttribute("disabled", "");
+  };
+  document.getElementById("fail-retry")?.addEventListener("click", () => { disableAll(); runInstall(false); });
+  document.getElementById("fail-reset")?.addEventListener("click", () => { disableAll(); runInstall(true); });
   document.getElementById("fail-log")?.addEventListener("click", () => window.opsqai.openLog(currentLogPath));
 
   $("#btn-cancel").disabled = false;

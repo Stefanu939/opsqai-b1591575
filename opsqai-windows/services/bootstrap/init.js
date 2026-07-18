@@ -455,9 +455,29 @@ function resetEmbeddedDatabase() {
 
   // --- 2. Run app migrations ---
   console.log("[bootstrap] locating migrate.mjs");
-  const migrator = programFiles("app", "server", "migrate.mjs");
+  const migratorDir = programFiles("app", "server");
+  const migrator = path.join(migratorDir, "migrate.mjs");
   console.log("[bootstrap] migrator =", migrator);
   console.log("[bootstrap] exists   =", fs.existsSync(migrator));
+
+  // Pre-flight: fail fast with a stable code (E1902) if any required
+  // packaged bootstrap file is missing, instead of letting Node crash
+  // with an unstructured MODULE_NOT_FOUND stack trace.
+  const requiredMigratorFiles = ["migrate.mjs", "errors.js"];
+  const missingFiles = requiredMigratorFiles.filter(
+    (f) => !fs.existsSync(path.join(migratorDir, f)),
+  );
+  if (fs.existsSync(migrator) && missingFiles.length > 0) {
+    console.log(
+      formatFail("bootstrap", "OPSQAI-E1902", {
+        dir: migratorDir,
+        message: `Installer payload incomplete. Missing: ${missingFiles.join(", ")}`,
+        log_path: LOG_PATH,
+      }),
+    );
+    process.exit(5);
+  }
+
   if (fs.existsSync(migrator)) {
     console.log("[bootstrap] before stage(running app migrations)");
     stage("running app migrations");
