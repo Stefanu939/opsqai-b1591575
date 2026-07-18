@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Circle, AlertTriangle, Rocket } from "lucide-react";
+import { CheckCircle2, Circle, AlertTriangle, ShieldCheck } from "lucide-react";
 import {
   getFirstRunGate,
   getFirstRunProgress,
@@ -93,72 +93,115 @@ function FirstRunWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-10 px-4">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Rocket className="h-6 w-6 text-primary" />
-            <h1 className="text-3xl font-semibold tracking-tight">OPSQAI first-run setup</h1>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Top bar */}
+      <header className="border-b border-border/60 bg-card/40 backdrop-blur">
+        <div className="max-w-6xl mx-auto flex items-center gap-3 px-6 py-4">
+          <div className="h-9 w-9 rounded-md bg-gold-soft border border-gold-line flex items-center justify-center">
+            <ShieldCheck className="h-5 w-5 text-gold" />
           </div>
-          <p className="text-sm text-muted-foreground">
-            One-time wizard. Runs only when this install has no admin account yet. Progress is saved
-            after each step — safe to close and resume.
-          </p>
-        </header>
-
-        <Card className="p-4">
-          <ol className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
-            {STEPS.map((s, i) => {
-              const complete = isStepDone(s.id, done) || i < currentIdx;
-              const active = i === currentIdx;
-              return (
-                <li
-                  key={s.id}
-                  className={`flex items-center gap-1.5 ${active ? "font-semibold text-foreground" : "text-muted-foreground"}`}
-                >
-                  {complete ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                  ) : (
-                    <Circle className="h-3.5 w-3.5 shrink-0" />
-                  )}
-                  {i + 1}. {s.label}
-                </li>
-              );
-            })}
-          </ol>
-        </Card>
-
-        <Card className="p-6">
-          {current.id === "eula" && <EulaStep onDone={advance} />}
-          {current.id === "license" && <LicenseStep onDone={advance} />}
-          {current.id === "storage" && <StorageStep onDone={advance} />}
-          {current.id === "ai" && <AiStep onDone={advance} />}
-          {current.id === "smtp" && <SmtpStep onDone={advance} />}
-          {current.id === "sso" && <SsoStep onDone={advance} />}
-          {current.id === "backup" && <BackupStep onDone={advance} />}
-          {current.id === "doctor" && <DoctorStep onDone={advance} />}
-          {current.id === "admin" && <AdminStep onDone={advance} />}
-          {current.id === "finish" && (
-            <FinishStep onDone={() => navigate({ to: "/auth", replace: true })} />
-          )}
-        </Card>
-
-        <div className="flex justify-between">
-          <Button
+          <div className="flex-1">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              OPSQAI Self-Hosted
+            </div>
+            <h1 className="text-lg font-semibold tracking-tight leading-none">
+              First-Run Configuration
+            </h1>
+          </div>
+          <Badge
             variant="outline"
-            onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
-            disabled={currentIdx === 0}
+            className="border-gold-line text-gold bg-gold-soft hidden sm:inline-flex"
           >
-            Back
-          </Button>
-          <div className="text-xs text-muted-foreground self-center">
-            Step {currentIdx + 1} of {STEPS.length}
-          </div>
+            Setup Wizard
+          </Badge>
         </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-6 py-8 grid gap-6 md:grid-cols-[260px_1fr]">
+        {/* Step rail */}
+        <aside className="md:sticky md:top-6 md:self-start">
+          <Card className="p-3 border-border/60">
+            <div className="px-2 pb-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              Progress
+            </div>
+            <ol className="space-y-0.5">
+              {STEPS.map((s, i) => {
+                const complete = isStepDone(s.id, done) || i < currentIdx;
+                const active = i === currentIdx;
+                return (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      onClick={() => complete && setCurrentIdx(i)}
+                      disabled={!complete && !active}
+                      className={[
+                        "w-full flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm transition-colors",
+                        active
+                          ? "bg-gold-soft text-foreground border border-gold-line"
+                          : complete
+                            ? "text-foreground hover:bg-muted/60"
+                            : "text-muted-foreground cursor-not-allowed",
+                      ].join(" ")}
+                    >
+                      {complete ? (
+                        <CheckCircle2 className="h-4 w-4 text-gold shrink-0" />
+                      ) : (
+                        <Circle
+                          className={`h-4 w-4 shrink-0 ${active ? "text-gold" : "text-muted-foreground/60"}`}
+                        />
+                      )}
+                      <span className="text-[10px] font-mono text-muted-foreground w-4 tabular-nums">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="truncate">{s.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </Card>
+
+          <p className="mt-3 px-1 text-xs text-muted-foreground">
+            Progress is saved after each step. Safe to close and resume.
+          </p>
+        </aside>
+
+        {/* Content pane */}
+        <main className="min-w-0">
+          <Card className="p-6 md:p-8 border-border/60 shadow-sm">
+            {current.id === "eula" && <EulaStep onDone={advance} />}
+            {current.id === "license" && <LicenseStep onDone={advance} />}
+            {current.id === "storage" && <StorageStep onDone={advance} />}
+            {current.id === "ai" && <AiStep onDone={advance} />}
+            {current.id === "smtp" && <SmtpStep onDone={advance} />}
+            {current.id === "sso" && <SsoStep onDone={advance} />}
+            {current.id === "backup" && <BackupStep onDone={advance} />}
+            {current.id === "doctor" && <DoctorStep onDone={advance} />}
+            {current.id === "admin" && <AdminStep onDone={advance} />}
+            {current.id === "finish" && (
+              <FinishStep onDone={() => navigate({ to: "/auth", replace: true })} />
+            )}
+          </Card>
+
+          <div className="mt-5 flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
+              disabled={currentIdx === 0}
+            >
+              Back
+            </Button>
+            <div className="text-xs text-muted-foreground">
+              Step <span className="text-foreground font-medium">{currentIdx + 1}</span> of{" "}
+              {STEPS.length}
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
 }
+
 
 function isStepDone(step: StepId, done: Set<string>): boolean {
   const map: Record<StepId, string | null> = {
@@ -179,12 +222,13 @@ function isStepDone(step: StepId, done: Set<string>): boolean {
 
 function StepHeader({ title, description }: { title: string; description: string }) {
   return (
-    <header className="mb-4 space-y-1">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <p className="text-sm text-muted-foreground">{description}</p>
+    <header className="mb-6 space-y-2 pb-4 border-b border-border/60">
+      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </header>
   );
 }
+
 
 function EulaStep({ onDone }: { onDone: () => void }) {
   const [checked, setChecked] = useState(false);
