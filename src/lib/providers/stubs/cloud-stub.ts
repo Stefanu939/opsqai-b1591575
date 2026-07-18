@@ -32,8 +32,13 @@ const stub = new Proxy(function () {
 // Common named exports used across the codebase — all resolve to the
 // same throwing stub so `import { supabase } from ...` etc. compile but
 // crash if actually invoked at runtime in a Self-Hosted bundle.
+// Common named exports used across the codebase — all resolve to the
+// same throwing stub so `import { X } from ...` compiles but crashes if
+// actually invoked at runtime in a Self-Hosted bundle. Types resolve to
+// `any` via the same stub (types are stripped at build).
 export const supabase = stub;
 export const supabaseAdmin = stub;
+export const createClient = stub;
 export const createSupabaseBrowserAuthProvider = stub;
 export const createSupabaseAuthProvider = stub;
 export const createSupabaseAuthAdminProvider = stub;
@@ -42,6 +47,12 @@ export const getCloudSupabase = stub;
 export const getCloudSupabaseAdmin = stub;
 export const requireSupabaseAuth = stub;
 export const attachSupabaseAuth = stub;
+export const attachBearerToken = stub;
 export const bootstrapCloudProviders = stub;
+
+// Type-only re-exports — `any` avoids leaking Cloud SDK types into the
+// Self-Hosted build's type-check surface.
+export type Database = any;
+export type SupabaseClient = any;
 
 export default stub;
