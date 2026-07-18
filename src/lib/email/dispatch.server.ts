@@ -159,7 +159,7 @@ export async function dispatchTransactionalEmail(
   const entry = TEMPLATES[input.templateName];
   if (!entry) throw new Error(`unknown_template:${input.templateName}`);
 
-  const sb = admin();
+  const sb = await admin();
   const settings = await loadSettings(sb);
 
   // Check suppression list before doing any work.
