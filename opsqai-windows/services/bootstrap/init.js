@@ -309,6 +309,7 @@ function httpsGet(url, ms = 30_000) {
   // --- 2. Run app migrations ---
   const migrator = programFiles("app", "server", "migrate.mjs");
   if (fs.existsSync(migrator)) {
+    stage("running app migrations");
     log("running app migrations");
     try {
       execFileSync(programFiles("runtime", "node", "node.exe"), [migrator], {
