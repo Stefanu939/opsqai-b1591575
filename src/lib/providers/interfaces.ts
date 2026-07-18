@@ -428,6 +428,37 @@ export type FeedbackRepositoryFactory = (dataCtx: unknown) => IFeedbackRepositor
 export type KnowledgeGapRepositoryFactory = (dataCtx: unknown) => IKnowledgeGapRepository;
 export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRepository;
 
+// --------------------------------------------------------------------
+// FAQs
+// --------------------------------------------------------------------
+
+export interface FaqRow {
+  id: string;
+  company_id: string | null;
+  question_de: string;
+  question_en: string;
+  answer_de: string;
+  answer_en: string;
+  category: string;
+}
+
+export interface FaqUpsertInput {
+  question_de: string;
+  question_en: string;
+  answer_de: string;
+  answer_en: string;
+  category: string;
+}
+
+export interface IFaqRepository {
+  update(id: string, patch: FaqUpsertInput): Promise<void>;
+  getMetaById(id: string): Promise<Pick<FaqRow, "company_id" | "category" | "question_en"> | null>;
+  insert(companyId: string, input: FaqUpsertInput): Promise<Pick<FaqRow, "id" | "category" | "question_en">>;
+  delete(id: string): Promise<void>;
+}
+
+export type FaqRepositoryFactory = (dataCtx: unknown) => IFaqRepository;
+
 
 
 
