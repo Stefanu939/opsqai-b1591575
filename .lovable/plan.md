@@ -1,69 +1,26 @@
-## Root cause (confirmed from build.ps1 lines 268–312 and migration 0010 comment)
+## Diagnosis
 
-Migration `0010_kb_pgvector.sql` runs `CREATE EXTENSION vector;`, and its own header comment states:
+`companies` chiar e relicvă Cloud. Restul migrărilor self-host (0006, 0007, 0008, 0009) folosesc deja `company_id UUID` fără FK, umplut la nivel de aplicație cu `OPSQAI_INSTALL_ID` — vezi comentariile explicite din 0006 și 0007 ("no companies table is created here", "there is no separate companies table on Self-Hosted"). Doar `0010_kb_pgvector.sql` a fost copiat brut din Cloud și încă are `REFERENCES public.companies(id)` — de-aia crapă.
 
-> The Windows installer bundles a prebuilt pgvector 0.7.x (vector.dll + control/SQL files) under `vendor\pgsql\lib\` / `share\extension\`; `CREATE EXTENSION` below activates it.
+Nu creăm tabela `companies`. Aliniez 0010 la convenția existentă.
 
-But `opsqai-windows/build/build.ps1` never actually stages pgvector. It downloads only the vanilla EnterpriseDB PostgreSQL 16.4-1 portable zip into `payload\pgsql\` and stops there. The embedded PostgreSQL therefore has no `vector.control` under `pgsql\share\extension\`, so psql fails with `0A000: extension "vector" is not available`.
+## Modificări
 
-This is a build-payload bug, not a runtime bug. Reset & Retry cannot help — every reinstall from the same installer will fail at the same migration.
+**`migrations/selfhost/0010_kb_pgvector.sql`**
 
-## Plan — add a "PostgreSQL extensions" stage to build.ps1
+1. Șterge FK-urile către `public.companies`:
+   - `knowledge_documents.company_id`: `UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE` → `UUID NOT NULL`
+   - `document_chunks.company_id`: idem
+2. Păstrează `department_id UUID REFERENCES public.departments(id) ON DELETE SET NULL` — 0007 creează `departments` deja, deci FK-ul e valid.
+3. Actualizează headerul cu comentariul standard self-host: "`company_id` este umplut de app layer cu `OPSQAI_INSTALL_ID`, nu există tabelă `companies` pe Self-Hosted."
+4. `match_knowledge_chunks(p_company_id, ...)` — semnătura rămâne (o folosește RAG-ul), dar comentariu că `p_company_id` = install id, nu FK.
 
-Add a new section right after step 5 (PostgreSQL Portable), before the payload guardrails, that stages pgvector into the already-extracted `payload\pgsql` tree.
+Fără schimbări în alte migrări. Fără seed. Fără cod app modificat — layer-ul KB deja pasează `company_id` ca UUID opaque.
 
-### 1. Fetch prebuilt pgvector for PostgreSQL 16 / Windows x64
+## Recovery pe mașina clientului
 
-Upstream `pgvector/pgvector` does not publish Windows binaries. Use a pinned, checksum-verified community prebuild:
+Installer-ul deja are Reset & Retry și mută `pgsql.failed-*` la o parte, deci după rebuild + reinstall, 0010 aplică curat pe DB proaspăt.
 
-- Source: `https://github.com/andreiramani/pgvector_pgsql_windows` (releases contain `pgvector-<ver>-pg16-windows-x64.zip` with `lib\vector.dll`, `share\extension\vector.control`, and `share\extension\vector--*.sql`).
-- Pin to a specific tag (e.g. `v0.7.4`) and SHA-256, matching the `pgvector 0.7.x` promise in the migration comment.
-- Cache under `%TEMP%` like the other downloads and expand into a temp dir.
+## Out of scope
 
-If the pinned upstream is not acceptable for the customer, the alternative is to host our own signed zip on the OPSQAI CDN using the same layout; the build step stays identical.
-
-### 2. Copy files into the staged PostgreSQL tree
-
-- `vector.dll` → `payload\pgsql\lib\vector.dll`
-- `vector.control` + all `vector--*.sql` → `payload\pgsql\share\extension\`
-
-Do this only when `-SkipPostgres` is not set (dev builds without Postgres also skip pgvector).
-
-### 3. Add payload guardrails
-
-Extend the `Assert-Exists` block (currently lines 293–312) with:
-
-```
-Assert-Exists (Join-Path $payload 'pgsql\lib\vector.dll')                       'pgvector runtime'
-Assert-Exists (Join-Path $payload 'pgsql\share\extension\vector.control')       'pgvector control file'
-```
-
-so a broken build fails fast in CI instead of shipping a stub that dies at migration 0010.
-
-### 4. Add a stable error code for the runtime side (defensive)
-
-In `opsqai-windows/services/bootstrap/errors.cjs`, add `OPSQAI-E1010 — pgvector extension missing from PostgreSQL payload` and map psql `0A000: extension "vector" is not available` to it in `migrate.mjs`. This turns the current cryptic `E1001` into an actionable message that names the missing component and instructs the operator to reinstall (not "Reset & Retry", which won't fix a missing DLL).
-
-Also flag `E1010` in `wizard.js` alongside `E1902` as a packaging error — hide "Reset embedded database & retry", show only "Open Log" + reinstall guidance.
-
-### 5. Docs
-
-Update `docs/administrator-guide/15-troubleshooting.md` with the `OPSQAI-E1010` entry and one paragraph in `docs/administrator-guide/04-postgres.md` noting that the embedded PostgreSQL ships with pgvector 0.7.x preinstalled — customers using an external PostgreSQL must install pgvector themselves.
-
-## Files touched
-
-- `opsqai-windows/build/build.ps1` — new pgvector stage + two `Assert-Exists` lines.
-- `opsqai-windows/services/bootstrap/errors.cjs` — add `E1010`.
-- `opsqai-windows/services/bootstrap/migrate.mjs` — map `0A000: extension "vector"` → `E1010`.
-- `opsqai-windows/installer/wizard/renderer/wizard.js` — treat `E1010` as packaging error.
-- `docs/administrator-guide/15-troubleshooting.md`, `docs/administrator-guide/04-postgres.md`.
-
-## Verification
-
-After rebuild:
-1. Fresh install on a clean VM → migration 0010 prints `CREATE EXTENSION` and continues through step 8.
-2. Manually delete `pgsql\lib\vector.dll` before install → wizard shows `OPSQAI-E1010` with reinstall guidance instead of a Reset loop.
-
-## Open question
-
-Confirm the pgvector source: pin the community prebuilt (fastest, ships next build) or host our own signed zip on the OPSQAI CDN (one extra CI step, no third-party dependency). I recommend the community prebuild for now and moving to a self-hosted signed zip in Phase 9's hardening pass.
+- Refactor complet ca să scoatem coloana `company_id` din KB pe self-host (single-tenant nu are nevoie de ea). E o curățenie separată; acum vrem doar să deblocăm instalarea fără să introducem relicva `companies`.

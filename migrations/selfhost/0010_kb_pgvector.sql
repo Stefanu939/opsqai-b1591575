@@ -1,20 +1,24 @@
 -- Knowledge Base with pgvector support (Self-Hosted).
 --
--- Mirrors the Cloud schema for `public.knowledge_documents` and
--- `public.document_chunks`. The Windows installer bundles a prebuilt
--- pgvector 0.7.x (vector.dll + control/SQL files) under
--- vendor\pgsql\lib\ / share\extension\; `CREATE EXTENSION` below
--- activates it in the OPSQAI database.
+-- Single-tenant: there is no `public.companies` table on Self-Hosted
+-- (that is a Cloud-only relic). `company_id` here is a plain UUID
+-- filled by the app layer with `OPSQAI_INSTALL_ID`, matching the
+-- convention already used by 0006/0007/0008/0009. No FK to companies.
+--
+-- pgvector 0.8.x (vector.dll + control/SQL) is bundled by the Windows
+-- installer under vendor\pgsql\lib\ / share\extension\; `CREATE EXTENSION`
+-- below activates it.
 --
 -- Embeddings default to 1536 dims (openai/text-embedding-3-small via the
 -- Lovable AI Gateway), which fits pgvector's HNSW cap directly with no
 -- halfvec cast.
 
+
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS public.knowledge_documents (
     id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id          uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+    company_id          uuid NOT NULL,
     title               text NOT NULL,
     category            text NOT NULL DEFAULT 'general',
     doc_code            text,
@@ -55,7 +59,7 @@ CREATE TRIGGER trg_knowledge_documents_updated_at
 CREATE TABLE IF NOT EXISTS public.document_chunks (
     id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id  uuid NOT NULL REFERENCES public.knowledge_documents(id) ON DELETE CASCADE,
-    company_id   uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+    company_id   uuid NOT NULL,
     chunk_index  integer NOT NULL,
     content      text NOT NULL,
     token_count  integer,
