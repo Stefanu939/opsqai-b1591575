@@ -220,6 +220,22 @@ export function bootstrapCloud(): void {
   registerDepartmentRepositoryFactory((ctx) =>
     createSupabaseDepartmentRepository(ctx as SupabaseClient<Database>),
   );
+  // Wave C.2b.1 — chat / feedback / knowledge-gap / integrations.
+  registerThreadRepositoryFactory((ctx) =>
+    createSupabaseThreadRepository(ctx as SupabaseClient<Database>),
+  );
+  registerMessageRepositoryFactory((ctx) =>
+    createSupabaseMessageRepository(ctx as SupabaseClient<Database>),
+  );
+  registerFeedbackRepositoryFactory((ctx) =>
+    createSupabaseFeedbackRepository(ctx as SupabaseClient<Database>),
+  );
+  registerKnowledgeGapRepositoryFactory((ctx) =>
+    createSupabaseKnowledgeGapRepository(ctx as SupabaseClient<Database>),
+  );
+  registerIntegrationRepositoryFactory((ctx) =>
+    createSupabaseIntegrationRepository(ctx as SupabaseClient<Database>),
+  );
 
   // Admin flavour: lazy-load service-role client so this module does not
   // pull `client.server.ts` into the client graph.
