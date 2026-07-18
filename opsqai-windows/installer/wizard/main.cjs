@@ -11,7 +11,10 @@
 const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { spawn } = require("child_process");
+const os = require("os");
+const net = require("net");
+const { spawn, spawnSync } = require("child_process");
+
 
 // The wizard is packaged inside %ProgramFiles%\OPSQAI\wizard\.
 // Resolve installation root two levels up.
