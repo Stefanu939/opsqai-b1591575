@@ -13,21 +13,21 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
-// Resolve errors.js from either the staged app layout (beside this file)
-// or the source layout (../../services/bootstrap/errors.js). If neither
+// Resolve errors.cjs from either the staged app layout (beside this file)
+// or the source layout (../../services/bootstrap/errors.cjs). If neither
 // exists, emit a stable OPSQAI-E1902 line and exit — never crash Node
 // with an unstructured MODULE_NOT_FOUND stack.
 const _here = dirname(fileURLToPath(import.meta.url));
 const _errorCandidates = [
-  join(_here, "errors.js"),
-  join(_here, "..", "..", "services", "bootstrap", "errors.js"),
-  join(_here, "..", "..", "..", "services", "bootstrap", "errors.js"),
+  join(_here, "errors.cjs"),
+  join(_here, "..", "..", "services", "bootstrap", "errors.cjs"),
+  join(_here, "..", "..", "..", "services", "bootstrap", "errors.cjs"),
 ];
 const _errorsPath = _errorCandidates.find((p) => existsSync(p));
 if (!_errorsPath) {
   console.log(
     `[migrate] FAIL code=OPSQAI-E1902 dir=${JSON.stringify(_here)} ` +
-      `message="Installer payload incomplete. Missing: errors.js"`,
+      `message="Installer payload incomplete. Missing: errors.cjs"`,
   );
   process.exit(5);
 }
