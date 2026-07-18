@@ -262,6 +262,18 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerDepartmentRepositoryFactory(() => departmentRepo);
   registerAdminDepartmentRepositoryFactory(() => departmentRepo);
   registerAuthAdminProvider(createPgAuthAdminProvider({ pool }));
+
+  // Wave C.2b.1 — chat / feedback / knowledge-gap / integrations.
+  const threadRepo = createPgThreadRepository({ pool });
+  const messageRepo = createPgMessageRepository({ pool });
+  const feedbackRepo = createPgFeedbackRepository({ pool });
+  const gapRepo = createPgKnowledgeGapRepository({ pool });
+  const integrationRepo = createPgIntegrationRepository({ pool });
+  registerThreadRepositoryFactory(() => threadRepo);
+  registerMessageRepositoryFactory(() => messageRepo);
+  registerFeedbackRepositoryFactory(() => feedbackRepo);
+  registerKnowledgeGapRepositoryFactory(() => gapRepo);
+  registerIntegrationRepositoryFactory(() => integrationRepo);
 }
 
 
