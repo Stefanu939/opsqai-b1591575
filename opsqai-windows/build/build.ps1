@@ -342,6 +342,8 @@ Assert-Exists (Join-Path $payload 'app\server\admin-seed.mjs') 'staged admin see
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
 if (-not $SkipPostgres) {
   Assert-Exists (Join-Path $payload 'pgsql\bin\postgres.exe') 'PostgreSQL runtime'
+  Assert-Exists (Join-Path $payload 'pgsql\lib\vector.dll')                 'pgvector runtime (vector.dll)'
+  Assert-Exists (Join-Path $payload 'pgsql\share\extension\vector.control') 'pgvector control file'
 }
 
 $payloadBytes = (Get-ChildItem $payload -Recurse -File | Measure-Object Length -Sum).Sum
