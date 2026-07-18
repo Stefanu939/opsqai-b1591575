@@ -281,6 +281,39 @@ if (-not $SkipPostgres) {
   Write-Host "Skipping PostgreSQL Portable (dev build)"
 }
 
+# --- 5b. pgvector extension for embedded PostgreSQL ------------------------
+# Migration 0010_kb_pgvector.sql runs CREATE EXTENSION vector; the embedded
+# PostgreSQL therefore must ship with vector.dll + control/SQL files staged
+# under pgsql\lib\ and pgsql\share\extension\. Upstream pgvector publishes no
+# Windows binaries — we pin a checksum-verified community prebuild for
+# PostgreSQL 16. If -SkipPostgres is set (dev build without Postgres), skip.
+if (-not $SkipPostgres) {
+  $pgvVersion   = '0.8.3'
+  $pgvTag       = '0.8.3_16.14'
+  $pgvAsset     = 'vector.v0.8.3-pg16.zip'
+  $pgvSha256    = 'd33ae7e4ac923abef1eba4e2b9e1037c56b3b78f6e8baa64310cace6227455df'
+  $pgvControl   = Join-Path $payload 'pgsql\share\extension\vector.control'
+  if (-not (Test-Path $pgvControl)) {
+    Write-Host "pgvector $pgvVersion for PostgreSQL 16"
+    $pgvZip = Join-Path $env:TEMP $pgvAsset
+    Fetch "https://github.com/andreiramani/pgvector_pgsql_windows/releases/download/$pgvTag/$pgvAsset" $pgvZip
+    $actual = (Get-FileHash -Algorithm SHA256 -Path $pgvZip).Hash.ToLowerInvariant()
+    if ($actual -ne $pgvSha256) {
+      throw "pgvector SHA-256 mismatch. Expected $pgvSha256 but got $actual for $pgvZip"
+    }
+    $pgvExtract = Join-Path $payload 'tmp-pgv'
+    if (Test-Path $pgvExtract) { Remove-Item $pgvExtract -Recurse -Force }
+    Expand-Archive $pgvZip -DestinationPath $pgvExtract -Force
+    # Zip layout: lib\vector.dll, share\extension\*, include\server\extension\vector\*
+    # These subfolders line up 1:1 with the PostgreSQL tree, so a recursive
+    # copy into $pgDir merges cleanly with the vanilla EnterpriseDB install.
+    Copy-Item (Join-Path $pgvExtract '*') $pgDir -Recurse -Force
+    Remove-Item $pgvExtract -Recurse -Force
+  }
+} else {
+  Write-Host "Skipping pgvector (dev build without Postgres)"
+}
+
 # --- 6. Assets -------------------------------------------------------------
 $assetsDest = Join-Path $payload 'assets'
 New-Item -ItemType Directory -Force -Path $assetsDest | Out-Null
@@ -309,6 +342,8 @@ Assert-Exists (Join-Path $payload 'app\server\admin-seed.mjs') 'staged admin see
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
 if (-not $SkipPostgres) {
   Assert-Exists (Join-Path $payload 'pgsql\bin\postgres.exe') 'PostgreSQL runtime'
+  Assert-Exists (Join-Path $payload 'pgsql\lib\vector.dll')                 'pgvector runtime (vector.dll)'
+  Assert-Exists (Join-Path $payload 'pgsql\share\extension\vector.control') 'pgvector control file'
 }
 
 $payloadBytes = (Get-ChildItem $payload -Recurse -File | Measure-Object Length -Sum).Sum

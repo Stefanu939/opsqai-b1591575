@@ -816,7 +816,7 @@ function renderFailureCard(exitCode) {
 
   const dbMode = state.data.database?.mode || "embedded";
   const transient = /E1101|E1301/.test(f.code || "");
-  const isPackaging = /E1902/.test(f.code || "");
+  const isPackaging = /E1902|E1010/.test(f.code || "");
   const sameSig = (() => {
     if (attempts.length < 2) return false;
     const a = attempts[attempts.length - 1];

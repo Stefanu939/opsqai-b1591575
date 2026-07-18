@@ -45,6 +45,11 @@ const CODES = {
     title: "Bootstrap failed",
     docsAnchor: "opsqai-e1901",
   },
+  "OPSQAI-E1010": {
+    category: "packaging",
+    title: "pgvector extension missing from PostgreSQL payload",
+    docsAnchor: "opsqai-e1010",
+  },
   "OPSQAI-E1902": {
     category: "packaging",
     title: "Installer payload incomplete",

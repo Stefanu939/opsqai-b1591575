@@ -15,6 +15,7 @@ its meaning are stable.
 | **OPSQAI-E1102** | database | Embedded PostgreSQL failed to start on the local port. | Check port `55432` is free; review `%ProgramData%\OPSQAI\logs\OpsqaiDatabase*.log`. |
 | **OPSQAI-E1201** | seed | The first administrator account could not be created after migrations. | Retry. If it persists, reset embedded database & retry. |
 | **OPSQAI-E1301** | services | One or more OPSQAI services (Platform/Worker/Caddy) failed to start. | Check port `443`, review each service log via `opsqai logs <ServiceName>`. |
+| **OPSQAI-E1010** | packaging | The embedded PostgreSQL payload is missing pgvector (`vector.dll` / `vector.control`). Migration `0010_kb_pgvector.sql` fails with `0A000: extension "vector" is not available`. | Reset & Retry **cannot** fix this. Download a fresh `OPSQAI-Setup.exe` and reinstall — the pgvector files are staged at build time, not at runtime. |
 | **OPSQAI-E1901** | unknown | Uncategorised bootstrap failure. | Open **View Log** and contact support with the log file. |
 
 ### Per-install log file
