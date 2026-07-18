@@ -4,6 +4,8 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+import { getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
+
 
 const AI_AUDIT_MODULE = "ai_workspace_audit" as const;
 
@@ -128,32 +130,26 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
     await ensurePerm(context, "sop.publish");
     const companyId = await resolveCompany(context, data.company_id);
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const path = `${companyId}/${crypto.randomUUID()}-${data.title.replace(/[^a-z0-9]+/gi, "-")}.md`;
-    const { error: upErr } = await supabaseAdmin.storage
-      .from("knowledge-docs")
-      .upload(path, new Blob([data.markdown], { type: "text/markdown" }), {
-        contentType: "text/markdown",
-        upsert: false,
-      });
-    if (upErr) throw new Error(upErr.message);
+    const storage = getStorageProvider();
+    await storage.put({
+      bucket: "knowledge-docs",
+      key: path,
+      body: new TextEncoder().encode(data.markdown),
+      contentType: "text/markdown",
+    });
 
-    const { data: doc, error } = await supabaseAdmin
-      .from("knowledge_documents")
-      .insert({
-        title: data.title,
-        category: data.category,
-        doc_code: data.doc_code ?? null,
-        file_path: path,
-        file_type: "text/markdown",
-        content_text: data.markdown,
-        status: "ready",
-        uploaded_by: context.userId,
-        company_id: companyId,
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
+    const repo = getKnowledgeRepository(context.supabase);
+    const doc = await repo.insertDocument({
+      company_id: companyId,
+      title: data.title,
+      category: data.category,
+      doc_code: data.doc_code ?? null,
+      file_path: path,
+      file_type: "text/markdown",
+      uploaded_by: context.userId,
+    });
+
 
     // chunk + embed via existing pipeline
     try {
