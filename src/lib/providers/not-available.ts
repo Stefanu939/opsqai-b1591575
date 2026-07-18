@@ -39,8 +39,10 @@ export function notAvailable(feature: string): never {
 export function getCloudSupabase<T>(
   context: { supabase: T; edition?: string },
   feature: string,
+export function getCloudSupabase<T>(
+  context: { supabase: T; edition?: string },
+  feature: string,
 ): T {
-  const info = getEditionInfo();
-  if (info.mode !== "cloud") notAvailable(feature);
+  if (getPlatformMode() !== PlatformMode.Cloud) notAvailable(feature);
   return context.supabase;
 }
