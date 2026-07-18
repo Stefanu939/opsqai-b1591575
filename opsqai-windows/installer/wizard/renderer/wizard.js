@@ -863,8 +863,12 @@ function renderFailureCard(exitCode) {
   const pane = document.querySelector('.pane[data-pane="8"]');
   pane.appendChild(card);
 
-  document.getElementById("fail-retry")?.addEventListener("click", () => runInstall(false));
-  document.getElementById("fail-reset")?.addEventListener("click", () => runInstall(true));
+  const disableAll = () => {
+    document.getElementById("fail-retry")?.setAttribute("disabled", "");
+    document.getElementById("fail-reset")?.setAttribute("disabled", "");
+  };
+  document.getElementById("fail-retry")?.addEventListener("click", () => { disableAll(); runInstall(false); });
+  document.getElementById("fail-reset")?.addEventListener("click", () => { disableAll(); runInstall(true); });
   document.getElementById("fail-log")?.addEventListener("click", () => window.opsqai.openLog(currentLogPath));
 
   $("#btn-cancel").disabled = false;
