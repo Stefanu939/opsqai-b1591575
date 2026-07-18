@@ -100,71 +100,52 @@ function setLicenseStatus(msg, kind) {
   el.className = "status-pill " + (kind || "info");
 }
 
-// ── System checks (Phase A: client-side probes; Phase B wires IPC) ──
-const CHECKS = [
-  { id: "windows", label: "Windows 10 / 11 or Server 2019+", probe: probeWindows },
-  { id: "cpu", label: "CPU architecture", probe: probeCpu },
-  { id: "ram", label: "Memory (min 8 GB)", probe: probeRam },
-  { id: "disk", label: "Disk space (min 20 GB free)", probe: probeDisk },
-  { id: "dotnet", label: ".NET 8 runtime", probe: probeStub("Installed") },
-  { id: "postgres", label: "PostgreSQL 16 available", probe: probeStub("Bundled installer available") },
-  { id: "ports", label: "Ports 443, 5432, 55432 free", probe: probeStub("All ports free") },
-  { id: "admin", label: "Administrator privileges", probe: probeStub("Elevated") },
+// ── System checks (Phase B: real IPC probes on the target machine) ──
+const CHECK_ORDER = [
+  ["windows", "Windows 10 / 11 or Server 2019+"],
+  ["cpu", "CPU architecture"],
+  ["ram", "Memory (min 8 GB)"],
+  ["disk", "Disk space (min 20 GB free)"],
+  ["dotnet", ".NET 8 runtime"],
+  ["postgres", "PostgreSQL 16 available"],
+  ["ports", "Ports 443, 5432, 55432 free"],
+  ["admin", "Administrator privileges"],
 ];
 async function runSystemChecks() {
   state.data.systemChecksPassed = false;
   $("#checks-summary").textContent = "";
   updateNextButton();
-  let allOk = true;
-  for (const c of CHECKS) {
-    const li = document.querySelector(`.checks li[data-check="${c.id}"]`);
+  // Show spinner state up-front.
+  for (const [id] of CHECK_ORDER) {
+    const li = document.querySelector(`.checks li[data-check="${id}"]`);
+    if (!li) continue;
     li.setAttribute("data-state", "check");
     li.querySelector("em").textContent = "Checking…";
-    await sleep(180 + Math.random() * 180);
-    try {
-      const res = await c.probe();
-      li.setAttribute("data-state", res.ok ? "ok" : "err");
-      li.querySelector("em").textContent = res.detail;
-      if (!res.ok) allOk = false;
-    } catch (e) {
-      li.setAttribute("data-state", "err");
-      li.querySelector("em").textContent = e.message || "Failed";
-      allOk = false;
-    }
   }
-  state.data.systemChecksPassed = allOk;
-  $("#checks-summary").textContent = allOk
+  let payload;
+  try {
+    payload = await window.opsqai.runSystemChecks();
+  } catch (e) {
+    $("#checks-summary").textContent = "System check failed: " + (e?.message || e);
+    return;
+  }
+  const results = payload?.results || {};
+  for (const [id] of CHECK_ORDER) {
+    const li = document.querySelector(`.checks li[data-check="${id}"]`);
+    if (!li) continue;
+    const r = results[id] || { ok: false, detail: "No result" };
+    li.setAttribute("data-state", r.ok ? "ok" : "err");
+    li.querySelector("em").textContent = r.detail;
+  }
+  state.data.systemChecksPassed = !!payload?.ok;
+  $("#checks-summary").textContent = payload?.ok
     ? "All checks passed."
     : "Fix the highlighted items before continuing.";
   updateNextButton();
 }
 $("#btn-rerun-checks").addEventListener("click", runSystemChecks);
-
-function probeStub(detail) { return async () => ({ ok: true, detail }); }
-async function probeWindows() {
-  const ua = navigator.userAgent || "";
-  const win = /Windows NT 1[0-9]/.test(ua);
-  return { ok: win || true, detail: win ? "Windows detected" : "Windows (assumed)" };
-}
-async function probeCpu() {
-  const cores = navigator.hardwareConcurrency || 4;
-  return { ok: true, detail: `${cores} cores · x64` };
-}
-async function probeRam() {
-  const gb = navigator.deviceMemory || 8;
-  return { ok: gb >= 4, detail: `${gb} GB` };
-}
-async function probeDisk() {
-  try {
-    if (navigator.storage?.estimate) {
-      const est = await navigator.storage.estimate();
-      const freeGb = Math.round((est.quota || 0) / 1e9);
-      if (freeGb > 0) return { ok: freeGb >= 20, detail: `~${freeGb} GB available` };
-    }
-  } catch {}
-  return { ok: true, detail: "Sufficient" };
-}
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
 
 // ── Options step ───────────────────────────────────────────────────
 // (Phase A: paths read-only; toggles persisted to state for Phase B.)
