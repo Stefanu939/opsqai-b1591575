@@ -45,7 +45,7 @@ export function createSupabaseIntegrationRepository(client: Client): IIntegratio
           company_id: input.companyId,
           provider: input.provider,
           status: input.status,
-          config: input.config,
+          config: input.config as never,
           connected_at: input.connectedAt,
           connected_by: input.connectedBy,
           last_error: null,
