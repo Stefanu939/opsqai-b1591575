@@ -159,6 +159,147 @@ ipcMain.handle("wizard:testSmtp", async (_e, cfg) => {
   }
 });
 
+// -------- System readiness checks (real probes) ----------------------------
+// Runs on the target machine in the Electron main process, so we can hit
+// the filesystem, spawn Windows utilities and try to bind local ports.
+function checkPortFree(port) {
+  return new Promise((resolve) => {
+    const srv = net.createServer();
+    srv.once("error", () => resolve(false));
+    srv.once("listening", () => srv.close(() => resolve(true)));
+    srv.listen(port, "0.0.0.0");
+  });
+}
+function checkAdmin() {
+  // `net session` requires elevation on Windows; exit code 0 == elevated.
+  if (process.platform !== "win32") return false;
+  const r = spawnSync("net", ["session"], { windowsHide: true, stdio: "ignore" });
+  return r.status === 0;
+}
+function checkDotnet() {
+  const r = spawnSync("dotnet", ["--list-runtimes"], { windowsHide: true, encoding: "utf8" });
+  if (r.status !== 0 || !r.stdout) return { ok: false, detail: "dotnet CLI not found" };
+  const lines = r.stdout.split(/\r?\n/).filter((l) => /Microsoft\.NETCore\.App 8\./.test(l));
+  return lines.length
+    ? { ok: true, detail: lines[0].trim() }
+    : { ok: false, detail: ".NET 8 runtime not installed" };
+}
+function checkDiskFreeGb() {
+  try {
+    // fs.statfsSync is available on Node ≥ 18.15.
+    if (typeof fs.statfsSync === "function") {
+      const s = fs.statfsSync(process.env.SystemDrive ? process.env.SystemDrive + "\\" : "C:\\");
+      return Math.floor((s.bavail * s.bsize) / 1e9);
+    }
+  } catch {}
+  // Fallback via wmic.
+  try {
+    const drive = (process.env.SystemDrive || "C:").replace(/\\/g, "");
+    const r = spawnSync(
+      "wmic",
+      ["logicaldisk", "where", `Caption='${drive}'`, "get", "FreeSpace", "/value"],
+      { windowsHide: true, encoding: "utf8" },
+    );
+    const m = /FreeSpace=(\d+)/.exec(r.stdout || "");
+    if (m) return Math.floor(Number(m[1]) / 1e9);
+  } catch {}
+  return -1;
+}
+
+ipcMain.handle("wizard:runSystemChecks", async () => {
+  const results = {};
+
+  const rel = os.release();
+  const majorMatch = /^(\d+)\./.exec(rel);
+  const winMajor = majorMatch ? Number(majorMatch[1]) : 0;
+  results.windows = {
+    ok: process.platform === "win32" && winMajor >= 10,
+    detail:
+      process.platform === "win32"
+        ? `Windows ${rel}`
+        : `Not Windows (${process.platform})`,
+  };
+
+  const arch = os.arch();
+  const cores = os.cpus()?.length ?? 0;
+  results.cpu = {
+    ok: (arch === "x64" || arch === "arm64") && cores >= 2,
+    detail: `${cores} cores · ${arch}`,
+  };
+
+  const totalGb = Math.round(os.totalmem() / 1e9);
+  results.ram = { ok: totalGb >= 8, detail: `${totalGb} GB total` };
+
+  const freeGb = checkDiskFreeGb();
+  results.disk = {
+    ok: freeGb >= 20,
+    detail: freeGb < 0 ? "Unable to determine" : `${freeGb} GB free`,
+  };
+
+  results.dotnet = checkDotnet();
+
+  const bundledPg = path.join(installRoot, "payload", "pgsql", "bin", "postgres.exe");
+  const stagedPg = path.join(installRoot, "pgsql", "bin", "postgres.exe");
+  const pgOk = fs.existsSync(bundledPg) || fs.existsSync(stagedPg);
+  results.postgres = {
+    ok: pgOk,
+    detail: pgOk ? "Bundled PostgreSQL 16 present" : "Bundled PostgreSQL not found",
+  };
+
+  const portList = [443, 5432, 55432];
+  const portsFree = await Promise.all(portList.map(checkPortFree));
+  const blocked = portList.filter((_, i) => !portsFree[i]);
+  results.ports = {
+    ok: blocked.length === 0,
+    detail: blocked.length ? `In use: ${blocked.join(", ")}` : "443, 5432, 55432 free",
+  };
+
+  const admin = checkAdmin();
+  results.admin = { ok: admin, detail: admin ? "Elevated" : "Not running as Administrator" };
+
+  return { ok: Object.values(results).every((r) => r.ok), results };
+});
+
+// -------- Database connection test ----------------------------------------
+ipcMain.handle("wizard:testDatabase", async (_e, cfg) => {
+  const host = String(cfg?.host || "").trim();
+  const port = Number(cfg?.port) || 5432;
+  const database = String(cfg?.database || "").trim();
+  const user = String(cfg?.user || "").trim();
+  const password = String(cfg?.password || "");
+  if (!host || !database || !user) {
+    return { ok: false, error: "Host, database and user are required" };
+  }
+  let Client;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    ({ Client } = require("pg"));
+  } catch (e) {
+    return { ok: false, error: `pg driver not bundled: ${e.message}` };
+  }
+  const client = new Client({
+    host,
+    port,
+    database,
+    user,
+    password,
+    ssl: cfg?.ssl ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 8_000,
+    statement_timeout: 5_000,
+  });
+  try {
+    await client.connect();
+    const r = await client.query("select version() as v");
+    await client.end().catch(() => {});
+    return { ok: true, version: r.rows?.[0]?.v ?? "connected" };
+  } catch (e) {
+    try { await client.end(); } catch {}
+    return { ok: false, error: e.message || String(e) };
+  }
+});
+
+
+
 ipcMain.handle("wizard:install", async (event, config) => {
   win.__installing = true;
   const args = [
