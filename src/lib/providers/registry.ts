@@ -14,6 +14,7 @@ import type {
   ICompanyRepository,
   IDepartmentRepository,
   IFaqRepository,
+  IKnowledgeRepository,
   IFeedbackRepository,
   IIntegrationRepository,
   IKnowledgeGapRepository,
@@ -33,6 +34,7 @@ import type {
   FeedbackRepositoryFactory,
   IntegrationRepositoryFactory,
   KnowledgeGapRepositoryFactory,
+  KnowledgeRepositoryFactory,
   MessageRepositoryFactory,
   ProfileRepositoryFactory,
   RoleRepositoryFactory,
@@ -64,6 +66,7 @@ interface Registry {
   knowledgeGapFactory?: KnowledgeGapRepositoryFactory;
   integrationFactory?: IntegrationRepositoryFactory;
   faqFactory?: FaqRepositoryFactory;
+  knowledgeFactory?: KnowledgeRepositoryFactory;
 }
 
 
