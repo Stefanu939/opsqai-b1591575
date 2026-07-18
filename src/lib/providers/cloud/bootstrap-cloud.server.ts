@@ -40,6 +40,7 @@ import {
   registerDepartmentRepositoryFactory,
   registerFeedbackRepositoryFactory,
   registerIntegrationRepositoryFactory,
+  registerFaqRepositoryFactory,
   registerKnowledgeGapRepositoryFactory,
   registerMessageRepositoryFactory,
   registerProfileRepositoryFactory,
@@ -59,6 +60,7 @@ import { createSupabaseMessageRepository } from "./supabase-message-repository.s
 import { createSupabaseFeedbackRepository } from "./supabase-feedback-repository.server";
 import { createSupabaseKnowledgeGapRepository } from "./supabase-knowledge-gap-repository.server";
 import { createSupabaseIntegrationRepository } from "./supabase-integration-repository.server";
+import { createSupabaseFaqRepository } from "./supabase-faq-repository.server";
 
 
 class CloudUserRepository implements IUserRepository {
@@ -236,6 +238,10 @@ export function bootstrapCloud(): void {
   registerIntegrationRepositoryFactory((ctx) =>
     createSupabaseIntegrationRepository(ctx as SupabaseClient<Database>),
   );
+  registerFaqRepositoryFactory((ctx) =>
+    createSupabaseFaqRepository(ctx as SupabaseClient<Database>),
+  );
+
 
   // Admin flavour: lazy-load service-role client so this module does not
   // pull `client.server.ts` into the client graph.
