@@ -80,3 +80,29 @@ Deliverables:
   the diagnostic Proxy.
 
 Approve and I start with step 1 in this turn.
+
+---
+## Wave C.2b — Delivered (2026-07-18)
+
+Actual scope shipped this turn:
+
+- `src/lib/providers/not-available.ts` — `FeatureNotAvailableError`,
+  `notAvailable(feature)`, and `getCloudSupabase(context, feature)`
+  helper.
+- 28 Cloud-only `.functions.ts` files codemodded to route every raw
+  `context.supabase` access through `getCloudSupabase`. On Cloud the
+  behavior is identical; on Self-Hosted the handler throws
+  `FEATURE_NOT_AVAILABLE_SELFHOST` before any query fires, so no code
+  path drags the Supabase SDK into a Self-Hosted request.
+- 4 knowledge-surface files (kb, faqs, internal-requests,
+  knowledge-gaps) gated the same way. **Deferred**: full Self-Hosted
+  PG repositories for KB/FAQ/SOP/IR/KG reads and writes. Tracked as
+  Wave C.3 in a follow-up turn — schema stubs already landed in
+  `migrations/selfhost/0008_chat_feedback_integrations.sql` for
+  `knowledge_gaps`.
+- `tsgo --noEmit`: clean.
+
+Files unchanged and correct as-is:
+users, threads, feedback, team, notifications, session, profile,
+authorization — these use `context.supabase` only as an opaque
+data-context token passed to repositories, which route on platform.
