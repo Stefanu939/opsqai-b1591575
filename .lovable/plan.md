@@ -1,108 +1,81 @@
-# Wave C.2b — Finish the Data-Access Migration
+## 1. Installer: remove the .NET requirement
 
-34 `.functions.ts` files still reach `context.supabase` directly. Migrating
-every one to a hand-written Self-Hosted repository would be ~4000 lines of
-code for surfaces that are Cloud-only by product design (MC console,
-support, workspace, portal admin). We split the remaining work into two
-tracks — one that actually ships Self-Hosted features, and one that
-cleanly reports "n/a on Self-Hosted" for MC-only surfaces without shipping
-dead code.
+**Finding (verified by grep across the whole repo):** no OPSQAI service uses .NET at runtime. All Windows services (`platform`, `worker`, `hello`, `updater`, `database`, `caddy`, `backup`) are Node.js scripts under `opsqai-windows/services/`, wrapped by WinSW (a self-contained Go binary). PostgreSQL 16 is bundled. Caddy is a static binary. Nothing invokes `dotnet`.
 
-## C.2b.2 — Functional on both platforms (real repos)
+The `.NET 8 runtime` probe is a leftover from an early scaffold. It currently runs `dotnet --list-runtimes` and fails on every clean Windows machine even though the product does not need it.
 
-These features must work on the customer product too:
+**Action:** drop the check entirely rather than bundle a runtime the app doesn't use.
 
-- `kb.functions.ts` — knowledge documents (list, publish, delete)
-- `faqs.functions.ts` — company FAQs
-- `sop-versions.functions.ts` — SOP version history
-- `sop-ack.functions.ts` — SOP acknowledgements
-- `internal-requests.functions.ts` — internal request tracker
-- `knowledge-gaps.functions.ts` — read/assign gaps (write path already done in C.2b.1)
+- `opsqai-windows/installer/wizard/renderer/wizard.js`
+  - remove the `<li data-check="dotnet">` item from the System-check pane markup (line ~160)
+  - remove the `["dotnet", ".NET 8 runtime"]` entry from the label map (line ~437)
+- `opsqai-windows/installer/wizard/main.cjs`
+  - delete `checkDotnet()` and the `results.dotnet = checkDotnet()` line
+  - keep the other probes (Windows version, CPU, RAM, disk, PostgreSQL 16, ports, elevation)
 
-Deliverables:
-1. `migrations/selfhost/0009_knowledge.sql` — `knowledge_documents`,
-   `faqs`, `sop_versions`, `sop_acknowledgements`, `internal_requests`,
-   plus indexes. `knowledge_gaps` already exists (0008).
-2. Five new interfaces in `interfaces.ts`:
-   `IKnowledgeDocumentRepository`, `IFaqRepository`, `ISopVersionRepository`,
-   `ISopAcknowledgementRepository`, `IInternalRequestRepository`.
-   Extend `IKnowledgeGapRepository` with `list/get/assign/resolve`.
-3. Cloud impls (`supabase-*.server.ts`) — thin wrappers around
-   `context.supabase.from(...)`. RLS handles tenancy.
-4. Self-Hosted impls (`pg-*.server.ts`) — explicit `company_id` filters;
-   single-tenant so `getProfileCompany` gives the id.
-5. Register in both bootstraps.
-6. Rewrite the six `.functions.ts` files to consume the repos.
+No bundled runtime, no manual install step for the customer.
 
-## C.2b.3 — Cloud-only surfaces (`NotAvailableRepository`)
+## 2. MC → Issue License: pick an existing company
 
-These 28 files back MC / opsqai.de features that never ship to a customer
-Windows host — support console, workspace, MC admin, releases, license
-management, exports, dashboards, analytics, portal admin, AI features,
-webhooks, DR bootstrap, subscription lifecycle, installer, system docs,
-platform config, first-run, deployment-mode, onboarding, etc.
+`src/lib/companies.functions.ts` already exports `listCompanies` (returns `id, name, subscription_status, subscription_plan, max_users, active, created_at`). We'll extend the read to also select `contact_email` (already stored on `companies` via onboarding) so we can pre-fill it, and add a slug helper for a default `install_id` suggestion.
 
-Deliverables:
-1. One shared helper `src/lib/providers/not-available.ts` exporting
-   `notAvailable(feature: string): never` — throws `NotAvailableError`
-   with `{ code: "FEATURE_NOT_AVAILABLE_SELFHOST", feature }`.
-2. A very small "cloud-only data context" wrapper per file: at the top of
-   every handler in these 28 files, replace `context.supabase.from(...)`
-   with the same shape but from a `getCloudSupabase(context)` helper that
-   returns `context.supabase` on Cloud and calls `notAvailable(...)` on
-   Self-Hosted before any query runs. No feature-by-feature repo layer.
-3. Bulk edit driven by a codemod script — one-line replacement per file:
-   `const db = getCloudSupabase(context, "<feature>");` then `db.from(...)`
-   instead of `context.supabase.from(...)`. Preserves every existing query
-   verbatim. Only touches identifiers, keeps behavior identical on Cloud.
-4. UI capability gating is already in place from Phase 4, so these
-   endpoints simply become defense-in-depth on Self-Hosted.
+`src/routes/_authenticated/management.licenses.tsx` → `IssueLicenseDialog`:
 
-## Order of operations
+- Add a `useQuery(['companies'], listCompanies)` at the top of the dialog.
+- Replace the free-text **Company name** input with a `Combobox` (shadcn `Command` + `Popover`) listing existing companies, plus a "+ New company" sentinel that falls back to a free-text input.
+- On selection, auto-fill:
+  - `company_name` ← company.name (still editable)
+  - `contact_email` ← company.contact_email (still editable)
+  - `install_id` ← slugified company name (e.g. "Acme GmbH" → `acme-gmbh`), only if the field is empty or was itself auto-derived; user can override.
+  - `seats` ← company.max_users when present (still editable)
+- All four fields remain regular editable inputs after auto-fill, exactly as today. No server-side change to `issueLicense`.
 
-1. Land `not-available.ts` + `getCloudSupabase` helper (10 min).
-2. Codemod the 28 Cloud-only files in one batch, run tsgo.
-3. Land migration `0009` + interfaces + Cloud/SH repos + factory wiring.
-4. Rewrite the six C.2b.2 files.
-5. Verify: `bun run build:selfhosted`, then run `verify-bundle.mjs`; the
-   Supabase-import exception can stay one more wave (workspace/webhooks
-   still lazy-load Supabase client via `getCloudSupabase` — removed in a
-   later Wave D).
+No new tables, no schema changes.
 
-## Definition of done
+## 3. License artifact format: always JWT, never JSON
 
-- `tsgo` clean.
-- Cloud build behaves identically (same queries, same RLS path).
-- Self-Hosted build: every KB/FAQ/SOP/Request/Notification feature works
-  end-to-end against local Postgres.
-- Every MC-only feature returns a clean `FEATURE_NOT_AVAILABLE_SELFHOST`
-  error on Self-Hosted rather than the raw "supabase not available" from
-  the diagnostic Proxy.
+Current state:
 
-Approve and I start with step 1 in this turn.
+- Signed tokens use a custom compact envelope `opsqai.v1.<payloadB64>.<sigB64>` — close to JWT but missing the JOSE header segment.
+- Downloadable artifacts from the Customer Portal (`portal.downloads.tsx`) wrap the tokens in a **JSON** envelope (`opsqai-activation-<id>.json`, `opsqai-module-<key>-<id>.json`).
 
----
-## Wave C.2b — Delivered (2026-07-18)
+Target: every license artifact a customer or installer touches is a standards-compliant compact JWS/JWT (`base64url(header).base64url(payload).base64url(sig)`), `alg: "EdDSA"`, `typ: "JWT"`, `kid: <key_id>`. Downloads are `.jwt` files with `application/jwt` MIME.
 
-Actual scope shipped this turn:
+### 3a. Signing (`src/lib/license-signing.server.ts`)
 
-- `src/lib/providers/not-available.ts` — `FeatureNotAvailableError`,
-  `notAvailable(feature)`, and `getCloudSupabase(context, feature)`
-  helper.
-- 28 Cloud-only `.functions.ts` files codemodded to route every raw
-  `context.supabase` access through `getCloudSupabase`. On Cloud the
-  behavior is identical; on Self-Hosted the handler throws
-  `FEATURE_NOT_AVAILABLE_SELFHOST` before any query fires, so no code
-  path drags the Supabase SDK into a Self-Hosted request.
-- 4 knowledge-surface files (kb, faqs, internal-requests,
-  knowledge-gaps) gated the same way. **Deferred**: full Self-Hosted
-  PG repositories for KB/FAQ/SOP/IR/KG reads and writes. Tracked as
-  Wave C.3 in a follow-up turn — schema stubs already landed in
-  `migrations/selfhost/0008_chat_feedback_integrations.sql` for
-  `knowledge_gaps`.
-- `tsgo --noEmit`: clean.
+- Add `signJwt(payload, privatePem, kid)` producing `b64url({"alg":"EdDSA","typ":"JWT","kid":kid}).b64url(payloadJson).b64url(sig)` where `sig = Ed25519(header + "." + payload)` per RFC 7515/8037.
+- `signInstallLicense` / `signModuleLicense` return the new JWT string in the same `token` field (drop the `opsqai.v1.` prefix from new tokens).
+- Verifier (`splitAndVerify`, `peekTokenKeyId`) is rewritten to parse three-segment JOSE tokens, read `kid` from the header, and verify with the matching public key. Reject tokens whose header `alg ≠ "EdDSA"` or `typ ≠ "JWT"`.
+- Backward-compat: keep the old `opsqai.v1.*` parser behind a `legacy` branch invoked only if the string starts with `opsqai.v1.` — so existing installs continue to boot until their next activation-bundle refresh. New issuances are always JWT.
 
-Files unchanged and correct as-is:
-users, threads, feedback, team, notifications, session, profile,
-authorization — these use `context.supabase` only as an opaque
-data-context token passed to repositories, which route on platform.
+### 3b. Activation bundle (`buildActivationBundle`, `buildModuleLicenseBundle`)
+
+- Wrap the bundle claims (`install_token`, `module_tokens[]`, `crl_token`, `bundle_version`, `iat`, `install_id`) as the **payload of a signed JWT** rather than a separate JSON-with-signature file.
+- Callers now receive a single JWT string. The Portal writes it as `opsqai-activation-<install_id>.jwt` / `opsqai-module-<key>-<install_id>.jwt`, MIME `application/jwt`.
+- Installer's offline importer is updated to accept a JWT bundle (three segments, `typ: "opsqai-bundle+jwt"`) and, for one release, still accept the old JSON shape.
+
+### 3c. Installation package (installation-package.server.ts)
+
+- `activation-bundle.json` inside the generated ZIP becomes `activation-bundle.jwt`. `entrypoint.sh` and the Windows first-run wizard already read the file by name — update the two references.
+
+### 3d. Portal & MC UI
+
+- `portal.downloads.tsx` → replace both `new Blob([JSON.stringify(bundle)], {type:"application/json"})` blocks with `new Blob([bundleJwt], {type:"application/jwt"})` and rename downloads to `.jwt`.
+- MC license row "Copy token" already copies the raw token string — that continues to work since the string is now a JWT.
+
+### 3e. Guardrails
+
+- Add a unit test that asserts every issuing path returns a string matching `^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$` and that its decoded header is `{alg:"EdDSA", typ:"JWT", kid:...}`.
+- Add a test that the legacy `opsqai.v1.` parser still verifies a fixture token so we don't break existing installs.
+
+## Order of implementation
+
+1. .NET removal (isolated, ~10 lines).
+2. Issue-License dropdown (frontend only, uses existing `listCompanies`).
+3. JWT migration (signing → bundle → package → downloads → tests), keeping the legacy verifier branch on for one release.
+
+## Out of scope
+
+- Bundling a .NET runtime (not needed — removed instead).
+- Rotating existing signing keys (JWT change is envelope-only, same Ed25519 keys).
+- Migrating already-issued `opsqai.v1.*` tokens in the DB (they keep working via the legacy parser; the next re-issue produces a JWT).
