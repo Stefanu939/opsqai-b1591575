@@ -21,7 +21,7 @@ export const upsertFaq = createServerFn({ method: "POST" })
     await requireAnyPermission(context, ["faq.edit", "faq.create", "knowledge.manage"]);
 
     const { emitWebhookEvent } = await import("@/lib/webhook-dispatch.server");
-    const repo = getFaqRepository(context.dataCtx);
+    const repo = getFaqRepository(context.supabase);
 
     const patch = {
       question_de: data.question_de,
@@ -58,6 +58,6 @@ export const deleteFaq = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["faq.delete", "knowledge.manage"]);
-    await getFaqRepository(context.dataCtx).delete(data.id);
+    await getFaqRepository(context.supabase).delete(data.id);
     return { ok: true };
   });
