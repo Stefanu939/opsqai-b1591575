@@ -26,7 +26,19 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
 // Runs before every server function handler. Ensures the platform
 // provider registry is populated on the server (cloud or self-hosted)
 // before feature code resolves capabilities like "authentication".
-const providerBootstrapMiddleware = createMiddleware().server(
+const providerBootstrapFunctionMiddleware = createMiddleware({
+  type: "function",
+}).server(async ({ next }) => {
+  const { ensureServerProviders } = await import(
+    "./lib/providers/server-bootstrap.server"
+  );
+  await ensureServerProviders();
+  return next();
+});
+
+// Same guard for SSR page requests, so route loaders that resolve
+// providers also see a populated registry.
+const providerBootstrapRequestMiddleware = createMiddleware().server(
   async ({ next }) => {
     const { ensureServerProviders } = await import(
       "./lib/providers/server-bootstrap.server"
@@ -38,10 +50,11 @@ const providerBootstrapMiddleware = createMiddleware().server(
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [
-    providerBootstrapMiddleware,
+    providerBootstrapFunctionMiddleware,
     attachSupabaseAuth,
     attachBearerToken,
   ],
-  requestMiddleware: [errorMiddleware, providerBootstrapMiddleware],
+  requestMiddleware: [errorMiddleware, providerBootstrapRequestMiddleware],
 }));
+
 
