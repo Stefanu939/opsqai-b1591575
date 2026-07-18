@@ -716,7 +716,14 @@ function parseFailLine(line) {
   return out;
 }
 
+let installInFlight = false;
+
 async function runInstall(withReset) {
+  // Guard against double-clicks (Retry / Reset & Retry). The pasted log
+  // showed every bootstrap line duplicated, which meant two concurrent
+  // spawns of init.js. One at a time — always.
+  if (installInFlight) return;
+  installInFlight = true;
   buildConfig();
   $("#btn-cancel").disabled = true;
   $("#btn-next").disabled = true;
