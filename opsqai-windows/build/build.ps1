@@ -304,7 +304,7 @@ Assert-Exists (Join-Path $payload 'services\backup\restore.js')   'backup restor
 Assert-Exists (Join-Path $payload 'services\backup\scheduled.js') 'backup scheduler'
 Assert-Exists (Join-Path $payload 'app\server\index.mjs') 'self-hosted app bundle'
 Assert-Exists (Join-Path $payload 'app\server\migrate.mjs') 'staged migration runner'
-Assert-Exists (Join-Path $payload 'app\server\errors.js')   'staged migration error catalog'
+Assert-Exists (Join-Path $payload 'app\server\errors.cjs')  'staged migration error catalog'
 Assert-Exists (Join-Path $payload 'app\server\admin-seed.mjs') 'staged admin seeder'
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
 if (-not $SkipPostgres) {
