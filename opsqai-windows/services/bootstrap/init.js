@@ -23,7 +23,7 @@ const https = require("https");
 const crypto = require("crypto");
 const { execFileSync, spawnSync } = require("child_process");
 const { programData, programFiles, saveConfig } = require("../common/config");
-const { formatFail, parseFail } = require("./errors.js");
+const { formatFail, parseFail } = require("./errors.cjs");
 
 function arg(name, dflt) {
   const i = process.argv.indexOf(`--${name}`);
@@ -463,7 +463,7 @@ function resetEmbeddedDatabase() {
   // Pre-flight: fail fast with a stable code (E1902) if any required
   // packaged bootstrap file is missing, instead of letting Node crash
   // with an unstructured MODULE_NOT_FOUND stack trace.
-  const requiredMigratorFiles = ["migrate.mjs", "errors.js"];
+  const requiredMigratorFiles = ["migrate.mjs", "errors.cjs"];
   const missingFiles = requiredMigratorFiles.filter(
     (f) => !fs.existsSync(path.join(migratorDir, f)),
   );

@@ -1,104 +1,24 @@
 ## Root cause
 
-Bootstrap log:
+`opsqai-windows/services/bootstrap/errors.js` is CommonJS (`module.exports = {...}`), but it gets staged into `app/server/` whose `package.json` has `"type": "module"`. Node therefore treats `errors.js` as ESM and rejects both `require()` (current code, `ERR_REQUIRE_ESM`) and a naive `import()` (would fail with "does not provide export 'formatFail'" because CJS default-exports the whole `module.exports` object under ESM interop rules — the named `formatFail` export wouldn't be picked up reliably across Node versions).
 
-```
-Error: Cannot find module './errors.js'
-Require stack:
-- C:\Program Files\OPSQAI\app\server\migrate.mjs
-```
+Dynamic `import()` is not the fix on its own.
 
-`migrate.mjs` is staged into `payload\app\server\` but `errors.js` is only staged under `payload\services\bootstrap\`. The `require('./errors.js')` inside `migrate.mjs` fails immediately, before any SQL runs.
+## Fix — rename to `.cjs`
 
-## Plan
+Rename the file so its extension unambiguously marks it CommonJS, independent of any parent `package.json`.
 
-### 1. Fix staging (build.ps1)
+1. `opsqai-windows/services/bootstrap/errors.js` → `errors.cjs` (contents unchanged; keep `module.exports = {...}`).
+2. Update every consumer's `require("./errors.js")` / candidate path list to `errors.cjs`:
+   - `opsqai-windows/services/bootstrap/init.js`
+   - `opsqai-windows/services/bootstrap/migrate.mjs` (candidate array + keep `createRequire` path — `require()` on `.cjs` works fine)
+   - any other `require(".../errors.js")` found via `rg`
+3. `opsqai-windows/build/build.ps1`: update the staging copy + the `Assert-Exists` guardrail to reference `errors.cjs` (both in `services/bootstrap/` and in `app/server/`).
+4. `opsqai-windows/services/bootstrap/migrate.mjs` E1902 pre-flight message: update "Missing: errors.js" → "Missing: errors.cjs".
 
-- After copying `migrate.mjs` and `admin-seed.mjs` into `payload\app\server\`, also copy `services\bootstrap\errors.js` to `payload\app\server\errors.js`.
-- Add `Assert-Exists (Join-Path $payload 'app\server\errors.js') 'staged migration error catalog'` to the payload guardrails so a future regression fails the build.
+No behavioral changes to `formatFail` / `describe` / `isTransient` / `parseFail`.
 
-### 2. Runtime payload guard in init.js
+## Verify
 
-Before spawning `migrate.mjs`, verify all required bootstrap files exist. Emit a structured, stable failure instead of letting Node crash with a raw stack:
-
-```js
-const migratorDir = programFiles("app", "server");
-const required = ["migrate.mjs", "errors.js"];
-const missing = required.filter(f => !fs.existsSync(path.join(migratorDir, f)));
-if (missing.length) {
-  console.log(formatFail("bootstrap", "OPSQAI-E1902", {
-    message: `Installer payload incomplete. Missing: ${missing.join(", ")}`,
-    dir: migratorDir,
-  }));
-  process.exit(5);
-}
-```
-
-This runs immediately before `[bootstrap] launching migrate.mjs`, so the user sees:
-
-```
-Installer payload incomplete.
-Missing: errors.js
-```
-
-instead of a Node module resolution stack.
-
-### 3. New stable error code
-
-Add `OPSQAI-E1902` to `services/bootstrap/errors.js`:
-
-- category: `packaging`
-- title: `Installer payload incomplete`
-- Mark it as non-transient AND non-database — so it never suggests "Reset embedded database & retry".
-
-### 4. Wizard classification
-
-In `renderer/wizard.js` (`renderFailureCard`), extend the "don't offer database reset" check to include packaging codes:
-
-```js
-const isPackaging = /E1902/.test(f.code || "");
-const showReset = dbMode === "embedded" && !transient && !isPackaging;
-```
-
-Also add an in-flight guard so double-clicking Retry/Reset can't launch two bootstrap children concurrently (the pasted log showed every line duplicated, indicating two runs at the same timestamp): disable both buttons immediately on click and re-enable them only after `runInstall` returns.
-
-### 5. Fallback resolution in migrate.mjs (defense in depth)
-
-Update `migrate.mjs` so the errors module can be found from either layout:
-
-```js
-const errorsPath = fs.existsSync(join(here, "errors.js"))
-  ? join(here, "errors.js")
-  : join(installRoot, "..", "services", "bootstrap", "errors.js");
-```
-
-If neither exists, emit an `OPSQAI-E1902` FAIL line directly (no `require('./errors.js')`), so migrate.mjs never crashes with an unstructured Node error again.
-
-### 6. Docs
-
-Append `OPSQAI-E1902 — Installer payload incomplete` to `docs/administrator-guide/15-troubleshooting.md` with the resolution ("re-run the installer; if it recurs, the setup .exe is corrupted — re-download").
-
-## Files touched
-
-- `opsqai-windows/build/build.ps1` — stage `errors.js`; add guardrail assertion.
-- `opsqai-windows/services/bootstrap/init.js` — pre-flight required-files check before launching migrator.
-- `opsqai-windows/services/bootstrap/errors.js` — add `OPSQAI-E1902`.
-- `opsqai-windows/services/bootstrap/migrate.mjs` — resilient errors.js resolution + safe fallback FAIL.
-- `opsqai-windows/installer/wizard/renderer/wizard.js` — packaging classification + in-flight guard.
-- `docs/administrator-guide/15-troubleshooting.md` — new code entry.
-
-## Expected next run
-
-```
-[bootstrap] launching migrate.mjs
-[migrate] applying 1 pending migration(s) ...
-```
-
-If (hypothetically) a file is still missing, the wizard shows a clear card:
-
-```
-Error       OPSQAI-E1902
-Reason      Installer payload incomplete. Missing: errors.js
-```
-
-with only **Retry** and **Open Log** — no misleading "Reset embedded database" suggestion.
+- `rg "errors\.js"` returns zero hits under `opsqai-windows/`.
+- Rebuild the installer; migrator loads `errors.cjs` via `require()` and proceeds to apply the SQL migrations. The wizard advances past step 8.
