@@ -11,7 +11,7 @@
 // they still work verbatim on Cloud but fail with a clean, actionable
 // error on Self-Hosted BEFORE any query runs.
 
-import { getEditionInfo } from "@/lib/platform";
+import { PlatformMode, getPlatformMode } from "@/lib/platform";
 
 export class FeatureNotAvailableError extends Error {
   readonly code = "FEATURE_NOT_AVAILABLE_SELFHOST";
