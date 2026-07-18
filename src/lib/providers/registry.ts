@@ -13,18 +13,28 @@ import type {
   IBrowserAuthProvider,
   ICompanyRepository,
   IDepartmentRepository,
+  IFeedbackRepository,
+  IIntegrationRepository,
+  IKnowledgeGapRepository,
   ILicensingProvider,
+  IMessageRepository,
   INotificationProvider,
   IProfileRepository,
   IRoleRepository,
   ISecretsCipher,
   IStorageProvider,
   ITelemetrySink,
+  IThreadRepository,
   IUserRepository,
   CompanyRepositoryFactory,
   DepartmentRepositoryFactory,
+  FeedbackRepositoryFactory,
+  IntegrationRepositoryFactory,
+  KnowledgeGapRepositoryFactory,
+  MessageRepositoryFactory,
   ProfileRepositoryFactory,
   RoleRepositoryFactory,
+  ThreadRepositoryFactory,
 } from "./interfaces";
 
 interface Registry {
@@ -46,7 +56,13 @@ interface Registry {
   adminCompanyFactory?: CompanyRepositoryFactory;
   departmentFactory?: DepartmentRepositoryFactory;
   adminDepartmentFactory?: DepartmentRepositoryFactory;
+  threadFactory?: ThreadRepositoryFactory;
+  messageFactory?: MessageRepositoryFactory;
+  feedbackFactory?: FeedbackRepositoryFactory;
+  knowledgeGapFactory?: KnowledgeGapRepositoryFactory;
+  integrationFactory?: IntegrationRepositoryFactory;
 }
+
 
 
 const registry: Registry = {};
@@ -105,6 +121,23 @@ export function registerDepartmentRepositoryFactory(f: DepartmentRepositoryFacto
 export function registerAdminDepartmentRepositoryFactory(f: DepartmentRepositoryFactory): void {
   registry.adminDepartmentFactory = f;
 }
+export function registerThreadRepositoryFactory(f: ThreadRepositoryFactory): void {
+  registry.threadFactory = f;
+}
+export function registerMessageRepositoryFactory(f: MessageRepositoryFactory): void {
+  registry.messageFactory = f;
+}
+export function registerFeedbackRepositoryFactory(f: FeedbackRepositoryFactory): void {
+  registry.feedbackFactory = f;
+}
+export function registerKnowledgeGapRepositoryFactory(f: KnowledgeGapRepositoryFactory): void {
+  registry.knowledgeGapFactory = f;
+}
+export function registerIntegrationRepositoryFactory(f: IntegrationRepositoryFactory): void {
+  registry.integrationFactory = f;
+}
+
+
 
 
 function required<T>(value: T | undefined, capability: Capability): T {
@@ -198,6 +231,30 @@ export function getAdminDepartmentRepository(): IDepartmentRepository {
   }
   return registry.adminDepartmentFactory(undefined);
 }
+export function getThreadRepository(dataCtx: unknown): IThreadRepository {
+  if (!registry.threadFactory) throw new Error("No thread repository factory registered");
+  return registry.threadFactory(dataCtx);
+}
+export function getMessageRepository(dataCtx: unknown): IMessageRepository {
+  if (!registry.messageFactory) throw new Error("No message repository factory registered");
+  return registry.messageFactory(dataCtx);
+}
+export function getFeedbackRepository(dataCtx: unknown): IFeedbackRepository {
+  if (!registry.feedbackFactory) throw new Error("No feedback repository factory registered");
+  return registry.feedbackFactory(dataCtx);
+}
+export function getKnowledgeGapRepository(dataCtx: unknown): IKnowledgeGapRepository {
+  if (!registry.knowledgeGapFactory) {
+    throw new Error("No knowledge gap repository factory registered");
+  }
+  return registry.knowledgeGapFactory(dataCtx);
+}
+export function getIntegrationRepository(dataCtx: unknown): IIntegrationRepository {
+  if (!registry.integrationFactory) {
+    throw new Error("No integration repository factory registered");
+  }
+  return registry.integrationFactory(dataCtx);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
@@ -219,4 +276,10 @@ export function __resetProviderRegistryForTests(): void {
   registry.adminCompanyFactory = undefined;
   registry.departmentFactory = undefined;
   registry.adminDepartmentFactory = undefined;
+  registry.threadFactory = undefined;
+  registry.messageFactory = undefined;
+  registry.feedbackFactory = undefined;
+  registry.knowledgeGapFactory = undefined;
+  registry.integrationFactory = undefined;
 }
+

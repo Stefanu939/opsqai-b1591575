@@ -26,6 +26,11 @@ import { createPgRoleRepository } from "./pg-role-repository.server";
 import { createPgCompanyRepository } from "./pg-company-repository.server";
 import { createPgDepartmentRepository } from "./pg-department-repository.server";
 import { createPgAuthAdminProvider } from "./pg-auth-admin.server";
+import { createPgThreadRepository } from "./pg-thread-repository.server";
+import { createPgMessageRepository } from "./pg-message-repository.server";
+import { createPgFeedbackRepository } from "./pg-feedback-repository.server";
+import { createPgKnowledgeGapRepository } from "./pg-knowledge-gap-repository.server";
+import { createPgIntegrationRepository } from "./pg-integration-repository.server";
 import {
   registerAdminCompanyRepositoryFactory,
   registerAdminDepartmentRepositoryFactory,
@@ -34,8 +39,13 @@ import {
   registerAuthAdminProvider,
   registerCompanyRepositoryFactory,
   registerDepartmentRepositoryFactory,
+  registerFeedbackRepositoryFactory,
+  registerIntegrationRepositoryFactory,
+  registerKnowledgeGapRepositoryFactory,
+  registerMessageRepositoryFactory,
   registerProfileRepositoryFactory,
   registerRoleRepositoryFactory,
+  registerThreadRepositoryFactory,
 } from "@/lib/providers/registry";
 
 
@@ -252,6 +262,18 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerDepartmentRepositoryFactory(() => departmentRepo);
   registerAdminDepartmentRepositoryFactory(() => departmentRepo);
   registerAuthAdminProvider(createPgAuthAdminProvider({ pool }));
+
+  // Wave C.2b.1 — chat / feedback / knowledge-gap / integrations.
+  const threadRepo = createPgThreadRepository({ pool });
+  const messageRepo = createPgMessageRepository({ pool });
+  const feedbackRepo = createPgFeedbackRepository({ pool });
+  const gapRepo = createPgKnowledgeGapRepository({ pool });
+  const integrationRepo = createPgIntegrationRepository({ pool });
+  registerThreadRepositoryFactory(() => threadRepo);
+  registerMessageRepositoryFactory(() => messageRepo);
+  registerFeedbackRepositoryFactory(() => feedbackRepo);
+  registerKnowledgeGapRepositoryFactory(() => gapRepo);
+  registerIntegrationRepositoryFactory(() => integrationRepo);
 }
 
 

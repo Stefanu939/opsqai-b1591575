@@ -41,7 +41,14 @@ export function ChatSidebar() {
   const reload = async () => {
     try {
       const rows = await list({ data: { companyId: scopeCompanyId ?? undefined } });
-      setThreads(rows as Thread[]);
+      setThreads(
+        rows.map((r) => ({
+          id: r.id,
+          title: r.title,
+          created_at: r.createdAt,
+          updated_at: r.updatedAt,
+        })),
+      );
     } finally {
       setLoading(false);
     }
