@@ -4,6 +4,8 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+import { getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
+
 
 const AI_AUDIT_MODULE = "ai_workspace_audit" as const;
 
