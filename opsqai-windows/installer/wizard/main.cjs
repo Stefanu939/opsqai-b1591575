@@ -27,6 +27,22 @@ const bootstrap = path.join(installRoot, "services", "bootstrap", "init.js");
 
 let win;
 
+// Persistent log file so we can diagnose black-window issues without DevTools.
+const logFile = path.join(os.tmpdir(), "opsqai-wizard.log");
+function flog(msg) {
+  try {
+    fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`);
+  } catch (_) {}
+  try { console.log(msg); } catch (_) {}
+}
+flog(`wizard boot: pid=${process.pid} argv=${JSON.stringify(process.argv)}`);
+flog(`__dirname=${__dirname} isPackaged=${app.isPackaged}`);
+
+process.on("uncaughtException", (e) => {
+  flog(`uncaughtException: ${e && e.stack ? e.stack : e}`);
+  try { dialog.showErrorBox("OPSQAI Setup", `Wizard crashed:\n${e.message}\n\nLog: ${logFile}`); } catch (_) {}
+});
+
 function createWindow() {
   win = new BrowserWindow({
     width: 900,
@@ -40,46 +56,48 @@ function createWindow() {
     title: "OPSQAI Self-Hosted Setup",
     icon: path.join(__dirname, "assets", "opsqai.ico"),
     backgroundColor: "#0f172a",
-    show: false,
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
+      sandbox: false,
     },
   });
   win.setMenu(null);
 
-  // Show the window only once the renderer has painted, so a slow load
-  // never leaves the operator staring at a black frame.
-  win.once("ready-to-show", () => win.show());
+  win.once("ready-to-show", () => { flog("ready-to-show"); win.show(); });
 
-  // Surface load failures instead of failing silently to a black window.
+  win.webContents.on("did-finish-load", () => flog(`did-finish-load ${win.webContents.getURL()}`));
   win.webContents.on("did-fail-load", (_e, code, desc, url) => {
     const msg = `Renderer failed to load: ${desc} (${code})\nURL: ${url}`;
-    console.error(msg);
-    dialog.showErrorBox("OPSQAI Setup", msg);
+    flog(msg);
+    dialog.showErrorBox("OPSQAI Setup", msg + `\n\nLog: ${logFile}`);
   });
   win.webContents.on("render-process-gone", (_e, details) => {
+    flog(`render-process-gone: ${JSON.stringify(details)}`);
     dialog.showErrorBox(
       "OPSQAI Setup",
-      `Renderer crashed: ${details.reason} (exit ${details.exitCode}).`,
+      `Renderer crashed: ${details.reason} (exit ${details.exitCode}).\n\nLog: ${logFile}`,
     );
   });
+  win.webContents.on("console-message", (_e, level, message, line, source) => {
+    flog(`renderer[${level}] ${source}:${line} ${message}`);
+  });
+  win.webContents.on("preload-error", (_e, preloadPath, err) => {
+    flog(`preload-error ${preloadPath}: ${err && err.stack ? err.stack : err}`);
+  });
 
-  // Auto-open DevTools when launched with --enable-logging or --debug,
-  // matching the flag the operator already used from PowerShell.
-  const debug =
-    process.argv.includes("--enable-logging") ||
-    process.argv.includes("--debug") ||
-    process.env.OPSQAI_WIZARD_DEBUG === "1";
-  if (debug) win.webContents.openDevTools({ mode: "detach" });
+  // Always open DevTools while we stabilise the wizard shell.
+  win.webContents.openDevTools({ mode: "detach" });
 
   const indexPath = path.join(__dirname, "renderer", "index.html");
+  flog(`loadFile ${indexPath} exists=${fs.existsSync(indexPath)}`);
   win.loadFile(indexPath).catch((err) => {
+    flog(`loadFile rejected: ${err && err.stack ? err.stack : err}`);
     dialog.showErrorBox(
       "OPSQAI Setup",
-      `Could not load wizard UI:\n${indexPath}\n\n${err.message}`,
+      `Could not load wizard UI:\n${indexPath}\n\n${err.message}\n\nLog: ${logFile}`,
     );
   });
 
