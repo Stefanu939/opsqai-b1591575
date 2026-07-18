@@ -52,6 +52,307 @@ window.addEventListener("error", (e) => {
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
+// Some already-packaged Windows builds can contain the older shell-only
+// index.html (`<div id="wizard"></div>`) while loading the newer imperative
+// renderer. In that state the script runs, toggles `hero-mode`, then has no
+// panes/buttons to bind, leaving a navy-black window. Keep the renderer
+// self-contained: if the static markup is missing, rebuild it before binding.
+const WIZARD_SHELL_HTML = String.raw`
+  <!-- ─── Sidebar (hidden on Welcome + Finish) ─────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="brand-mono">O</span><span class="brand-word">OPSQAI</span>
+      </div>
+      <div class="brand-sub">Self-Hosted · Setup</div>
+    </div>
+    <ol class="steps" id="steps">
+      <li data-step="1"><span class="idx">1</span> Welcome</li>
+      <li data-step="2"><span class="idx">2</span> License</li>
+      <li data-step="3"><span class="idx">3</span> System check</li>
+      <li data-step="4"><span class="idx">4</span> Options</li>
+      <li data-step="5"><span class="idx">5</span> Database</li>
+      <li data-step="6"><span class="idx">6</span> Administrator</li>
+      <li data-step="7"><span class="idx">7</span> Review</li>
+      <li data-step="8"><span class="idx">8</span> Install</li>
+      <li data-step="9"><span class="idx">9</span> Finish</li>
+    </ol>
+    <div class="footer-brand">
+      <span>© OPSQAI</span>
+      <span class="build-tag">v1.0.0</span>
+    </div>
+  </aside>
+
+  <!-- ─── Content ──────────────────────────────────────────────────── -->
+  <main class="content">
+    <!-- 1 · Welcome (full-bleed hero, no sidebar) -->
+    <section class="pane pane-hero" data-pane="1">
+      <div class="hero-inner">
+        <div class="hero-mark">OPSQAI</div>
+        <h1 class="hero-title">Self-Hosted</h1>
+        <p class="hero-sub">The private AI operations platform for your organisation.</p>
+        <div class="hero-meta">
+          <span>Version 1.0.0</span>
+          <span class="dot"></span>
+          <span>Windows · Native</span>
+          <span class="dot"></span>
+          <span>~5 min setup</span>
+        </div>
+        <button class="btn btn-primary btn-lg" id="btn-start">Get Started</button>
+        <p class="hero-legal">
+          By continuing you accept the
+          <a href="#" data-external="https://opsqai.de/legal/eula">OPSQAI License Agreement</a>.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2 · License Activation -->
+    <section class="pane" data-pane="2" hidden>
+      <header class="pane-head">
+        <h1>Activate your OPSQAI license</h1>
+        <p class="lead">A valid license unlocks your edition, seats and modules. Nothing is installed until activation succeeds.</p>
+      </header>
+
+      <div class="form">
+        <label>
+          <span class="label-row">License key</span>
+          <textarea id="license-key" rows="5" spellcheck="false" placeholder="OPSQAI-XXXX-XXXX-XXXX-XXXX  or paste the contents of your .opsqai file"></textarea>
+        </label>
+
+        <div class="row">
+          <button type="button" class="btn" id="btn-license-load">Load from file…</button>
+          <button type="button" class="btn btn-primary" id="btn-license-check">Validate</button>
+          <span id="license-status" class="status-pill" hidden></span>
+        </div>
+
+        <div id="license-claims" class="claims-card" hidden>
+          <div class="claims-title">
+            <svg viewBox="0 0 20 20" class="ic-check" aria-hidden="true">
+              <path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" />
+            </svg>
+            License valid
+          </div>
+          <div class="claims-grid" id="claims-grid"></div>
+        </div>
+
+        <div class="community-fallback">
+          <label class="checkbox">
+            <input type="checkbox" id="license-community" />
+            <span>I don't have a license yet — continue in Community mode</span>
+          </label>
+          <p class="hint">Community mode enables core features for up to 3 users. You can activate a license later from Admin → License.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · System Check -->
+    <section class="pane" data-pane="3" hidden>
+      <header class="pane-head">
+        <h1>System check</h1>
+        <p class="lead">Verifying your Windows environment. Every item must pass to continue.</p>
+      </header>
+
+      <ul class="checks" id="system-checks">
+        <li data-check="windows"><i></i><b>Windows 10 / 11 or Server 2019+</b><em></em></li>
+        <li data-check="cpu"><i></i><b>CPU architecture</b><em></em></li>
+        <li data-check="ram"><i></i><b>Memory (min 8 GB)</b><em></em></li>
+        <li data-check="disk"><i></i><b>Disk space (min 20 GB free)</b><em></em></li>
+        <li data-check="dotnet"><i></i><b>.NET 8 runtime</b><em></em></li>
+        <li data-check="postgres"><i></i><b>PostgreSQL 16 available</b><em></em></li>
+        <li data-check="ports"><i></i><b>Ports 443, 5432, 55432 free</b><em></em></li>
+        <li data-check="admin"><i></i><b>Administrator privileges</b><em></em></li>
+      </ul>
+
+      <div class="row">
+        <button type="button" class="btn" id="btn-rerun-checks">Re-run checks</button>
+        <span id="checks-summary" class="hint"></span>
+      </div>
+    </section>
+
+    <!-- 4 · Installation Options -->
+    <section class="pane" data-pane="4" hidden>
+      <header class="pane-head">
+        <h1>Installation options</h1>
+        <p class="lead">Where to install OPSQAI and how it should integrate with Windows.</p>
+      </header>
+
+      <div class="form">
+        <label>
+          <span class="label-row">Installation folder</span>
+          <div class="path-row">
+            <input id="opt-install-dir" value="C:\\Program Files\\OPSQAI" readonly />
+            <button type="button" class="btn btn-ghost" disabled title="Fixed in this release">Browse…</button>
+          </div>
+        </label>
+
+        <label>
+          <span class="label-row">Data folder <em class="hint-inline">databases, backups, uploads</em></span>
+          <div class="path-row">
+            <input id="opt-data-dir" value="C:\\ProgramData\\OPSQAI" readonly />
+            <button type="button" class="btn btn-ghost" disabled title="Fixed in this release">Browse…</button>
+          </div>
+          <p class="hint">Space required: <strong>~4.8 GB</strong> · Available: <strong id="opt-disk-free">—</strong></p>
+        </label>
+
+        <div class="opt-toggles">
+          <label class="checkbox"><input type="checkbox" id="opt-desktop" checked /><span>Create Desktop shortcut</span></label>
+          <label class="checkbox"><input type="checkbox" id="opt-startmenu" checked /><span>Add OPSQAI to Start Menu</span></label>
+          <label class="checkbox"><input type="checkbox" id="opt-autostart" /><span>Start OPSQAI when Windows starts</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · Database -->
+    <section class="pane" data-pane="5" hidden>
+      <header class="pane-head">
+        <h1>Database</h1>
+        <p class="lead">How should OPSQAI store your data?</p>
+      </header>
+
+      <div class="radio-cards">
+        <label class="radio-card">
+          <input type="radio" name="db-mode" value="embedded" checked />
+          <div><strong>Recommended — bundled PostgreSQL 16</strong><p>Installed and managed by OPSQAI. Zero configuration. Best for most customers.</p></div>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="db-mode" value="external" />
+          <div><strong>Advanced — connect to my own PostgreSQL server</strong><p>For customers with a database team or an existing enterprise cluster.</p></div>
+        </label>
+      </div>
+
+      <div class="form" id="db-external" hidden>
+        <div class="grid-2">
+          <label>Host<input id="db-host" placeholder="db.internal.acme" /></label>
+          <label>Port<input id="db-port" type="number" value="5432" /></label>
+        </div>
+        <label>Database<input id="db-name" value="opsqai" /></label>
+        <div class="grid-2">
+          <label>Username<input id="db-user" placeholder="opsqai_app" /></label>
+          <label>Password<input id="db-pass" type="password" /></label>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="btn-db-test">Test connection</button>
+          <span id="db-status" class="status-pill" hidden></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 · Administrator -->
+    <section class="pane" data-pane="6" hidden>
+      <header class="pane-head">
+        <h1>Create the first administrator</h1>
+        <p class="lead">This account has full access to OPSQAI. You can add more users after installation.</p>
+      </header>
+
+      <div class="form">
+        <label>Full name<input id="admin-name" type="text" placeholder="Anna Weber" /></label>
+        <label>Email<input id="admin-email" type="email" placeholder="anna@acme.de" /></label>
+        <label>
+          Password
+          <input id="admin-password" type="password" placeholder="At least 12 characters" />
+          <div class="pw-strength"><div class="pw-bar"><div id="pw-fill"></div></div><span id="pw-label" class="pw-label">—</span></div>
+          <ul class="pw-rules" id="pw-rules">
+            <li data-rule="len">12+ characters</li>
+            <li data-rule="case">Upper &amp; lower case</li>
+            <li data-rule="num">A number</li>
+            <li data-rule="sym">A symbol</li>
+          </ul>
+        </label>
+        <label>Confirm password<input id="admin-password2" type="password" /></label>
+      </div>
+    </section>
+
+    <!-- 7 · Review -->
+    <section class="pane" data-pane="7" hidden>
+      <header class="pane-head">
+        <h1>You're ready to install</h1>
+        <p class="lead">Review your settings. Nothing has been installed yet. Installation takes about 3–5 minutes.</p>
+      </header>
+      <div class="review" id="review"></div>
+    </section>
+
+    <!-- 8 · Install progress -->
+    <section class="pane" data-pane="8" hidden>
+      <header class="pane-head">
+        <h1 id="install-title">Installing OPSQAI…</h1>
+        <p class="lead" id="install-sub">Please keep this window open until setup finishes.</p>
+      </header>
+
+      <ol class="stages" id="stages">
+        <li data-stage="prepare"><span class="stage-dot"></span>Preparing installation</li>
+        <li data-stage="postgres"><span class="stage-dot"></span>Installing bundled PostgreSQL</li>
+        <li data-stage="services"><span class="stage-dot"></span>Installing OPSQAI services</li>
+        <li data-stage="migrate"><span class="stage-dot"></span>Creating database &amp; applying migrations</li>
+        <li data-stage="ai"><span class="stage-dot"></span>Initializing AI engine</li>
+        <li data-stage="kb"><span class="stage-dot"></span>Creating knowledge storage</li>
+        <li data-stage="finalize"><span class="stage-dot"></span>Finalizing installation</li>
+      </ol>
+
+      <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+      <div class="progress-meta">
+        <span id="progress-pct">0%</span>
+        <button type="button" class="btn-linky" id="btn-toggle-log">Show detailed log</button>
+      </div>
+      <pre id="log" class="log" hidden></pre>
+    </section>
+
+    <!-- 9 · Finish -->
+    <section class="pane pane-hero" data-pane="9" hidden>
+      <div class="hero-inner finish-inner">
+        <div class="finish-check">
+          <svg viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2" />
+            <path d="M12 20l6 6 12-13" fill="none" stroke="currentColor" stroke-width="3" />
+          </svg>
+        </div>
+        <h1 class="hero-title">OPSQAI is ready</h1>
+        <p class="hero-sub">Your platform is installed and running.</p>
+
+        <ul class="finish-grid">
+          <li>License activated</li>
+          <li>Database created</li>
+          <li>Services installed</li>
+          <li>AI engine online</li>
+          <li>Knowledge base ready</li>
+          <li>Administrator created</li>
+        </ul>
+
+        <label class="checkbox center"><input type="checkbox" id="launch-app" checked /><span>Launch OPSQAI now</span></label>
+
+        <div class="finish-actions">
+          <button class="btn" id="btn-open-folder">Open installation folder</button>
+          <button class="btn" id="btn-view-logs">View logs</button>
+          <button class="btn btn-primary" id="btn-finish">Launch OPSQAI</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Footer actions (hidden on hero panes) ────────────────── -->
+    <nav class="actions" id="actions">
+      <button class="btn btn-ghost" id="btn-cancel">Cancel</button>
+      <div class="spacer"></div>
+      <button class="btn" id="btn-back">Back</button>
+      <button class="btn btn-primary" id="btn-next">Next</button>
+    </nav>
+  </main>
+`;
+
+function ensureWizardShell() {
+  let root = document.getElementById("wizard");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "wizard";
+    document.body.prepend(root);
+  }
+  if (document.getElementById("btn-start") && document.querySelector(".pane[data-pane='1']")) {
+    return;
+  }
+  root.className = "wizard";
+  root.innerHTML = WIZARD_SHELL_HTML;
+}
+
+ensureWizardShell();
+
 // ── External links ─────────────────────────────────────────────────
 document.addEventListener("click", (e) => {
   const a = e.target.closest("a[data-external]");

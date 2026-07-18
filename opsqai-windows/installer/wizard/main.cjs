@@ -56,7 +56,7 @@ function createWindow() {
     title: "OPSQAI Self-Hosted Setup",
     icon: path.join(__dirname, "assets", "opsqai.ico"),
     backgroundColor: "#0f172a",
-    show: true,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
@@ -88,8 +88,9 @@ function createWindow() {
     flog(`preload-error ${preloadPath}: ${err && err.stack ? err.stack : err}`);
   });
 
-  // Always open DevTools while we stabilise the wizard shell.
-  win.webContents.openDevTools({ mode: "detach" });
+  if (process.argv.includes("--enable-logging")) {
+    win.webContents.openDevTools({ mode: "detach" });
+  }
 
   const indexPath = path.join(__dirname, "renderer", "index.html");
   flog(`loadFile ${indexPath} exists=${fs.existsSync(indexPath)}`);

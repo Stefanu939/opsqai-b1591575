@@ -27,6 +27,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
+[hidden] { display: none !important; }
 body {
   font-family: var(--font-body);
   font-size: 14px;
@@ -45,9 +46,10 @@ body {
   transition: grid-template-columns var(--dur) var(--ease);
 }
 .wizard.hero-mode {
-  grid-template-columns: 0 1fr;
+  grid-template-columns: 1fr;
 }
 .wizard.hero-mode .sidebar { display: none; }
+.wizard.hero-mode .content { grid-column: 1; width: 100%; }
 
 /* ── Sidebar ────────────────────────────────────────────────────── */
 .sidebar {
