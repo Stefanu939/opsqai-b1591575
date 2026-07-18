@@ -1,4 +1,4 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
+import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";

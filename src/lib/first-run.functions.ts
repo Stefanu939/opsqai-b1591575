@@ -1,3 +1,4 @@
+import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 // First-Run Wizard server functions (Phase 5).
 //
 // These endpoints are PUBLIC — no auth middleware. Authorization is the

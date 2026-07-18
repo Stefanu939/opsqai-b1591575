@@ -1,3 +1,4 @@
+import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 // Server functions for Phase 4.5 Part 2 — Installation Package Generation.
 //
 // Endpoints:

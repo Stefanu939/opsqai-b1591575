@@ -1,3 +1,4 @@
+import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";

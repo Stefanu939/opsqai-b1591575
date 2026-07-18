@@ -1,3 +1,4 @@
+import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 // Phase 6 — Deployment mode server API.
 //
 // Exposes the runtime deployment mode + platform_config anchors to the
