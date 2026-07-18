@@ -463,7 +463,7 @@ function resetEmbeddedDatabase() {
   // Pre-flight: fail fast with a stable code (E1902) if any required
   // packaged bootstrap file is missing, instead of letting Node crash
   // with an unstructured MODULE_NOT_FOUND stack trace.
-  const requiredMigratorFiles = ["migrate.mjs", "errors.js"];
+  const requiredMigratorFiles = ["migrate.mjs", "errors.cjs"];
   const missingFiles = requiredMigratorFiles.filter(
     (f) => !fs.existsSync(path.join(migratorDir, f)),
   );
