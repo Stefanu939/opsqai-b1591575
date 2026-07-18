@@ -2,7 +2,7 @@ import * as React from "react";
 import { render } from "react-email";
 import { parseEmailWebhookPayload } from "@lovable.dev/email-js";
 import { WebhookError, verifyWebhookRequest } from "@lovable.dev/webhooks-js";
-import { createClient } from "@supabase/supabase-js";
+
 import { createFileRoute } from "@tanstack/react-router";
 import { SignupEmail } from "@/lib/email-templates/signup";
 import { InviteEmail } from "@/lib/email-templates/invite";
@@ -131,15 +131,15 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         const text = await render(element, { plainText: true });
 
         // Enqueue email for async processing by the dispatcher (process-email-queue).
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
+        let supabase;
+        try {
+          const mod = await import("@/lib/providers/cloud/service-role.server");
+          supabase = mod.createServiceRoleClient();
+        } catch {
           console.error("Missing Supabase environment variables");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
 
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const messageId = crypto.randomUUID();
 
         // Log pending BEFORE enqueue so we have a record even if enqueue crashes

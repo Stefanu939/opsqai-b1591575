@@ -1,5 +1,5 @@
 import { sendLovableEmail } from "@lovable.dev/email-js";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 
 const MAX_RETRIES = 5;
@@ -65,10 +65,18 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
     handlers: {
       POST: async ({ request }) => {
         const apiKey = process.env.LOVABLE_API_KEY;
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-        if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
+        let supabase: SupabaseClient<any, any>;
+        let supabaseServiceKey: string;
+        try {
+          const mod = await import("@/lib/providers/cloud/service-role.server");
+          supabase = mod.createServiceRoleClient();
+          supabaseServiceKey = mod.getServiceRoleKey();
+        } catch {
+          console.error("Missing required environment variables");
+          return Response.json({ error: "Server configuration error" }, { status: 500 });
+        }
+        if (!apiKey) {
           console.error("Missing required environment variables");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
@@ -85,7 +93,7 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const supabase: SupabaseClient<any, any> = createClient(supabaseUrl, supabaseServiceKey);
+
 
         // 1. Check rate-limit cooldown and read queue config
         const { data: state } = await supabase

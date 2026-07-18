@@ -4,11 +4,9 @@ import listKnowledgeTool from "./tools/list-knowledge";
 import searchKnowledgeTool from "./tools/search-knowledge";
 
 // The OAuth issuer MUST be the direct Supabase host, not the .lovable.cloud proxy.
-// Read the project ref via import.meta.env (Vite inlines this as a build-time literal
-// on the Worker); the fallback keeps the URL well-formed during manifest extraction.
-const projectRef =
-  (import.meta as unknown as { env: Record<string, string | undefined> }).env
-    ?.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+// Read the project ref via process.env (server-only). Using import.meta.env would
+// let Vite inline the Cloud project ref as a build-time literal into the SH bundle.
+const projectRef = process.env.SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({
   name: "opsqai-mcp",
