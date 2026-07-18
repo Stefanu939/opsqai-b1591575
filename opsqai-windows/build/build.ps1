@@ -89,8 +89,9 @@ function assertContains(parent, child, label) {
     # migrate.mjs / admin-seed.mjs are authored outside payload\app so staging cannot delete them.
     Copy-Item (Join-Path $root 'services\bootstrap\migrate.mjs') (Join-Path $appStage 'server\migrate.mjs') -Force
     Copy-Item (Join-Path $root 'services\bootstrap\admin-seed.mjs') (Join-Path $appStage 'server\admin-seed.mjs') -Force
-    # migrate.mjs does `require('./errors.js')`. Ship the error catalog beside it.
-    Copy-Item (Join-Path $root 'services\bootstrap\errors.js') (Join-Path $appStage 'server\errors.js') -Force
+    # migrate.mjs does `require('./errors.cjs')`. Ship the error catalog beside it.
+    # It's .cjs (not .js) so Node treats it as CommonJS regardless of app/server's package.json `"type": "module"`.
+    Copy-Item (Join-Path $root 'services\bootstrap\errors.cjs') (Join-Path $appStage 'server\errors.cjs') -Force
     # Self-Hosted uses its own, vanilla-PostgreSQL migration set. The
     # Supabase set (auth.*, RLS via auth.uid(), authenticated/anon/service_role)
     # is Cloud-only and MUST NEVER be copied into the Windows payload.
