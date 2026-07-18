@@ -58,9 +58,11 @@ export const Route = createFileRoute("/api/public/contact-submit")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (!url || !key) {
+        let sb;
+        try {
+          const mod = await import("@/lib/providers/cloud/service-role.server");
+          sb = mod.createServiceRoleClient();
+        } catch {
           return Response.json(
             { error: "Email service is temporarily unavailable. Please try again shortly." },
             { status: 503 },
@@ -81,7 +83,6 @@ export const Route = createFileRoute("/api/public/contact-submit")({
           return Response.json({ ok: true, referenceId: "REQ-IGNORED" });
         }
 
-        const sb = createClient(url, key);
         const { data: settings } = await sb
           .from("platform_email_settings")
           .select("*")
