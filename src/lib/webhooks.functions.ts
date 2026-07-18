@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /**
  * Outbound webhook delivery — signed with HMAC-SHA256.
  *
@@ -5,8 +6,7 @@
  *
  *   POST <endpoint.url>
  *   Content-Type: application/json
- *   X-OPSQAI-Event: <import { getCloudSupabase } from "@/lib/providers/not-available";
-event>
+ *   X-OPSQAI-Event: <event>
  *   X-OPSQAI-Delivery: <uuid>
  *   X-OPSQAI-Signature: sha256=<hex(hmac_sha256(secret, body))>
  *   User-Agent: OPSQAI-Webhooks/1.0

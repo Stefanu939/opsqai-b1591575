@@ -1,9 +1,9 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
-import { getCloudSupabase } from "@/lib/providers/not-available";
 
 const AI_AUDIT_MODULE = "ai_workspace_audit" as const;
 

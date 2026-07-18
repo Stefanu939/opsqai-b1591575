@@ -1,8 +1,8 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
-import { getCloudSupabase } from "@/lib/providers/not-available";
 
 async function resolveCompany(context: { supabase: any; userId: string }, hint?: string | null) {
   await requirePermission(context, "dashboard.view");

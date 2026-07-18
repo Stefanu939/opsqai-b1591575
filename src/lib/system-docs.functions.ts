@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -5,8 +6,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles } from "@/lib/authorization";
 import { SYSTEM_DOC_CATALOG, type SystemDocEntry } from "@/lib/system-docs/catalog";
 import { FEATURE_CATALOG } from "@/lib/feature-catalog";
-import { renderSystemDoc,import { getCloudSupabase } from "@/lib/providers/not-available";
- hashBody, chunkBody } from "@/lib/system-docs/render";
+import { renderSystemDoc, hashBody, chunkBody } from "@/lib/system-docs/render";
 
 async function requirePlatformAdmin(context: { supabase: any; userId: string }) {
   const a = await getActorRoles(getCloudSupabase(context, "system-docs"), context.userId);

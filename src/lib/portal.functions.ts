@@ -1,8 +1,8 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Phase 6.5 — Customer Portal server functions.
 //
 // The Customer Portal is intentionally narrow: downloads, contract summary,
-// tickets, import { getCloudSupabase } from "@/lib/providers/not-available";
-release notes. It is NOT the Management Center.
+// tickets, release notes. It is NOT the Management Center.
 //
 // A customer sees licenses whose `contact_email` matches their auth email.
 // This is a soft binding — a proper company_id link can be added later

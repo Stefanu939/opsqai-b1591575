@@ -1,8 +1,8 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
-import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export const listReleases = createServerFn({ method: "POST" })
   .middleware([requireAuth])

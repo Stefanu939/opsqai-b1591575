@@ -1,8 +1,8 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Academy LMS — new enterprise-grade server functions
- * (My Training dashboard, summary import { getCloudSupabase } from "@/lib/providers/not-available";
-widget, multi-target assign, cohort analytics, notes).
+ * (My Training dashboard, summary widget, multi-target assign, cohort analytics, notes).
  * Legacy functions in academy.functions.ts stay intact for backward compatibility.
  */
 import { createServerFn } from "@tanstack/react-start";

@@ -1,6 +1,6 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Portal Admin server functions — news announcements + downloadable modules.
-// Only platform_owner / platform_admin may create/update/deletimport { getCloudSupabase } from "@/lib/providers/not-available";
-e.
+// Only platform_owner / platform_admin may create/update/delete.
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";

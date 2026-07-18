@@ -1,8 +1,8 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
-import { getCloudSupabase } from "@/lib/providers/not-available";
 
 const FaqInput = z.object({
   id: z.string().uuid().optional(),

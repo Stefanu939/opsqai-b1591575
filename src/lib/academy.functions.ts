@@ -1,10 +1,10 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { generateText } from "ai";
-import { createLovableAiGatimport { getCloudSupabase } from "@/lib/providers/not-available";
-ewayProvider } from "@/lib/ai-gateway.server";
+import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import {
   requirePermission,
   resolveCompanyForWrite,

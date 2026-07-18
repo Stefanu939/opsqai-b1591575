@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Phase 5.5 — Disaster Recovery server functions.
 //
 // Split across two roles:
@@ -6,8 +7,7 @@
 //                   redeemBootstrapToken, exitRecoveryMode, getRecoveryState,
 //                   listDrScenarios
 //
-// Aimport { getCloudSupabase } from "@/lib/providers/not-available";
-ll functions are platform-admin gated and enforce the MC secrets
+// All functions are platform-admin gated and enforce the MC secrets
 // blacklist on their inputs.
 
 import { createServerFn } from "@tanstack/react-start";

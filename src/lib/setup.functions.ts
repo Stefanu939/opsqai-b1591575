@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Server functions backing the Setup Wizard (Phase 5).
 //
 // All functions are platform-admin gated. The wizard NEVER stores secrets —
@@ -6,8 +7,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireAuth } from "@/lib/providers/requireimport { getCloudSupabase } from "@/lib/providers/not-available";
--auth";
+import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 import { SETUP_STEPS, computeSetupComplete, type SetupStepId } from "@/lib/setup-steps";

@@ -1,8 +1,8 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/authorization";
-import { getCloudSupabase } from "@/lib/providers/not-available";
 
 const CompanyInput = z.object({
   name: z.string().min(1),

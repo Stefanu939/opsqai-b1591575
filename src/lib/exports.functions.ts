@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /**
  * Enterprise Export & Migration server functions.
  * Supports three modes for KB / FAQ / full Workspace exports:
@@ -5,8 +6,7 @@
  *   - "migrate" : export + manifest tailored for re-import into another OPSQAI
  *   - "delete"  : export, verify checksum, then permanently delete source rows
  *
- * Each operation creates import { getCloudSupabase } from "@/lib/providers/not-available";
-a row in `public.exports` and writes an audit entry
+ * Each operation creates a row in `public.exports` and writes an audit entry
  * via the `audit_write` RPC.  Storage is partitioned by company id.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */

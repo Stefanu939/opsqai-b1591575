@@ -1,10 +1,10 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
-import { getCloudSupabase } from "@/lib/providers/not-available";
 
 // ─── Input schemas ──────────────────────────────────────────────────────
 

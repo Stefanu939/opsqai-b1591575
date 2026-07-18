@@ -1,7 +1,7 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles, requirePermission } from "@/lib/authorization";
-import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export const getAdminStats = createServerFn({ method: "POST" })
   .middleware([requireAuth])

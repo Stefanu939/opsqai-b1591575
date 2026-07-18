@@ -1,9 +1,9 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
-import { extractWorkspacimport { getCloudSupabase } from "@/lib/providers/not-available";
-eText } from "@/lib/workspace.extract.server";
+import { extractWorkspaceText } from "@/lib/workspace.extract.server";
 import {
   companyFromStoragePath,
   requireAnyPermission,

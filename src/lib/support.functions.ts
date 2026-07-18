@@ -1,9 +1,9 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /**
  * Enterprise Support Center server functions.
  * Customer side: workspace_owner / admin / manager open + reply to conversations
  * scoped to their own company. Platform side: platform_owner / platform_admin
- import { getCloudSupabase } from "@/lib/providers/not-available";
-* see/manage all conversations across all companies.
+ * see/manage all conversations across all companies.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";

@@ -1,10 +1,10 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Profile server functions (Wave C.2a.1.b).
 //
 // Thin wrappers around IProfileRepository so browser code (avatar
 // uploader, profile forms) never queries `profiles` directly.
 
-import { createServerFn } fimport { getCloudSupabase } from "@/lib/providers/not-available";
-rom "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { getProfileRepository } from "@/lib/providers/registry";
