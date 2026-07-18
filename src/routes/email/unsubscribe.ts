@@ -1,5 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
+
+async function serviceRoleClient() {
+  const mod = await import("@/lib/providers/cloud/service-role.server");
+  return mod.createServiceRoleClient();
+}
 
 function redactEmail(email: string | null | undefined): string {
   if (!email) return "***";
