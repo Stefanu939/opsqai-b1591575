@@ -1,7 +1,7 @@
 /* Server-only. Centralised template render + provider dispatch. */
 import * as React from "react";
 import { render } from "react-email";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { TEMPLATES } from "@/lib/email-templates/registry";
 import type { EmailProvider, ProviderId, SendEmailInput } from "./provider";
 
@@ -16,11 +16,12 @@ interface PlatformEmailSettings {
   provider: ProviderId;
 }
 
-function admin(): SupabaseClient {
-  const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("email_service_misconfigured");
-  return createClient(url, key);
+async function admin(): Promise<SupabaseClient> {
+  // Dynamic import so the Cloud-only service-role factory resolves through
+  // the Wave D alias in Self-Hosted builds (→ throwing cloud-stub). Keeps
+  // the Supabase URL and service-role env name out of the SH bundle.
+  const mod = await import("@/lib/providers/cloud/service-role.server");
+  return mod.createServiceRoleClient();
 }
 
 async function loadSettings(sb: SupabaseClient): Promise<PlatformEmailSettings> {
