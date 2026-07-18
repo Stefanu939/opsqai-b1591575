@@ -19,30 +19,37 @@ import {
 } from "@/lib/providers/null-providers";
 import type {
   IAuthProvider,
+  ICompanyRepository,
+  IDepartmentRepository,
   ILicensingProvider,
   INotificationProvider,
+  IProfileRepository,
+  IRoleRepository,
   IUserRepository,
 } from "@/lib/providers/interfaces";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import {
+  registerAdminCompanyRepositoryFactory,
+  registerAdminDepartmentRepositoryFactory,
   registerAdminProfileRepositoryFactory,
   registerAdminRoleRepositoryFactory,
+  registerAuthAdminProvider,
+  registerCompanyRepositoryFactory,
+  registerDepartmentRepositoryFactory,
   registerProfileRepositoryFactory,
   registerRoleRepositoryFactory,
 } from "@/lib/providers/registry";
 
 import { createSupabaseAuthProvider } from "./supabase-auth.server";
+import { createSupabaseAuthAdminProvider } from "./supabase-auth-admin.server";
 import { createSupabaseStorageProvider } from "./supabase-storage.server";
 import { createSupabaseProfileRepository } from "./supabase-profile-repository.server";
 import { createSupabaseRoleRepository } from "./supabase-role-repository.server";
+import { createSupabaseCompanyRepository } from "./supabase-company-repository.server";
+import { createSupabaseDepartmentRepository } from "./supabase-department-repository.server";
 
-
-// Placeholder cloud providers for capabilities where MC does not yet
-// have a dedicated adapter — MC's existing feature code continues to
-// call Supabase directly through their existing modules. These stubs
-// exist so `getRegisteredX()` never returns null in production.
 
 class CloudUserRepository implements IUserRepository {
   async findById(): Promise<null> {
@@ -74,8 +81,6 @@ class CloudLicensingProvider implements ILicensingProvider {
   readonly capability = Capability.Licensing;
   readonly name = "opsqai.cloud.licensing";
   async validate() {
-    // Cloud tenants are licensed per-workspace; the seat/plan lookup
-    // happens in MC's existing subscription code.
     return {
       customer: "cloud-tenant",
       seats: Number.POSITIVE_INFINITY,
@@ -92,6 +97,86 @@ class CloudLicensingProvider implements ILicensingProvider {
   async latestRelease() {
     return null;
   }
+}
+
+/**
+ * Async-proxy pattern: repository methods lazy-load the service-role
+ * Supabase client the first time they're called so this module never
+ * pulls `client.server.ts` into the client import graph.
+ */
+function adminProfileProxy(
+  getAdmin: () => Promise<SupabaseClient<Database>>,
+): IProfileRepository {
+  return {
+    findByUserId: async (id) =>
+      createSupabaseProfileRepository(await getAdmin()).findByUserId(id),
+    updateByUserId: async (id, patch) =>
+      createSupabaseProfileRepository(await getAdmin()).updateByUserId(id, patch),
+    listByCompany: async (cid) =>
+      createSupabaseProfileRepository(await getAdmin()).listByCompany(cid),
+    create: async (input) =>
+      createSupabaseProfileRepository(await getAdmin()).create(input),
+    deleteByUserId: async (id) =>
+      createSupabaseProfileRepository(await getAdmin()).deleteByUserId(id),
+  };
+}
+
+function adminRoleProxy(
+  getAdmin: () => Promise<SupabaseClient<Database>>,
+): IRoleRepository {
+  return {
+    listRolesForUser: async (id) =>
+      createSupabaseRoleRepository(await getAdmin()).listRolesForUser(id),
+    hasRole: async (id, r) =>
+      createSupabaseRoleRepository(await getAdmin()).hasRole(id, r),
+    addRole: async (id, r, c) =>
+      createSupabaseRoleRepository(await getAdmin()).addRole(id, r, c),
+    removeRole: async (id, r) =>
+      createSupabaseRoleRepository(await getAdmin()).removeRole(id, r),
+    removeAllRoles: async (id) =>
+      createSupabaseRoleRepository(await getAdmin()).removeAllRoles(id),
+    removeNonPlatformRoles: async (id) =>
+      createSupabaseRoleRepository(await getAdmin()).removeNonPlatformRoles(id),
+    isPlatformOwner: async (id) =>
+      createSupabaseRoleRepository(await getAdmin()).isPlatformOwner(id),
+    hasPermission: async (id, p) =>
+      createSupabaseRoleRepository(await getAdmin()).hasPermission(id, p),
+    listAssignments: async (ids) =>
+      createSupabaseRoleRepository(await getAdmin()).listAssignments(ids),
+    listAssignmentsDetailed: async (ids) =>
+      createSupabaseRoleRepository(await getAdmin()).listAssignmentsDetailed(ids),
+    listPermissionsForRole: async (r) =>
+      createSupabaseRoleRepository(await getAdmin()).listPermissionsForRole(r),
+  };
+}
+
+function adminCompanyProxy(
+  getAdmin: () => Promise<SupabaseClient<Database>>,
+): ICompanyRepository {
+  return {
+    findById: async (id) =>
+      createSupabaseCompanyRepository(await getAdmin()).findById(id),
+    findSystemCompany: async () =>
+      createSupabaseCompanyRepository(await getAdmin()).findSystemCompany(),
+    findFirstActive: async () =>
+      createSupabaseCompanyRepository(await getAdmin()).findFirstActive(),
+    list: async () => createSupabaseCompanyRepository(await getAdmin()).list(),
+  };
+}
+
+function adminDepartmentProxy(
+  getAdmin: () => Promise<SupabaseClient<Database>>,
+): IDepartmentRepository {
+  return {
+    list: async (cid) =>
+      createSupabaseDepartmentRepository(await getAdmin()).list(cid),
+    findByNameCI: async (cid, n) =>
+      createSupabaseDepartmentRepository(await getAdmin()).findByNameCI(cid, n),
+    create: async (input) =>
+      createSupabaseDepartmentRepository(await getAdmin()).create(input),
+    delete: async (id, cid) =>
+      createSupabaseDepartmentRepository(await getAdmin()).delete(id, cid),
+  };
 }
 
 /** Wire every Cloud provider. Idempotent. */
@@ -119,6 +204,13 @@ export function bootstrapCloud(): void {
   registerRoleRepositoryFactory((ctx) =>
     createSupabaseRoleRepository(ctx as SupabaseClient<Database>),
   );
+  registerCompanyRepositoryFactory((ctx) =>
+    createSupabaseCompanyRepository(ctx as SupabaseClient<Database>),
+  );
+  registerDepartmentRepositoryFactory((ctx) =>
+    createSupabaseDepartmentRepository(ctx as SupabaseClient<Database>),
+  );
+
   // Admin flavour: lazy-load service-role client so this module does not
   // pull `client.server.ts` into the client graph.
   let adminClient: SupabaseClient<Database> | null = null;
@@ -128,28 +220,18 @@ export function bootstrapCloud(): void {
     adminClient = supabaseAdmin as SupabaseClient<Database>;
     return adminClient;
   };
-  registerAdminProfileRepositoryFactory(() => {
-    // Return an async-resolving proxy: each method awaits the admin client.
-    const repo: import("@/lib/providers/interfaces").IProfileRepository = {
-      findByUserId: async (id) => (await createSupabaseProfileRepository(await getAdmin())).findByUserId(id),
-      updateByUserId: async (id, patch) => (await createSupabaseProfileRepository(await getAdmin())).updateByUserId(id, patch),
-      listByCompany: async (cid) => (await createSupabaseProfileRepository(await getAdmin())).listByCompany(cid),
-      create: async (input) => (await createSupabaseProfileRepository(await getAdmin())).create(input),
-      deleteByUserId: async (id) => (await createSupabaseProfileRepository(await getAdmin())).deleteByUserId(id),
-    };
-    return repo;
-  });
-  registerAdminRoleRepositoryFactory(() => {
-    const repo: import("@/lib/providers/interfaces").IRoleRepository = {
-      listRolesForUser: async (id) => (await createSupabaseRoleRepository(await getAdmin())).listRolesForUser(id),
-      hasRole: async (id, r) => (await createSupabaseRoleRepository(await getAdmin())).hasRole(id, r),
-      addRole: async (id, r) => (await createSupabaseRoleRepository(await getAdmin())).addRole(id, r),
-      removeRole: async (id, r) => (await createSupabaseRoleRepository(await getAdmin())).removeRole(id, r),
-      removeAllRoles: async (id) => (await createSupabaseRoleRepository(await getAdmin())).removeAllRoles(id),
-      listAssignments: async (ids) => (await createSupabaseRoleRepository(await getAdmin())).listAssignments(ids),
-      listPermissionsForRole: async (r) => (await createSupabaseRoleRepository(await getAdmin())).listPermissionsForRole(r),
-    };
-    return repo;
-  });
+
+  registerAdminProfileRepositoryFactory(() => adminProfileProxy(getAdmin));
+  registerAdminRoleRepositoryFactory(() => adminRoleProxy(getAdmin));
+  registerAdminCompanyRepositoryFactory(() => adminCompanyProxy(getAdmin));
+  registerAdminDepartmentRepositoryFactory(() => adminDepartmentProxy(getAdmin));
+
+  // Wave C.2a.1.c — auth admin surface.
+  registerAuthAdminProvider(
+    createSupabaseAuthAdminProvider({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      getAdmin: async () => (await getAdmin()) as any,
+    }),
+  );
 }
 

@@ -7,9 +7,12 @@
 
 import { Capability } from "@/lib/platform";
 import type {
+  IAuthAdminProvider,
   IAuthProvider,
   IBackupService,
   IBrowserAuthProvider,
+  ICompanyRepository,
+  IDepartmentRepository,
   ILicensingProvider,
   INotificationProvider,
   IProfileRepository,
@@ -18,12 +21,15 @@ import type {
   IStorageProvider,
   ITelemetrySink,
   IUserRepository,
+  CompanyRepositoryFactory,
+  DepartmentRepositoryFactory,
   ProfileRepositoryFactory,
   RoleRepositoryFactory,
 } from "./interfaces";
 
 interface Registry {
   auth?: IAuthProvider;
+  authAdmin?: IAuthAdminProvider;
   browserAuth?: IBrowserAuthProvider;
   users?: IUserRepository;
   storage?: IStorageProvider;
@@ -36,6 +42,10 @@ interface Registry {
   adminProfileFactory?: ProfileRepositoryFactory;
   roleFactory?: RoleRepositoryFactory;
   adminRoleFactory?: RoleRepositoryFactory;
+  companyFactory?: CompanyRepositoryFactory;
+  adminCompanyFactory?: CompanyRepositoryFactory;
+  departmentFactory?: DepartmentRepositoryFactory;
+  adminDepartmentFactory?: DepartmentRepositoryFactory;
 }
 
 
@@ -43,6 +53,9 @@ const registry: Registry = {};
 
 export function registerAuthProvider(p: IAuthProvider): void {
   registry.auth = p;
+}
+export function registerAuthAdminProvider(p: IAuthAdminProvider): void {
+  registry.authAdmin = p;
 }
 export function registerBrowserAuthProvider(p: IBrowserAuthProvider): void {
   registry.browserAuth = p;
@@ -80,6 +93,18 @@ export function registerRoleRepositoryFactory(f: RoleRepositoryFactory): void {
 export function registerAdminRoleRepositoryFactory(f: RoleRepositoryFactory): void {
   registry.adminRoleFactory = f;
 }
+export function registerCompanyRepositoryFactory(f: CompanyRepositoryFactory): void {
+  registry.companyFactory = f;
+}
+export function registerAdminCompanyRepositoryFactory(f: CompanyRepositoryFactory): void {
+  registry.adminCompanyFactory = f;
+}
+export function registerDepartmentRepositoryFactory(f: DepartmentRepositoryFactory): void {
+  registry.departmentFactory = f;
+}
+export function registerAdminDepartmentRepositoryFactory(f: DepartmentRepositoryFactory): void {
+  registry.adminDepartmentFactory = f;
+}
 
 
 function required<T>(value: T | undefined, capability: Capability): T {
@@ -94,6 +119,8 @@ function required<T>(value: T | undefined, capability: Capability): T {
 
 export const getAuthProvider = (): IAuthProvider =>
   required(registry.auth, Capability.Authentication);
+export const getAuthAdminProvider = (): IAuthAdminProvider =>
+  required(registry.authAdmin, Capability.Authentication);
 export const getBrowserAuthProvider = (): IBrowserAuthProvider =>
   required(registry.browserAuth, Capability.Authentication);
 export const hasBrowserAuthProvider = (): boolean => Boolean(registry.browserAuth);
@@ -147,10 +174,35 @@ export function getAdminRoleRepository(): IRoleRepository {
   }
   return registry.adminRoleFactory(undefined);
 }
+export function getCompanyRepository(dataCtx: unknown): ICompanyRepository {
+  if (!registry.companyFactory) {
+    throw new Error("No company repository factory registered");
+  }
+  return registry.companyFactory(dataCtx);
+}
+export function getAdminCompanyRepository(): ICompanyRepository {
+  if (!registry.adminCompanyFactory) {
+    throw new Error("No admin company repository factory registered");
+  }
+  return registry.adminCompanyFactory(undefined);
+}
+export function getDepartmentRepository(dataCtx: unknown): IDepartmentRepository {
+  if (!registry.departmentFactory) {
+    throw new Error("No department repository factory registered");
+  }
+  return registry.departmentFactory(dataCtx);
+}
+export function getAdminDepartmentRepository(): IDepartmentRepository {
+  if (!registry.adminDepartmentFactory) {
+    throw new Error("No admin department repository factory registered");
+  }
+  return registry.adminDepartmentFactory(undefined);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
   registry.auth = undefined;
+  registry.authAdmin = undefined;
   registry.browserAuth = undefined;
   registry.users = undefined;
   registry.storage = undefined;
@@ -163,5 +215,8 @@ export function __resetProviderRegistryForTests(): void {
   registry.adminProfileFactory = undefined;
   registry.roleFactory = undefined;
   registry.adminRoleFactory = undefined;
+  registry.companyFactory = undefined;
+  registry.adminCompanyFactory = undefined;
+  registry.departmentFactory = undefined;
+  registry.adminDepartmentFactory = undefined;
 }
-

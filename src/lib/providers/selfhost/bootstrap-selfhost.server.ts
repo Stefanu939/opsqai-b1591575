@@ -23,12 +23,21 @@ import {
 import { createPgUserRepository } from "./pg-user-repository.server";
 import { createPgProfileRepository } from "./pg-profile-repository.server";
 import { createPgRoleRepository } from "./pg-role-repository.server";
+import { createPgCompanyRepository } from "./pg-company-repository.server";
+import { createPgDepartmentRepository } from "./pg-department-repository.server";
+import { createPgAuthAdminProvider } from "./pg-auth-admin.server";
 import {
+  registerAdminCompanyRepositoryFactory,
+  registerAdminDepartmentRepositoryFactory,
   registerAdminProfileRepositoryFactory,
   registerAdminRoleRepositoryFactory,
+  registerAuthAdminProvider,
+  registerCompanyRepositoryFactory,
+  registerDepartmentRepositoryFactory,
   registerProfileRepositoryFactory,
   registerRoleRepositoryFactory,
 } from "@/lib/providers/registry";
+
 
 import { createLocalAuthProvider } from "./local-auth.server";
 import { createNtfsStorageProvider } from "./ntfs-storage.server";
@@ -230,5 +239,19 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerAdminProfileRepositoryFactory(() => profileRepo);
   registerRoleRepositoryFactory(() => roleRepo);
   registerAdminRoleRepositoryFactory(() => roleRepo);
+
+  // Wave C.2a.1.c — company + department repos + auth admin.
+  const companyRepo = createPgCompanyRepository({
+    tenantCompanyId,
+    tenantName: process.env.OPSQAI_TENANT_NAME ?? "OPSQAI",
+    bootedAt: new Date().toISOString(),
+  });
+  const departmentRepo = createPgDepartmentRepository({ pool, tenantCompanyId });
+  registerCompanyRepositoryFactory(() => companyRepo);
+  registerAdminCompanyRepositoryFactory(() => companyRepo);
+  registerDepartmentRepositoryFactory(() => departmentRepo);
+  registerAdminDepartmentRepositoryFactory(() => departmentRepo);
+  registerAuthAdminProvider(createPgAuthAdminProvider({ pool }));
 }
+
 
