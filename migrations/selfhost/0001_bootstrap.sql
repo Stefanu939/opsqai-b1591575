@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   last_login_at  TIMESTAMPTZ
 );
 
-CREATE EXTENSION IF NOT EXISTS citext;
+
 
 -- --------------------------------------------------------------------
 -- Sessions + refresh tokens
