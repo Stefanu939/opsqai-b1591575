@@ -271,6 +271,12 @@ export function getFaqRepository(dataCtx: unknown): IFaqRepository {
   if (!registry.faqFactory) throw new Error("No FAQ repository factory registered");
   return registry.faqFactory(dataCtx);
 }
+export function getKnowledgeRepository(dataCtx: unknown): IKnowledgeRepository {
+  if (!registry.knowledgeFactory) {
+    throw new Error("No knowledge repository factory registered");
+  }
+  return registry.knowledgeFactory(dataCtx);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
@@ -298,5 +304,6 @@ export function __resetProviderRegistryForTests(): void {
   registry.knowledgeGapFactory = undefined;
   registry.integrationFactory = undefined;
   registry.faqFactory = undefined;
+  registry.knowledgeFactory = undefined;
 }
 
