@@ -45,11 +45,16 @@ const CODES = {
     title: "Bootstrap failed",
     docsAnchor: "opsqai-e1901",
   },
+  "OPSQAI-E1902": {
+    category: "packaging",
+    title: "Installer payload incomplete",
+    docsAnchor: "opsqai-e1902",
+  },
 };
 
 // Categories that should NEVER suggest a database reset — those are
-// transient service/port issues, not schema corruption.
-const TRANSIENT_CATEGORIES = new Set(["database", "services"]);
+// transient service/port issues or packaging problems, not schema corruption.
+const TRANSIENT_CATEGORIES = new Set(["database", "services", "packaging"]);
 
 function describe(code) {
   return CODES[code] || CODES["OPSQAI-E1901"];
