@@ -79,19 +79,22 @@ export function decodeTokenPayload(token: string): RawPayload | null {
 }
 
 function resolveMode(): DeploymentMode {
-  const raw =
-    (typeof import.meta !== "undefined" &&
-      (import.meta.env?.VITE_OPSQAI_MODE as string | undefined)) ||
-    (typeof window !== "undefined" &&
-      (window as unknown as { __OPSQAI_MODE__?: string }).__OPSQAI_MODE__);
+  // Direct property access (no optional chain on `import.meta.env`) so
+  // Vite statically replaces this with the string literal at build
+  // time. Using `import.meta.env?.X` defeats the replacement and forces
+  // Vite to inline the entire env object — which leaks every VITE_* var
+  // into the bundle.
+  const fromEnv = import.meta.env.VITE_OPSQAI_MODE as string | undefined;
+  const fromWindow =
+    typeof window !== "undefined"
+      ? (window as unknown as { __OPSQAI_MODE__?: string }).__OPSQAI_MODE__
+      : undefined;
+  const raw = fromEnv || fromWindow;
   return raw === "selfhost" ? "selfhost" : "cloud";
 }
 
 function resolveLicenseToken(): string | null {
-  const fromEnv =
-    typeof import.meta !== "undefined"
-      ? (import.meta.env?.VITE_OPSQAI_LICENSE_JWT as string | undefined)
-      : undefined;
+  const fromEnv = import.meta.env.VITE_OPSQAI_LICENSE_JWT as string | undefined;
   if (fromEnv) return fromEnv;
   if (typeof window !== "undefined") {
     const w = window as unknown as { __OPSQAI_LICENSE__?: string };
