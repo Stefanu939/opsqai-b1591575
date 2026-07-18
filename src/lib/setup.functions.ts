@@ -52,7 +52,7 @@ export const markSetupStep = createServerFn({ method: "POST" })
     // smuggled through this endpoint.
     assertNoBlacklistedSecrets(data, "markSetupStep input");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getCloudSupabase(context, "setup");
     const { data: cfg } = await supabaseAdmin
       .from("platform_config")
       .select("setup_progress, setup_completed_at")
@@ -107,7 +107,7 @@ export const registerInstall = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     assertNoBlacklistedSecrets(data, "registerInstall input");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getCloudSupabase(context, "setup");
     const { data: cfg } = await supabaseAdmin
       .from("platform_config")
       .select("install_id")

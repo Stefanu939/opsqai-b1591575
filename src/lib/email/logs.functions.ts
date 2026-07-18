@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 const QuerySchema = z.object({
   start: z.string().datetime(),

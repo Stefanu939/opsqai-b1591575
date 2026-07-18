@@ -50,7 +50,7 @@ export const onboardCustomer = createServerFn({ method: "POST" })
     const { generateInstallationPackage } = await import(
       "@/lib/installation-package.functions"
     );
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getCloudSupabase(context, "onboarding");
 
     // Step 1 — install license (throws on failure; nothing to rollback yet)
     await (issueLicense as unknown as (args: { data: unknown }) => Promise<unknown>)({
