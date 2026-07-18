@@ -66,22 +66,6 @@ const bannedPatterns = [
     id: "opsqai-cloud-project-ref",
     pattern: /klisqgrabmwqijbmjzsb\.supabase\.co/gi,
     hint: "OPSQAI Cloud project URL detected in the Self-Hosted bundle.",
-    // Cloud-managed integration surfaces (Lovable email dispatch,
-    // public contact webhook, MCP OAuth issuer). They live in the
-    // repo but never execute in a Self-Hosted deployment — the routes
-    // are Cloud-only. String-literal presence is expected; a runtime
-    // leak would require the route to be invoked, which it isn't in
-    // a Self-Hosted install.
-    allowIn: [
-      "src/lib/email/dispatch.server",
-      "src/routes/lovable/email",
-      "src/routes/email/unsubscribe",
-      "src/routes/api.public.contact-submit",
-      "src/lib/mcp/",
-      "dist/server/_ssr/dispatch.server",
-      // Router chunk aggregates the routes above.
-      "dist/server/_ssr/router-",
-    ],
   },
   {
     id: "opsqai-cloud-publishable-key",
@@ -100,20 +84,6 @@ const bannedPatterns = [
     id: "supabase-service-role-env",
     pattern: /SUPABASE_SERVICE_ROLE_KEY/g,
     hint: "The service-role env name is referenced in the bundle — the admin client leaked.",
-    // Client.server module scope reference is legitimate on Cloud; the
-    // separate `supabase-client-server-import` rule below is what stops it
-    // reaching the Self-Hosted graph. Cloud-managed integration surfaces
-    // reference the env name in their handlers — see `opsqai-cloud-project-ref`.
-    allowIn: [
-      "src/integrations/supabase/client.server",
-      "src/lib/email/dispatch.server",
-      "src/routes/lovable/email",
-      "src/routes/email/unsubscribe",
-      "src/routes/api.public.contact-submit",
-      "src/lib/mcp/",
-      "dist/server/_ssr/dispatch.server",
-      "dist/server/_ssr/router-",
-    ],
   },
   {
     id: "supabase-client-server-import",
