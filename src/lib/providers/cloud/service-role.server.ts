@@ -24,3 +24,10 @@ export function createServiceRoleClient(): SupabaseClient<any, any> {
   }
   return createClient(url, key);
 }
+
+/** Cloud-only: expose the raw service-role key for Bearer-token comparisons. */
+export function getServiceRoleKey(): string {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error("cloud_service_role_key_missing");
+  return key;
+}
