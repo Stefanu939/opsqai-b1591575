@@ -121,6 +121,23 @@ export function registerDepartmentRepositoryFactory(f: DepartmentRepositoryFacto
 export function registerAdminDepartmentRepositoryFactory(f: DepartmentRepositoryFactory): void {
   registry.adminDepartmentFactory = f;
 }
+export function registerThreadRepositoryFactory(f: ThreadRepositoryFactory): void {
+  registry.threadFactory = f;
+}
+export function registerMessageRepositoryFactory(f: MessageRepositoryFactory): void {
+  registry.messageFactory = f;
+}
+export function registerFeedbackRepositoryFactory(f: FeedbackRepositoryFactory): void {
+  registry.feedbackFactory = f;
+}
+export function registerKnowledgeGapRepositoryFactory(f: KnowledgeGapRepositoryFactory): void {
+  registry.knowledgeGapFactory = f;
+}
+export function registerIntegrationRepositoryFactory(f: IntegrationRepositoryFactory): void {
+  registry.integrationFactory = f;
+}
+
+
 
 
 function required<T>(value: T | undefined, capability: Capability): T {
