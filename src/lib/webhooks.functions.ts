@@ -5,7 +5,8 @@
  *
  *   POST <endpoint.url>
  *   Content-Type: application/json
- *   X-OPSQAI-Event: <event>
+ *   X-OPSQAI-Event: <import { getCloudSupabase } from "@/lib/providers/not-available";
+event>
  *   X-OPSQAI-Delivery: <uuid>
  *   X-OPSQAI-Signature: sha256=<hex(hmac_sha256(secret, body))>
  *   User-Agent: OPSQAI-Webhooks/1.0
@@ -112,7 +113,7 @@ export const createWebhookEndpoint = createServerFn({ method: "POST" })
     assertSafeWebhookUrl(data.url);
 
     // Resolve caller's company.
-    const { data: profile } = await context.supabase
+    const { data: profile } = await getCloudSupabase(context, "webhooks")
       .from("profiles")
       .select("company_id")
       .eq("id", context.userId)
@@ -121,7 +122,7 @@ export const createWebhookEndpoint = createServerFn({ method: "POST" })
     if (!companyId) throw new Error("No active company");
 
     const secret = randomBytes(24).toString("hex");
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "webhooks")
       .from("webhook_endpoints")
       .insert({
         company_id: companyId,
@@ -142,7 +143,7 @@ export const testWebhook = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => TestInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: ep, error } = await context.supabase
+    const { data: ep, error } = await getCloudSupabase(context, "webhooks")
       .from("webhook_endpoints")
       .select("id, company_id, url, secret, active")
       .eq("id", data.endpoint_id)
@@ -194,7 +195,7 @@ export const testWebhook = createServerFn({ method: "POST" })
     const latency_ms = Date.now() - started;
 
     // Log delivery (best-effort)
-    await context.supabase.from("webhook_deliveries").insert({
+    await getCloudSupabase(context, "webhooks").from("webhook_deliveries").insert({
       endpoint_id: ep.id,
       company_id: ep.company_id,
       event: payload.event,
@@ -208,12 +209,12 @@ export const testWebhook = createServerFn({ method: "POST" })
 
     // Update endpoint telemetry
     if (ok) {
-      await context.supabase
+      await getCloudSupabase(context, "webhooks")
         .from("webhook_endpoints")
         .update({ last_success_at: new Date().toISOString(), failure_count: 0 })
         .eq("id", ep.id);
     } else {
-      await context.supabase
+      await getCloudSupabase(context, "webhooks")
         .from("webhook_endpoints")
         .update({
           last_failure_at: new Date().toISOString(),
@@ -251,14 +252,14 @@ export const emitTestEvent = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => EmitInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: profile } = await context.supabase
+    const { data: profile } = await getCloudSupabase(context, "webhooks")
       .from("profiles")
       .select("company_id")
       .eq("id", context.userId)
       .maybeSingle();
     if (!profile?.company_id) throw new Error("No company context");
 
-    const { data: matching } = await context.supabase
+    const { data: matching } = await getCloudSupabase(context, "webhooks")
       .from("webhook_endpoints")
       .select("id")
       .eq("company_id", profile.company_id)

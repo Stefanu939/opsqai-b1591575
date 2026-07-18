@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles, requirePermission } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export const getAdminStats = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePermission(context, "dashboard.view");
-    const { isPlatformAdmin } = await getActorRoles(context.supabase, context.userId);
+    const { isPlatformAdmin } = await getActorRoles(getCloudSupabase(context, "admin-stats"), context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -143,7 +144,7 @@ export const listAuditLog = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "audit.view");
-    const { isPlatformAdmin } = await getActorRoles(context.supabase, context.userId);
+    const { isPlatformAdmin } = await getActorRoles(getCloudSupabase(context, "admin-stats"), context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

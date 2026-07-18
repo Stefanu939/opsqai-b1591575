@@ -1,7 +1,8 @@
 // Chat DM server functions — 1:1 conversations between colleagues + OPSQAI staff.
 
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+iimport { getCloudSupabase } from "@/lib/providers/not-available";
+mport { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 
 export type ChatContact = {
@@ -55,7 +56,7 @@ export const searchChatContacts = createServerFn({ method: "POST" })
     z.object({ q: z.string().min(1).max(120) }).parse(d),
   )
   .handler(async ({ data, context }): Promise<ChatContact[]> => {
-    const { data: rows, error } = await context.supabase.rpc(
+    const { data: rows, error } = await getCloudSupabase(context, "chat").rpc(
       "search_chat_contacts",
       { _q: data.q, _limit: 15 } as never,
     );
@@ -71,7 +72,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
     const me = context.userId;
 
     // Conversations I'm a member of.
-    const { data: myMemberships, error: mErr } = await context.supabase
+    const { data: myMemberships, error: mErr } = await getCloudSupabase(context, "chat")
       .from("direct_conversation_members")
       .select("conversation_id, last_read_at")
       .eq("user_id", me);
@@ -83,7 +84,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
       (myMemberships ?? []).map((m) => [m.conversation_id, m.last_read_at]),
     );
 
-    const { data: convs, error: cErr } = await context.supabase
+    const { data: convs, error: cErr } = await getCloudSupabase(context, "chat")
       .from("direct_conversations")
       .select("id, created_at, last_message_at")
       .in("id", convIds)
@@ -91,7 +92,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
     if (cErr) throw new Error(cErr.message);
 
     // Peer memberships (all rows for these convs, then filter self out).
-    const { data: allMembers, error: amErr } = await context.supabase
+    const { data: allMembers, error: amErr } = await getCloudSupabase(context, "chat")
       .from("direct_conversation_members")
       .select("conversation_id, user_id")
       .in("conversation_id", convIds);
@@ -108,7 +109,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
       { full_name: string; email: string; avatar_url: string | null }
     >();
     if (peerIds.length > 0) {
-      const { data: profs } = await context.supabase
+      const { data: profs } = await getCloudSupabase(context, "chat")
         .from("profiles")
         .select("id, full_name, first_name, last_name, avatar_url")
         .in("id", peerIds);
@@ -134,7 +135,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
     }
 
     const { data: staffRoles } = peerIds.length
-      ? await context.supabase
+      ? await getCloudSupabase(context, "chat")
           .from("user_roles")
           .select("user_id, role")
           .in("user_id", peerIds)
@@ -143,7 +144,7 @@ export const listMyConversations = createServerFn({ method: "GET" })
     const staffSet = new Set((staffRoles ?? []).map((r) => r.user_id));
 
     // Last message per conversation.
-    const { data: lastMsgs } = await context.supabase
+    const { data: lastMsgs } = await getCloudSupabase(context, "chat")
       .from("direct_messages")
       .select("id, conversation_id, sender_id, body, attachments, created_at")
       .in("conversation_id", convIds)
@@ -205,7 +206,7 @@ export const startDirectConversation = createServerFn({ method: "POST" })
     z.object({ target_user_id: uuid }).parse(d),
   )
   .handler(async ({ data, context }): Promise<{ conversation_id: string }> => {
-    const { data: convId, error } = await context.supabase.rpc(
+    const { data: convId, error } = await getCloudSupabase(context, "chat").rpc(
       "find_or_create_direct_conversation",
       { _target: data.target_user_id } as never,
     );
@@ -227,7 +228,7 @@ export const listMessages = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }): Promise<ChatMessage[]> => {
-    let q = context.supabase
+    let q = getCloudSupabase(context, "chat")
       .from("direct_messages")
       .select("id, conversation_id, sender_id, body, attachments, created_at, edited_at, deleted_at")
       .eq("conversation_id", data.conversation_id)
@@ -264,7 +265,7 @@ export const sendMessage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }): Promise<ChatMessage> => {
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "chat")
       .from("direct_messages")
       .insert({
         conversation_id: data.conversation_id,
@@ -282,7 +283,7 @@ export const markConversationRead = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ conversation_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "chat")
       .from("direct_conversation_members")
       .update({ last_read_at: new Date().toISOString() })
       .eq("conversation_id", data.conversation_id)
@@ -302,7 +303,7 @@ export const signChatAttachment = createServerFn({ method: "POST" })
     // Verify caller is member of conversation encoded in path
     const convId = data.path.split("/")[0];
     if (!/^[0-9a-f-]{36}$/i.test(convId)) throw new Error("Invalid path");
-    const { data: membership, error: mErr } = await context.supabase
+    const { data: membership, error: mErr } = await getCloudSupabase(context, "chat")
       .from("direct_conversation_members")
       .select("id")
       .eq("conversation_id", convId)
@@ -311,7 +312,7 @@ export const signChatAttachment = createServerFn({ method: "POST" })
     if (mErr) throw new Error(mErr.message);
     if (!membership) throw new Error("Forbidden");
 
-    const { data: signed, error } = await context.supabase.storage
+    const { data: signed, error } = await getCloudSupabase(context, "chat").storage
       .from("chat-attachments")
       .createSignedUrl(data.path, 3600);
     if (error) throw new Error(error.message);
@@ -330,7 +331,7 @@ export const createChatUploadUrl = createServerFn({ method: "POST" })
   )
   .handler(
     async ({ data, context }): Promise<{ path: string; token: string }> => {
-      const { data: membership, error: mErr } = await context.supabase
+      const { data: membership, error: mErr } = await getCloudSupabase(context, "chat")
         .from("direct_conversation_members")
         .select("id")
         .eq("conversation_id", data.conversation_id)
@@ -342,7 +343,7 @@ export const createChatUploadUrl = createServerFn({ method: "POST" })
       const safe = data.filename.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 120);
       const path = `${data.conversation_id}/${crypto.randomUUID()}-${safe}`;
 
-      const { data: signed, error } = await context.supabase.storage
+      const { data: signed, error } = await getCloudSupabase(context, "chat").storage
         .from("chat-attachments")
         .createSignedUploadUrl(path);
       if (error) throw new Error(error.message);

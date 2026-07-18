@@ -2,7 +2,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
-import { extractWorkspaceText } from "@/lib/workspace.extract.server";
+import { extractWorkspacimport { getCloudSupabase } from "@/lib/providers/not-available";
+eText } from "@/lib/workspace.extract.server";
 import {
   companyFromStoragePath,
   requireAnyPermission,
@@ -46,7 +47,7 @@ export const listWorkspaceSessions = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await ensureWorkspaceRole(context);
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "workspace")
       .from("workspace_sessions")
       .select("id, title, created_at, updated_at, user_id")
       .order("updated_at", { ascending: false })
@@ -68,7 +69,7 @@ export const createWorkspaceSession = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
     const companyId = await resolveCompanyForWrite(context, data.company_id);
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "workspace")
       .from("workspace_sessions")
       .insert({
         company_id: companyId,
@@ -86,29 +87,29 @@ export const getWorkspaceSession = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
-    const { data: session } = await context.supabase
+    const { data: session } = await getCloudSupabase(context, "workspace")
       .from("workspace_sessions")
       .select("*")
       .eq("id", data.id)
       .maybeSingle();
     if (!session) throw new Error("Session not found");
     const [{ data: files }, { data: msgs }, { data: arts }, { data: company }] = await Promise.all([
-      context.supabase
+      getCloudSupabase(context, "workspace")
         .from("workspace_files")
         .select("id, file_name, mime, size_bytes, status, expires_at, created_at")
         .eq("session_id", data.id)
         .order("created_at"),
-      context.supabase
+      getCloudSupabase(context, "workspace")
         .from("workspace_messages")
         .select("id, role, content, parts, attachments, created_at")
         .eq("session_id", data.id)
         .order("created_at"),
-      context.supabase
+      getCloudSupabase(context, "workspace")
         .from("workspace_artifacts")
         .select("id, kind, file_name, storage_path, expires_at, created_at")
         .eq("session_id", data.id)
         .order("created_at", { ascending: false }),
-      context.supabase
+      getCloudSupabase(context, "workspace")
         .from("companies")
         .select("workspace_retention")
         .eq("id", (session as any).company_id)
@@ -130,7 +131,7 @@ export const renameWorkspaceSession = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "workspace")
       .from("workspace_sessions")
       .update({ title: data.title })
       .eq("id", data.id);
@@ -144,11 +145,11 @@ export const deleteWorkspaceSession = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
     // Best-effort storage cleanup
-    const { data: files } = await context.supabase
+    const { data: files } = await getCloudSupabase(context, "workspace")
       .from("workspace_files")
       .select("storage_path")
       .eq("session_id", data.id);
-    const { data: arts } = await context.supabase
+    const { data: arts } = await getCloudSupabase(context, "workspace")
       .from("workspace_artifacts")
       .select("storage_path")
       .eq("session_id", data.id);
@@ -156,8 +157,8 @@ export const deleteWorkspaceSession = createServerFn({ method: "POST" })
       ...(files ?? []).map((f: any) => f.storage_path),
       ...(arts ?? []).map((a: any) => a.storage_path),
     ].filter(Boolean) as string[];
-    if (paths.length) await context.supabase.storage.from(BUCKET).remove(paths);
-    const { error } = await context.supabase.from("workspace_sessions").delete().eq("id", data.id);
+    if (paths.length) await getCloudSupabase(context, "workspace").storage.from(BUCKET).remove(paths);
+    const { error } = await getCloudSupabase(context, "workspace").from("workspace_sessions").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -182,11 +183,11 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
       context,
       companyFromStoragePath(data.storage_path),
     );
-    const retention = await companyRetention(context.supabase, companyId);
+    const retention = await companyRetention(getCloudSupabase(context, "workspace"), companyId);
     const expires = retentionToExpiry(retention);
 
     // Download from storage to extract text
-    const dl = await context.supabase.storage.from(BUCKET).download(data.storage_path);
+    const dl = await getCloudSupabase(context, "workspace").storage.from(BUCKET).download(data.storage_path);
     if (dl.error || !dl.data) throw new Error(dl.error?.message ?? "download failed");
     const buf = await dl.data.arrayBuffer();
     let extracted = "";
@@ -196,7 +197,7 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
       extracted = `[extraction failed: ${(e as Error).message}]`;
     }
 
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "workspace")
       .from("workspace_files")
       .insert({
         session_id: data.session_id,
@@ -214,7 +215,7 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    await context.supabase
+    await getCloudSupabase(context, "workspace")
       .from("workspace_sessions")
       .update({ updated_at: new Date().toISOString() })
       .eq("id", data.session_id);
@@ -227,15 +228,15 @@ export const deleteWorkspaceFile = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
-    const { data: row } = await context.supabase
+    const { data: row } = await getCloudSupabase(context, "workspace")
       .from("workspace_files")
       .select("storage_path")
       .eq("id", data.id)
       .maybeSingle();
     if ((row as any)?.storage_path) {
-      await context.supabase.storage.from(BUCKET).remove([(row as any).storage_path]);
+      await getCloudSupabase(context, "workspace").storage.from(BUCKET).remove([(row as any).storage_path]);
     }
-    const { error } = await context.supabase.from("workspace_files").delete().eq("id", data.id);
+    const { error } = await getCloudSupabase(context, "workspace").from("workspace_files").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -245,13 +246,13 @@ export const downloadArtifactUrl = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
-    const { data: art } = await context.supabase
+    const { data: art } = await getCloudSupabase(context, "workspace")
       .from("workspace_artifacts")
       .select("storage_path, file_name")
       .eq("id", data.id)
       .maybeSingle();
     if (!art) throw new Error("Artifact not found");
-    const { data: signed, error } = await context.supabase.storage
+    const { data: signed, error } = await getCloudSupabase(context, "workspace").storage
       .from(BUCKET)
       .createSignedUrl((art as any).storage_path, 60 * 10, { download: (art as any).file_name });
     if (error || !signed?.signedUrl) throw new Error(error?.message ?? "sign failed");
@@ -271,7 +272,7 @@ export const updateCompanyRetention = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["workspace.manage", "platform.manage"]);
     const companyId = await resolveCompanyForWrite(context, data.company_id);
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "workspace")
       .from("companies")
       .update({ workspace_retention: data.retention } as any)
       .eq("id", companyId);

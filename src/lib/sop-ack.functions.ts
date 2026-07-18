@@ -1,18 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export const acknowledgeSop = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ document_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: doc } = await context.supabase
+    const { data: doc } = await getCloudSupabase(context, "sop-ack")
       .from("knowledge_documents")
       .select("id, version, company_id, is_critical")
       .eq("id", data.document_id)
       .maybeSingle();
     if (!doc) throw new Error("Not found");
-    const { error } = await context.supabase.from("sop_acknowledgements").insert({
+    const { error } = await getCloudSupabase(context, "sop-ack").from("sop_acknowledgements").insert({
       company_id: doc.company_id,
       document_id: doc.id,
       document_version: (doc as { version: number }).version,
@@ -25,14 +26,14 @@ export const acknowledgeSop = createServerFn({ method: "POST" })
 export const listPendingCriticalSops = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data: docs } = await context.supabase
+    const { data: docs } = await getCloudSupabase(context, "sop-ack")
       .from("knowledge_documents")
       .select("id, title, doc_code, version, updated_at")
       .eq("is_critical", true)
       .eq("is_active", true);
     const ids = (docs ?? []).map((d) => d.id);
     if (!ids.length) return { pending: [] };
-    const { data: acks } = await context.supabase
+    const { data: acks } = await getCloudSupabase(context, "sop-ack")
       .from("sop_acknowledgements")
       .select("document_id, document_version")
       .eq("user_id", context.userId)

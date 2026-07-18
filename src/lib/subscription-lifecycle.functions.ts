@@ -2,14 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requirePlatformAdmin, getProfileCompany, getActorRoles } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 const STATUS = z.enum(["trial", "active", "grace_period", "suspended", "cancelled"]);
 const ActorKind = z.enum(["system", "platform_admin", "company_admin"]);
 
 async function requireCompanyOrPlatform(context: any, companyId: string) {
-  const actor = await getActorRoles(context.supabase, context.userId);
+  const actor = await getActorRoles(getCloudSupabase(context, "subscription-lifecycle"), context.userId);
   if (actor.isPlatformAdmin) return { isPlatformAdmin: true, companyId };
-  const own = await getProfileCompany(context.supabase, context.userId);
+  const own = await getProfileCompany(getCloudSupabase(context, "subscription-lifecycle"), context.userId);
   if (!own || own !== companyId) throw new Error("Forbidden");
   return { isPlatformAdmin: false, companyId };
 }
@@ -55,7 +56,7 @@ export const getSubscriptionState = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCompanyOrPlatform(context, data.company_id);
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "subscription-lifecycle")
       .rpc("get_subscription_state", { _company: data.company_id })
       .maybeSingle();
     if (error) throw new Error(error.message);

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 const CompanyInput = z.object({
   name: z.string().min(1),
@@ -159,7 +160,7 @@ export const listPlatformAdmins = createServerFn({ method: "POST" })
     // Data API reads use the user-scoped client (platform admin has RLS access).
     // supabaseAdmin is reserved for Auth Admin API calls only, since Lovable Cloud
     // service-role keys can be non-JWT and break PostgREST reads.
-    const { data: roleRows, error } = await context.supabase
+    const { data: roleRows, error } = await getCloudSupabase(context, "companies")
       .from("user_roles")
       .select("user_id, created_at")
       .eq("role", "platform_admin");
@@ -168,7 +169,7 @@ export const listPlatformAdmins = createServerFn({ method: "POST" })
     const ids = roleRows.map((r) => r.user_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: profiles }, usersResp] = await Promise.all([
-      context.supabase
+      getCloudSupabase(context, "companies")
         .from("profiles")
         .select("id, full_name, first_name, last_name")
         .in("id", ids),
@@ -209,7 +210,7 @@ export const promotePlatformAdmin = createServerFn({ method: "POST" })
       if (usersResp.users.length < 200) break;
     }
     if (!target) throw new Error("User not found. Ask them to sign up first.");
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "companies")
       .from("user_roles")
       .upsert(
         { user_id: target.id, role: "platform_admin", company_id: null },
@@ -225,12 +226,12 @@ export const demotePlatformAdmin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     if (data.user_id === context.userId) throw new Error("You cannot demote yourself");
-    const { count } = await context.supabase
+    const { count } = await getCloudSupabase(context, "companies")
       .from("user_roles")
       .select("user_id", { count: "exact", head: true })
       .eq("role", "platform_admin");
     if ((count ?? 0) <= 1) throw new Error("At least one Platform Super Admin must remain");
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "companies")
       .from("user_roles")
       .delete()
       .eq("user_id", data.user_id)

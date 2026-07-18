@@ -5,10 +5,11 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles } from "@/lib/authorization";
 import { SYSTEM_DOC_CATALOG, type SystemDocEntry } from "@/lib/system-docs/catalog";
 import { FEATURE_CATALOG } from "@/lib/feature-catalog";
-import { renderSystemDoc, hashBody, chunkBody } from "@/lib/system-docs/render";
+import { renderSystemDoc,import { getCloudSupabase } from "@/lib/providers/not-available";
+ hashBody, chunkBody } from "@/lib/system-docs/render";
 
 async function requirePlatformAdmin(context: { supabase: any; userId: string }) {
-  const a = await getActorRoles(context.supabase, context.userId);
+  const a = await getActorRoles(getCloudSupabase(context, "system-docs"), context.userId);
   if (!a.isPlatformAdmin) throw new Error("Forbidden: platform admin required");
   return a;
 }

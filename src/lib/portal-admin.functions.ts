@@ -1,5 +1,6 @@
 // Portal Admin server functions — news announcements + downloadable modules.
-// Only platform_owner / platform_admin may create/update/delete.
+// Only platform_owner / platform_admin may create/update/deletimport { getCloudSupabase } from "@/lib/providers/not-available";
+e.
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -53,8 +54,8 @@ export type PortalAnnouncement = {
 export const listAnnouncementsAdmin = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalAnnouncement[]> => {
-    await assertStaff(context.supabase as never, context.userId);
-    const { data, error } = await context.supabase
+    await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
+    const { data, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_announcements")
       .select("*")
       .order("pinned", { ascending: false })
@@ -66,7 +67,7 @@ export const listAnnouncementsAdmin = createServerFn({ method: "GET" })
 export const listAnnouncementsPublic = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalAnnouncement[]> => {
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_announcements")
       .select("*")
       .eq("status", "published")
@@ -82,7 +83,7 @@ export const getAnnouncement = createServerFn({ method: "POST" })
     z.object({ slug: z.string().optional(), id: z.string().uuid().optional() }).parse(d),
   )
   .handler(async ({ data, context }): Promise<PortalAnnouncement | null> => {
-    const q = context.supabase.from("portal_announcements").select("*");
+    const q = getCloudSupabase(context, "portal-admin").from("portal_announcements").select("*");
     const { data: row, error } = data.id
       ? await q.eq("id", data.id).maybeSingle()
       : await q.eq("slug", data.slug ?? "").maybeSingle();
@@ -105,7 +106,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => AnnouncementInput.parse(d))
   .handler(async ({ data, context }): Promise<PortalAnnouncement> => {
-    await assertStaff(context.supabase as never, context.userId);
+    await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
     const slug = data.slug && data.slug.length > 0 ? slugify(data.slug) : slugify(data.title);
     const published_at =
       data.status === "published" && !data.published_at
@@ -124,7 +125,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { data: row, error } = await context.supabase
+      const { data: row, error } = await getCloudSupabase(context, "portal-admin")
         .from("portal_announcements")
         .update(payload)
         .eq("id", data.id)
@@ -134,7 +135,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
       return row as PortalAnnouncement;
     }
 
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_announcements")
       .insert(payload)
       .select("*")
@@ -147,8 +148,8 @@ export const deleteAnnouncement = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertStaff(context.supabase as never, context.userId);
-    const { error } = await context.supabase
+    await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
+    const { error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_announcements")
       .delete()
       .eq("id", data.id);
@@ -177,8 +178,8 @@ export type PortalDownloadModule = {
 export const listDownloadModulesAdmin = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalDownloadModule[]> => {
-    await assertStaff(context.supabase as never, context.userId);
-    const { data, error } = await context.supabase
+    await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
+    const { data, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_download_modules")
       .select("*")
       .order("created_at", { ascending: false });
@@ -189,7 +190,7 @@ export const listDownloadModulesAdmin = createServerFn({ method: "GET" })
 export const listDownloadModulesPublic = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<PortalDownloadModule[]> => {
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_download_modules")
       .select("*")
       .eq("status", "published")
@@ -216,7 +217,7 @@ export const upsertDownloadModule = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => ModuleInput.parse(d))
   .handler(async ({ data, context }): Promise<PortalDownloadModule> => {
-    await assertStaff(context.supabase as never, context.userId);
+    await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
     const published_at =
       data.status === "published" ? new Date().toISOString() : null;
 
@@ -235,7 +236,7 @@ export const upsertDownloadModule = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { data: row, error } = await context.supabase
+      const { data: row, error } = await getCloudSupabase(context, "portal-admin")
         .from("portal_download_modules")
         .update(payload)
         .eq("id", data.id)
@@ -244,7 +245,7 @@ export const upsertDownloadModule = createServerFn({ method: "POST" })
       if (error) throw error;
       return row as PortalDownloadModule;
     }
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_download_modules")
       .insert(payload)
       .select("*")
@@ -257,8 +258,8 @@ export const deleteDownloadModule = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertStaff(context.supabase as never, context.userId);
-    const { error } = await context.supabase
+    await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
+    const { error } = await getCloudSupabase(context, "portal-admin")
       .from("portal_download_modules")
       .delete()
       .eq("id", data.id);
@@ -279,7 +280,7 @@ export const signPortalStoragePath = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: signed, error } = await context.supabase.storage
+    const { data: signed, error } = await getCloudSupabase(context, "portal-admin").storage
       .from(data.bucket)
       .createSignedUrl(data.path, data.expiresIn ?? 3600);
     if (error) throw error;

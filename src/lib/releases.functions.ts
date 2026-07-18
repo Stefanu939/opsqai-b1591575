@@ -2,12 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export const listReleases = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "releases")
       .from("license_releases")
       .select(
         "id, version, channel, docker_image, checksum, release_notes_url, min_supported, is_current, published_at, created_at",
@@ -108,7 +109,7 @@ export const listInstallations = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { data: installs, error } = await context.supabase
+    const { data: installs, error } = await getCloudSupabase(context, "releases")
       .from("license_installs")
       .select(
         "install_id, last_heartbeat_at, app_version, installer_version, user_count, ip_address, updated_at, created_at",
@@ -119,7 +120,7 @@ export const listInstallations = createServerFn({ method: "POST" })
     const rows = installs ?? [];
     const ids = rows.map((r) => r.install_id);
     const { data: licenses } = ids.length
-      ? await context.supabase
+      ? await getCloudSupabase(context, "releases")
           .from("licenses")
           .select("install_id, company_name, tier, seats, revoked, suspended, expires_at")
           .eq("kind", "install")

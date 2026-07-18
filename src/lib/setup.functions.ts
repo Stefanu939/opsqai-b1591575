@@ -6,7 +6,8 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireAuth } from "@/lib/providers/require-auth";
+import { requireAuth } from "@/lib/providers/requireimport { getCloudSupabase } from "@/lib/providers/not-available";
+-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 import { SETUP_STEPS, computeSetupComplete, type SetupStepId } from "@/lib/setup-steps";
@@ -18,7 +19,7 @@ export const getSetupState = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "setup")
       .from("platform_config")
       .select("install_id, installer_version, setup_progress, setup_completed_at, updated_at")
       .eq("id", true)
