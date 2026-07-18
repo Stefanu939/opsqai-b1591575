@@ -286,16 +286,21 @@ export const updateUser = createServerFn({ method: "POST" })
     }
     const targetCompany = target?.companyId;
 
-    const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
-    await profileRepo.updateByUserId(data.user_id, {
-      firstName: data.first_name ?? null,
-      lastName: data.last_name ?? null,
-      fullName,
-      position: data.position ?? null,
-      phone: data.phone ?? null,
-      departmentId: data.department_id ?? null,
-      ...(data.is_active !== undefined ? { isActive: data.is_active } : {}),
-    });
+    const patch: Parameters<typeof profileRepo.updateByUserId>[1] = {};
+    if (data.first_name !== undefined) patch.firstName = data.first_name;
+    if (data.last_name !== undefined) patch.lastName = data.last_name;
+    if (data.first_name !== undefined || data.last_name !== undefined) {
+      patch.fullName =
+        [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
+    }
+    if (data.position !== undefined) patch.position = data.position;
+    if (data.phone !== undefined) patch.phone = data.phone;
+    if (data.department_id !== undefined) patch.departmentId = data.department_id;
+    if (data.is_active !== undefined) patch.isActive = data.is_active;
+    if (Object.keys(patch).length > 0) {
+      await profileRepo.updateByUserId(data.user_id, patch);
+    }
+
 
     if (data.is_active !== undefined) {
       await authAdmin.setDisabled(data.user_id, !data.is_active);
