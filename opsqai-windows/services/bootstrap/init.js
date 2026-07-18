@@ -304,26 +304,44 @@ function psqlExec(sql) {
   const psql = programFiles("pgsql", "bin", "psql.exe");
   if (!fs.existsSync(psql)) return { status: -1 };
   const { host, port, user, db, pw } = pgArgs();
-  return spawnSync(psql, ["-v", "ON_ERROR_STOP=1", "-h", host, "-p", String(port), "-U", user, "-d", db, "-c", sql], {
-    env: { ...process.env, PGPASSWORD: pw || process.env.PGPASSWORD || "" },
-    encoding: "utf8",
-    windowsHide: true,
-  });
+  try {
+    // -w: never prompt for password (would block on a headless child).
+    // timeout: hard cap so a misconfigured pg_hba can never stall bootstrap.
+    return spawnSync(
+      psql,
+      ["-w", "-v", "ON_ERROR_STOP=1", "-h", host, "-p", String(port), "-U", user, "-d", db, "-c", sql],
+      {
+        env: { ...process.env, PGPASSWORD: pw || process.env.PGPASSWORD || "" },
+        encoding: "utf8",
+        windowsHide: true,
+        timeout: 10_000,
+        killSignal: "SIGKILL",
+      },
+    );
+  } catch (e) {
+    return { status: -1, error: e.message };
+  }
 }
 function writeInstallState(state, stage, lastError) {
-  // Best-effort: if the DB is unreachable (embedded not up yet) we silently
-  // skip. State is a debugging aid, not a correctness gate.
-  const detail = lastError
-    ? { ...lastError, log_path: LOG_PATH }
-    : { log_path: LOG_PATH };
-  const json = JSON.stringify(detail).replace(/'/g, "''");
-  const sql =
-    `INSERT INTO public.installation_state(singleton, state, stage, last_error, updated_at) ` +
-    `VALUES (TRUE, '${state}', ${stage ? `'${stage}'` : "NULL"}, '${json}'::jsonb, now()) ` +
-    `ON CONFLICT (singleton) DO UPDATE SET state = EXCLUDED.state, stage = EXCLUDED.stage, ` +
-    `last_error = EXCLUDED.last_error, updated_at = now()`;
-  psqlExec(sql);
+  // Best-effort: if the DB is unreachable (embedded not up yet, or app db
+  // does not exist before migrations) we silently skip. State is a
+  // debugging aid, not a correctness gate — NEVER let it stall bootstrap.
+  try {
+    const detail = lastError
+      ? { ...lastError, log_path: LOG_PATH }
+      : { log_path: LOG_PATH };
+    const json = JSON.stringify(detail).replace(/'/g, "''");
+    const sql =
+      `INSERT INTO public.installation_state(singleton, state, stage, last_error, updated_at) ` +
+      `VALUES (TRUE, '${state}', ${stage ? `'${stage}'` : "NULL"}, '${json}'::jsonb, now()) ` +
+      `ON CONFLICT (singleton) DO UPDATE SET state = EXCLUDED.state, stage = EXCLUDED.stage, ` +
+      `last_error = EXCLUDED.last_error, updated_at = now()`;
+    psqlExec(sql);
+  } catch (e) {
+    console.warn(`[bootstrap] writeInstallState skipped: ${e.message}`);
+  }
 }
+
 
 // ─── Reset embedded database (destructive, embedded only) ─────────────────
 function resetEmbeddedDatabase() {
@@ -430,13 +448,20 @@ function resetEmbeddedDatabase() {
     log(`postgres ready on 127.0.0.1:${port}${probe.available ? ` (${probe.out || "pg_isready ok"})` : " (pg_isready.exe missing; TCP-only)"}`);
   }
 
-  writeInstallState("bootstrapping", "migrate", null);
+  // NOTE: do NOT write installation_state here — on a fresh install the
+  // `opsqai` database and role do not exist until the migrator creates
+  // them. Emit a STAGE marker (wizard progress) and defer the DB write
+  // until after the migrator succeeds.
 
   // --- 2. Run app migrations ---
+  console.log("[bootstrap] locating migrate.mjs");
   const migrator = programFiles("app", "server", "migrate.mjs");
+  console.log("[bootstrap] migrator =", migrator);
+  console.log("[bootstrap] exists   =", fs.existsSync(migrator));
   if (fs.existsSync(migrator)) {
+    console.log("[bootstrap] before stage(running app migrations)");
     stage("running app migrations");
-    log("running app migrations");
+    console.log("[bootstrap] launching migrate.mjs");
     const child = spawnSync(programFiles("runtime", "node", "node.exe"), [migrator], {
       encoding: "utf8",
       env: {
@@ -446,7 +471,10 @@ function resetEmbeddedDatabase() {
         OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
       },
       windowsHide: true,
+      timeout: 300_000,
+      killSignal: "SIGKILL",
     });
+    console.log("[bootstrap] migrate.mjs exited status =", child.status);
     if (child.stdout) process.stdout.write(child.stdout);
     if (child.stderr) process.stderr.write(child.stderr);
     if (child.status !== 0) {
@@ -459,7 +487,13 @@ function resetEmbeddedDatabase() {
       }
       const errFields = fail
         ? { code: fail.code, file: fail.file, line: fail.line, sqlstate: fail.sqlstate, message: fail.message }
-        : { code: "OPSQAI-E1001", message: `migrator exited with code ${child.status}` };
+        : {
+            code: "OPSQAI-E1001",
+            message:
+              child.error && child.error.code === "ETIMEDOUT"
+                ? "migrator timed out after 300s"
+                : `migrator exited with code ${child.status}`,
+          };
       writeInstallState("failed", "migrate", errFields);
       // Re-emit at bootstrap level so wizard renders the failure card.
       console.log(
@@ -468,6 +502,7 @@ function resetEmbeddedDatabase() {
           line: errFields.line,
           sqlstate: errFields.sqlstate,
           message: errFields.message,
+
           log_path: LOG_PATH,
         }),
       );
