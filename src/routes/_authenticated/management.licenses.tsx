@@ -335,6 +335,16 @@ function LicensesPage() {
   );
 }
 
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+}
+
 function IssueLicenseDialog({
   onIssue,
   pending,
@@ -356,6 +366,29 @@ function IssueLicenseDialog({
   const [tier, setTier] = useState<"basic" | "standard" | "business" | "enterprise">("basic");
   const [seats, setSeats] = useState(50);
   const [expires, setExpires] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [installIdDirty, setInstallIdDirty] = useState(false);
+
+  const listCompaniesFn = useServerFn(listCompanies);
+  const { data: companies = [] } = useQuery({
+    queryKey: ["mc-companies-for-license"],
+    queryFn: () => listCompaniesFn({ data: {} } as never),
+    enabled: open,
+  });
+
+  const pickCompany = (c: {
+    id: string;
+    name: string;
+    max_users?: number | null;
+    install_id?: string | null;
+  }) => {
+    setCompany(c.name);
+    if (!installIdDirty) {
+      setInstallId((c.install_id && c.install_id.trim()) || slugify(c.name));
+    }
+    if (typeof c.max_users === "number" && c.max_users > 0) setSeats(c.max_users);
+    setPickerOpen(false);
+  };
 
   const submit = () => {
     if (!installId.trim() || !company.trim()) {
@@ -375,6 +408,7 @@ function IssueLicenseDialog({
     setCompany("");
     setEmail("");
     setExpires("");
+    setInstallIdDirty(false);
   };
 
   return (
@@ -391,20 +425,82 @@ function IssueLicenseDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div>
+            <Label>Company</Label>
+            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={pickerOpen}
+                  className="mt-1 w-full justify-between font-normal"
+                >
+                  <span className={cn(!company && "text-muted-foreground")}>
+                    {company || "Select existing company or type a new one…"}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput
+                    placeholder="Search companies…"
+                    value={company}
+                    onValueChange={(v) => {
+                      setCompany(v);
+                      if (!installIdDirty) setInstallId(slugify(v));
+                    }}
+                  />
+                  <CommandList>
+                    <CommandEmpty>
+                      No match. Press Enter to use "{company}" as a new company.
+                    </CommandEmpty>
+                    <CommandGroup heading="Existing companies">
+                      {companies.map((c) => (
+                        <CommandItem
+                          key={c.id}
+                          value={c.name}
+                          onSelect={() => pickCompany(c)}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              company === c.name ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{c.name}</span>
+                            {c.install_id ? (
+                              <span className="text-xs text-muted-foreground font-mono">
+                                {c.install_id}
+                              </span>
+                            ) : null}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Pick an existing company to auto-fill, or type a new name.
+            </p>
+          </div>
+          <div>
             <Label>Install ID</Label>
             <Input
               value={installId}
-              onChange={(e) => setInstallId(e.target.value.toLowerCase())}
+              onChange={(e) => {
+                setInstallId(e.target.value.toLowerCase());
+                setInstallIdDirty(true);
+              }}
               placeholder="acme-prod"
               className="mt-1 font-mono"
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Lowercase, digits, dashes. Must match the customer install.
             </p>
-          </div>
-          <div>
-            <Label>Company name</Label>
-            <Input value={company} onChange={(e) => setCompany(e.target.value)} className="mt-1" />
           </div>
           <div>
             <Label>Contact email</Label>
