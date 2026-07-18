@@ -625,3 +625,17 @@ body {
   background-size: 200% 100%;
   animation: mc-shimmer 2.4s ease-in-out infinite;
 }
+
+/* ── Reduced motion ────────────────────────────────────────────────
+   Respect the OS-level preference. Kill non-essential animation and
+   transitions so long-running screens stay comfortable. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
