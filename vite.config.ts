@@ -6,15 +6,16 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
-import { opsqaiSelfhostStubPlugin } from "./opsqai-windows/build/vite-selfhost-stub-plugin";
+import { opsqaiSelfhostAliases } from "./opsqai-windows/build/vite-selfhost-stub-plugin";
 
-const selfhostStub = opsqaiSelfhostStubPlugin();
+const selfhostAliases = opsqaiSelfhostAliases();
 
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
   vite: {
-    plugins: selfhostStub ? [mcpPlugin(), selfhostStub] : [mcpPlugin()],
+    plugins: [mcpPlugin()],
+    ...(selfhostAliases ? { resolve: { alias: selfhostAliases } } : {}),
   },
 });
