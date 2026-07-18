@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Circle, AlertTriangle, Rocket } from "lucide-react";
+import { CheckCircle2, Circle, AlertTriangle, ShieldCheck } from "lucide-react";
 import {
   getFirstRunGate,
   getFirstRunProgress,
