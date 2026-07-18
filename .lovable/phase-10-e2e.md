@@ -14,10 +14,13 @@ Executed on every PR that touches `src/lib/platform/**`,
 | --- | --- | --- |
 | Unit suite (platform + providers + services) | `bunx vitest run` | yes |
 | Bundle scanner self-test | `bunx vitest run opsqai-windows/build/__tests__/verify-bundle.test.ts` | yes |
+| Cloud stub runtime guardrails | `bunx vitest run src/lib/providers/__tests__/cloud-stub.test.ts src/lib/providers/__tests__/not-available.test.ts` | yes |
 | Cloud production build | `bun run build` | yes |
-| Self-Hosted production build | `bun run build:selfhosted` | yes |
-| Self-Hosted bundle scan | `bun run verify:selfhost-bundle` | yes |
+| Self-Hosted production build + scan | `bun run build:selfhosted:verify` | yes |
 | Self-Hosted migration lint | `rg -n 'auth\.uid\|auth\.users\|to authenticated\|to anon\|to service_role' migrations/selfhost` — must be empty | yes |
+
+Boundary rules and stub internals are documented in
+`.lovable/selfhost-bundle-hygiene.md`.
 
 The Windows installer build (`bun run build:installer`) re-runs the bundle
 scanner and refuses to package if it fails.
