@@ -122,10 +122,19 @@ function splitAndVerify(token: string, publicPem: string): unknown | null {
 /** Extract `key_id` from a token without verifying the signature. */
 export function peekTokenKeyId(token: string): string | null {
   const parts = token.split(".");
-  if (parts.length !== 4 || parts[0] !== "opsqai" || parts[1] !== "v1") return null;
   try {
-    const payload = JSON.parse(b64urlDecode(parts[2]).toString("utf-8")) as { key_id?: string };
-    return typeof payload.key_id === "string" ? payload.key_id : null;
+    // JWT: kid in header, fallback to payload.key_id.
+    if (parts.length === 3) {
+      const header = JSON.parse(b64urlDecode(parts[0]).toString("utf-8")) as { kid?: string };
+      if (typeof header.kid === "string" && header.kid) return header.kid;
+      const payload = JSON.parse(b64urlDecode(parts[1]).toString("utf-8")) as { key_id?: string };
+      return typeof payload.key_id === "string" ? payload.key_id : null;
+    }
+    if (parts.length === 4 && parts[0] === "opsqai" && parts[1] === "v1") {
+      const payload = JSON.parse(b64urlDecode(parts[2]).toString("utf-8")) as { key_id?: string };
+      return typeof payload.key_id === "string" ? payload.key_id : null;
+    }
+    return null;
   } catch {
     return null;
   }
