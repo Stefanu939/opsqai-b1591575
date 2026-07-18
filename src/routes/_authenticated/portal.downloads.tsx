@@ -38,11 +38,13 @@ function PortalDownloads() {
   async function downloadBundle(install_id: string) {
     try {
       const bundle = await download({ data: { install_id } });
-      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const jwt = (bundle as { jwt?: string }).jwt;
+      if (!jwt) throw new Error("Activation bundle JWT missing");
+      const blob = new Blob([jwt], { type: "application/jwt" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `opsqai-activation-${install_id}.json`;
+      a.download = `opsqai-activation-${install_id}.jwt`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Activation bundle downloaded");
