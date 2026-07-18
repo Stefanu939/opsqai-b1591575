@@ -32,6 +32,7 @@ import { createPgFeedbackRepository } from "./pg-feedback-repository.server";
 import { createPgKnowledgeGapRepository } from "./pg-knowledge-gap-repository.server";
 import { createPgIntegrationRepository } from "./pg-integration-repository.server";
 import { createPgFaqRepository } from "./pg-faq-repository.server";
+import { createPgKnowledgeRepository } from "./pg-knowledge-repository.server";
 import {
   registerAdminCompanyRepositoryFactory,
   registerAdminDepartmentRepositoryFactory,
@@ -43,6 +44,7 @@ import {
   registerFeedbackRepositoryFactory,
   registerIntegrationRepositoryFactory,
   registerFaqRepositoryFactory,
+  registerKnowledgeRepositoryFactory,
   registerKnowledgeGapRepositoryFactory,
   registerMessageRepositoryFactory,
   registerProfileRepositoryFactory,
@@ -272,12 +274,14 @@ export async function bootstrapSelfHosted(): Promise<void> {
   const gapRepo = createPgKnowledgeGapRepository({ pool });
   const integrationRepo = createPgIntegrationRepository({ pool });
   const faqRepo = createPgFaqRepository({ pool });
+  const knowledgeRepo = createPgKnowledgeRepository({ pool });
   registerThreadRepositoryFactory(() => threadRepo);
   registerMessageRepositoryFactory(() => messageRepo);
   registerFeedbackRepositoryFactory(() => feedbackRepo);
   registerKnowledgeGapRepositoryFactory(() => gapRepo);
   registerIntegrationRepositoryFactory(() => integrationRepo);
   registerFaqRepositoryFactory(() => faqRepo);
+  registerKnowledgeRepositoryFactory(() => knowledgeRepo);
 }
 
 
