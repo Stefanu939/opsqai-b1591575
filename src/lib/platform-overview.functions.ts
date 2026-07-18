@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export interface OverviewStats {
   kpis: {

@@ -7,6 +7,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey } from "@/lib/license-modules";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 const InstallIdSchema = z
   .string()
