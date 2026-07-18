@@ -157,7 +157,7 @@ const WIZARD_SHELL_HTML = String.raw`
         <li data-check="cpu"><i></i><b>CPU architecture</b><em></em></li>
         <li data-check="ram"><i></i><b>Memory (min 8 GB)</b><em></em></li>
         <li data-check="disk"><i></i><b>Disk space (min 20 GB free)</b><em></em></li>
-        <li data-check="dotnet"><i></i><b>.NET 8 runtime</b><em></em></li>
+        
         <li data-check="postgres"><i></i><b>PostgreSQL 16 available</b><em></em></li>
         <li data-check="ports"><i></i><b>Ports 443, 5432, 55432 free</b><em></em></li>
         <li data-check="admin"><i></i><b>Administrator privileges</b><em></em></li>
@@ -434,7 +434,7 @@ const CHECK_ORDER = [
   ["cpu", "CPU architecture"],
   ["ram", "Memory (min 8 GB)"],
   ["disk", "Disk space (min 20 GB free)"],
-  ["dotnet", ".NET 8 runtime"],
+  
   ["postgres", "PostgreSQL 16 available"],
   ["ports", "Ports 443, 5432, 55432 free"],
   ["admin", "Administrator privileges"],

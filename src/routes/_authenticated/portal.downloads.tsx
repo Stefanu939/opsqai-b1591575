@@ -54,11 +54,13 @@ function PortalDownloads() {
   async function downloadModuleLic(install_id: string, module_key: string) {
     try {
       const bundle = await downloadModule({ data: { install_id, module_key } });
-      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const token = bundle?.module_tokens?.[0]?.signed_token;
+      if (!token) throw new Error("License token missing from bundle");
+      const blob = new Blob([token], { type: "application/jwt" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `opsqai-module-${module_key}-${install_id}.json`;
+      a.download = `opsqai-module-${module_key}-${install_id}.jwt`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success(`License for "${module_key}" downloaded`);

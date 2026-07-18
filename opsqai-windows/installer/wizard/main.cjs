@@ -230,14 +230,9 @@ function checkAdmin() {
   const r = spawnSync("net", ["session"], { windowsHide: true, stdio: "ignore" });
   return r.status === 0;
 }
-function checkDotnet() {
-  const r = spawnSync("dotnet", ["--list-runtimes"], { windowsHide: true, encoding: "utf8" });
-  if (r.status !== 0 || !r.stdout) return { ok: false, detail: "dotnet CLI not found" };
-  const lines = r.stdout.split(/\r?\n/).filter((l) => /Microsoft\.NETCore\.App 8\./.test(l));
-  return lines.length
-    ? { ok: true, detail: lines[0].trim() }
-    : { ok: false, detail: ".NET 8 runtime not installed" };
-}
+// .NET is intentionally not a prerequisite. OPSQAI services run on the
+// bundled Node.js runtime and are wrapped by WinSW (self-contained Go).
+// No probe needed.
 function checkDiskFreeGb() {
   try {
     // fs.statfsSync is available on Node ≥ 18.15.
@@ -290,7 +285,7 @@ ipcMain.handle("wizard:runSystemChecks", async () => {
     detail: freeGb < 0 ? "Unable to determine" : `${freeGb} GB free`,
   };
 
-  results.dotnet = checkDotnet();
+  // No .NET check — OPSQAI does not use .NET at runtime.
 
   const bundledPg = path.join(installRoot, "payload", "pgsql", "bin", "postgres.exe");
   const stagedPg = path.join(installRoot, "pgsql", "bin", "postgres.exe");
