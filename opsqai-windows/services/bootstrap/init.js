@@ -23,7 +23,7 @@ const https = require("https");
 const crypto = require("crypto");
 const { execFileSync, spawnSync } = require("child_process");
 const { programData, programFiles, saveConfig } = require("../common/config");
-const { formatFail, parseFail } = require("./errors.js");
+const { formatFail, parseFail } = require("./errors.cjs");
 
 function arg(name, dflt) {
   const i = process.argv.indexOf(`--${name}`);
