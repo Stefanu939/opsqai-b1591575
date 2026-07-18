@@ -434,7 +434,7 @@ const CHECK_ORDER = [
   ["cpu", "CPU architecture"],
   ["ram", "Memory (min 8 GB)"],
   ["disk", "Disk space (min 20 GB free)"],
-  ["dotnet", ".NET 8 runtime"],
+  
   ["postgres", "PostgreSQL 16 available"],
   ["ports", "Ports 443, 5432, 55432 free"],
   ["admin", "Administrator privileges"],
