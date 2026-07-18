@@ -38,8 +38,13 @@ import {
   registerAuthAdminProvider,
   registerCompanyRepositoryFactory,
   registerDepartmentRepositoryFactory,
+  registerFeedbackRepositoryFactory,
+  registerIntegrationRepositoryFactory,
+  registerKnowledgeGapRepositoryFactory,
+  registerMessageRepositoryFactory,
   registerProfileRepositoryFactory,
   registerRoleRepositoryFactory,
+  registerThreadRepositoryFactory,
 } from "@/lib/providers/registry";
 
 import { createSupabaseAuthProvider } from "./supabase-auth.server";
@@ -49,6 +54,11 @@ import { createSupabaseProfileRepository } from "./supabase-profile-repository.s
 import { createSupabaseRoleRepository } from "./supabase-role-repository.server";
 import { createSupabaseCompanyRepository } from "./supabase-company-repository.server";
 import { createSupabaseDepartmentRepository } from "./supabase-department-repository.server";
+import { createSupabaseThreadRepository } from "./supabase-thread-repository.server";
+import { createSupabaseMessageRepository } from "./supabase-message-repository.server";
+import { createSupabaseFeedbackRepository } from "./supabase-feedback-repository.server";
+import { createSupabaseKnowledgeGapRepository } from "./supabase-knowledge-gap-repository.server";
+import { createSupabaseIntegrationRepository } from "./supabase-integration-repository.server";
 
 
 class CloudUserRepository implements IUserRepository {
