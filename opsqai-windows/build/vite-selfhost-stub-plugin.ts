@@ -23,7 +23,8 @@ import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
-const STUB = resolve(here, "src/lib/providers/stubs/cloud-stub.ts");
+const repoRoot = resolve(here, "..", "..");
+const STUB = resolve(repoRoot, "src/lib/providers/stubs/cloud-stub.ts");
 
 const ALLOW = new Set<string>([
   "@/integrations/supabase/types",
