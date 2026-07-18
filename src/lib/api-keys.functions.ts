@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { createHash, randomBytes } from "crypto";
@@ -30,8 +31,8 @@ function hashKey(raw: string): string {
 export const listApiKeys = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const companyId = await resolveCompanyId(context.supabase, context.userId);
-    const { data, error } = await context.supabase
+    const companyId = await resolveCompanyId(getCloudSupabase(context, "api-keys"), context.userId);
+    const { data, error } = await getCloudSupabase(context, "api-keys")
       .from("api_keys")
       .select("id, name, key_prefix, scopes, created_at, last_used_at, revoked_at")
       .eq("company_id", companyId)
@@ -49,12 +50,12 @@ export const createApiKey = createServerFn({ method: "POST" })
     return { name };
   })
   .handler(async ({ data, context }) => {
-    const companyId = await resolveCompanyId(context.supabase, context.userId);
+    const companyId = await resolveCompanyId(getCloudSupabase(context, "api-keys"), context.userId);
     const raw = "opsq_live_" + randomBytes(24).toString("base64url");
     const prefix = raw.slice(0, 12);
     const hash = hashKey(raw);
 
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "api-keys")
       .from("api_keys")
       .insert({
         company_id: companyId,
@@ -78,7 +79,7 @@ export const revokeApiKey = createServerFn({ method: "POST" })
     return { id: input.id };
   })
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "api-keys")
       .from("api_keys")
       .update({ revoked_at: new Date().toISOString() })
       .eq("id", data.id)

@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Server functions backing the Setup Wizard (Phase 5).
 //
 // All functions are platform-admin gated. The wizard NEVER stores secrets —
@@ -18,7 +19,7 @@ export const getSetupState = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "setup")
       .from("platform_config")
       .select("install_id, installer_version, setup_progress, setup_completed_at, updated_at")
       .eq("id", true)

@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -146,7 +147,7 @@ export const setCriticalFlag = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "sop-versions")
       .from("knowledge_documents")
       .update({ is_critical: data.is_critical } as never)
       .eq("id", data.id);

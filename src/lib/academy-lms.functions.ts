@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Academy LMS — new enterprise-grade server functions
@@ -17,7 +18,7 @@ import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 const ACADEMY_MODULE = "academy" as const;
 
 async function enforceAcademy(context: { supabase: any; userId: string }, hint?: string | null) {
-  const companyId = hint ?? (await getProfileCompany(context.supabase, context.userId));
+  const companyId = hint ?? (await getProfileCompany(getCloudSupabase(context, "academy-lms"), context.userId));
   if (!companyId) {
     await assertModuleForCompany("00000000-0000-0000-0000-000000000000", ACADEMY_MODULE);
     return null;
@@ -67,7 +68,7 @@ export const listMyTraining = createServerFn({ method: "POST" })
       if (e instanceof Response) return [];
       throw e;
     }
-    const supabase = context.supabase as any;
+    const supabase = getCloudSupabase(context, "academy-lms") as any;
 
     const { data: enrollments, error } = await supabase
       .from("academy_enrollments")
@@ -200,7 +201,7 @@ export const getMyTrainingSummary = createServerFn({ method: "POST" })
       if (e instanceof Response) return emptySummary;
       throw e;
     }
-    const supabase = context.supabase as any;
+    const supabase = getCloudSupabase(context, "academy-lms") as any;
 
     const [enrollmentsRes, certsRes, quizzesRes] = await Promise.all([
       supabase
@@ -288,7 +289,7 @@ export const saveLessonNotes = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
-    const supabase = context.supabase as any;
+    const supabase = getCloudSupabase(context, "academy-lms") as any;
     // Verify ownership via enrollment
     const { data: enroll } = await supabase
       .from("academy_enrollments")
@@ -337,7 +338,7 @@ export const assignTraining = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.assign");
-    const supabase = context.supabase as any;
+    const supabase = getCloudSupabase(context, "academy-lms") as any;
     const companyId = data.company_id ?? (await resolveCompanyForWrite(context, null));
 
     // Resolve targets → distinct user_ids via helper
@@ -437,7 +438,7 @@ export const listCourseAnalytics = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.manage");
-    const supabase = context.supabase as any;
+    const supabase = getCloudSupabase(context, "academy-lms") as any;
     const companyId = data.company_id ?? (await resolveCompanyForWrite(context, null));
 
     const { data: paths, error } = await supabase
@@ -515,7 +516,7 @@ export const listCourseCohort = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.manage");
-    const supabase = context.supabase as any;
+    const supabase = getCloudSupabase(context, "academy-lms") as any;
 
     const { data: enrolls, error } = await supabase
       .from("academy_enrollments")
@@ -602,7 +603,7 @@ export const listAssignTargets = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await enforceAcademy(context, null);
     await requirePermission(context, "academy.assign");
-    const supabase = context.supabase as any;
+    const supabase = getCloudSupabase(context, "academy-lms") as any;
     const companyId = await resolveCompanyForWrite(context, null);
 
     const [usersRes, deptsRes, pathsRes, rolesRes] = await Promise.all([

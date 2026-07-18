@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -5,14 +6,14 @@ import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/autho
 
 async function resolveCompany(context: { supabase: any; userId: string }, hint?: string | null) {
   await requirePermission(context, "dashboard.view");
-  const actor = await getActorRoles(context.supabase, context.userId);
+  const actor = await getActorRoles(getCloudSupabase(context, "dashboard"), context.userId);
   const isPlatform = actor.isPlatformAdmin;
   let companyId = hint ?? null;
   if (!companyId || !isPlatform) {
-    companyId = (await getProfileCompany(context.supabase, context.userId)) ?? companyId;
+    companyId = (await getProfileCompany(getCloudSupabase(context, "dashboard"), context.userId)) ?? companyId;
   }
   if (!companyId && isPlatform) {
-    const { data: firstCompany } = await context.supabase
+    const { data: firstCompany } = await getCloudSupabase(context, "dashboard")
       .from("companies")
       .select("id")
       .eq("active", true)
@@ -33,12 +34,12 @@ export const getDashboardOverview = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data?.companyId ?? null);
     const [kpis, health, status, top, critical, lastAudit] = await Promise.all([
-      context.supabase.rpc("dashboard_kpis", { p_company: companyId }),
-      context.supabase.rpc("dashboard_health", { p_company: companyId }),
-      context.supabase.rpc("dashboard_knowledge_status", { p_company: companyId }),
-      context.supabase.rpc("dashboard_top_sops", { p_company: companyId, p_limit: 5 }),
-      context.supabase.rpc("dashboard_critical_sops", { p_company: companyId }),
-      context.supabase.rpc("dashboard_last_ai_audit", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_kpis", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_health", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_knowledge_status", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 5 }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_critical_sops", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_last_ai_audit", { p_company: companyId }),
     ]);
     return {
       kpis: kpis.data ?? {},
@@ -61,7 +62,7 @@ export const getDashboardActivity = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ActivityArg.parse(d))
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data.companyId ?? null);
-    const { data: rows, error } = await context.supabase.rpc("dashboard_activity", {
+    const { data: rows, error } = await getCloudSupabase(context, "dashboard").rpc("dashboard_activity", {
       p_company: companyId,
       p_from: data.from,
       p_to: data.to,
@@ -81,10 +82,10 @@ export const getExecutiveInsights = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data?.companyId ?? null);
     const [{ data: kpis }, { data: health }, { data: top }, { data: status }] = await Promise.all([
-      context.supabase.rpc("dashboard_kpis", { p_company: companyId }),
-      context.supabase.rpc("dashboard_health", { p_company: companyId }),
-      context.supabase.rpc("dashboard_top_sops", { p_company: companyId, p_limit: 3 }),
-      context.supabase.rpc("dashboard_knowledge_status", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_kpis", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_health", { p_company: companyId }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 3 }),
+      getCloudSupabase(context, "dashboard").rpc("dashboard_knowledge_status", { p_company: companyId }),
     ]);
 
     const apiKey = process.env.LOVABLE_API_KEY;
@@ -131,7 +132,7 @@ export const saveDashboardLayout = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => SaveLayoutArg.parse(d))
   .handler(async ({ data, context }) => {
-    await context.supabase
+    await getCloudSupabase(context, "dashboard")
       .from("profiles")
       .update({ dashboard_layout: data.layout })
       .eq("id", context.userId);
@@ -141,7 +142,7 @@ export const saveDashboardLayout = createServerFn({ method: "POST" })
 export const getDashboardLayout = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase
+    const { data } = await getCloudSupabase(context, "dashboard")
       .from("profiles")
       .select("dashboard_layout")
       .eq("id", context.userId)
@@ -158,7 +159,7 @@ export const globalSearch = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => SearchArg.parse(d))
   .handler(async ({ data, context }) => {
     const { companyId } = await resolveCompany(context, data.companyId ?? null);
-    const { data: rows, error } = await context.supabase.rpc("search_everywhere", {
+    const { data: rows, error } = await getCloudSupabase(context, "dashboard").rpc("search_everywhere", {
       p_company: companyId,
       p_q: data.q,
       p_limit: 8,

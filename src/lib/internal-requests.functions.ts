@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -44,7 +45,7 @@ export const listInternalRequests = createServerFn({ method: "POST" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    let q = context.supabase
+    let q = getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .select("*")
       .order("created_at", { ascending: false })
@@ -63,7 +64,7 @@ export const listInternalRequests = createServerFn({ method: "POST" })
     );
     let profMap = new Map<string, { name: string | null; email?: string }>();
     if (userIds.length) {
-      const { data: profs } = await context.supabase
+      const { data: profs } = await getCloudSupabase(context, "internal-requests")
         .from("profiles")
         .select("id, full_name, first_name, last_name")
         .in("id", userIds);
@@ -77,7 +78,7 @@ export const listInternalRequests = createServerFn({ method: "POST" })
       new Set((rows ?? []).map((r: any) => r.department_id).filter(Boolean) as string[]),
     );
     if (deptIds.length) {
-      const { data: depts } = await context.supabase
+      const { data: depts } = await getCloudSupabase(context, "internal-requests")
         .from("departments")
         .select("id, name")
         .in("id", deptIds);
@@ -104,13 +105,13 @@ export const createInternalRequest = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: profile } = await context.supabase
+    const { data: profile } = await getCloudSupabase(context, "internal-requests")
       .from("profiles")
       .select("company_id, department_id")
       .eq("id", context.userId)
       .maybeSingle();
     if (!profile?.company_id) throw new Error("No company assigned");
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .insert({
         company_id: profile.company_id,
@@ -172,10 +173,10 @@ export const updateInternalRequest = createServerFn({ method: "POST" })
     // SECURITY: only staff (admin/manager/team_leader/platform_admin) may
     // answer a request or mark it as "answered"/"in_review". Regular
     // employees can only close their own request.
-    const staff = await isStaff(context.supabase, context.userId);
+    const staff = await isStaff(getCloudSupabase(context, "internal-requests"), context.userId);
 
     // Fetch the row so we can verify ownership and enforce role-scoped writes.
-    const { data: existing, error: fetchErr } = await context.supabase
+    const { data: existing, error: fetchErr } = await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .select("user_id, status")
       .eq("id", data.id)
@@ -222,7 +223,7 @@ export const updateInternalRequest = createServerFn({ method: "POST" })
 
     if (Object.keys(patch).length === 0) return { ok: true };
 
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .update(patch)
       .eq("id", data.id);
@@ -246,13 +247,13 @@ export const promoteRequestToFaq = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["faq.create", "faq.edit", "knowledge.manage"]);
-    const { data: req } = await context.supabase
+    const { data: req } = await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .select("company_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!req) throw new Error("Request not found");
-    const { data: faq, error: faqErr } = await context.supabase
+    const { data: faq, error: faqErr } = await getCloudSupabase(context, "internal-requests")
       .from("faqs")
       .insert({
         company_id: req.company_id,
@@ -265,7 +266,7 @@ export const promoteRequestToFaq = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (faqErr) throw new Error(faqErr.message);
-    await context.supabase
+    await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .update({
         status: "answered",
@@ -293,7 +294,7 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.create", "sop.publish"]);
-    const { data: req } = await context.supabase
+    const { data: req } = await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .select("company_id")
       .eq("id", data.id)
@@ -303,7 +304,7 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
     const headerLine = `[Owner: ${data.source_owner}]`;
     const fullText = `${headerLine}\n\n${data.content}`;
 
-    const { data: doc, error: docErr } = await context.supabase
+    const { data: doc, error: docErr } = await getCloudSupabase(context, "internal-requests")
       .from("knowledge_documents")
       .insert({
         company_id: req.company_id,
@@ -332,8 +333,8 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
           content,
           embedding: `[${vectors[i].join(",")}]` as unknown as never,
         }));
-        await context.supabase.from("document_chunks").insert(rows);
-        await context.supabase
+        await getCloudSupabase(context, "internal-requests").from("document_chunks").insert(rows);
+        await getCloudSupabase(context, "internal-requests")
           .from("knowledge_documents")
           .update({ chunk_count: chunks.length })
           .eq("id", doc.id);
@@ -342,7 +343,7 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
       console.error("KB index failed", e);
     }
 
-    await context.supabase
+    await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .update({
         status: "answered",
@@ -357,9 +358,9 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
 export const countOpenRequests = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const staff = await isStaff(context.supabase, context.userId);
+    const staff = await isStaff(getCloudSupabase(context, "internal-requests"), context.userId);
     if (!staff.isStaff) return { count: 0 };
-    const { count } = await context.supabase
+    const { count } = await getCloudSupabase(context, "internal-requests")
       .from("internal_requests")
       .select("id", { count: "exact", head: true })
       .eq("status", "open");

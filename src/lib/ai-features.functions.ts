@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -11,9 +12,9 @@ async function ensurePerm(context: any, perm: string) {
 }
 
 async function resolveCompany(context: any, explicitCompanyId?: string | null) {
-  const actor = await getActorRoles(context.supabase, context.userId);
+  const actor = await getActorRoles(getCloudSupabase(context, "ai-features"), context.userId);
   if (actor.isPlatformAdmin && explicitCompanyId) return explicitCompanyId;
-  const companyId = await getProfileCompany(context.supabase, context.userId);
+  const companyId = await getProfileCompany(getCloudSupabase(context, "ai-features"), context.userId);
   if (!companyId) throw new Error("No company selected");
   return companyId;
 }
@@ -163,7 +164,7 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
     }
 
     try {
-      await context.supabase.from("notifications").insert({
+      await getCloudSupabase(context, "ai-features").from("notifications").insert({
         company_id: companyId,
         user_id: context.userId,
         kind: "ai_sop_generated",
@@ -449,11 +450,11 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
     await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
 
     const [kpi, health, status, top, critical] = await Promise.all([
-      context.supabase.rpc("dashboard_kpis", { p_company: companyId }),
-      context.supabase.rpc("dashboard_health", { p_company: companyId }),
-      context.supabase.rpc("dashboard_knowledge_status", { p_company: companyId }),
-      context.supabase.rpc("dashboard_top_sops", { p_company: companyId, p_limit: 10 }),
-      context.supabase.rpc("dashboard_critical_sops", { p_company: companyId }),
+      getCloudSupabase(context, "ai-features").rpc("dashboard_kpis", { p_company: companyId }),
+      getCloudSupabase(context, "ai-features").rpc("dashboard_health", { p_company: companyId }),
+      getCloudSupabase(context, "ai-features").rpc("dashboard_knowledge_status", { p_company: companyId }),
+      getCloudSupabase(context, "ai-features").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 10 }),
+      getCloudSupabase(context, "ai-features").rpc("dashboard_critical_sops", { p_company: companyId }),
     ]);
 
     const heuristic = buildHeuristicReport({
@@ -544,7 +545,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
         (Array.isArray(rpt.critical) ? rpt.critical.length : heuristic.criticalCount),
     );
 
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "ai-features")
       .from("ai_audits")
       .insert({
         company_id: companyId,
@@ -563,7 +564,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
     if (error) throw new Error(error.message);
 
     try {
-      await context.supabase.from("notifications").insert({
+      await getCloudSupabase(context, "ai-features").from("notifications").insert({
         company_id: companyId,
         user_id: context.userId,
         kind: "workspace_audit_ready",
@@ -585,8 +586,8 @@ export const listAiAudits = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const companyId = await resolveCompany(context, data.company_id);
     await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
-    const actor = await getActorRoles(context.supabase, context.userId);
-    let query = context.supabase
+    const actor = await getActorRoles(getCloudSupabase(context, "ai-features"), context.userId);
+    let query = getCloudSupabase(context, "ai-features")
       .from("ai_audits")
       .select("id, score, maturity, passed, warnings, critical, summary, created_at")
       .order("created_at", { ascending: false })

@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -6,7 +7,7 @@ import { requireAnyPermission } from "@/lib/authorization";
 export const listKnowledgeGaps = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "knowledge-gaps")
       .from("knowledge_gaps")
       .select(
         "id, question_sample, question_normalized, occurrences, first_seen, last_seen, status, assignee_id, resolution, resolved_document_id, resolved_faq_id, department_id, created_by, confidence, source_thread_id, source_message_id, resolution_date, updated_at",
@@ -36,19 +37,19 @@ export const listKnowledgeGaps = createServerFn({ method: "GET" })
 
     const [deptsRes, usersRes, docsRes, faqsRes] = await Promise.all([
       deptIds.length
-        ? context.supabase.from("departments").select("id, name").in("id", deptIds)
+        ? getCloudSupabase(context, "knowledge-gaps").from("departments").select("id, name").in("id", deptIds)
         : Promise.resolve({ data: [] as { id: string; name: string }[] }),
       userIds.length
-        ? context.supabase.from("profiles").select("id, full_name").in("id", userIds)
+        ? getCloudSupabase(context, "knowledge-gaps").from("profiles").select("id, full_name").in("id", userIds)
         : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
       docIds.length
-        ? context.supabase
+        ? getCloudSupabase(context, "knowledge-gaps")
             .from("knowledge_documents")
             .select("id, title, doc_code")
             .in("id", docIds)
         : Promise.resolve({ data: [] as { id: string; title: string; doc_code: string | null }[] }),
       faqIds.length
-        ? context.supabase.from("faqs").select("id, question_en").in("id", faqIds)
+        ? getCloudSupabase(context, "knowledge-gaps").from("faqs").select("id, question_en").in("id", faqIds)
         : Promise.resolve({ data: [] as { id: string; question_en: string | null }[] }),
     ]);
     const deptMap = new Map((deptsRes.data ?? []).map((d) => [d.id, d.name]));
@@ -90,7 +91,7 @@ export const updateKnowledgeGap = createServerFn({ method: "POST" })
     if (patch.status === "resolved" && !("resolution_date" in update)) {
       update.resolution_date = new Date().toISOString();
     }
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "knowledge-gaps")
       .from("knowledge_gaps")
       .update(update as never)
       .eq("id", id);
@@ -103,7 +104,7 @@ export const deleteKnowledgeGap = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "analytics.view"]);
-    const { error } = await context.supabase.from("knowledge_gaps").delete().eq("id", data.id);
+    const { error } = await getCloudSupabase(context, "knowledge-gaps").from("knowledge_gaps").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -111,7 +112,7 @@ export const deleteKnowledgeGap = createServerFn({ method: "POST" })
 export const getKnowledgeGapStats = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data: gaps } = await context.supabase
+    const { data: gaps } = await getCloudSupabase(context, "knowledge-gaps")
       .from("knowledge_gaps")
       .select(
         "id, status, occurrences, question_sample, department_id, confidence, resolution_date, first_seen, created_at, updated_at",
@@ -143,7 +144,7 @@ export const getKnowledgeGapStats = createServerFn({ method: "GET" })
     );
     const deptNames = new Map<string, string>();
     if (deptIds.length) {
-      const { data: depts } = await context.supabase
+      const { data: depts } = await getCloudSupabase(context, "knowledge-gaps")
         .from("departments")
         .select("id, name")
         .in("id", deptIds);

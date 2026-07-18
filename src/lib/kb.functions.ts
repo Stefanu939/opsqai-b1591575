@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -28,7 +29,7 @@ export const processDocument = createServerFn({ method: "POST" })
     const companyId = await resolveCompanyForWrite(context, companyFromStoragePath(data.file_path));
 
     // Insert document in 'processing' state
-    const { data: doc, error: insErr } = await context.supabase
+    const { data: doc, error: insErr } = await getCloudSupabase(context, "knowledge-base")
       .from("knowledge_documents")
       .insert({
         title: data.title,
@@ -188,15 +189,15 @@ export const deleteKnowledgeDocument = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.delete"]);
-    const { data: doc } = await context.supabase
+    const { data: doc } = await getCloudSupabase(context, "knowledge-base")
       .from("knowledge_documents")
       .select("file_path")
       .eq("id", data.id)
       .maybeSingle();
     if (doc?.file_path) {
-      await context.supabase.storage.from("knowledge-docs").remove([doc.file_path]);
+      await getCloudSupabase(context, "knowledge-base").storage.from("knowledge-docs").remove([doc.file_path]);
     }
-    const { error } = await context.supabase.from("knowledge_documents").delete().eq("id", data.id);
+    const { error } = await getCloudSupabase(context, "knowledge-base").from("knowledge_documents").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

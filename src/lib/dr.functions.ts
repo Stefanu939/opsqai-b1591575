@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Phase 5.5 — Disaster Recovery server functions.
 //
 // Split across two roles:
@@ -22,7 +23,7 @@ export const getRecoveryState = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "dr")
       .from("platform_config")
       .select(
         "install_id, break_glass_hash, break_glass_created_at, break_glass_used_at, recovery_mode, recovery_mode_since, recovery_mode_reason",
@@ -167,7 +168,7 @@ export const listBootstrapTokens = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ListBootstrapInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { data: rows, error } = await context.supabase
+    const { data: rows, error } = await getCloudSupabase(context, "dr")
       .from("dr_bootstrap_tokens")
       .select("id, install_id, key_id, nonce, issued_at, expires_at, redeemed_at, reason")
       .eq("install_id", data.install_id)

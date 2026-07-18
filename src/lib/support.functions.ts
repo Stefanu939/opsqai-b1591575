@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /**
  * Enterprise Support Center server functions.
  * Customer side: workspace_owner / admin / manager open + reply to conversations
@@ -37,7 +38,7 @@ export const listSupportConversations = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, data.scope === "platform" ? "support.manage" : "support.use");
-    let q = context.supabase
+    let q = getCloudSupabase(context, "support")
       .from("support_conversations")
       .select(
         "id, company_id, subject, status, priority, assigned_to, last_message_at, unread_for_customer, unread_for_platform, opened_by, created_at, companies(name)",
@@ -60,14 +61,14 @@ export const getSupportConversation = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePermission(context, "support.use");
     const [conv, msgs] = await Promise.all([
-      context.supabase
+      getCloudSupabase(context, "support")
         .from("support_conversations")
         .select(
           "id, company_id, subject, status, priority, assigned_to, opened_by, last_message_at, unread_for_customer, unread_for_platform, context, created_at, companies(name)",
         )
         .eq("id", data.id)
         .maybeSingle(),
-      context.supabase
+      getCloudSupabase(context, "support")
         .from("support_messages")
         .select(
           "id, conversation_id, sender_id, sender_kind, body, internal_note, attachments, created_at",
@@ -99,7 +100,7 @@ export const createSupportConversation = createServerFn({ method: "POST" })
     const platform = await isPlatform(context);
     let companyId = data.company_id ?? null;
     if (!platform || !companyId) {
-      const { data: prof } = await context.supabase
+      const { data: prof } = await getCloudSupabase(context, "support")
         .from("profiles")
         .select("company_id")
         .eq("id", context.userId)
@@ -107,7 +108,7 @@ export const createSupportConversation = createServerFn({ method: "POST" })
       companyId = prof?.company_id ?? null;
     }
     if (!companyId) throw new Error("No company");
-    const { data: conv, error } = await context.supabase
+    const { data: conv, error } = await getCloudSupabase(context, "support")
       .from("support_conversations")
       .insert({
         company_id: companyId,
@@ -119,7 +120,7 @@ export const createSupportConversation = createServerFn({ method: "POST" })
       .select("id, company_id, subject, status, priority, last_message_at, created_at")
       .single();
     if (error) throw new Error(error.message);
-    const { error: mErr } = await context.supabase.from("support_messages").insert({
+    const { error: mErr } = await getCloudSupabase(context, "support").from("support_messages").insert({
       conversation_id: conv.id,
       sender_id: context.userId,
       sender_kind: platform ? "platform" : "customer",
@@ -148,7 +149,7 @@ export const postSupportMessage = createServerFn({ method: "POST" })
     await requirePermission(context, "support.use");
     const platform = await isPlatform(context);
     if (data.internal_note && !platform) throw new Error("Forbidden");
-    const { error } = await context.supabase.from("support_messages").insert({
+    const { error } = await getCloudSupabase(context, "support").from("support_messages").insert({
       conversation_id: data.conversation_id,
       sender_id: context.userId,
       sender_kind: platform ? "platform" : "customer",
@@ -167,7 +168,7 @@ export const markSupportRead = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const platform = await isPlatform(context);
     const patch = platform ? { unread_for_platform: 0 } : { unread_for_customer: 0 };
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "support")
       .from("support_conversations")
       .update(patch)
       .eq("id", data.id);
@@ -193,7 +194,7 @@ export const updateSupportConversation = createServerFn({ method: "POST" })
     if (data.status) patch.status = data.status;
     if (data.priority) patch.priority = data.priority;
     if (data.assigned_to !== undefined) patch.assigned_to = data.assigned_to;
-    const { error } = await context.supabase
+    const { error } = await getCloudSupabase(context, "support")
       .from("support_conversations")
       .update(patch as never)
       .eq("id", data.id);
@@ -214,7 +215,7 @@ export const createSupportAttachmentUrl = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "support.use");
-    const { data: conv, error: cErr } = await context.supabase
+    const { data: conv, error: cErr } = await getCloudSupabase(context, "support")
       .from("support_conversations")
       .select("company_id")
       .eq("id", data.conversation_id)
@@ -223,7 +224,7 @@ export const createSupportAttachmentUrl = createServerFn({ method: "POST" })
     if (!conv) throw new Error("Not found");
     const safe = data.filename.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 120);
     const path = `${conv.company_id}/${data.conversation_id}/${crypto.randomUUID()}-${safe}`;
-    const { data: signed, error } = await context.supabase.storage
+    const { data: signed, error } = await getCloudSupabase(context, "support").storage
       .from("support-attachments")
       .createSignedUploadUrl(path);
     if (error) throw new Error(error.message);
@@ -235,7 +236,7 @@ export const getSupportAttachmentUrl = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ path: z.string() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "support.use");
-    const { data: signed, error } = await context.supabase.storage
+    const { data: signed, error } = await getCloudSupabase(context, "support").storage
       .from("support-attachments")
       .createSignedUrl(data.path, 60 * 10);
     if (error) throw new Error(error.message);
@@ -247,7 +248,7 @@ export const getSupportUnreadCount = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const platform = await isPlatform(context);
     const column = platform ? "unread_for_platform" : "unread_for_customer";
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "support")
       .from("support_conversations")
       .select(`${column}`)
       .gt(column, 0);

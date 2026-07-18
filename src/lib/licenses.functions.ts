@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
@@ -45,7 +46,7 @@ export const listLicenses = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "licenses")
       .from("licenses")
       .select(
         "id, install_id, kind, module_key, company_name, contact_email, tier, seats, max_users, issued_at, expires_at, maintenance_expires_at, revoked, revoked_at, suspended, suspended_at, notes, created_at, owner_type, owner_since, handed_over_at, handover_notes",
@@ -65,7 +66,7 @@ export const listLicenses = createServerFn({ method: "POST" })
 
     const ids = installs.map((l) => l.install_id);
     const { data: installMeta } = ids.length
-      ? await context.supabase
+      ? await getCloudSupabase(context, "licenses")
           .from("license_installs")
           .select("install_id, last_heartbeat_at, app_version, installer_version, user_count")
           .in("install_id", ids)
@@ -231,7 +232,7 @@ export const revokeLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => RevokeInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    let q = context.supabase
+    let q = getCloudSupabase(context, "licenses")
       .from("licenses")
       .update({
         revoked: true,
@@ -275,7 +276,7 @@ export const getLicensePublicKey = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
-    const { data } = await context.supabase
+    const { data } = await getCloudSupabase(context, "licenses")
       .from("license_signing_keys")
       .select("public_key_pem, key_id, algorithm, created_at")
       .eq("active", true)
@@ -304,7 +305,7 @@ export const getModuleToken = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "licenses")
       .from("licenses")
       .select("signed_token, revoked, suspended, expires_at, maintenance_expires_at")
       .eq("install_id", data.install_id)

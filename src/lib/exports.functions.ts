@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /**
  * Enterprise Export & Migration server functions.
  * Supports three modes for KB / FAQ / full Workspace exports:
@@ -20,7 +21,7 @@ import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 const AUDIT_MODULE = "audit_log" as const;
 
 async function enforceAudit(context: { supabase: any; userId: string }, hint?: string | null) {
-  const companyId = hint ?? (await getProfileCompany(context.supabase, context.userId));
+  const companyId = hint ?? (await getProfileCompany(getCloudSupabase(context, "exports"), context.userId));
   await assertModuleForCompany(
     companyId ?? "00000000-0000-0000-0000-000000000000",
     AUDIT_MODULE,
@@ -295,7 +296,7 @@ export const runExport = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { actor, companyId } = await resolveScope(
-      context.supabase,
+      getCloudSupabase(context, "exports"),
       context.userId,
       data.company_id,
     );
@@ -308,7 +309,7 @@ export const runExport = createServerFn({ method: "POST" })
     }
 
     // Create export row in queued state.
-    const { data: jobRow, error: jobErr } = await context.supabase
+    const { data: jobRow, error: jobErr } = await getCloudSupabase(context, "exports")
       .from("exports")
       .insert({
         company_id: companyId,
@@ -328,10 +329,10 @@ export const runExport = createServerFn({ method: "POST" })
       // 1. Snapshot
       const snapshot =
         data.kind === "kb"
-          ? await snapshotKb(context.supabase, companyId)
+          ? await snapshotKb(getCloudSupabase(context, "exports"), companyId)
           : data.kind === "faq"
-            ? await snapshotFaq(context.supabase, companyId)
-            : await snapshotWorkspace(context.supabase, companyId);
+            ? await snapshotFaq(getCloudSupabase(context, "exports"), companyId)
+            : await snapshotWorkspace(getCloudSupabase(context, "exports"), companyId);
 
       // 2. Build package
       const pkg = await buildPackage(data.kind, snapshot, {
@@ -342,7 +343,7 @@ export const runExport = createServerFn({ method: "POST" })
 
       // 3. Upload to storage (partitioned by company id)
       const storagePath = `${companyId}/${data.kind}/${jobId}.zip`;
-      const { error: upErr } = await context.supabase.storage
+      const { error: upErr } = await getCloudSupabase(context, "exports").storage
         .from(BUCKET)
         .upload(storagePath, pkg.bytes, {
           contentType: "application/zip",
@@ -351,7 +352,7 @@ export const runExport = createServerFn({ method: "POST" })
       if (upErr) throw upErr;
 
       // 4. Verify integrity (download and re-hash)
-      const { data: blob, error: dlErr } = await context.supabase.storage
+      const { data: blob, error: dlErr } = await getCloudSupabase(context, "exports").storage
         .from(BUCKET)
         .download(storagePath);
       if (dlErr) throw dlErr;
@@ -359,7 +360,7 @@ export const runExport = createServerFn({ method: "POST" })
       const verifySha = createHash("sha256").update(downloaded).digest("hex");
       if (verifySha !== pkg.sha256) throw new Error("Integrity check failed: checksum mismatch");
 
-      await context.supabase
+      await getCloudSupabase(context, "exports")
         .from("exports")
         .update({
           status: "completed",
@@ -375,8 +376,8 @@ export const runExport = createServerFn({ method: "POST" })
       // 5. Optional deletion
       let deletedCounts: Record<string, number> = {};
       if (data.mode === "delete") {
-        deletedCounts = await performDelete(context.supabase, data.kind, companyId);
-        await context.supabase
+        deletedCounts = await performDelete(getCloudSupabase(context, "exports"), data.kind, companyId);
+        await getCloudSupabase(context, "exports")
           .from("exports")
           .update({
             deletion_status: "completed",
@@ -387,7 +388,7 @@ export const runExport = createServerFn({ method: "POST" })
       }
 
       // 6. Audit
-      await context.supabase.rpc("audit_write", {
+      await getCloudSupabase(context, "exports").rpc("audit_write", {
         p_company: companyId,
         p_user: context.userId,
         p_module: data.kind === "workspace" ? "workspace" : data.kind,
@@ -412,7 +413,7 @@ export const runExport = createServerFn({ method: "POST" })
       } as any);
 
       // 7. Signed URL for download
-      const { data: signed } = await context.supabase.storage
+      const { data: signed } = await getCloudSupabase(context, "exports").storage
         .from(BUCKET)
         .createSignedUrl(storagePath, 60 * 60); // 1 hour
       return {
@@ -424,14 +425,14 @@ export const runExport = createServerFn({ method: "POST" })
         deleted: deletedCounts,
       };
     } catch (err) {
-      await context.supabase
+      await getCloudSupabase(context, "exports")
         .from("exports")
         .update({
           status: "failed",
           error: err instanceof Error ? err.message : String(err),
         })
         .eq("id", jobId);
-      await context.supabase.rpc("audit_write", {
+      await getCloudSupabase(context, "exports").rpc("audit_write", {
         p_company: companyId,
         p_user: context.userId,
         p_module: data.kind,
@@ -473,7 +474,7 @@ async function performDelete(supabase: any, kind: Kind, companyId: string) {
 export const listExports = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "exports")
       .from("exports")
       .select(
         "id, kind, mode, format, status, progress, sha256, bytes, file_count, deletion_status, error, created_at, completed_at, expires_at, storage_path",
@@ -488,14 +489,14 @@ export const getExportDownloadUrl = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "exports")
       .from("exports")
       .select("storage_path")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row?.storage_path) throw new Error("Export not available");
-    const { data: signed, error: sigErr } = await context.supabase.storage
+    const { data: signed, error: sigErr } = await getCloudSupabase(context, "exports").storage
       .from(BUCKET)
       .createSignedUrl(row.storage_path, 60 * 60);
     if (sigErr) throw new Error(sigErr.message);
@@ -509,7 +510,7 @@ export const getExportDownloadUrl = createServerFn({ method: "POST" })
 export const listGapCompanies = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase.rpc("gap_companies");
+    const { data, error } = await getCloudSupabase(context, "exports").rpc("gap_companies");
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -519,7 +520,7 @@ export const listGapUsers = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     if (!data.company_id) return [];
-    const { data: rows, error } = await context.supabase.rpc("gap_users", {
+    const { data: rows, error } = await getCloudSupabase(context, "exports").rpc("gap_users", {
       p_company: data.company_id,
     });
     if (error) throw new Error(error.message);
@@ -542,7 +543,7 @@ export const listGapUserQuestions = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (!data.company_id || !data.user_id) return [];
-    const { data: rows, error } = await context.supabase.rpc("gap_user_questions", {
+    const { data: rows, error } = await getCloudSupabase(context, "exports").rpc("gap_user_questions", {
       p_company: data.company_id,
       p_user: data.user_id,
       p_status: data.status ?? undefined,
@@ -559,7 +560,7 @@ export const getKnowledgeHealth = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: optionalUiUuid }).parse(d))
   .handler(async ({ data, context }) => {
     if (!data.company_id) return null;
-    const { data: row, error } = await context.supabase.rpc("knowledge_health", {
+    const { data: row, error } = await getCloudSupabase(context, "exports").rpc("knowledge_health", {
       p_company: data.company_id,
     });
     if (error) throw new Error(error.message);
@@ -570,7 +571,7 @@ export const listAuditCompanies = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await enforceAudit(context, null);
-    const { data, error } = await context.supabase.rpc("audit_companies");
+    const { data, error } = await getCloudSupabase(context, "exports").rpc("audit_companies");
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -581,7 +582,7 @@ export const listAuditUsers = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await enforceAudit(context, (data as any)?.company_id ?? null);
     if (!data.company_id) return [];
-    const { data: rows, error } = await context.supabase.rpc("audit_users", {
+    const { data: rows, error } = await getCloudSupabase(context, "exports").rpc("audit_users", {
       p_company: data.company_id,
     });
     if (error) throw new Error(error.message);
@@ -607,7 +608,7 @@ export const listAuditEntries = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await enforceAudit(context, (data as any)?.company_id ?? null);
     if (!data.company_id || !data.user_id) return [];
-    const { data: rows, error } = await context.supabase.rpc("audit_entries", {
+    const { data: rows, error } = await getCloudSupabase(context, "exports").rpc("audit_entries", {
       p_company: data.company_id,
       p_user: data.user_id,
       p_module: data.module ?? undefined,

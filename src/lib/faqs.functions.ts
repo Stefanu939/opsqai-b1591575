@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -25,9 +26,9 @@ export const upsertFaq = createServerFn({ method: "POST" })
       const { id, company_id: _companyIgnore, ...patch } = data;
       void id;
       void _companyIgnore;
-      const { error } = await context.supabase.from("faqs").update(patch).eq("id", data.id);
+      const { error } = await getCloudSupabase(context, "faqs").from("faqs").update(patch).eq("id", data.id);
       if (error) throw new Error(error.message);
-      const { data: row } = await context.supabase
+      const { data: row } = await getCloudSupabase(context, "faqs")
         .from("faqs")
         .select("company_id, category, question_en")
         .eq("id", data.id)
@@ -45,7 +46,7 @@ export const upsertFaq = createServerFn({ method: "POST" })
       const companyId = await resolveCompanyForWrite(context, data.company_id);
       const { company_id: _companyIgnore, ...safeInsert } = insert;
       void _companyIgnore;
-      const { data: inserted, error } = await context.supabase
+      const { data: inserted, error } = await getCloudSupabase(context, "faqs")
         .from("faqs")
         .insert({ ...safeInsert, company_id: companyId })
         .select("id, category, question_en")
@@ -65,7 +66,7 @@ export const deleteFaq = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["faq.delete", "knowledge.manage"]);
-    const { error } = await context.supabase.from("faqs").delete().eq("id", data.id);
+    const { error } = await getCloudSupabase(context, "faqs").from("faqs").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

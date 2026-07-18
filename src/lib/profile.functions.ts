@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Profile server functions (Wave C.2a.1.b).
 //
 // Thin wrappers around IProfileRepository so browser code (avatar
@@ -11,7 +12,7 @@ import { getProfileRepository } from "@/lib/providers/registry";
 export const getMyAvatarPath = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<{ path: string | null }> => {
-    const profile = await getProfileRepository(context.supabase).findByUserId(context.userId);
+    const profile = await getProfileRepository(getCloudSupabase(context, "profile")).findByUserId(context.userId);
     return { path: profile?.avatarUrl ?? null };
   });
 
@@ -19,7 +20,7 @@ export const setMyAvatarPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((data) => z.object({ path: z.string().min(1).max(512) }).parse(data))
   .handler(async ({ context, data }): Promise<{ path: string }> => {
-    await getProfileRepository(context.supabase).updateByUserId(context.userId, {
+    await getProfileRepository(getCloudSupabase(context, "profile")).updateByUserId(context.userId, {
       avatarUrl: data.path,
     });
     return { path: data.path };
@@ -28,7 +29,7 @@ export const setMyAvatarPath = createServerFn({ method: "POST" })
 export const clearMyAvatarPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<{ ok: true }> => {
-    await getProfileRepository(context.supabase).updateByUserId(context.userId, {
+    await getProfileRepository(getCloudSupabase(context, "profile")).updateByUserId(context.userId, {
       avatarUrl: null,
     });
     return { ok: true };

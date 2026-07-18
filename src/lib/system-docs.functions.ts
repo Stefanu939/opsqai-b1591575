@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -8,7 +9,7 @@ import { FEATURE_CATALOG } from "@/lib/feature-catalog";
 import { renderSystemDoc, hashBody, chunkBody } from "@/lib/system-docs/render";
 
 async function requirePlatformAdmin(context: { supabase: any; userId: string }) {
-  const a = await getActorRoles(context.supabase, context.userId);
+  const a = await getActorRoles(getCloudSupabase(context, "system-docs"), context.userId);
   if (!a.isPlatformAdmin) throw new Error("Forbidden: platform admin required");
   return a;
 }

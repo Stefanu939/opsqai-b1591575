@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePermission, getProfileCompany } from "@/lib/authorization";
@@ -7,13 +8,13 @@ export const getKnowledgeAnalytics = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePermission(context, "analytics.view");
-    const companyId = await getProfileCompany(context.supabase, context.userId);
+    const companyId = await getProfileCompany(getCloudSupabase(context, "analytics"), context.userId);
     await assertModuleForCompany(
       companyId ?? "00000000-0000-0000-0000-000000000000",
       "analytics",
     );
 
-    const supa = context.supabase;
+    const supa = getCloudSupabase(context, "analytics");
     const sinceIso = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
     const outdatedCutoff = new Date(Date.now() - 180 * 24 * 3600 * 1000).toISOString();
 

@@ -1,3 +1,4 @@
+import { getCloudSupabase } from "@/lib/providers/not-available";
 // Phase 6.5 — Customer Portal server functions.
 //
 // The Customer Portal is intentionally narrow: downloads, contract summary,
@@ -85,7 +86,7 @@ export const listPortalReleases = createServerFn({ method: "POST" })
     z.object({ channel: z.string().max(32).optional() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    const query = context.supabase
+    const query = getCloudSupabase(context, "portal")
       .from("license_releases")
       .select(
         "version, channel, docker_image, checksum, min_supported, published_at, release_notes_url, is_current",
@@ -159,7 +160,7 @@ export const downloadMyModuleLicense = createServerFn({ method: "POST" })
 export const listPortalDocs = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { data, error } = await getCloudSupabase(context, "portal")
       .from("system_doc_catalog")
       .select("slug, title, category, updated_at")
       .order("category")
@@ -172,7 +173,7 @@ export const getPortalDoc = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await getCloudSupabase(context, "portal")
       .from("system_doc_catalog")
       .select("slug, title, category, body_md, related_slugs, updated_at")
       .eq("slug", data.slug)
