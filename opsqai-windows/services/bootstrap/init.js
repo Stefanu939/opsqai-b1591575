@@ -261,6 +261,12 @@ function httpsGet(url, ms = 30_000) {
 }
 
 (async function main() {
+  // Emit explicit stage markers the wizard renderer keys off (see
+  // STAGE_MARKERS in renderer/wizard.js). Order matches the 7 progress rows.
+  const stage = (name) => log(`STAGE ${name}`);
+
+  stage("preparing installation");
+
   // --- 1. Start database ---
   if (dbMode === "embedded" && startServices) {
     // Detect a stale data dir so the operator sees an early warning.
@@ -275,8 +281,10 @@ function httpsGet(url, ms = 30_000) {
       } catch {}
     }
 
-    log("starting OpsqaiDatabase");
+    stage("installing services (winsw)");
+    log("starting OpsqaiDatabase (postgres)");
     svcCmd("OpsqaiDatabase", "start");
+
     const port = config.database.embedded.port;
 
     const tcpOk = await waitTcp("127.0.0.1", port, 120_000);
@@ -301,6 +309,7 @@ function httpsGet(url, ms = 30_000) {
   // --- 2. Run app migrations ---
   const migrator = programFiles("app", "server", "migrate.mjs");
   if (fs.existsSync(migrator)) {
+    stage("running app migrations");
     log("running app migrations");
     try {
       execFileSync(programFiles("runtime", "node", "node.exe"), [migrator], {
@@ -345,6 +354,9 @@ function httpsGet(url, ms = 30_000) {
 
   // --- 3. Start Caddy so it emits the local CA, then trust it ---
   if (startServices) {
+    stage("ai engine (skipped: configure post-install)");
+    stage("knowledge base storage ready");
+    stage("finalizing");
     log("starting OpsqaiCaddy");
     svcCmd("OpsqaiCaddy", "start");
     // Caddy writes root.crt within a few seconds of first start.
@@ -375,6 +387,7 @@ function httpsGet(url, ms = 30_000) {
 
     // --- 5. Health probe ---
     log("probing https://localhost/health");
+
     let ok = false;
     for (let i = 0; i < 30; i++) {
       const r = await httpsGet("https://localhost/health", 5000);
