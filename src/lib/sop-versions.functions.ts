@@ -1,4 +1,8 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
+// SOP versioning is Cloud-only for v1 — Self-Hosted knowledge_documents
+// omits the version/is_active/parent lineage columns. Every handler here
+// gates the Supabase client through `getCloudSupabase` so Self-Hosted
+// fails with a clean FEATURE_NOT_AVAILABLE_SELFHOST error.
+
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
@@ -7,6 +11,14 @@ import {
   requireAnyPermission,
   resolveCompanyForWrite,
 } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
+import { getStorageProvider } from "@/lib/providers/registry";
+
+const KB_BUCKET = "knowledge-docs";
+
+function toArrayBuffer(u8: Uint8Array): ArrayBuffer {
+  return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength) as ArrayBuffer;
+}
 
 const ReplaceInput = z.object({
   previous_id: z.string().uuid(),
@@ -24,10 +36,9 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ReplaceInput.parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit", "sop.publish"]);
+    const db = getCloudSupabase(context, "sop-versions");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: prev } = await supabaseAdmin
+    const { data: prev } = await db
       .from("knowledge_documents")
       .select("id, version, company_id, doc_code, parent_document_id")
       .eq("id", data.previous_id)
@@ -38,14 +49,12 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
       companyFromStoragePath(data.file_path) ?? prev.company_id,
     );
 
-    // Deactivate previous
-    await supabaseAdmin
+    await db
       .from("knowledge_documents")
       .update({ is_active: false, replaced_at: new Date().toISOString() } as never)
       .eq("id", data.previous_id);
 
-    // Insert new active version
-    const { data: doc, error: insErr } = await supabaseAdmin
+    const { data: doc, error: insErr } = await db
       .from("knowledge_documents")
       .insert({
         title: data.title,
@@ -67,13 +76,9 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
     if (insErr || !doc) throw new Error(insErr?.message || "Insert failed");
 
     try {
-      const { data: file, error: dlErr } = await supabaseAdmin.storage
-        .from("knowledge-docs")
-        .download(data.file_path);
-      if (dlErr || !file) throw new Error(dlErr?.message || "Download failed");
-      const buffer = await file.arrayBuffer();
+      const bytes = await getStorageProvider().get(KB_BUCKET, data.file_path);
       const { extractText, chunkText } = await import("@/lib/doc-processing.server");
-      const text = await extractText(buffer, data.filename, data.file_type);
+      const text = await extractText(toArrayBuffer(bytes), data.filename, data.file_type);
       if (!text.trim()) throw new Error("No text extracted");
       const chunks = chunkText(text, 1000, 200);
       const { embedTexts } = await import("@/lib/embeddings.server");
@@ -89,8 +94,8 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
         token_count: Math.ceil(content.length / 4),
         embedding: `[${vecs[idx].join(",")}]`,
       }));
-      await supabaseAdmin.from("document_chunks").insert(rows as never);
-      await supabaseAdmin
+      await db.from("document_chunks").insert(rows as never);
+      await db
         .from("knowledge_documents")
         .update({
           status: "ready",
@@ -101,7 +106,7 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
         .eq("id", doc.id);
       return { ok: true, id: doc.id, chunks: chunks.length };
     } catch (err) {
-      await supabaseAdmin
+      await db
         .from("knowledge_documents")
         .update({
           status: "failed",
@@ -117,9 +122,9 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit", "sop.publish"]);
+    const db = getCloudSupabase(context, "sop-versions");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: target } = await supabaseAdmin
+    const { data: target } = await db
       .from("knowledge_documents")
       .select("id, company_id, doc_code, parent_document_id")
       .eq("id", data.id)
@@ -127,13 +132,12 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
     if (!target) throw new Error("Not found");
     const rootId = (target as { parent_document_id: string | null }).parent_document_id ?? data.id;
 
-    // Deactivate all versions sharing the same lineage and same doc_code
-    await supabaseAdmin
+    await db
       .from("knowledge_documents")
       .update({ is_active: false } as never)
       .eq("company_id", (target as { company_id: string }).company_id)
       .eq("doc_code", (target as { doc_code: string }).doc_code);
-    await supabaseAdmin
+    await db
       .from("knowledge_documents")
       .update({ is_active: true } as never)
       .eq("id", data.id);
