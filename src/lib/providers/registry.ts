@@ -14,6 +14,7 @@ import type {
   ICompanyRepository,
   IDepartmentRepository,
   IFaqRepository,
+  IKnowledgeRepository,
   IFeedbackRepository,
   IIntegrationRepository,
   IKnowledgeGapRepository,
@@ -33,6 +34,7 @@ import type {
   FeedbackRepositoryFactory,
   IntegrationRepositoryFactory,
   KnowledgeGapRepositoryFactory,
+  KnowledgeRepositoryFactory,
   MessageRepositoryFactory,
   ProfileRepositoryFactory,
   RoleRepositoryFactory,
@@ -64,6 +66,7 @@ interface Registry {
   knowledgeGapFactory?: KnowledgeGapRepositoryFactory;
   integrationFactory?: IntegrationRepositoryFactory;
   faqFactory?: FaqRepositoryFactory;
+  knowledgeFactory?: KnowledgeRepositoryFactory;
 }
 
 
@@ -141,6 +144,9 @@ export function registerIntegrationRepositoryFactory(f: IntegrationRepositoryFac
 }
 export function registerFaqRepositoryFactory(f: FaqRepositoryFactory): void {
   registry.faqFactory = f;
+}
+export function registerKnowledgeRepositoryFactory(f: KnowledgeRepositoryFactory): void {
+  registry.knowledgeFactory = f;
 }
 
 
@@ -265,6 +271,12 @@ export function getFaqRepository(dataCtx: unknown): IFaqRepository {
   if (!registry.faqFactory) throw new Error("No FAQ repository factory registered");
   return registry.faqFactory(dataCtx);
 }
+export function getKnowledgeRepository(dataCtx: unknown): IKnowledgeRepository {
+  if (!registry.knowledgeFactory) {
+    throw new Error("No knowledge repository factory registered");
+  }
+  return registry.knowledgeFactory(dataCtx);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
@@ -292,5 +304,6 @@ export function __resetProviderRegistryForTests(): void {
   registry.knowledgeGapFactory = undefined;
   registry.integrationFactory = undefined;
   registry.faqFactory = undefined;
+  registry.knowledgeFactory = undefined;
 }
 

@@ -459,6 +459,70 @@ export interface IFaqRepository {
 
 export type FaqRepositoryFactory = (dataCtx: unknown) => IFaqRepository;
 
+// --------------------------------------------------------------------
+// Knowledge Base (documents + chunks + vector search)
+// --------------------------------------------------------------------
+
+export interface KnowledgeDocumentInsert {
+  company_id: string;
+  title: string;
+  category: string;
+  doc_code?: string | null;
+  file_path: string;
+  file_type: string;
+  uploaded_by?: string | null;
+}
+
+export interface KnowledgeDocumentRow {
+  id: string;
+  company_id: string;
+  title: string;
+  category: string;
+  doc_code: string | null;
+  file_path: string | null;
+  file_type: string | null;
+  status: string;
+  chunk_count: number;
+}
+
+export interface KnowledgeChunkInsert {
+  document_id: string;
+  company_id: string;
+  chunk_index: number;
+  content: string;
+  token_count: number;
+  /** 1536-dim vector; repository formats it as pgvector text. */
+  embedding: number[];
+}
+
+export interface KnowledgeMatch {
+  document_id: string;
+  chunk_index: number;
+  content: string;
+  similarity: number;
+}
+
+export interface IKnowledgeRepository {
+  insertDocument(input: KnowledgeDocumentInsert): Promise<{ id: string; company_id: string }>;
+  getForProcessing(id: string): Promise<Pick<
+    KnowledgeDocumentRow,
+    "id" | "company_id" | "file_path" | "file_type" | "title"
+  > | null>;
+  markProcessing(id: string): Promise<void>;
+  markReady(id: string, chunk_count: number, content_preview: string): Promise<void>;
+  markFailed(id: string, message: string): Promise<void>;
+  deleteChunks(document_id: string): Promise<void>;
+  insertChunks(rows: KnowledgeChunkInsert[]): Promise<void>;
+  getFilePath(id: string): Promise<string | null>;
+  deleteDocument(id: string): Promise<void>;
+  /** pgvector cosine similarity search scoped to a company. */
+  searchSimilar(company_id: string, query_embedding: number[], limit: number): Promise<KnowledgeMatch[]>;
+}
+
+export type KnowledgeRepositoryFactory = (dataCtx: unknown) => IKnowledgeRepository;
+
+
+
 
 
 
