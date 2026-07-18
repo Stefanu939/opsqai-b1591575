@@ -19,8 +19,11 @@ function readRawMode(): string | undefined {
     const injected = (window as unknown as { __OPSQAI_MODE__?: string }).__OPSQAI_MODE__;
     if (injected) return injected;
   }
-  const viteEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
-  return viteEnv?.VITE_OPSQAI_MODE;
+  // Direct property access so Vite statically replaces this with the
+  // string literal. Reading `import.meta.env` as a whole expression
+  // forces Vite to inline the entire env object, which leaks every
+  // VITE_* var (project URL, publishable key, ...) into the bundle.
+  return import.meta.env.VITE_OPSQAI_MODE as string | undefined;
 }
 
 /**
