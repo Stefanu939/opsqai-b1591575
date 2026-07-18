@@ -13,18 +13,28 @@ import type {
   IBrowserAuthProvider,
   ICompanyRepository,
   IDepartmentRepository,
+  IFeedbackRepository,
+  IIntegrationRepository,
+  IKnowledgeGapRepository,
   ILicensingProvider,
+  IMessageRepository,
   INotificationProvider,
   IProfileRepository,
   IRoleRepository,
   ISecretsCipher,
   IStorageProvider,
   ITelemetrySink,
+  IThreadRepository,
   IUserRepository,
   CompanyRepositoryFactory,
   DepartmentRepositoryFactory,
+  FeedbackRepositoryFactory,
+  IntegrationRepositoryFactory,
+  KnowledgeGapRepositoryFactory,
+  MessageRepositoryFactory,
   ProfileRepositoryFactory,
   RoleRepositoryFactory,
+  ThreadRepositoryFactory,
 } from "./interfaces";
 
 interface Registry {
@@ -46,7 +56,13 @@ interface Registry {
   adminCompanyFactory?: CompanyRepositoryFactory;
   departmentFactory?: DepartmentRepositoryFactory;
   adminDepartmentFactory?: DepartmentRepositoryFactory;
+  threadFactory?: ThreadRepositoryFactory;
+  messageFactory?: MessageRepositoryFactory;
+  feedbackFactory?: FeedbackRepositoryFactory;
+  knowledgeGapFactory?: KnowledgeGapRepositoryFactory;
+  integrationFactory?: IntegrationRepositoryFactory;
 }
+
 
 
 const registry: Registry = {};
