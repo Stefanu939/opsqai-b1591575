@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 //
-// Wave C.2a.1.b: authorization helpers now resolve roles and profile
-// company through the repository layer (`getRoleRepository`,
-// `getProfileRepository`). Signatures are unchanged so existing server
-// functions keep compiling; the `context.supabase` argument is passed
-// through as the opaque `dataCtx` the factories expect.
+// Wave C.2a.1: authorization helpers resolve roles, permissions, profile
+// company, and platform ownership through the repository layer.
 //
-// `hasPermission` still uses `context.supabase.rpc("has_permission")`
-// on Cloud. On Self-Hosted the throwing data-context proxy will surface
-// this as a "feature not migrated (Wave C.2)" diagnostic — permissions
-// derived from roles will move to `IRoleRepository.listPermissionsForRole`
-// in a later sub-wave.
+// Signatures accept `supabase` for backwards compatibility with existing
+// server-fn call sites; the value is passed through to the factories as
+// the opaque `dataCtx`. On Cloud that's a user-scoped SupabaseClient;
+// on Self-Hosted the factories ignore it and use their bootstrap pool.
 
-import { getProfileRepository, getRoleRepository } from "@/lib/providers/registry";
+import {
+  getAdminCompanyRepository,
+  getProfileRepository,
+  getRoleRepository,
+} from "@/lib/providers/registry";
 
 const PLATFORM_ROLES = new Set(["platform_owner", "platform_admin"]);
 
@@ -21,11 +21,15 @@ export function roleNames(rows: Array<{ role: string }> | null | undefined) {
 }
 
 export async function getActorRoles(supabase: any, userId: string) {
-  const roles = await getRoleRepository(supabase).listRolesForUser(userId);
+  const repo = getRoleRepository(supabase);
+  const [roles, isPlatformOwner] = await Promise.all([
+    repo.listRolesForUser(userId),
+    repo.isPlatformOwner(userId),
+  ]);
   return {
     roles,
-    isPlatformOwner: roles.includes("platform_owner"),
-    isPlatformAdmin: roles.some((r) => PLATFORM_ROLES.has(r)),
+    isPlatformOwner,
+    isPlatformAdmin: isPlatformOwner || roles.some((r) => PLATFORM_ROLES.has(r)),
     isCompanyAdmin: roles.includes("admin"),
     isManager: roles.includes("manager"),
   };
@@ -35,12 +39,7 @@ export async function hasPermission(
   context: { supabase: any; userId: string },
   permission: string,
 ) {
-  const { data, error } = await context.supabase.rpc("has_permission", {
-    _user_id: context.userId,
-    _permission: permission,
-  });
-  if (error) throw new Error(error.message);
-  return data === true;
+  return getRoleRepository(context.supabase).hasPermission(context.userId, permission);
 }
 
 export async function requirePermission(
@@ -98,18 +97,8 @@ export async function resolveCompanyForWrite(
   const companyId = await getProfileCompany(context.supabase, context.userId);
   if (companyId) return companyId;
   if (actor.isPlatformAdmin) {
-    // `companies` table is not yet abstracted (Wave C.2a.2). This branch
-    // stays on the raw data context and will throw on Self-Hosted's
-    // throwing proxy until then — matches the documented C.2 exception.
-    const { data, error } = await context.supabase
-      .from("companies")
-      .select("id")
-      .eq("active", true)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (data?.id) return data.id as string;
+    const first = await getAdminCompanyRepository().findFirstActive();
+    if (first?.id) return first.id;
   }
   throw new Error("No company assigned");
 }

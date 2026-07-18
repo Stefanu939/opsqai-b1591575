@@ -150,15 +150,155 @@ export interface RoleAssignment {
   role: RoleName;
 }
 
+export interface RoleAssignmentDetailed extends RoleAssignment {
+  /** True iff the assignment carries the immutable platform-owner flag. */
+  isPlatformOwner: boolean;
+  /** Company scope on Cloud (multi-tenant); null on Self-Hosted. */
+  companyId: string | null;
+}
+
 export interface IRoleRepository {
   listRolesForUser(userId: UserId): Promise<RoleName[]>;
   hasRole(userId: UserId, role: RoleName): Promise<boolean>;
-  addRole(userId: UserId, role: RoleName): Promise<void>;
+  /**
+   * Add a role assignment. `companyId` is honoured on Cloud (multi-tenant
+   * user_roles rows carry company_id); Self-Hosted ignores it.
+   */
+  addRole(userId: UserId, role: RoleName, companyId?: string | null): Promise<void>;
   removeRole(userId: UserId, role: RoleName): Promise<void>;
   removeAllRoles(userId: UserId): Promise<void>;
+  /**
+   * Remove every non-platform role for `userId`. Platform-scoped roles
+   * (`platform_admin`, `platform_owner`) are preserved. Used before
+   * replacing a user's operational role.
+   */
+  removeNonPlatformRoles(userId: UserId): Promise<void>;
+  /** True iff the user has the immutable platform-owner flag on any assignment. */
+  isPlatformOwner(userId: UserId): Promise<boolean>;
+  /**
+   * Permission check. Cloud impl calls `has_permission` RPC; Self-Hosted
+   * derives from a fixed role→permission map (no role_permissions table
+   * exists on Self-Hosted v1).
+   */
+  hasPermission(userId: UserId, permission: string): Promise<boolean>;
   /** If `userIds` is omitted, returns all assignments. */
   listAssignments(userIds?: UserId[]): Promise<RoleAssignment[]>;
+  /** Detailed variant that carries `isPlatformOwner` and `companyId`. */
+  listAssignmentsDetailed(userIds?: UserId[]): Promise<RoleAssignmentDetailed[]>;
   listPermissionsForRole(role: RoleName): Promise<string[]>;
+}
+
+// --------------------------------------------------------------------
+// Company repository (Wave C.2a.1.c) — Cloud reads public.companies;
+// Self-Hosted returns a synthetic single-tenant record (OPSQAI_INSTALL_ID).
+// --------------------------------------------------------------------
+
+export interface CompanyRecord {
+  id: string;
+  name: string;
+  /** OPSQAI internal system tenant. Cloud: `companies.is_system=TRUE`; Self-Hosted: always TRUE. */
+  isSystem: boolean;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface ICompanyRepository {
+  findById(id: string): Promise<CompanyRecord | null>;
+  /** Returns the OPSQAI internal ("system") company. */
+  findSystemCompany(): Promise<CompanyRecord | null>;
+  /** Oldest active company — fallback for platform-admin write scoping. */
+  findFirstActive(): Promise<CompanyRecord | null>;
+  list(): Promise<CompanyRecord[]>;
+}
+
+// --------------------------------------------------------------------
+// Department repository (Wave C.2a.1.c)
+// --------------------------------------------------------------------
+
+export interface DepartmentRecord {
+  id: string;
+  name: string;
+  companyId: string | null;
+}
+
+export interface IDepartmentRepository {
+  list(companyId?: string): Promise<DepartmentRecord[]>;
+  findByNameCI(companyId: string, name: string): Promise<DepartmentRecord | null>;
+  create(input: { name: string; companyId: string }): Promise<DepartmentRecord>;
+  /**
+   * Delete a department scoped to `companyId`. Implementations MUST
+   * nullify `department_id` on any profile referencing it before the
+   * DELETE, so the FK-less columns stay consistent. Throws if the
+   * department does not belong to `companyId`.
+   */
+  delete(id: string, companyId: string): Promise<void>;
+}
+
+// --------------------------------------------------------------------
+// Admin-authentication surface (Wave C.2a.1.c)
+//
+// Privileged user CRUD that used to live on `supabaseAdmin.auth.admin`.
+// Cloud: wraps supabase-js Admin API + welcome/invitation email
+// dispatch. Self-Hosted: writes directly to public.users through the
+// pg pool; sets `must_change_password = TRUE` for temporary passwords.
+//
+// Email-invitation is Cloud-only for now: `supportsEmailInvite = false`
+// on Self-Hosted and `inviteByEmail` throws. The full self-hosted
+// invitation flow (token, email template, acceptance route) is a
+// future feature; administrators create Self-Hosted users with a
+// temporary password today.
+// --------------------------------------------------------------------
+
+export interface AdminUserRecord {
+  id: UserId;
+  email: string;
+  lastSignInAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminCreateUserInput {
+  email: string;
+  password: string;
+  /** Force password change on first sign-in (temp-password flow). */
+  mustChangePassword?: boolean;
+  /** Cloud: skips confirmation email; Self-Hosted: ignored. */
+  emailConfirm?: boolean;
+  /** Cloud: written to auth.users.user_metadata; Self-Hosted: ignored. */
+  metadata?: Record<string, unknown>;
+  /** Optional welcome email. Cloud dispatches; Self-Hosted is a no-op. */
+  welcomeEmail?: {
+    firstName?: string;
+    workspaceName?: string | null;
+  };
+}
+
+export interface AdminInviteUserInput {
+  email: string;
+  /** Absolute URL the invitation email links back to. */
+  redirectTo: string;
+  metadata?: Record<string, unknown>;
+  emailData?: {
+    inviterName?: string;
+    workspaceName?: string | null;
+    role?: string;
+  };
+}
+
+export interface IAuthAdminProvider extends Provider {
+  /** Whether email-based invitations are supported on this platform. */
+  readonly supportsEmailInvite: boolean;
+  createUser(input: AdminCreateUserInput): Promise<{ id: UserId }>;
+  /** Throws with a clear message when `supportsEmailInvite` is false. */
+  inviteByEmail(input: AdminInviteUserInput): Promise<{ id: UserId }>;
+  deleteUser(userId: UserId): Promise<void>;
+  updatePassword(
+    userId: UserId,
+    newPassword: string,
+    opts?: { mustChangePassword?: boolean },
+  ): Promise<void>;
+  setDisabled(userId: UserId, disabled: boolean): Promise<void>;
+  listUsers(): Promise<AdminUserRecord[]>;
+  findUserAuthMeta(userId: UserId): Promise<AdminUserRecord | null>;
 }
 
 /**
@@ -170,6 +310,10 @@ export interface IRoleRepository {
  */
 export type ProfileRepositoryFactory = (dataCtx: unknown) => IProfileRepository;
 export type RoleRepositoryFactory = (dataCtx: unknown) => IRoleRepository;
+export type CompanyRepositoryFactory = (dataCtx: unknown) => ICompanyRepository;
+export type DepartmentRepositoryFactory = (dataCtx: unknown) => IDepartmentRepository;
+
+
 
 
 
