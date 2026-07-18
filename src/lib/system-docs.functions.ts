@@ -1,9 +1,13 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
+// OPSQAI Internal workspace is Cloud-only (platform-admin surface). All
+// handlers here gate the Supabase client through `getCloudSupabase` so
+// Self-Hosted returns FEATURE_NOT_AVAILABLE_SELFHOST before any query.
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles } from "@/lib/authorization";
+import { getCloudSupabase } from "@/lib/providers/not-available";
 import { SYSTEM_DOC_CATALOG, type SystemDocEntry } from "@/lib/system-docs/catalog";
 import { FEATURE_CATALOG } from "@/lib/feature-catalog";
 import { renderSystemDoc, hashBody, chunkBody } from "@/lib/system-docs/render";
@@ -15,7 +19,6 @@ async function requirePlatformAdmin(context: { supabase: any; userId: string }) 
 }
 
 async function requireInternalAccess(context: { supabase: any; userId: string }) {
-  // OPSQAI Internal workspace is platform-only.
   return requirePlatformAdmin(context);
 }
 
@@ -31,21 +34,21 @@ export const getInternalWorkspaceInfo = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requireInternalAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: company } = await supabaseAdmin
+    const db = getCloudSupabase(context, "system-docs");
+    const { data: company } = await db
       .from("companies")
       .select("id, name, created_at")
       .eq("is_system", true)
       .maybeSingle();
     if (!company) throw new Error("OPSQAI Internal workspace missing");
     const [{ count: docCount }, { count: catalogCount }] = await Promise.all([
-      supabaseAdmin
+      db
         .from("knowledge_documents")
         .select("id", { count: "exact", head: true })
         .eq("company_id", (company as any).id)
         .eq("knowledge_type", "system")
         .eq("is_active", true),
-      supabaseAdmin.from("system_doc_catalog").select("slug", { count: "exact", head: true }),
+      db.from("system_doc_catalog").select("slug", { count: "exact", head: true }),
     ]);
     return {
       companyId: (company as any).id as string,
@@ -61,14 +64,14 @@ export const listSystemDocs = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requireInternalAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: company } = await supabaseAdmin
+    const db = getCloudSupabase(context, "system-docs");
+    const { data: company } = await db
       .from("companies")
       .select("id")
       .eq("is_system", true)
       .maybeSingle();
     if (!company) return [];
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await db
       .from("knowledge_documents")
       .select("id, title, category, system_slug, updated_at, chunk_count")
       .eq("company_id", (company as any).id)
@@ -92,8 +95,8 @@ export const getSystemDoc = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
     await requireInternalAccess(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin
+    const db = getCloudSupabase(context, "system-docs");
+    const { data: row } = await db
       .from("system_doc_catalog")
       .select("slug, title, category, body_md, related_slugs, updated_at")
       .eq("slug", data.slug)
@@ -115,10 +118,10 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = getCloudSupabase(context, "system-docs");
     const { embedTexts } = await import("@/lib/embeddings.server");
 
-    const { data: company } = await supabaseAdmin
+    const { data: company } = await db
       .from("companies")
       .select("id")
       .eq("is_system", true)
@@ -135,7 +138,7 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
       const body = renderSystemDoc(entry);
       const hash = hashBody(body);
 
-      const { data: existingCat } = await supabaseAdmin
+      const { data: existingCat } = await db
         .from("system_doc_catalog")
         .select("slug, body_hash, document_id, version")
         .eq("slug", entry.slug)
@@ -143,10 +146,9 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
 
       const needsReembed = data.force || !existingCat || (existingCat as any).body_hash !== hash;
 
-      // Upsert/locate knowledge document
       let documentId = (existingCat as any)?.document_id as string | null | undefined;
       if (documentId) {
-        const { data: docRow } = await supabaseAdmin
+        const { data: docRow } = await db
           .from("knowledge_documents")
           .select("id")
           .eq("id", documentId)
@@ -154,8 +156,7 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
         if (!docRow) documentId = null;
       }
       if (!documentId) {
-        // try by (company, system_slug)
-        const { data: existing } = await supabaseAdmin
+        const { data: existing } = await db
           .from("knowledge_documents")
           .select("id")
           .eq("company_id", companyId)
@@ -165,7 +166,7 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
       }
 
       if (!documentId) {
-        const { data: inserted, error: insErr } = await supabaseAdmin
+        const { data: inserted, error: insErr } = await db
           .from("knowledge_documents")
           .insert({
             company_id: companyId,
@@ -185,7 +186,7 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
         if (insErr) throw new Error(insErr.message);
         documentId = (inserted as any).id;
       } else if (needsReembed) {
-        await supabaseAdmin
+        await db
           .from("knowledge_documents")
           .update({
             title: entry.title,
@@ -198,7 +199,7 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
       }
 
       if (needsReembed) {
-        await supabaseAdmin.from("document_chunks").delete().eq("document_id", documentId!);
+        await db.from("document_chunks").delete().eq("document_id", documentId!);
         const chunks = chunkBody(body);
         const vecs: number[][] = [];
         for (let i = 0; i < chunks.length; i += 50) {
@@ -213,9 +214,9 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
           embedding: `[${vecs[idx].join(",")}]`,
           section: entry.category,
         }));
-        const { error: chunkErr } = await supabaseAdmin.from("document_chunks").insert(rows as any);
+        const { error: chunkErr } = await db.from("document_chunks").insert(rows as any);
         if (chunkErr) throw new Error(chunkErr.message);
-        await supabaseAdmin
+        await db
           .from("knowledge_documents")
           .update({ chunk_count: chunks.length } as any)
           .eq("id", documentId!);
@@ -224,8 +225,7 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
         unchanged += 1;
       }
 
-      // Upsert catalog row
-      const { error: catErr } = await supabaseAdmin.from("system_doc_catalog").upsert({
+      const { error: catErr } = await db.from("system_doc_catalog").upsert({
         slug: entry.slug,
         category: entry.category,
         title: entry.title,
@@ -241,8 +241,7 @@ export const regenerateSystemKnowledge = createServerFn({ method: "POST" })
       upserted += 1;
     }
 
-    // Audit
-    await supabaseAdmin.from("audit_log").insert({
+    await db.from("audit_log").insert({
       user_id: context.userId,
       company_id: companyId,
       module: "platform",
