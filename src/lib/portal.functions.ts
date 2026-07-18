@@ -121,8 +121,12 @@ export const downloadMyActivationBundle = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!owner) throw new Error("Not authorized for this install_id");
 
-    const { buildActivationBundle } = await import("@/lib/license-activation-core.server");
-    return buildActivationBundle(data.install_id);
+    const { buildActivationBundle, signBundleAsJwt } = await import(
+      "@/lib/license-activation-core.server"
+    );
+    const bundle = await buildActivationBundle(data.install_id);
+    const jwt = await signBundleAsJwt(bundle);
+    return { ...bundle, jwt };
   });
 
 const ModuleDownloadInput = z.object({
