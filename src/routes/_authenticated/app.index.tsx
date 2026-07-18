@@ -189,7 +189,8 @@ function Dashboard() {
                   <X className="h-4 w-4" />
                 </button>
                 <div className="h-9 w-9 rounded-md bg-gold-soft border border-gold-line flex items-center justify-center">
-                  <c.icon className="h-4.5 w-4.5 text-gold" />
+                  <c.icon className="h-4 w-4 text-gold" />
+
                 </div>
                 <h3 className="mt-4 text-[15px] font-semibold tracking-tight">
                   {c.title}
