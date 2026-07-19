@@ -246,7 +246,7 @@ function createMainWindow() {
     icon: iconPath(),
     title: "OPSQAI",
     show: false,
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
@@ -257,7 +257,10 @@ function createMainWindow() {
     },
   });
 
-  Menu.setApplicationMenu(buildMenu());
+  // Installed Self-Hosted must feel like a native program, not a browser
+  // wrapper. Support actions remain available from the tray / error screen.
+  mainWindow.setMenu(null);
+  Menu.setApplicationMenu(null);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     // Anything that's not our local origin opens in the default browser.
@@ -351,11 +354,6 @@ function buildMenu() {
           },
         },
         {
-          label: "Open in Browser",
-          click: () => shell.openExternal(APP_URL),
-        },
-        { type: "separator" },
-        {
           label: "About OPSQAI",
           click: () => {
             dialog.showMessageBox(mainWindow, {
@@ -389,11 +387,6 @@ function createTray() {
             }
           },
         },
-        {
-          label: "Open in Browser",
-          click: () => shell.openExternal(APP_URL),
-        },
-        { type: "separator" },
         { label: "Quit", click: () => app.quit() },
       ]),
     );
@@ -417,7 +410,6 @@ ipcMain.handle("shell:openLogs", () => {
   const dir = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "logs");
   return shell.openPath(dir);
 });
-ipcMain.handle("shell:openInBrowser", () => shell.openExternal(APP_URL));
 ipcMain.handle("shell:retry", async () => {
   if (!mainWindow) return;
   loadSplashAndBoot();
