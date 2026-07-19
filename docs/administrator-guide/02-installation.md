@@ -25,7 +25,7 @@ The ZIP contains:
 | `install.sh`             | POSIX shell fallback for headless / SSH-only hosts. Same contract as the native binaries. Also supports `--restore` (DR runbook 5.5.4).                                       |
 | `docker-compose.yml`     | Reference topology (opsqai + postgres + minio)                                                                                                                                |
 | `.env.template`          | Copied to `.env` by the installer. `OPSQAI_INSTALL_ID` is pre-filled; infra secrets are marked `__CHANGE_ME__`                                                                |
-| `activation-bundle.json` | Ed25519-signed license bundle (install + module tokens + CRL)                                                                                                                 |
+| `activation-bundle.jwt`  | Ed25519-signed JWT activation bundle (install + module tokens + CRL)                                                                                                         |
 | `entrypoint.sh`          | Runs _inside_ the container; auto-generates infra secrets on first boot                                                                                                       |
 | `README.md`              | Quick-start printed with your `install_id` and installer version                                                                                                              |
 | `CHECKSUMS.sha256`       | Per-file SHA-256 checksums                                                                                                                                                    |
@@ -58,7 +58,7 @@ sha256sum -c CHECKSUMS.sha256   # every line must say OK
 #   - polls the app's /health endpoint until it reports healthy
 #   - prints (and, on desktop OS, opens) the URL for the Setup Wizard
 
-# 4. Paste activation-bundle.json when the wizard asks for it.
+# 4. Paste activation-bundle.jwt when the wizard asks for it.
 
 # 5. Verify post-setup with the doctor tool
 docker compose exec opsqai opsqai doctor

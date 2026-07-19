@@ -1,7 +1,7 @@
 // Server-only: assemble the Windows-only installation package (ZIP) for a
 // self-hosted customer. Contents:
 //   - INSTALLER.txt           Download URL + SHA-256 for OPSQAI-Setup.exe
-//   - activation-bundle.json  Ed25519-signed license bundle
+//   - activation-bundle.jwt   Ed25519-signed license bundle (compact JWS/JWT)
 //   - README.md               Windows install guide (renderReadmeMarkdown)
 //   - CHECKSUMS.sha256        SHA-256 of every file above
 //
@@ -20,6 +20,7 @@ import { createHash } from "node:crypto";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
 import installExeAsset from "@/assets/install-exe.asset.json";
 import { renderReadmeMarkdown } from "@/lib/installation-readme.server";
+import { signBundleAsJwt } from "@/lib/license-activation-core.server";
 
 function installerSourceUrl(): string {
   return process.env.OPSQAI_WINDOWS_INSTALLER_URL?.trim() || installExeAsset.url;
@@ -74,6 +75,7 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
   const origin = await resolveOrigin();
   const installerUrl = absoluteInstallerUrl(installerSourceUrl(), origin);
   const installerSize = installExeAsset.size ?? 0;
+  const activationBundleJwt = await signBundleAsJwt(input.bundle);
 
   const installerTxt =
     `# OPSQAI Windows installer\n` +
@@ -91,7 +93,7 @@ export async function assembleInstallationPackage(input: BuildPackageInput): Pro
 
   const files: Record<string, Uint8Array> = {
     "INSTALLER.txt": strToU8(installerTxt),
-    "activation-bundle.json": strToU8(JSON.stringify(input.bundle, null, 2)),
+    "activation-bundle.jwt": strToU8(activationBundleJwt),
     "README.md": strToU8(
       renderReadmeMarkdown({
         install_id: input.install_id,

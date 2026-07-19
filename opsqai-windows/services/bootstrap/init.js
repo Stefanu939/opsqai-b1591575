@@ -19,6 +19,7 @@
 const fs = require("fs");
 const path = require("path");
 const net = require("net");
+const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
 const { execFileSync, spawnSync } = require("child_process");
@@ -85,14 +86,56 @@ if (!adminEmail || !adminPassword) {
   process.exit(2);
 }
 
+function decodeB64UrlJson(segment) {
+  const pad = segment.length % 4 ? "=".repeat(4 - (segment.length % 4)) : "";
+  return JSON.parse(
+    Buffer.from((segment + pad).replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+  );
+}
+function decodeCompactJwt(token) {
+  const parts = String(token || "").trim().split(".");
+  if (parts.length !== 3) throw new Error("expected JWT format");
+  return { header: decodeB64UrlJson(parts[0]), payload: decodeB64UrlJson(parts[1]) };
+}
+function decodeLicensePayload(token) {
+  const parts = String(token || "").trim().split(".");
+  if (parts.length === 3) return decodeCompactJwt(token).payload;
+  // Legacy compatibility only; newly issued OPSQAI licenses are JWTs.
+  if (parts.length === 4 && parts[0] === "opsqai" && parts[1] === "v1") {
+    return decodeB64UrlJson(parts[2]);
+  }
+  throw new Error("expected JWT format");
+}
+function normalizeLicenseClaims(payload, bundle) {
+  return {
+    edition: payload.edition ?? payload.tier ?? "professional",
+    seats: payload.seats ?? payload.max_users ?? null,
+    customer: payload.customer ?? payload.company_name ?? payload.sub ?? null,
+    exp: payload.exp ?? payload.expires_at ?? null,
+    install_id: payload.install_id ?? bundle?.install_id ?? null,
+    modules: Array.isArray(payload.modules)
+      ? payload.modules
+      : Array.isArray(bundle?.module_tokens)
+        ? bundle.module_tokens.map((m) => m.module_key).filter(Boolean)
+        : [],
+  };
+}
+
+let activationBundle = null;
 let licenseClaims = null;
 if (licenseContents) {
   try {
-    const parts = licenseContents.split(".");
-    if (parts.length === 3) {
-      licenseClaims = JSON.parse(
-        Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
-      );
+    const { header, payload } = decodeCompactJwt(licenseContents);
+    const isBundle =
+      header.cty === "opsqai-activation-bundle+json" ||
+      (payload && payload.bundle_version === 1 && payload.install_token);
+    if (isBundle) {
+      activationBundle = payload;
+      licenseClaims = normalizeLicenseClaims(decodeLicensePayload(payload.install_token), payload);
+      log(`parsed activation bundle JWT (${activationBundle.module_tokens?.length ?? 0} module token(s))`);
+    } else {
+      licenseClaims = normalizeLicenseClaims(payload, null);
+      log("parsed installation license JWT");
     }
   } catch (e) {
     console.warn(`[bootstrap] cannot parse license claims: ${e.message}`);
@@ -149,10 +192,11 @@ const config = {
   smtp: smtpCfg,
   license: licenseClaims
     ? {
-        edition: licenseClaims.edition ?? licenseClaims.tier ?? "community",
+        edition: licenseClaims.edition ?? "professional",
         seats: licenseClaims.seats ?? null,
-        customer: licenseClaims.customer ?? licenseClaims.sub ?? null,
+        customer: licenseClaims.customer ?? null,
         exp: licenseClaims.exp ?? null,
+        install_id: licenseClaims.install_id ?? installId,
         modules: Array.isArray(licenseClaims.modules) ? licenseClaims.modules : [],
       }
     : { edition: "community" },
@@ -228,10 +272,17 @@ if (!fs.existsSync(jwtPriv) || !fs.existsSync(jwtPub)) {
 
 const bundledLicensePub = programFiles("payload", "updater", "pubkey.pem");
 const configLicensePub = path.join(programData("config", "keys"), "license-verify.pub");
-if (fs.existsSync(bundledLicensePub) && !fs.existsSync(configLicensePub)) {
+if (activationBundle?.public_key_pem) {
+  try {
+    fs.writeFileSync(configLicensePub, String(activationBundle.public_key_pem), { encoding: "utf8", mode: 0o644 });
+    log("staged license verification public key from activation bundle JWT");
+  } catch (e) {
+    console.warn(`[bootstrap] cannot stage license verify key from bundle: ${e.message}`);
+  }
+} else if (fs.existsSync(bundledLicensePub) && !fs.existsSync(configLicensePub)) {
   try {
     fs.copyFileSync(bundledLicensePub, configLicensePub);
-    log("staged license verification public key");
+    log("staged bundled license verification public key");
   } catch (e) {
     console.warn(`[bootstrap] cannot stage license verify key: ${e.message}`);
   }
@@ -343,6 +394,38 @@ function httpsGet(url, ms = 30_000) {
       resolve({ status: 0, error: "timeout" });
     });
   });
+}
+function httpGet(url, ms = 30_000) {
+  return new Promise((resolve) => {
+    const req = http.get(url, { timeout: ms }, (res) => {
+      let body = "";
+      res.on("data", (c) => (body += c));
+      res.on("end", () => resolve({ status: res.statusCode, body }));
+    });
+    req.on("error", (e) => resolve({ status: 0, error: e.message }));
+    req.on("timeout", () => {
+      req.destroy();
+      resolve({ status: 0, error: "timeout" });
+    });
+  });
+}
+
+async function waitForHealthProbe(label, url, getter, seconds) {
+  log(`probing ${label}: ${url}`);
+  let last = { status: 0, error: "not-started", body: "" };
+  for (let i = 0; i < seconds; i++) {
+    last = await getter(url, 5000);
+    if (last.status && last.status >= 200 && last.status < 500) {
+      log(`${label} health OK (HTTP ${last.status}) after ${i + 1}s`);
+      return { ok: true, last };
+    }
+    if (i === 0 || i === 30 || i === 60 || i === 90) {
+      const body = last.body ? ` body=${String(last.body).slice(0, 300).replace(/\s+/g, " ")}` : "";
+      log(`${label} health still waiting (t=${i + 1}s, last=${last.status || 0} ${last.error || ""}${body})`);
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return { ok: false, last };
 }
 
 // ─── installation_state (bootstrap-only table) ────────────────────────────
@@ -654,22 +737,22 @@ function resetEmbeddedDatabase() {
     svcCmd("OpsqaiWorker", "start");
     svcCmd("OpsqaiUpdater", "start");
 
-    log("probing https://localhost/health");
-    let ok = false;
-    for (let i = 0; i < 120; i++) {
-      const r = await httpsGet("https://localhost/health", 5000);
-      if (r.status && r.status >= 200 && r.status < 500) {
-        log(`health OK (HTTP ${r.status}) after ${i + 1}s`);
-        ok = true;
-        break;
-      }
-      if (i === 0 || i === 30 || i === 60 || i === 90) {
-        log(`health probe still waiting (t=${i + 1}s, last=${r.status || 0} ${r.error || ""})`);
-      }
-      await new Promise((r) => setTimeout(r, 1000));
-    }
-    if (!ok) {
-      const errFields = { code: "OPSQAI-E1301", message: "health probe failed after service start" };
+    const nodeHealth = await waitForHealthProbe(
+      "node",
+      "http://127.0.0.1:3000/health",
+      httpGet,
+      120,
+    );
+    const caddyHealth = nodeHealth.ok
+      ? await waitForHealthProbe("caddy", "https://localhost/health", httpsGet, 120)
+      : { ok: false, last: nodeHealth.last };
+    if (!nodeHealth.ok || !caddyHealth.ok) {
+      const failingLayer = nodeHealth.ok ? "caddy" : "node";
+      const last = nodeHealth.ok ? caddyHealth.last : nodeHealth.last;
+      const errFields = {
+        code: "OPSQAI-E1301",
+        message: `health probe failed after service start (${failingLayer}; last=${last.status || 0} ${last.error || ""})`,
+      };
       writeInstallState("failed", "services", errFields);
       console.log(formatFail("bootstrap", errFields.code, { message: errFields.message, log_path: LOG_PATH }));
       process.exit(5);

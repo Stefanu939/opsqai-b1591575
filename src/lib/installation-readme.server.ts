@@ -36,7 +36,7 @@ Descarcă \`OPSQAI-Setup.exe\` de la:
 ${installerUrl}
 \`\`\`
 
-Salvează fișierul în același folder cu \`activation-bundle.json\` din arhiva
+Salvează fișierul în același folder cu \`activation-bundle.jwt\` din arhiva
 aceasta. URL-ul este public și versionat; același link poate fi refolosit
 pentru reinstalări.
 
@@ -56,7 +56,7 @@ pentru reinstalări.
    (implicit \`C:\\Program Files\\OPSQAI\`) și folderul de date
    (implicit \`C:\\ProgramData\\OPSQAI\`).
 5. Când wizard-ul îți cere Activation Bundle, lipește conținutul
-   fișierului \`activation-bundle.json\` din această arhivă.
+   fișierului \`activation-bundle.jwt\` din această arhivă.
 6. Finalizează instalarea. Serviciile Windows pornesc automat.
 
 ## 5. Ce instalează
@@ -93,7 +93,7 @@ la sfârșitul wizard-ului) și configurează administratorul principal.
 | Fișier | Descriere |
 |---|---|
 | \`INSTALLER.txt\` | URL de descărcare pentru \`OPSQAI-Setup.exe\` |
-| \`activation-bundle.json\` | Bundle de licență semnat Ed25519 (install + module tokens + CRL) |
+| \`activation-bundle.jwt\` | Bundle de licență semnat Ed25519/JWT (install + module tokens + CRL) |
 | \`CHECKSUMS.sha256\` | SHA-256 pentru toate fișierele din arhivă |
 | \`README.md\` | Acest ghid |
 

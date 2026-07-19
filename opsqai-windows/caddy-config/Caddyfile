@@ -16,11 +16,5 @@ localhost:443, 127.0.0.1:443 {
 
 	encode gzip zstd
 
-	# Convenience alias used by the installer's post-service health probe
-	# and by external load balancers. Maps to the app's shallow readiness
-	# route so we don't hit the DB on every probe.
-	@health path /health
-	rewrite @health /api/public/ready
-
 	reverse_proxy 127.0.0.1:3000
 }
