@@ -363,6 +363,8 @@ Assert-Exists (Join-Path $payload 'app\server\index.mjs') 'self-hosted app bundl
 Assert-Exists (Join-Path $payload 'app\server\migrate.mjs') 'staged migration runner'
 Assert-Exists (Join-Path $payload 'app\server\errors.cjs')  'staged migration error catalog'
 Assert-Exists (Join-Path $payload 'app\server\admin-seed.mjs') 'staged admin seeder'
+Assert-Exists (Join-Path $payload 'app\server\node_modules\argon2\package.json') 'argon2 module staged for admin-seed'
+Assert-Exists (Join-Path $payload 'app\server\node_modules\argon2\prebuilds\win32-x64') 'argon2 win32-x64 prebuild'
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
 if (-not $SkipPostgres) {
   Assert-Exists (Join-Path $payload 'pgsql\bin\postgres.exe') 'PostgreSQL runtime'
