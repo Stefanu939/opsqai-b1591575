@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { pageHead } from "@/lib/seo";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
-import { Check, Package, ArrowRight } from "lucide-react";
+import { Check, Package } from "lucide-react";
 
 export const Route = createFileRoute("/modules")({
   head: () =>
@@ -37,7 +37,7 @@ function ModulesPage() {
       {/* Cinematic hero */}
       <section className="relative overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 h-[720px]">
-          <Scene3D camera={{ position: [0, 0.6, 6.5], fov: 45 }}>
+          <Scene3D cameraPosition={[0, 0.6, 6.5]} cameraFov={45}>
             <ambientLight intensity={0.3} />
             <ModuleConstellation nodeCount={16} />
             <GoldBloom />
@@ -46,27 +46,26 @@ function ModulesPage() {
         </div>
 
         <div className="relative mx-auto max-w-6xl px-6 pt-32 pb-40 md:pt-40 md:pb-48">
-          <p className="text-[11px] uppercase tracking-[0.32em] text-[#C9A24C]/80">
-            The OPSQAI module network
-          </p>
           <EditorialHeadline
-            className="mt-6 max-w-4xl"
-            plain="One platform."
-            serif="Every module orbits it."
-          />
+            as="h1"
+            size="xl"
+            eyebrow="The OPSQAI module network"
+            serifAccent="Every module orbits it."
+            className="max-w-4xl"
+          >
+            One platform.
+          </EditorialHeadline>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
             The Basic Platform ships with every OPSQAI installation. Premium modules
             dock in through signed license bundles — activated by OPSQAI, no reinstall,
             no seat inflation, no cloud dependency.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <OixButton asChild variant="primary">
-              <Link to="/contact">
-                Request modules <ArrowRight className="h-4 w-4" />
-              </Link>
+            <OixButton variant="gold" to="/contact" withArrow>
+              Request modules
             </OixButton>
-            <OixButton asChild variant="ghost">
-              <Link to="/pricing">See pricing model</Link>
+            <OixButton variant="ghost" to="/pricing">
+              See pricing model
             </OixButton>
           </div>
         </div>
