@@ -465,6 +465,30 @@ ipcMain.handle("wizard:openLogsFolder", async () => {
 });
 
 ipcMain.handle("wizard:finish", (_e, launch) => {
-  if (launch) shell.openExternal("https://localhost/");
+  if (launch) {
+    // Launch the OPSQAI desktop shell in a detached process so the wizard
+    // can exit immediately. Fall back to opening the app in the default
+    // browser if the shell binary is missing (should not happen on a
+    // successful install — build.ps1 asserts the shell is staged).
+    const shellExe = path.join(installRoot, "desktop-shell", "OPSQAI.exe");
+    if (fs.existsSync(shellExe)) {
+      try {
+        const child = spawn(shellExe, [], {
+          cwd: path.dirname(shellExe),
+          detached: true,
+          stdio: "ignore",
+          windowsHide: false,
+        });
+        child.unref();
+        flog(`wizard:finish launched desktop shell at ${shellExe}`);
+      } catch (e) {
+        flog(`wizard:finish failed to spawn shell: ${e && e.message}`);
+        shell.openExternal("https://localhost/");
+      }
+    } else {
+      flog(`wizard:finish desktop shell not found at ${shellExe}; falling back to browser`);
+      shell.openExternal("https://localhost/");
+    }
+  }
   app.exit(0);
 });
