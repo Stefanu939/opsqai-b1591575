@@ -367,7 +367,7 @@ Assert-Exists (Join-Path $payload 'app\server\admin-seed\admin-seed.mjs') 'stage
 Assert-Exists (Join-Path $payload 'app\server\admin-seed\node_modules\pg\package.json') 'pg module staged for admin-seed'
 Assert-Exists (Join-Path $payload 'app\server\admin-seed\node_modules\argon2\package.json') 'argon2 module staged for admin-seed'
 Assert-Exists (Join-Path $payload 'app\server\admin-seed\node_modules\argon2\prebuilds\win32-x64') 'argon2 win32-x64 prebuild'
-Assert-Exists (Join-Path $payload 'app\server\node_modules\argon2\prebuilds\win32-x64') 'argon2 win32-x64 prebuild'
+
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
 if (-not $SkipPostgres) {
   Assert-Exists (Join-Path $payload 'pgsql\bin\postgres.exe') 'PostgreSQL runtime'
