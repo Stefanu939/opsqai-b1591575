@@ -7,6 +7,7 @@
 
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -39,6 +40,7 @@ const programData = process.env.ProgramData || "C:\\ProgramData";
 const configPath =
   process.env.OPSQAI_CONFIG || join(programData, "OPSQAI", "config", "config.json");
 const migrationsDir = join(installRoot, "app", "migrations");
+const migrationsManifestPath = join(installRoot, "app", "migrations.manifest.json");
 const psql = join(installRoot, "pgsql", "bin", "psql.exe");
 
 function emit(line) {
@@ -80,6 +82,45 @@ const files = readdirSync(migrationsDir)
   .filter((name) => name.endsWith(".sql"))
   .sort();
 
+function sha256File(file) {
+  return createHash("sha256").update(readFileSync(file)).digest("hex");
+}
+
+function loadMigrationManifest() {
+  if (!existsSync(migrationsManifestPath)) {
+    console.log(`[migrate] migration manifest missing at ${migrationsManifestPath}`);
+    return new Map();
+  }
+  try {
+    const parsed = JSON.parse(readFileSync(migrationsManifestPath, "utf8").replace(/^\uFEFF/, ""));
+    const entries = Array.isArray(parsed.migrations) ? parsed.migrations : [];
+    const map = new Map(entries.map((m) => [String(m.filename), String(m.sha256 || "").toLowerCase()]));
+    console.log(`[migrate] migration manifest loaded (${map.size} fingerprint(s))`);
+    return map;
+  } catch (e) {
+    fail("OPSQAI-E1902", {
+      file: "migrations.manifest.json",
+      message: `migration manifest is unreadable: ${e.message}`,
+    });
+  }
+}
+
+const manifest = loadMigrationManifest();
+const fingerprints = new Map();
+for (const file of files) {
+  const actual = sha256File(join(migrationsDir, file));
+  const expected = manifest.get(file);
+  if (expected && expected !== actual) {
+    fail("OPSQAI-E1902", {
+      file,
+      migration_sha: actual,
+      expected_sha: expected,
+      message: "migration payload hash mismatch",
+    });
+  }
+  fingerprints.set(file, actual);
+}
+
 if (files.length === 0) {
   console.log("[migrate] no SQL migrations bundled");
   process.exit(0);
@@ -88,7 +129,7 @@ if (files.length === 0) {
 const env = { ...process.env, ...databaseEnv(), ON_ERROR_STOP: "1" };
 
 function psqlRun(runEnv, args, opts = {}) {
-  return spawnSync(psql, ["-v", "ON_ERROR_STOP=1", ...args], {
+  return spawnSync(psql, ["-w", "-v", "ON_ERROR_STOP=1", ...args], {
     env: runEnv,
     encoding: "utf8",
     windowsHide: true,
@@ -221,10 +262,11 @@ if (pending.length === 0) {
   console.log(`[migrate] applying ${pending.length} pending migration(s) from ${migrationsDir}`);
   for (const file of pending) {
     const full = join(migrationsDir, file);
-    console.log(`[migrate] ${file}`);
+    const migrationSha = fingerprints.get(file) || sha256File(full);
+    console.log(`[migrate] ${file} sha256=${migrationSha}`);
     const result = spawnSync(
       psql,
-      ["--set", "ON_ERROR_STOP=1", "--set", "VERBOSITY=verbose", "--file", full],
+      ["-w", "--set", "ON_ERROR_STOP=1", "--set", "VERBOSITY=verbose", "--file", full],
       { env, encoding: "utf8", windowsHide: true },
     );
     if (result.stdout) process.stdout.write(result.stdout);
@@ -237,16 +279,23 @@ if (pending.length === 0) {
       // the build. A Reset & Retry cannot fix this — the operator must
       // reinstall from a correctly built installer.
       const msg = parsed.message || "";
+      const sqlstate = parsed.sqlstate || (/\b([0-9A-Z]{5}):/.exec(msg)?.[1] ?? "");
       const isPgvectorMissing =
-        (parsed.sqlstate === "0A000" || /0A000/.test(msg)) &&
+        (sqlstate === "0A000" || /0A000/.test(msg)) &&
         /extension\s+"vector"\s+is not available/i.test(msg);
-      const code = isPgvectorMissing ? "OPSQAI-E1010" : "OPSQAI-E1001";
+      const isStaleCloudMigration =
+        ((sqlstate === "42883" || /\b42883\b/.test(msg)) &&
+          /function\s+public\.set_updated_at\s*\(\)\s+does not exist/i.test(msg)) ||
+        ((sqlstate === "42P01" || /\b42P01\b/i.test(msg)) &&
+          /relation\s+"public\.companies"\s+does not exist/i.test(msg));
+      const code = isPgvectorMissing ? "OPSQAI-E1010" : isStaleCloudMigration ? "OPSQAI-E1011" : "OPSQAI-E1001";
       fail(
         code,
         {
           file,
           line: parsed.line ?? "",
-          sqlstate: parsed.sqlstate ?? "",
+          sqlstate: sqlstate || parsed.sqlstate || "",
+          migration_sha: migrationSha,
           message: parsed.message || `psql exit ${result.status}`,
         },
         result.status || 1,

@@ -506,7 +506,15 @@ function resetEmbeddedDatabase() {
         if (p && p.component === "migrate") fail = p;
       }
       const errFields = fail
-        ? { code: fail.code, file: fail.file, line: fail.line, sqlstate: fail.sqlstate, message: fail.message }
+        ? {
+            code: fail.code,
+            file: fail.file,
+            line: fail.line,
+            sqlstate: fail.sqlstate,
+            migration_sha: fail.migration_sha,
+            expected_sha: fail.expected_sha,
+            message: fail.message,
+          }
         : {
             code: "OPSQAI-E1001",
             message:
@@ -521,6 +529,8 @@ function resetEmbeddedDatabase() {
           file: errFields.file,
           line: errFields.line,
           sqlstate: errFields.sqlstate,
+          migration_sha: errFields.migration_sha,
+          expected_sha: errFields.expected_sha,
           message: errFields.message,
 
           log_path: LOG_PATH,

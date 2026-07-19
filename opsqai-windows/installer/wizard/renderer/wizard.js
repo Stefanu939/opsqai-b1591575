@@ -816,7 +816,7 @@ function renderFailureCard(exitCode) {
 
   const dbMode = state.data.database?.mode || "embedded";
   const transient = /E1101|E1301/.test(f.code || "");
-  const isPackaging = /E1902|E1010/.test(f.code || "");
+  const isPackaging = /E1902|E1010|E1011/.test(f.code || "");
   const sameSig = (() => {
     if (attempts.length < 2) return false;
     const a = attempts[attempts.length - 1];
@@ -836,6 +836,8 @@ function renderFailureCard(exitCode) {
     f.file ? ["File", f.file] : null,
     f.line ? ["Line", f.line] : null,
     f.sqlstate ? ["SQLSTATE", f.sqlstate] : null,
+    f.migration_sha ? ["Migration SHA-256", f.migration_sha] : null,
+    f.expected_sha ? ["Expected SHA-256", f.expected_sha] : null,
     ["Reason", f.message || "(no details)"],
   ].filter(Boolean);
   const rowsHtml = rows
@@ -849,11 +851,15 @@ function renderFailureCard(exitCode) {
   const resetHint = showReset
     ? `<p class="fail-hint">Resetting the embedded database only affects the bundled PostgreSQL instance. External PostgreSQL installations are never modified.</p>`
     : "";
+  const packagingHint = isPackaging
+    ? `<p class="fail-hint">This is an installer payload issue, not a database state issue. Rebuild the installer, reinstall it, then run setup again.</p>`
+    : "";
 
   card.innerHTML = `
     ${banner}
     <div class="fail-rows">${rowsHtml}</div>
     ${resetHint}
+    ${packagingHint}
     <div class="fail-actions">
       <button class="btn" id="fail-retry"${sameSig ? " disabled title=\"Same error repeated — retrying will not help\"" : ""}>Retry</button>
       ${showReset ? `<button class="btn btn-primary" id="fail-reset">Reset embedded database &amp; retry</button>` : ""}

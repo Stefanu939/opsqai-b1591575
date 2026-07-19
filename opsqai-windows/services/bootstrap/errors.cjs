@@ -50,6 +50,11 @@ const CODES = {
     title: "pgvector extension missing from PostgreSQL payload",
     docsAnchor: "opsqai-e1010",
   },
+  "OPSQAI-E1011": {
+    category: "packaging",
+    title: "Stale or Cloud-contaminated migration payload",
+    docsAnchor: "opsqai-e1011",
+  },
   "OPSQAI-E1902": {
     category: "packaging",
     title: "Installer payload incomplete",
