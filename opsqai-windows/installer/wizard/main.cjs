@@ -160,29 +160,56 @@ ipcMain.handle("wizard:pickLicenseFile", async () => {
   }
 });
 
+function decodeB64UrlJson(segment) {
+  const pad = segment.length % 4 ? "=".repeat(4 - (segment.length % 4)) : "";
+  return JSON.parse(
+    Buffer.from((segment + pad).replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+  );
+}
+
+function decodeCompactJwt(token) {
+  const parts = String(token || "").trim().split(".");
+  if (parts.length !== 3) throw new Error("expected JWT format");
+  return { header: decodeB64UrlJson(parts[0]), payload: decodeB64UrlJson(parts[1]) };
+}
+
+function decodeLicensePayload(token) {
+  const parts = String(token || "").trim().split(".");
+  if (parts.length === 3) return decodeCompactJwt(token).payload;
+  // Backward compatibility for old pre-JWT `opsqai.v1.payload.signature` tokens.
+  if (parts.length === 4 && parts[0] === "opsqai" && parts[1] === "v1") {
+    return decodeB64UrlJson(parts[2]);
+  }
+  throw new Error("expected JWT format");
+}
+
+function normalizeLicenseClaims(payload, bundle) {
+  return {
+    edition: payload.edition ?? payload.tier ?? "professional",
+    seats: payload.seats ?? payload.max_users ?? null,
+    exp: payload.exp ?? payload.expires_at ?? null,
+    customer: payload.customer ?? payload.company_name ?? payload.sub ?? null,
+    install_id: payload.install_id ?? bundle?.install_id ?? null,
+    modules: Array.isArray(payload.modules)
+      ? payload.modules
+      : Array.isArray(bundle?.module_tokens)
+        ? bundle.module_tokens.map((m) => m.module_key).filter(Boolean)
+        : [],
+  };
+}
+
 ipcMain.handle("wizard:validateLicense", async (_e, contents) => {
   const s = String(contents || "").trim();
   if (!s) return { ok: false, error: "License is empty" };
-  const parts = s.split(".");
-  if (parts.length !== 3) {
-    return { ok: false, error: "Not a valid OPSQAI license (expected JWT format)" };
-  }
   try {
-    const payload = JSON.parse(
-      Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
-    );
-    return {
-      ok: true,
-      claims: {
-        edition: payload.edition ?? payload.tier ?? "community",
-        seats: payload.seats ?? null,
-        exp: payload.exp ?? null,
-        customer: payload.customer ?? payload.sub ?? null,
-        modules: Array.isArray(payload.modules) ? payload.modules : [],
-      },
-    };
+    const { header, payload } = decodeCompactJwt(s);
+    const isBundle =
+      header.cty === "opsqai-activation-bundle+json" ||
+      (payload && payload.bundle_version === 1 && payload.install_token);
+    const licensePayload = isBundle ? decodeLicensePayload(payload.install_token) : payload;
+    return { ok: true, claims: normalizeLicenseClaims(licensePayload, isBundle ? payload : null) };
   } catch (e) {
-    return { ok: false, error: `License payload is not valid JSON: ${e.message}` };
+    return { ok: false, error: `Not a valid OPSQAI JWT license: ${e.message}` };
   }
 });
 

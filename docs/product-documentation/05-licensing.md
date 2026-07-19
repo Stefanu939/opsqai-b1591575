@@ -15,17 +15,17 @@ OPSQAI uses a two-axis model. There are no "Starter / Pro / Enterprise" tiers.
 
 ## Token format
 
-Every license is a signed token:
+Every license is a signed JWT/JWS compact token:
 
 ```text
-opsqai.v1.<base64url(payload)>.<base64url(ed25519_signature)>
+<base64url(header)>.<base64url(payload)>.<base64url(ed25519_signature)>
 ```
 
-Payload always includes `license_version: 1`, `kind`, `install_id`, `key_id`, `issued_at`, `expires_at`, `maintenance_expires_at`. Verifier rejects unknown `license_version`.
+The JWT header uses `alg: "EdDSA"`. Payload always includes `license_version: 1`, `kind`, `install_id`, `key_id`, `issued_at`, `expires_at`, `maintenance_expires_at`. Verifier rejects unknown `license_version`.
 
 ## Offline activation
 
-The Management Center exports an **activation bundle** (`.opsqai-bundle.json`) containing the Installation License, all Module Licenses, active signing keys, and a signed CRL snapshot. The bundle can be imported into an air-gapped install.
+The Management Center exports an **activation bundle** (`activation-bundle.jwt`) containing the Installation License, all Module Licenses, active signing keys, and a signed CRL snapshot. The bundle can be imported into an air-gapped install.
 
 ## Expiry behavior
 

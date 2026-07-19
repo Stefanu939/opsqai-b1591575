@@ -86,14 +86,56 @@ if (!adminEmail || !adminPassword) {
   process.exit(2);
 }
 
+function decodeB64UrlJson(segment) {
+  const pad = segment.length % 4 ? "=".repeat(4 - (segment.length % 4)) : "";
+  return JSON.parse(
+    Buffer.from((segment + pad).replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+  );
+}
+function decodeCompactJwt(token) {
+  const parts = String(token || "").trim().split(".");
+  if (parts.length !== 3) throw new Error("expected JWT format");
+  return { header: decodeB64UrlJson(parts[0]), payload: decodeB64UrlJson(parts[1]) };
+}
+function decodeLicensePayload(token) {
+  const parts = String(token || "").trim().split(".");
+  if (parts.length === 3) return decodeCompactJwt(token).payload;
+  // Legacy compatibility only; newly issued OPSQAI licenses are JWTs.
+  if (parts.length === 4 && parts[0] === "opsqai" && parts[1] === "v1") {
+    return decodeB64UrlJson(parts[2]);
+  }
+  throw new Error("expected JWT format");
+}
+function normalizeLicenseClaims(payload, bundle) {
+  return {
+    edition: payload.edition ?? payload.tier ?? "professional",
+    seats: payload.seats ?? payload.max_users ?? null,
+    customer: payload.customer ?? payload.company_name ?? payload.sub ?? null,
+    exp: payload.exp ?? payload.expires_at ?? null,
+    install_id: payload.install_id ?? bundle?.install_id ?? null,
+    modules: Array.isArray(payload.modules)
+      ? payload.modules
+      : Array.isArray(bundle?.module_tokens)
+        ? bundle.module_tokens.map((m) => m.module_key).filter(Boolean)
+        : [],
+  };
+}
+
+let activationBundle = null;
 let licenseClaims = null;
 if (licenseContents) {
   try {
-    const parts = licenseContents.split(".");
-    if (parts.length === 3) {
-      licenseClaims = JSON.parse(
-        Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
-      );
+    const { header, payload } = decodeCompactJwt(licenseContents);
+    const isBundle =
+      header.cty === "opsqai-activation-bundle+json" ||
+      (payload && payload.bundle_version === 1 && payload.install_token);
+    if (isBundle) {
+      activationBundle = payload;
+      licenseClaims = normalizeLicenseClaims(decodeLicensePayload(payload.install_token), payload);
+      log(`parsed activation bundle JWT (${activationBundle.module_tokens?.length ?? 0} module token(s))`);
+    } else {
+      licenseClaims = normalizeLicenseClaims(payload, null);
+      log("parsed installation license JWT");
     }
   } catch (e) {
     console.warn(`[bootstrap] cannot parse license claims: ${e.message}`);
@@ -150,10 +192,11 @@ const config = {
   smtp: smtpCfg,
   license: licenseClaims
     ? {
-        edition: licenseClaims.edition ?? licenseClaims.tier ?? "community",
+        edition: licenseClaims.edition ?? "professional",
         seats: licenseClaims.seats ?? null,
-        customer: licenseClaims.customer ?? licenseClaims.sub ?? null,
+        customer: licenseClaims.customer ?? null,
         exp: licenseClaims.exp ?? null,
+        install_id: licenseClaims.install_id ?? installId,
         modules: Array.isArray(licenseClaims.modules) ? licenseClaims.modules : [],
       }
     : { edition: "community" },
@@ -229,10 +272,17 @@ if (!fs.existsSync(jwtPriv) || !fs.existsSync(jwtPub)) {
 
 const bundledLicensePub = programFiles("payload", "updater", "pubkey.pem");
 const configLicensePub = path.join(programData("config", "keys"), "license-verify.pub");
-if (fs.existsSync(bundledLicensePub) && !fs.existsSync(configLicensePub)) {
+if (activationBundle?.public_key_pem) {
+  try {
+    fs.writeFileSync(configLicensePub, String(activationBundle.public_key_pem), { encoding: "utf8", mode: 0o644 });
+    log("staged license verification public key from activation bundle JWT");
+  } catch (e) {
+    console.warn(`[bootstrap] cannot stage license verify key from bundle: ${e.message}`);
+  }
+} else if (fs.existsSync(bundledLicensePub) && !fs.existsSync(configLicensePub)) {
   try {
     fs.copyFileSync(bundledLicensePub, configLicensePub);
-    log("staged license verification public key");
+    log("staged bundled license verification public key");
   } catch (e) {
     console.warn(`[bootstrap] cannot stage license verify key: ${e.message}`);
   }
