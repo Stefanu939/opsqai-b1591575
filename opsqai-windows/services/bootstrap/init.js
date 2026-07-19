@@ -101,13 +101,45 @@ if (licenseContents) {
 
 const smtpCfg = smtpJson ? JSON.parse(smtpJson) : null;
 
+// Preserve any existing embedded-postgres password that was written into
+// config.json by a previous run of this installer (or by the OpsqaiDatabase
+// service via ensurePassword()). Overwriting it here would create a config
+// whose password no longer matches the SCRAM verifier stored in the pgsql
+// data dir, producing the classic "password authentication failed for
+// user opsqai" (OPSQAI-E1101) on the very next migrator run.
+const configPath = path.join(programData("config"), "config.json");
+let priorEmbeddedPassword = "";
+let priorEmbeddedPort = 55432;
+try {
+  if (fs.existsSync(configPath)) {
+    const prior = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    if (prior?.database?.mode === "embedded" && prior?.database?.embedded) {
+      priorEmbeddedPassword = String(prior.database.embedded.password || "");
+      if (Number.isFinite(Number(prior.database.embedded.port))) {
+        priorEmbeddedPort = Number(prior.database.embedded.port);
+      }
+    }
+  }
+} catch (e) {
+  console.warn(`[bootstrap] could not read prior config: ${e.message}`);
+}
+
 const config = {
   version: "1.0.0",
   installId,
   company: { name: companyName, contactEmail: adminEmail, timezone: "UTC" },
   database:
     dbMode === "embedded"
-      ? { mode: "embedded", embedded: { port: 55432 } }
+      ? {
+          mode: "embedded",
+          embedded: {
+            port: priorEmbeddedPort,
+            // Empty string is fine when the data dir is fresh — the
+            // OpsqaiDatabase service will generate one during initdb and
+            // save it back to config.json.
+            password: priorEmbeddedPassword,
+          },
+        }
       : { mode: "external", external: JSON.parse(arg("db-external", "{}")) },
   storage:
     storageMode === "local"
@@ -136,6 +168,29 @@ fs.mkdirSync(programData("data", "storage"), { recursive: true });
 fs.mkdirSync(programData("logs"), { recursive: true });
 saveConfig(config);
 log(`wrote config`);
+
+// Correctness gate: if a pgsql data dir already exists (from a prior aborted
+// install) but we do NOT know its opsqai password, we can never authenticate
+// to it. Silently reset it now, BEFORE OpsqaiDatabase starts, so initdb runs
+// clean and the generated password gets saved into the config we just wrote.
+if (dbMode === "embedded" && !priorEmbeddedPassword && !doResetEmbeddedDb) {
+  const pgDataDir = programData("data", "pgsql");
+  const pgVersion = path.join(pgDataDir, "PG_VERSION");
+  if (fs.existsSync(pgVersion)) {
+    log("existing pgsql data dir found but no password on record — auto-resetting to keep credentials in sync");
+    try {
+      const stamp = new Date().toISOString().replace(/[-:T]/g, "").replace(/\..+$/, "").replace(/(\d{8})(\d{6})/, "$1-$2");
+      const failedDir = programData("data", `pgsql.orphaned-${stamp}`);
+      // Best-effort stop of the service if it happens to be running.
+      try { spawnSync("sc.exe", ["stop", "OpsqaiDatabase"], { windowsHide: true, timeout: 15_000 }); } catch (_) {}
+      spawnSync("cmd", ["/c", "ping", "127.0.0.1", "-n", "3", ">nul"], { windowsHide: true });
+      fs.renameSync(pgDataDir, failedDir);
+      log(`moved orphaned data dir to ${failedDir}`);
+    } catch (e) {
+      console.error(`[bootstrap] could not move orphaned data dir: ${e.message}`);
+    }
+  }
+}
 
 if (licenseContents) {
   const licPath = path.join(programData("config"), "license.opsqai");
