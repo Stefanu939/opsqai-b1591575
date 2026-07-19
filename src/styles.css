@@ -639,3 +639,179 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   OIX — Operational Intelligence Experience
+   Marketing site identity (Emerald Prestige + Gold + Cream)
+   Prefix: --oix-*. Applied via <div class="oix-shell"> wrapper.
+   ============================================================ */
+
+:root {
+  --oix-bg-deep: #04211a;
+  --oix-surface: #064e3b;
+  --oix-surface-2: #072e24;
+  --oix-emerald: #0d7a5f;
+  --oix-emerald-glow: #2dd4a8;
+  --oix-gold: #c9a84c;
+  --oix-gold-soft: #e8d48a;
+  --oix-gold-line: rgba(201, 168, 76, 0.22);
+  --oix-cream: #f5f0e0;
+  --oix-cream-dim: rgba(245, 240, 224, 0.72);
+  --oix-hairline: 1px solid var(--oix-gold-line);
+  --oix-gradient-genesis: radial-gradient(
+    120% 80% at 50% 0%,
+    #0d7a5f 0%,
+    #064e3b 35%,
+    #04211a 75%,
+    #020f0b 100%
+  );
+  --oix-gradient-gold-shimmer: linear-gradient(
+    120deg,
+    #c9a84c 0%,
+    #f5f0e0 45%,
+    #c9a84c 100%
+  );
+  --oix-shadow-emerald-glow: 0 0 60px -10px rgba(45, 212, 168, 0.35);
+  --oix-shadow-gold-glow: 0 0 40px -12px rgba(201, 168, 76, 0.55);
+  --font-display-oix: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-serif-oix: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-body-oix: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-oix-bg: var(--oix-bg-deep);
+  --color-oix-surface: var(--oix-surface);
+  --color-oix-emerald: var(--oix-emerald);
+  --color-oix-gold: var(--oix-gold);
+  --color-oix-gold-soft: var(--oix-gold-soft);
+  --color-oix-cream: var(--oix-cream);
+}
+
+/* Root wrapper for the marketing site — scopes tokens/fonts */
+.oix-shell {
+  background: var(--oix-bg-deep);
+  color: var(--oix-cream);
+  font-family: var(--font-body-oix);
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+}
+
+.oix-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.94 0 0 0 0 0.87 0 0 0 0.045 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+  opacity: 0.4;
+}
+
+.oix-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Editorial display — the motto/statement voice */
+@utility oix-display {
+  font-family: var(--font-display-oix);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: var(--oix-cream);
+}
+
+@utility oix-display-xxl {
+  font-family: var(--font-display-oix);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.82;
+  text-transform: uppercase;
+  color: var(--oix-cream);
+  font-size: clamp(3.5rem, 12vw, 12rem);
+}
+
+@utility oix-serif-italic {
+  font-family: var(--font-serif-oix);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--oix-gold-soft);
+}
+
+@utility oix-eyebrow {
+  font-family: var(--font-display-oix);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--oix-gold);
+}
+
+@utility oix-hairline-top {
+  border-top: var(--oix-hairline);
+}
+@utility oix-hairline-bottom {
+  border-bottom: var(--oix-hairline);
+}
+
+/* Corner brackets — enterprise frame accent */
+@utility oix-brackets {
+  position: relative;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--oix-gold);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  &::before {
+    top: 0;
+    left: 0;
+    border-right: none;
+    border-bottom: none;
+  }
+  &::after {
+    bottom: 0;
+    right: 0;
+    border-left: none;
+    border-top: none;
+  }
+}
+
+@utility oix-gold-shimmer {
+  background: var(--oix-gradient-gold-shimmer);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: oix-shimmer 6s ease-in-out infinite;
+}
+
+@keyframes oix-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes oix-pulse-gold {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
