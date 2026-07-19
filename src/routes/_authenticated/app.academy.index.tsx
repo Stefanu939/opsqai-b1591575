@@ -121,7 +121,7 @@ function MyTrainingHome() {
     [rows],
   );
 
-  const FILTERS: Array<{ id: Filter; label: string; icon: React.ElementType }> = [
+  const FILTERS: Array<{ id: Filter; label: string; icon: ElementType }> = [
     { id: "all", label: "All training", icon: BookOpen },
     { id: "mandatory", label: "Mandatory", icon: AlertTriangle },
     { id: "optional", label: "Optional", icon: Sparkles },
