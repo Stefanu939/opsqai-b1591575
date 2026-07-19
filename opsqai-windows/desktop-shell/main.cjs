@@ -298,20 +298,16 @@ function showMainAndCloseSplash() {
 }
 
 function loadErrorPage(details) {
-  if (!mainWindow) return;
+  if (!mainWindow || mainWindow.isDestroyed()) return;
   const services = getServicesReport();
   const payload = Buffer.from(JSON.stringify({ ...details, services, logFile: LOG_FILE })).toString(
     "base64",
   );
   const errorHtml = path.join(__dirname, "renderer", "error.html");
-  mainWindow.loadFile(errorHtml, { hash: payload }).catch(() => {});
-  if (!mainWindow.isVisible()) {
-    if (splashWindow) {
-      splashWindow.close();
-      splashWindow = null;
-    }
-    mainWindow.show();
-  }
+  mainWindow.loadFile(errorHtml, { hash: payload }).catch((e) => {
+    log(`error page load failed: ${e && e.message}`);
+  });
+  showMainAndCloseSplash();
 }
 
 // ---------------------------------------------------------------------------
