@@ -76,18 +76,38 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  // Self-Hosted desktop shell: skip the marketing landing and go
-  // straight to the local sign-in surface. The installed app must
-  // behave like a real desktop program, not a browser tab.
+  // Self-Hosted desktop shell: never render the marketing landing.
+  // The installed app must feel like a real desktop program — the
+  // very first paint after health-gate is the login screen.
+  //
+  // The Electron shell already loads /auth?audience=company directly,
+  // so this branch is only a belt-and-braces guard for a user who
+  // types https://localhost/ into the address bar or hits a stale
+  // bookmark. Compute synchronously (no useEffect) so the marketing
+  // sections never mount in selfhost mode.
+  const selfhostMode =
+    typeof window !== "undefined" &&
+    (((window as unknown as { __OPSQAI_MODE__?: string }).__OPSQAI_MODE__ ??
+      (import.meta.env.VITE_OPSQAI_MODE as string | undefined)) === "selfhost");
+
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mode =
-      (window as unknown as { __OPSQAI_MODE__?: string }).__OPSQAI_MODE__ ??
-      (import.meta.env.VITE_OPSQAI_MODE as string | undefined);
-    if (mode === "selfhost") {
+    if (selfhostMode) {
       window.location.replace("/auth?audience=company");
     }
-  }, []);
+  }, [selfhostMode]);
+
+  if (selfhostMode) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "var(--oix-bg-deep, #04211a)",
+        }}
+        aria-hidden
+      />
+    );
+  }
+
 
   return (
     <OixLayout>
