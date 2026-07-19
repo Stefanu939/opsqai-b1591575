@@ -76,6 +76,19 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  // Self-Hosted desktop shell: skip the marketing landing and go
+  // straight to the local sign-in surface. The installed app must
+  // behave like a real desktop program, not a browser tab.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mode =
+      (window as unknown as { __OPSQAI_MODE__?: string }).__OPSQAI_MODE__ ??
+      (import.meta.env.VITE_OPSQAI_MODE as string | undefined);
+    if (mode === "selfhost") {
+      window.location.replace("/auth?audience=company");
+    }
+  }, []);
+
   return (
     <OixLayout>
       <Hero />
