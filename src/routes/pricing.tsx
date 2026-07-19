@@ -1,9 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { MarketingLayout } from "@/components/marketing/layout";
+import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { pageHead, faqLd } from "@/lib/seo";
 import { Package, Puzzle, LifeBuoy, Check } from "lucide-react";
+import { OixLayout } from "@/components/oix/oix-layout";
+import { Scene3D } from "@/components/three/scene-3d";
+import { ModuleConstellation } from "@/components/three/primitives/module-constellation";
+import { GridFloor } from "@/components/three/primitives/grid-floor";
+import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { SectionShell } from "@/components/oix/section-shell";
+import { OixButton } from "@/components/oix/buttons";
+import { MottoBand } from "@/components/oix/motto-band";
 
 const PRICING_FAQS = [
   {
@@ -24,7 +32,7 @@ const PRICING_FAQS = [
   {
     question: "What is Annual Maintenance?",
     answer:
-      "Annual Maintenance covers signed updates, security releases, support with defined response targets, module compatibility guarantees and ownership continuity. Without an active maintenance contract, the install continues to work but stops receiving updates and support.",
+      "Annual Maintenance covers signed updates, security releases, support with defined response targets, module compatibility guarantees and ownership continuity.",
   },
 ];
 
@@ -33,7 +41,7 @@ export const Route = createFileRoute("/pricing")({
     pageHead({
       title: "Pricing — OPSQAI Enterprise Operational AI Platform",
       description:
-        "OPSQAI pricing model: one-time Basic Platform, premium modules purchased separately, and annual maintenance. Windows Self-Hosted — no SaaS, no per-seat cloud lock-in.",
+        "OPSQAI pricing: one-time Basic Platform, premium modules purchased separately, and annual maintenance. Windows Self-Hosted — no SaaS lock-in.",
       path: "/pricing",
       keywords:
         "OPSQAI pricing, one-time license, annual maintenance, premium modules, self-hosted AI pricing",
@@ -50,8 +58,8 @@ const TIERS = [
   {
     icon: Package,
     name: "Basic Platform",
-    tag: "One-time purchase",
-    body: "Perpetual license for the Basic Platform: AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization and Subscription. Windows installer, signed license and initial setup included.",
+    tag: "One-time · Perpetual",
+    body: "AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization and Subscription. Windows installer, signed license and initial setup included.",
     bullets: [
       "Perpetual, per-installation license",
       "Windows Self-Hosted",
@@ -59,12 +67,13 @@ const TIERS = [
       "Signed installer and license",
     ],
     cta: "Request pricing",
-    to: "/contact",
+    to: "/contact?subject=pricing",
+    featured: true,
   },
   {
     icon: Puzzle,
     name: "Premium Modules",
-    tag: "One-time, per module",
+    tag: "One-time · Per module",
     body: "Activate additional capabilities on top of the Basic Platform. Each module is licensed separately and activated by OPSQAI through a signed license — no reinstall required.",
     bullets: [
       "Signed module licenses",
@@ -74,12 +83,13 @@ const TIERS = [
     ],
     cta: "Browse modules",
     to: "/modules",
+    featured: false,
   },
   {
     icon: LifeBuoy,
     name: "Annual Maintenance",
-    tag: "Recurring",
-    body: "Signed updates and security releases, priority support with defined response targets, module compatibility guarantees, and ownership continuity for the installation.",
+    tag: "Recurring · Yearly",
+    body: "Signed updates and security releases, priority support with defined response targets, module compatibility guarantees, and ownership continuity.",
     bullets: [
       "Signed releases and updates",
       "Support with response targets",
@@ -87,110 +97,150 @@ const TIERS = [
       "Managed by OPSQAI",
     ],
     cta: "Talk to sales",
-    to: "/contact",
+    to: "/contact?subject=sales",
+    featured: false,
   },
 ];
 
 function PricingPage() {
   return (
-    <MarketingLayout>
-      <section className="relative border-b border-border/50 overflow-hidden">
-        <div className="absolute inset-0 -z-10 [background:radial-gradient(60%_50%_at_50%_0%,rgba(201,162,76,0.08),transparent_75%)]" />
-        <div className="mx-auto max-w-5xl px-4 py-20 md:py-28">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-[color:var(--gold)] font-medium">
-            Pricing
-          </p>
-          <h1 className="mt-3 font-display text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
-            Own the platform.
-            <br className="hidden sm:block" />
-            <span className="text-[color:var(--gold)]"> Pay for what you use.</span>
-          </h1>
-          <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-            OPSQAI is not a SaaS. You purchase the Basic Platform once, activate
-            premium modules as you need them, and keep the installation healthy
-            with Annual Maintenance.
-          </p>
+    <OixLayout>
+      {/* Hero */}
+      <section className="relative isolate min-h-[85vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
+        <div className="absolute inset-0 -z-10">
+          <Scene3D cameraPosition={[0, 0.8, 5.5]} cameraFov={45}>
+            <ambientLight intensity={0.4} />
+            <pointLight position={[3, 3, 3]} intensity={1.1} color="#c9a84c" />
+            <pointLight position={[-3, -1, 2]} intensity={0.5} color="#0d7a5f" />
+            <GridFloor />
+            <EmberFog />
+            <ModuleConstellation nodeCount={12} />
+            <GoldBloom />
+          </Scene3D>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(70% 60% at 50% 40%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.9) 85%)",
+            }}
+          />
         </div>
-      </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="grid gap-4 md:grid-cols-3">
-          {TIERS.map((t, i) => {
-            const featured = i === 0;
-            return (
-              <Card
-                key={t.name}
-                className={`relative p-6 flex flex-col transition-all hover:-translate-y-1 hover:shadow-lg ${
-                  featured
-                    ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/25"
-                    : "border-border/60"
-                }`}
-              >
-                {featured && (
-                  <span
-                    aria-hidden
-                    className="absolute top-0 left-6 right-6 h-[3px] rounded-b bg-[color:var(--gold)]"
-                  />
-                )}
-                <div className="h-10 w-10 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center">
-                  <t.icon className="h-5 w-5 text-[color:var(--gold)]" />
-                </div>
-                <div className="mt-5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-medium">
-                  {t.tag}
-                </div>
-                <div className="mt-1 font-display font-semibold text-xl">{t.name}</div>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{t.body}</p>
-                <ul className="mt-5 space-y-2 text-sm flex-1">
-                  {t.bullets.map((b) => (
-                    <li key={b} className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-[color:var(--gold)] shrink-0 mt-0.5" />
-                      <span className="text-foreground/85">{b}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  asChild
-                  variant={featured ? "default" : "outline"}
-                  className="mt-6 w-full"
-                >
-                  <Link to={t.to}>{t.cta}</Link>
-                </Button>
-              </Card>
-            );
-          })}
-        </div>
-        <p className="mt-6 text-xs text-muted-foreground text-center max-w-2xl mx-auto">
-          Pricing depends on company size, selected premium modules and the
-          maintenance tier. Every deployment is quoted individually.
-        </p>
-      </section>
-
-      <section className="bg-surface-1 border-y border-border/60">
-        <div className="mx-auto max-w-3xl px-4 py-16">
-          <h2 className="text-2xl font-semibold tracking-tight">Frequently asked</h2>
-          <div className="mt-6 space-y-4">
-            {PRICING_FAQS.map((f) => (
-              <div key={f.question} className="border-b border-border/60 pb-4">
-                <div className="font-semibold text-sm">{f.question}</div>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.answer}</p>
-              </div>
-            ))}
+        <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32">
+          <div className="max-w-3xl">
+            <EditorialHeadline
+              as="h1"
+              size="xl"
+              eyebrow="Pricing · No SaaS"
+              serifAccent="pay for what you use."
+            >
+              Own the platform.
+            </EditorialHeadline>
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
+              OPSQAI is not a SaaS. You purchase the Basic Platform once, activate
+              premium modules as you need them, and keep the installation healthy
+              with Annual Maintenance.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight">Request pricing.</h2>
-        <p className="mt-3 text-muted-foreground">
-          Tell us about your operation — company size, target modules and
-          maintenance needs. We come back with a fixed quote.
-        </p>
-        <div className="mt-6">
-          <Button asChild>
-            <Link to="/contact">Request pricing</Link>
-          </Button>
+      {/* Tiers */}
+      <SectionShell>
+        <EditorialHeadline eyebrow="Three components" serifAccent="one purchase.">
+          A model that
+        </EditorialHeadline>
+        <div className="mt-14 grid gap-4 md:grid-cols-3">
+          {TIERS.map((t) => (
+            <Card
+              key={t.name}
+              className={`relative p-8 flex flex-col border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur transition-all hover:-translate-y-1 ${
+                t.featured ? "border-[var(--oix-gold)]/70" : ""
+              }`}
+            >
+              {t.featured && (
+                <span
+                  aria-hidden
+                  className="absolute top-0 left-8 right-8 h-[2px] bg-[var(--oix-gold)]"
+                  style={{ boxShadow: "0 0 12px var(--oix-gold)" }}
+                />
+              )}
+              <div className="h-12 w-12 rounded-none border border-[var(--oix-gold-line)]/60 bg-[var(--oix-emerald)]/10 flex items-center justify-center">
+                <t.icon className="h-5 w-5 text-[var(--oix-gold)]" />
+              </div>
+              <div className="mt-6 text-[10px] uppercase tracking-[0.22em] text-[var(--oix-gold-soft)] font-medium">
+                {t.tag}
+              </div>
+              <div className="mt-2 oix-display text-2xl text-[var(--oix-cream)]">{t.name}</div>
+              <p className="mt-4 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{t.body}</p>
+              <ul className="mt-6 space-y-2.5 text-sm flex-1">
+                {t.bullets.map((b) => (
+                  <li key={b} className="flex items-start gap-2.5">
+                    <Check className="h-4 w-4 text-[var(--oix-gold)] shrink-0 mt-0.5" />
+                    <span className="text-[var(--oix-cream)]/85">{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8">
+                <OixButton
+                  to={t.to}
+                  variant={t.featured ? "gold" : "ghost"}
+                  withArrow
+                  className="w-full"
+                >
+                  {t.cta}
+                </OixButton>
+              </div>
+            </Card>
+          ))}
         </div>
-      </section>
-    </MarketingLayout>
+        <p className="mt-10 text-xs uppercase tracking-[0.22em] text-[var(--oix-cream)]/50 text-center max-w-2xl mx-auto">
+          Pricing depends on company size, selected premium modules and the
+          maintenance tier · every deployment quoted individually
+        </p>
+      </SectionShell>
+
+      <MottoBand size="lg" compact />
+
+      {/* FAQ */}
+      <SectionShell className="oix-hairline-top oix-hairline-bottom">
+        <EditorialHeadline eyebrow="Frequently asked" serifAccent="honestly.">
+          Answered
+        </EditorialHeadline>
+        <div className="mt-14 divide-y divide-[var(--oix-gold-line)]/30 border-y border-[var(--oix-gold-line)]/30">
+          {PRICING_FAQS.map((f) => (
+            <div key={f.question} className="py-6 grid md:grid-cols-[1fr_2fr] gap-6">
+              <div className="font-semibold text-[var(--oix-cream)] text-[15px]">{f.question}</div>
+              <p className="text-sm text-[var(--oix-cream)]/70 leading-relaxed">{f.answer}</p>
+            </div>
+          ))}
+        </div>
+      </SectionShell>
+
+      {/* CTA */}
+      <SectionShell>
+        <div className="text-center max-w-3xl mx-auto">
+          <EditorialHeadline
+            align="center"
+            eyebrow="Fixed quote · one page"
+            serifAccent="pricing."
+          >
+            Request your
+          </EditorialHeadline>
+          <p className="mt-6 text-[var(--oix-cream)]/70">
+            Tell us about your operation — company size, target modules and
+            maintenance needs. We come back with a fixed quote.
+          </p>
+          <div className="mt-8 flex gap-3 justify-center">
+            <OixButton to="/contact?subject=pricing" variant="gold" withArrow>
+              Request pricing
+            </OixButton>
+            <OixButton to="/modules" variant="ghost">
+              Browse modules
+            </OixButton>
+          </div>
+        </div>
+      </SectionShell>
+    </OixLayout>
   );
 }

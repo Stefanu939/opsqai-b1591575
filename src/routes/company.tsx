@@ -1,7 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { MarketingLayout } from "@/components/marketing/layout";
+import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
 import {
   Target,
@@ -14,6 +12,16 @@ import {
   Factory,
   Truck,
 } from "lucide-react";
+import { OixLayout } from "@/components/oix/oix-layout";
+import { Scene3D } from "@/components/three/scene-3d";
+import { ParticleGenesis } from "@/components/three/particle-genesis";
+import { GridFloor } from "@/components/three/primitives/grid-floor";
+import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { SectionShell } from "@/components/oix/section-shell";
+import { OixButton } from "@/components/oix/buttons";
+import { MottoBand } from "@/components/oix/motto-band";
 
 export const Route = createFileRoute("/company")({
   head: () =>
@@ -53,19 +61,19 @@ const TEAM = [
 const PHASES = [
   {
     icon: Truck,
-    tag: "Phase 1",
+    tag: "Phase 01",
     title: "DACH Logistics",
     body: "Warehousing, 3PL and distribution operators in Germany, Austria and Switzerland. Windows-native fits their reality; data sovereignty is non-negotiable.",
   },
   {
     icon: Factory,
-    tag: "Phase 2",
+    tag: "Phase 02",
     title: "Industrial Manufacturing",
     body: "Discrete and process manufacturing. Same operational-knowledge problem, same regulatory pressure, same infrastructure profile.",
   },
   {
     icon: Globe2,
-    tag: "Phase 3",
+    tag: "Phase 03",
     title: "European Expansion",
     body: "Extend across regulated European industries where operational AI must run inside the customer's boundary.",
   },
@@ -79,148 +87,179 @@ const MARKET = [
 
 function CompanyPage() {
   return (
-    <MarketingLayout>
-      {/* Hero */}
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Company</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          AI that works for people. Not instead of them.
-        </h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI is building the operational AI layer for industrial companies —
-          delivered as a Windows Self-Hosted product, sovereign by design, and owned
-          entirely by the customer.
-        </p>
+    <OixLayout>
+      {/* Hero — particle genesis */}
+      <section className="relative isolate min-h-[90vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
+        <div className="absolute inset-0 -z-10">
+          <Scene3D cameraPosition={[0, 0.6, 6]} cameraFov={44}>
+            <ambientLight intensity={0.35} />
+            <pointLight position={[3, 3, 3]} intensity={1} color="#c9a84c" />
+            <pointLight position={[-3, 2, 1]} intensity={0.5} color="#0d7a5f" />
+            <GridFloor />
+            <EmberFog />
+            <ParticleGenesis progress={0.6} />
+            <GoldBloom />
+          </Scene3D>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(65% 60% at 30% 45%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.88) 82%)",
+            }}
+          />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32">
+          <div className="max-w-3xl">
+            <EditorialHeadline
+              as="h1"
+              size="xl"
+              eyebrow="Company · Made in Europe"
+              serifAccent="not instead of them."
+            >
+              AI that works for people.
+            </EditorialHeadline>
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
+              OPSQAI is building the operational AI layer for industrial companies —
+              delivered as a Windows Self-Hosted product, sovereign by design, and
+              owned entirely by the customer.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <OixButton to="/contact?subject=partnership" variant="gold" withArrow>
+                Talk to the founders
+              </OixButton>
+              <OixButton to="/self-hosted" variant="ghost">
+                See the product
+              </OixButton>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Mission / Vision / Why */}
-      <section className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="p-6 border-border/60">
-            <Target className="h-6 w-6 text-primary" />
-            <div className="mt-4 font-semibold">Mission</div>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              Bring AI to work for the people who run operations — supervisors,
-              warehouse leads, plant managers — without asking them to hand their
-              knowledge to public cloud LLMs.
-            </p>
-          </Card>
-          <Card className="p-6 border-border/60">
-            <Eye className="h-6 w-6 text-primary" />
-            <div className="mt-4 font-semibold">Vision</div>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              Every industrial company runs an operational AI platform inside its
-              own boundary. Knowledge stays where it belongs; the AI helps the team
-              instead of replacing it.
-            </p>
-          </Card>
-          <Card className="p-6 border-border/60">
-            <Compass className="h-6 w-6 text-primary" />
-            <div className="mt-4 font-semibold">Why OPSQAI, Why now</div>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              Industrial companies cannot place operational knowledge inside public
-              LLMs. They need ownership, governance and full data sovereignty.
-              OPSQAI is built for that reality — Windows-native and self-hosted.
-            </p>
-          </Card>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="bg-surface-1 border-y border-border/60">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-          <div className="max-w-3xl">
-            <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Team</p>
-            <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
-              A small, deliberate team.
-            </h2>
-            <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
-              We do not overstate the team. Every role reflects either an active
-              founder or a planned hire.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {TEAM.map((p) => (
-              <Card key={p.role} className="p-6 border-border/60">
-                <Users className="h-5 w-5 text-primary" />
-                <div className="mt-4 font-semibold">{p.name}</div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">
-                  {p.role}
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{p.body}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Go-to-market */}
-      <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
-        <div className="max-w-3xl">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">
-            Go-to-market
-          </p>
-          <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
-            Land in DACH logistics. Expand into industrial Europe.
-          </h2>
-        </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {PHASES.map((p) => (
-            <Card key={p.title} className="p-6 border-border/60">
-              <p.icon className="h-6 w-6 text-primary" />
-              <div className="mt-4 text-xs uppercase tracking-wider text-primary font-mono">
-                {p.tag}
-              </div>
-              <div className="mt-1 font-semibold">{p.title}</div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{p.body}</p>
+      <SectionShell>
+        <EditorialHeadline eyebrow="Mission · Vision · Why now" serifAccent="operate.">
+          The principles we
+        </EditorialHeadline>
+        <div className="mt-14 grid gap-4 md:grid-cols-3">
+          {[
+            { icon: Target, title: "Mission", body: "Bring AI to work for the people who run operations — supervisors, warehouse leads, plant managers — without asking them to hand their knowledge to public cloud LLMs." },
+            { icon: Eye, title: "Vision", body: "Every industrial company runs an operational AI platform inside its own boundary. Knowledge stays where it belongs; the AI helps the team instead of replacing it." },
+            { icon: Compass, title: "Why now", body: "Industrial companies cannot place operational knowledge inside public LLMs. They need ownership, governance and full data sovereignty. OPSQAI is built for that reality." },
+          ].map((p) => (
+            <Card
+              key={p.title}
+              className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+            >
+              <p.icon className="h-6 w-6 text-[var(--oix-gold)]" />
+              <div className="mt-6 oix-display text-xl text-[var(--oix-cream)]">{p.title}</div>
+              <p className="mt-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{p.body}</p>
             </Card>
           ))}
         </div>
-      </section>
+      </SectionShell>
+
+      <MottoBand size="lg" compact />
+
+      {/* Team */}
+      <SectionShell className="oix-hairline-top oix-hairline-bottom">
+        <EditorialHeadline eyebrow="Team · Deliberate" serifAccent="overstated.">
+          Small.  Never
+        </EditorialHeadline>
+        <p className="mt-6 max-w-2xl text-[15px] text-[var(--oix-cream)]/70 leading-relaxed">
+          Every role reflects either an active founder or a planned hire — we
+          don&apos;t list titles we don&apos;t hold.
+        </p>
+        <div className="mt-14 grid gap-4 md:grid-cols-3">
+          {TEAM.map((p) => (
+            <Card
+              key={p.role}
+              className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+            >
+              <Users className="h-5 w-5 text-[var(--oix-gold)]" />
+              <div className="mt-6 oix-display text-lg text-[var(--oix-cream)]">{p.name}</div>
+              <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-[var(--oix-gold-soft)]">
+                {p.role}
+              </div>
+              <p className="mt-4 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{p.body}</p>
+            </Card>
+          ))}
+        </div>
+      </SectionShell>
+
+      {/* Go-to-market */}
+      <SectionShell>
+        <EditorialHeadline eyebrow="Go-to-market" serifAccent="industrial Europe.">
+          Land in DACH. Expand into
+        </EditorialHeadline>
+        <div className="mt-14 grid gap-4 md:grid-cols-3">
+          {PHASES.map((p) => (
+            <Card
+              key={p.title}
+              className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+            >
+              <p.icon className="h-6 w-6 text-[var(--oix-gold)]" />
+              <div className="mt-6 text-[10px] uppercase tracking-[0.24em] text-[var(--oix-gold-soft)] font-mono">
+                {p.tag}
+              </div>
+              <div className="mt-2 oix-display text-xl text-[var(--oix-cream)]">{p.title}</div>
+              <p className="mt-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{p.body}</p>
+            </Card>
+          ))}
+        </div>
+      </SectionShell>
 
       {/* Market */}
-      <section className="bg-surface-1 border-y border-border/60">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-          <div className="max-w-3xl">
-            <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Market</p>
-            <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
-              A large, defensible market — approached with discipline.
-            </h2>
-          </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {MARKET.map((m) => (
-              <Card key={m.tag} className="p-6 border-border/60">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  <span className="text-xs font-mono text-primary">{m.tag}</span>
-                </div>
-                <div className="mt-3 font-semibold">{m.value}</div>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{m.body}</p>
-              </Card>
-            ))}
-          </div>
+      <SectionShell className="oix-hairline-top oix-hairline-bottom">
+        <EditorialHeadline eyebrow="Market · Discipline" serifAccent="defensible.">
+          Large. And
+        </EditorialHeadline>
+        <div className="mt-14 grid gap-4 md:grid-cols-3">
+          {MARKET.map((m) => (
+            <Card
+              key={m.tag}
+              className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+            >
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-[var(--oix-gold)]" />
+                <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--oix-gold-soft)]">
+                  {m.tag}
+                </span>
+              </div>
+              <div className="mt-4 oix-display text-4xl text-[var(--oix-cream)]">{m.value}</div>
+              <p className="mt-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{m.body}</p>
+            </Card>
+          ))}
         </div>
-      </section>
+      </SectionShell>
 
-      {/* Where we are */}
-      <section className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <MapPin className="h-6 w-6 text-primary mx-auto" />
-        <h2 className="mt-4 text-3xl font-semibold tracking-tight">
-          Built in Europe. Deployed inside your Windows environment.
-        </h2>
-        <p className="mt-3 text-muted-foreground">
-          Talk to us about a reference install, a partnership, or a demo of the
-          Windows Self-Hosted product.
-        </p>
-        <div className="mt-6 flex gap-3 justify-center">
-          <Button asChild>
-            <Link to="/contact">Contact OPSQAI</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/self-hosted">See the Self-Hosted product</Link>
-          </Button>
+      {/* CTA */}
+      <SectionShell>
+        <div className="text-center max-w-3xl mx-auto">
+          <MapPin className="h-6 w-6 text-[var(--oix-gold)] mx-auto" />
+          <div className="mt-6">
+            <EditorialHeadline
+              align="center"
+              eyebrow="Built in Europe"
+              serifAccent="Windows environment."
+            >
+              Deployed inside your
+            </EditorialHeadline>
+          </div>
+          <p className="mt-6 text-[var(--oix-cream)]/70">
+            Talk to us about a reference install, a partnership, or a demo of the
+            Windows Self-Hosted product.
+          </p>
+          <div className="mt-8 flex gap-3 justify-center">
+            <OixButton to="/contact" variant="gold" withArrow>
+              Contact OPSQAI
+            </OixButton>
+            <OixButton to="/self-hosted" variant="ghost">
+              See the Self-Hosted product
+            </OixButton>
+          </div>
         </div>
-      </section>
-    </MarketingLayout>
+      </SectionShell>
+    </OixLayout>
   );
 }

@@ -1,9 +1,7 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,6 +14,15 @@ import {
 import { Mail, ShieldCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { CONTACT_SUBJECT_LABELS, type ContactSubject } from "@/lib/email/routing";
+import { OixLayout } from "@/components/oix/oix-layout";
+import { Scene3D } from "@/components/three/scene-3d";
+import { GridFloor } from "@/components/three/primitives/grid-floor";
+import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { SectionShell } from "@/components/oix/section-shell";
+import { OixButton } from "@/components/oix/buttons";
+import { MottoBand } from "@/components/oix/motto-band";
 
 const SearchSchema = z.object({
   subject: z
@@ -58,6 +65,9 @@ export const Route = createFileRoute("/contact")({
 const SUBJECT_OPTIONS: Array<{ value: ContactSubject; label: string }> = (
   Object.entries(CONTACT_SUBJECT_LABELS) as Array<[ContactSubject, string]>
 ).map(([value, label]) => ({ value, label }));
+
+const inputCls =
+  "bg-[var(--oix-onyx)]/60 border-[var(--oix-gold-line)]/40 text-[var(--oix-cream)] placeholder:text-[var(--oix-cream)]/40 focus-visible:border-[var(--oix-gold)]/70 focus-visible:ring-0";
 
 function ContactPage() {
   const search = useSearch({ from: "/contact" });
@@ -105,37 +115,77 @@ function ContactPage() {
   };
 
   return (
-    <MarketingLayout>
-      <section className="mx-auto max-w-4xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Contact</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          Let's talk operations.
-        </h1>
-        <p className="mt-5 text-lg text-muted-foreground">
-          Pick the topic that best fits — your message routes straight to the right team, and you'll
-          get a confirmation by email.
-        </p>
+    <OixLayout>
+      {/* Hero */}
+      <section className="relative isolate min-h-[60vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
+        <div className="absolute inset-0 -z-10">
+          <Scene3D cameraPosition={[0, 1.2, 5]} cameraFov={44}>
+            <ambientLight intensity={0.4} />
+            <pointLight position={[3, 3, 3]} intensity={1} color="#c9a84c" />
+            <GridFloor />
+            <EmberFog />
+            <GoldBloom />
+          </Scene3D>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(60% 60% at 50% 50%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.92) 88%)",
+            }}
+          />
+        </div>
 
-        <div className="mt-10 grid gap-8 md:grid-cols-3">
-          <Card className="p-6 md:col-span-2">
+        <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-16 md:pt-40 md:pb-24">
+          <div className="max-w-3xl">
+            <EditorialHeadline
+              as="h1"
+              size="xl"
+              eyebrow="Contact · Routed to the right team"
+              serifAccent="operations."
+            >
+              Let&apos;s talk
+            </EditorialHeadline>
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
+              Pick the topic that best fits — your message routes straight to the
+              right team, and you&apos;ll get a confirmation by email.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Form + channels */}
+      <SectionShell>
+        <div className="grid gap-8 md:grid-cols-3">
+          <Card className="p-8 md:col-span-2 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur oix-brackets">
             {reference ? (
-              <div className="text-sm">
-                <div className="text-base font-semibold">Thanks — we received your request.</div>
-                <p className="mt-2 text-muted-foreground">
-                  We've emailed a confirmation. Reference{" "}
-                  <span className="font-mono font-medium text-foreground">{reference}</span>. Our
-                  team typically responds within 1 business day (CET).
+              <div>
+                <div className="oix-display text-2xl text-[var(--oix-cream)]">
+                  Thanks — we received your request.
+                </div>
+                <p className="mt-4 text-[var(--oix-cream)]/70 leading-relaxed">
+                  We&apos;ve emailed a confirmation. Reference{" "}
+                  <span className="font-mono font-medium text-[var(--oix-gold)]">
+                    {reference}
+                  </span>
+                  . Our team typically responds within 1 business day (CET).
                 </p>
-                <Button className="mt-4" variant="outline" onClick={() => setReference(null)}>
-                  Send another message
-                </Button>
+                <div className="mt-6">
+                  <OixButton variant="ghost" onClick={() => setReference(null)}>
+                    Send another message
+                  </OixButton>
+                </div>
               </div>
             ) : (
-              <form onSubmit={onSubmit} className="space-y-4">
+              <form onSubmit={onSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="subject">What can we help with?</Label>
-                  <Select value={subject} onValueChange={(v) => setSubject(v as ContactSubject)}>
-                    <SelectTrigger id="subject">
+                  <Label htmlFor="subject" className="oix-eyebrow text-[10px]">
+                    What can we help with?
+                  </Label>
+                  <Select
+                    value={subject}
+                    onValueChange={(v) => setSubject(v as ContactSubject)}
+                  >
+                    <SelectTrigger id="subject" className={inputCls}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -149,52 +199,82 @@ function ContactPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" required autoComplete="name" />
+                    <Label htmlFor="name" className="oix-eyebrow text-[10px]">Name</Label>
+                    <Input id="name" name="name" required autoComplete="name" className={inputCls} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Work email</Label>
-                    <Input id="email" name="email" type="email" required autoComplete="email" />
+                    <Label htmlFor="email" className="oix-eyebrow text-[10px]">Work email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      className={inputCls}
+                    />
                   </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="company">Company</Label>
-                    <Input id="company" name="company" autoComplete="organization" />
+                    <Label htmlFor="company" className="oix-eyebrow text-[10px]">Company</Label>
+                    <Input
+                      id="company"
+                      name="company"
+                      autoComplete="organization"
+                      className={inputCls}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone (optional)</Label>
-                    <Input id="phone" name="phone" type="tel" autoComplete="tel" />
+                    <Label htmlFor="phone" className="oix-eyebrow text-[10px]">
+                      Phone (optional)
+                    </Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      className={inputCls}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Input id="country" name="country" autoComplete="country-name" />
+                  <Label htmlFor="country" className="oix-eyebrow text-[10px]">Country</Label>
+                  <Input
+                    id="country"
+                    name="country"
+                    autoComplete="country-name"
+                    className={inputCls}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
+                  <Label htmlFor="message" className="oix-eyebrow text-[10px]">Message</Label>
                   <textarea
                     id="message"
                     name="message"
                     rows={5}
                     required
                     minLength={10}
-                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                    className="flex min-h-[140px] w-full rounded-none border border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 px-3 py-2.5 text-sm text-[var(--oix-cream)] placeholder:text-[var(--oix-cream)]/40 focus-visible:outline-none focus-visible:border-[var(--oix-gold)]/70"
                   />
                 </div>
-                {/* Honeypot — hidden from users, visible to bots */}
+                {/* Honeypot */}
                 <div className="hidden" aria-hidden="true">
                   <label>
                     Website
                     <input name="website" type="text" tabIndex={-1} autoComplete="off" />
                   </label>
                 </div>
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? "Sending…" : "Send message"}
-                </Button>
-                <p className="text-xs text-muted-foreground">
+                <div className="pt-2">
+                  <OixButton variant="gold" withArrow disabled={submitting} type="submit">
+                    {submitting ? "Sending…" : "Send message"}
+                  </OixButton>
+                </div>
+                <p className="text-xs text-[var(--oix-cream)]/50">
                   By submitting you agree to our{" "}
-                  <a href="/legal/privacy" className="underline">
+                  <a
+                    href="/legal/privacy"
+                    className="underline hover:text-[var(--oix-gold-soft)]"
+                  >
                     privacy notice
                   </a>
                   .
@@ -204,47 +284,40 @@ function ContactPage() {
           </Card>
 
           <div className="space-y-4">
-            <Card className="p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">General</div>
-              <a
-                href="/contact?subject=general"
-                className="mt-2 flex items-center gap-2 font-medium hover:underline"
+            {[
+              { label: "General", email: "info@opsqai.de", subject: "general", icon: Mail },
+              { label: "Support", email: "support@opsqai.de", subject: "support", icon: Mail },
+              {
+                label: "Security",
+                email: "security@opsqai.de",
+                subject: "security",
+                icon: ShieldCheck,
+              },
+              {
+                label: "Privacy & GDPR",
+                email: "policy@opsqai.de",
+                subject: "privacy",
+                icon: Lock,
+              },
+            ].map((c) => (
+              <Card
+                key={c.email}
+                className="p-5 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur"
               >
-                <Mail className="h-4 w-4" /> info@opsqai.de
-              </a>
-            </Card>
-            <Card className="p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Support</div>
-              <a
-                href="/contact?subject=support"
-                className="mt-2 flex items-center gap-2 font-medium hover:underline"
-              >
-                <Mail className="h-4 w-4" /> support@opsqai.de
-              </a>
-            </Card>
-            <Card className="p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Security</div>
-              <a
-                href="/contact?subject=security"
-                className="mt-2 flex items-center gap-2 font-medium hover:underline"
-              >
-                <ShieldCheck className="h-4 w-4" /> security@opsqai.de
-              </a>
-            </Card>
-            <Card className="p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                Privacy &amp; GDPR
-              </div>
-              <a
-                href="/contact?subject=privacy"
-                className="mt-2 flex items-center gap-2 font-medium hover:underline"
-              >
-                <Lock className="h-4 w-4" /> policy@opsqai.de
-              </a>
-            </Card>
+                <div className="oix-eyebrow text-[10px]">{c.label}</div>
+                <a
+                  href={`/contact?subject=${c.subject}`}
+                  className="mt-3 flex items-center gap-2 text-sm font-medium text-[var(--oix-cream)] hover:text-[var(--oix-gold-soft)] transition-colors"
+                >
+                  <c.icon className="h-4 w-4 text-[var(--oix-gold)]" /> {c.email}
+                </a>
+              </Card>
+            ))}
           </div>
         </div>
-      </section>
-    </MarketingLayout>
+      </SectionShell>
+
+      <MottoBand size="lg" compact />
+    </OixLayout>
   );
 }
