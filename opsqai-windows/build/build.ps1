@@ -18,6 +18,7 @@ param(
   [switch]$SkipPostgres,   # for fast dev iterations (~200 MB)
   [switch]$SkipApp,        # skip the npm build (use previously staged payload\app)
   [switch]$SkipWizard,     # skip Electron wizard packaging (use previously staged payload\wizard)
+  [switch]$SkipDesktop,    # skip Electron desktop shell packaging (use previously staged payload\desktop-shell)
   [string]$Version = '0.0.0-dev'
 )
 
