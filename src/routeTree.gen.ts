@@ -20,6 +20,7 @@ import { Route as ProductRouteImport } from './routes/product'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as HealthRouteImport } from './routes/health'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DocumentationRouteImport } from './routes/documentation'
@@ -182,6 +183,11 @@ const ModulesRoute = ModulesRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthRoute = HealthRouteImport.update({
+  id: '/health',
+  path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -785,6 +791,7 @@ export interface FileRoutesByFullPath {
   '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health': typeof HealthRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
@@ -903,6 +910,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health': typeof HealthRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
@@ -1020,6 +1028,7 @@ export interface FileRoutesById {
   '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health': typeof HealthRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
@@ -1142,6 +1151,7 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/first-run'
     | '/forgot-password'
+    | '/health'
     | '/mcp'
     | '/modules'
     | '/pricing'
@@ -1260,6 +1270,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/first-run'
     | '/forgot-password'
+    | '/health'
     | '/mcp'
     | '/modules'
     | '/pricing'
@@ -1376,6 +1387,7 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/first-run'
     | '/forgot-password'
+    | '/health'
     | '/mcp'
     | '/modules'
     | '/pricing'
@@ -1498,6 +1510,7 @@ export interface RootRouteChildren {
   DocumentationRoute: typeof DocumentationRouteWithChildren
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  HealthRoute: typeof HealthRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
   PricingRoute: typeof PricingRoute
@@ -1622,6 +1635,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health': {
+      id: '/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -2643,6 +2663,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentationRoute: DocumentationRouteWithChildren,
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  HealthRoute: HealthRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
   PricingRoute: PricingRoute,

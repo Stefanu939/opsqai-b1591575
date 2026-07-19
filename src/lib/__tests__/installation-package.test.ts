@@ -1,7 +1,24 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { assembleInstallationPackage } from "@/lib/installation-package.server";
 import { unzipSync, strFromU8 } from "fflate";
 import type { ActivationBundle } from "@/lib/license-activation.functions";
+
+vi.mock("@/lib/license-activation-core.server", () => ({
+  signBundleAsJwt: async (bundle: ActivationBundle) => {
+    const b64url = (value: string) =>
+      Buffer.from(value).toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    return [
+      b64url(JSON.stringify({ alg: "EdDSA", typ: "JWT", cty: "opsqai-activation-bundle+json" })),
+      b64url(JSON.stringify(bundle)),
+      b64url("fake-signature"),
+    ].join(".");
+  },
+}));
+
+function decodeJwtPayload<T>(token: string): T {
+  const payload = token.split(".")[1];
+  return JSON.parse(Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")) as T;
+}
 
 function fakeBundle(install_id: string): ActivationBundle {
   return {
@@ -37,7 +54,7 @@ describe("assembleInstallationPackage (Windows-only, license bundle)", () => {
     const files = unzipSync(bytes);
     const names = Object.keys(files).sort();
     expect(names).toEqual(
-      ["CHECKSUMS.sha256", "INSTALLER.txt", "README.md", "activation-bundle.json"].sort(),
+      ["CHECKSUMS.sha256", "INSTALLER.txt", "README.md", "activation-bundle.jwt"].sort(),
     );
 
     // The .exe must NOT be embedded — it lives on the CDN.
@@ -58,8 +75,10 @@ describe("assembleInstallationPackage (Windows-only, license bundle)", () => {
       expect(files[forbidden]).toBeUndefined();
     }
 
-    // Activation bundle is embedded verbatim
-    const parsedBundle = JSON.parse(strFromU8(files["activation-bundle.json"])) as ActivationBundle;
+    // Activation bundle is embedded as compact JWT
+    const activationJwt = strFromU8(files["activation-bundle.jwt"]);
+    expect(activationJwt.split(".")).toHaveLength(3);
+    const parsedBundle = decodeJwtPayload<ActivationBundle>(activationJwt);
     expect(parsedBundle.install_id).toBe("acme-prod");
     expect(parsedBundle.module_tokens).toHaveLength(1);
 
@@ -72,6 +91,7 @@ describe("assembleInstallationPackage (Windows-only, license bundle)", () => {
     // README is Markdown, Windows-focused, references the CDN download.
     const readme = strFromU8(files["README.md"]);
     expect(readme).toContain("OPSQAI-Setup.exe");
+    expect(readme).toContain("activation-bundle.jwt");
     expect(readme).toContain("Windows");
     expect(readme).toContain("acme-prod");
     expect(readme).not.toContain("docker compose");
@@ -90,8 +110,8 @@ describe("assembleInstallationPackage (Windows-only, license bundle)", () => {
     expect(a.file_name).toBe(b.file_name);
     const filesA = unzipSync(a.bytes);
     const filesB = unzipSync(b.bytes);
-    const bundleA = JSON.parse(strFromU8(filesA["activation-bundle.json"])) as ActivationBundle;
-    const bundleB = JSON.parse(strFromU8(filesB["activation-bundle.json"])) as ActivationBundle;
+    const bundleA = decodeJwtPayload<ActivationBundle>(strFromU8(filesA["activation-bundle.jwt"]));
+    const bundleB = decodeJwtPayload<ActivationBundle>(strFromU8(filesB["activation-bundle.jwt"]));
     expect(bundleA.install_id).toBe(bundleB.install_id);
     expect(bundleA.install_id).toBe("acme-prod");
   });

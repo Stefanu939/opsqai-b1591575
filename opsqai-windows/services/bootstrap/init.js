@@ -19,6 +19,7 @@
 const fs = require("fs");
 const path = require("path");
 const net = require("net");
+const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
 const { execFileSync, spawnSync } = require("child_process");
@@ -344,6 +345,38 @@ function httpsGet(url, ms = 30_000) {
     });
   });
 }
+function httpGet(url, ms = 30_000) {
+  return new Promise((resolve) => {
+    const req = http.get(url, { timeout: ms }, (res) => {
+      let body = "";
+      res.on("data", (c) => (body += c));
+      res.on("end", () => resolve({ status: res.statusCode, body }));
+    });
+    req.on("error", (e) => resolve({ status: 0, error: e.message }));
+    req.on("timeout", () => {
+      req.destroy();
+      resolve({ status: 0, error: "timeout" });
+    });
+  });
+}
+
+async function waitForHealthProbe(label, url, getter, seconds) {
+  log(`probing ${label}: ${url}`);
+  let last = { status: 0, error: "not-started", body: "" };
+  for (let i = 0; i < seconds; i++) {
+    last = await getter(url, 5000);
+    if (last.status && last.status >= 200 && last.status < 500) {
+      log(`${label} health OK (HTTP ${last.status}) after ${i + 1}s`);
+      return { ok: true, last };
+    }
+    if (i === 0 || i === 30 || i === 60 || i === 90) {
+      const body = last.body ? ` body=${String(last.body).slice(0, 300).replace(/\s+/g, " ")}` : "";
+      log(`${label} health still waiting (t=${i + 1}s, last=${last.status || 0} ${last.error || ""}${body})`);
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return { ok: false, last };
+}
 
 // ─── installation_state (bootstrap-only table) ────────────────────────────
 function pgArgs() {
@@ -654,22 +687,22 @@ function resetEmbeddedDatabase() {
     svcCmd("OpsqaiWorker", "start");
     svcCmd("OpsqaiUpdater", "start");
 
-    log("probing https://localhost/health");
-    let ok = false;
-    for (let i = 0; i < 120; i++) {
-      const r = await httpsGet("https://localhost/health", 5000);
-      if (r.status && r.status >= 200 && r.status < 500) {
-        log(`health OK (HTTP ${r.status}) after ${i + 1}s`);
-        ok = true;
-        break;
-      }
-      if (i === 0 || i === 30 || i === 60 || i === 90) {
-        log(`health probe still waiting (t=${i + 1}s, last=${r.status || 0} ${r.error || ""})`);
-      }
-      await new Promise((r) => setTimeout(r, 1000));
-    }
-    if (!ok) {
-      const errFields = { code: "OPSQAI-E1301", message: "health probe failed after service start" };
+    const nodeHealth = await waitForHealthProbe(
+      "node",
+      "http://127.0.0.1:3000/health",
+      httpGet,
+      120,
+    );
+    const caddyHealth = nodeHealth.ok
+      ? await waitForHealthProbe("caddy", "https://localhost/health", httpsGet, 120)
+      : { ok: false, last: nodeHealth.last };
+    if (!nodeHealth.ok || !caddyHealth.ok) {
+      const failingLayer = nodeHealth.ok ? "caddy" : "node";
+      const last = nodeHealth.ok ? caddyHealth.last : nodeHealth.last;
+      const errFields = {
+        code: "OPSQAI-E1301",
+        message: `health probe failed after service start (${failingLayer}; last=${last.status || 0} ${last.error || ""})`,
+      };
       writeInstallState("failed", "services", errFields);
       console.log(formatFail("bootstrap", errFields.code, { message: errFields.message, log_path: LOG_PATH }));
       process.exit(5);

@@ -4,6 +4,12 @@ import { renderErrorPage } from "./lib/error-page";
 import { attachBearerToken } from "@/integrations/supabase/bearer-attacher";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
+const HEALTH_PATHS = new Set(["/health", "/api/public/ready", "/api/public/health"]);
+
+function isHealthPath(request: Request): boolean {
+  return HEALTH_PATHS.has(new URL(request.url).pathname);
+}
+
 const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   const url = new URL(request.url);
   if (url.pathname.startsWith("/lovable/")) {
@@ -16,6 +22,17 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
       throw error;
     }
     console.error(error);
+    if (isHealthPath(request)) {
+      return Response.json(
+        {
+          ok: false,
+          ready: false,
+          error: error instanceof Error ? error.message : String(error),
+          at: new Date().toISOString(),
+        },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
     return new Response(renderErrorPage(), {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },
@@ -39,7 +56,10 @@ const providerBootstrapFunctionMiddleware = createMiddleware({
 // Same guard for SSR page requests, so route loaders that resolve
 // providers also see a populated registry.
 const providerBootstrapRequestMiddleware = createMiddleware().server(
-  async ({ next }) => {
+  async ({ next, request }) => {
+    if (isHealthPath(request)) {
+      return next();
+    }
     const { ensureServerProviders } = await import(
       "./lib/providers/server-bootstrap.server"
     );
