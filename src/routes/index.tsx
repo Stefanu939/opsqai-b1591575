@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import heroImage from "@/assets/marketing-hero.jpg";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Brain,
@@ -36,7 +36,6 @@ import {
   MessageSquare,
   ChevronRight,
 } from "lucide-react";
-import { MarketingLayout } from "@/components/marketing/layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -46,6 +45,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { pageHead, softwareApplicationLd } from "@/lib/seo";
+import { OixLayout } from "@/components/oix/oix-layout";
+import { Scene3D } from "@/components/three/scene-3d";
+import { ParticleGenesis } from "@/components/three/particle-genesis";
+import { GridFloor } from "@/components/three/primitives/grid-floor";
+import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { MottoBand } from "@/components/oix/motto-band";
+import { SecurityWall } from "@/components/oix/security-wall";
+import { OixButton } from "@/components/oix/buttons";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -68,20 +77,22 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   return (
-    <MarketingLayout>
+    <OixLayout>
       <Hero />
       <WhoFor />
       <WhyNow />
+      <MottoBand />
       <ThreeSurfaces />
       <BasicPlatform />
       <PremiumModules />
       <DeliveryComparison />
       <Differentiation />
+      <SecurityWall />
       <LandExpand />
       <Maturity />
       <FAQSection />
       <FinalCTA />
-    </MarketingLayout>
+    </OixLayout>
   );
 }
 
@@ -109,67 +120,107 @@ function SectionHead({
   );
 }
 
-/* ---------------- Hero ---------------- */
+/* ---------------- Hero — Cinematic 3D Genesis ---------------- */
+
+function useScrollProgress(maxScroll = 1100) {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = Math.min(window.scrollY, maxScroll);
+      setP((y / maxScroll) * 4);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [maxScroll]);
+  return p;
+}
 
 function Hero() {
-  return (
-    <section className="relative overflow-hidden border-b border-border/50">
-      <div className="absolute inset-0 -z-10">
-        <img
-          src={heroImage}
-          alt=""
-          width={1920}
-          height={1088}
-          className="w-full h-full object-cover object-center opacity-30 dark:opacity-40"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/95 to-background" />
-        <div className="absolute inset-0 [background:radial-gradient(70%_55%_at_50%_0%,rgba(201,162,76,0.10),transparent_75%)]" />
-      </div>
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-20 pb-24 md:pt-32 md:pb-36">
-        <div className="max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--gold-line)] bg-[var(--gold-soft)]/40 px-3 py-1 text-[11px] tracking-[0.16em] uppercase text-[color:var(--gold)] font-medium">
-            <Sparkles className="h-3 w-3" />
-            Enterprise Operational AI Platform
-          </div>
-          <h1 className="mt-6 font-display text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-semibold tracking-tight leading-[1.03]">
-            The operating system for
-            <br className="hidden sm:block" />
-            <span className="text-[color:var(--gold)]"> operational knowledge.</span>
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl">
-            OPSQAI is a Windows Self-Hosted platform that brings governed AI to
-            industrial operations. Sovereign by design — customers own their
-            data, documents, embeddings and AI provider. OPSQAI never sees
-            operational knowledge.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link to="/self-hosted">
-                How it works
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/contact">Request demo</Link>
-            </Button>
-          </div>
+  const progress = useScrollProgress(1100);
+  const acts = [
+    { i: 0, label: "Chaos" },
+    { i: 1, label: "Documents" },
+    { i: 2, label: "SOPs" },
+    { i: 3, label: "Network" },
+    { i: 4, label: "OPSQAI" },
+  ];
+  const activeAct = Math.min(4, Math.max(0, Math.round(progress)));
 
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl">
-            {[
-              { icon: HardDrive, label: "Windows Self-Hosted" },
-              { icon: ShieldCheck, label: "Sovereign by design" },
-              { icon: Fingerprint, label: "Customer-owned AI" },
-              { icon: ScrollText, label: "Signed & audited" },
-            ].map((b) => (
-              <div
-                key={b.label}
-                className="flex items-center gap-2 text-xs text-foreground/80 border border-border/60 rounded-lg bg-surface-1/70 backdrop-blur-sm px-3 py-2.5"
-              >
-                <b.icon className="h-3.5 w-3.5 text-[color:var(--gold)]" />
-                <span className="truncate font-medium">{b.label}</span>
-              </div>
-            ))}
+  return (
+    <section className="relative isolate min-h-screen overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <Scene3D cameraPosition={[0, 0.5, 7]} cameraFov={48}>
+          <ambientLight intensity={0.25} />
+          <pointLight position={[6, 4, 6]} intensity={0.9} color="#c9a84c" />
+          <pointLight position={[-6, -3, 4]} intensity={0.6} color="#2dd4a8" />
+          <GridFloor />
+          <EmberFog />
+          <ParticleGenesis progress={progress} autoPlay={false} />
+          <GoldBloom />
+        </Scene3D>
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(80% 60% at 50% 20%, rgba(13,122,95,0.20) 0%, transparent 60%), linear-gradient(180deg, rgba(4,10,8,0.55) 0%, rgba(4,10,8,0.85) 100%)",
+          }}
+        />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-40 md:pt-40 md:pb-48">
+        <div className="max-w-4xl">
+          <EditorialHeadline
+            as="h1"
+            size="xl"
+            eyebrow={
+              <span className="inline-flex items-center gap-2">
+                <Sparkles className="h-3 w-3 text-[var(--oix-gold)]" />
+                Enterprise Operational Intelligence
+              </span>
+            }
+            serifAccent="for people."
+          >
+            The operating system
+            <br className="hidden sm:block" /> for operational knowledge —
+          </EditorialHeadline>
+
+          <p className="mt-8 max-w-2xl text-lg md:text-xl leading-relaxed text-[var(--oix-cream)]/75">
+            OPSQAI is a Windows Self-Hosted platform that brings governed AI to
+            industrial operations. Sovereign by design. Customers own their
+            data, documents, embeddings and AI provider. We never see
+            operational knowledge — and we built it that way on purpose,
+            because it&apos;s{" "}
+            <em className="oix-serif-italic text-[var(--oix-gold)]">not without them</em>.
+          </p>
+
+          <div className="mt-10 flex flex-wrap gap-3">
+            <OixButton to="/self-hosted" variant="gold" withArrow>
+              How it works
+            </OixButton>
+            <OixButton to="/contact" variant="ghost">
+              Request demo
+            </OixButton>
           </div>
+        </div>
+
+        <div className="pointer-events-none mt-24 hidden md:flex items-center gap-6 text-[10px] uppercase tracking-[0.28em] text-[var(--oix-cream)]/50">
+          {acts.map((a) => (
+            <div
+              key={a.label}
+              className={
+                "flex items-center gap-2 transition-opacity duration-500 " +
+                (a.i === activeAct ? "opacity-100 text-[var(--oix-gold)]" : "opacity-40")
+              }
+            >
+              <span className="font-mono">0{a.i + 1}</span>
+              <span>{a.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-[var(--oix-cream)]/40">
+          Scroll — the film begins
         </div>
       </div>
     </section>
