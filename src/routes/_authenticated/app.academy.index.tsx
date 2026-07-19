@@ -25,6 +25,7 @@ import {
   Timer,
   ListChecks,
   PlusCircle,
+  type LucideIcon,
 } from "lucide-react";
 import { AcademySubnav } from "@/components/app/academy-subnav";
 import { AssignTrainingDialog } from "@/components/academy/assign-training-dialog";
@@ -121,7 +122,7 @@ function MyTrainingHome() {
     [rows],
   );
 
-  const FILTERS: Array<{ id: Filter; label: string; icon: React.ElementType }> = [
+  const FILTERS: Array<{ id: Filter; label: string; icon: LucideIcon }> = [
     { id: "all", label: "All training", icon: BookOpen },
     { id: "mandatory", label: "Mandatory", icon: AlertTriangle },
     { id: "optional", label: "Optional", icon: Sparkles },
@@ -265,7 +266,7 @@ function SummaryStat({
   onClick,
   tone = "default",
 }: {
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
   value: string | number;
   onClick?: () => void;
