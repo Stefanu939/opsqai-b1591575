@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { OixLayout } from "@/components/oix/oix-layout";
 import { Scene3D } from "@/components/three/scene-3d";
 import { ModuleConstellation } from "@/components/three/primitives/module-constellation";
