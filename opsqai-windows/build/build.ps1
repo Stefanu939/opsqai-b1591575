@@ -92,32 +92,33 @@ function assertContains(parent, child, label) {
     # It's .cjs (not .js) so Node treats it as CommonJS regardless of app/server's package.json `"type": "module"`.
     Copy-Item (Join-Path $root 'services\bootstrap\errors.cjs') (Join-Path $appStage 'server\errors.cjs') -Force
 
-    # admin-seed.mjs imports npm packages ('pg', 'argon2'). The Nitro bundle
-    # next door doesn't expose those to a standalone script, so bundle it
-    # with esbuild: `pg` is pure JS and gets inlined; `argon2` ships a
-    # native .node addon and must stay external — we stage its module tree
-    # beside admin-seed.mjs so Node resolves `import 'argon2'` from
-    # payload\app\server\node_modules\argon2.
-    $adminSrc = Join-Path $root 'services\bootstrap\admin-seed.mjs'
-    $adminOut = Join-Path $appStage 'server\admin-seed.mjs'
-    & bunx --bun esbuild $adminSrc --bundle --platform=node --format=esm --target=node20 --external:argon2 "--outfile=$adminOut"
-    if ($LASTEXITCODE -ne 0) { throw "esbuild admin-seed.mjs failed" }
-
-    # Stage argon2 + transitive runtime deps into payload\app\server\node_modules.
-    # node-gyp-build resolves the prebuild from argon2\prebuilds\win32-x64 at load time,
-    # so the Windows-installed node_modules tree (this script only runs on Windows CI)
-    # already contains the correct native binary under that folder.
-    $nmDst = Join-Path $appStage 'server\node_modules'
-    New-Item -ItemType Directory -Force -Path $nmDst | Out-Null
-    foreach ($pkg in @('argon2','node-addon-api','node-gyp-build')) {
-      $src = Join-Path $projectRoot ("node_modules\" + $pkg)
-      if (-not (Test-Path $src)) { throw "Required runtime dep missing from node_modules: $pkg" }
-      Copy-Item $src (Join-Path $nmDst $pkg) -Recurse -Force
-    }
-    $phcSrc = Join-Path $projectRoot 'node_modules\@phc\format'
-    if (-not (Test-Path $phcSrc)) { throw "Required runtime dep missing from node_modules: @phc/format" }
-    New-Item -ItemType Directory -Force -Path (Join-Path $nmDst '@phc') | Out-Null
-    Copy-Item $phcSrc (Join-Path $nmDst '@phc\format') -Recurse -Force
+    # admin-seed.mjs is a standalone Node script that needs `pg` and
+    # `argon2`. Bundling with esbuild inlines pg's CommonJS internals into
+    # an ESM output, which breaks at runtime ("Dynamic require of 'events'
+    # is not supported"). Ship admin-seed.mjs verbatim in its own subfolder
+    # with a dedicated package.json + real node_modules, installed by bun,
+    # so Node resolves `pg` and `argon2` as normal packages. argon2's
+    # win32-x64 native prebuild is picked up by node-gyp-build at load time.
+    $seedDir = Join-Path $appStage 'server\admin-seed'
+    Remove-Item $seedDir -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $seedDir | Out-Null
+    Copy-Item (Join-Path $root 'services\bootstrap\admin-seed.mjs') (Join-Path $seedDir 'admin-seed.mjs') -Force
+    @'
+{
+  "name": "opsqai-admin-seed",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "pg": "^8.13.1",
+    "argon2": "^0.41.1"
+  }
+}
+'@ | Set-Content -Path (Join-Path $seedDir 'package.json') -Encoding UTF8 -NoNewline
+    Push-Location $seedDir
+    try {
+      & bun install --production --no-save
+      if ($LASTEXITCODE -ne 0) { throw "bun install for admin-seed failed" }
+    } finally { Pop-Location }
     # Self-Hosted uses its own, vanilla-PostgreSQL migration set. The
     # Supabase set (auth.*, RLS via auth.uid(), authenticated/anon/service_role)
     # is Cloud-only and MUST NEVER be copied into the Windows payload.
