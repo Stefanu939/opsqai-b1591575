@@ -1,119 +1,88 @@
-## Diagnosis
 
-**Do I know what the issue is?** Yes.
+# Plan: OPSQAI Desktop Shell (Electron)
 
-The problem is **not that `/health` is missing**. It is already wired:
+Clientul primește o **aplicație desktop reală** (fereastră proprie, iconiță, taskbar) în loc de un shortcut la browser. Serviciile Windows existente (`OpsqaiPlatform`, `OpsqaiDatabase`, `OpsqaiCaddy`) rămân neatinse — shell-ul doar afișează UI-ul lor local.
 
-- Caddy rewrites `/health` to `/api/public/ready`.
-- The app has routes for `/api/public/ready` and `/api/public/health`.
-- The browser/installer gets HTTP **500**, so Caddy/TLS is reaching the Node app.
+## Ce se schimbă din perspectiva clientului
 
-The real issue is: **global TanStack Start request middleware runs before server routes**, including health routes. I verified this against the current code and TanStack docs. In `src/start.ts`, `providerBootstrapRequestMiddleware` runs `ensureServerProviders()` for every request. If provider bootstrap fails, the `/health` route handler never runs, and `errorMiddleware` returns the generic HTML page: **“This page didn’t load”**.
+- Dublu-click pe iconița OPSQAI → se deschide o **fereastră aplicație** (fără bară de URL, fără avertisment "Not secure").
+- Prima dată: splash "Se pornește OPSQAI…" cât timp shell-ul așteaptă serviciile.
+- Dacă un serviciu e stopped → shell-ul îl pornește automat (are deja privilegiile prin instalator) sau afișează un buton clar "Repornește serviciile".
+- Meniu nativ: File → Exit, Help → Doctor / Logs / About, Tray icon opțional pentru minimize-to-tray.
 
-So `/health` is currently blocked by app bootstrap instead of being a simple diagnostic endpoint.
-
-Also confirmed: the installer package still writes `activation-bundle.json` in `src/lib/installation-package.server.ts`, even though the portal path already signs activation bundles as JWT. That must be changed.
-
-## Important answer about Publish vs Installer
-
-**Publish will not fix `https://localhost/health` on the Windows machine.**
-
-`https://localhost/health` is served by the self-hosted Windows installation from the code packaged inside `OPSQAI-Setup.exe`. Publishing updates `opsqai.de` / the cloud Management Center, not the already-built local installer payload.
-
-So after this fix, we still need a **new Windows installer build**.
-
-## Plan
-
-### 1. Make `/health` a real self-hosted diagnostic endpoint
-
-Create a top-level route for `GET /health` that returns JSON directly, not React HTML.
-
-Expected responses:
-
-```json
-{ "ok": true, "ready": true, "mode": "selfhost", "at": "..." }
-```
-
-or, if app bootstrap/provider wiring is broken:
-
-```json
-{ "ok": false, "ready": false, "error": "...real error..." }
-```
-
-This makes browser testing simple: opening `https://localhost/health` should show JSON, never the generic “This page didn’t load” screen.
-
-### 2. Bypass global provider bootstrap for health routes
-
-Update `src/start.ts` so these paths do **not** call `ensureServerProviders()` before routing:
-
-- `/health`
-- `/api/public/ready`
-- `/api/public/health`
-
-This is the key fix. Health endpoints must diagnose bootstrap, not depend on bootstrap already working.
-
-### 3. Preserve JSON error output for health routes
-
-For those same health paths, `errorMiddleware` should not return `renderErrorPage()`.
-
-Instead it should return a JSON failure response with the actual error message, so the installer log can show what is wrong.
-
-### 4. Simplify Caddy routing
-
-Remove the `/health → /api/public/ready` rewrite from the Caddyfile and let Caddy proxy `/health` directly to the app.
-
-This avoids confusion: `/health` will be an actual route, not an alias hidden behind Caddy.
-
-### 5. Improve final bootstrap probe logs
-
-Update `opsqai-windows/services/bootstrap/init.js` to test in two steps:
-
-1. `http://127.0.0.1:3000/health` — direct Node app check.
-2. `https://localhost/health` — Caddy/TLS/proxy check.
-
-If it fails again, the log will say whether the issue is:
-
-- Node app not responding,
-- app bootstrap/provider failure,
-- Caddy not proxying,
-- TLS/local certificate problem.
-
-### 6. Convert initial installer activation bundle from JSON to JWT
-
-Update `src/lib/installation-package.server.ts` so the ZIP contains:
+## Arhitectură
 
 ```text
-activation-bundle.jwt
+┌─────────────────────────────────────────────┐
+│  OPSQAI.exe  (Electron shell, ~90 MB)       │
+│  ┌───────────────────────────────────────┐  │
+│  │ BrowserWindow → https://localhost     │  │
+│  │  (Caddy → OpsqaiPlatform :3000)       │  │
+│  └───────────────────────────────────────┘  │
+│  Main process:                              │
+│   • health-gate: poll /health până OK       │
+│   • service-control: sc query/start         │
+│   • CA trust: acceptă cert Caddy intern     │
+└─────────────────────────────────────────────┘
+       ↓ (nu se atinge)
+  Windows Services: Database · Platform · Caddy · Worker · Updater
 ```
 
-not:
+Shell-ul e un **client subțire** — zero logică de business. Toată aplicația rămâne în serviciile deja construite.
 
-```text
-activation-bundle.json
-```
+## Livrabile
 
-Implementation:
+### 1. Proiect nou `opsqai-windows/desktop-shell/`
 
-- Use the existing `signBundleAsJwt(bundle)` function.
-- Store the compact JWT string in the ZIP.
-- Update README text from `.json` to `.jwt`.
-- Update tests to decode JWT payload instead of `JSON.parse` on a JSON file.
+- `package.json` — Electron + `@electron/packager`, `"main": "main.cjs"`, `"type": "commonjs"`.
+- `main.cjs` — creează `BrowserWindow` (1280×800, `contextIsolation: true`, `nodeIntegration: false`), încarcă `https://localhost` după health-gate.
+- `preload.cjs` — expune un mic API (`opsqai.restartServices()`, `opsqai.openLogs()`, `opsqai.runDoctor()`) prin `contextBridge`.
+- `splash.html` + `error.html` — pagini statice locale pentru boot și fallback.
+- `assets/icon.ico` — iconița deja folosită de installer.
 
-This keeps all license activation paths consistent with your Windows requirement: **JWT only, no JSON license bundle**.
+### 2. Health-gate & service control (main process)
 
-### 7. Required result
+- La launch: `GET https://localhost/health` cu `rejectUnauthorized: false` (certul Caddy e local, controlat de noi), retry 500 ms până max 30 s.
+- Dacă timeout → `sc query OpsqaiPlatform` + `OpsqaiDatabase`; dacă `STOPPED` → `sc start` (shell-ul rulează cu privilegiile user-ului; dacă lipsesc, afișăm buton "Run as admin to repair").
+- Dacă tot eșuează → `error.html` cu: status per serviciu, buton "Retry", buton "Open Doctor", buton "Copy diagnostics".
 
-After rebuild/reinstall:
+### 3. Certificat local — fără "Not secure"
 
-- `https://localhost/health` returns JSON.
-- Installer final step no longer waits 120 seconds on repeated HTTP 500 without details.
-- Installer package contains `activation-bundle.jwt`, not `activation-bundle.json`.
-- If health fails again, the log contains the exact underlying app/provider error.
+`session.setCertificateVerifyProc` acceptă doar certul emis de CA-ul intern Caddy pentru `localhost` / `127.0.0.1`. Browserul extern rămâne opțiune "Open in browser" din meniu (acolo apare avertismentul până când CA-ul e trusted în Windows — separat).
 
-<presentation-actions>
-  <presentation-open-history>View History</presentation-open-history>
-</presentation-actions>
+### 4. Integrare în installer NSIS
 
-<presentation-actions>
-<presentation-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</presentation-link>
-</presentation-actions>
+- `build.ps1`: pas nou `Build-DesktopShell` → `npx @electron/packager` cu `--platform=win32 --arch=x64`, output în `payload/desktop-shell/`.
+- `OPSQAI-Setup.nsi`: copiază `payload/desktop-shell/` în `%ProgramFiles%\OPSQAI\desktop\`, shortcut-ul de pe Desktop și din Start Menu țintește `OPSQAI.exe` (nu mai deschide browserul).
+- Verificare mărime: installer crește de la ~330 MB la ~410-430 MB. Acceptabil pentru enterprise on-prem.
+
+### 5. Auto-update (fază ulterioară, nu acum)
+
+Shell-ul afișează versiunea din `platform_config.installer_version`. Update-ul aplicației rămâne prin `OpsqaiUpdater` service existent — shell-ul detectează versiune nouă la restart și afișează "Restart to apply update".
+
+### 6. Guardrails build
+
+- `verify-bundle.mjs`: adaugă scan pe `desktop-shell/` — nu are voie să conțină chei Cloud, Supabase URL, license private key.
+- Package-uit fără `devDependencies`, `--prune` la end.
+
+## Ce NU se schimbă
+
+- Serviciile Windows, migrațiile, licențierea, `/health`, Caddy — zero modificări.
+- MC / Cloud / Portal — nu sunt atinse (regula "două produse separate" din memory).
+- UI-ul React din `src/routes/` — shell-ul îl încarcă neschimbat prin Caddy.
+
+## Definition of Done
+
+1. Installer finalizat produce `OPSQAI.exe` pe desktop care deschide fereastră nativă, nu browser.
+2. La first launch, shell așteaptă `/health` → 200 OK, apoi afișează `/first-run` sau `/auth`.
+3. Fără avertisment de certificat în fereastra Electron.
+4. Dacă `OpsqaiPlatform` e stopped, shell-ul îl pornește automat sau afișează UI-ul de recovery.
+5. `verify-bundle` trece; installer semnat rulează end-to-end pe VM curat Windows 11.
+
+## Ordinea de execuție
+
+1. Schelet `desktop-shell/` + `main.cjs` cu health-gate și `BrowserWindow`.
+2. Splash + error page + preload cu API restart/logs/doctor.
+3. Certificate handling + service control.
+4. Integrare în `build.ps1` și `OPSQAI-Setup.nsi`, mutare shortcut.
+5. Test end-to-end pe VM curat + update guardrails.
