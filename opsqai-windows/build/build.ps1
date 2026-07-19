@@ -239,6 +239,33 @@ if (-not $SkipWizard) {
   Write-Host "Skipping wizard packaging (--SkipWizard)"
 }
 
+# --- 2c. Electron desktop shell -------------------------------------------
+# Thin Electron client that renders https://localhost in a native window
+# so the user gets a real desktop app instead of a browser shortcut.
+$desktopStage = Join-Path $payload 'desktop-shell'
+if (-not $SkipDesktop) {
+  $desktopSrc = Join-Path $root 'desktop-shell'
+  Assert-Exists (Join-Path $desktopSrc 'main.cjs') 'desktop shell main.cjs'
+  Write-Host "Packaging OPSQAI Desktop Shell (Electron)..."
+  Push-Location $desktopSrc
+  try {
+    if (-not (Test-Path 'node_modules')) {
+      & npm install
+      if ($LASTEXITCODE -ne 0) { throw "desktop-shell npm install failed" }
+    }
+    Remove-Item (Join-Path $desktopSrc 'dist') -Recurse -Force -ErrorAction SilentlyContinue
+    & npm run package
+    if ($LASTEXITCODE -ne 0) { throw "desktop-shell packaging failed" }
+    $packaged = Get-ChildItem (Join-Path $desktopSrc 'dist') -Directory | Select-Object -First 1
+    if (-not $packaged) { throw "electron-packager produced no output in $desktopSrc\dist" }
+    Remove-Item $desktopStage -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $desktopStage | Out-Null
+    Copy-Item (Join-Path $packaged.FullName '*') $desktopStage -Recurse -Force
+  } finally { Pop-Location }
+} else {
+  Write-Host "Skipping desktop-shell packaging (--SkipDesktop)"
+}
+
 
 # --- 3. Service entrypoints -----------------------------------------------
 $servicesDest = Join-Path $payload 'services'
