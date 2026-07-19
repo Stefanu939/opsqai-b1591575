@@ -8,7 +8,7 @@
 // in an air-gapped environment must still be able to use the product.
 
 import { readFile } from "node:fs/promises";
-import { createPublicKey, verify as cryptoVerify, type KeyObject } from "node:crypto";
+import { verify as cryptoVerify, type KeyObject } from "node:crypto";
 import type { Pool } from "pg";
 
 import type {
