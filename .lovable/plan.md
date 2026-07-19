@@ -1,48 +1,78 @@
-## Problem
+## Da, înțeleg exact acum
 
-The installed desktop app should open directly on the Self-Hosted **login screen** and, after sign-in, land on the **modules dashboard** — like a real desktop program (SAP, etc.), never showing the marketing site.
+Utilizatorul final NU trebuie să ajungă la login-ul de pe `opsqai.de` și NU trebuie să fie trimis la o pagină care îi spune să descarce iar aplicația.
 
-Currently it *technically* does that, but through a client-side redirect in `src/routes/index.tsx` — so the marketing hero flashes for ~200-400ms before jumping to `/auth`. That's why it still feels "web-ish".
+După instalare, iconița Windows trebuie să deschidă aplicația locală Self-Hosted:
 
-## Goal
+```text
+Double-click OPSQAI icon
+→ OPSQAI desktop window
+→ local Self-Hosted login
+→ email + parola admin creată în installer
+→ /app
+→ Chat, Knowledge Base, module licențiate etc.
+```
 
-Zero flash. When the user double-clicks OPSQAI on the desktop:
-- splash → health-gate → **login screen** (Self-Hosted audience, pre-selected)
-- after login → **`/app`** (the modules dashboard, gated by the installed license)
+Nu:
 
-Marketing pages (`/`, `/self-hosted`, `/pricing`, etc.) must never render inside the desktop shell.
+```text
+Double-click OPSQAI icon
+→ web/login marketing
+→ Windows product message
+→ download / windows-only page
+→ loop infinit
+```
 
-## Changes
+## Ce s-a construit și unde e problema
 
-### 1. Load the auth URL directly in the desktop shell
-`opsqai-windows/desktop-shell/main.cjs`
+Codul are deja bucăți corecte pentru Self-Hosted:
 
-- Change `APP_URL` from `https://localhost/` to `https://localhost/auth?audience=company`.
-- Keep `HEALTH_URL` unchanged — health gate stays on `/health`.
-- Result: the very first page painted inside the Electron window is the login screen. No marketing route ever mounts.
+- desktop shell-ul Electron încarcă `https://localhost/auth?audience=company`
+- există provider local de auth Self-Hosted care trimite login-ul la `/api/auth/signin`
+- `/api/auth/signin` folosește providerul local de autentificare
+- parola admin creată în installer ar trebui să fie validată local
 
-### 2. Belt-and-braces guard on the home route
-`src/routes/index.tsx`
+Problema vizibilă este în UI-ul `/auth`: când `audience=company`, pagina afișează încă mesajul de website „OPSQAI is a Windows product” și butonul spre `/windows-only`, în loc să afișeze formularul local de login. De asta pare că aplicația instalată te trimite înapoi la website/download.
 
-- Move the self-hosted check out of `useEffect` and into the top of `Home()`:
-  - If `VITE_OPSQAI_MODE === "selfhost"` (or `window.__OPSQAI_MODE__`), render `null` (or a minimal splash div) and trigger the redirect synchronously — never render the marketing sections.
-- This protects against a user manually typing `https://localhost/` in the address bar, or a stale bookmark: still lands on login, still no flash.
+## Plan de corecție
 
-### 3. Confirm the post-login landing
-`src/routes/auth.tsx` already redirects to `/app` on selfhost sign-in.
-`src/routes/_authenticated/app.index.tsx` is the modules dashboard, gated via `use-platform-capabilities`.
+1. **Fac `/auth` să aibă două comportamente complet separate**
+   - Cloud / `opsqai.de`: păstrează Portal + MC + mesajul pentru company users.
+   - Self-Hosted / Windows local: afișează direct formularul de login local cu email/parolă.
+   - În Self-Hosted nu se mai afișează selector Portal / MC / Company.
+   - În Self-Hosted nu se mai afișează `/windows-only`, Contact sales sau „download app”.
 
-No code change needed here — just verify after (1) + (2) that the flow ends on the modules screen with only the licensed modules visible.
+2. **Login-ul Self-Hosted va folosi userul creat în installer**
+   - Formularul din desktop app va apela providerul local existent.
+   - Providerul local va apela `/api/auth/signin`.
+   - `/api/auth/signin` va valida în baza de date locală userul/parola create de installer.
+   - După login: redirect direct la `/app`, nu la portal/cloud.
 
-### 4. Verification
+3. **Protejez `/app` ca aplicație Self-Hosted reală**
+   - Dacă userul nu e logat în Self-Hosted: redirect la `/auth?audience=company&next=/app`.
+   - Dacă userul e logat: vede dashboardul/modulele Self-Hosted.
+   - Chat, KB, SOPs, Users etc. rămân în `/app/*`.
 
-After building the Self-Hosted bundle + desktop shell:
-- Launch `OPSQAI.exe` cold → expect: splash → login screen (no marketing frame anywhere).
-- Sign in with the admin seeded during install → expect: `/app` with modules from the installed license.
-- Open Task Manager, close the app, relaunch → same clean boot.
+4. **Elimin loop-ul `/windows-only` din instalarea Windows**
+   - `/windows-only` rămâne doar pentru website/cloud, unde explică utilizatorilor că nu se loghează pe opsqai.de.
+   - În build-ul Self-Hosted, orice acces accidental la `/windows-only` va duce înapoi la login/app local.
 
-## Out of scope
+5. **Desktop shell-ul va arăta ca program, nu browser**
+   - Fără meniu clasic de browser inutil pentru client.
+   - Fără „Open in Browser” ca acțiune principală.
+   - Fereastra rămâne OPSQAI, local, orientată pe aplicație.
 
-- Changing the `_authenticated` gate.
-- Any change to `/auth` styling (it already looks correct in the screenshots).
-- Marketing site behavior on the public web build (Cloud) — this only touches the selfhost path.
+6. **Verific flow-ul final**
+   - Deschidere iconiță Windows: apare login Self-Hosted real.
+   - User/parolă admin din installer: intră în `/app`.
+   - Se văd modulele Self-Hosted: Chat, KB etc.
+   - Nu apare `opsqai.de`, `/windows-only`, „download app” sau flow cloud.
+
+## Rezultatul dorit
+
+Ce ai construit trebuie să devină clar:
+
+- `opsqai.de` = website, Customer Portal, Management Center pentru OPSQAI.
+- aplicația instalată Windows = produsul real Self-Hosted al clientului.
+
+După acest fix, clientul nu mai simte că a instalat „un link spre web”, ci un program local care pornește OPSQAI și îl lasă să se logheze cu adminul creat în installer.
