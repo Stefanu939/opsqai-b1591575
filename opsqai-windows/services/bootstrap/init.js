@@ -656,12 +656,15 @@ function resetEmbeddedDatabase() {
 
     log("probing https://localhost/health");
     let ok = false;
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 120; i++) {
       const r = await httpsGet("https://localhost/health", 5000);
       if (r.status && r.status >= 200 && r.status < 500) {
         log(`health OK (HTTP ${r.status}) after ${i + 1}s`);
         ok = true;
         break;
+      }
+      if (i === 0 || i === 30 || i === 60 || i === 90) {
+        log(`health probe still waiting (t=${i + 1}s, last=${r.status || 0} ${r.error || ""})`);
       }
       await new Promise((r) => setTimeout(r, 1000));
     }
