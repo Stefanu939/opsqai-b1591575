@@ -17,7 +17,7 @@ import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand/logo";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
-import { Building2, ShieldCheck, HardDrive, ExternalLink } from "lucide-react";
+import { Building2, ShieldCheck, HardDrive } from "lucide-react";
 
 type Audience = "portal" | "mc" | "company";
 
@@ -111,13 +111,18 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const nextParam = search.next;
-  const [audience, setAudience] = useState<Audience>(parseAudience(search.audience));
+  const isSelfHosted = getClientDeploymentMode() === "selfhost";
+  const [audience, setAudience] = useState<Audience>(
+    isSelfHosted ? "company" : parseAudience(search.audience),
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const effectiveAudience: Audience = isSelfHosted ? "company" : audience;
 
   // Keep the URL and local state in sync so /auth?audience=mc is deep-linkable.
   useEffect(() => {
+    if (isSelfHosted) return;
     const current = parseAudience(search.audience);
     if (current !== audience) {
       navigate({
@@ -127,7 +132,7 @@ function AuthPage() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audience]);
+  }, [audience, isSelfHosted]);
 
   useEffect(() => {
     const auth = getBrowserAuthProvider();
@@ -135,7 +140,7 @@ function AuthPage() {
       if (!s || (event !== "SIGNED_IN" && event !== "USER_UPDATED")) return;
       const explicit =
         nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
-      const { target, deny } = await resolvePostLoginTarget(s.user.id, audience);
+      const { target, deny } = await resolvePostLoginTarget(s.user.id, effectiveAudience);
       if (deny) {
         toast.error(t(deny as "mcAccessDenied"));
         await auth.signOut();
@@ -149,11 +154,11 @@ function AuthPage() {
       }
     });
     return () => unsubscribe();
-  }, [navigate, nextParam, audience, t]);
+  }, [navigate, nextParam, effectiveAudience, t]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (audience === "company" && getClientDeploymentMode() !== "selfhost") {
+    if (effectiveAudience === "company" && !isSelfHosted) {
       // Company users never authenticate on the cloud.
       navigate({ to: "/windows-only" });
       return;
@@ -171,12 +176,13 @@ function AuthPage() {
   const forgotLabel = lang === "de" ? "Passwort vergessen?" : "Forgot password?";
 
   const submitLabel = useMemo(() => {
-    if (audience === "mc") return t("signInToMc");
-    if (audience === "company") return t("audienceCompanyUserCta");
+    if (isSelfHosted) return t("signIn");
+    if (effectiveAudience === "mc") return t("signInToMc");
+    if (effectiveAudience === "company") return t("audienceCompanyUserCta");
     return t("signInToPortal");
-  }, [audience, t]);
+  }, [effectiveAudience, isSelfHosted, t]);
 
-  const isCompany = audience === "company";
+  const isCompany = effectiveAudience === "company";
 
   return (
     <div
@@ -221,42 +227,53 @@ function AuthPage() {
             </p>
           </div>
 
-          {/* Audience picker */}
-          <div className="space-y-2 mb-5">
-            <Label className="text-sm">{t("audienceLabel")}</Label>
-            <Select value={audience} onValueChange={(v) => setAudience(parseAudience(v))}>
-              <SelectTrigger className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="portal">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-primary" />
-                    <span>{t("audiencePortal")}</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="mc">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-primary" />
-                    <span>{t("audienceMc")}</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="company">
-                  <div className="flex items-center gap-2">
-                    <HardDrive className="h-4 w-4 text-primary" />
-                    <span>{t("audienceCompanyUser")}</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {audience === "portal" && t("audiencePortalHint")}
-              {audience === "mc" && t("audienceMcHint")}
-              {audience === "company" && t("audienceCompanyUserHint")}
-            </p>
-          </div>
+          {isSelfHosted ? (
+            <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <HardDrive className="h-4 w-4 text-primary" />
+                Self-Hosted local installation
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                Sign in with the administrator email and password created during installation.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 mb-5">
+              <Label className="text-sm">{t("audienceLabel")}</Label>
+              <Select value={audience} onValueChange={(v) => setAudience(parseAudience(v))}>
+                <SelectTrigger className="h-12 md:h-10 text-base md:text-sm rounded-xl md:rounded-md">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="portal">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-primary" />
+                      <span>{t("audiencePortal")}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="mc">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <span>{t("audienceMc")}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="company">
+                    <div className="flex items-center gap-2">
+                      <HardDrive className="h-4 w-4 text-primary" />
+                      <span>{t("audienceCompanyUser")}</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {audience === "portal" && t("audiencePortalHint")}
+                {audience === "mc" && t("audienceMcHint")}
+                {audience === "company" && t("audienceCompanyUserHint")}
+              </p>
+            </div>
+          )}
 
-          {isCompany ? (
+          {isCompany && !isSelfHosted ? (
             <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-4">
               <p className="text-sm text-foreground leading-relaxed">
                 {t("cloudArchitectureNote")}
@@ -264,7 +281,6 @@ function AuthPage() {
               <Button asChild className="w-full h-12 md:h-10 rounded-xl md:rounded-md">
                 <Link to="/windows-only">
                   {submitLabel}
-                  <ExternalLink className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
             </div>
@@ -321,24 +337,26 @@ function AuthPage() {
             </form>
           )}
 
-          <div className="mt-auto md:mt-6 pt-6 md:pt-0 space-y-3 md:space-y-0">
-            <div className="rounded-xl md:rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-[13px] md:text-xs md:mt-4">
-              <p className="text-muted-foreground">
-                {lang === "de" ? "Kein Konto?" : "No account yet?"}
+          {!isSelfHosted && (
+            <div className="mt-auto md:mt-6 pt-6 md:pt-0 space-y-3 md:space-y-0">
+              <div className="rounded-xl md:rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-center text-[13px] md:text-xs md:mt-4">
+                <p className="text-muted-foreground">
+                  {lang === "de" ? "Kein Konto?" : "No account yet?"}
+                </p>
+                <Link
+                  to="/contact"
+                  className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                >
+                  {lang === "de" ? "Vertrieb kontaktieren" : "Contact sales"} →
+                </Link>
+              </div>
+              <p className="text-center text-sm md:text-xs text-muted-foreground pt-2 md:pt-0 md:mt-4">
+                <Link to="/" className="inline-flex min-h-11 md:min-h-0 items-center hover:underline">
+                  ← {lang === "de" ? "Zurück" : "Back"}
+                </Link>
               </p>
-              <Link
-                to="/contact"
-                className="mt-1 inline-flex items-center gap-1 font-medium text-primary hover:underline"
-              >
-                {lang === "de" ? "Vertrieb kontaktieren" : "Contact sales"} →
-              </Link>
             </div>
-            <p className="text-center text-sm md:text-xs text-muted-foreground pt-2 md:pt-0 md:mt-4">
-              <Link to="/" className="inline-flex min-h-11 md:min-h-0 items-center hover:underline">
-                ← {lang === "de" ? "Zurück" : "Back"}
-              </Link>
-            </p>
-          </div>
+          )}
         </Card>
       </main>
     </div>
