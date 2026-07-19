@@ -176,8 +176,21 @@ for (const file of files) {
 
   for (const m of sql.matchAll(/\bpublic\.([a-z_][a-z0-9_]*)\s*\(/gi)) {
     const name = m[1].toLowerCase();
-    const before = sql.slice(Math.max(0, m.index - 32), m.index).toUpperCase();
-    if (/FUNCTION\s+$/.test(before) || /EXECUTE\s+FUNCTION\s+$/.test(before)) continue;
+    const before = sql.slice(Math.max(0, m.index - 96), m.index).toUpperCase();
+    if (
+      /\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+$/.test(before) ||
+      /\bEXECUTE\s+FUNCTION\s+$/.test(before) ||
+      /\bCREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?$/.test(before) ||
+      /\bALTER\s+TABLE\s+$/.test(before) ||
+      /\bREFERENCES\s+$/.test(before) ||
+      /\bON\s+$/.test(before) ||
+      /\bFROM\s+$/.test(before) ||
+      /\bJOIN\s+$/.test(before) ||
+      /\bINTO\s+$/.test(before) ||
+      /\bUPDATE\s+$/.test(before)
+    ) {
+      continue;
+    }
     if (!allowedFunctions.has(name)) {
       violations.push({ file, line: lineOf(sql, m.index), kind: "undefined public function", detail: `public.${name}()` });
     }
