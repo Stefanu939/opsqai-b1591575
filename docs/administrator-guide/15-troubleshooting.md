@@ -16,7 +16,9 @@ its meaning are stable.
 | **OPSQAI-E1201** | seed | The first administrator account could not be created after migrations. | Retry. If it persists, reset embedded database & retry. |
 | **OPSQAI-E1301** | services | One or more OPSQAI services (Platform/Worker/Caddy) failed to start. | Check port `443`, review each service log via `opsqai logs <ServiceName>`. |
 | **OPSQAI-E1010** | packaging | The embedded PostgreSQL payload is missing pgvector (`vector.dll` / `vector.control`). Migration `0010_kb_pgvector.sql` fails with `0A000: extension "vector" is not available`. | Reset & Retry **cannot** fix this. Download a fresh `OPSQAI-Setup.exe` and reinstall — the pgvector files are staged at build time, not at runtime. |
+| **OPSQAI-E1011** | packaging | The installer contains a stale or Cloud-contaminated migration payload (for example `public.set_updated_at()` or `public.companies`). | Reset & Retry **cannot** fix this. Rebuild/re-download the installer and reinstall. The wizard shows the migration SHA-256 so support can identify the exact payload. |
 | **OPSQAI-E1901** | unknown | Uncategorised bootstrap failure. | Open **View Log** and contact support with the log file. |
+| **OPSQAI-E1902** | packaging | A required file inside the installed payload is missing or corrupted. | Reset & Retry **cannot** fix this. Reinstall from a fresh setup executable. |
 
 ### Per-install log file
 
@@ -67,3 +69,19 @@ intentionally not offered for this code because it cannot help.
 3. If the error persists, the downloaded `OPSQAI-Setup.exe` is likely
    corrupted or was partially copied — re-download it from your OPSQAI
    distribution channel and verify the SHA-256 before running.
+
+## OPSQAI-E1011 — Stale or Cloud-contaminated migration payload
+
+The migration runner detected a Self-Hosted migration that still references
+a Cloud-only table/helper, such as `public.companies` or
+`public.set_updated_at()`. This means the installed payload is stale or was
+built from a bad migration set. A database reset cannot repair the installer
+files.
+
+**Resolution:**
+
+1. Close the wizard.
+2. Rebuild or re-download `OPSQAI-Setup.exe`.
+3. Reinstall, then run setup again.
+4. If opening a support ticket, include the migration filename and
+   `Migration SHA-256` from the wizard failure card.

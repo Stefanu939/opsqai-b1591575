@@ -92,7 +92,7 @@ function loadMigrationManifest() {
     return new Map();
   }
   try {
-    const parsed = JSON.parse(readFileSync(migrationsManifestPath, "utf8"));
+    const parsed = JSON.parse(readFileSync(migrationsManifestPath, "utf8").replace(/^\uFEFF/, ""));
     const entries = Array.isArray(parsed.migrations) ? parsed.migrations : [];
     const map = new Map(entries.map((m) => [String(m.filename), String(m.sha256 || "").toLowerCase()]));
     console.log(`[migrate] migration manifest loaded (${map.size} fingerprint(s))`);
@@ -129,7 +129,7 @@ if (files.length === 0) {
 const env = { ...process.env, ...databaseEnv(), ON_ERROR_STOP: "1" };
 
 function psqlRun(runEnv, args, opts = {}) {
-  return spawnSync(psql, ["-v", "ON_ERROR_STOP=1", ...args], {
+  return spawnSync(psql, ["-w", "-v", "ON_ERROR_STOP=1", ...args], {
     env: runEnv,
     encoding: "utf8",
     windowsHide: true,
@@ -266,7 +266,7 @@ if (pending.length === 0) {
     console.log(`[migrate] ${file} sha256=${migrationSha}`);
     const result = spawnSync(
       psql,
-      ["--set", "ON_ERROR_STOP=1", "--set", "VERBOSITY=verbose", "--file", full],
+      ["-w", "--set", "ON_ERROR_STOP=1", "--set", "VERBOSITY=verbose", "--file", full],
       { env, encoding: "utf8", windowsHide: true },
     );
     if (result.stdout) process.stdout.write(result.stdout);
@@ -279,19 +279,22 @@ if (pending.length === 0) {
       // the build. A Reset & Retry cannot fix this — the operator must
       // reinstall from a correctly built installer.
       const msg = parsed.message || "";
+      const sqlstate = parsed.sqlstate || (/\b([0-9A-Z]{5}):/.exec(msg)?.[1] ?? "");
       const isPgvectorMissing =
-        (parsed.sqlstate === "0A000" || /0A000/.test(msg)) &&
+        (sqlstate === "0A000" || /0A000/.test(msg)) &&
         /extension\s+"vector"\s+is not available/i.test(msg);
       const isStaleCloudMigration =
-        (parsed.sqlstate === "42883" && /function\s+public\.set_updated_at\s*\(\)\s+does not exist/i.test(msg)) ||
-        (parsed.sqlstate === "42P01" && /relation\s+"public\.companies"\s+does not exist/i.test(msg));
+        ((sqlstate === "42883" || /\b42883\b/.test(msg)) &&
+          /function\s+public\.set_updated_at\s*\(\)\s+does not exist/i.test(msg)) ||
+        ((sqlstate === "42P01" || /\b42P01\b/i.test(msg)) &&
+          /relation\s+"public\.companies"\s+does not exist/i.test(msg));
       const code = isPgvectorMissing ? "OPSQAI-E1010" : isStaleCloudMigration ? "OPSQAI-E1011" : "OPSQAI-E1001";
       fail(
         code,
         {
           file,
           line: parsed.line ?? "",
-          sqlstate: parsed.sqlstate ?? "",
+          sqlstate: sqlstate || parsed.sqlstate || "",
           migration_sha: migrationSha,
           message: parsed.message || `psql exit ${result.status}`,
         },
