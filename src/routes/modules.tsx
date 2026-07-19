@@ -149,10 +149,8 @@ function ModulesPage() {
             inflation.
           </p>
           <div className="mt-8">
-            <OixButton asChild variant="primary">
-              <Link to="/contact">
-                Request activation <ArrowRight className="h-4 w-4" />
-              </Link>
+            <OixButton variant="gold" to="/contact" withArrow>
+              Request activation
             </OixButton>
           </div>
         </div>
