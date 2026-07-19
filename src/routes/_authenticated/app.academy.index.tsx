@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ElementType } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listMyTraining, getMyTrainingSummary } from "@/lib/academy-lms.functions";
 import { useAuth } from "@/lib/auth-context";
@@ -265,7 +265,7 @@ function SummaryStat({
   onClick,
   tone = "default",
 }: {
-  icon: React.ElementType;
+  icon: ElementType;
   label: string;
   value: string | number;
   onClick?: () => void;
