@@ -52,9 +52,22 @@ CREATE INDEX IF NOT EXISTS knowledge_documents_doc_code_idx
     ON public.knowledge_documents (company_id, doc_code)
     WHERE doc_code IS NOT NULL;
 
+-- Local trigger fn (self-contained; other migrations define their own
+-- per-table touch functions, so we do the same here to avoid coupling).
+CREATE OR REPLACE FUNCTION public.knowledge_documents_set_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at := now();
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_knowledge_documents_updated_at ON public.knowledge_documents;
 CREATE TRIGGER trg_knowledge_documents_updated_at
     BEFORE UPDATE ON public.knowledge_documents
-    FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION public.knowledge_documents_set_updated_at();
 
 CREATE TABLE IF NOT EXISTS public.document_chunks (
     id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
