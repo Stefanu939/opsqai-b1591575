@@ -1,11 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MarketingLayout } from "@/components/marketing/layout";
+import { OixLayout } from "@/components/oix/oix-layout";
+import { Scene3D } from "@/components/three/scene-3d";
+import { ModuleConstellation } from "@/components/three/primitives/module-constellation";
+import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { MottoBand } from "@/components/oix/motto-band";
+import { OixButton } from "@/components/oix/buttons";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { pageHead } from "@/lib/seo";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
-import { Check, Package } from "lucide-react";
+import { Check, Package, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/modules")({
   head: () =>
@@ -28,56 +33,94 @@ function ModulesPage() {
   const categories = Array.from(new Set(LICENSE_MODULE_CATALOG.map((m) => m.category)));
 
   return (
-    <MarketingLayout>
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Modules</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          Buy the platform once. Add modules as you grow.
-        </h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          The Basic Platform ships with every OPSQAI installation — AI Chat, Knowledge Base,
-          FAQ, Academy, AI Audit, Users, Organization and Subscription. Premium modules
-          unlock deeper capabilities and are licensed separately, activated by OPSQAI
-          through a signed license — no reinstall required.
-        </p>
-        <div className="mt-8 flex gap-3">
-          <Button asChild>
-            <Link to="/contact">Request modules</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/pricing">See pricing model</Link>
-          </Button>
+    <OixLayout>
+      {/* Cinematic hero */}
+      <section className="relative overflow-hidden border-b border-white/5">
+        <div className="absolute inset-0 h-[720px]">
+          <Scene3D camera={{ position: [0, 0.6, 6.5], fov: 45 }}>
+            <ambientLight intensity={0.3} />
+            <ModuleConstellation nodeCount={16} />
+            <GoldBloom />
+          </Scene3D>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background pointer-events-none" />
+        </div>
+
+        <div className="relative mx-auto max-w-6xl px-6 pt-32 pb-40 md:pt-40 md:pb-48">
+          <p className="text-[11px] uppercase tracking-[0.32em] text-[#C9A24C]/80">
+            The OPSQAI module network
+          </p>
+          <EditorialHeadline
+            className="mt-6 max-w-4xl"
+            plain="One platform."
+            serif="Every module orbits it."
+          />
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+            The Basic Platform ships with every OPSQAI installation. Premium modules
+            dock in through signed license bundles — activated by OPSQAI, no reinstall,
+            no seat inflation, no cloud dependency.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <OixButton asChild variant="primary">
+              <Link to="/contact">
+                Request modules <ArrowRight className="h-4 w-4" />
+              </Link>
+            </OixButton>
+            <OixButton asChild variant="ghost">
+              <Link to="/pricing">See pricing model</Link>
+            </OixButton>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-20">
+      {/* Motto band */}
+      <MottoBand compact />
+
+      {/* Catalog */}
+      <section className="mx-auto max-w-6xl px-6 py-24">
         {categories.map((cat) => {
           const items = LICENSE_MODULE_CATALOG.filter((m) => m.category === cat);
           return (
-            <div key={cat} className="mb-10">
-              <div className="flex items-center gap-2 mb-4">
-                <Package className="h-4 w-4 text-muted-foreground" />
-                <h2 className="text-sm uppercase tracking-wider text-muted-foreground">{cat}</h2>
+            <div key={cat} className="mb-14">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px flex-1 bg-gradient-to-r from-[#C9A24C]/40 to-transparent" />
+                <div className="flex items-center gap-2">
+                  <Package className="h-3.5 w-3.5 text-[#C9A24C]" />
+                  <h2 className="text-[11px] uppercase tracking-[0.32em] text-white/60">
+                    {cat}
+                  </h2>
+                </div>
+                <div className="h-px flex-1 bg-gradient-to-l from-[#C9A24C]/40 to-transparent" />
               </div>
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((m) => {
                   const isBasic = basicSet.has(m.key);
                   return (
-                    <Card key={m.key} className="p-5 border-border/60">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="font-semibold text-sm">{m.label}</div>
+                    <Card
+                      key={m.key}
+                      className="group relative overflow-hidden border-white/10 bg-white/[0.02] p-6 transition-all hover:border-[#C9A24C]/40 hover:bg-white/[0.04]"
+                    >
+                      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="absolute -inset-x-4 -top-4 h-24 bg-gradient-to-b from-[#C9A24C]/10 to-transparent blur-2xl" />
+                      </div>
+                      <div className="relative flex items-start justify-between gap-3">
+                        <div className="font-semibold text-sm text-white">{m.label}</div>
                         {isBasic ? (
-                          <Badge variant="default" className="text-[10px]">
+                          <Badge className="border-[#0d7a5f]/40 bg-[#0d7a5f]/15 text-[10px] text-[#5fd4b3]">
                             <Check className="h-3 w-3 mr-1" /> Basic
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px]">Premium</Badge>
+                          <Badge
+                            variant="outline"
+                            className="border-[#C9A24C]/40 text-[10px] text-[#C9A24C]"
+                          >
+                            Premium
+                          </Badge>
                         )}
                       </div>
-                      <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                      <p className="relative mt-3 text-xs leading-relaxed text-white/60">
                         {m.description}
                       </p>
-                      <div className="mt-4 pt-3 border-t border-border/60 text-xs text-muted-foreground tabular-nums">
+                      <div className="relative mt-5 pt-4 border-t border-white/10 text-xs tabular-nums text-white/50">
                         {isBasic
                           ? "Included with Basic"
                           : `From €${(m.defaultPriceCents / 100).toLocaleString("de-DE")} · one-time`}
@@ -91,22 +134,30 @@ function ModulesPage() {
         })}
       </section>
 
-      <section className="bg-surface-1 border-t border-border/60">
-        <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Activation is handled by OPSQAI.
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Modules are unlocked with signed license bundles issued by our team. Customers request
-            activation from inside the product — no self-service billing, no seat inflation.
+      {/* Activation */}
+      <section className="border-t border-white/5 bg-gradient-to-b from-transparent to-white/[0.02]">
+        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
+          <p className="text-[11px] uppercase tracking-[0.32em] text-[#C9A24C]/80">
+            Activation
           </p>
-          <div className="mt-6">
-            <Button asChild>
-              <Link to="/contact">Request activation</Link>
-            </Button>
+          <h2 className="mt-4 text-3xl md:text-4xl font-light tracking-tight text-white">
+            Modules dock in through{" "}
+            <span className="font-serif italic text-[#C9A24C]">signed bundles.</span>
+          </h2>
+          <p className="mt-5 text-white/60 leading-relaxed">
+            OPSQAI issues an Ed25519-signed license bundle. Your installation verifies it
+            offline and unlocks the module instantly — no reinstall, no cloud call, no seat
+            inflation.
+          </p>
+          <div className="mt-8">
+            <OixButton asChild variant="primary">
+              <Link to="/contact">
+                Request activation <ArrowRight className="h-4 w-4" />
+              </Link>
+            </OixButton>
           </div>
         </div>
       </section>
-    </MarketingLayout>
+    </OixLayout>
   );
 }
