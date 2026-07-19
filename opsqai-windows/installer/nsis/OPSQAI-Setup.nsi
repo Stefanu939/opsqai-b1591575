@@ -135,6 +135,27 @@ Section "OPSQAI Core" SEC_CORE
     ${EndIf}
   bootstrap_done:
 
+  ; --- Desktop + Start Menu shortcuts ---------------------------------------
+  ; The shortcut targets the OPSQAI Desktop Shell (Electron) which opens
+  ; a native window backed by the local platform, NOT the system browser.
+  CreateDirectory "$SMPROGRAMS\OPSQAI"
+  CreateShortCut "$SMPROGRAMS\OPSQAI\OPSQAI.lnk" \
+    "$INSTDIR\desktop-shell\OPSQAI.exe" "" \
+    "$INSTDIR\desktop-shell\OPSQAI.exe" 0 SW_SHOWNORMAL "" \
+    "OPSQAI Self-Hosted"
+  CreateShortCut "$SMPROGRAMS\OPSQAI\OPSQAI Doctor (logs).lnk" \
+    "$INSTDIR\tools\bin\opsqai.cmd" "doctor" \
+    "$INSTDIR\assets\opsqai.ico" 0 SW_SHOWMINIMIZED "" \
+    "OPSQAI diagnostics"
+  CreateShortCut "$SMPROGRAMS\OPSQAI\Uninstall OPSQAI.lnk" \
+    "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
+
+  ; Desktop shortcut for the end user.
+  CreateShortCut "$DESKTOP\OPSQAI.lnk" \
+    "$INSTDIR\desktop-shell\OPSQAI.exe" "" \
+    "$INSTDIR\desktop-shell\OPSQAI.exe" 0 SW_SHOWNORMAL "" \
+    "OPSQAI Self-Hosted"
+
   ; OPSQAI tools are installed under $INSTDIR\tools\bin. Operators can run
   ; them by full path; avoiding a PATH mutation keeps the installer independent
   ; of optional NSIS plugins on clean CI runners.
