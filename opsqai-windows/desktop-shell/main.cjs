@@ -269,43 +269,45 @@ function createMainWindow() {
   });
 
   mainWindow.webContents.on("did-fail-load", (_e, code, desc, url) => {
+    // Ignore aborted loads (-3), which fire when we intentionally
+    // navigate away (e.g. splash → app URL swap after health passes).
+    if (code === -3) return;
     log(`main did-fail-load code=${code} desc=${desc} url=${url}`);
     loadErrorPage({ code, description: desc, url });
   });
 
-  mainWindow.loadURL(APP_URL).catch((e) => {
-    log(`main loadURL failed: ${e && e.message}`);
-    loadErrorPage({ code: -1, description: String(e && e.message), url: APP_URL });
-  });
-
-  mainWindow.once("ready-to-show", () => {
-    if (splashWindow) {
-      splashWindow.close();
-      splashWindow = null;
-    }
-    mainWindow.show();
-  });
+  // NOTE: no initial loadURL here — the boot sequence loads either the
+  // app URL (after health passes) or the error page. Loading APP_URL
+  // before Caddy is ready would fire did-fail-load and race with the
+  // health-gated load below, causing the shell to appear then quit.
 
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 }
 
+function showMainAndCloseSplash() {
+  if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+    mainWindow.show();
+    mainWindow.focus();
+  }
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    try { splashWindow.close(); } catch (_) {}
+    splashWindow = null;
+  }
+}
+
 function loadErrorPage(details) {
-  if (!mainWindow) return;
+  if (!mainWindow || mainWindow.isDestroyed()) return;
   const services = getServicesReport();
   const payload = Buffer.from(JSON.stringify({ ...details, services, logFile: LOG_FILE })).toString(
     "base64",
   );
   const errorHtml = path.join(__dirname, "renderer", "error.html");
-  mainWindow.loadFile(errorHtml, { hash: payload }).catch(() => {});
-  if (!mainWindow.isVisible()) {
-    if (splashWindow) {
-      splashWindow.close();
-      splashWindow = null;
-    }
-    mainWindow.show();
-  }
+  mainWindow.loadFile(errorHtml, { hash: payload }).catch((e) => {
+    log(`error page load failed: ${e && e.message}`);
+  });
+  showMainAndCloseSplash();
 }
 
 // ---------------------------------------------------------------------------
@@ -460,11 +462,14 @@ async function loadSplashAndBoot() {
     return;
   }
 
-  if (mainWindow) {
-    mainWindow.loadURL(APP_URL).catch((e) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    try {
+      await mainWindow.loadURL(APP_URL);
+      showMainAndCloseSplash();
+    } catch (e) {
       log(`post-health loadURL failed: ${e && e.message}`);
       loadErrorPage({ code: -1, description: String(e && e.message), url: APP_URL });
-    });
+    }
   }
 }
 
@@ -487,10 +492,8 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     log(`OPSQAI desktop shell starting. version=${app.getVersion()} log=${LOG_FILE}`);
     installCertificateHandler();
+    createMainWindow(); // hidden (show:false) until health passes
     createSplash();
-    createMainWindow();
-    // Hide main until splash + health pass.
-    if (mainWindow) mainWindow.hide();
     createTray();
     loadSplashAndBoot();
 
