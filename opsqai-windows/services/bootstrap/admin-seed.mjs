@@ -53,10 +53,13 @@ try {
 
   // Upsert user. Column names match the local-auth schema in
   // migrations/selfhost/0002_local_auth.sql.
+  // Schema note: users has (email, password_hash, is_active, updated_at) —
+  // there is no email_verified_at column in the Self-Hosted schema (the
+  // installer-seeded admin is implicitly trusted). Do not add one here.
   const up = await client.query(
-    `INSERT INTO public.users (email, password_hash, is_active, email_verified_at)
-     VALUES (LOWER($1), $2, TRUE, NOW())
-     ON CONFLICT (email) DO UPDATE
+    `INSERT INTO public.users (email, password_hash, is_active)
+     VALUES (LOWER($1), $2, TRUE)
+     ON CONFLICT (lower(email)) DO UPDATE
        SET password_hash = EXCLUDED.password_hash,
            is_active = TRUE,
            updated_at = NOW()
