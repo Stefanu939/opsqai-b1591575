@@ -1,6 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +33,7 @@ async function resolvePostLoginTarget(
   audience: Audience,
 ): Promise<{ target: string; deny?: string }> {
   if (getClientDeploymentMode() === "selfhost") return { target: "/app" };
+  const { supabase } = await import("@/integrations/supabase/client");
   const { data: roles } = await supabase
     .from("user_roles")
     .select("role")
