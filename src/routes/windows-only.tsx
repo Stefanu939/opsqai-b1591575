@@ -1,12 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
 import { HardDrive, Download, ShieldCheck, Server } from "lucide-react";
 import { useT } from "@/i18n";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
+import { getBrowserAuthProvider } from "@/lib/providers/registry";
 
 export const Route = createFileRoute("/windows-only")({
+  beforeLoad: async () => {
+    if (getClientDeploymentMode() !== "selfhost") return;
+    const user = await getBrowserAuthProvider().getUser();
+    if (user) throw redirect({ to: "/app" });
+    throw redirect({ to: "/auth", search: { audience: "company", next: "/app" } });
+  },
   head: () =>
     pageHead({
       title: "OPSQAI runs on your Windows Server — not in the cloud",

@@ -1,5 +1,4 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
@@ -21,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/app")({
     // Cloud mode — only OPSQAI staff may enter the Self-Hosted preview.
     const user = await getBrowserAuthProvider().getUser();
     if (!user) throw redirect({ to: "/windows-only" });
+    const { supabase } = await import("@/integrations/supabase/client");
     const { data: roles } = await supabase
       .from("user_roles")
       .select("role")

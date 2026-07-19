@@ -64,7 +64,6 @@
           <button class="primary" id="btn-start">Start services &amp; retry</button>
           <button id="btn-retry">Retry now</button>
           <button id="btn-logs">Open logs folder</button>
-          <button id="btn-browser">Open in browser</button>
           <button id="btn-quit">Quit</button>
         </div>
       </div>
@@ -114,7 +113,6 @@
       });
       document.getElementById("btn-retry").addEventListener("click", () => api.retry?.());
       document.getElementById("btn-logs").addEventListener("click", () => api.openLogs?.());
-      document.getElementById("btn-browser").addEventListener("click", () => api.openInBrowser?.());
       document.getElementById("btn-quit").addEventListener("click", () => api.quit?.());
     </script>
   </body>

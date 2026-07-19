@@ -1,12 +1,21 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { AppShell } from "@/components/app/app-shell";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const user = await getBrowserAuthProvider().getUser();
-    if (!user) throw redirect({ to: "/auth" });
+    if (!user) {
+      if (getClientDeploymentMode() === "selfhost") {
+        throw redirect({
+          to: "/auth",
+          search: { audience: "company", next: location.href || "/app" },
+        });
+      }
+      throw redirect({ to: "/auth" });
+    }
     return { user };
   },
   component: AuthenticatedLayout,

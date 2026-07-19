@@ -26,7 +26,6 @@ contextBridge.exposeInMainWorld("opsqai", {
   startServices: () => ipcRenderer.invoke("shell:startServices"),
   retry: () => ipcRenderer.invoke("shell:retry"),
   openLogs: () => ipcRenderer.invoke("shell:openLogs"),
-  openInBrowser: () => ipcRenderer.invoke("shell:openInBrowser"),
   runDoctor: () => ipcRenderer.invoke("shell:runDoctor"),
   quit: () => ipcRenderer.invoke("shell:quit"),
 });
