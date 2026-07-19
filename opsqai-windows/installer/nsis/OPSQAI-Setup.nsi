@@ -212,6 +212,10 @@ Section "Uninstall"
   !insertmacro StopAndUninstallService "OpsqaiPlatform"
   !insertmacro StopAndUninstallService "OpsqaiDatabase"
 
+  ; Remove shortcuts.
+  Delete "$DESKTOP\OPSQAI.lnk"
+  RMDir /r "$SMPROGRAMS\OPSQAI"
+
   RMDir /r "$INSTDIR"
 
   ${If} $KEEP_DATA == "0"
