@@ -600,7 +600,7 @@ function resetEmbeddedDatabase() {
   writeInstallState("bootstrapping", "seed", null);
 
   // --- 2b. Seed initial admin ---
-  const seeder = programFiles("app", "server", "admin-seed.mjs");
+  const seeder = programFiles("app", "server", "admin-seed", "admin-seed.mjs");
   if (fs.existsSync(seeder)) {
     log("seeding admin account");
     try {
