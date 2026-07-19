@@ -492,10 +492,8 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     log(`OPSQAI desktop shell starting. version=${app.getVersion()} log=${LOG_FILE}`);
     installCertificateHandler();
+    createMainWindow(); // hidden (show:false) until health passes
     createSplash();
-    createMainWindow();
-    // Hide main until splash + health pass.
-    if (mainWindow) mainWindow.hide();
     createTray();
     loadSplashAndBoot();
 
