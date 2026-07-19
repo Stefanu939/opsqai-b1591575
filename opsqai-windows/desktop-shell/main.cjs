@@ -38,8 +38,11 @@ const { spawn, spawnSync } = require("child_process");
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
-const APP_URL = "https://localhost/";
+// Land directly on the Self-Hosted sign-in surface. The marketing
+// site must never render inside the installed desktop app.
+const APP_URL = "https://localhost/auth?audience=company";
 const HEALTH_URL = "https://localhost/health";
+
 const HEALTH_TIMEOUT_MS = 45_000;
 const HEALTH_POLL_INTERVAL_MS = 750;
 const REQUIRED_SERVICES = ["OpsqaiDatabase", "OpsqaiPlatform", "OpsqaiCaddy"];
