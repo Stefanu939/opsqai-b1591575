@@ -88,10 +88,36 @@ function assertContains(parent, child, label) {
     }
     # migrate.mjs / admin-seed.mjs are authored outside payload\app so staging cannot delete them.
     Copy-Item (Join-Path $root 'services\bootstrap\migrate.mjs') (Join-Path $appStage 'server\migrate.mjs') -Force
-    Copy-Item (Join-Path $root 'services\bootstrap\admin-seed.mjs') (Join-Path $appStage 'server\admin-seed.mjs') -Force
     # migrate.mjs does `require('./errors.cjs')`. Ship the error catalog beside it.
     # It's .cjs (not .js) so Node treats it as CommonJS regardless of app/server's package.json `"type": "module"`.
     Copy-Item (Join-Path $root 'services\bootstrap\errors.cjs') (Join-Path $appStage 'server\errors.cjs') -Force
+
+    # admin-seed.mjs imports npm packages ('pg', 'argon2'). The Nitro bundle
+    # next door doesn't expose those to a standalone script, so bundle it
+    # with esbuild: `pg` is pure JS and gets inlined; `argon2` ships a
+    # native .node addon and must stay external — we stage its module tree
+    # beside admin-seed.mjs so Node resolves `import 'argon2'` from
+    # payload\app\server\node_modules\argon2.
+    $adminSrc = Join-Path $root 'services\bootstrap\admin-seed.mjs'
+    $adminOut = Join-Path $appStage 'server\admin-seed.mjs'
+    & bunx --bun esbuild $adminSrc --bundle --platform=node --format=esm --target=node20 --external:argon2 "--outfile=$adminOut"
+    if ($LASTEXITCODE -ne 0) { throw "esbuild admin-seed.mjs failed" }
+
+    # Stage argon2 + transitive runtime deps into payload\app\server\node_modules.
+    # node-gyp-build resolves the prebuild from argon2\prebuilds\win32-x64 at load time,
+    # so the Windows-installed node_modules tree (this script only runs on Windows CI)
+    # already contains the correct native binary under that folder.
+    $nmDst = Join-Path $appStage 'server\node_modules'
+    New-Item -ItemType Directory -Force -Path $nmDst | Out-Null
+    foreach ($pkg in @('argon2','node-addon-api','node-gyp-build')) {
+      $src = Join-Path $projectRoot ("node_modules\" + $pkg)
+      if (-not (Test-Path $src)) { throw "Required runtime dep missing from node_modules: $pkg" }
+      Copy-Item $src (Join-Path $nmDst $pkg) -Recurse -Force
+    }
+    $phcSrc = Join-Path $projectRoot 'node_modules\@phc\format'
+    if (-not (Test-Path $phcSrc)) { throw "Required runtime dep missing from node_modules: @phc/format" }
+    New-Item -ItemType Directory -Force -Path (Join-Path $nmDst '@phc') | Out-Null
+    Copy-Item $phcSrc (Join-Path $nmDst '@phc\format') -Recurse -Force
     # Self-Hosted uses its own, vanilla-PostgreSQL migration set. The
     # Supabase set (auth.*, RLS via auth.uid(), authenticated/anon/service_role)
     # is Cloud-only and MUST NEVER be copied into the Windows payload.
