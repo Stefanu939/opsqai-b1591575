@@ -1,0 +1,16 @@
+{
+  "name": "opsqai-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OPSQAI Self-Hosted desktop shell — thin Electron client that renders the local platform UI in a native window.",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-packager . OPSQAI --platform=win32 --arch=x64 --out=dist --overwrite --asar --icon=../installer/nsis/assets/opsqai.ico --app-copyright=\"(c) OPSQAI\" --app-version=1.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "31.6.0",
+    "@electron/packager": "18.3.6"
+  }
+}

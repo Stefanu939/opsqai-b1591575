@@ -18,6 +18,7 @@ param(
   [switch]$SkipPostgres,   # for fast dev iterations (~200 MB)
   [switch]$SkipApp,        # skip the npm build (use previously staged payload\app)
   [switch]$SkipWizard,     # skip Electron wizard packaging (use previously staged payload\wizard)
+  [switch]$SkipDesktop,    # skip Electron desktop shell packaging (use previously staged payload\desktop-shell)
   [string]$Version = '0.0.0-dev'
 )
 
@@ -238,6 +239,33 @@ if (-not $SkipWizard) {
   Write-Host "Skipping wizard packaging (--SkipWizard)"
 }
 
+# --- 2c. Electron desktop shell -------------------------------------------
+# Thin Electron client that renders https://localhost in a native window
+# so the user gets a real desktop app instead of a browser shortcut.
+$desktopStage = Join-Path $payload 'desktop-shell'
+if (-not $SkipDesktop) {
+  $desktopSrc = Join-Path $root 'desktop-shell'
+  Assert-Exists (Join-Path $desktopSrc 'main.cjs') 'desktop shell main.cjs'
+  Write-Host "Packaging OPSQAI Desktop Shell (Electron)..."
+  Push-Location $desktopSrc
+  try {
+    if (-not (Test-Path 'node_modules')) {
+      & npm install
+      if ($LASTEXITCODE -ne 0) { throw "desktop-shell npm install failed" }
+    }
+    Remove-Item (Join-Path $desktopSrc 'dist') -Recurse -Force -ErrorAction SilentlyContinue
+    & npm run package
+    if ($LASTEXITCODE -ne 0) { throw "desktop-shell packaging failed" }
+    $packaged = Get-ChildItem (Join-Path $desktopSrc 'dist') -Directory | Select-Object -First 1
+    if (-not $packaged) { throw "electron-packager produced no output in $desktopSrc\dist" }
+    Remove-Item $desktopStage -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $desktopStage | Out-Null
+    Copy-Item (Join-Path $packaged.FullName '*') $desktopStage -Recurse -Force
+  } finally { Pop-Location }
+} else {
+  Write-Host "Skipping desktop-shell packaging (--SkipDesktop)"
+}
+
 
 # --- 3. Service entrypoints -----------------------------------------------
 $servicesDest = Join-Path $payload 'services'
@@ -351,6 +379,7 @@ if (Test-Path $icon) { Copy-Item $icon $assetsDest -Force }
 Assert-Exists (Join-Path $payload 'runtime\node\node.exe') 'Node.js runtime'
 Assert-Exists (Join-Path $payload 'winsw\OpsqaiPlatform.exe') 'WinSW service wrapper'
 Assert-Exists (Join-Path $payload 'wizard\OPSQAI-Wizard.exe') 'Electron setup wizard'
+Assert-Exists (Join-Path $payload 'desktop-shell\OPSQAI.exe') 'Electron desktop shell'
 Assert-Exists (Join-Path $payload 'services\bootstrap\init.js') 'bootstrap service'
 Assert-Exists (Join-Path $payload 'services\bootstrap\migrate.mjs') 'migration runner source'
 Assert-Exists (Join-Path $payload 'services\updater\apply.js') 'update apply orchestrator'
