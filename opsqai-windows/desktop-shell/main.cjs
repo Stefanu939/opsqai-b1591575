@@ -462,11 +462,14 @@ async function loadSplashAndBoot() {
     return;
   }
 
-  if (mainWindow) {
-    mainWindow.loadURL(APP_URL).catch((e) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    try {
+      await mainWindow.loadURL(APP_URL);
+      showMainAndCloseSplash();
+    } catch (e) {
       log(`post-health loadURL failed: ${e && e.message}`);
       loadErrorPage({ code: -1, description: String(e && e.message), url: APP_URL });
-    });
+    }
   }
 }
 
