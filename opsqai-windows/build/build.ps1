@@ -100,41 +100,39 @@ function assertContains(parent, child, label) {
       throw "Self-Hosted migrations missing at $migSrc. Aborting build to avoid shipping Supabase migrations."
     }
     Copy-Item $migSrc (Join-Path $appStage 'migrations') -Recurse -Force
-    # Extra guardrail: fail the build if any Supabase-shaped statement slipped in.
-    # Line-based scan that ignores SQL comments (`--`) so documentation like
-    # "no auth.uid() here" in a comment never trips the check.
-    $badFiles = @()
-    $citextFiles = @()
-    foreach ($sql in Get-ChildItem (Join-Path $appStage 'migrations\*.sql')) {
-      $codeLines = Get-Content -LiteralPath $sql.FullName | ForEach-Object {
-        # Drop full-line comments and inline `-- ...` tails before matching.
-        ($_ -replace '--.*$', '')
-      }
-      if ($codeLines -match 'auth\.uid|auth\.users|to authenticated|to anon|to service_role') {
-        $badFiles += $sql.FullName
-      }
-      # Bootstrap must not depend on the `citext` extension — portable
-      # PostgreSQL builds don't always ship it, and we already switched to
-      # a functional lower(email) unique index. Fail the build if any
-      # staged migration re-introduces CITEXT or CREATE EXTENSION citext.
-      if ($codeLines -match '\bCITEXT\b|EXTENSION\s+(IF\s+NOT\s+EXISTS\s+)?citext') {
-        $citextFiles += $sql.FullName
+    # Extra guardrail: fail the build if any Cloud-shaped SQL, shared Cloud
+    # helper (for example public.set_updated_at()), or undefined public.*
+    # dependency slipped into the staged Self-Hosted migrations.
+    $nodeExe = Join-Path $payload 'runtime\node\node.exe'
+    $nodeCmd = if (Test-Path $nodeExe) { $nodeExe } else { 'node' }
+    & $nodeCmd (Join-Path $root 'build\verify-selfhost-migrations.mjs') --dir (Join-Path $appStage 'migrations')
+    if ($LASTEXITCODE -ne 0) {
+      throw "verify-selfhost-migrations.mjs failed — Self-Hosted migrations contain Cloud-only SQL or unresolved dependencies."
+    }
+
+    # Fingerprint the exact migration payload. Bootstrap logs these hashes so
+    # support can immediately tell whether a customer is running a stale
+    # installer after a migration fix.
+    $manifestEntries = @()
+    foreach ($sql in Get-ChildItem (Join-Path $appStage 'migrations\*.sql') | Sort-Object Name) {
+      $manifestEntries += [ordered]@{
+        filename = $sql.Name
+        sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $sql.FullName).Hash.ToLowerInvariant()
       }
     }
-    if ($badFiles) {
-      throw "Supabase-shaped SQL detected in Self-Hosted migrations: $($badFiles -join ', ')"
+    $manifest = [ordered]@{
+      generated_at = (Get-Date).ToUniversalTime().ToString('o')
+      migrations = $manifestEntries
     }
-    if ($citextFiles) {
-      throw "citext dependency detected in Self-Hosted migrations (portable PostgreSQL may not ship it). Use lower(email) unique index instead: $($citextFiles -join ', ')"
-    }
+    $manifestPath = Join-Path $appStage 'migrations.manifest.json'
+    $manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+    Write-Host "Wrote migration fingerprint manifest: $manifestPath"
 
 
     # Phase 9 — bundle scan. Refuse to package if any Cloud-only surface
     # (Supabase URLs, publishable/anon/service keys, `client.server` import,
     # `VITE_SUPABASE_*` env references) leaked into the Self-Hosted output.
     Write-Host "Verifying Self-Hosted bundle (Phase 9 guardrails)..."
-    $nodeExe = Join-Path $payload 'runtime\node\node.exe'
-    $nodeCmd = if (Test-Path $nodeExe) { $nodeExe } else { 'node' }
     & $nodeCmd (Join-Path $root 'build\verify-bundle.mjs') --dir (Join-Path $projectRoot '.output')
     if ($LASTEXITCODE -ne 0) {
       throw "verify-bundle.mjs failed — Self-Hosted bundle contains Cloud-only surface. See output above."

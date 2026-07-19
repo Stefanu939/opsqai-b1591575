@@ -11,6 +11,7 @@
     "build:selfhosted:verify": "bun run verify:source-imports && bun run build:selfhosted && bun run verify:selfhost-bundle",
     "build:installer": "pwsh ./opsqai-windows/build/build.ps1 -Configuration Release",
     "verify:selfhost-bundle": "node opsqai-windows/build/verify-bundle.mjs",
+    "verify:selfhost-migrations": "node opsqai-windows/build/verify-selfhost-migrations.mjs",
     "verify:source-imports": "node opsqai-windows/build/verify-source-imports.mjs",
     "test": "vitest run",
     "preview": "vite preview",
