@@ -1,7 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
 import {
   HardDrive,
@@ -14,6 +12,16 @@ import {
   ArrowDown,
   Cloud,
 } from "lucide-react";
+import { OixLayout } from "@/components/oix/oix-layout";
+import { Scene3D } from "@/components/three/scene-3d";
+import { ServerMonolith } from "@/components/three/primitives/server-monolith";
+import { GridFloor } from "@/components/three/primitives/grid-floor";
+import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { SectionShell } from "@/components/oix/section-shell";
+import { OixButton } from "@/components/oix/buttons";
+import { MottoBand } from "@/components/oix/motto-band";
 
 export const Route = createFileRoute("/self-hosted")({
   head: () =>
@@ -60,80 +68,109 @@ const FLOW = [
 
 function SelfHostedPage() {
   return (
-    <MarketingLayout>
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Self-hosted</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          The Windows installation is the product.
-        </h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI is installed on the customer's Windows Server. Data, documents,
-          embeddings, users and AI provider all live inside the customer's
-          environment. OPSQAI Cloud is used only when the installation needs it —
-          for license activation, update checks and support.
-        </p>
-        <div className="mt-8 flex gap-3">
-          <Button asChild>
-            <Link to="/contact">Request installation package</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/documentation">Read documentation</Link>
-          </Button>
+    <OixLayout>
+      {/* Cinematic hero with rotating monolith */}
+      <section className="relative isolate min-h-[90vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
+        <div className="absolute inset-0 -z-10">
+          <Scene3D cameraPosition={[3.5, 1.2, 5.5]} cameraFov={42}>
+            <ambientLight intensity={0.35} />
+            <pointLight position={[5, 4, 5]} intensity={1.2} color="#c9a84c" />
+            <pointLight position={[-4, 2, 3]} intensity={0.7} color="#0d7a5f" />
+            <GridFloor />
+            <EmberFog />
+            <ServerMonolith />
+            <GoldBloom />
+          </Scene3D>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(60% 60% at 30% 40%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.85) 80%)",
+            }}
+          />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32 grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <EditorialHeadline
+              as="h1"
+              size="xl"
+              eyebrow="Self-Hosted · The Product"
+              serifAccent="stays yours."
+            >
+              Your data
+            </EditorialHeadline>
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
+              OPSQAI is installed on the customer&apos;s Windows Server. Data,
+              documents, embeddings, users and AI provider all live inside the
+              customer&apos;s environment. OPSQAI Cloud is used only when the
+              installation needs it — for license activation, update checks and
+              support. Nothing operational ever crosses the boundary.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <OixButton to="/contact" variant="gold" withArrow>
+                Request installation package
+              </OixButton>
+              <OixButton to="/documentation" variant="ghost">
+                Read documentation
+              </OixButton>
+            </div>
+          </div>
+          <div className="hidden md:block" />
         </div>
       </section>
 
-      {/* Data flow */}
-      <section className="border-y border-border/60 bg-surface-1">
-        <div className="mx-auto max-w-4xl px-4 py-16">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Data flow</p>
-          <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">
-            Everything flows inside the customer boundary.
-          </h2>
-          <p className="mt-3 text-sm text-muted-foreground max-w-2xl">
-            The diagram below is the entire operational path. Only license
-            heartbeat and update checks cross the boundary — and they carry no
-            operational content.
-          </p>
+      {/* Boundary diagram */}
+      <SectionShell className="oix-hairline-bottom">
+        <EditorialHeadline eyebrow="Data flow" serifAccent="the boundary.">
+          Everything flows inside
+        </EditorialHeadline>
+        <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-[var(--oix-cream)]/70">
+          The diagram below is the entire operational path. Only license
+          heartbeat and update checks cross the boundary — and they carry no
+          operational content.
+        </p>
 
-          <div className="mt-10 flex flex-col items-center gap-2">
+        <div className="mt-14 grid lg:grid-cols-[minmax(0,1fr)_20rem] gap-10 items-start">
+          <div className="flex flex-col items-center gap-2">
             {FLOW.map((f, i) => (
               <div key={f.label} className="w-full max-w-md flex flex-col items-center">
-                <Card className="w-full p-4 border-border/60 flex items-center gap-4">
-                  <f.icon className="h-5 w-5 text-primary shrink-0" />
+                <Card className="w-full p-4 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur flex items-center gap-4">
+                  <f.icon className="h-5 w-5 text-[var(--oix-gold)] shrink-0" />
                   <div className="flex-1">
-                    <div className="text-sm font-semibold">{f.label}</div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{f.body}</p>
+                    <div className="text-sm font-semibold text-[var(--oix-cream)]">{f.label}</div>
+                    <p className="text-xs text-[var(--oix-cream)]/60 mt-0.5">{f.body}</p>
                   </div>
                 </Card>
                 {i < FLOW.length - 1 && (
-                  <ArrowDown className="h-4 w-4 text-primary/60 my-1" />
+                  <ArrowDown className="h-4 w-4 text-[var(--oix-gold)]/60 my-1" />
                 )}
               </div>
             ))}
           </div>
 
-          <div className="mt-12 grid md:grid-cols-2 gap-4">
-            <Card className="p-5 border-border/60">
+          <div className="space-y-4">
+            <Card className="p-5 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60">
               <div className="flex items-center gap-2">
-                <Cloud className="h-5 w-5 text-primary" />
-                <div className="font-semibold text-sm">
+                <Cloud className="h-5 w-5 text-[var(--oix-gold)]" />
+                <div className="font-semibold text-sm text-[var(--oix-cream)]">
                   What crosses the boundary
                 </div>
               </div>
-              <ul className="mt-3 text-xs text-muted-foreground leading-relaxed space-y-1.5 list-disc list-inside">
+              <ul className="mt-3 text-xs text-[var(--oix-cream)]/65 leading-relaxed space-y-1.5 list-disc list-inside">
                 <li>Signed license activation</li>
                 <li>Update manifest checks</li>
                 <li>Support (opt-in, initiated by the customer)</li>
               </ul>
             </Card>
-            <Card className="p-5 border-border/60">
+            <Card className="p-5 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60">
               <div className="flex items-center gap-2">
-                <Lock className="h-5 w-5 text-primary" />
-                <div className="font-semibold text-sm">
+                <Lock className="h-5 w-5 text-[var(--oix-emerald-glow)]" />
+                <div className="font-semibold text-sm text-[var(--oix-cream)]">
                   What never leaves
                 </div>
               </div>
-              <ul className="mt-3 text-xs text-muted-foreground leading-relaxed space-y-1.5 list-disc list-inside">
+              <ul className="mt-3 text-xs text-[var(--oix-cream)]/65 leading-relaxed space-y-1.5 list-disc list-inside">
                 <li>Documents, SOPs, procedures</li>
                 <li>Embeddings and vector index</li>
                 <li>Chat messages and AI audit records</li>
@@ -142,49 +179,71 @@ function SelfHostedPage() {
             </Card>
           </div>
         </div>
-      </section>
+      </SectionShell>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <MottoBand size="lg" compact />
+
+      {/* Pillars */}
+      <SectionShell>
+        <EditorialHeadline eyebrow="Six pillars" serifAccent="by construction.">
+          Sovereign
+        </EditorialHeadline>
+        <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {PILLARS.map((p) => (
-            <Card key={p.title} className="p-6 border-border/60">
-              <p.icon className="h-6 w-6 text-primary" />
-              <div className="mt-4 font-semibold">{p.title}</div>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{p.body}</p>
+            <Card
+              key={p.title}
+              className="p-6 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+            >
+              <p.icon className="h-6 w-6 text-[var(--oix-gold)]" />
+              <div className="mt-4 font-semibold text-[var(--oix-cream)]">{p.title}</div>
+              <p className="mt-2 text-sm text-[var(--oix-cream)]/65 leading-relaxed">{p.body}</p>
             </Card>
           ))}
         </div>
-      </section>
+      </SectionShell>
 
-      <section className="bg-surface-1 border-y border-border/60">
-        <div className="mx-auto max-w-4xl px-4 py-16">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">System requirements</h2>
-          <ul className="mt-6 space-y-2">
-            {REQUIREMENTS.map((r) => (
-              <li key={r} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                <span>{r}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      {/* Requirements */}
+      <SectionShell className="oix-hairline-top oix-hairline-bottom">
+        <EditorialHeadline eyebrow="System requirements" serifAccent="ready.">
+          Enterprise
+        </EditorialHeadline>
+        <ul className="mt-10 grid md:grid-cols-2 gap-3">
+          {REQUIREMENTS.map((r) => (
+            <li
+              key={r}
+              className="flex items-start gap-3 text-sm text-[var(--oix-cream)]/75 border border-[var(--oix-gold-line)]/30 rounded-none p-4 bg-[var(--oix-onyx)]/40"
+            >
+              <CheckCircle2 className="h-4 w-4 text-[var(--oix-gold)] shrink-0 mt-0.5" />
+              <span>{r}</span>
+            </li>
+          ))}
+        </ul>
+      </SectionShell>
 
-      <section className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight">Get the signed installer.</h2>
-        <p className="mt-3 text-muted-foreground">
-          Existing customers download from the Customer Portal. New customers,
-          contact us for a licensed evaluation.
-        </p>
-        <div className="mt-6 flex gap-3 justify-center">
-          <Button asChild>
-            <Link to="/contact">Contact sales</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/security">Security overview</Link>
-          </Button>
+      {/* Final CTA */}
+      <SectionShell>
+        <div className="text-center max-w-3xl mx-auto">
+          <EditorialHeadline
+            align="center"
+            eyebrow="Get the signed installer"
+            serifAccent="starts here."
+          >
+            The install
+          </EditorialHeadline>
+          <p className="mt-6 text-[var(--oix-cream)]/70">
+            Existing customers download from the Customer Portal. New customers,
+            contact us for a licensed evaluation.
+          </p>
+          <div className="mt-8 flex gap-3 justify-center">
+            <OixButton to="/contact" variant="gold" withArrow>
+              Contact sales
+            </OixButton>
+            <OixButton to="/security" variant="ghost">
+              Security overview
+            </OixButton>
+          </div>
         </div>
-      </section>
-    </MarketingLayout>
+      </SectionShell>
+    </OixLayout>
   );
 }
