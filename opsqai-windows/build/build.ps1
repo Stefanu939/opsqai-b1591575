@@ -379,6 +379,7 @@ if (Test-Path $icon) { Copy-Item $icon $assetsDest -Force }
 Assert-Exists (Join-Path $payload 'runtime\node\node.exe') 'Node.js runtime'
 Assert-Exists (Join-Path $payload 'winsw\OpsqaiPlatform.exe') 'WinSW service wrapper'
 Assert-Exists (Join-Path $payload 'wizard\OPSQAI-Wizard.exe') 'Electron setup wizard'
+Assert-Exists (Join-Path $payload 'desktop-shell\OPSQAI.exe') 'Electron desktop shell'
 Assert-Exists (Join-Path $payload 'services\bootstrap\init.js') 'bootstrap service'
 Assert-Exists (Join-Path $payload 'services\bootstrap\migrate.mjs') 'migration runner source'
 Assert-Exists (Join-Path $payload 'services\updater\apply.js') 'update apply orchestrator'
