@@ -153,7 +153,7 @@ function AuthPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (audience === "company") {
+    if (audience === "company" && getClientDeploymentMode() !== "selfhost") {
       // Company users never authenticate on the cloud.
       navigate({ to: "/windows-only" });
       return;
