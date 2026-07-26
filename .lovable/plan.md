@@ -1,78 +1,74 @@
-## Da, înțeleg exact acum
 
-Utilizatorul final NU trebuie să ajungă la login-ul de pe `opsqai.de` și NU trebuie să fie trimis la o pagină care îi spune să descarce iar aplicația.
+# OPSQAI — Sovereign Mark Identity System
 
-După instalare, iconița Windows trebuie să deschidă aplicația locală Self-Hosted:
+Un logo care arată ca și cum a fost comandat la un studio de identitate premium. Concept: **sigiliu heraldic** — o monogramă gravată "OQ" (Operational Q/Intelligence) închisă într-un cartuș octogonal, cu o coroană de noduri fine pe perimetru care sugerează rețeaua de cunoaștere. Auriul apare doar pe accent (nucleul monogramei + o linie de gravură), restul rămâne onix. Impresia: seif privat + medalie, nu "yet another AI startup".
 
-```text
-Double-click OPSQAI icon
-→ OPSQAI desktop window
-→ local Self-Hosted login
-→ email + parola admin creată în installer
-→ /app
-→ Chat, Knowledge Base, module licențiate etc.
-```
+## Identitate vizuală
 
-Nu:
+- **Paletă:** Onyx `#0A0A0A`, Ink `#141414`, Gold `#C9A24C`, Champagne `#F0D78C`, Bone `#F5F0E6` (pentru light lockup).
+- **Tipografie wordmark:** Cormorant Garamond SemiBold cu tracking `+180`, versale, litera "Q" cu terminația coborâtă intenționat. Micro-tagline în Karla Medium, tracking `+240`, versale mici.
+- **Construcție geometrică:** grid 64×64, octogon regulat cu raza 28, monogramă centrată pe axa optică (nu geometrică — coborâtă 1u). Linie de gravură dublă (1.25pt + 0.5pt) la 2u interior de cartuș.
+- **Regula aurului:** aurul acoperă ≤ 12% din suprafața marcă → efect medalie, nu efect banner.
+
+## Direcția marcă (Sovereign Mark)
 
 ```text
-Double-click OPSQAI icon
-→ web/login marketing
-→ Windows product message
-→ download / windows-only page
-→ loop infinit
+     ╔════════════════╗       ← cartuș octogonal, gravură dublă
+    ║  · · · · · · ·  ║      ← coroană de 8 noduri fine (rețea)
+   ║   ┌──────────┐   ║
+   ║   │    OQ    │   ║       ← monogramă serif, ligatură Q→O
+   ║   └──────────┘   ║       ← nucleu auriu în interiorul Q
+    ║  · · · · · · ·  ║
+     ╚════════════════╝
+         OPSQAI                ← wordmark Cormorant, tracking larg
+    OPERATIONAL KNOWLEDGE       ← tagline Karla, small caps
 ```
 
-## Ce s-a construit și unde e problema
+## Livrabile (sistem complet de identitate)
 
-Codul are deja bucăți corecte pentru Self-Hosted:
+Toate în `public/brand/` ca SVG-uri curate + un brand board.
 
-- desktop shell-ul Electron încarcă `https://localhost/auth?audience=company`
-- există provider local de auth Self-Hosted care trimite login-ul la `/api/auth/signin`
-- `/api/auth/signin` folosește providerul local de autentificare
-- parola admin creată în installer ar trebui să fie validată local
+1. `sovereign-mark.svg` — marca primară (onix + accent auriu).
+2. `sovereign-mark-mono-gold.svg` — pe fundal onix, integral auriu.
+3. `sovereign-mark-mono-bone.svg` — pe fundal bone, integral onix.
+4. `sovereign-mark-inverse.svg` — pe fundal auriu, gravură onix.
+5. `lockup-horizontal.svg` — mark + wordmark aliniat pe baseline optic.
+6. `lockup-stacked.svg` — mark deasupra wordmark + tagline dedesubt.
+7. `wordmark.svg` — doar "OPSQAI" în Cormorant, cu Q personalizată.
+8. `monogram.svg` — doar "OQ" în cartuș, pentru favicon/app icon/avatar.
+9. `favicon.svg` — variantă simplificată optimizată la 16–32px.
+10. `brand-board.tsx` — pagina `/brand` internă cu grid de construcție, paletă, tipografie, do/don't, spacing rules, minimum size, clear space.
 
-Problema vizibilă este în UI-ul `/auth`: când `audience=company`, pagina afișează încă mesajul de website „OPSQAI is a Windows product” și butonul spre `/windows-only`, în loc să afișeze formularul local de login. De asta pare că aplicația instalată te trimite înapoi la website/download.
+## Aplicare (după ce marca e aprobată vizual)
 
-## Plan de corecție
+Nu ating aplicațiile în această fază — livrez întâi sistemul static și îl arăt pe `/brand`. Dacă îți place, într-un pas următor înlocuiesc:
+- `LogoMark` / `Logo` / `LogoStacked` din `src/components/brand/logo.tsx`
+- Header MC (`mc-shell`), Portal, Desktop Shell splash
+- OG image, favicon.ico multi-size, PWA icons, apple-touch-icon
+- Auth screen, Installer wizard header
 
-1. **Fac `/auth` să aibă două comportamente complet separate**
-   - Cloud / `opsqai.de`: păstrează Portal + MC + mesajul pentru company users.
-   - Self-Hosted / Windows local: afișează direct formularul de login local cu email/parolă.
-   - În Self-Hosted nu se mai afișează selector Portal / MC / Company.
-   - În Self-Hosted nu se mai afișează `/windows-only`, Contact sales sau „download app”.
+## Plan de execuție
 
-2. **Login-ul Self-Hosted va folosi userul creat în installer**
-   - Formularul din desktop app va apela providerul local existent.
-   - Providerul local va apela `/api/auth/signin`.
-   - `/api/auth/signin` va valida în baza de date locală userul/parola create de installer.
-   - După login: redirect direct la `/app`, nu la portal/cloud.
+1. **Fonts:** adaug `Cormorant Garamond` + `Karla` prin `<link>` în `__root.tsx` (regula Tailwind v4 — nu în `styles.css`).
+2. **Tokens marcă:** adaug în `styles.css` variabilele `--brand-onyx`, `--brand-ink`, `--brand-gold`, `--brand-champagne`, `--brand-bone` sub `@theme`.
+3. **SVG-uri:** scriu manual cele 9 SVG-uri în `public/brand/` cu grid geometric exact, pathuri optimizate (fără artefacte de export), `role="img"` + `<title>`.
+4. **Brand board:** creez `src/routes/brand.tsx` (rută internă, `noindex`) care arată: hero cu marca primară pe onix, grid de construcție cu linii de gardă vizibile, toate variantele, paleta cu hex + oklch, scala tipografică Cormorant/Karla, reguli clear-space și minimum size, do/don't cu exemple, download links pentru fiecare SVG.
+5. **Verificare vizuală:** capturez `/brand` cu Playwright, inspectez la 100% și la 24px, ajustez tracking/kerning/greutăți până arată gravat, nu tipărit.
+6. **Livrare:** îți arăt pagina `/brand`; dacă aprobi, într-o fază următoare aplic sistemul în aplicație (logo component, favicon, OG, MC header, desktop shell splash).
 
-3. **Protejez `/app` ca aplicație Self-Hosted reală**
-   - Dacă userul nu e logat în Self-Hosted: redirect la `/auth?audience=company&next=/app`.
-   - Dacă userul e logat: vede dashboardul/modulele Self-Hosted.
-   - Chat, KB, SOPs, Users etc. rămân în `/app/*`.
+## Detalii tehnice
 
-4. **Elimin loop-ul `/windows-only` din instalarea Windows**
-   - `/windows-only` rămâne doar pentru website/cloud, unde explică utilizatorilor că nu se loghează pe opsqai.de.
-   - În build-ul Self-Hosted, orice acces accidental la `/windows-only` va duce înapoi la login/app local.
+- SVG-urile folosesc `currentColor` unde e posibil, ca să funcționeze inversate.
+- Fiecare SVG are `viewBox="0 0 64 64"` (mark) sau `0 0 320 80` (lockup), fără dimensiuni hardcodate.
+- Monograma "OQ" e desenată ca `<path>`, nu ca `<text>` — ca să nu depindă de font la runtime și să rămână identic pe orice sistem.
+- Wordmark-ul din lockup rămâne `<text>` cu fallback stack (`Cormorant Garamond, Cormorant, Georgia, serif`) — în brand board arăt și varianta outline-uită pentru export print.
+- Zero animații în marca statică. Rezerv motion pentru aplicații (splash desktop, hero site).
+- Ruta `/brand` primește `meta: [{ name: "robots", content: "noindex, nofollow" }]`.
 
-5. **Desktop shell-ul va arăta ca program, nu browser**
-   - Fără meniu clasic de browser inutil pentru client.
-   - Fără „Open in Browser” ca acțiune principală.
-   - Fereastra rămâne OPSQAI, local, orientată pe aplicație.
+## Ce nu fac acum (intenționat)
 
-6. **Verific flow-ul final**
-   - Deschidere iconiță Windows: apare login Self-Hosted real.
-   - User/parolă admin din installer: intră în `/app`.
-   - Se văd modulele Self-Hosted: Chat, KB etc.
-   - Nu apare `opsqai.de`, `/windows-only`, „download app” sau flow cloud.
+- Nu înlocuiesc logo-ul actual din `src/components/brand/logo.tsx` până nu vezi și aprobi marca.
+- Nu regenerez OG image / favicon.ico / PWA icons — vin într-un pas următor după aprobare.
+- Nu ating desktop shell / installer / MC header în această fază.
 
-## Rezultatul dorit
-
-Ce ai construit trebuie să devină clar:
-
-- `opsqai.de` = website, Customer Portal, Management Center pentru OPSQAI.
-- aplicația instalată Windows = produsul real Self-Hosted al clientului.
-
-După acest fix, clientul nu mai simte că a instalat „un link spre web”, ci un program local care pornește OPSQAI și îl lasă să se logheze cu adminul creat în installer.
+După ce vezi `/brand` și confirmi, aplic sistemul peste tot într-un singur pas.

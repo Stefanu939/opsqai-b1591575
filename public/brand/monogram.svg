@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256" role="img" aria-label="OPSQAI Monogram">
+  <title>OPSQAI Monogram</title>
+  <rect width="64" height="64" rx="10" fill="#0A0A0A"/>
+  <polygon points="42.71,6.13 57.87,21.29 57.87,42.71 42.71,57.87 21.29,57.87 6.13,42.71 6.13,21.29 21.29,6.13"
+           fill="none" stroke="#C9A24C" stroke-width="0.6"/>
+  <text x="32" y="41" text-anchor="middle"
+        font-family="'Cormorant Garamond','Cormorant',Georgia,serif"
+        font-weight="500" font-size="28" letter-spacing="-1.2"
+        fill="#C9A24C">OQ</text>
+</svg>
