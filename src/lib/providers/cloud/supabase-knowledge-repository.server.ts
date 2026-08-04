@@ -8,6 +8,7 @@ import type {
   IKnowledgeRepository,
   KnowledgeChunkInsert,
   KnowledgeDocumentInsert,
+  KnowledgeDocumentRow,
   KnowledgeMatch,
 } from "@/lib/providers/interfaces";
 
@@ -19,6 +20,28 @@ function toVectorLiteral(v: number[]): string {
 
 export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRepository {
   return {
+    async listDocuments(companyId, includeInactive) {
+      let q = client
+        .from("knowledge_documents")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!includeInactive) q = q.eq("is_active", true);
+      if (companyId) q = q.eq("company_id", companyId);
+      const { data, error } = await q;
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as KnowledgeDocumentRow[];
+    },
+
+    async listVersions(rootId) {
+      const { data, error } = await client
+        .from("knowledge_documents")
+        .select("*")
+        .or(`id.eq.${rootId},parent_document_id.eq.${rootId}`)
+        .order("version", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as KnowledgeDocumentRow[];
+    },
+
     async insertDocument(input: KnowledgeDocumentInsert) {
       const { data, error } = await client
         .from("knowledge_documents")

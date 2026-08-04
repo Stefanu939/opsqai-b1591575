@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/accordion";
 import { Plus, Pencil, Trash2, Download } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { upsertFaq, deleteFaq } from "@/lib/faqs.functions";
+import { upsertFaq, deleteFaq, listFaqs } from "@/lib/faqs.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
 import { toast } from "sonner";
 
@@ -68,14 +68,13 @@ function FaqPage() {
   const [search, setSearch] = useState("");
   const save = useServerFn(upsertFaq);
   const del = useServerFn(deleteFaq);
+  const fetchFaqs = useServerFn(listFaqs);
 
   const load = async () => {
-    let q = supabase.from("faqs").select("*").order("category");
-    // Workspace context: filter to the active workspace. Platform admins in
-    // Global mode (no active workspace) see all companies.
-    if (scopeCompanyId) q = q.eq("company_id", scopeCompanyId);
-    const { data } = await q;
-    setFaqs((data ?? []) as Faq[]);
+    // Reads go through a server fn so both Cloud (Supabase/RLS) and
+    // Self-Hosted (local Postgres) resolve through their own repository.
+    const rows = await fetchFaqs({ data: { company_id: scopeCompanyId ?? null } });
+    setFaqs((rows ?? []) as unknown as Faq[]);
   };
   useEffect(() => {
     load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */

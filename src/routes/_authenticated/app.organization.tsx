@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
+import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { updateMyProfile, listDepartments } from "@/lib/users.functions";
 import { getPlatformConfig, savePlatformAiConfig } from "@/lib/mc-admin.functions";
 import { PageHeader } from "@/components/ui/page-header";
@@ -77,23 +77,27 @@ function OrganizationPage() {
       .then((d) => setDepts(d as Dept[]))
       .catch(() => {});
     if (!user) return;
-    supabase
-      .from("profiles")
-      .select("first_name,last_name,position,department_id,language_pref")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(async ({ data }) => {
-        if (!data) return;
-        const { data: phoneVal } = await supabase.rpc("get_profile_phone", { _id: user.id });
-        setForm({
-          first_name: data.first_name ?? "",
-          last_name: data.last_name ?? "",
-          position: data.position ?? "",
-          phone: (phoneVal as string | null) ?? "",
-          department_id: data.department_id ?? "",
-          language_pref: data.language_pref === "de" ? "de" : "en",
-        });
+    void (async () => {
+      // Profile enrichment is Cloud-backed. Self-Hosted keeps identity in the
+      // local users table, so the form just starts empty there.
+      const db = await getCloudBrowserDb();
+      if (!db) return;
+      const { data } = await db
+        .from("profiles")
+        .select("first_name,last_name,position,department_id,language_pref")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!data) return;
+      const { data: phoneVal } = await db.rpc("get_profile_phone", { _id: user.id });
+      setForm({
+        first_name: data.first_name ?? "",
+        last_name: data.last_name ?? "",
+        position: data.position ?? "",
+        phone: (phoneVal as string | null) ?? "",
+        department_id: data.department_id ?? "",
+        language_pref: data.language_pref === "de" ? "de" : "en",
       });
+    })().catch(() => {});
   }, [user, fetchDepts]);
 
   useEffect(() => {

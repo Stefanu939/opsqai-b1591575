@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, ShieldAlert, Clock, XCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { useAuth } from "@/lib/auth-context";
 import { Link } from "@tanstack/react-router";
 
@@ -25,13 +25,17 @@ export function SubscriptionStatusBanner() {
       return;
     }
     let cancelled = false;
-    supabase
-      .rpc("get_subscription_state", { _company: scopeCompanyId })
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        setState((data as unknown as State) ?? null);
-      });
+    void (async () => {
+      // Subscription billing lives in the Cloud (opsqai.de). Self-Hosted
+      // access is governed by the local license, not a subscription.
+      const db = await getCloudBrowserDb();
+      if (!db || cancelled) return;
+      const { data } = await db
+        .rpc("get_subscription_state", { _company: scopeCompanyId })
+        .maybeSingle();
+      if (cancelled) return;
+      setState((data as unknown as State) ?? null);
+    })().catch(() => {});
     return () => {
       cancelled = true;
     };

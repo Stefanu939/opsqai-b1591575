@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ShieldAlert, XCircle, Lock, CreditCard, Mail, ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 
@@ -40,14 +40,26 @@ export function SubscriptionAccessGate({
       return;
     }
     let cancelled = false;
-    supabase
-      .rpc("get_subscription_state", { _company: scopeCompanyId })
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        setState((data as unknown as State) ?? null);
-        setLoaded(true);
-      });
+    void (async () => {
+      // Cloud-only billing gate. On Self-Hosted there is no subscription —
+      // the local license decides access, so never block the feature.
+      const db = await getCloudBrowserDb();
+      if (!db) {
+        if (!cancelled) {
+          setState(null);
+          setLoaded(true);
+        }
+        return;
+      }
+      const { data } = await db
+        .rpc("get_subscription_state", { _company: scopeCompanyId })
+        .maybeSingle();
+      if (cancelled) return;
+      setState((data as unknown as State) ?? null);
+      setLoaded(true);
+    })().catch(() => {
+      if (!cancelled) setLoaded(true);
+    });
     return () => {
       cancelled = true;
     };

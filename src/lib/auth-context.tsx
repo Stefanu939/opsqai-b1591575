@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import type { OpsqaiSession, OpsqaiUser } from "@/lib/providers/interfaces";
 import type { Permission } from "@/lib/permissions";
@@ -74,39 +74,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (next) localStorage.setItem(ACTIVE_KEY, next);
       else localStorage.removeItem(ACTIVE_KEY);
     }
-    // Best-effort audit. RPC is a no-op for non-platform users.
+    // Best-effort audit. Cloud-only: Self-Hosted is single-tenant and has
+    // no workspace switching.
     if (previous !== next) {
-      supabase
-        .rpc("log_workspace_switch", { p_previous: previous as never, p_next: next as never })
-        .then(
-          () => {},
-          () => {},
-        );
+      void (async () => {
+        const db = await getCloudBrowserDb();
+        if (!db) return;
+        await db
+          .rpc("log_workspace_switch", { p_previous: previous as never, p_next: next as never })
+          .then(
+            () => {},
+            () => {},
+          );
+      })().catch(() => {});
     }
   };
 
   const loadProfile = (_uid: string) => {
     bootstrapSession()
-      .then((boot) => {
+      .then(async (boot) => {
         setRoles(boot.roles);
         setPermissions(new Set(boot.permissions));
         const cid = boot.companyId;
         setCompanyId(cid);
-        if (cid) {
-          // companies table not yet abstracted (Wave C.2a.2); read via
-          // browser client for now. Cloud only — Self-Hosted is
-          // single-tenant and has no companies table.
-          supabase
-            .from("companies")
-            .select("name")
-            .eq("id", cid)
-            .maybeSingle()
-            .then(({ data: c }) => {
-              setCompanyName(c?.name ?? null);
-            });
-        } else {
+        if (!cid) {
           setCompanyName(null);
+          return;
         }
+        // `companies` is a Cloud-only table. On Self-Hosted the install is
+        // single-tenant, so there is no workspace name to resolve.
+        const db = await getCloudBrowserDb();
+        if (!db) {
+          setCompanyName(null);
+          return;
+        }
+        const { data: c } = await db
+          .from("companies")
+          .select("name")
+          .eq("id", cid)
+          .maybeSingle();
+        setCompanyName(c?.name ?? null);
       })
       .catch(() => {
         setRoles([]);
@@ -145,14 +152,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setCompanyName(null);
       return;
     }
-    supabase
-      .from("companies")
-      .select("name")
-      .eq("id", target)
-      .maybeSingle()
-      .then(({ data }) => {
-        setCompanyName(data?.name ?? null);
-      });
+    let cancelled = false;
+    void (async () => {
+      const db = await getCloudBrowserDb();
+      if (!db || cancelled) return;
+      const { data } = await db
+        .from("companies")
+        .select("name")
+        .eq("id", target)
+        .maybeSingle();
+      if (!cancelled) setCompanyName(data?.name ?? null);
+    })().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [activeCompanyId, companyId, session?.user?.id]);
 
   const signOut = async () => {

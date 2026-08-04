@@ -2,12 +2,22 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import type { IMessageRepository } from "@/lib/providers/interfaces";
+import type { IMessageRepository, ThreadMessageRecord } from "@/lib/providers/interfaces";
 
 type Client = SupabaseClient<Database>;
 
 export function createSupabaseMessageRepository(client: Client): IMessageRepository {
   return {
+    async listByThread(threadId) {
+      const { data, error } = await client
+        .from("messages")
+        .select("id, role, content, parts, sources, created_at")
+        .eq("thread_id", threadId)
+        .order("created_at");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as ThreadMessageRecord[];
+    },
+
     async findAssistantById(id) {
       const { data, error } = await client
         .from("messages")

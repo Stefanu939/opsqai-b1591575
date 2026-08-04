@@ -355,7 +355,18 @@ export interface PreviousUserMessage {
   content: string;
 }
 
+export interface ThreadMessageRecord {
+  id: string;
+  role: string;
+  content: string;
+  parts: unknown;
+  sources: unknown;
+  created_at: string;
+}
+
 export interface IMessageRepository {
+  /** Ordered transcript for one thread, oldest first. */
+  listByThread(threadId: string): Promise<ThreadMessageRecord[]>;
   findAssistantById(id: string): Promise<AssistantMessage | null>;
   findLastUserBefore(
     threadId: string,
@@ -451,6 +462,12 @@ export interface FaqUpsertInput {
 }
 
 export interface IFaqRepository {
+  /**
+   * Ordered FAQ list. `companyId === null` means "all workspaces" and is only
+   * reachable for platform admins in Global mode (Cloud); Self-Hosted is
+   * single-tenant so the filter is a no-op there.
+   */
+  list(companyId: string | null): Promise<FaqRow[]>;
   update(id: string, patch: FaqUpsertInput): Promise<void>;
   getMetaById(id: string): Promise<Pick<FaqRow, "company_id" | "category" | "question_en"> | null>;
   insert(companyId: string, input: FaqUpsertInput): Promise<Pick<FaqRow, "id" | "category" | "question_en">>;
@@ -503,6 +520,10 @@ export interface KnowledgeMatch {
 }
 
 export interface IKnowledgeRepository {
+  /** Document list for the library screen. `companyId === null` = all workspaces. */
+  listDocuments(companyId: string | null, includeInactive: boolean): Promise<KnowledgeDocumentRow[]>;
+  /** A document plus all of its versions (same root). */
+  listVersions(rootId: string): Promise<KnowledgeDocumentRow[]>;
   insertDocument(input: KnowledgeDocumentInsert): Promise<{ id: string; company_id: string }>;
   getForProcessing(id: string): Promise<Pick<
     KnowledgeDocumentRow,

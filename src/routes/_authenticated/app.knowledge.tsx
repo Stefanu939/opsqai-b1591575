@@ -3,7 +3,6 @@ import emptyKnowledgeIllustration from "@/assets/empty-knowledge.png";
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,7 +44,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { processDocument, deleteKnowledgeDocument, reprocessDocument } from "@/lib/kb.functions";
+import {
+  processDocument,
+  deleteKnowledgeDocument,
+  reprocessDocument,
+  listKnowledgeDocuments,
+  listDocumentVersions,
+  uploadKnowledgeFile,
+} from "@/lib/kb.functions";
 import {
   replaceDocumentVersion,
   rollbackToVersion,
@@ -127,20 +133,26 @@ function KnowledgePage() {
   const replaceFn = useServerFn(replaceDocumentVersion);
   const rollback = useServerFn(rollbackToVersion);
   const setCritical = useServerFn(setCriticalFlag);
+  const fetchDocs = useServerFn(listKnowledgeDocuments);
+  const fetchVersions = useServerFn(listDocumentVersions);
+  const uploadFile = useServerFn(uploadKnowledgeFile);
+
+  /** Read a File as base64 so it can travel through a server fn payload. */
+  const toBase64 = (f: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
+      r.onerror = () => reject(new Error("Could not read file"));
+      r.readAsDataURL(f);
+    });
 
   const load = async () => {
-    let q = supabase
-      .from("knowledge_documents")
-      .select(
-        "id,title,doc_code,category,file_path,file_type,content_text,status,error,chunk_count,created_at,version,is_active,is_critical,parent_document_id,change_notes,updated_at",
-      )
-      .order("created_at", { ascending: false });
-    if (!showInactive) q = q.eq("is_active", true);
-    // Honor the active workspace context. Platform admins in Global mode (no
-    // active workspace) intentionally see all companies' documents.
-    if (scopeCompanyId) q = q.eq("company_id", scopeCompanyId);
-    const { data } = await q;
-    setDocs((data ?? []) as Doc[]);
+    // Reads run through a server fn: Cloud resolves via Supabase/RLS,
+    // Self-Hosted via the local Postgres repository.
+    const rows = await fetchDocs({
+      data: { company_id: scopeCompanyId ?? null, include_inactive: showInactive },
+    });
+    setDocs((rows ?? []) as unknown as Doc[]);
   };
   useEffect(() => {
     load();
@@ -156,16 +168,20 @@ function KnowledgePage() {
     }
     setBusy(true);
     try {
-      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const scopeId = (isPlatformAdmin ? activeCompanyId : companyId) ?? companyId;
       if (!scopeId) {
         toast.error("No company context");
         setBusy(false);
         return;
       }
-      const path = `${scopeId}/${Date.now()}-${safe}`;
-      const { error: upErr } = await supabase.storage.from("knowledge-docs").upload(path, file);
-      if (upErr) throw upErr;
+      const { file_path: path } = await uploadFile({
+        data: {
+          filename: file.name,
+          content_type: file.type || "application/octet-stream",
+          data_base64: await toBase64(file),
+          company_id: scopeId,
+        },
+      });
       await process({
         data: {
           title: title || file.name,
@@ -230,14 +246,16 @@ function KnowledgePage() {
     if (!replaceTarget || !replaceFile) return;
     setBusy(true);
     try {
-      const safe = replaceFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const scopeId = (isPlatformAdmin ? activeCompanyId : companyId) ?? companyId;
       if (!scopeId) throw new Error("No company");
-      const path = `${scopeId}/${Date.now()}-${safe}`;
-      const { error: upErr } = await supabase.storage
-        .from("knowledge-docs")
-        .upload(path, replaceFile);
-      if (upErr) throw upErr;
+      const { file_path: path } = await uploadFile({
+        data: {
+          filename: replaceFile.name,
+          content_type: replaceFile.type || "application/octet-stream",
+          data_base64: await toBase64(replaceFile),
+          company_id: scopeId,
+        },
+      });
       await replaceFn({
         data: {
           previous_id: replaceTarget.id,
@@ -265,14 +283,8 @@ function KnowledgePage() {
   const openVersions = async (d: Doc) => {
     setVersionsFor(d);
     const rootId = d.parent_document_id ?? d.id;
-    const { data } = await supabase
-      .from("knowledge_documents")
-      .select(
-        "id,title,doc_code,category,file_path,file_type,content_text,status,error,chunk_count,created_at,version,is_active,is_critical,parent_document_id,change_notes,updated_at",
-      )
-      .or(`id.eq.${rootId},parent_document_id.eq.${rootId}`)
-      .order("version", { ascending: false });
-    setVersions((data ?? []) as Doc[]);
+    const rows = await fetchVersions({ data: { root_id: rootId } });
+    setVersions((rows ?? []) as unknown as Doc[]);
   };
 
   const onRollback = async (id: string) => {

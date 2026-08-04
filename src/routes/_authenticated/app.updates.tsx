@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -36,7 +36,12 @@ function UpdatesPage() {
   const releases = useQuery({
     queryKey: ["installer-releases"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Installer releases are published from the Cloud catalogue. A
+      // Self-Hosted install updates from its own package, so the list is
+      // simply empty there instead of erroring.
+      const db = await getCloudBrowserDb();
+      if (!db) return [] as Release[];
+      const { data, error } = await db
         .from("installer_releases")
         .select(
           "id, version, tag_name, zip_url, zip_size_bytes, exe_sha256, exe_size_bytes, is_active, published_at",
