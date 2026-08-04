@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
 import { BookOpen, Shield, Code2, Wrench, Boxes, Building2 } from "lucide-react";
+import { useDocumentationCopy } from "@/i18n/pages/documentation";
 
 export const Route = createFileRoute("/documentation/")({
   head: () =>
@@ -21,88 +22,59 @@ export const Route = createFileRoute("/documentation/")({
   component: DocumentationIndex,
 });
 
-const BOOKS = [
-  {
-    icon: Wrench,
-    title: "Administrator Guide",
-    body: "Install, configure, and operate OPSQAI self-hosted on a dedicated Windows Server. Signed installer, native Windows services, PostgreSQL Portable, object storage, SMTP, SSO, AI provider, licence, backups, updates, troubleshooting.",
-    href: "/documentation/administrator-guide",
-  },
-  {
-    icon: Building2,
-    title: "Architecture Handbook",
-    body: "How OPSQAI is built end to end: containers, data flow, license system, RAG pipeline, security model, storage adapters, deployment topology.",
-    href: "/documentation/architecture",
-  },
-  {
-    icon: Boxes,
-    title: "Product Documentation",
-    body: "What OPSQAI is, why it exists, what each module does, how licensing works, how AI answers stay grounded in your knowledge base.",
-    href: "/documentation/product",
-  },
-  {
-    icon: Shield,
-    title: "Security Documentation",
-    body: "Encryption at rest and in transit, RLS, license security, update signing, backup encryption, audit logging, DR/BC, incident response.",
-    href: "/documentation/security",
-  },
-  {
-    icon: Code2,
-    title: "Technical Reference",
-    body: "Windows service reference (Caddy, Platform, Worker, PostgreSQL, Updater), environment variables, ports, on-disk layout, AI adapter contract, RAG pipeline internals, embeddings, storage adapters, public API, jobs, database schema.",
-    href: "/documentation/technical",
-  },
-  {
-    icon: BookOpen,
-    title: "Engineering Handbook",
-    body: "Conventions, release process, adding modules, issuing licenses, adding AI adapters, publishing container images, migrations, pre-release checklist.",
-    href: "/documentation/engineering",
-  },
-];
+const BOOK_META = [
+  { icon: Wrench, href: "/documentation/administrator-guide" },
+  { icon: Building2, href: "/documentation/architecture" },
+  { icon: Boxes, href: "/documentation/product" },
+  { icon: Shield, href: "/documentation/security" },
+  { icon: Code2, href: "/documentation/technical" },
+  { icon: BookOpen, href: "/documentation/engineering" },
+] as const;
 
 function DocumentationIndex() {
+  const t = useDocumentationCopy();
   return (
     <>
       <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Documentation</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.hero.eyebrow}</p>
         <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          Everything, written down.
+          {t.hero.headline}
         </h1>
         <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI ships as a Windows-native self-hosted platform. These books cover installation,
-          architecture, security, product, technical reference, and engineering. For product notes
-          and release announcements see the <Link to="/blog" className="text-[color:var(--gold)] hover:underline">blog</Link>. Customer-specific runbooks live inside the Customer Portal.
+          {t.hero.body} <Link to="/blog" className="text-[color:var(--gold)] hover:underline">{t.hero.blogLink}</Link>{t.hero.bodyEnd}
         </p>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {BOOKS.map((b) => (
-            <Card key={b.title} className="p-6 border-border/60 flex flex-col">
-              <b.icon className="h-6 w-6 text-primary" />
-              <div className="mt-4 font-semibold">{b.title}</div>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed flex-1">{b.body}</p>
-              <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
-                <Link to={b.href}>Open →</Link>
-              </Button>
-            </Card>
-          ))}
+          {t.books.map((b, i) => {
+            const meta = BOOK_META[i];
+            return (
+              <Card key={b.title} className="p-6 border-border/60 flex flex-col">
+                <meta.icon className="h-6 w-6 text-primary" />
+                <div className="mt-4 font-semibold">{b.title}</div>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed flex-1">{b.body}</p>
+                <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
+                  <Link to={meta.href}>{t.openBook}</Link>
+                </Button>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
       <section className="bg-surface-1 border-t border-border/60">
         <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight">Looking for install-specific docs?</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">{t.installSpecific.headline}</h2>
           <p className="mt-3 text-muted-foreground">
-            Customer contacts can browse install-scoped documentation and release notes inside the
-            Customer Portal.
+            {t.installSpecific.body}
           </p>
           <div className="mt-6 flex gap-3 justify-center">
             <Button asChild>
-              <Link to="/portal/documentation">Open Customer Portal</Link>
+              <Link to="/portal/documentation">{t.installSpecific.ctaPrimary}</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/contact">Contact us</Link>
+              <Link to="/contact">{t.installSpecific.ctaSecondary}</Link>
             </Button>
           </div>
         </div>

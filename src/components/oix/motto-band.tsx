@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useHomeCopy } from "@/i18n/pages/home";
 
 interface MottoBandProps {
   className?: string;
@@ -11,6 +12,7 @@ interface MottoBandProps {
  * recurring visual anchor. Two stacked lines, gold hairline under.
  */
 export function MottoBand({ className, size = "xl", compact = false }: MottoBandProps) {
+  const t = useHomeCopy().mottoBand;
   const cls =
     size === "xl"
       ? "text-[clamp(3rem,14vw,14rem)]"
@@ -25,7 +27,7 @@ export function MottoBand({ className, size = "xl", compact = false }: MottoBand
         compact ? "py-10 md:py-16" : "py-20 md:py-32",
         className,
       )}
-      aria-label="For people. Not without them."
+      aria-label={t.ariaLabel}
     >
       <div className="mx-auto max-w-[100rem] px-6 md:px-10">
         <p
@@ -34,8 +36,8 @@ export function MottoBand({ className, size = "xl", compact = false }: MottoBand
             cls,
           )}
         >
-          <span className="block">For People.</span>
-          <span className="block text-[var(--oix-gold)]">Not Without Them.</span>
+          <span className="block">{t.lineOne}</span>
+          <span className="block text-[var(--oix-gold)]">{t.lineTwo}</span>
         </p>
       </div>
       <div
