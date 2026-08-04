@@ -1,12 +1,12 @@
 import type { Pool } from "pg";
-import type { IAiAuditRepository } from "@/lib/providers/interfaces";
+import type { IAiAuditRepository, JsonLike } from "@/lib/providers/interfaces";
 
 export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRepository {
   return {
     async list(companyId, limit) {
       const { rows } = await pool.query<{
         id: string; score: number; maturity: string | null; passed: number; warnings: number;
-        critical: number; summary: never; created_at: Date;
+        critical: number; summary: JsonLike; created_at: Date;
       }>(`SELECT id, score, maturity, passed, warnings, critical, summary, created_at
             FROM public.ai_audits WHERE company_id=$1 ORDER BY created_at DESC LIMIT $2`,
         [companyId, limit]);

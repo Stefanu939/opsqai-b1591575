@@ -103,8 +103,17 @@ INSERT INTO public.role_permissions (role_key, permission_key) VALUES
   ('member','sop.read'),('member','faq.read'),('member','academy.learn')
 ON CONFLICT DO NOTHING;
 
-ALTER TABLE public.user_roles
-  ADD CONSTRAINT user_roles_role_fk FOREIGN KEY (role) REFERENCES public.roles(key);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.user_roles'::regclass
+      AND conname = 'user_roles_role_fk'
+  ) THEN
+    ALTER TABLE public.user_roles
+      ADD CONSTRAINT user_roles_role_fk FOREIGN KEY (role) REFERENCES public.roles(key);
+  END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role TEXT)
 RETURNS BOOLEAN LANGUAGE SQL STABLE AS $$

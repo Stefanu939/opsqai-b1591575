@@ -1,15 +1,11 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
-import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 import { getAiAuditRepository, getFaqRepository, getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
 import { resolveChatModel } from "@/lib/ai-provider.server";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
-
-const AI_AUDIT_MODULE = "ai_workspace_audit" as const;
 
 async function ensurePerm(context: any, perm: string) {
   await requirePermission(context, perm);
@@ -155,18 +151,6 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
       await (reprocessDocument as any).handler?.({ data: { id: doc.id }, context });
     } catch {
       /* indexed asynchronously elsewhere */
-    }
-
-    try {
-      await getCloudSupabase(context, "ai-features").from("notifications").insert({
-        company_id: companyId,
-        user_id: context.userId,
-        kind: "ai_sop_generated",
-        title: `New AI-generated SOP: ${data.title}`,
-        body: data.doc_code ?? "",
-      });
-    } catch {
-      /* notification optional */
     }
 
     return { id: doc.id };
