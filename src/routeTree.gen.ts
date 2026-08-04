@@ -54,7 +54,6 @@ import { Route as ApiWorkspaceChatRouteImport } from './routes/api/workspace-cha
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiInternalChatRouteImport } from './routes/api/internal-chat'
 import { Route as ApiCustomerWriterRouteImport } from './routes/api/customer-writer'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAcademyChatRouteImport } from './routes/api/academy-chat'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedManagementRouteImport } from './routes/_authenticated/management'
@@ -356,11 +355,6 @@ const ApiInternalChatRoute = ApiInternalChatRouteImport.update({
 const ApiCustomerWriterRoute = ApiCustomerWriterRouteImport.update({
   id: '/api/customer-writer',
   path: '/api/customer-writer',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAcademyChatRoute = ApiAcademyChatRouteImport.update({
@@ -816,7 +810,6 @@ export interface FileRoutesByFullPath {
   '/management': typeof AuthenticatedManagementRouteWithChildren
   '/portal': typeof AuthenticatedPortalRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
-  '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -933,7 +926,6 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/academy-chat': typeof ApiAcademyChatRoute
-  '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -1055,7 +1047,6 @@ export interface FileRoutesById {
   '/_authenticated/management': typeof AuthenticatedManagementRouteWithChildren
   '/_authenticated/portal': typeof AuthenticatedPortalRouteWithChildren
   '/api/academy-chat': typeof ApiAcademyChatRoute
-  '/api/chat': typeof ApiChatRoute
   '/api/customer-writer': typeof ApiCustomerWriterRoute
   '/api/internal-chat': typeof ApiInternalChatRoute
   '/api/tts': typeof ApiTtsRoute
@@ -1179,7 +1170,6 @@ export interface FileRouteTypes {
     | '/management'
     | '/portal'
     | '/api/academy-chat'
-    | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
     | '/api/tts'
@@ -1296,7 +1286,6 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/academy-chat'
-    | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
     | '/api/tts'
@@ -1417,7 +1406,6 @@ export interface FileRouteTypes {
     | '/_authenticated/management'
     | '/_authenticated/portal'
     | '/api/academy-chat'
-    | '/api/chat'
     | '/api/customer-writer'
     | '/api/internal-chat'
     | '/api/tts'
@@ -1538,7 +1526,6 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiAcademyChatRoute: typeof ApiAcademyChatRoute
-  ApiChatRoute: typeof ApiChatRoute
   ApiCustomerWriterRoute: typeof ApiCustomerWriterRoute
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
@@ -1886,13 +1873,6 @@ declare module '@tanstack/react-router' {
       path: '/api/customer-writer'
       fullPath: '/api/customer-writer'
       preLoaderRoute: typeof ApiCustomerWriterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/academy-chat': {
@@ -2700,7 +2680,6 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiAcademyChatRoute: ApiAcademyChatRoute,
-  ApiChatRoute: ApiChatRoute,
   ApiCustomerWriterRoute: ApiCustomerWriterRoute,
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiTtsRoute: ApiTtsRoute,
