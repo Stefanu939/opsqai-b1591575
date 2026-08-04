@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export function LogoMark({
   className,
   size = 32,
-  accent = "var(--primary)",
+  accent = "var(--gold)",
   mono = false,
   title = "OPSQAI",
 }: {
@@ -37,43 +37,61 @@ export function LogoMark({
       aria-label={title}
     >
       <title>{title}</title>
-      {/* Outer ring — the "O" — 8 nodes on a circle */}
-      <circle cx="32" cy="32" r="22" stroke="currentColor" strokeWidth="2" strokeOpacity="0.9" />
+      <defs>
+        <linearGradient id="opsqai-sovereign-gold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={mono ? "currentColor" : "var(--gold-soft-solid, #F0D78C)"} />
+          <stop offset="1" stopColor={mono ? "currentColor" : c} />
+        </linearGradient>
+      </defs>
 
-      {/* Neural pathways — 4 chords crossing the intelligence core */}
-      <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeOpacity="0.55">
-        {/* 0° → 180° (horizontal axis) */}
-        <line x1="54" y1="32" x2="10" y2="32" />
-        {/* 45° → 225° */}
-        <line x1="47.56" y1="16.44" x2="16.44" y2="47.56" />
-        {/* 90° → 270° */}
-        <line x1="32" y1="10" x2="32" y2="54" />
-        {/* 135° → 315° */}
-        <line x1="16.44" y1="16.44" x2="47.56" y2="47.56" />
-      </g>
-
-      {/* 8 outer nodes */}
-      <g fill="currentColor">
-        <circle cx="54" cy="32" r="2.6" />
-        <circle cx="47.56" cy="16.44" r="2.6" />
-        <circle cx="32" cy="10" r="2.6" />
-        <circle cx="16.44" cy="16.44" r="2.6" />
-        <circle cx="10" cy="32" r="2.6" />
-        <circle cx="16.44" cy="47.56" r="2.6" />
-        <circle cx="32" cy="54" r="2.6" />
-        <circle cx="47.56" cy="47.56" r="2.6" />
-      </g>
-
-      {/* Intelligence core */}
-      <circle cx="32" cy="32" r="5.2" fill={c} />
-      <circle
-        cx="32"
-        cy="32"
-        r="5.2"
+      {/* Outer octagonal cartouche */}
+      <polygon
+        points="42.71,6.13 57.87,21.29 57.87,42.71 42.71,57.87 21.29,57.87 6.13,42.71 6.13,21.29 21.29,6.13"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.25"
+        strokeWidth="1.4"
+        strokeOpacity="0.92"
+      />
+      {/* Inner gravure line */}
+      <polygon
+        points="41.19,9.82 54.18,22.81 54.18,41.19 41.19,54.18 22.81,54.18 9.82,41.19 9.82,22.81 22.81,9.82"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.6"
+        strokeOpacity="0.45"
+      />
+      {/* Coronet nodes */}
+      <g fill="currentColor" fillOpacity="0.8">
+        <circle cx="40.43" cy="11.67" r="1.15" />
+        <circle cx="52.33" cy="23.57" r="1.15" />
+        <circle cx="52.33" cy="40.43" r="1.15" />
+        <circle cx="40.43" cy="52.33" r="1.15" />
+        <circle cx="23.57" cy="52.33" r="1.15" />
+        <circle cx="11.67" cy="40.43" r="1.15" />
+        <circle cx="11.67" cy="23.57" r="1.15" />
+        <circle cx="23.57" cy="11.67" r="1.15" />
+      </g>
+      {/* Engraved OQ monogram */}
+      <text
+        x="32"
+        y="41"
+        textAnchor="middle"
+        fontFamily="'Cormorant Garamond', Cormorant, Georgia, serif"
+        fontWeight={500}
+        fontSize="27"
+        letterSpacing="-1.2"
+        fill="url(#opsqai-sovereign-gold)"
+      >
+        OQ
+      </text>
+      <line
+        x1="34.5"
+        y1="42.5"
+        x2="38"
+        y2="46.4"
+        stroke="url(#opsqai-sovereign-gold)"
         strokeWidth="1"
+        strokeLinecap="round"
       />
     </svg>
   );

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OixButton } from "./buttons";
+import { LogoMark } from "@/components/brand/logo";
 import { useT } from "@/i18n";
 import { useMarketing } from "@/i18n/marketing";
 
@@ -55,16 +56,17 @@ export function NavShell() {
       )}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-6">
-        <Link to="/" className="flex items-center gap-2 group shrink-0">
-          <span
-            className="inline-block h-2 w-2 rounded-full bg-[var(--oix-gold)]"
-            style={{ boxShadow: "0 0 12px var(--oix-gold)" }}
-            aria-hidden
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+          <LogoMark
+            size={26}
+            accent="var(--oix-gold-soft)"
+            className="text-[var(--oix-gold)]"
           />
           <span className="oix-display text-lg tracking-[0.24em] text-[var(--oix-cream)] group-hover:text-[var(--oix-gold-soft)] transition-colors">
             OPSQAI
           </span>
         </Link>
+
 
         <nav className="hidden items-center gap-5 lg:flex">
           {links.map((l) => (

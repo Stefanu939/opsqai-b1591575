@@ -73,8 +73,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "OPSQAI" },
       { name: "format-detection", content: "telephone=no" },
-      { name: "theme-color", content: "#0a1729", media: "(prefers-color-scheme: dark)" },
-      { name: "theme-color", content: "#fbfbfc", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#04211a", media: "(prefers-color-scheme: dark)" },
+      { name: "theme-color", content: "#f7f4ea", media: "(prefers-color-scheme: light)" },
       { title: "OPSQAI — AI Knowledge Platform for Logistics & Supply Chain" },
       {
         name: "description",
