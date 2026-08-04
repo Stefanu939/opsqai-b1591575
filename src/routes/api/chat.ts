@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
 import { resolveChatModel, resolveEmbedOne } from "@/lib/ai-provider.server";
+import type { JsonLike } from "@/lib/providers/interfaces";
 
 type Body={messages?:UIMessage[];threadId?:string;language?:string};
 type Source={type:"document"|"faq";id:string;document_id?:string;title:string;code?:string|null;excerpt:string;similarity?:number;version?:number;section?:string|null;page?:number|null;last_updated?:string|null;confidence?:"high"|"medium"|"low";primary?:boolean};
@@ -42,10 +43,10 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       const matches=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,8);
       const docs=await getKnowledgeRepository(dataCtx).getDocumentsByIds(Array.from(new Set(matches.map((m)=>m.document_id))));
       const meta=new Map(docs.map((d)=>[d.id,d]));
-      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:m.chunk_id,document_id:m.document_id,title:m.doc_title,code:m.doc_code,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.6?"high":sim>=.4?"medium":"low",primary:index===0});});
+      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.6?"high":sim>=.4?"medium":"low",primary:index===0});});
       const words=query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w)=>w.length>3);
       faqs.map((faq)=>({faq,score:words.reduce((n,w)=>n+(faq.question_en.toLowerCase().includes(w)||faq.question_de.toLowerCase().includes(w)?2:0)+(faq.answer_en.toLowerCase().includes(w)||faq.answer_de.toLowerCase().includes(w)?1:0),0)})).filter((x)=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5).forEach(({faq,score})=>sources.push({type:"faq",id:faq.id,title:`${faq.question_en} / ${faq.question_de}`,excerpt:`EN: ${faq.answer_en}\nDE: ${faq.answer_de}`,confidence:score>=4?"high":score>=2?"medium":"low"}));
-      confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?.65:0;
+      confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?0.65:0;
       context=sources.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
     }catch(error){console.error("[chat:retrieval]",error);}
   }
@@ -56,6 +57,6 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   const existing=await messageRepo.listByThread(body.threadId);
   return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?{sources,mode:isGreeting?"greeting":sources.length?"kb":"gap",question:query,confidence,minConfidence:.55,isKnowledgeGap:!isGreeting&&sources.length===0}:undefined,onFinish:async({messages:finished})=>{
     const fresh=finished.slice(existing.length);
-    await messageRepo.insertMany(fresh.map((m)=>({threadId:body.threadId as string,userId:identity.userId,companyId,role:m.role,content:textOf(m).slice(0,100000),parts:m.parts,sources:m.role==="assistant"?sources:null,confidence:m.role==="assistant"?confidence:null})));
+    await messageRepo.insertMany(fresh.map((m)=>({threadId:body.threadId as string,userId:identity.userId,companyId,role:m.role,content:textOf(m).slice(0,100000),parts:JSON.parse(JSON.stringify(m.parts)) as JsonLike,sources:m.role==="assistant"?JSON.parse(JSON.stringify(sources)) as JsonLike:null,confidence:m.role==="assistant"?confidence:null})));
   }});
 }}}});
