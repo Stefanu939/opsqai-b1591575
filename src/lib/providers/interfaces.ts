@@ -188,6 +188,30 @@ export interface IRoleRepository {
   listPermissionsForRole(role: RoleName): Promise<string[]>;
 }
 
+export interface PermissionRecord {
+  key: string;
+  label: string;
+  category: string;
+  description: string | null;
+}
+
+export interface RoleRecord {
+  key: string;
+  name: string;
+  description: string | null;
+  isSystem: boolean;
+  isProtected: boolean;
+  permissions: string[];
+}
+
+export interface IRbacAdminRepository {
+  listPermissions(): Promise<PermissionRecord[]>;
+  listRoles(): Promise<RoleRecord[]>;
+  createRole(input: { key: string; name: string; description?: string | null; permissions: string[] }): Promise<void>;
+  updateRole(key: string, input: { name: string; description?: string | null; permissions: string[] }): Promise<void>;
+  deleteRole(key: string): Promise<void>;
+}
+
 // --------------------------------------------------------------------
 // Company repository (Wave C.2a.1.c) — Cloud reads public.companies;
 // Self-Hosted returns a synthetic single-tenant record (OPSQAI_INSTALL_ID).
@@ -380,6 +404,81 @@ export interface IMessageRepository {
     threadId: string,
     beforeCreatedAt: string,
   ): Promise<PreviousUserMessage | null>;
+  insertMany(input: Array<{
+    threadId: string;
+    userId: string;
+    companyId: string;
+    role: string;
+    content: string;
+    parts: JsonLike;
+    sources: JsonLike | null;
+    confidence: number | null;
+  }>): Promise<Array<{ id: string; role: string }>>;
+}
+
+export interface DirectContactRecord {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  isStaff: boolean;
+  isColleague: boolean;
+}
+
+export interface DirectMessageRecord {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  body: string | null;
+  attachments: JsonLike[];
+  createdAt: string;
+  editedAt: string | null;
+  deletedAt: string | null;
+}
+
+export interface DirectConversationRecord {
+  id: string;
+  createdAt: string;
+  lastMessageAt: string;
+  peer: DirectContactRecord | null;
+  lastMessage: { body: string | null; createdAt: string; senderId: string; hasAttachments: boolean } | null;
+  unreadCount: number;
+}
+
+export interface IDirectMessageRepository {
+  searchContacts(userId: string, query: string, limit: number): Promise<DirectContactRecord[]>;
+  listConversations(userId: string): Promise<DirectConversationRecord[]>;
+  findOrCreate(userId: string, targetUserId: string): Promise<string>;
+  listMessages(userId: string, conversationId: string, before: string | null, limit: number): Promise<DirectMessageRecord[]>;
+  send(userId: string, input: { conversationId: string; body: string | null; attachments: JsonLike[] }): Promise<DirectMessageRecord>;
+  markRead(userId: string, conversationId: string): Promise<void>;
+}
+
+export interface AiAuditRecord {
+  id: string;
+  score: number;
+  maturity: string | null;
+  passed: number;
+  warnings: number;
+  critical: number;
+  summary: JsonLike;
+  createdAt: string;
+}
+
+export interface IAiAuditRepository {
+  list(companyId: string, limit: number): Promise<AiAuditRecord[]>;
+  create(input: Omit<AiAuditRecord, "id" | "createdAt"> & {
+    companyId: string;
+    requestedBy: string;
+    model?: string | null;
+    latencyMs?: number | null;
+    inputHash?: string | null;
+    outputHash?: string | null;
+    tokenUsage?: JsonLike | null;
+    retrievalChunkIds?: string[];
+    status?: string;
+    errorCode?: string | null;
+  }): Promise<{ id: string }>;
 }
 
 export interface FeedbackUpsertInput {
@@ -446,6 +545,9 @@ export type MessageRepositoryFactory = (dataCtx: unknown) => IMessageRepository;
 export type FeedbackRepositoryFactory = (dataCtx: unknown) => IFeedbackRepository;
 export type KnowledgeGapRepositoryFactory = (dataCtx: unknown) => IKnowledgeGapRepository;
 export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRepository;
+export type RbacAdminRepositoryFactory = (dataCtx: unknown) => IRbacAdminRepository;
+export type DirectMessageRepositoryFactory = (dataCtx: unknown) => IDirectMessageRepository;
+export type AiAuditRepositoryFactory = (dataCtx: unknown) => IAiAuditRepository;
 
 // --------------------------------------------------------------------
 // FAQs
@@ -546,6 +648,16 @@ export interface IKnowledgeRepository {
   deleteDocument(id: string): Promise<void>;
   /** pgvector cosine similarity search scoped to a company. */
   searchSimilar(company_id: string, query_embedding: number[], limit: number): Promise<KnowledgeMatch[]>;
+  getDocumentsByIds(ids: string[]): Promise<Array<{
+    id: string;
+    title: string;
+    docCode: string | null;
+    version: number;
+    section: string | null;
+    page: number | null;
+    departmentId: string | null;
+    updatedAt: string;
+  }>>;
 }
 
 export type KnowledgeRepositoryFactory = (dataCtx: unknown) => IKnowledgeRepository;
