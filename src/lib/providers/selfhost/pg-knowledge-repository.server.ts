@@ -169,6 +169,23 @@ export function createPgKnowledgeRepository(
       );
       return rows;
     },
+    async getDocumentsByIds(ids) {
+      if (ids.length === 0) return [];
+      const { rows } = await pool.query<{
+        id: string; title: string; doc_code: string | null; version: number;
+        section: string | null; page: number | null; department_id: string | null;
+        updated_at: Date;
+      }>(
+        `SELECT id, title, doc_code, version, section, page, department_id, updated_at
+           FROM public.knowledge_documents WHERE id = ANY($1)`,
+        [ids],
+      );
+      return rows.map((row) => ({
+        id: row.id, title: row.title, docCode: row.doc_code, version: row.version,
+        section: row.section, page: row.page, departmentId: row.department_id,
+        updatedAt: row.updated_at.toISOString(),
+      }));
+    },
   };
 }
 

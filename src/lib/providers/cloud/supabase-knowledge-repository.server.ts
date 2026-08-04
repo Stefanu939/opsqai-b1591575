@@ -155,6 +155,19 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
       if (error) throw new Error(error.message);
       return data ?? [];
     },
+    async getDocumentsByIds(ids) {
+      if (ids.length === 0) return [];
+      const { data, error } = await client
+        .from("knowledge_documents")
+        .select("id, title, doc_code, version, section, page, department_id, updated_at")
+        .in("id", ids);
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((row) => ({
+        id: row.id, title: row.title, docCode: row.doc_code, version: row.version,
+        section: row.section, page: row.page, departmentId: row.department_id,
+        updatedAt: row.updated_at,
+      }));
+    },
   };
 }
 
