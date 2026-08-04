@@ -134,7 +134,7 @@
     }
   },
   "overrides": {
-    "seroval": "1.6.1",
-    "seroval-plugins": "1.6.1"
+    "seroval": "1.5.6",
+    "seroval-plugins": "1.5.6"
   }
 }
