@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { pageHead } from "@/lib/seo";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { Check, Package } from "lucide-react";
+import { useModulesCopy } from "@/i18n/pages/modules";
 
 export const Route = createFileRoute("/modules")({
   head: () =>
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/modules")({
 });
 
 function ModulesPage() {
+  const t = useModulesCopy();
   const basicSet = new Set<string>(BASIC_MODULES);
   const categories = Array.from(new Set(LICENSE_MODULE_CATALOG.map((m) => m.category)));
 
@@ -49,23 +51,21 @@ function ModulesPage() {
           <EditorialHeadline
             as="h1"
             size="xl"
-            eyebrow="The OPSQAI module network"
-            serifAccent="Every module orbits it."
+            eyebrow={t.heroEyebrow}
+            serifAccent={t.heroSerifAccent}
             className="max-w-4xl"
           >
-            One platform.
+            {t.heroHeadline}
           </EditorialHeadline>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
-            The Basic Platform ships with every OPSQAI installation. Premium modules
-            dock in through signed license bundles — activated by OPSQAI, no reinstall,
-            no seat inflation, no cloud dependency.
+            {t.heroBody}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <OixButton variant="gold" to="/contact" withArrow>
-              Request modules
+              {t.ctaRequestModules}
             </OixButton>
             <OixButton variant="ghost" to="/pricing">
-              See pricing model
+              {t.ctaSeePricing}
             </OixButton>
           </div>
         </div>
@@ -105,14 +105,14 @@ function ModulesPage() {
                         <div className="font-semibold text-sm text-white">{m.label}</div>
                         {isBasic ? (
                           <Badge className="border-[#0d7a5f]/40 bg-[#0d7a5f]/15 text-[10px] text-[#5fd4b3]">
-                            <Check className="h-3 w-3 mr-1" /> Basic
+                            <Check className="h-3 w-3 mr-1" /> {t.basicBadge}
                           </Badge>
                         ) : (
                           <Badge
                             variant="outline"
                             className="border-[#C9A24C]/40 text-[10px] text-[#C9A24C]"
                           >
-                            Premium
+                            {t.premiumBadge}
                           </Badge>
                         )}
                       </div>
@@ -121,8 +121,8 @@ function ModulesPage() {
                       </p>
                       <div className="relative mt-5 pt-4 border-t border-white/10 text-xs tabular-nums text-white/50">
                         {isBasic
-                          ? "Included with Basic"
-                          : `From €${(m.defaultPriceCents / 100).toLocaleString("de-DE")} · one-time`}
+                          ? t.includedWithBasic
+                          : `From €${(m.defaultPriceCents / 100).toLocaleString("de-DE")} ${t.fromPriceSuffix}`}
                       </div>
                     </Card>
                   );
@@ -137,20 +137,18 @@ function ModulesPage() {
       <section className="border-t border-white/5 bg-gradient-to-b from-transparent to-white/[0.02]">
         <div className="mx-auto max-w-3xl px-6 py-24 text-center">
           <p className="text-[11px] uppercase tracking-[0.32em] text-[#C9A24C]/80">
-            Activation
+            {t.activationEyebrow}
           </p>
           <h2 className="mt-4 text-3xl md:text-4xl font-light tracking-tight text-white">
-            Modules dock in through{" "}
-            <span className="font-serif italic text-[#C9A24C]">signed bundles.</span>
+            {t.activationHeadlinePrefix}{" "}
+            <span className="font-serif italic text-[#C9A24C]">{t.activationHeadlineAccent}</span>
           </h2>
           <p className="mt-5 text-white/60 leading-relaxed">
-            OPSQAI issues an Ed25519-signed license bundle. Your installation verifies it
-            offline and unlocks the module instantly — no reinstall, no cloud call, no seat
-            inflation.
+            {t.activationBody}
           </p>
           <div className="mt-8">
             <OixButton variant="gold" to="/contact" withArrow>
-              Request activation
+              {t.ctaRequestActivation}
             </OixButton>
           </div>
         </div>

@@ -55,7 +55,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
 import { OixButton } from "@/components/oix/buttons";
-import { useMarketing } from "@/i18n/marketing";
+import { useHomeCopy } from "@/i18n/pages/home";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -171,15 +171,9 @@ function useScrollProgress(maxScroll = 1100) {
 }
 
 function Hero() {
-  const m = useMarketing();
+  const t = useHomeCopy();
   const progress = useScrollProgress(1100);
-  const acts = [
-    { i: 0, label: "Chaos" },
-    { i: 1, label: "Documents" },
-    { i: 2, label: "SOPs" },
-    { i: 3, label: "Network" },
-    { i: 4, label: "OPSQAI" },
-  ];
+  const acts = t.hero.acts.map((label, i) => ({ i, label }));
   const activeAct = Math.min(4, Math.max(0, Math.round(progress)));
 
   return (
@@ -211,26 +205,26 @@ function Hero() {
             eyebrow={
               <span className="inline-flex items-center gap-2">
                 <Sparkles className="h-3 w-3 text-[var(--oix-gold)]" />
-                {m.home.eyebrow}
+                {t.hero.eyebrow}
               </span>
             }
-            serifAccent={m.home.serif}
+            serifAccent={t.hero.serifAccent}
           >
-            {m.home.h1a}
-            <br className="hidden sm:block" /> {m.home.h1b}
+            {t.hero.h1a}
+            <br className="hidden sm:block" /> {t.hero.h1b}
           </EditorialHeadline>
 
           <p className="mt-8 max-w-2xl text-lg md:text-xl leading-relaxed text-[var(--oix-cream)]/75">
-            {m.home.intro}{" "}
-            <em className="oix-serif-italic text-[var(--oix-gold)]">{m.home.introEm}</em>.
+            {t.hero.intro}{" "}
+            <em className="oix-serif-italic text-[var(--oix-gold)]">{t.hero.introEm}</em>.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-3">
             <OixButton to="/self-hosted" variant="gold" withArrow>
-              {m.cta.howItWorks}
+              {t.cta.howItWorks}
             </OixButton>
             <OixButton to="/contact" variant="ghost">
-              {m.cta.requestDemo}
+              {t.cta.requestDemo}
             </OixButton>
           </div>
         </div>
@@ -251,7 +245,7 @@ function Hero() {
         </div>
 
         <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-[var(--oix-cream)]/40">
-          Scroll — the film begins
+          {t.hero.scrollHint}
         </div>
       </div>
     </section>
@@ -260,33 +254,26 @@ function Hero() {
 
 /* ---------------- Who is it for ---------------- */
 
-const AUDIENCES = [
-  { icon: Warehouse, label: "Warehousing" },
-  { icon: Truck, label: "Logistics" },
-  { icon: Factory, label: "Manufacturing" },
-  { icon: Layers, label: "Production" },
-  { icon: PackageSearch, label: "Distribution" },
-  { icon: Building2, label: "Enterprise Operations" },
-];
+const AUDIENCE_ICONS = [Warehouse, Truck, Factory, Layers, PackageSearch, Building2];
 
 function WhoFor() {
+  const t = useHomeCopy().whoFor;
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-      <SectionHead
-        eyebrow="Who is OPSQAI for"
-        title="Built for industrial operations."
-        intro="OPSQAI is designed for teams whose knowledge is operational, regulated and never allowed to leave the company boundary."
-      />
+      <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
       <div className="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {AUDIENCES.map((a) => (
-          <Card
-            key={a.label}
-            className="p-4 border-border/60 flex flex-col items-center text-center gap-2"
-          >
-            <a.icon className="h-5 w-5 text-primary" />
-            <div className="text-[13px] font-medium">{a.label}</div>
-          </Card>
-        ))}
+        {t.audiences.map((label, i) => {
+          const Icon = AUDIENCE_ICONS[i];
+          return (
+            <Card
+              key={label}
+              className="p-4 border-border/60 flex flex-col items-center text-center gap-2"
+            >
+              <Icon className="h-5 w-5 text-primary" />
+              <div className="text-[13px] font-medium">{label}</div>
+            </Card>
+          );
+        })}
       </div>
     </section>
   );
@@ -294,32 +281,30 @@ function WhoFor() {
 
 /* ---------------- Why now ---------------- */
 
+const WHY_NOW_ICONS = [ShieldAlert, Fingerprint, Server];
+
 function WhyNow() {
+  const t = useHomeCopy().whyNow;
   return (
     <section className="border-y border-border/50 bg-surface-1">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
         <div className="grid md:grid-cols-2 gap-10 items-start">
-          <SectionHead
-            eyebrow="Why now"
-            title="Industrial companies can't hand knowledge to public LLMs."
-            intro="Operational documents, SOPs, procedures and audits describe how a business actually runs. They require ownership, governance and complete data sovereignty — not a chat window backed by a cloud tenant nobody controls."
-          />
+          <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
           <div className="grid gap-3">
-            {[
-              { icon: ShieldAlert, title: "Data cannot leave the company", body: "Operational knowledge is proprietary. Regulators and customers demand it stays inside the company boundary." },
-              { icon: Fingerprint, title: "AI must be governed", body: "Every answer needs provenance: which document, which version, which user. Public chatbots cannot deliver this." },
-              { icon: Server, title: "Infrastructure is Windows", body: "Real operations run Windows Server, Active Directory and on-prem PostgreSQL. OPSQAI meets them there." },
-            ].map((r) => (
-              <Card key={r.title} className="p-5 border-border/60">
-                <div className="flex items-start gap-3">
-                  <r.icon className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <div className="font-semibold text-sm">{r.title}</div>
-                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{r.body}</p>
+            {t.reasons.map((r, i) => {
+              const Icon = WHY_NOW_ICONS[i];
+              return (
+                <Card key={r.title} className="p-5 border-border/60">
+                  <div className="flex items-start gap-3">
+                    <Icon className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-sm">{r.title}</div>
+                      <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{r.body}</p>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -329,59 +314,33 @@ function WhyNow() {
 
 /* ---------------- Three Surfaces ---------------- */
 
-const SURFACES = [
-  {
-    icon: Building2,
-    tag: "Cloud · OPSQAI only",
-    name: "Management Center",
-    body:
-      "Internal control plane used exclusively by OPSQAI to administer customers: companies, installations, licenses, releases, signing keys, activation bundles, ownership, support and audit. Never sold. Never installed. Never accessed by customers.",
-  },
-  {
-    icon: Users,
-    tag: "Cloud · Customer contacts",
-    name: "Customer Portal",
-    body:
-      "Service surface at opsqai.de for designated customer contacts. Download the installer and updates, retrieve activation bundles, read release notes and documentation, manage subscription and support. Not the product — a service layer around it.",
-  },
-  {
-    icon: HardDrive,
-    tag: "Windows · The product",
-    name: "Self-Hosted",
-    body:
-      "The Windows Self-Hosted installation is the product. AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, Subscription, Updates and Modules — all running inside the customer's environment. Employees work here every day.",
-  },
-];
+const SURFACE_ICONS = [Building2, Users, HardDrive];
 
 function ThreeSurfaces() {
+  const t = useHomeCopy().surfaces;
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-      <SectionHead
-        eyebrow="Product architecture"
-        title="One platform. Three surfaces. One product."
-        intro="OPSQAI Cloud is not the product. The Windows Self-Hosted installation is the product. The two cloud surfaces exist only to support it."
-      />
+      <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
       <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {SURFACES.map((s) => (
-          <Card key={s.name} className="p-6 border-border/60 flex flex-col">
-            <s.icon className="h-6 w-6 text-primary" />
-            <div className="mt-4 text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
-              {s.tag}
-            </div>
-            <div className="mt-1 font-semibold text-lg">{s.name}</div>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed flex-1">
-              {s.body}
-            </p>
-          </Card>
-        ))}
+        {t.items.map((s, i) => {
+          const Icon = SURFACE_ICONS[i];
+          return (
+            <Card key={s.name} className="p-6 border-border/60 flex flex-col">
+              <Icon className="h-6 w-6 text-primary" />
+              <div className="mt-4 text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+                {s.tag}
+              </div>
+              <div className="mt-1 font-semibold text-lg">{s.name}</div>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed flex-1">
+                {s.body}
+              </p>
+            </Card>
+          );
+        })}
       </div>
 
       <div className="mt-6 rounded-lg border border-primary/30 bg-primary/5 p-5 text-sm text-foreground/85 leading-relaxed">
-        <span className="font-semibold text-primary">Important:</span> OPSQAI
-        Cloud is not the product. It exists only for licensing, releases,
-        installer distribution, customer support, the Customer Portal and the
-        Management Center. The product itself is the Windows installation
-        inside the customer's environment.
+        <span className="font-semibold text-primary">{t.noteStrong}</span> {t.note}
       </div>
     </section>
   );
@@ -389,34 +348,25 @@ function ThreeSurfaces() {
 
 /* ---------------- Basic Platform ---------------- */
 
-const BASIC = [
-  { icon: MessageSquare, name: "AI Chat", body: "Grounded, source-cited conversations over the customer's own knowledge." },
-  { icon: BookOpen, name: "Knowledge Base", body: "SOPs, manuals and procedures — chunked, embedded and retrievable locally." },
-  { icon: FileCheck2, name: "FAQ", body: "Curated operational answers, ranked and reused across the workforce." },
-  { icon: GraduationCap, name: "Academy", body: "Structured training paths and lessons built from the knowledge base." },
-  { icon: ScrollText, name: "AI Audit", body: "Every AI interaction is logged with inputs, outputs, sources and users." },
-  { icon: Users, name: "Users", body: "Role-based access: owner, admin, manager, supervisor, worker, viewer." },
-  { icon: Building2, name: "Organization", body: "Configure AI provider, departments, branding and workspace-wide policy." },
-  { icon: Package, name: "Subscription", body: "See the exact platform and modules licensed to this installation." },
-];
+const BASIC_ICONS = [MessageSquare, BookOpen, FileCheck2, GraduationCap, ScrollText, Users, Building2, Package];
 
 function BasicPlatform() {
+  const t = useHomeCopy().basic;
   return (
     <section className="border-y border-border/50 bg-surface-1">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-        <SectionHead
-          eyebrow="Basic Platform"
-          title="Everything you need to operate on day one."
-          intro="The Basic Platform ships with every OPSQAI installation. It's what employees use every day."
-        />
+        <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
         <div className="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {BASIC.map((m) => (
-            <Card key={m.name} className="p-5 border-border/60">
-              <m.icon className="h-5 w-5 text-primary" />
-              <div className="mt-3 font-semibold text-sm">{m.name}</div>
-              <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{m.body}</p>
-            </Card>
-          ))}
+          {t.items.map((m, i) => {
+            const Icon = BASIC_ICONS[i];
+            return (
+              <Card key={m.name} className="p-5 border-border/60">
+                <Icon className="h-5 w-5 text-primary" />
+                <div className="mt-3 font-semibold text-sm">{m.name}</div>
+                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{m.body}</p>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -425,34 +375,32 @@ function BasicPlatform() {
 
 /* ---------------- Premium Modules ---------------- */
 
+const PREMIUM_ICONS = [Activity, Puzzle, Workflow];
+
 function PremiumModules() {
+  const t = useHomeCopy().premium;
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
       <div className="grid md:grid-cols-2 gap-10 items-start">
-        <SectionHead
-          eyebrow="Premium Modules"
-          title="Grow capability without reinstalling."
-          intro="Premium modules unlock deeper capabilities on top of the Basic Platform. Each is licensed separately and activated by OPSQAI through a signed license — no reinstall, no downtime."
-        />
+        <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
         <div className="space-y-3">
-          {[
-            { icon: Activity, title: "Signed license activation", body: "OPSQAI issues an Ed25519-signed license bundle. The install verifies it locally and unlocks the module." },
-            { icon: Puzzle, title: "No cross-module dependencies", body: "Modules are independent. Buy only what your operation needs, when it needs it." },
-            { icon: Workflow, title: "Activated in place", body: "No reinstall, no migration, no data movement. Activation is silent and instant." },
-          ].map((r) => (
-            <Card key={r.title} className="p-5 border-border/60">
-              <div className="flex items-start gap-3">
-                <r.icon className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <div className="font-semibold text-sm">{r.title}</div>
-                  <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{r.body}</p>
+          {t.reasons.map((r, i) => {
+            const Icon = PREMIUM_ICONS[i];
+            return (
+              <Card key={r.title} className="p-5 border-border/60">
+                <div className="flex items-start gap-3">
+                  <Icon className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <div className="font-semibold text-sm">{r.title}</div>
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{r.body}</p>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
           <Button asChild variant="outline" className="mt-2">
             <Link to="/modules">
-              Browse all modules
+              {t.browseModules}
               <ChevronRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
@@ -464,80 +412,25 @@ function PremiumModules() {
 
 /* ---------------- Delivery Comparison ---------------- */
 
-const COMPARE = [
-  {
-    label: "Deployment",
-    opsqai: "Windows Self-Hosted",
-    chatbot: "Public SaaS",
-    diy: "DIY on-prem stack",
-    search: "Enterprise SaaS",
-  },
-  {
-    label: "Data ownership",
-    opsqai: "Customer",
-    chatbot: "Vendor tenant",
-    diy: "Customer",
-    search: "Vendor tenant",
-  },
-  {
-    label: "AI provider",
-    opsqai: "Customer's choice",
-    chatbot: "Vendor-locked",
-    diy: "Customer's choice",
-    search: "Vendor-locked",
-  },
-  {
-    label: "Auditability",
-    opsqai: "Hash-chained audit",
-    chatbot: "Vendor-defined",
-    diy: "Build it yourself",
-    search: "Partial",
-  },
-  {
-    label: "Governance",
-    opsqai: "Role-based, chunk-level",
-    chatbot: "Basic",
-    diy: "DIY",
-    search: "Document-level",
-  },
-  {
-    label: "Grounded answers",
-    opsqai: "Always cited",
-    chatbot: "Often hallucinates",
-    diy: "Depends on build",
-    search: "Keyword-limited",
-  },
-  {
-    label: "Time to value",
-    opsqai: "Weeks",
-    chatbot: "Days",
-    diy: "Quarters",
-    search: "Quarters",
-  },
-];
-
 function DeliveryComparison() {
+  const t = useHomeCopy().compare;
   return (
     <section className="border-y border-border/50 bg-surface-1">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-        <SectionHead
-          eyebrow="Delivery model"
-          title="OPSQAI vs. cloud chatbots, DIY RAG and enterprise search."
-          intro="OPSQAI is not a hosted chatbot, not a DIY stack, not another enterprise search tool. It is a self-hosted operational AI platform."
-        />
+        <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
         <div className="mt-10 overflow-x-auto rounded-lg border border-border/60">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-2 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="p-4 font-medium"></th>
-                <th className="p-4 font-medium text-primary">OPSQAI</th>
-                <th className="p-4 font-medium">Cloud chatbot</th>
-                <th className="p-4 font-medium">DIY RAG</th>
-                <th className="p-4 font-medium">Enterprise search</th>
+                <th className="p-4 font-medium text-primary">{t.colHeaders[0]}</th>
+                <th className="p-4 font-medium">{t.colHeaders[1]}</th>
+                <th className="p-4 font-medium">{t.colHeaders[2]}</th>
+                <th className="p-4 font-medium">{t.colHeaders[3]}</th>
               </tr>
             </thead>
             <tbody>
-              {COMPARE.map((r, i) => (
+              {t.rows.map((r, i) => (
                 <tr
                   key={r.label}
                   className={i % 2 === 0 ? "bg-background" : "bg-surface-1/60"}
@@ -559,36 +452,27 @@ function DeliveryComparison() {
 
 /* ---------------- Differentiation Grid ---------------- */
 
-const DIFF = [
-  { icon: HardDrive, title: "Self-Hosted", body: "Runs entirely inside your Windows environment." },
-  { icon: Server, title: "Windows Native", body: "Windows Server, WinSW services, Caddy — no Docker, no Linux." },
-  { icon: Globe2, title: "Offline Capable", body: "Daily operation is fully local. Cloud only for licensing and updates." },
-  { icon: Brain, title: "Governed AI", body: "Every answer is grounded and cited from local knowledge." },
-  { icon: ScrollText, title: "Audit Trail", body: "Hash-chained, append-only audit of every privileged and AI action." },
-  { icon: Puzzle, title: "Module Licensing", body: "Signed premium modules activated without reinstall." },
-  { icon: FileCheck2, title: "Source Citations", body: "Answers point back to the exact document and section." },
-  { icon: Lock, title: "Role-Based Access", body: "Chunk-level ACLs; owners, admins, managers, workers, viewers." },
-  { icon: Database, title: "Local Embeddings", body: "pgvector inside your PostgreSQL. Vectors never leave." },
-  { icon: Fingerprint, title: "Customer Owns Data", body: "Documents, embeddings, chats, users — all customer-owned." },
-  { icon: Cpu, title: "Choice of AI Model", body: "OpenAI, Azure OpenAI, Ollama, OpenRouter or compatible endpoints." },
-  { icon: KeyRound, title: "No Vendor Lock-In", body: "Signed artifacts, portable data, documented DR. You can leave." },
+const DIFF_ICONS = [
+  HardDrive, Server, Globe2, Brain, ScrollText, Puzzle,
+  FileCheck2, Lock, Database, Fingerprint, Cpu, KeyRound,
 ];
 
 function Differentiation() {
+  const t = useHomeCopy().diff;
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-      <SectionHead
-        eyebrow="Differentiation"
-        title="Twelve reasons operations teams choose OPSQAI."
-      />
+      <SectionHead eyebrow={t.eyebrow} title={t.title} />
       <div className="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        {DIFF.map((d) => (
-          <Card key={d.title} className="p-5 border-border/60">
-            <d.icon className="h-5 w-5 text-primary" />
-            <div className="mt-3 font-semibold text-sm">{d.title}</div>
-            <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{d.body}</p>
-          </Card>
-        ))}
+        {t.items.map((d, i) => {
+          const Icon = DIFF_ICONS[i];
+          return (
+            <Card key={d.title} className="p-5 border-border/60">
+              <Icon className="h-5 w-5 text-primary" />
+              <div className="mt-3 font-semibold text-sm">{d.title}</div>
+              <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{d.body}</p>
+            </Card>
+          );
+        })}
       </div>
     </section>
   );
@@ -596,27 +480,16 @@ function Differentiation() {
 
 /* ---------------- Land & Expand ---------------- */
 
-const STEPS = [
-  { n: "01", title: "Land", body: "Start with the Basic Platform on one Windows Server. One department, one operational domain." },
-  { n: "02", title: "Ground", body: "Ingest SOPs, manuals and procedures. Local embeddings; customer-owned AI provider." },
-  { n: "03", title: "Adopt", body: "Employees use AI Chat, FAQ and Academy every day. AI Audit records every interaction." },
-  { n: "04", title: "Expand", body: "Activate premium modules through signed licenses — no reinstall, no downtime." },
-  { n: "05", title: "Scale", body: "Roll out to adjacent sites and departments. Annual Maintenance keeps everything current." },
-];
-
 function LandExpand() {
+  const t = useHomeCopy().landExpand;
   return (
     <section className="border-y border-border/50 bg-surface-1">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-        <SectionHead
-          eyebrow="Land & Expand"
-          title="A five-step customer journey."
-          intro="OPSQAI is designed to start focused and grow with the operation."
-        />
+        <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
         <div className="mt-10 grid gap-3 md:grid-cols-5">
-          {STEPS.map((s) => (
-            <Card key={s.n} className="p-5 border-border/60">
-              <div className="text-xs font-mono text-primary">{s.n}</div>
+          {t.steps.map((s, i) => (
+            <Card key={s.title} className="p-5 border-border/60">
+              <div className="text-xs font-mono text-primary">{String(i + 1).padStart(2, "0")}</div>
               <div className="mt-2 font-semibold text-sm">{s.title}</div>
               <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{s.body}</p>
             </Card>
@@ -629,31 +502,13 @@ function LandExpand() {
 
 /* ---------------- Maturity ---------------- */
 
-const MATURITY = [
-  "Windows Server installer with WinSW services",
-  "Local PostgreSQL with pgvector",
-  "Local embeddings, no cloud round-trip for content",
-  "Ed25519-signed licenses, verified offline",
-  "Signed activation bundles with 90-day validity",
-  "Hash-chained audit trail with CRL",
-  "Chunk-level ACL enforcement",
-  "Configurable AI provider (OpenAI, Azure, Ollama, compatible)",
-  "Signed release manifests and updates",
-  "Documented disaster recovery with bootstrap tokens",
-  "Role-based access control across the workspace",
-  "Bilingual UI (EN/DE) and PWA support",
-];
-
 function Maturity() {
+  const t = useHomeCopy().maturity;
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-      <SectionHead
-        eyebrow="Production maturity"
-        title="Not a prototype. A production platform."
-        intro="Everything below is shipping today in the Windows Self-Hosted product."
-      />
+      <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
       <div className="mt-10 grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-        {MATURITY.map((m) => (
+        {t.items.map((m) => (
           <div
             key={m}
             className="flex items-start gap-2 rounded-md border border-border/60 bg-surface-1/60 px-4 py-3 text-sm"
@@ -669,40 +524,14 @@ function Maturity() {
 
 /* ---------------- FAQ ---------------- */
 
-const FAQ = [
-  {
-    q: "Is OPSQAI a SaaS product?",
-    a: "No. OPSQAI is a Windows Self-Hosted product. Employees never work inside the cloud — they work inside the installation running on the customer's own Windows Server. OPSQAI Cloud only exists for licensing, releases, installer distribution, customer support, the Customer Portal and the Management Center.",
-  },
-  {
-    q: "Does OPSQAI see our operational knowledge?",
-    a: "No. Documents, embeddings, chat content and users all live inside the customer install. OPSQAI never stores operational customer knowledge. Only license and installation metadata reaches OPSQAI Cloud.",
-  },
-  {
-    q: "Which AI providers are supported?",
-    a: "OpenAI, Azure OpenAI, Ollama, OpenRouter, and any custom OpenAI-compatible endpoint. The customer owns the AI provider and its keys. OPSQAI has no default provider.",
-  },
-  {
-    q: "How do we get new modules?",
-    a: "Premium modules are purchased separately and activated by OPSQAI through a signed license bundle. Activation is silent — no reinstall, no data movement.",
-  },
-  {
-    q: "What happens if we go offline?",
-    a: "Daily operation continues. The installation only needs to reach OPSQAI Cloud for license activation, update checks and support. Everything else — chat, retrieval, audit — is fully local.",
-  },
-  {
-    q: "Do you run on Docker or Linux?",
-    a: "No. OPSQAI is a Windows Self-Hosted product. It runs directly on Windows Server, managed by WinSW, with a local PostgreSQL and Caddy. There is no Docker, Kubernetes or Linux requirement.",
-  },
-];
-
 function FAQSection() {
+  const t = useHomeCopy().faq;
   return (
     <section className="border-y border-border/50 bg-surface-1">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-20">
-        <SectionHead eyebrow="FAQ" title="Answers to what matters." />
+        <SectionHead eyebrow={t.eyebrow} title={t.title} />
         <Accordion type="single" collapsible className="mt-8">
-          {FAQ.map((f, i) => (
+          {t.items.map((f, i) => (
             <AccordionItem key={i} value={`item-${i}`} className="border-border/60">
               <AccordionTrigger className="text-left text-[15px] font-medium">
                 {f.q}
@@ -721,26 +550,25 @@ function FAQSection() {
 /* ---------------- Final CTA ---------------- */
 
 function FinalCTA() {
+  const t = useHomeCopy().finalCta;
   return (
     <section className="mx-auto max-w-4xl px-4 sm:px-6 py-24 text-center">
       <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
-        Bring AI to work for your operation.
+        {t.title}
       </h2>
       <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-        Talk to OPSQAI about a reference install of the Windows Self-Hosted
-        product. See exactly how governed operational AI runs inside your
-        environment.
+        {t.body}
       </p>
       <div className="mt-8 flex flex-wrap gap-3 justify-center">
         <Button asChild size="lg">
-          <Link to="/contact">Request demo</Link>
+          <Link to="/contact">{t.requestDemo}</Link>
         </Button>
         <Button asChild size="lg" variant="outline">
-          <Link to="/self-hosted">See how it works</Link>
+          <Link to="/self-hosted">{t.seeHowItWorks}</Link>
         </Button>
         <Button asChild size="lg" variant="ghost">
           <Link to="/company">
-            About OPSQAI
+            {t.aboutOpsqai}
             <ChevronRight className="ml-1 h-4 w-4" />
           </Link>
         </Button>

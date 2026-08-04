@@ -22,6 +22,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
+import { useSelfHostedCopy } from "@/i18n/pages/self-hosted";
 
 export const Route = createFileRoute("/self-hosted")({
   head: () =>
@@ -40,33 +41,12 @@ export const Route = createFileRoute("/self-hosted")({
   component: SelfHostedPage,
 });
 
-const PILLARS = [
-  { icon: HardDrive, title: "Runs on Windows Server", body: "Windows Server 2019/2022. Installer provisions PostgreSQL, storage, services and Caddy. WinSW manages every service. No Docker, no Kubernetes, no Linux." },
-  { icon: Database, title: "Local PostgreSQL + pgvector", body: "The database and vector store live inside the customer's Windows environment. Documents, chunks and embeddings never leave." },
-  { icon: Cpu, title: "Customer-owned AI provider", body: "OpenAI, Azure OpenAI, Ollama, OpenRouter or any OpenAI-compatible endpoint. The customer owns the account and the keys." },
-  { icon: Shield, title: "Signed everything", body: "Signed Windows installer, signed release manifests, signed license bundles. Every artifact is cryptographically verifiable." },
-  { icon: Lock, title: "Single tenant by design", body: "Every install is one customer, one workspace, one boundary. Nothing is shared across customers — not databases, not embeddings, not AI keys." },
-  { icon: Server, title: "Disaster recovery built in", body: "DR bootstrap tokens, signed backups and documented restore. The customer's ops team can rebuild the installation without OPSQAI in the loop." },
-];
-
-const REQUIREMENTS = [
-  "Windows Server 2019 or 2022 (Standard or Datacenter)",
-  "8 vCPU · 16 GB RAM · 200 GB SSD minimum",
-  "Outbound HTTPS to the customer's chosen AI provider (or none, with local models)",
-  "TLS certificate for the internal domain (Caddy can also issue via ACME)",
-  "Domain administrator to run the installer (elevated)",
-];
-
-const FLOW = [
-  { icon: Server, label: "Windows Server", body: "Customer-owned host, inside the customer's network." },
-  { icon: HardDrive, label: "OPSQAI Platform", body: "Windows services managed by WinSW. The product itself." },
-  { icon: Database, label: "Local PostgreSQL", body: "Relational store. Users, chats, documents, audit — all local." },
-  { icon: Database, label: "pgvector", body: "Vector index inside PostgreSQL. Embeddings never leave." },
-  { icon: HardDrive, label: "Local storage", body: "Documents on the customer's filesystem or object storage." },
-  { icon: Cpu, label: "Customer's AI provider", body: "OpenAI, Azure OpenAI, Ollama or compatible endpoint." },
-];
+const PILLAR_ICONS = [HardDrive, Database, Cpu, Shield, Lock, Server];
+const FLOW_ICONS = [Server, HardDrive, Database, Database, HardDrive, Cpu];
 
 function SelfHostedPage() {
+  const t = useSelfHostedCopy();
+
   return (
     <OixLayout>
       {/* Cinematic hero with rotating monolith */}
@@ -95,24 +75,20 @@ function SelfHostedPage() {
             <EditorialHeadline
               as="h1"
               size="xl"
-              eyebrow="Self-Hosted · The Product"
-              serifAccent="stays yours."
+              eyebrow={t.heroEyebrow}
+              serifAccent={t.heroSerifAccent}
             >
-              Your data
+              {t.heroHeadline}
             </EditorialHeadline>
             <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
-              OPSQAI is installed on the customer&apos;s Windows Server. Data,
-              documents, embeddings, users and AI provider all live inside the
-              customer&apos;s environment. OPSQAI Cloud is used only when the
-              installation needs it — for license activation, update checks and
-              support. Nothing operational ever crosses the boundary.
+              {t.heroBody}
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <OixButton to="/contact" variant="gold" withArrow>
-                Request installation package
+                {t.ctaRequestInstallation}
               </OixButton>
               <OixButton to="/documentation" variant="ghost">
-                Read documentation
+                {t.ctaReadDocumentation}
               </OixButton>
             </div>
           </div>
@@ -122,31 +98,32 @@ function SelfHostedPage() {
 
       {/* Boundary diagram */}
       <SectionShell className="oix-hairline-bottom">
-        <EditorialHeadline eyebrow="Data flow" serifAccent="the boundary.">
-          Everything flows inside
+        <EditorialHeadline eyebrow={t.dataFlowEyebrow} serifAccent={t.dataFlowSerifAccent}>
+          {t.dataFlowHeadline}
         </EditorialHeadline>
         <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-[var(--oix-cream)]/70">
-          The diagram below is the entire operational path. Only license
-          heartbeat and update checks cross the boundary — and they carry no
-          operational content.
+          {t.dataFlowBody}
         </p>
 
         <div className="mt-14 grid lg:grid-cols-[minmax(0,1fr)_20rem] gap-10 items-start">
           <div className="flex flex-col items-center gap-2">
-            {FLOW.map((f, i) => (
-              <div key={f.label} className="w-full max-w-md flex flex-col items-center">
-                <Card className="w-full p-4 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur flex items-center gap-4">
-                  <f.icon className="h-5 w-5 text-[var(--oix-gold)] shrink-0" />
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-[var(--oix-cream)]">{f.label}</div>
-                    <p className="text-xs text-[var(--oix-cream)]/60 mt-0.5">{f.body}</p>
-                  </div>
-                </Card>
-                {i < FLOW.length - 1 && (
-                  <ArrowDown className="h-4 w-4 text-[var(--oix-gold)]/60 my-1" />
-                )}
-              </div>
-            ))}
+            {t.flow.map((f, i) => {
+              const Icon = FLOW_ICONS[i];
+              return (
+                <div key={f.label} className="w-full max-w-md flex flex-col items-center">
+                  <Card className="w-full p-4 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur flex items-center gap-4">
+                    <Icon className="h-5 w-5 text-[var(--oix-gold)] shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-[var(--oix-cream)]">{f.label}</div>
+                      <p className="text-xs text-[var(--oix-cream)]/60 mt-0.5">{f.body}</p>
+                    </div>
+                  </Card>
+                  {i < t.flow.length - 1 && (
+                    <ArrowDown className="h-4 w-4 text-[var(--oix-gold)]/60 my-1" />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="space-y-4">
@@ -154,27 +131,26 @@ function SelfHostedPage() {
               <div className="flex items-center gap-2">
                 <Cloud className="h-5 w-5 text-[var(--oix-gold)]" />
                 <div className="font-semibold text-sm text-[var(--oix-cream)]">
-                  What crosses the boundary
+                  {t.crossesBoundaryTitle}
                 </div>
               </div>
               <ul className="mt-3 text-xs text-[var(--oix-cream)]/65 leading-relaxed space-y-1.5 list-disc list-inside">
-                <li>Signed license activation</li>
-                <li>Update manifest checks</li>
-                <li>Support (opt-in, initiated by the customer)</li>
+                {t.crossesBoundaryItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </Card>
             <Card className="p-5 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60">
               <div className="flex items-center gap-2">
                 <Lock className="h-5 w-5 text-[var(--oix-emerald-glow)]" />
                 <div className="font-semibold text-sm text-[var(--oix-cream)]">
-                  What never leaves
+                  {t.neverLeavesTitle}
                 </div>
               </div>
               <ul className="mt-3 text-xs text-[var(--oix-cream)]/65 leading-relaxed space-y-1.5 list-disc list-inside">
-                <li>Documents, SOPs, procedures</li>
-                <li>Embeddings and vector index</li>
-                <li>Chat messages and AI audit records</li>
-                <li>Users, roles and organization configuration</li>
+                {t.neverLeavesItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </Card>
           </div>
@@ -185,30 +161,33 @@ function SelfHostedPage() {
 
       {/* Pillars */}
       <SectionShell>
-        <EditorialHeadline eyebrow="Six pillars" serifAccent="by construction.">
-          Sovereign
+        <EditorialHeadline eyebrow={t.pillarsEyebrow} serifAccent={t.pillarsSerifAccent}>
+          {t.pillarsHeadline}
         </EditorialHeadline>
         <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {PILLARS.map((p) => (
-            <Card
-              key={p.title}
-              className="p-6 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
-            >
-              <p.icon className="h-6 w-6 text-[var(--oix-gold)]" />
-              <div className="mt-4 font-semibold text-[var(--oix-cream)]">{p.title}</div>
-              <p className="mt-2 text-sm text-[var(--oix-cream)]/65 leading-relaxed">{p.body}</p>
-            </Card>
-          ))}
+          {t.pillars.map((p, i) => {
+            const Icon = PILLAR_ICONS[i];
+            return (
+              <Card
+                key={p.title}
+                className="p-6 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+              >
+                <Icon className="h-6 w-6 text-[var(--oix-gold)]" />
+                <div className="mt-4 font-semibold text-[var(--oix-cream)]">{p.title}</div>
+                <p className="mt-2 text-sm text-[var(--oix-cream)]/65 leading-relaxed">{p.body}</p>
+              </Card>
+            );
+          })}
         </div>
       </SectionShell>
 
       {/* Requirements */}
       <SectionShell className="oix-hairline-top oix-hairline-bottom">
-        <EditorialHeadline eyebrow="System requirements" serifAccent="ready.">
-          Enterprise
+        <EditorialHeadline eyebrow={t.requirementsEyebrow} serifAccent={t.requirementsSerifAccent}>
+          {t.requirementsHeadline}
         </EditorialHeadline>
         <ul className="mt-10 grid md:grid-cols-2 gap-3">
-          {REQUIREMENTS.map((r) => (
+          {t.requirements.map((r) => (
             <li
               key={r}
               className="flex items-start gap-3 text-sm text-[var(--oix-cream)]/75 border border-[var(--oix-gold-line)]/30 rounded-none p-4 bg-[var(--oix-onyx)]/40"
@@ -225,21 +204,20 @@ function SelfHostedPage() {
         <div className="text-center max-w-3xl mx-auto">
           <EditorialHeadline
             align="center"
-            eyebrow="Get the signed installer"
-            serifAccent="starts here."
+            eyebrow={t.finalEyebrow}
+            serifAccent={t.finalSerifAccent}
           >
-            The install
+            {t.finalHeadline}
           </EditorialHeadline>
           <p className="mt-6 text-[var(--oix-cream)]/70">
-            Existing customers download from the Customer Portal. New customers,
-            contact us for a licensed evaluation.
+            {t.finalBody}
           </p>
           <div className="mt-8 flex gap-3 justify-center">
             <OixButton to="/contact" variant="gold" withArrow>
-              Contact sales
+              {t.ctaContactSales}
             </OixButton>
             <OixButton to="/security" variant="ghost">
-              Security overview
+              {t.ctaSecurityOverview}
             </OixButton>
           </div>
         </div>
