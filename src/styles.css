@@ -708,6 +708,20 @@ html:not(.dark) .oix-shell::before {
   mix-blend-mode: multiply;
 }
 
+/* In light mode the cinematic 3D layers recede and the dark vignette
+   scrims are inverted so editorial copy stays legible. */
+html:not(.dark) .oix-shell canvas {
+  opacity: 0.18;
+}
+
+html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
+  background: radial-gradient(
+    80% 70% at 50% 30%,
+    rgba(247, 244, 234, 0.55) 0%,
+    rgba(247, 244, 234, 0.94) 80%
+  ) !important;
+}
+
 /* Root wrapper for the marketing site — scopes tokens/fonts */
 .oix-shell {
   background: var(--oix-bg-deep);
