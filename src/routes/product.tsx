@@ -1,7 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { MarketingLayout } from "@/components/marketing/layout";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { createFileRoute } from "@tanstack/react-router";
 import { pageHead, softwareApplicationLd } from "@/lib/seo";
 import {
   Building2,
@@ -13,6 +10,17 @@ import {
   Cog,
   Play,
 } from "lucide-react";
+import { OixLayout } from "@/components/oix/oix-layout";
+import { Scene3D } from "@/components/three/scene-3d";
+import { GridFloor } from "@/components/three/primitives/grid-floor";
+import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { ServerMonolith } from "@/components/three/primitives/server-monolith";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { SectionShell } from "@/components/oix/section-shell";
+import { OixButton } from "@/components/oix/buttons";
+import { MottoBand } from "@/components/oix/motto-band";
+import { useMarketing } from "@/i18n/marketing";
 
 export const Route = createFileRoute("/product")({
   head: () =>
@@ -37,117 +45,139 @@ export const Route = createFileRoute("/product")({
   component: ProductPage,
 });
 
-const SURFACES = [
-  {
-    icon: Building2,
-    name: "Management Center",
-    who: "OPSQAI staff only",
-    tag: "Cloud",
-    what: "Internal control plane. Companies, customers, installations, licenses, releases, signing keys, activation bundles, contracts, support, ownership, portal administration, audit and system health. Never sold, never installed, never accessed by customers.",
-  },
-  {
-    icon: Users,
-    name: "Customer Portal",
-    who: "Customer contacts",
-    tag: "Cloud",
-    what: "Service surface at opsqai.de. Download the installer, download updates, retrieve the activation bundle, read documentation and release notes, see subscription information and open support tickets. Not the product — a service layer around it.",
-  },
-  {
-    icon: HardDrive,
-    name: "Self-Hosted",
-    who: "End users, every day",
-    tag: "Windows · The product",
-    what: "The Windows Self-Hosted installation is the product. AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, Subscription, Updates and Modules — running inside the customer's own Windows Server.",
-  },
-];
-
-const JOURNEY = [
-  { icon: ShoppingCart, title: "Purchase", body: "Order the Basic Platform and any premium modules through OPSQAI." },
-  { icon: Download, title: "Download package", body: "Retrieve the signed Windows installation package from the Customer Portal." },
-  { icon: Play, title: "Run installer", body: "The installer provisions PostgreSQL, storage, services and Caddy on Windows Server." },
-  { icon: Key, title: "Activate license", body: "Paste the Ed25519-signed license bundle issued by OPSQAI. Modules unlock as licensed." },
-  { icon: Cog, title: "Configure AI", body: "Choose the AI provider — OpenAI, Azure OpenAI, Ollama, OpenRouter or a compatible endpoint." },
-  { icon: HardDrive, title: "Start using OPSQAI", body: "Invite users, ingest SOPs and answer operational questions with grounded citations." },
-];
+const SURFACE_ICONS = [Building2, Users, HardDrive];
+const JOURNEY_ICONS = [ShoppingCart, Download, Play, Key, Cog, HardDrive];
 
 function ProductPage() {
+  const m = useMarketing();
+
   return (
-    <MarketingLayout>
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Product</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          One product. Three surfaces.
-        </h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
-          OPSQAI is a Windows Self-Hosted product. The two cloud surfaces —
-          Management Center and Customer Portal — exist only to support the
-          installation. Employees never work inside the cloud; they work inside
-          their own installation.
-        </p>
-      </section>
-
-      <section className="mx-auto max-w-5xl px-4 pb-16">
-        <div className="grid gap-4 md:grid-cols-3">
-          {SURFACES.map((s) => (
-            <Card key={s.name} className="p-6 border-border/60 flex flex-col">
-              <s.icon className="h-6 w-6 text-primary" />
-              <div className="mt-4 text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
-                {s.tag}
-              </div>
-              <div className="mt-1 font-semibold">{s.name}</div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">
-                {s.who}
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.what}</p>
-            </Card>
-          ))}
+    <OixLayout>
+      {/* Cinematic hero */}
+      <section className="relative isolate min-h-[88vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
+        <div className="absolute inset-0 -z-10">
+          <Scene3D cameraPosition={[0, 1.4, 6.4]} cameraFov={42}>
+            <ambientLight intensity={0.28} />
+            <pointLight position={[5, 3, 5]} intensity={1} color="#c9a84c" />
+            <pointLight position={[-5, 2, 2]} intensity={0.6} color="#2dd4a8" />
+            <GridFloor />
+            <EmberFog />
+            <ServerMonolith />
+            <GoldBloom />
+          </Scene3D>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(70% 60% at 30% 40%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.9) 84%)",
+            }}
+          />
         </div>
-        <div className="mt-6 rounded-lg border border-primary/30 bg-primary/5 p-5 text-sm text-foreground/85 leading-relaxed">
-          <span className="font-semibold text-primary">The product is the Windows installation.</span>{" "}
-          OPSQAI Cloud is used only for licensing, releases, installer
-          distribution, customer support, the Customer Portal and the
-          Management Center.
-        </div>
-      </section>
 
-      <section className="bg-surface-1 border-y border-border/60">
-        <div className="mx-auto max-w-5xl px-4 py-16">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            From purchase to production
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-            No SaaS subscription. A one-time Basic Platform, premium modules
-            purchased separately, and Annual Maintenance.
-          </p>
-          <div className="mt-8 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
-            {JOURNEY.map((j, i) => (
-              <Card key={j.title} className="p-5 border-border/60">
-                <div className="flex items-center gap-2 text-xs font-mono text-primary">
-                  <j.icon className="h-4 w-4" />
-                  STEP {i + 1}
-                </div>
-                <div className="mt-2 font-semibold text-sm">{j.title}</div>
-                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{j.body}</p>
-              </Card>
-            ))}
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-32 md:grid-cols-2 md:px-10 md:pb-32 md:pt-40">
+          <div>
+            <EditorialHeadline as="h1" size="xl" eyebrow={m.product.eyebrow} serifAccent={m.product.serif}>
+              {m.product.title}
+            </EditorialHeadline>
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
+              {m.product.intro}
+            </p>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <OixButton to="/contact" variant="gold" withArrow>
+                {m.cta.contactSales}
+              </OixButton>
+              <OixButton to="/self-hosted" variant="ghost">
+                {m.cta.selfHostedDetails}
+              </OixButton>
+            </div>
           </div>
+          <div className="hidden md:block" />
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight">Ready to see the architecture live?</h2>
-        <p className="mt-3 text-muted-foreground">
-          Talk to us about a reference install of the Windows Self-Hosted product.
-        </p>
-        <div className="mt-6 flex gap-3 justify-center">
-          <Button asChild>
-            <Link to="/contact">Contact sales</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/self-hosted">Self-hosted details</Link>
-          </Button>
+      {/* The boundary */}
+      <SectionShell className="oix-hairline-bottom">
+        <div className="max-w-3xl">
+          <div className="oix-eyebrow mb-6">{m.product.guaranteeEyebrow}</div>
+          <p className="oix-display text-[clamp(1.6rem,3.2vw,2.75rem)] leading-[1.15] text-[var(--oix-cream)]">
+            {m.product.guaranteeStrong}
+          </p>
+          <p className="mt-6 text-lg leading-relaxed text-[var(--oix-cream-dim)]">
+            {m.product.guarantee}
+          </p>
         </div>
-      </section>
-    </MarketingLayout>
+      </SectionShell>
+
+      {/* Three surfaces */}
+      <SectionShell>
+        <div className="oix-eyebrow mb-10">{m.product.surfacesEyebrow}</div>
+        <div className="grid gap-px bg-[var(--oix-gold-line)] md:grid-cols-3">
+          {m.product.surfaces.map((s, i) => {
+            const Icon = SURFACE_ICONS[i] ?? HardDrive;
+            return (
+              <div
+                key={s.name}
+                className="group flex flex-col bg-[var(--oix-bg-deep)] p-8 transition-colors hover:bg-[var(--oix-surface-2)]"
+              >
+                <Icon className="h-6 w-6 text-[var(--oix-gold)]" strokeWidth={1.4} />
+                <div className="mt-6 text-[10px] uppercase tracking-[0.28em] text-[var(--oix-gold-soft)]">
+                  {s.tag}
+                </div>
+                <div className="oix-display mt-2 text-xl">{s.name}</div>
+                <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-[var(--oix-cream-dim)]">
+                  {s.who}
+                </div>
+                <p className="mt-5 text-sm leading-relaxed text-[var(--oix-cream-dim)]">{s.what}</p>
+              </div>
+            );
+          })}
+        </div>
+      </SectionShell>
+
+      <MottoBand />
+
+      {/* Journey */}
+      <SectionShell className="oix-hairline-top">
+        <div className="max-w-2xl">
+          <div className="oix-eyebrow mb-6">{m.product.journeyEyebrow}</div>
+          <h2 className="oix-display text-[clamp(1.75rem,3.4vw,3rem)] leading-[1.1]">
+            {m.product.journeyTitle}
+          </h2>
+          <p className="mt-5 text-[var(--oix-cream-dim)]">{m.product.journeyIntro}</p>
+        </div>
+
+        <ol className="mt-14 grid gap-px bg-[var(--oix-gold-line)] md:grid-cols-3">
+          {m.product.journey.map((j, i) => {
+            const Icon = JOURNEY_ICONS[i] ?? Cog;
+            return (
+              <li key={j.title} className="bg-[var(--oix-bg-deep)] p-7">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-[var(--oix-gold)]">
+                  <Icon className="h-4 w-4" strokeWidth={1.4} />
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <div className="oix-display mt-3 text-base">{j.title}</div>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--oix-cream-dim)]">{j.body}</p>
+              </li>
+            );
+          })}
+        </ol>
+      </SectionShell>
+
+      {/* Final CTA */}
+      <SectionShell className="oix-hairline-top text-center">
+        <h2 className="oix-display mx-auto max-w-2xl text-[clamp(1.75rem,3.4vw,3rem)] leading-[1.1]">
+          {m.product.ctaTitle}
+        </h2>
+        <p className="mx-auto mt-5 max-w-xl text-[var(--oix-cream-dim)]">{m.product.ctaBody}</p>
+        <div className="mt-9 flex justify-center gap-3">
+          <OixButton to="/contact" variant="gold" withArrow>
+            {m.cta.proposal}
+          </OixButton>
+          <OixButton to="/pricing" variant="ghost">
+            {m.nav.pricing}
+          </OixButton>
+        </div>
+      </SectionShell>
+    </OixLayout>
   );
 }

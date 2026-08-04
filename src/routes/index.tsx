@@ -55,6 +55,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
 import { OixButton } from "@/components/oix/buttons";
+import { useMarketing } from "@/i18n/marketing";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -170,6 +171,7 @@ function useScrollProgress(maxScroll = 1100) {
 }
 
 function Hero() {
+  const m = useMarketing();
   const progress = useScrollProgress(1100);
   const acts = [
     { i: 0, label: "Chaos" },
@@ -209,30 +211,26 @@ function Hero() {
             eyebrow={
               <span className="inline-flex items-center gap-2">
                 <Sparkles className="h-3 w-3 text-[var(--oix-gold)]" />
-                Enterprise Operational Intelligence
+                {m.home.eyebrow}
               </span>
             }
-            serifAccent="for people."
+            serifAccent={m.home.serif}
           >
-            The operating system
-            <br className="hidden sm:block" /> for operational knowledge —
+            {m.home.h1a}
+            <br className="hidden sm:block" /> {m.home.h1b}
           </EditorialHeadline>
 
           <p className="mt-8 max-w-2xl text-lg md:text-xl leading-relaxed text-[var(--oix-cream)]/75">
-            OPSQAI is a Windows Self-Hosted platform that brings governed AI to
-            industrial operations. Sovereign by design. Customers own their
-            data, documents, embeddings and AI provider. We never see
-            operational knowledge — and we built it that way on purpose,
-            because it&apos;s{" "}
-            <em className="oix-serif-italic text-[var(--oix-gold)]">not without them</em>.
+            {m.home.intro}{" "}
+            <em className="oix-serif-italic text-[var(--oix-gold)]">{m.home.introEm}</em>.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-3">
             <OixButton to="/self-hosted" variant="gold" withArrow>
-              How it works
+              {m.cta.howItWorks}
             </OixButton>
             <OixButton to="/contact" variant="ghost">
-              Request demo
+              {m.cta.requestDemo}
             </OixButton>
           </div>
         </div>
