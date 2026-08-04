@@ -10,6 +10,16 @@ export interface PgFaqRepositoryDeps {
 export function createPgFaqRepository(deps: PgFaqRepositoryDeps): IFaqRepository {
   const { pool } = deps;
   return {
+    async list(companyId) {
+      const { rows } = await pool.query<FaqRow>(
+        companyId
+          ? `SELECT * FROM public.faqs WHERE company_id = $1 ORDER BY category`
+          : `SELECT * FROM public.faqs ORDER BY category`,
+        companyId ? [companyId] : [],
+      );
+      return rows;
+    },
+
     async update(id, patch) {
       await pool.query(
         `UPDATE public.faqs

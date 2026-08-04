@@ -14,6 +14,16 @@ const FaqInput = z.object({
   company_id: z.string().uuid().optional().nullable(),
 });
 
+export const listFaqs = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const repo = getFaqRepository(context.supabase);
+    return repo.list(data.company_id ?? null);
+  });
+
 export const upsertFaq = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => FaqInput.parse(d))

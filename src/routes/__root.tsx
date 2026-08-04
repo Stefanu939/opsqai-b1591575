@@ -15,6 +15,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { ChatGlider } from "@/components/support/chat-glider";
+import { cloudFeaturesEnabled } from "@/lib/cloud-client";
 import { LicenseProvider } from "@/lib/license";
 
 function NotFoundComponent() {
@@ -173,7 +174,7 @@ function RootComponent() {
         <AuthProvider>
           <LicenseProvider>
             <Outlet />
-            <ChatGlider />
+            {cloudFeaturesEnabled() && <ChatGlider />}
             <Toaster />
           </LicenseProvider>
         </AuthProvider>

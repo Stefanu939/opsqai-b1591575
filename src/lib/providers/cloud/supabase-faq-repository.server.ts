@@ -10,6 +10,14 @@ type Client = SupabaseClient<Database>;
 
 export function createSupabaseFaqRepository(client: Client): IFaqRepository {
   return {
+    async list(companyId) {
+      let q = client.from("faqs").select("*").order("category");
+      if (companyId) q = q.eq("company_id", companyId);
+      const { data, error } = await q;
+      if (error) throw new Error(error.message);
+      return (data ?? []) as FaqRow[];
+    },
+
     async update(id, patch) {
       const { error } = await client.from("faqs").update(patch).eq("id", id);
       if (error) throw new Error(error.message);

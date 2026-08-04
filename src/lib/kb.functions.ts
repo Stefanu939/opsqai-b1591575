@@ -170,3 +170,88 @@ export const deleteKnowledgeDocument = createServerFn({ method: "POST" })
     await repo.deleteDocument(data.id);
     return { ok: true };
   });
+
+/**
+ * Document library list. Runs server-side so Cloud (Supabase + RLS) and
+ * Self-Hosted (local Postgres) each resolve through their own repository —
+ * the browser never talks to a database directly.
+ */
+export const listKnowledgeDocuments = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        company_id: z.string().uuid().nullable().optional(),
+        include_inactive: z.boolean().optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const repo = getKnowledgeRepository(context.supabase);
+    return repo.listDocuments(data.company_id ?? null, data.include_inactive ?? false);
+  });
+
+/** All versions of one document (root + children). */
+export const listDocumentVersions = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ root_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const repo = getKnowledgeRepository(context.supabase);
+    return repo.listVersions(data.root_id);
+  });
+
+/**
+ * Upload a document blob through the active storage provider (Supabase
+ * Storage on Cloud, local filesystem on Self-Hosted) and return its key.
+ */
+export const uploadKnowledgeFile = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        filename: z.string().min(1),
+        content_type: z.string().min(1),
+        data_base64: z.string().min(1),
+        company_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["knowledge.manage", "sop.create"]);
+    const companyId = await resolveCompanyForWrite(context, data.company_id ?? null);
+    const safe = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const key = `${companyId}/${Date.now()}-${safe}`;
+    const binary = atob(data.data_base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    await getStorageProvider().put({
+      bucket: KB_BUCKET,
+      key,
+      body: bytes,
+      contentType: data.content_type,
+    });
+    return { file_path: key };
+  });
+
+/**
+ * Fetch a source document through the active storage provider and return it
+ * inline (base64) so the client can open it as a blob URL. Works identically
+ * on Cloud (object storage) and Self-Hosted (local filesystem).
+ */
+export const getKnowledgeDocumentBlob = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ document_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const repo = getKnowledgeRepository(context.supabase);
+    const filePath = await repo.getFilePath(data.document_id);
+    if (!filePath) return null;
+    const bytes = await getStorageProvider().get(KB_BUCKET, filePath);
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    const head = await getStorageProvider().head(KB_BUCKET, filePath);
+    return {
+      data_base64: btoa(binary),
+      content_type: head?.contentType ?? "application/octet-stream",
+      filename: filePath.split("/").pop() ?? "document",
+    };
+  });

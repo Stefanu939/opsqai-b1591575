@@ -66,3 +66,12 @@ export const renameThread = createServerFn({ method: "POST" })
     );
     return { ok: true };
   });
+
+/** Ordered transcript for a thread, resolved through the active data provider. */
+export const listThreadMessages = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: { threadId: string }) => z.object({ threadId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { getMessageRepository } = await import("@/lib/providers/registry");
+    return getMessageRepository(context.supabase).listByThread(data.threadId);
+  });

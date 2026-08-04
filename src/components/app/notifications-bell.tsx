@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell, Check, Trash2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import { useAuth } from "@/lib/auth-context";
 import {
   DropdownMenu,
@@ -24,10 +24,15 @@ export function NotificationsBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<Notif[]>([]);
+  // `notifications` is a Cloud table. Self-Hosted has no notification
+  // inbox yet, so the bell is simply not rendered there.
+  const enabled = cloudFeaturesEnabled();
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase
+    const db = await getCloudBrowserDb();
+    if (!db) return;
+    const { data } = await db
       .from("notifications")
       .select("id, kind, title, body, link, read_at, created_at")
       .order("created_at", { ascending: false })
@@ -36,16 +41,18 @@ export function NotificationsBell() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !enabled) return;
     load();
     const t = setInterval(load, 30000);
     return () => clearInterval(t);
-  }, [user]);
+  }, [user, enabled]);
 
   const unread = items.filter((n) => !n.read_at).length;
 
   const markRead = async (id: string) => {
-    await supabase
+    const db = await getCloudBrowserDb();
+    if (!db) return;
+    await db
       .from("notifications")
       .update({ read_at: new Date().toISOString() } as never)
       .eq("id", id);
@@ -53,18 +60,23 @@ export function NotificationsBell() {
   };
   const markAllRead = async () => {
     const ids = items.filter((n) => !n.read_at).map((n) => n.id);
-    if (ids.length) {
-      await supabase
-        .from("notifications")
-        .update({ read_at: new Date().toISOString() } as never)
-        .in("id", ids);
-      load();
-    }
-  };
-  const remove = async (id: string) => {
-    await supabase.from("notifications").delete().eq("id", id);
+    if (!ids.length) return;
+    const db = await getCloudBrowserDb();
+    if (!db) return;
+    await db
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() } as never)
+      .in("id", ids);
     load();
   };
+  const remove = async (id: string) => {
+    const db = await getCloudBrowserDb();
+    if (!db) return;
+    await db.from("notifications").delete().eq("id", id);
+    load();
+  };
+
+  if (!enabled) return null;
 
   return (
     <DropdownMenu>

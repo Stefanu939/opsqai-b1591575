@@ -1,7 +1,7 @@
 // Self-Hosted IMessageRepository — narrow reads on public.messages.
 
 import type { Pool } from "pg";
-import type { IMessageRepository } from "@/lib/providers/interfaces";
+import type { IMessageRepository, ThreadMessageRecord } from "@/lib/providers/interfaces";
 
 export interface PgMessageRepositoryDeps {
   pool: Pool;
@@ -10,6 +10,17 @@ export interface PgMessageRepositoryDeps {
 export function createPgMessageRepository(deps: PgMessageRepositoryDeps): IMessageRepository {
   const { pool } = deps;
   return {
+    async listByThread(threadId) {
+      const { rows } = await pool.query<ThreadMessageRecord>(
+        `SELECT id, role, content, parts, sources, created_at
+           FROM public.messages
+          WHERE thread_id = $1
+          ORDER BY created_at`,
+        [threadId],
+      );
+      return rows;
+    },
+
     async findAssistantById(id) {
       const { rows } = await pool.query<{
         id: string;

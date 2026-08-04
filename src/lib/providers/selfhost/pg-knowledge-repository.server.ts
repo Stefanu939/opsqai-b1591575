@@ -25,6 +25,33 @@ export function createPgKnowledgeRepository(
   const { pool } = deps;
 
   return {
+    async listDocuments(companyId, includeInactive) {
+      const where: string[] = [];
+      const params: unknown[] = [];
+      if (companyId) {
+        params.push(companyId);
+        where.push(`company_id = $${params.length}`);
+      }
+      if (!includeInactive) where.push(`is_active = true`);
+      const { rows } = await pool.query<KnowledgeDocumentRow>(
+        `SELECT * FROM public.knowledge_documents
+          ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+          ORDER BY created_at DESC`,
+        params,
+      );
+      return rows;
+    },
+
+    async listVersions(rootId) {
+      const { rows } = await pool.query<KnowledgeDocumentRow>(
+        `SELECT * FROM public.knowledge_documents
+          WHERE id = $1 OR parent_document_id = $1
+          ORDER BY version DESC`,
+        [rootId],
+      );
+      return rows;
+    },
+
     async insertDocument(input: KnowledgeDocumentInsert) {
       const { rows } = await pool.query<{ id: string; company_id: string }>(
         `INSERT INTO public.knowledge_documents
