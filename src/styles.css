@@ -687,6 +687,27 @@ body {
   --color-oix-cream: var(--oix-cream);
 }
 
+/* Light mode for the OIX marketing surfaces (token overrides only,
+   so every component that reads --oix-* adapts automatically). */
+html:not(.dark) .oix-shell {
+  --oix-bg-deep: #f7f4ea;
+  --oix-surface: #e8e2d0;
+  --oix-surface-2: #efeadb;
+  --oix-emerald: #0d7a5f;
+  --oix-emerald-glow: #0f8f6e;
+  --oix-gold: #96762a;
+  --oix-gold-soft: #7a5f1f;
+  --oix-gold-line: rgba(150, 118, 42, 0.28);
+  --oix-cream: #10201b;
+  --oix-cream-dim: rgba(16, 32, 27, 0.7);
+  --oix-shadow-gold-glow: 0 0 40px -14px rgba(150, 118, 42, 0.45);
+}
+
+html:not(.dark) .oix-shell::before {
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+}
+
 /* Root wrapper for the marketing site — scopes tokens/fonts */
 .oix-shell {
   background: var(--oix-bg-deep);
