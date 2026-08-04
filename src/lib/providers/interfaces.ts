@@ -355,12 +355,20 @@ export interface PreviousUserMessage {
   content: string;
 }
 
+export type JsonLike =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonLike[]
+  | { [key: string]: JsonLike };
+
 export interface ThreadMessageRecord {
   id: string;
   role: string;
   content: string;
-  parts: unknown;
-  sources: unknown;
+  parts: JsonLike;
+  sources: JsonLike;
   created_at: string;
 }
 
