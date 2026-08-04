@@ -27,6 +27,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
+import { useSecurityCopy } from "@/i18n/pages/security";
 
 export const Route = createFileRoute("/security")({
   head: () =>
@@ -45,22 +46,25 @@ export const Route = createFileRoute("/security")({
   component: SecurityPage,
 });
 
-const PILLARS = [
-  { icon: KeyRound, title: "Ed25519-signed licenses", body: "Every license is an Ed25519-signed bundle. The install verifies it locally, offline. Revocation is durable and cryptographically bound to the installation identity." },
-  { icon: BadgeCheck, title: "Signed activation bundles", body: "Activation bundles are signed by OPSQAI with a 90-day validity window. Expired bundles are refused; renewal is issued through the Customer Portal." },
-  { icon: History, title: "Hash-chained audit trail", body: "Privileged and AI actions are appended to a hash-chained audit log. Any tampering breaks the chain and is detected on verification." },
-  { icon: Shield, title: "Certificate revocation list", body: "OPSQAI maintains a signed CRL for licenses and activation bundles. The install checks it on heartbeat and refuses revoked artifacts." },
-  { icon: Lock, title: "Chunk-level ACL", body: "Retrieval is enforced at the chunk level. Users only see grounded citations from documents their role and department allow." },
-  { icon: Fingerprint, title: "Customer owns the data", body: "Documents, embeddings, chats, users and configuration are stored inside the customer install. OPSQAI never sees operational customer knowledge." },
-  { icon: FileCheck2, title: "Signed releases", body: "Installer packages and update manifests are signed. The updater refuses any artifact that fails verification." },
-  { icon: Database, title: "Encryption in transit and at rest", body: "TLS everywhere via Caddy. PostgreSQL storage follows Windows Server policy. Backups can be encrypted end-to-end." },
-  { icon: ScrollText, title: "Append-only audit log", body: "License issuance, ownership transfer, admin promotion, module activation — every privileged action is logged with actor, target and timestamp." },
-  { icon: Users, title: "Role-based access", body: "Workspace owner, admin, manager, supervisor, worker, viewer. Platform Super Admin is a separate, tightly-scoped OPSQAI role." },
-  { icon: Server, title: "Single-tenant boundary", body: "Every install is one customer. No shared databases, vector stores or AI keys — nothing crosses tenants." },
-  { icon: ShieldCheck, title: "GDPR aligned", body: "EU-hosted cloud surfaces, DPA available on request, right-to-erasure procedures documented for both cloud metadata and on-prem content." },
+const PILLAR_ICONS = [
+  KeyRound,
+  BadgeCheck,
+  History,
+  Shield,
+  Lock,
+  Fingerprint,
+  FileCheck2,
+  Database,
+  ScrollText,
+  Users,
+  Server,
+  ShieldCheck,
 ];
 
 function SecurityPage() {
+  const t = useSecurityCopy();
+  const pillars = t.pillars.items.map((p, i) => ({ ...p, icon: PILLAR_ICONS[i] }));
+
   return (
     <OixLayout>
       {/* Cinematic hero — vault of signatures */}
@@ -90,22 +94,20 @@ function SecurityPage() {
             <EditorialHeadline
               as="h1"
               size="xl"
-              eyebrow="Security · Verifiable"
-              serifAccent="not just trusted."
+              eyebrow={t.hero.eyebrow}
+              serifAccent={t.hero.serifAccent}
             >
-              Proven
+              {t.hero.headline}
             </EditorialHeadline>
             <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
-              OPSQAI is sovereign by design. Operational knowledge stays on the
-              customer&apos;s Windows Server. Signed artifacts prove provenance.
-              Every privileged action is recorded in a hash-chained audit log.
+              {t.hero.body}
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <OixButton to="/contact?subject=security" variant="gold" withArrow>
-                Request DPA / security review
+                {t.hero.ctaPrimary}
               </OixButton>
               <OixButton to="/self-hosted" variant="ghost">
-                Sovereign architecture
+                {t.hero.ctaSecondary}
               </OixButton>
             </div>
           </div>
@@ -115,11 +117,11 @@ function SecurityPage() {
       {/* Guarantee statement */}
       <SectionShell className="oix-hairline-bottom">
         <div className="max-w-3xl">
-          <div className="oix-eyebrow mb-6">The guarantee</div>
+          <div className="oix-eyebrow mb-6">{t.guarantee.eyebrow}</div>
           <p className="oix-display text-[clamp(1.75rem,3.5vw,3rem)] leading-[1.1] text-[var(--oix-cream)]">
-            OPSQAI never sees operational customer knowledge.{" "}
+            {t.guarantee.lead}{" "}
             <span className="oix-serif-italic normal-case tracking-normal text-[var(--oix-gold-soft)]">
-              Documents, chats, embeddings and users live inside the customer install.
+              {t.guarantee.accent}
             </span>
           </p>
         </div>
@@ -127,11 +129,11 @@ function SecurityPage() {
 
       {/* Twelve pillars */}
       <SectionShell>
-        <EditorialHeadline eyebrow="Twelve pillars" serifAccent="by construction.">
-          Security
+        <EditorialHeadline eyebrow={t.pillars.eyebrow} serifAccent={t.pillars.serifAccent}>
+          {t.pillars.headline}
         </EditorialHeadline>
         <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {PILLARS.map((p) => (
+          {pillars.map((p) => (
             <Card
               key={p.title}
               className="p-6 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
@@ -148,32 +150,30 @@ function SecurityPage() {
 
       {/* Boundary — cloud vs on-prem */}
       <SectionShell className="oix-hairline-top oix-hairline-bottom">
-        <EditorialHeadline eyebrow="The boundary" serifAccent="stays.">
-          What crosses. What
+        <EditorialHeadline eyebrow={t.boundary.eyebrow} serifAccent={t.boundary.serifAccent}>
+          {t.boundary.headline}
         </EditorialHeadline>
         <div className="mt-14 grid gap-6 md:grid-cols-2">
           <Card className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60">
             <div className="flex items-center gap-3">
               <Cloud className="h-6 w-6 text-[var(--oix-gold)]" />
-              <div className="font-semibold text-[var(--oix-cream)]">Cloud · OPSQAI-managed</div>
+              <div className="font-semibold text-[var(--oix-cream)]">{t.boundary.cloud.title}</div>
             </div>
             <ul className="mt-6 space-y-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">
-              <li>· Customer &amp; installation metadata</li>
-              <li>· License records and signing keys</li>
-              <li>· Release manifests and CRL</li>
-              <li>· Support conversations</li>
+              {t.boundary.cloud.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </Card>
           <Card className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60">
             <div className="flex items-center gap-3">
               <HardDrive className="h-6 w-6 text-[var(--oix-emerald-glow)]" />
-              <div className="font-semibold text-[var(--oix-cream)]">On-prem · Customer-owned</div>
+              <div className="font-semibold text-[var(--oix-cream)]">{t.boundary.onprem.title}</div>
             </div>
             <ul className="mt-6 space-y-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">
-              <li>· Documents, SOPs and embeddings</li>
-              <li>· Chat messages and AI audit records</li>
-              <li>· End-user accounts and roles</li>
-              <li>· Workspace configuration and AI keys</li>
+              {t.boundary.onprem.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </Card>
         </div>
@@ -184,20 +184,20 @@ function SecurityPage() {
         <div className="text-center max-w-3xl mx-auto">
           <EditorialHeadline
             align="center"
-            eyebrow="Procurement, InfoSec, compliance"
-            serifAccent="here."
+            eyebrow={t.finalCta.eyebrow}
+            serifAccent={t.finalCta.serifAccent}
           >
-            Bring your questionnaire
+            {t.finalCta.headline}
           </EditorialHeadline>
           <p className="mt-6 text-[var(--oix-cream)]/70">
-            We respond to security reviews from procurement, InfoSec and compliance teams.
+            {t.finalCta.body}
           </p>
           <div className="mt-8 flex gap-3 justify-center">
             <OixButton to="/contact?subject=security" variant="gold" withArrow>
-              Contact security
+              {t.finalCta.ctaPrimary}
             </OixButton>
             <OixButton to="/self-hosted" variant="ghost">
-              Self-hosted architecture
+              {t.finalCta.ctaSecondary}
             </OixButton>
           </div>
         </div>
