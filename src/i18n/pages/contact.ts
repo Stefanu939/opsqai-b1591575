@@ -50,8 +50,9 @@ type Copy = typeof en;
 
 const de: Copy = {
   heroEyebrow: "Kontakt · Direkt an das richtige Team",
-  heroSerifAccent: "operations.",
-  heroHeadline: "Sprechen wir miteinander",
+  heroSerifAccent: "über Ihren Betrieb.",
+  heroHeadline: "Sprechen wir",
+
   heroBody:
     "Wählen Sie das passende Thema — Ihre Nachricht wird direkt an das zuständige Team weitergeleitet, und Sie erhalten eine Bestätigung per E-Mail.",
   subjectOptions: {
