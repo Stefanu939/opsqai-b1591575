@@ -98,7 +98,7 @@ const en = {
     ctaTitle: "Ready to see the architecture live?",
     ctaBody: "Talk to us about a reference install of the Windows Self-Hosted product.",
   },
-} as const;
+};
 
 type MarketingCopy = typeof en;
 
@@ -198,7 +198,7 @@ const de: MarketingCopy = {
   },
 };
 
-export const marketingCopy = { en, de } as const;
+export const marketingCopy = { en, de };
 
 export function useMarketing(): MarketingCopy {
   const { lang } = useT();
