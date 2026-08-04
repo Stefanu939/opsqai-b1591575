@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OixButton } from "./buttons";
+import { LogoMark } from "@/components/brand/logo";
 import { useT } from "@/i18n";
 import { useMarketing } from "@/i18n/marketing";
 

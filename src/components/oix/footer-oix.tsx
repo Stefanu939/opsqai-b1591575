@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { MottoBand } from "./motto-band";
 import { useMarketing } from "@/i18n/marketing";
+import { LogoMark } from "@/components/brand/logo";
 
 export function FooterOix() {
   const m = useMarketing();
@@ -66,7 +67,7 @@ export function FooterOix() {
 
         <div className="mt-20 flex flex-col-reverse items-start justify-between gap-6 border-t border-[var(--oix-gold-line)] pt-8 md:flex-row md:items-center">
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--oix-cream-dim)]">
-            © {new Date().getFullYear()} OPSQAI · {m.footer.rights}
+            <LogoMark size={18} accent="var(--oix-gold-soft)" className="mr-2 align-[-3px] text-[var(--oix-gold)]" />© {new Date().getFullYear()} OPSQAI · {m.footer.rights}
           </p>
           <p className="oix-serif-italic text-sm">{m.footer.motto}</p>
         </div>
