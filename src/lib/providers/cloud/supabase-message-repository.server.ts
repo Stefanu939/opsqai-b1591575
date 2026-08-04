@@ -46,5 +46,23 @@ export function createSupabaseMessageRepository(client: Client): IMessageReposit
       if (error) throw new Error(error.message);
       return data ? { id: data.id, content: data.content } : null;
     },
+    async insertMany(input) {
+      if (input.length === 0) return [];
+      const { data, error } = await client
+        .from("messages")
+        .insert(input.map((message) => ({
+          thread_id: message.threadId,
+          user_id: message.userId,
+          company_id: message.companyId,
+          role: message.role,
+          content: message.content,
+          parts: message.parts,
+          sources: message.sources,
+          confidence: message.confidence,
+        })) as never)
+        .select("id, role");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Array<{ id: string; role: string }>;
+    },
   };
 }

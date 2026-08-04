@@ -33,6 +33,9 @@ import { createPgKnowledgeGapRepository } from "./pg-knowledge-gap-repository.se
 import { createPgIntegrationRepository } from "./pg-integration-repository.server";
 import { createPgFaqRepository } from "./pg-faq-repository.server";
 import { createPgKnowledgeRepository } from "./pg-knowledge-repository.server";
+import { createPgRbacAdminRepository } from "./pg-rbac-admin-repository.server";
+import { createPgDirectMessageRepository } from "./pg-direct-message-repository.server";
+import { createPgAiAuditRepository } from "./pg-ai-audit-repository.server";
 import {
   registerAdminCompanyRepositoryFactory,
   registerAdminDepartmentRepositoryFactory,
@@ -50,6 +53,9 @@ import {
   registerProfileRepositoryFactory,
   registerRoleRepositoryFactory,
   registerThreadRepositoryFactory,
+  registerRbacAdminRepositoryFactory,
+  registerDirectMessageRepositoryFactory,
+  registerAiAuditRepositoryFactory,
 } from "@/lib/providers/registry";
 
 
@@ -282,6 +288,9 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerIntegrationRepositoryFactory(() => integrationRepo);
   registerFaqRepositoryFactory(() => faqRepo);
   registerKnowledgeRepositoryFactory(() => knowledgeRepo);
+  registerRbacAdminRepositoryFactory(() => createPgRbacAdminRepository({ pool }));
+  registerDirectMessageRepositoryFactory(() => createPgDirectMessageRepository({ pool }));
+  registerAiAuditRepositoryFactory(() => createPgAiAuditRepository({ pool }));
 }
 
 

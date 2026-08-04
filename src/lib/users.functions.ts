@@ -11,16 +11,7 @@ import {
   getAuthAdminProvider,
 } from "@/lib/providers/registry";
 
-const ROLES = [
-  "admin",
-  "manager",
-  "supervisor",
-  "operator",
-  "viewer",
-  "team_leader",
-  "employee",
-] as const;
-const RoleEnum = z.enum(ROLES);
+const RoleKey = z.string().regex(/^[a-z][a-z0-9_]{1,63}$/);
 
 async function getActorCompany(supabase: unknown, userId: string): Promise<string | null> {
   const profile = await getAdminProfileRepository().findByUserId(userId);
@@ -120,7 +111,7 @@ export const createUser = createServerFn({ method: "POST" })
         position: z.string().optional(),
         phone: z.string().optional(),
         department_id: z.string().uuid().optional().nullable(),
-        role: RoleEnum,
+        role: RoleKey,
         company_id: z.string().uuid().optional(),
         /**
          * Self-Hosted: force password change on first sign-in (temp-password flow).
@@ -188,7 +179,7 @@ export const inviteUser = createServerFn({ method: "POST" })
     z
       .object({
         email: z.string().email(),
-        role: RoleEnum,
+        role: RoleKey,
         department_id: z.string().uuid().optional().nullable(),
         company_id: z.string().uuid().optional(),
         first_name: z.string().optional(),
@@ -267,7 +258,7 @@ export const updateUser = createServerFn({ method: "POST" })
         phone: z.string().optional().nullable(),
         department_id: z.string().uuid().optional().nullable(),
         is_active: z.boolean().optional(),
-        roles: z.array(RoleEnum).optional(),
+        roles: z.array(RoleKey).optional(),
       })
       .parse(d),
   )

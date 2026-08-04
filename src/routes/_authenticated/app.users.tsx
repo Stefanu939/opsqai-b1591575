@@ -5,9 +5,12 @@ import { useState } from "react";
 import {
   listUsers,
   inviteUser,
+  createUser,
   updateUser,
   deleteUser,
 } from "@/lib/users.functions";
+import { listAssignableRoles } from "@/lib/rbac.functions";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import emptyTeamIllustration from "@/assets/empty-team.png";
@@ -39,9 +42,6 @@ export const Route = createFileRoute("/_authenticated/app/users")({
   component: UsersPage,
 });
 
-type Role = "workspace_owner" | "admin" | "manager" | "supervisor" | "worker" | "viewer";
-const ROLES: Role[] = ["workspace_owner", "admin", "manager", "supervisor", "worker", "viewer"];
-
 interface UserRow {
   id: string;
   email: string;
@@ -56,33 +56,39 @@ interface UserRow {
 function UsersPage() {
   const listFn = useServerFn(listUsers);
   const inviteFn = useServerFn(inviteUser);
+  const createFn = useServerFn(createUser);
+  const roleFn = useServerFn(listAssignableRoles);
   const updateFn = useServerFn(updateUser);
   const deleteFn = useServerFn(deleteUser);
   const qc = useQueryClient();
+  const selfHosted = getClientDeploymentMode() === "selfhost";
 
   const list = useQuery({
     queryKey: ["app-users"],
     queryFn: () => listFn({ data: {} }),
   });
+  const roleList = useQuery({ queryKey: ["assignable-roles"], queryFn: () => roleFn() });
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<Role>("worker");
+  const [role, setRole] = useState("employee");
+  const [temporaryPassword, setTemporaryPassword] = useState("");
 
   const invite = useMutation({
     mutationFn: () =>
-      inviteFn({
-        data: { email, first_name: firstName, last_name: lastName, role },
-      }),
+      selfHosted
+        ? createFn({ data: { email, password: temporaryPassword, first_name: firstName, last_name: lastName, role, must_change_password: true } })
+        : inviteFn({ data: { email, first_name: firstName, last_name: lastName, role } }),
     onSuccess: () => {
-      toast.success("Invitation sent");
+      toast.success(selfHosted ? "User created with a temporary password" : "Invitation sent");
       setInviteOpen(false);
       setEmail("");
       setFirstName("");
       setLastName("");
-      setRole("worker");
+      setRole("employee");
+      setTemporaryPassword("");
       qc.invalidateQueries({ queryKey: ["app-users"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -190,23 +196,24 @@ function UsersPage() {
       <PageHeader
         eyebrow="Self-hosted"
         title="Users"
-        description="Directory of workspace members. Invite new users, assign roles, or deactivate access."
+        description={selfHosted ? "Create local users, assign roles, and control access to this installation." : "Directory of workspace members. Invite new users, assign roles, or deactivate access."}
         actions={
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
             <DialogTrigger asChild>
               <Button>
-                <UserPlus className="h-4 w-4 mr-1" /> Invite user
+                <UserPlus className="h-4 w-4 mr-1" /> {selfHosted ? "Create user" : "Invite user"}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Invite user</DialogTitle>
+                <DialogTitle>{selfHosted ? "Create local user" : "Invite user"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
                   <Label>Email</Label>
                   <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
+                {selfHosted ? <div><Label>Temporary password</Label><Input type="password" autoComplete="new-password" value={temporaryPassword} onChange={(e)=>setTemporaryPassword(e.target.value)} placeholder="Minimum 8 characters" /></div> : null}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label>First name</Label>
@@ -219,14 +226,14 @@ function UsersPage() {
                 </div>
                 <div>
                   <Label>Role</Label>
-                  <Select value={role} onValueChange={(v) => setRole(v as Role)}>
+                  <Select value={role} onValueChange={setRole}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {ROLES.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
+                      {(roleList.data ?? []).map((r) => (
+                        <SelectItem key={r.key} value={r.key}>
+                          {r.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -237,8 +244,8 @@ function UsersPage() {
                 <Button variant="outline" onClick={() => setInviteOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={() => invite.mutate()} disabled={!email || invite.isPending}>
-                  Send invite
+                <Button onClick={() => invite.mutate()} disabled={!email || (selfHosted && temporaryPassword.length < 8) || invite.isPending}>
+                  {selfHosted ? "Create user" : "Send invite"}
                 </Button>
               </DialogFooter>
             </DialogContent>

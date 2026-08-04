@@ -51,5 +51,29 @@ export function createPgMessageRepository(deps: PgMessageRepositoryDeps): IMessa
       );
       return rows[0] ? { id: rows[0].id, content: rows[0].content } : null;
     },
+    async insertMany(input) {
+      if (input.length === 0) return [];
+      const inserted: Array<{ id: string; role: string }> = [];
+      for (const message of input) {
+        const { rows } = await pool.query<{ id: string; role: string }>(
+          `INSERT INTO public.messages
+             (thread_id, user_id, company_id, role, content, parts, sources, confidence)
+           VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8)
+           RETURNING id, role`,
+          [
+            message.threadId,
+            message.userId,
+            message.companyId,
+            message.role,
+            message.content,
+            JSON.stringify(message.parts),
+            message.sources == null ? null : JSON.stringify(message.sources),
+            message.confidence,
+          ],
+        );
+        if (rows[0]) inserted.push(rows[0]);
+      }
+      return inserted;
+    },
   };
 }

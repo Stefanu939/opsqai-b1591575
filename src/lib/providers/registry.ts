@@ -27,6 +27,9 @@ import type {
   IStorageProvider,
   ITelemetrySink,
   IThreadRepository,
+  IRbacAdminRepository,
+  IDirectMessageRepository,
+  IAiAuditRepository,
   IUserRepository,
   CompanyRepositoryFactory,
   DepartmentRepositoryFactory,
@@ -39,6 +42,9 @@ import type {
   ProfileRepositoryFactory,
   RoleRepositoryFactory,
   ThreadRepositoryFactory,
+  RbacAdminRepositoryFactory,
+  DirectMessageRepositoryFactory,
+  AiAuditRepositoryFactory,
 } from "./interfaces";
 
 interface Registry {
@@ -67,6 +73,9 @@ interface Registry {
   integrationFactory?: IntegrationRepositoryFactory;
   faqFactory?: FaqRepositoryFactory;
   knowledgeFactory?: KnowledgeRepositoryFactory;
+  rbacAdminFactory?: RbacAdminRepositoryFactory;
+  directMessageFactory?: DirectMessageRepositoryFactory;
+  aiAuditFactory?: AiAuditRepositoryFactory;
 }
 
 
@@ -148,6 +157,9 @@ export function registerFaqRepositoryFactory(f: FaqRepositoryFactory): void {
 export function registerKnowledgeRepositoryFactory(f: KnowledgeRepositoryFactory): void {
   registry.knowledgeFactory = f;
 }
+export function registerRbacAdminRepositoryFactory(f: RbacAdminRepositoryFactory): void { registry.rbacAdminFactory = f; }
+export function registerDirectMessageRepositoryFactory(f: DirectMessageRepositoryFactory): void { registry.directMessageFactory = f; }
+export function registerAiAuditRepositoryFactory(f: AiAuditRepositoryFactory): void { registry.aiAuditFactory = f; }
 
 
 
@@ -277,6 +289,18 @@ export function getKnowledgeRepository(dataCtx: unknown): IKnowledgeRepository {
   }
   return registry.knowledgeFactory(dataCtx);
 }
+export function getRbacAdminRepository(dataCtx?: unknown): IRbacAdminRepository {
+  if (!registry.rbacAdminFactory) throw new Error("No RBAC admin repository registered");
+  return registry.rbacAdminFactory(dataCtx);
+}
+export function getDirectMessageRepository(dataCtx: unknown): IDirectMessageRepository {
+  if (!registry.directMessageFactory) throw new Error("No direct-message repository registered");
+  return registry.directMessageFactory(dataCtx);
+}
+export function getAiAuditRepository(dataCtx: unknown): IAiAuditRepository {
+  if (!registry.aiAuditFactory) throw new Error("No AI-audit repository registered");
+  return registry.aiAuditFactory(dataCtx);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
@@ -305,5 +329,8 @@ export function __resetProviderRegistryForTests(): void {
   registry.integrationFactory = undefined;
   registry.faqFactory = undefined;
   registry.knowledgeFactory = undefined;
+  registry.rbacAdminFactory = undefined;
+  registry.directMessageFactory = undefined;
+  registry.aiAuditFactory = undefined;
 }
 
