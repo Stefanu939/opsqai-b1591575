@@ -1,9 +1,7 @@
 // Self-Hosted IRoleRepository — backed by public.user_roles.
 //
-// `role_permissions` is not modelled on Self-Hosted v1. Permissions are
-// derived from a fixed role→permission map below — enough to keep the
-// admin server functions functional without a table. This mirrors the
-// business rules encoded in the Cloud `has_permission` RPC.
+// Permissions and roles are installation data, configurable by the local
+// superadmin through public.roles/public.role_permissions.
 
 import type { Pool } from "pg";
 
@@ -15,39 +13,6 @@ import type {
 
 export interface PgRoleRepositoryDeps {
   pool: Pool;
-}
-
-/**
- * Fixed role→permission map. Kept intentionally small: only permissions
- * currently referenced by the migrated server functions are enumerated.
- * Extend alongside new features as they migrate off Supabase.
- */
-const ROLE_PERMS: Record<string, ReadonlyArray<string>> = {
-  platform_owner: ["*"],
-  platform_admin: ["*"],
-  admin: [
-    "user.create",
-    "user.update",
-    "user.delete",
-    "department.manage",
-    "platform.manage",
-  ],
-  manager: ["user.update", "department.manage"],
-  supervisor: ["user.update"],
-  team_leader: [],
-  operator: [],
-  employee: [],
-  viewer: [],
-};
-
-function permittedForRoles(roles: string[], permission: string): boolean {
-  for (const r of roles) {
-    const perms = ROLE_PERMS[r];
-    if (!perms) continue;
-    if (perms.includes("*")) return true;
-    if (perms.includes(permission)) return true;
-  }
-  return false;
 }
 
 export function createPgRoleRepository(deps: PgRoleRepositoryDeps): IRoleRepository {
@@ -111,11 +76,13 @@ export function createPgRoleRepository(deps: PgRoleRepositoryDeps): IRoleReposit
     },
 
     async hasPermission(userId, permission) {
-      const { rows } = await pool.query<{ role: string }>(
-        "SELECT role FROM public.user_roles WHERE user_id = $1",
-        [userId],
+      const { rows } = await pool.query(
+        `SELECT 1 FROM public.user_roles ur
+          JOIN public.role_permissions rp ON rp.role_key = ur.role
+         WHERE ur.user_id = $1 AND rp.permission_key = $2 LIMIT 1`,
+        [userId, permission],
       );
-      return permittedForRoles(rows.map((r) => r.role), permission);
+      return rows.length > 0;
     },
 
     async listAssignments(userIds): Promise<RoleAssignment[]> {
@@ -142,18 +109,11 @@ export function createPgRoleRepository(deps: PgRoleRepositoryDeps): IRoleReposit
     },
 
     async listPermissionsForRole(role) {
-      const perms = ROLE_PERMS[role];
-      if (!perms) return [];
-      if (perms.includes("*")) {
-        // Return the union of every explicit permission so consumers see
-        // a concrete list rather than the wildcard.
-        const all = new Set<string>();
-        for (const rp of Object.values(ROLE_PERMS)) {
-          for (const p of rp) if (p !== "*") all.add(p);
-        }
-        return [...all];
-      }
-      return [...perms];
+      const { rows } = await pool.query<{ permission_key: string }>(
+        "SELECT permission_key FROM public.role_permissions WHERE role_key=$1 ORDER BY permission_key",
+        [role],
+      );
+      return rows.map((row) => row.permission_key);
     },
   };
 }
