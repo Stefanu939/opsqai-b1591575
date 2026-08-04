@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -116,11 +115,8 @@ function ChatThread() {
     const load = async () => {
       const sess = await getBrowserAuthProvider().getSession();
       tokenRef.current = sess?.accessToken ?? "";
-      const { data } = await supabase
-        .from("messages")
-        .select("id, role, content, parts, sources, created_at")
-        .eq("thread_id", threadId)
-        .order("created_at");
+      const { listThreadMessages } = await import("@/lib/threads.functions");
+      const data = await listThreadMessages({ data: { threadId } });
       const msgs: UIMessage[] = (data ?? []).map((m) => ({
         id: m.id,
         role: m.role as "user" | "assistant" | "system",
@@ -379,16 +375,17 @@ function SourcesPanel({
 
   const openDoc = async (documentId?: string) => {
     if (!documentId) return;
-    const { data: doc } = await supabase
-      .from("knowledge_documents")
-      .select("file_path")
-      .eq("id", documentId)
-      .maybeSingle();
-    if (!doc?.file_path) return;
-    const { data: signed } = await supabase.storage
-      .from("knowledge-docs")
-      .createSignedUrl(doc.file_path, 60 * 10);
-    if (signed?.signedUrl) window.open(signed.signedUrl, "_blank");
+    // Streamed through a server fn so the source opens on both Cloud
+    // (object storage) and Self-Hosted (local filesystem).
+    const { getKnowledgeDocumentBlob } = await import("@/lib/kb.functions");
+    const blob = await getKnowledgeDocumentBlob({ data: { document_id: documentId } });
+    if (!blob) return;
+    const binary = atob(blob.data_base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: blob.content_type }));
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
   const DocCard = ({ s, isPrimary }: { s: SourceItem; isPrimary?: boolean }) => {
