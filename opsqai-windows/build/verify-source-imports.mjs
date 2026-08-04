@@ -38,7 +38,6 @@ const ALLOWED_PREFIXES = [
 // This list is the shrinking backlog for future waves — do NOT grow it.
 const LEGACY_ALLOWED = new Set([
   "src/start.ts",
-  "src/lib/auth-context.tsx",
   "src/lib/avatar.ts",
   "src/lib/academy-certificate.server.ts",
   "src/lib/email/dispatch.server.ts",
@@ -49,27 +48,17 @@ const LEGACY_ALLOWED = new Set([
   "src/routes/verify.$code.tsx",
   "src/routes/accept-invite.tsx",
   "src/routes/[.]lovable.oauth.consent.tsx",
-  "src/routes/_authenticated/app.updates.tsx",
-  "src/routes/_authenticated/app.organization.tsx",
-  "src/routes/_authenticated/app.knowledge.tsx",
-  "src/routes/_authenticated/app.faq.tsx",
-  "src/routes/_authenticated/app.chat.$threadId.tsx",
-  "src/routes/_authenticated/app.academy.lesson.$lessonId.tsx",
   "src/routes/_authenticated/portal.admin.tsx",
   "src/routes/_authenticated/portal.admin.index.tsx",
   "src/routes/_authenticated/portal.admin.downloads.tsx",
   "src/routes/_authenticated/management.tsx",
   "src/routes/api/workspace-chat.ts",
-  "src/routes/api/chat.ts",
   "src/routes/api/internal-chat.ts",
   "src/routes/api/customer-writer.ts",
   "src/routes/api/academy-chat.ts",
   "src/routes/lovable/email/queue/process.ts",
   "src/components/support/support-widget.tsx",
   "src/components/support/chat-glider.tsx",
-  "src/components/app/subscription-status-banner.tsx",
-  "src/components/app/subscription-access-gate.tsx",
-  "src/components/app/notifications-bell.tsx",
 ]);
 
 function walk(dir, out = []) {
