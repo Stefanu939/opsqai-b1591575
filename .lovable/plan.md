@@ -55,6 +55,7 @@ Concret:
 ## Definition of Done
 
 - Login Self-Hosted → `/app` → chat se încarcă fără error boundary.
+- Instalare cu toate opțiunile „Recommended" → aplicație complet utilizabilă, zero ecrane blocate; capabilitățile neconfigurate apar ca empty-state, nu ca eroare.
 - Zero apariții ale mesajului stub în consola desktop shell-ului.
 - `verify-source-imports` și `verify-bundle` trec pe build-ul Self-Hosted.
 - Cloud (opsqai.de) rămâne funcțional identic: workspace switch, notificări, banner abonament, suport.
