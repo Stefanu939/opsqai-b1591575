@@ -54,7 +54,7 @@ export function NavShell() {
           : "bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-6 md:px-10">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-6">
         <Link to="/" className="flex items-center gap-2 group shrink-0">
           <span
             className="inline-block h-2 w-2 rounded-full bg-[var(--oix-gold)]"
@@ -66,7 +66,7 @@ export function NavShell() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 lg:flex">
+        <nav className="hidden items-center gap-5 lg:flex">
           {links.map((l) => (
             <Link
               key={l.to}
