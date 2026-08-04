@@ -33,7 +33,16 @@ Regula: în Self-Hosted, niciun modul Cloud nu trebuie atins. Deci fiecare utili
 ### 3. Rute `/app/*` care mai folosesc direct Cloud
 `app.updates`, `app.organization`, `app.knowledge`, `app.faq`, `app.chat.$threadId`, `app.academy.lesson.$lessonId`: aceeași tratare — import dinamic + ramură Self-Hosted care merge prin server functions/repository-urile deja existente (`knowledge`, `faq`, `threads`, `messages` au deja provideri Pg), sau empty-state acolo unde funcția e Cloud-only.
 
-### 4. Guardrail ca să nu reapară
+### 4. Calea „Recommended" din installer trebuie să fie complet funcțională
+Opțiunea „Recommended — bundled PostgreSQL 16" (wizard, pasul de bază de date) este calea implicită a majorității clienților. Regula: un client care apasă doar Next pe valorile recomandate trebuie să ajungă într-o aplicație complet utilizabilă, fără ecran de eroare și fără funcții blocate.
+
+Concret:
+- Baza de date embedded rămâne calea validată end-to-end (bootstrap → migrații → seed admin → login → chat).
+- Capabilitățile opționale nelăsate configurate în modul recomandat (SMTP, provider AI, SSO, backup remote) NU trebuie să arunce. Fiecare ecran care le atinge primește o stare „Nu este configurat — configurează în Admin", nu o excepție.
+- Nicio funcție de bază (login, chat, Knowledge Base, FAQ, useri, audit) nu depinde de o capabilitate opțională; unde depinde astăzi, se schimbă în empty-state cu CTA spre setări.
+- Se verifică explicit că lipsa SMTP-ului nu blochează crearea userilor/invitațiile (fallback: parolă setată de admin) și că lipsa providerului AI arată un onboarding, nu o eroare.
+
+### 5. Guardrail ca să nu reapară
 `opsqai-windows/build/verify-source-imports.mjs` deja blochează importuri directe de SDK Cloud; se extinde allowlist-ul strict la modulele rămase permise și se adaugă la listă fiecare fișier reparat, astfel încât un nou `import { supabase } from "@/integrations/supabase/client"` să rupă build-ul Self-Hosted în CI, nu în producție la client.
 
 ## Detalii tehnice
@@ -46,6 +55,7 @@ Regula: în Self-Hosted, niciun modul Cloud nu trebuie atins. Deci fiecare utili
 ## Definition of Done
 
 - Login Self-Hosted → `/app` → chat se încarcă fără error boundary.
+- Instalare cu toate opțiunile „Recommended" → aplicație complet utilizabilă, zero ecrane blocate; capabilitățile neconfigurate apar ca empty-state, nu ca eroare.
 - Zero apariții ale mesajului stub în consola desktop shell-ului.
 - `verify-source-imports` și `verify-bundle` trec pe build-ul Self-Hosted.
 - Cloud (opsqai.de) rămâne funcțional identic: workspace switch, notificări, banner abonament, suport.
