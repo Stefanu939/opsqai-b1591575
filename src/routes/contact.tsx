@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Mail, ShieldCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { CONTACT_SUBJECT_LABELS, type ContactSubject } from "@/lib/email/routing";
+import type { ContactSubject } from "@/lib/email/routing";
 import { OixLayout } from "@/components/oix/oix-layout";
 import { Scene3D } from "@/components/three/scene-3d";
 import { GridFloor } from "@/components/three/primitives/grid-floor";
@@ -23,6 +23,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
+import { useContactCopy } from "@/i18n/pages/contact";
 
 const SearchSchema = z.object({
   subject: z
@@ -62,14 +63,14 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-const SUBJECT_OPTIONS: Array<{ value: ContactSubject; label: string }> = (
-  Object.entries(CONTACT_SUBJECT_LABELS) as Array<[ContactSubject, string]>
-).map(([value, label]) => ({ value, label }));
-
 const inputCls =
   "bg-[var(--oix-onyx)]/60 border-[var(--oix-gold-line)]/40 text-[var(--oix-cream)] placeholder:text-[var(--oix-cream)]/40 focus-visible:border-[var(--oix-gold)]/70 focus-visible:ring-0";
 
 function ContactPage() {
+  const t = useContactCopy();
+  const subjectOptions = (
+    Object.entries(t.subjectOptions) as Array<[ContactSubject, string]>
+  ).map(([value, label]) => ({ value, label }));
   const search = useSearch({ from: "/contact" });
   const [subject, setSubject] = useState<ContactSubject>(search.subject ?? "general");
   const [submitting, setSubmitting] = useState(false);
@@ -101,14 +102,14 @@ function ContactPage() {
         error?: string;
       };
       if (!res.ok || !json.ok) {
-        toast.error(json.error ?? "We couldn't send your message. Please try again.");
+        toast.error(json.error ?? t.errorGeneric);
         return;
       }
       setReference(json.referenceId ?? null);
-      toast.success("Message sent — check your inbox for the confirmation.");
+      toast.success(t.successToast);
       (e.target as HTMLFormElement).reset();
     } catch {
-      toast.error("Network error. Please try again.");
+      toast.error(t.errorNetwork);
     } finally {
       setSubmitting(false);
     }
@@ -140,14 +141,13 @@ function ContactPage() {
             <EditorialHeadline
               as="h1"
               size="xl"
-              eyebrow="Contact · Routed to the right team"
-              serifAccent="operations."
+              eyebrow={t.heroEyebrow}
+              serifAccent={t.heroSerifAccent}
             >
-              Let&apos;s talk
+              {t.heroHeadline}
             </EditorialHeadline>
             <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
-              Pick the topic that best fits — your message routes straight to the
-              right team, and you&apos;ll get a confirmation by email.
+              {t.heroBody}
             </p>
           </div>
         </div>
@@ -160,18 +160,18 @@ function ContactPage() {
             {reference ? (
               <div>
                 <div className="oix-display text-2xl text-[var(--oix-cream)]">
-                  Thanks — we received your request.
+                  {t.successTitle}
                 </div>
                 <p className="mt-4 text-[var(--oix-cream)]/70 leading-relaxed">
-                  We&apos;ve emailed a confirmation. Reference{" "}
+                  {t.successBody}{" "}
                   <span className="font-mono font-medium text-[var(--oix-gold)]">
                     {reference}
                   </span>
-                  . Our team typically responds within 1 business day (CET).
+                  . {t.successFooter}
                 </p>
                 <div className="mt-6">
                   <OixButton variant="ghost" onClick={() => setReference(null)}>
-                    Send another message
+                    {t.sendAnother}
                   </OixButton>
                 </div>
               </div>
@@ -179,7 +179,7 @@ function ContactPage() {
               <form onSubmit={onSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="subject" className="oix-eyebrow text-[10px]">
-                    What can we help with?
+                    {t.subjectLabel}
                   </Label>
                   <Select
                     value={subject}
@@ -189,7 +189,7 @@ function ContactPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {SUBJECT_OPTIONS.map((o) => (
+                      {subjectOptions.map((o) => (
                         <SelectItem key={o.value} value={o.value}>
                           {o.label}
                         </SelectItem>
@@ -199,11 +199,11 @@ function ContactPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="oix-eyebrow text-[10px]">Name</Label>
+                    <Label htmlFor="name" className="oix-eyebrow text-[10px]">{t.nameLabel}</Label>
                     <Input id="name" name="name" required autoComplete="name" className={inputCls} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="oix-eyebrow text-[10px]">Work email</Label>
+                    <Label htmlFor="email" className="oix-eyebrow text-[10px]">{t.emailLabel}</Label>
                     <Input
                       id="email"
                       name="email"
@@ -216,7 +216,7 @@ function ContactPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="company" className="oix-eyebrow text-[10px]">Company</Label>
+                    <Label htmlFor="company" className="oix-eyebrow text-[10px]">{t.companyLabel}</Label>
                     <Input
                       id="company"
                       name="company"
@@ -226,7 +226,7 @@ function ContactPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="oix-eyebrow text-[10px]">
-                      Phone (optional)
+                      {t.phoneLabel}
                     </Label>
                     <Input
                       id="phone"
@@ -238,7 +238,7 @@ function ContactPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="country" className="oix-eyebrow text-[10px]">Country</Label>
+                  <Label htmlFor="country" className="oix-eyebrow text-[10px]">{t.countryLabel}</Label>
                   <Input
                     id="country"
                     name="country"
@@ -247,7 +247,7 @@ function ContactPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="message" className="oix-eyebrow text-[10px]">Message</Label>
+                  <Label htmlFor="message" className="oix-eyebrow text-[10px]">{t.messageLabel}</Label>
                   <textarea
                     id="message"
                     name="message"
@@ -260,22 +260,22 @@ function ContactPage() {
                 {/* Honeypot */}
                 <div className="hidden" aria-hidden="true">
                   <label>
-                    Website
+                    {t.honeypotLabel}
                     <input name="website" type="text" tabIndex={-1} autoComplete="off" />
                   </label>
                 </div>
                 <div className="pt-2">
                   <OixButton variant="gold" withArrow disabled={submitting} type="submit">
-                    {submitting ? "Sending…" : "Send message"}
+                    {submitting ? t.sending : t.sendMessage}
                   </OixButton>
                 </div>
                 <p className="text-xs text-[var(--oix-cream)]/50">
-                  By submitting you agree to our{" "}
+                  {t.consentPrefix}{" "}
                   <a
                     href="/legal/privacy"
                     className="underline hover:text-[var(--oix-gold-soft)]"
                   >
-                    privacy notice
+                    {t.privacyNotice}
                   </a>
                   .
                 </p>
@@ -285,16 +285,16 @@ function ContactPage() {
 
           <div className="space-y-4">
             {[
-              { label: "General", email: "info@opsqai.de", subject: "general", icon: Mail },
-              { label: "Support", email: "support@opsqai.de", subject: "support", icon: Mail },
+              { label: t.channelLabels.general, email: "info@opsqai.de", subject: "general", icon: Mail },
+              { label: t.channelLabels.support, email: "support@opsqai.de", subject: "support", icon: Mail },
               {
-                label: "Security",
+                label: t.channelLabels.security,
                 email: "security@opsqai.de",
                 subject: "security",
                 icon: ShieldCheck,
               },
               {
-                label: "Privacy & GDPR",
+                label: t.channelLabels.privacy,
                 email: "policy@opsqai.de",
                 subject: "privacy",
                 icon: Lock,

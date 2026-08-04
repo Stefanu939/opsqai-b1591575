@@ -22,6 +22,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
+import { useCompanyCopy } from "@/i18n/pages/company";
 
 export const Route = createFileRoute("/company")({
   head: () =>
@@ -40,52 +41,12 @@ export const Route = createFileRoute("/company")({
   component: CompanyPage,
 });
 
-const TEAM = [
-  {
-    name: "Ștefan Bari",
-    role: "Founder & CEO / Owner",
-    body: "Owns product direction, customer relationships and commercial strategy. Drives OPSQAI's positioning as the operational AI layer for industrial companies.",
-  },
-  {
-    name: "CTO",
-    role: "Chief Technology Officer — to be named",
-    body: "Owns platform, security and the license system. Ships the Windows installer, audit trail and update pipeline.",
-  },
-  {
-    name: "Head of AI",
-    role: "AI & Retrieval — planned hire",
-    body: "Owns the AI adapter registry, retrieval pipeline and grounded-prompt contract.",
-  },
-];
-
-const PHASES = [
-  {
-    icon: Truck,
-    tag: "Phase 01",
-    title: "DACH Logistics",
-    body: "Warehousing, 3PL and distribution operators in Germany, Austria and Switzerland. Windows-native fits their reality; data sovereignty is non-negotiable.",
-  },
-  {
-    icon: Factory,
-    tag: "Phase 02",
-    title: "Industrial Manufacturing",
-    body: "Discrete and process manufacturing. Same operational-knowledge problem, same regulatory pressure, same infrastructure profile.",
-  },
-  {
-    icon: Globe2,
-    tag: "Phase 03",
-    title: "European Expansion",
-    body: "Extend across regulated European industries where operational AI must run inside the customer's boundary.",
-  },
-];
-
-const MARKET = [
-  { tag: "TAM", value: "€4.8B", body: "EU industrial, logistics and manufacturing organisations with 250+ employees." },
-  { tag: "SAM", value: "€1.1B", body: "DACH + Benelux + Nordics operators with a regulated SOP surface and enterprise IT budget." },
-  { tag: "SOM", value: "€90M", body: "First-wave design partners: logistics networks, warehouse operators and mid-cap manufacturers." },
-];
+const PRINCIPLE_ICONS = [Target, Eye, Compass];
+const PHASE_ICONS = [Truck, Factory, Globe2];
 
 function CompanyPage() {
+  const copy = useCompanyCopy();
+
   return (
     <OixLayout>
       {/* Hero — particle genesis */}
@@ -114,22 +75,20 @@ function CompanyPage() {
             <EditorialHeadline
               as="h1"
               size="xl"
-              eyebrow="Company · Made in Europe"
-              serifAccent="not instead of them."
+              eyebrow={copy.hero.eyebrow}
+              serifAccent={copy.hero.serifAccent}
             >
-              AI that works for people.
+              {copy.hero.headline}
             </EditorialHeadline>
             <p className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--oix-cream)]/75">
-              OPSQAI is building the operational AI layer for industrial companies —
-              delivered as a Windows Self-Hosted product, sovereign by design, and
-              owned entirely by the customer.
+              {copy.hero.body}
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <OixButton to="/contact?subject=partnership" variant="gold" withArrow>
-                Talk to the founders
+                {copy.hero.ctaPrimary}
               </OixButton>
               <OixButton to="/self-hosted" variant="ghost">
-                See the product
+                {copy.hero.ctaSecondary}
               </OixButton>
             </div>
           </div>
@@ -138,24 +97,23 @@ function CompanyPage() {
 
       {/* Mission / Vision / Why */}
       <SectionShell>
-        <EditorialHeadline eyebrow="Mission · Vision · Why now" serifAccent="operate.">
-          The principles we
+        <EditorialHeadline eyebrow={copy.principles.eyebrow} serifAccent={copy.principles.serifAccent}>
+          {copy.principles.headline}
         </EditorialHeadline>
         <div className="mt-14 grid gap-4 md:grid-cols-3">
-          {[
-            { icon: Target, title: "Mission", body: "Bring AI to work for the people who run operations — supervisors, warehouse leads, plant managers — without asking them to hand their knowledge to public cloud LLMs." },
-            { icon: Eye, title: "Vision", body: "Every industrial company runs an operational AI platform inside its own boundary. Knowledge stays where it belongs; the AI helps the team instead of replacing it." },
-            { icon: Compass, title: "Why now", body: "Industrial companies cannot place operational knowledge inside public LLMs. They need ownership, governance and full data sovereignty. OPSQAI is built for that reality." },
-          ].map((p) => (
-            <Card
-              key={p.title}
-              className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
-            >
-              <p.icon className="h-6 w-6 text-[var(--oix-gold)]" />
-              <div className="mt-6 oix-display text-xl text-[var(--oix-cream)]">{p.title}</div>
-              <p className="mt-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{p.body}</p>
-            </Card>
-          ))}
+          {copy.principles.items.map((p, i) => {
+            const Icon = PRINCIPLE_ICONS[i];
+            return (
+              <Card
+                key={p.title}
+                className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+              >
+                <Icon className="h-6 w-6 text-[var(--oix-gold)]" />
+                <div className="mt-6 oix-display text-xl text-[var(--oix-cream)]">{p.title}</div>
+                <p className="mt-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{p.body}</p>
+              </Card>
+            );
+          })}
         </div>
       </SectionShell>
 
@@ -163,15 +121,14 @@ function CompanyPage() {
 
       {/* Team */}
       <SectionShell className="oix-hairline-top oix-hairline-bottom">
-        <EditorialHeadline eyebrow="Team · Deliberate" serifAccent="overstated.">
-          Small.  Never
+        <EditorialHeadline eyebrow={copy.team.eyebrow} serifAccent={copy.team.serifAccent}>
+          {copy.team.headline}
         </EditorialHeadline>
         <p className="mt-6 max-w-2xl text-[15px] text-[var(--oix-cream)]/70 leading-relaxed">
-          Every role reflects either an active founder or a planned hire — we
-          don&apos;t list titles we don&apos;t hold.
+          {copy.team.intro}
         </p>
         <div className="mt-14 grid gap-4 md:grid-cols-3">
-          {TEAM.map((p) => (
+          {copy.team.members.map((p) => (
             <Card
               key={p.role}
               className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
@@ -189,33 +146,36 @@ function CompanyPage() {
 
       {/* Go-to-market */}
       <SectionShell>
-        <EditorialHeadline eyebrow="Go-to-market" serifAccent="industrial Europe.">
-          Land in DACH. Expand into
+        <EditorialHeadline eyebrow={copy.gtm.eyebrow} serifAccent={copy.gtm.serifAccent}>
+          {copy.gtm.headline}
         </EditorialHeadline>
         <div className="mt-14 grid gap-4 md:grid-cols-3">
-          {PHASES.map((p) => (
-            <Card
-              key={p.title}
-              className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
-            >
-              <p.icon className="h-6 w-6 text-[var(--oix-gold)]" />
-              <div className="mt-6 text-[10px] uppercase tracking-[0.24em] text-[var(--oix-gold-soft)] font-mono">
-                {p.tag}
-              </div>
-              <div className="mt-2 oix-display text-xl text-[var(--oix-cream)]">{p.title}</div>
-              <p className="mt-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{p.body}</p>
-            </Card>
-          ))}
+          {copy.gtm.phases.map((p, i) => {
+            const Icon = PHASE_ICONS[i];
+            return (
+              <Card
+                key={p.title}
+                className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
+              >
+                <Icon className="h-6 w-6 text-[var(--oix-gold)]" />
+                <div className="mt-6 text-[10px] uppercase tracking-[0.24em] text-[var(--oix-gold-soft)] font-mono">
+                  {p.tag}
+                </div>
+                <div className="mt-2 oix-display text-xl text-[var(--oix-cream)]">{p.title}</div>
+                <p className="mt-3 text-sm text-[var(--oix-cream)]/70 leading-relaxed">{p.body}</p>
+              </Card>
+            );
+          })}
         </div>
       </SectionShell>
 
       {/* Market */}
       <SectionShell className="oix-hairline-top oix-hairline-bottom">
-        <EditorialHeadline eyebrow="Market · Discipline" serifAccent="defensible.">
-          Large. And
+        <EditorialHeadline eyebrow={copy.market.eyebrow} serifAccent={copy.market.serifAccent}>
+          {copy.market.headline}
         </EditorialHeadline>
         <div className="mt-14 grid gap-4 md:grid-cols-3">
-          {MARKET.map((m) => (
+          {copy.market.items.map((m) => (
             <Card
               key={m.tag}
               className="p-8 border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/50 backdrop-blur"
@@ -240,22 +200,21 @@ function CompanyPage() {
           <div className="mt-6">
             <EditorialHeadline
               align="center"
-              eyebrow="Built in Europe"
-              serifAccent="Windows environment."
+              eyebrow={copy.cta.eyebrow}
+              serifAccent={copy.cta.serifAccent}
             >
-              Deployed inside your
+              {copy.cta.headline}
             </EditorialHeadline>
           </div>
           <p className="mt-6 text-[var(--oix-cream)]/70">
-            Talk to us about a reference install, a partnership, or a demo of the
-            Windows Self-Hosted product.
+            {copy.cta.body}
           </p>
           <div className="mt-8 flex gap-3 justify-center">
             <OixButton to="/contact" variant="gold" withArrow>
-              Contact OPSQAI
+              {copy.cta.ctaPrimary}
             </OixButton>
             <OixButton to="/self-hosted" variant="ghost">
-              See the Self-Hosted product
+              {copy.cta.ctaSecondary}
             </OixButton>
           </div>
         </div>
