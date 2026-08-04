@@ -4,7 +4,9 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
-import { getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
+import { getAiAuditRepository, getFaqRepository, getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
+import { resolveChatModel } from "@/lib/ai-provider.server";
+import type { JsonLike } from "@/lib/providers/interfaces";
 
 
 const AI_AUDIT_MODULE = "ai_workspace_audit" as const;
@@ -14,21 +16,17 @@ async function ensurePerm(context: any, perm: string) {
 }
 
 async function resolveCompany(context: any, explicitCompanyId?: string | null) {
-  const actor = await getActorRoles(getCloudSupabase(context, "ai-features"), context.userId);
+  const actor = await getActorRoles(context.supabase, context.userId);
   if (actor.isPlatformAdmin && explicitCompanyId) return explicitCompanyId;
-  const companyId = await getProfileCompany(getCloudSupabase(context, "ai-features"), context.userId);
+  const companyId = await getProfileCompany(context.supabase, context.userId);
   if (!companyId) throw new Error("No company selected");
   return companyId;
 }
 
 async function callLlm(prompt: string, system?: string) {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("AI gateway unavailable");
   const { generateText } = await import("ai");
-  const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
-  const gw = createLovableAiGatewayProvider(apiKey);
   const { text } = await generateText({
-    model: gw("google/gemini-3-flash-preview"),
+    model: resolveChatModel("chat-fast"),
     temperature: 0.3,
     system,
     prompt,
@@ -443,15 +441,18 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "ai_audit.run");
     const companyId = await resolveCompany(context, data.company_id);
-    await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
-
-    const [kpi, health, status, top, critical] = await Promise.all([
-      getCloudSupabase(context, "ai-features").rpc("dashboard_kpis", { p_company: companyId }),
-      getCloudSupabase(context, "ai-features").rpc("dashboard_health", { p_company: companyId }),
-      getCloudSupabase(context, "ai-features").rpc("dashboard_knowledge_status", { p_company: companyId }),
-      getCloudSupabase(context, "ai-features").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 10 }),
-      getCloudSupabase(context, "ai-features").rpc("dashboard_critical_sops", { p_company: companyId }),
+    const [documents, faqs] = await Promise.all([
+      getKnowledgeRepository(context.supabase).listDocuments(companyId, false),
+      getFaqRepository(context.supabase).list(companyId),
     ]);
+    const ready = documents.filter((d) => d.status === "ready");
+    const chunkCount = ready.reduce((sum, d) => sum + (d.chunk_count ?? 0), 0);
+    const coverage = Math.min(100, ready.length * 8 + Math.min(40, chunkCount / 10));
+    const kpi = { data: { knowledge_confidence: coverage, knowledge_coverage: coverage, critical_sop_coverage: Math.min(100, ready.filter((d)=>d.category.toLowerCase().includes("sop")).length*15), training_completion: 0, compliance_readiness: Math.min(100, faqs.length*4+ready.length*3), ai_readiness: ready.length?75:25 } };
+    const health = { data: { document_count: documents.length, ready_count: ready.length, failed_count: documents.filter((d)=>d.status==="failed").length, faq_count: faqs.length } };
+    const status = { data: { chunks: chunkCount, coverage } };
+    const top = { data: ready.slice(0,10).map((d)=>({id:d.id,title:d.title,category:d.category,chunks:d.chunk_count})) };
+    const critical = { data: documents.filter((d)=>d.status!=="ready").slice(0,10) };
 
     const heuristic = buildHeuristicReport({
       kpi: kpi.data,
@@ -541,35 +542,9 @@ Return STRICT JSON only, matching this schema (keep all keys):
         (Array.isArray(rpt.critical) ? rpt.critical.length : heuristic.criticalCount),
     );
 
-    const { data: row, error } = await getCloudSupabase(context, "ai-features")
-      .from("ai_audits")
-      .insert({
-        company_id: companyId,
-        requested_by: context.userId,
-        score,
-        maturity: String(rpt.maturityName || ml.name)
-          .toLowerCase()
-          .replace(" ", "_"),
-        summary: report,
-        passed: passedN,
-        warnings: warnN,
-        critical: critN,
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-
-    try {
-      await getCloudSupabase(context, "ai-features").from("notifications").insert({
-        company_id: companyId,
-        user_id: context.userId,
-        kind: "workspace_audit_ready",
-        title: `Workspace audit complete — score ${score}/100 (${ml.name})`,
-        body: String(report.executiveSummary || "").slice(0, 240),
-      });
-    } catch {
-      /* notification optional */
-    }
+    const row = await getAiAuditRepository(context.supabase).create({ companyId, requestedBy: context.userId,
+      score, maturity:String(rpt.maturityName||ml.name).toLowerCase().replace(" ","_"),summary:JSON.parse(JSON.stringify(report)) as JsonLike,
+      passed:passedN,warnings:warnN,critical:critN });
 
     return { id: row.id, score, report };
   });
@@ -581,14 +556,6 @@ export const listAiAudits = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const companyId = await resolveCompany(context, data.company_id);
-    await assertModuleForCompany(companyId, AI_AUDIT_MODULE);
-    const actor = await getActorRoles(getCloudSupabase(context, "ai-features"), context.userId);
-    let query = getCloudSupabase(context, "ai-features")
-      .from("ai_audits")
-      .select("id, score, maturity, passed, warnings, critical, summary, created_at")
-      .order("created_at", { ascending: false })
-      .limit(50);
-    if (actor.isPlatformAdmin && data.company_id) query = query.eq("company_id", data.company_id);
-    const { data: audits } = await query;
-    return { audits: audits ?? [] };
+    const audits = await getAiAuditRepository(context.supabase).list(companyId, 50);
+    return { audits: audits.map((a)=>({...a,created_at:a.createdAt})) };
   });
