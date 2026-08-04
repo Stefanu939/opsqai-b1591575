@@ -66,7 +66,7 @@ export function NavShell() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {links.map((l) => (
             <Link
               key={l.to}
@@ -123,7 +123,7 @@ export function NavShell() {
             {m.cta.signIn}
           </OixButton>
 
-          <OixButton variant="gold" to="/contact" withArrow className="hidden md:inline-flex">
+          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 xl:inline-flex">
             {m.cta.proposal}
           </OixButton>
         </div>
