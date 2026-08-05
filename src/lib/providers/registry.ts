@@ -47,6 +47,8 @@ import type {
   AiAuditRepositoryFactory,
   ExportRepositoryFactory,
   IExportRepository,
+  AcademyRepositoryFactory,
+  IAcademyRepository,
 } from "./interfaces";
 
 interface Registry {
@@ -79,6 +81,7 @@ interface Registry {
   directMessageFactory?: DirectMessageRepositoryFactory;
   aiAuditFactory?: AiAuditRepositoryFactory;
   exportFactory?: ExportRepositoryFactory;
+  academyFactory?: AcademyRepositoryFactory;
 }
 
 
@@ -164,6 +167,7 @@ export function registerRbacAdminRepositoryFactory(f: RbacAdminRepositoryFactory
 export function registerDirectMessageRepositoryFactory(f: DirectMessageRepositoryFactory): void { registry.directMessageFactory = f; }
 export function registerAiAuditRepositoryFactory(f: AiAuditRepositoryFactory): void { registry.aiAuditFactory = f; }
 export function registerExportRepositoryFactory(f: ExportRepositoryFactory): void { registry.exportFactory = f; }
+export function registerAcademyRepositoryFactory(f: AcademyRepositoryFactory): void { registry.academyFactory = f; }
 
 
 
@@ -309,6 +313,10 @@ export function getExportRepository(dataCtx: unknown): IExportRepository {
   if (!registry.exportFactory) throw new Error("No export repository registered");
   return registry.exportFactory(dataCtx);
 }
+export function getAcademyRepository(dataCtx: unknown): IAcademyRepository {
+  if (!registry.academyFactory) throw new Error("No academy repository registered");
+  return registry.academyFactory(dataCtx);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
@@ -341,5 +349,6 @@ export function __resetProviderRegistryForTests(): void {
   registry.directMessageFactory = undefined;
   registry.aiAuditFactory = undefined;
   registry.exportFactory = undefined;
+  registry.academyFactory = undefined;
 }
 

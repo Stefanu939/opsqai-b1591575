@@ -1041,3 +1041,404 @@ export interface IExportRepository {
 }
 
 export type ExportRepositoryFactory = (dataCtx: unknown) => IExportRepository;
+
+// --------------------------------------------------------------------
+// Academy (learning paths / chapters / lessons / enrollments / quizzes /
+// certificates / analytics). Company-scoped everywhere except the
+// current-user-scoped learner methods, which take `userId` explicitly.
+// --------------------------------------------------------------------
+
+export interface AcademyPathRow {
+  id: string;
+  company_id: string;
+  department_id: string | null;
+  department_name: string | null;
+  title: string;
+  description: string | null;
+  language: string;
+  target_role: string | null;
+  target_position: string | null;
+  experience_level: string | null;
+  employment_type: string | null;
+  mandatory: boolean;
+  passing_score: number;
+  difficulty: string;
+  publish_status: "draft" | "published" | "archived";
+  order_index: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AcademyPathUpsertInput {
+  id?: string;
+  companyId: string;
+  departmentId?: string | null;
+  title: string;
+  description?: string | null;
+  language: string;
+  targetRole?: string | null;
+  targetPosition?: string | null;
+  experienceLevel?: string | null;
+  employmentType?: string | null;
+  mandatory: boolean;
+  passingScore: number;
+  difficulty: string;
+  publishStatus: "draft" | "published" | "archived";
+  createdBy: string;
+}
+
+export interface AcademyChapterRow {
+  id: string;
+  company_id: string;
+  path_id: string;
+  title: string;
+  summary: string | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface AcademyChapterUpsertInput {
+  id?: string;
+  companyId: string;
+  pathId: string;
+  title: string;
+  summary?: string | null;
+  orderIndex: number;
+}
+
+export interface AcademyLessonRow {
+  id: string;
+  company_id: string;
+  chapter_id: string;
+  title: string;
+  objectives: string[];
+  explanation: string | null;
+  examples: string | null;
+  best_practices: string | null;
+  summary: string | null;
+  language: string;
+  estimated_minutes: number;
+  source_document_id: string | null;
+  source_document_version: number | null;
+  publish_status: "draft" | "published" | "archived";
+  order_index: number;
+  version: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  // Enrichment supplied by getLesson().
+  chapter_path_id?: string;
+  chapter_title?: string;
+  path_title?: string;
+  path_passing_score?: number;
+  path_language?: string;
+}
+
+export interface AcademyLessonUpsertInput {
+  id?: string;
+  companyId: string;
+  chapterId: string;
+  title: string;
+  objectives: string[];
+  explanation?: string | null;
+  examples?: string | null;
+  bestPractices?: string | null;
+  summary?: string | null;
+  language: string;
+  estimatedMinutes: number;
+  sourceDocumentId?: string | null;
+  sourceDocumentVersion?: number | null;
+  publishStatus: "draft" | "published" | "archived";
+  orderIndex: number;
+  createdBy: string;
+}
+
+export interface AcademyLessonVersionRow {
+  id: string;
+  lesson_id: string;
+  version: number;
+  snapshot: JsonLike;
+  created_at: string;
+}
+
+export interface AcademyEnrollmentRow {
+  id: string;
+  company_id: string;
+  path_id: string;
+  user_id: string;
+  status: "assigned" | "in_progress" | "completed" | "overdue" | "revoked";
+  mandatory: boolean;
+  priority: string;
+  due_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  assigned_by: string | null;
+  created_at: string;
+}
+
+export interface AcademyEnrollmentUpsertInput {
+  companyId: string;
+  pathId: string;
+  userId: string;
+  status?: AcademyEnrollmentRow["status"];
+  mandatory: boolean;
+  priority?: string;
+  dueAt?: string | null;
+  assignedBy: string;
+}
+
+export interface AcademyLessonProgressRow {
+  id: string;
+  company_id: string;
+  enrollment_id: string;
+  lesson_id: string;
+  user_id: string;
+  status: "not_started" | "in_progress" | "completed";
+  attempts: number;
+  last_score: number | null;
+  time_spent_seconds: number;
+  notes: string | null;
+  completed_at: string | null;
+  last_activity_at: string | null;
+}
+
+export interface AcademyLessonProgressUpsertInput {
+  companyId: string;
+  enrollmentId: string;
+  lessonId: string;
+  userId: string;
+  status?: AcademyLessonProgressRow["status"];
+  attempts?: number;
+  lastScore?: number | null;
+  timeSpentSeconds?: number;
+  notes?: string | null;
+  completedAt?: string | null;
+}
+
+export interface AcademyQuizAttemptRow {
+  id: string;
+  company_id: string | null;
+  lesson_id: string;
+  user_id: string;
+  questions: JsonLike;
+  answers: JsonLike;
+  score: number;
+  passed: boolean;
+  duration_seconds: number | null;
+  created_at: string;
+}
+
+export interface AcademyQuizAttemptCreateInput {
+  companyId: string | null;
+  lessonId: string;
+  userId: string;
+  questions: JsonLike;
+}
+
+export interface AcademyQuizAttemptGradeInput {
+  answers: JsonLike;
+  score: number;
+  passed: boolean;
+  durationSeconds?: number | null;
+}
+
+export interface AcademyCertificateRow {
+  id: string;
+  company_id: string;
+  enrollment_id: string;
+  path_id: string;
+  user_id: string;
+  certificate_code: string;
+  final_score: number;
+  pdf_path: string | null;
+  qr_payload: string | null;
+  issued_at: string;
+  revoked_at: string | null;
+  path_title?: string;
+}
+
+export interface AcademyCertificateUpsertInput {
+  companyId: string;
+  enrollmentId: string;
+  pathId: string;
+  userId: string;
+  finalScore: number;
+}
+
+export interface AcademyCertificateVerification {
+  valid: boolean;
+  issuedAt: string;
+  score: number;
+  pathTitle: string;
+  company: string;
+  recipient: string;
+  certificateCode: string;
+}
+
+export interface AcademyRetrainingEventRow {
+  id: string;
+  company_id: string;
+  path_id: string;
+  user_id: string;
+  reason: string;
+  triggered_by: string | null;
+  created_at: string;
+}
+
+export interface AcademyRetrainingEventCreateInput {
+  companyId: string;
+  pathId: string;
+  userId: string;
+  reason: string;
+  triggeredBy?: string | null;
+}
+
+export interface AcademySettingsRow {
+  company_id: string;
+  passing_score: number;
+  quiz_min: number;
+  quiz_max: number;
+  default_difficulty: string;
+  certificate_template: JsonLike;
+  languages: string[];
+}
+
+export interface AcademySettingsUpsertInput {
+  companyId: string;
+  passingScore: number;
+  quizMin: number;
+  quizMax: number;
+  defaultDifficulty: string;
+  languages: string[];
+}
+
+export interface AcademyResolveTargetsInput {
+  companyId: string;
+  userIds: string[];
+  departmentIds: string[];
+  roles: string[];
+  entireCompany: boolean;
+}
+
+export interface AcademyKpis {
+  [key: string]: JsonLike;
+}
+
+export interface AcademyHeatmapRow {
+  [key: string]: JsonLike;
+}
+
+export interface AcademyDepartmentPerformanceRow {
+  [key: string]: JsonLike;
+}
+
+export interface AcademyCourseAnalyticsRow {
+  id: string;
+  title: string;
+  mandatory: boolean;
+  publish_status: string;
+  assigned_users: number;
+  completed: number;
+  in_progress: number;
+  overdue: number;
+  avg_completion_minutes: number | null;
+  avg_quiz_score: number | null;
+  completion_percent: number;
+  certificates_issued: number;
+}
+
+export interface AcademyCohortRow {
+  enrollment_id: string;
+  user_id: string;
+  name: string;
+  department_id: string | null;
+  status: string;
+  mandatory: boolean;
+  priority: string;
+  due_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  progress_percent: number;
+  last_activity_at: string | null;
+  is_overdue: boolean;
+}
+
+export interface IAcademyRepository {
+  // Learning paths
+  listLearningPaths(
+    companyId: string,
+    filter?: { departmentId?: string | null; publishStatus?: string | null },
+  ): Promise<AcademyPathRow[]>;
+  getLearningPath(id: string): Promise<{
+    path: AcademyPathRow;
+    chapters: AcademyChapterRow[];
+    lessons: AcademyLessonRow[];
+  } | null>;
+  upsertLearningPath(input: AcademyPathUpsertInput): Promise<{ id: string }>;
+  deleteLearningPath(id: string): Promise<void>;
+
+  // Chapters
+  upsertChapter(input: AcademyChapterUpsertInput): Promise<{ id: string }>;
+  deleteChapter(id: string): Promise<void>;
+
+  // Lessons
+  getLesson(id: string): Promise<AcademyLessonRow | null>;
+  upsertLesson(input: AcademyLessonUpsertInput): Promise<{ id: string }>;
+  deleteLesson(id: string): Promise<void>;
+  listLessonVersions(lessonId: string): Promise<AcademyLessonVersionRow[]>;
+  restoreLessonVersion(lessonId: string, version: number): Promise<void>;
+
+  // Quiz
+  createQuizAttempt(input: AcademyQuizAttemptCreateInput): Promise<{ id: string }>;
+  getQuizAttempt(id: string): Promise<AcademyQuizAttemptRow | null>;
+  gradeQuizAttempt(id: string, patch: AcademyQuizAttemptGradeInput): Promise<void>;
+
+  // Enrollments
+  enroll(input: AcademyEnrollmentUpsertInput): Promise<{ id: string; existing: boolean }>;
+  assignEnrollments(rows: AcademyEnrollmentUpsertInput[]): Promise<{ count: number }>;
+  getEnrollment(id: string): Promise<AcademyEnrollmentRow | null>;
+  listEnrollmentsByUser(userId: string): Promise<AcademyEnrollmentRow[]>;
+  listEnrollmentsByPath(pathId: string): Promise<AcademyEnrollmentRow[]>;
+  startEnrollment(id: string, userId: string): Promise<void>;
+  completeEnrollment(id: string): Promise<void>;
+  removeEnrollment(id: string): Promise<void>;
+
+  // Progress
+  listLessonProgress(enrollmentId: string): Promise<AcademyLessonProgressRow[]>;
+  upsertLessonProgress(input: AcademyLessonProgressUpsertInput): Promise<void>;
+  saveLessonNotes(input: {
+    enrollmentId: string;
+    lessonId: string;
+    userId: string;
+    companyId: string;
+    notes: string;
+  }): Promise<void>;
+
+  // Certificates
+  listCertificatesByUser(userId: string): Promise<AcademyCertificateRow[]>;
+  getCertificate(id: string): Promise<AcademyCertificateRow | null>;
+  upsertCertificate(input: AcademyCertificateUpsertInput): Promise<AcademyCertificateRow>;
+  markCertificatePdf(id: string, pdfPath: string, qrPayload: string): Promise<void>;
+  verifyCertificate(code: string): Promise<AcademyCertificateVerification | null>;
+
+  // Retraining
+  listRetrainingEvents(companyId: string): Promise<AcademyRetrainingEventRow[]>;
+  createRetrainingEvent(input: AcademyRetrainingEventCreateInput): Promise<{ id: string }>;
+
+  // Settings
+  getSettings(companyId: string): Promise<AcademySettingsRow | null>;
+  saveSettings(input: AcademySettingsUpsertInput): Promise<void>;
+
+  // Targeting
+  resolveTargets(input: AcademyResolveTargetsInput): Promise<string[]>;
+
+  // Analytics
+  getKpis(companyId: string): Promise<AcademyKpis>;
+  getHeatmap(companyId: string): Promise<AcademyHeatmapRow[]>;
+  getDepartmentPerformance(companyId: string): Promise<AcademyDepartmentPerformanceRow[]>;
+  getCourseAnalytics(companyId: string): Promise<AcademyCourseAnalyticsRow[]>;
+  getCourseCohort(pathId: string): Promise<AcademyCohortRow[]>;
+}
+
+export type AcademyRepositoryFactory = (dataCtx: unknown) => IAcademyRepository;
