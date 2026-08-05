@@ -12,8 +12,9 @@
 // This file is purely additive — nothing imports it yet unless a route
 // opts in via <ModuleGate> or useLicense().
 
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { BASIC_MODULES, effectiveModules, type ModuleKey } from "@/lib/license-modules";
+import { getLicenseEntitlements } from "@/lib/license.functions";
 
 export type DeploymentMode = "cloud" | "selfhost";
 
