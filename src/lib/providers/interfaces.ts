@@ -947,3 +947,97 @@ export interface IBrowserAuthProvider {
    */
   setSessionFromUrl(): Promise<SetSessionFromUrlResult>;
 }
+
+// --------------------------------------------------------------------
+// Exports (KB / FAQ / Workspace export & migration jobs)
+// --------------------------------------------------------------------
+
+export interface ExportJobRow {
+  id: string;
+  kind: string;
+  mode: string;
+  format: string;
+  status: string;
+  progress: number;
+  sha256: string | null;
+  bytes: number | null;
+  file_count: number | null;
+  deletion_status: string | null;
+  error: string | null;
+  created_at: string;
+  completed_at: string | null;
+  expires_at: string | null;
+  storage_path: string | null;
+}
+
+export interface ExportJobCreateInput {
+  companyId: string;
+  kind: string;
+  mode: string;
+  format: string;
+  createdBy: string;
+}
+
+export interface ExportJobCompleteInput {
+  storagePath: string;
+  sha256: string;
+  bytes: number;
+  fileCount: number;
+  manifest: JsonLike;
+}
+
+export interface ExportKbSnapshot {
+  documents: Record<string, unknown>[];
+  chunks: Record<string, unknown>[];
+  tags: Record<string, unknown>[];
+  categories: Record<string, unknown>[];
+}
+
+export interface ExportFaqSnapshot {
+  faqs: Record<string, unknown>[];
+}
+
+export interface ExportWorkspaceSnapshot {
+  kb: ExportKbSnapshot;
+  faq: ExportFaqSnapshot;
+  company: Record<string, unknown> | null;
+  users: Record<string, unknown>[];
+  roles: Record<string, unknown>[];
+  departments: Record<string, unknown>[];
+  brand_assets: Record<string, unknown>[];
+  sop_templates: Record<string, unknown>[];
+  settings: Record<string, unknown> | null;
+}
+
+export interface ExportAuditInput {
+  companyId: string;
+  userId: string;
+  module: string;
+  action: string;
+  resource: string;
+  payload: JsonLike | null;
+  severity: string;
+  success: boolean;
+}
+
+export interface IExportRepository {
+  createJob(input: ExportJobCreateInput): Promise<{ id: string }>;
+  markCompleted(id: string, patch: ExportJobCompleteInput): Promise<void>;
+  markFailed(id: string, error: string): Promise<void>;
+  markDeleted(id: string, deletionTyped: string | null): Promise<void>;
+  listJobs(companyId: string, limit: number): Promise<ExportJobRow[]>;
+  getStoragePath(id: string): Promise<string | null>;
+
+  snapshotKb(companyId: string): Promise<ExportKbSnapshot>;
+  snapshotFaq(companyId: string): Promise<ExportFaqSnapshot>;
+  snapshotWorkspace(companyId: string): Promise<ExportWorkspaceSnapshot>;
+
+  /** Deletes KB documents+chunks for a company. Returns count of documents removed. */
+  deleteKbData(companyId: string): Promise<number>;
+  /** Deletes FAQs for a company. Returns count of FAQs removed. */
+  deleteFaqData(companyId: string): Promise<number>;
+
+  writeAudit(input: ExportAuditInput): Promise<void>;
+}
+
+export type ExportRepositoryFactory = (dataCtx: unknown) => IExportRepository;

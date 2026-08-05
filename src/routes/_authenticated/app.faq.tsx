@@ -21,10 +21,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Upload } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertFaq, deleteFaq, listFaqs } from "@/lib/faqs.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
+import { FaqImportDialog } from "@/components/admin/faq-import-dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/faq")({
@@ -65,6 +66,7 @@ function FaqPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faq | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [search, setSearch] = useState("");
   const save = useServerFn(upsertFaq);
   const del = useServerFn(deleteFaq);
@@ -133,6 +135,11 @@ function FaqPage() {
           {isAdmin && (
             <Button variant="outline" onClick={() => setExportOpen(true)}>
               <Download className="h-4 w-4 mr-2" /> Export
+            </Button>
+          )}
+          {isAdmin && (
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" /> Import
             </Button>
           )}
           {isAdmin && (
@@ -239,6 +246,12 @@ function FaqPage() {
       )}
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} kind="faq" onDeleted={load} />
+      <FaqImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        companyId={scopeCompanyId ?? null}
+        onImported={load}
+      />
     </div>
   );
 }
