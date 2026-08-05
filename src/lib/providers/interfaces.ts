@@ -737,11 +737,27 @@ export interface HeartbeatInput {
   appVersion: string;
 }
 
+/** Module-level entitlements used for UI gating. */
+export interface LicenseEntitlements {
+  unlimited: boolean;
+  installId: string | null;
+  customer: string | null;
+  edition: string;
+  seats: number | null;
+  /** Add-on module keys granted by signed module tokens. */
+  modules: string[];
+  expiresAt: number | null; // unix seconds
+  maintenanceExpiresAt: number | null; // unix seconds
+  revoked: boolean;
+}
+
 export interface ILicensingProvider extends Provider {
   validate(): Promise<LicenseDetails>;
   heartbeat(input: HeartbeatInput): Promise<{ ok: boolean; nextAt?: string }>;
   /** Available update manifest (Self-Hosted only; Cloud returns null). */
   latestRelease(input: HeartbeatInput): Promise<{ version: string; url: string } | null>;
+  /** Module entitlements for UI gating. */
+  entitlements(): Promise<LicenseEntitlements>;
 }
 
 // --------------------------------------------------------------------
