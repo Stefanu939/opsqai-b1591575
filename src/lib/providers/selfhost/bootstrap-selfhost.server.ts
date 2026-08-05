@@ -36,6 +36,7 @@ import { createPgKnowledgeRepository } from "./pg-knowledge-repository.server";
 import { createPgRbacAdminRepository } from "./pg-rbac-admin-repository.server";
 import { createPgDirectMessageRepository } from "./pg-direct-message-repository.server";
 import { createPgAiAuditRepository } from "./pg-ai-audit-repository.server";
+import { createPgExportRepository } from "./pg-export-repository.server";
 import {
   registerAdminCompanyRepositoryFactory,
   registerAdminDepartmentRepositoryFactory,
@@ -56,6 +57,7 @@ import {
   registerRbacAdminRepositoryFactory,
   registerDirectMessageRepositoryFactory,
   registerAiAuditRepositoryFactory,
+  registerExportRepositoryFactory,
 } from "@/lib/providers/registry";
 
 
@@ -291,6 +293,12 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerRbacAdminRepositoryFactory(() => createPgRbacAdminRepository({ pool }));
   registerDirectMessageRepositoryFactory(() => createPgDirectMessageRepository({ pool }));
   registerAiAuditRepositoryFactory(() => createPgAiAuditRepository({ pool }));
+  const exportRepo = createPgExportRepository({
+    pool,
+    tenantCompanyId,
+    tenantName: process.env.OPSQAI_TENANT_NAME ?? "OPSQAI",
+  });
+  registerExportRepositoryFactory(() => exportRepo);
 }
 
 
