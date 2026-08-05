@@ -34,12 +34,19 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
 
   const query=textOf([...messages].reverse().find((m)=>m.role==="user"));
   const isGreeting=greeting.test(query);
-  const isFollowup=!isGreeting&&messages.some((m)=>m.role==="assistant")&&followup.test(query);
+  const isCapability=!isGreeting&&capability.test(query);
+  const isFollowup=!isGreeting&&!isCapability&&messages.some((m)=>m.role==="assistant")&&followup.test(query);
   const sources:Source[]=[];
   let context="";
   let confidence=0;
+  let overview="";
 
-  if(!isGreeting&&query){
+  if(isCapability){
+    try{
+      const [docs,faqs]=await Promise.all([getKnowledgeRepository(dataCtx).list(companyId),getFaqRepository(dataCtx).list(companyId)]);
+      overview=`Available knowledge documents (${docs.length}): ${docs.slice(0,15).map((d)=>d.title).join("; ")}\nFrequent questions (${faqs.length}): ${faqs.slice(0,10).map((f)=>f.question_en).join("; ")}`;
+    }catch(error){console.error("[chat:overview]",error);}
+  } else if(!isGreeting&&query){
     try{
       const [embedding,faqs]=await Promise.all([resolveEmbedOne(query),getFaqRepository(dataCtx).list(companyId)]);
       const matches=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,8);
@@ -53,7 +60,12 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
     }catch(error){console.error("[chat:retrieval]",error);}
   }
 
-  const system=isGreeting?`You are OPSQAI. Reply warmly in the user's language in 1-2 sentences and mention you answer from company knowledge.`:isFollowup&&context?prompt(context,true,body.language??"en"):prompt(context,sources.length>0,body.language??"en");
+  const system=isGreeting
+    ?`You are OPSQAI. Reply warmly in the user's language in 1-2 sentences and mention you answer from company knowledge.`
+    :isCapability
+      ?`You are OPSQAI, the company knowledge assistant. The user asks what you can do. Reply warmly in the user's language (interface hint: ${body.language??"en"}) in 3-5 short lines: explain that you answer questions grounded in the company's knowledge base, SOPs and FAQs with citations, and suggest 3 concrete example questions derived from the inventory below. Do not invent document titles or company facts beyond the inventory.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
+      :prompt(context,sources.length>0||(isFollowup&&Boolean(context)),body.language??"en");
+
   const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(messages)});
   const messageRepo=getMessageRepository(dataCtx);
   const existing=await messageRepo.listByThread(body.threadId);
