@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { extractWorkspaceText } from "@/lib/workspace.extract.server";
 import {
+import { uuidString } from "@/lib/zod-uuid";
   companyFromStoragePath,
   requireAnyPermission,
   resolveCompanyForWrite,
@@ -62,7 +63,7 @@ export const createWorkspaceSession = createServerFn({ method: "POST" })
     z
       .object({
         title: z.string().trim().max(120).optional(),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d ?? {}),
   )
@@ -84,7 +85,7 @@ export const createWorkspaceSession = createServerFn({ method: "POST" })
 
 export const getWorkspaceSession = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
     const { data: session } = await getCloudSupabase(context, "workspace")
@@ -127,7 +128,7 @@ export const getWorkspaceSession = createServerFn({ method: "POST" })
 export const renameWorkspaceSession = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), title: z.string().trim().min(1).max(120) }).parse(d),
+    z.object({ id: uuidString(), title: z.string().trim().min(1).max(120) }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
@@ -141,7 +142,7 @@ export const renameWorkspaceSession = createServerFn({ method: "POST" })
 
 export const deleteWorkspaceSession = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
     // Best-effort storage cleanup
@@ -169,7 +170,7 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        session_id: z.string().uuid(),
+        session_id: uuidString(),
         storage_path: z.string().min(1).max(500),
         file_name: z.string().min(1).max(255),
         mime: z.string().max(200).optional(),
@@ -225,7 +226,7 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
 
 export const deleteWorkspaceFile = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
     const { data: row } = await getCloudSupabase(context, "workspace")
@@ -243,7 +244,7 @@ export const deleteWorkspaceFile = createServerFn({ method: "POST" })
 
 export const downloadArtifactUrl = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureWorkspaceRole(context);
     const { data: art } = await getCloudSupabase(context, "workspace")
@@ -265,7 +266,7 @@ export const updateCompanyRetention = createServerFn({ method: "POST" })
     z
       .object({
         retention: z.enum(["immediate", "1h", "24h", "7d", "manual"]),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )

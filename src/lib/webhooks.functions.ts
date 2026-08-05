@@ -17,6 +17,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { createHmac, randomBytes, randomUUID } from "crypto";
+import { uuidString } from "@/lib/zod-uuid";
 
 /**
  * SSRF guard for outbound webhook URLs. Rejects:
@@ -97,7 +98,7 @@ export function assertSafeWebhookUrl(raw: string): URL {
   return u;
 }
 
-const TestInput = z.object({ endpoint_id: z.string().uuid() });
+const TestInput = z.object({ endpoint_id: uuidString() });
 
 const CreateInput = z.object({
   name: z.string().trim().min(1).max(120),

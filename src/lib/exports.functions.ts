@@ -17,6 +17,7 @@ import JSZip from "jszip";
 import { createHash } from "node:crypto";
 import { getActorRoles, getProfileCompany } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+import { uuidString } from "@/lib/zod-uuid";
 
 const AUDIT_MODULE = "audit_log" as const;
 
@@ -30,7 +31,7 @@ async function enforceAudit(context: { supabase: any; userId: string }, hint?: s
 
 const BUCKET = "workspace-exports";
 const PACKAGE_VERSION = "1.0.0";
-const Uuid = z.string().uuid();
+const Uuid = uuidString();
 const optionalUiUuid = z.preprocess(
   (value) => (typeof value === "string" && Uuid.safeParse(value).success ? value : undefined),
   Uuid.optional(),
@@ -487,7 +488,7 @@ export const listExports = createServerFn({ method: "GET" })
 
 export const getExportDownloadUrl = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await getCloudSupabase(context, "exports")
       .from("exports")

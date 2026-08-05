@@ -5,6 +5,7 @@ import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/autho
 import { getAiAuditRepository, getFaqRepository, getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
 import { resolveChatModel } from "@/lib/ai-provider.server";
 import type { JsonLike } from "@/lib/providers/interfaces";
+import { uuidString } from "@/lib/zod-uuid";
 
 
 async function ensurePerm(context: any, perm: string) {
@@ -114,7 +115,7 @@ const PublishInput = z.object({
   doc_code: z.string().optional().nullable(),
   markdown: z.string().min(20),
   language: z.enum(["en", "de", "ro"]).default("en"),
-  company_id: z.string().uuid().optional().nullable(),
+  company_id: uuidString().optional().nullable(),
 });
 /** Publish a generated SOP straight into knowledge_documents (as a synthetic text file). */
 export const publishGeneratedSop = createServerFn({ method: "POST" })
@@ -420,7 +421,7 @@ function buildHeuristicReport(input: any) {
 export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "ai_audit.run");
@@ -536,7 +537,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
 export const listAiAudits = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const companyId = await resolveCompany(context, data.company_id);

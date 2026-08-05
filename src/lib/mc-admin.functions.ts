@@ -3,11 +3,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
+import { uuidString } from "@/lib/zod-uuid";
 
 // ── Audit Log ─────────────────────────────────────────────────────────
 
 const AuditFilters = z.object({
-  company_id: z.string().uuid().nullable().optional(),
+  company_id: uuidString().nullable().optional(),
   module: z.string().nullable().optional(),
   severity: z.enum(["info", "warning", "critical"]).nullable().optional(),
   search: z.string().nullable().optional(),
@@ -155,7 +156,7 @@ export const listCustomerProfiles = createServerFn({ method: "POST" })
   });
 
 const UpsertContractSchema = z.object({
-  company_id: z.string().uuid(),
+  company_id: uuidString(),
   contract_status: z.enum(["prospect", "trial", "active", "renewal", "churned"]).nullable().optional(),
   renewal_date: z.string().date().nullable().optional(),
   onboarding_pct: z.number().int().min(0).max(100).nullable().optional(),

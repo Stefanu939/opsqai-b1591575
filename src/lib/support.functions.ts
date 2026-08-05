@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, requirePermission } from "@/lib/authorization";
+import { uuidString } from "@/lib/zod-uuid";
 
 const AttachmentSchema = z.object({
   path: z.string(),
@@ -28,10 +29,10 @@ export const listSupportConversations = createServerFn({ method: "POST" })
     z
       .object({
         scope: z.enum(["mine", "platform"]).default("mine"),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
         status: z.enum(["open", "pending", "resolved", "closed"]).optional(),
         priority: z.enum(["low", "normal", "high", "critical"]).optional(),
-        assigned_to: z.string().uuid().optional().nullable(),
+        assigned_to: uuidString().optional().nullable(),
         search: z.string().optional(),
       })
       .parse(d ?? {}),
@@ -57,7 +58,7 @@ export const listSupportConversations = createServerFn({ method: "POST" })
 
 export const getSupportConversation = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "support.use");
     const [conv, msgs] = await Promise.all([
@@ -91,7 +92,7 @@ export const createSupportConversation = createServerFn({ method: "POST" })
         body: z.string().min(1).max(10000),
         attachments: z.array(AttachmentSchema).max(10).default([]),
         context: z.record(z.string(), z.any()).default({}),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )
@@ -137,7 +138,7 @@ export const postSupportMessage = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        conversation_id: z.string().uuid(),
+        conversation_id: uuidString(),
         body: z.string().min(1).max(10000),
         internal_note: z.boolean().default(false),
         attachments: z.array(AttachmentSchema).max(10).default([]),
@@ -164,7 +165,7 @@ export const postSupportMessage = createServerFn({ method: "POST" })
 
 export const markSupportRead = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const platform = await isPlatform(context);
     const patch = platform ? { unread_for_platform: 0 } : { unread_for_customer: 0 };
@@ -181,10 +182,10 @@ export const updateSupportConversation = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        id: z.string().uuid(),
+        id: uuidString(),
         status: z.enum(["open", "pending", "resolved", "closed"]).optional(),
         priority: z.enum(["low", "normal", "high", "critical"]).optional(),
-        assigned_to: z.string().uuid().nullable().optional(),
+        assigned_to: uuidString().nullable().optional(),
       })
       .parse(d),
   )
@@ -207,7 +208,7 @@ export const createSupportAttachmentUrl = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        conversation_id: z.string().uuid(),
+        conversation_id: uuidString(),
         filename: z.string().min(1).max(200),
         mime: z.string().min(1).max(200),
       })

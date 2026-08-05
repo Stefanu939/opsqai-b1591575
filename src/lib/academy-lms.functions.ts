@@ -14,6 +14,7 @@ import {
   getProfileCompany,
 } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+import { uuidString } from "@/lib/zod-uuid";
 
 const ACADEMY_MODULE = "academy" as const;
 
@@ -281,8 +282,8 @@ export const saveLessonNotes = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        enrollment_id: z.string().uuid(),
-        lesson_id: z.string().uuid(),
+        enrollment_id: uuidString(),
+        lesson_id: uuidString(),
         notes: z.string().max(4000),
       })
       .parse(d),
@@ -322,16 +323,16 @@ export const assignTraining = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        path_ids: z.array(z.string().uuid()).min(1),
-        target_user_ids: z.array(z.string().uuid()).default([]),
-        target_department_ids: z.array(z.string().uuid()).default([]),
+        path_ids: z.array(uuidString()).min(1),
+        target_user_ids: z.array(uuidString()).default([]),
+        target_department_ids: z.array(uuidString()).default([]),
         target_roles: z.array(z.string()).default([]),
         entire_company: z.boolean().default(false),
         due_at: z.string().datetime().nullable().optional(),
         priority: z.enum(["low", "normal", "high"]).default("normal"),
         mandatory: z.boolean().default(false),
         notify: z.boolean().default(true),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )
@@ -433,7 +434,7 @@ export const assignTraining = createServerFn({ method: "POST" })
 export const listCourseAnalytics = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
@@ -512,7 +513,7 @@ export const listCourseAnalytics = createServerFn({ method: "POST" })
 
 export const listCourseCohort = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.manage");

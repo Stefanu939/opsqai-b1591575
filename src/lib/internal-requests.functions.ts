@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission } from "@/lib/authorization";
+import { uuidString } from "@/lib/zod-uuid";
 
 const RoleListSchema = z.object({});
 void RoleListSchema;
@@ -98,7 +99,7 @@ export const createInternalRequest = createServerFn({ method: "POST" })
     z
       .object({
         question: z.string().trim().min(3).max(2000),
-        thread_id: z.string().uuid().optional().nullable(),
+        thread_id: uuidString().optional().nullable(),
         context: z.string().max(4000).optional().nullable(),
         priority: z.enum(["low", "normal", "high"]).optional(),
       })
@@ -162,7 +163,7 @@ export const updateInternalRequest = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        id: z.string().uuid(),
+        id: uuidString(),
         status: z.enum(["open", "in_review", "answered", "closed"]).optional(),
         priority: z.enum(["low", "normal", "high"]).optional(),
         answer: z.string().max(8000).optional().nullable(),
@@ -236,7 +237,7 @@ export const promoteRequestToFaq = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        id: z.string().uuid(),
+        id: uuidString(),
         question_en: z.string().min(1).max(500),
         question_de: z.string().min(1).max(500),
         answer_en: z.string().min(1).max(4000),
@@ -283,7 +284,7 @@ export const promoteRequestToKb = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        id: z.string().uuid(),
+        id: uuidString(),
         title: z.string().trim().min(3).max(200),
         category: z.string().trim().min(1).max(80),
         doc_code: z.string().trim().max(80).optional().nullable(),

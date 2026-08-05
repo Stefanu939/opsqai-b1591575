@@ -5,6 +5,7 @@ import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
+import { uuidString } from "@/lib/zod-uuid";
 
 const STAFF_ROLES = ["platform_owner", "platform_admin"] as const;
 
@@ -80,7 +81,7 @@ export const listAnnouncementsPublic = createServerFn({ method: "GET" })
 export const getAnnouncement = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: { slug?: string; id?: string }) =>
-    z.object({ slug: z.string().optional(), id: z.string().uuid().optional() }).parse(d),
+    z.object({ slug: z.string().optional(), id: uuidString().optional() }).parse(d),
   )
   .handler(async ({ data, context }): Promise<PortalAnnouncement | null> => {
     const q = getCloudSupabase(context, "portal-admin").from("portal_announcements").select("*");
@@ -92,7 +93,7 @@ export const getAnnouncement = createServerFn({ method: "POST" })
   });
 
 const AnnouncementInput = z.object({
-  id: z.string().uuid().optional(),
+  id: uuidString().optional(),
   title: z.string().min(1).max(200),
   slug: z.string().max(120).optional(),
   body_md: z.string().default(""),
@@ -146,7 +147,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
 
 export const deleteAnnouncement = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
     const { error } = await getCloudSupabase(context, "portal-admin")
@@ -201,7 +202,7 @@ export const listDownloadModulesPublic = createServerFn({ method: "GET" })
   });
 
 const ModuleInput = z.object({
-  id: z.string().uuid().optional(),
+  id: uuidString().optional(),
   title: z.string().min(1).max(200),
   description: z.string().max(2000).nullable().optional(),
   category: z.string().min(1).max(60).default("general"),
@@ -256,7 +257,7 @@ export const upsertDownloadModule = createServerFn({ method: "POST" })
 
 export const deleteDownloadModule = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertStaff(getCloudSupabase(context, "portal-admin") as never, context.userId);
     const { error } = await getCloudSupabase(context, "portal-admin")

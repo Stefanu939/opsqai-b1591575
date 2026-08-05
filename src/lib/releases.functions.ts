@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
+import { uuidString } from "@/lib/zod-uuid";
 
 export const listReleases = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -65,7 +66,7 @@ export const createRelease = createServerFn({ method: "POST" })
 
 export const setCurrentRelease = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const supabaseAdmin = getCloudSupabase(context, "releases");
@@ -93,7 +94,7 @@ export const setCurrentRelease = createServerFn({ method: "POST" })
 
 export const deleteRelease = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const supabaseAdmin = getCloudSupabase(context, "releases");

@@ -18,8 +18,9 @@ import {
   type SubscriptionPlanKey,
 } from "@/lib/subscription-plans";
 import { OPSQAI_FACTS } from "@/lib/opsqai-facts";
+import { uuidString } from "@/lib/zod-uuid";
 
-const Uuid = z.string().uuid();
+const Uuid = uuidString();
 const CompanyOnly = z.object({ company_id: Uuid });
 
 // ------- Profile -------

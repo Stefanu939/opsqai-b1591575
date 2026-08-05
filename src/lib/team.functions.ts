@@ -15,6 +15,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles } from "@/lib/authorization";
 import {
+import { uuidString } from "@/lib/zod-uuid";
   getAdminCompanyRepository,
   getAdminDepartmentRepository,
   getAdminProfileRepository,
@@ -115,7 +116,7 @@ export const createTeamDepartment = createServerFn({ method: "POST" })
 
 export const deleteTeamDepartment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
     const systemCompany = await getSystemCompanyId();
@@ -134,7 +135,7 @@ export const createTeamMember = createServerFn({ method: "POST" })
         last_name: z.string().optional(),
         position: z.string().optional(),
         phone: z.string().optional(),
-        department_id: z.string().uuid().optional().nullable(),
+        department_id: uuidString().optional().nullable(),
         role: InternalRoleEnum.default("employee"),
         make_platform_admin: z.boolean().default(false),
         /** Force password change on first sign-in (temp-password flow). */
@@ -193,12 +194,12 @@ export const updateTeamMember = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        user_id: z.string().uuid(),
+        user_id: uuidString(),
         first_name: z.string().optional().nullable(),
         last_name: z.string().optional().nullable(),
         position: z.string().optional().nullable(),
         phone: z.string().optional().nullable(),
-        department_id: z.string().uuid().optional().nullable(),
+        department_id: uuidString().optional().nullable(),
         role: InternalRoleEnum.optional(),
         is_active: z.boolean().optional(),
       })
@@ -246,7 +247,7 @@ export const updateTeamMember = createServerFn({ method: "POST" })
 
 export const promoteToPlatformAdmin = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ user_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
     const systemCompany = await getSystemCompanyId();
@@ -267,7 +268,7 @@ export const promoteToPlatformAdmin = createServerFn({ method: "POST" })
 
 export const demoteFromPlatformAdmin = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ user_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
     if (data.user_id === context.userId) {
@@ -283,7 +284,7 @@ export const demoteFromPlatformAdmin = createServerFn({ method: "POST" })
 
 export const deleteTeamMember = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ user_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatform(context);
     if (data.user_id === context.userId) throw new Error("You cannot delete yourself");
@@ -307,7 +308,7 @@ export const resetTeamMemberPassword = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        user_id: z.string().uuid(),
+        user_id: uuidString(),
         new_password: z.string().min(8),
         must_change_password: z.boolean().optional(),
       })

@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/authorization";
+import { uuidString } from "@/lib/zod-uuid";
 
 const CompanyInput = z.object({
   name: z.string().min(1),
@@ -106,7 +107,7 @@ export const createCompany = createServerFn({ method: "POST" })
 
 export const updateCompany = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => CompanyInput.extend({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => CompanyInput.extend({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
@@ -118,7 +119,7 @@ export const updateCompany = createServerFn({ method: "POST" })
 
 export const deleteCompany = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     if (data.id === "00000000-0000-0000-0000-000000000001")
@@ -222,7 +223,7 @@ export const promotePlatformAdmin = createServerFn({ method: "POST" })
 
 export const demotePlatformAdmin = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ user_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     if (data.user_id === context.userId) throw new Error("You cannot demote yourself");

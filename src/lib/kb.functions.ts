@@ -7,6 +7,7 @@ import {
   resolveCompanyForWrite,
 } from "@/lib/authorization";
 import {
+import { uuidString } from "@/lib/zod-uuid";
   getKnowledgeRepository,
   getStorageProvider,
 } from "@/lib/providers/registry";
@@ -124,7 +125,7 @@ export const processDocument = createServerFn({ method: "POST" })
 
 export const reprocessDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
 
@@ -155,7 +156,7 @@ export const reprocessDocument = createServerFn({ method: "POST" })
 
 export const deleteKnowledgeDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.delete"]);
     const repo = getKnowledgeRepository(context.supabase);
@@ -181,7 +182,7 @@ export const listKnowledgeDocuments = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid().nullable().optional(),
+        company_id: uuidString().nullable().optional(),
         include_inactive: z.boolean().optional(),
       })
       .parse(d ?? {}),
@@ -194,7 +195,7 @@ export const listKnowledgeDocuments = createServerFn({ method: "GET" })
 /** All versions of one document (root + children). */
 export const listDocumentVersions = createServerFn({ method: "GET" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ root_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ root_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const repo = getKnowledgeRepository(context.supabase);
     return repo.listVersions(data.root_id);
@@ -212,7 +213,7 @@ export const uploadKnowledgeFile = createServerFn({ method: "POST" })
         filename: z.string().min(1),
         content_type: z.string().min(1),
         data_base64: z.string().min(1),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )
@@ -240,7 +241,7 @@ export const uploadKnowledgeFile = createServerFn({ method: "POST" })
  */
 export const getKnowledgeDocumentBlob = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ document_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ document_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const repo = getKnowledgeRepository(context.supabase);
     const filePath = await repo.getFilePath(data.document_id);

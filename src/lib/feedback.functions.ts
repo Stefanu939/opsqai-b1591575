@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { getProfileRepository } from "@/lib/providers/registry";
 import {
+import { uuidString } from "@/lib/zod-uuid";
   getFeedbackRepository,
   getKnowledgeGapRepository,
   getMessageRepository,
@@ -14,7 +15,7 @@ export const rateMessage = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        message_id: z.string().uuid(),
+        message_id: uuidString(),
         rating: z.union([z.literal(-1), z.literal(1)]),
         comment: z.string().optional(),
       })
