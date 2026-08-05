@@ -45,6 +45,10 @@ import type {
   RbacAdminRepositoryFactory,
   DirectMessageRepositoryFactory,
   AiAuditRepositoryFactory,
+  ExportRepositoryFactory,
+  IExportRepository,
+  AcademyRepositoryFactory,
+  IAcademyRepository,
 } from "./interfaces";
 
 interface Registry {
@@ -76,6 +80,8 @@ interface Registry {
   rbacAdminFactory?: RbacAdminRepositoryFactory;
   directMessageFactory?: DirectMessageRepositoryFactory;
   aiAuditFactory?: AiAuditRepositoryFactory;
+  exportFactory?: ExportRepositoryFactory;
+  academyFactory?: AcademyRepositoryFactory;
 }
 
 
@@ -160,6 +166,8 @@ export function registerKnowledgeRepositoryFactory(f: KnowledgeRepositoryFactory
 export function registerRbacAdminRepositoryFactory(f: RbacAdminRepositoryFactory): void { registry.rbacAdminFactory = f; }
 export function registerDirectMessageRepositoryFactory(f: DirectMessageRepositoryFactory): void { registry.directMessageFactory = f; }
 export function registerAiAuditRepositoryFactory(f: AiAuditRepositoryFactory): void { registry.aiAuditFactory = f; }
+export function registerExportRepositoryFactory(f: ExportRepositoryFactory): void { registry.exportFactory = f; }
+export function registerAcademyRepositoryFactory(f: AcademyRepositoryFactory): void { registry.academyFactory = f; }
 
 
 
@@ -301,6 +309,14 @@ export function getAiAuditRepository(dataCtx: unknown): IAiAuditRepository {
   if (!registry.aiAuditFactory) throw new Error("No AI-audit repository registered");
   return registry.aiAuditFactory(dataCtx);
 }
+export function getExportRepository(dataCtx: unknown): IExportRepository {
+  if (!registry.exportFactory) throw new Error("No export repository registered");
+  return registry.exportFactory(dataCtx);
+}
+export function getAcademyRepository(dataCtx: unknown): IAcademyRepository {
+  if (!registry.academyFactory) throw new Error("No academy repository registered");
+  return registry.academyFactory(dataCtx);
+}
 
 /** Test-only reset. */
 export function __resetProviderRegistryForTests(): void {
@@ -332,5 +348,7 @@ export function __resetProviderRegistryForTests(): void {
   registry.rbacAdminFactory = undefined;
   registry.directMessageFactory = undefined;
   registry.aiAuditFactory = undefined;
+  registry.exportFactory = undefined;
+  registry.academyFactory = undefined;
 }
 

@@ -50,6 +50,8 @@ import {
   registerRbacAdminRepositoryFactory,
   registerDirectMessageRepositoryFactory,
   registerAiAuditRepositoryFactory,
+  registerExportRepositoryFactory,
+  registerAcademyRepositoryFactory,
 } from "@/lib/providers/registry";
 
 import { createSupabaseAuthProvider } from "./supabase-auth.server";
@@ -69,6 +71,8 @@ import { createSupabaseKnowledgeRepository } from "./supabase-knowledge-reposito
 import { createSupabaseDirectMessageRepository } from "./supabase-direct-message-repository.server";
 import { createSupabaseRbacAdminRepository } from "./supabase-rbac-admin-repository.server";
 import { createSupabaseAiAuditRepository } from "./supabase-ai-audit-repository.server";
+import { createSupabaseExportRepository } from "./supabase-export-repository.server";
+import { createSupabaseAcademyRepository } from "./supabase-academy-repository.server";
 
 
 class CloudUserRepository implements IUserRepository {
@@ -268,6 +272,8 @@ export function bootstrapCloud(): void {
   registerDirectMessageRepositoryFactory((ctx)=>createSupabaseDirectMessageRepository(ctx as SupabaseClient<Database>));
   registerRbacAdminRepositoryFactory((ctx)=>createSupabaseRbacAdminRepository(ctx as SupabaseClient<Database>));
   registerAiAuditRepositoryFactory((ctx)=>createSupabaseAiAuditRepository(ctx as SupabaseClient<Database>));
+  registerExportRepositoryFactory((ctx) => createSupabaseExportRepository(ctx as SupabaseClient<Database>));
+  registerAcademyRepositoryFactory((ctx) => createSupabaseAcademyRepository(ctx as SupabaseClient<Database>));
 
 
   // Admin flavour: lazy-load service-role client so this module does not

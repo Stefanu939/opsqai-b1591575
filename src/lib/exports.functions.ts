@@ -1,4 +1,3 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
 /**
  * Enterprise Export & Migration server functions.
  * Supports three modes for KB / FAQ / full Workspace exports:
@@ -6,8 +5,9 @@ import { getCloudSupabase } from "@/lib/providers/not-available";
  *   - "migrate" : export + manifest tailored for re-import into another OPSQAI
  *   - "delete"  : export, verify checksum, then permanently delete source rows
  *
- * Each operation creates a row in `public.exports` and writes an audit entry
- * via the `audit_write` RPC.  Storage is partitioned by company id.
+ * Each operation creates a row in the exports repository and writes an
+ * audit entry. Storage goes through the platform-agnostic IStorageProvider
+ * (bucket "exports") so this works identically on Cloud and Self-Hosted.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
@@ -18,18 +18,19 @@ import { createHash } from "node:crypto";
 import { getActorRoles, getProfileCompany } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 import { uuidString } from "@/lib/zod-uuid";
+import { getExportRepository, getStorageProvider } from "@/lib/providers/registry";
 
 const AUDIT_MODULE = "audit_log" as const;
 
 async function enforceAudit(context: { supabase: any; userId: string }, hint?: string | null) {
-  const companyId = hint ?? (await getProfileCompany(getCloudSupabase(context, "exports"), context.userId));
+  const companyId = hint ?? (await getProfileCompany(context.supabase, context.userId));
   await assertModuleForCompany(
     companyId ?? "00000000-0000-0000-0000-000000000000",
     AUDIT_MODULE,
   );
 }
 
-const BUCKET = "workspace-exports";
+const BUCKET = "exports";
 const PACKAGE_VERSION = "1.0.0";
 const Uuid = uuidString();
 const optionalUiUuid = z.preprocess(
@@ -88,107 +89,6 @@ function canExport(actor: {
     actor.isManager ||
     actor.roles.includes("workspace_owner")
   );
-}
-
-/* ----------------------------------------------------------------- */
-/* Snapshot helpers (read-only)                                       */
-/* ----------------------------------------------------------------- */
-
-async function snapshotKb(supabase: any, companyId: string) {
-  const { data: documents } = await supabase
-    .from("knowledge_documents")
-    .select("*")
-    .eq("company_id", companyId);
-  const ids = (documents ?? []).map((d: any) => d.id);
-  const [{ data: chunks }, { data: tags }, { data: categories }] = await Promise.all([
-    ids.length
-      ? supabase
-          .from("knowledge_chunks")
-          .select("id, document_id, chunk_index, content, token_count, metadata, created_at")
-          .in("document_id", ids)
-      : Promise.resolve({ data: [] as any[] }),
-    supabase
-      .from("knowledge_tags")
-      .select("*")
-      .eq("company_id", companyId)
-      .then(
-        (r: any) => r,
-        () => ({ data: [] }),
-      ),
-    supabase
-      .from("knowledge_categories")
-      .select("*")
-      .eq("company_id", companyId)
-      .then(
-        (r: any) => r,
-        () => ({ data: [] }),
-      ),
-  ]);
-  return {
-    documents: documents ?? [],
-    chunks: chunks ?? [],
-    tags: tags ?? [],
-    categories: categories ?? [],
-  };
-}
-
-async function snapshotFaq(supabase: any, companyId: string) {
-  const { data } = await supabase.from("faqs").select("*").eq("company_id", companyId);
-  return { faqs: data ?? [] };
-}
-
-async function snapshotWorkspace(supabase: any, companyId: string) {
-  const [kb, faq, company, users, roles, departments, brand, templates, settings] =
-    await Promise.all([
-      snapshotKb(supabase, companyId),
-      snapshotFaq(supabase, companyId),
-      supabase.from("companies").select("*").eq("id", companyId).maybeSingle(),
-      supabase.from("profiles").select("*").eq("company_id", companyId),
-      supabase.from("user_roles").select("*").eq("company_id", companyId),
-      supabase
-        .from("departments")
-        .select("*")
-        .eq("company_id", companyId)
-        .then(
-          (r: any) => r,
-          () => ({ data: [] }),
-        ),
-      supabase
-        .from("brand_assets")
-        .select("*")
-        .eq("company_id", companyId)
-        .then(
-          (r: any) => r,
-          () => ({ data: [] }),
-        ),
-      supabase
-        .from("sop_templates")
-        .select("*")
-        .eq("company_id", companyId)
-        .then(
-          (r: any) => r,
-          () => ({ data: [] }),
-        ),
-      supabase
-        .from("company_settings")
-        .select("*")
-        .eq("company_id", companyId)
-        .then(
-          (r: any) => r,
-          () => ({ data: null }),
-        ),
-    ]);
-  return {
-    kb,
-    faq,
-    company: company.data ?? null,
-    users: users.data ?? [],
-    roles: roles.data ?? [],
-    departments: departments.data ?? [],
-    brand_assets: brand.data ?? [],
-    sop_templates: templates.data ?? [],
-    settings: settings.data ?? null,
-  };
 }
 
 /* ----------------------------------------------------------------- */
@@ -297,7 +197,7 @@ export const runExport = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { actor, companyId } = await resolveScope(
-      getCloudSupabase(context, "exports"),
+      context.supabase,
       context.userId,
       data.company_id,
     );
@@ -309,31 +209,26 @@ export const runExport = createServerFn({ method: "POST" })
         throw new Error('Type "DELETE" to confirm permanent removal');
     }
 
+    const repo = getExportRepository(context.supabase);
+    const storage = getStorageProvider();
+
     // Create export row in queued state.
-    const { data: jobRow, error: jobErr } = await getCloudSupabase(context, "exports")
-      .from("exports")
-      .insert({
-        company_id: companyId,
-        kind: data.kind,
-        mode: data.mode,
-        format: data.format,
-        status: "processing",
-        progress: 5,
-        created_by: context.userId,
-      })
-      .select("id")
-      .single();
-    if (jobErr) throw new Error(jobErr.message);
-    const jobId = jobRow.id as string;
+    const { id: jobId } = await repo.createJob({
+      companyId,
+      kind: data.kind,
+      mode: data.mode,
+      format: data.format,
+      createdBy: context.userId,
+    });
 
     try {
       // 1. Snapshot
       const snapshot =
         data.kind === "kb"
-          ? await snapshotKb(getCloudSupabase(context, "exports"), companyId)
+          ? await repo.snapshotKb(companyId)
           : data.kind === "faq"
-            ? await snapshotFaq(getCloudSupabase(context, "exports"), companyId)
-            : await snapshotWorkspace(getCloudSupabase(context, "exports"), companyId);
+            ? await repo.snapshotFaq(companyId)
+            : await repo.snapshotWorkspace(companyId);
 
       // 2. Build package
       const pkg = await buildPackage(data.kind, snapshot, {
@@ -344,130 +239,93 @@ export const runExport = createServerFn({ method: "POST" })
 
       // 3. Upload to storage (partitioned by company id)
       const storagePath = `${companyId}/${data.kind}/${jobId}.zip`;
-      const { error: upErr } = await getCloudSupabase(context, "exports").storage
-        .from(BUCKET)
-        .upload(storagePath, pkg.bytes, {
-          contentType: "application/zip",
-          upsert: true,
-        });
-      if (upErr) throw upErr;
+      await storage.put({
+        bucket: BUCKET,
+        key: storagePath,
+        body: pkg.bytes,
+        contentType: "application/zip",
+      });
 
       // 4. Verify integrity (download and re-hash)
-      const { data: blob, error: dlErr } = await getCloudSupabase(context, "exports").storage
-        .from(BUCKET)
-        .download(storagePath);
-      if (dlErr) throw dlErr;
-      const downloaded = new Uint8Array(await blob.arrayBuffer());
+      const downloaded = await storage.get(BUCKET, storagePath);
       const verifySha = createHash("sha256").update(downloaded).digest("hex");
       if (verifySha !== pkg.sha256) throw new Error("Integrity check failed: checksum mismatch");
 
-      await getCloudSupabase(context, "exports")
-        .from("exports")
-        .update({
-          status: "completed",
-          progress: 100,
-          storage_path: storagePath,
-          sha256: pkg.sha256,
-          bytes: pkg.bytes.byteLength,
-          file_count: pkg.fileCount,
-          manifest: pkg.manifest as any,
-        })
-        .eq("id", jobId);
+      await repo.markCompleted(jobId, {
+        storagePath,
+        sha256: pkg.sha256,
+        bytes: pkg.bytes.byteLength,
+        fileCount: pkg.fileCount,
+        manifest: pkg.manifest as any,
+      });
 
       // 5. Optional deletion
       let deletedCounts: Record<string, number> = {};
       if (data.mode === "delete") {
-        deletedCounts = await performDelete(getCloudSupabase(context, "exports"), data.kind, companyId);
-        await getCloudSupabase(context, "exports")
-          .from("exports")
-          .update({
-            deletion_status: "completed",
-            deletion_typed: data.delete_confirmation,
-            deleted_at: new Date().toISOString(),
-          })
-          .eq("id", jobId);
+        deletedCounts = await performDelete(repo, data.kind, companyId);
+        await repo.markDeleted(jobId, data.delete_confirmation ?? null);
       }
 
       // 6. Audit
-      await getCloudSupabase(context, "exports").rpc("audit_write", {
-        p_company: companyId,
-        p_user: context.userId,
-        p_module: data.kind === "workspace" ? "workspace" : data.kind,
-        p_action:
+      await repo.writeAudit({
+        companyId,
+        userId: context.userId,
+        module: data.kind === "workspace" ? "workspace" : data.kind,
+        action:
           data.mode === "delete"
             ? "export_and_delete"
             : data.mode === "migrate"
               ? "export_migrate"
               : "export",
-        p_resource: jobId,
-        p_old: null,
-        p_new: {
+        resource: jobId,
+        payload: {
           summary: `${data.kind} ${data.mode} export — ${pkg.fileCount} files, ${pkg.bytes.byteLength} bytes`,
           sha256: pkg.sha256,
           counts: pkg.manifest.counts ?? {},
           deleted: deletedCounts,
-        },
-        p_severity: data.mode === "delete" ? "warning" : "info",
-        p_success: true,
-        p_ip: null,
-        p_ua: null,
-      } as any);
+        } as any,
+        severity: data.mode === "delete" ? "warning" : "info",
+        success: true,
+      });
 
-      // 7. Signed URL for download
-      const { data: signed } = await getCloudSupabase(context, "exports").storage
-        .from(BUCKET)
-        .createSignedUrl(storagePath, 60 * 60); // 1 hour
+      // 7. Download payload — base64 works identically on Cloud (object
+      // storage) and Self-Hosted (local filesystem); the client turns it
+      // into a `data:` URL / blob for download.
+      let binary = "";
+      for (const b of pkg.bytes) binary += String.fromCharCode(b);
+      const downloadUrl = `data:application/zip;base64,${btoa(binary)}`;
+
       return {
         ok: true as const,
         job_id: jobId,
         sha256: pkg.sha256,
         bytes: pkg.bytes.byteLength,
-        download_url: signed?.signedUrl ?? null,
+        download_url: downloadUrl,
         deleted: deletedCounts,
       };
     } catch (err) {
-      await getCloudSupabase(context, "exports")
-        .from("exports")
-        .update({
-          status: "failed",
-          error: err instanceof Error ? err.message : String(err),
-        })
-        .eq("id", jobId);
-      await getCloudSupabase(context, "exports").rpc("audit_write", {
-        p_company: companyId,
-        p_user: context.userId,
-        p_module: data.kind,
-        p_action: "export_failed",
-        p_resource: jobId,
-        p_old: null,
-        p_new: { error: err instanceof Error ? err.message : String(err) },
-        p_severity: "error",
-        p_success: false,
-        p_ip: null,
-        p_ua: null,
-      } as any);
+      await repo.markFailed(jobId, err instanceof Error ? err.message : String(err));
+      await repo.writeAudit({
+        companyId,
+        userId: context.userId,
+        module: data.kind,
+        action: "export_failed",
+        resource: jobId,
+        payload: { error: err instanceof Error ? err.message : String(err) } as any,
+        severity: "error",
+        success: false,
+      });
       throw err;
     }
   });
 
-async function performDelete(supabase: any, kind: Kind, companyId: string) {
+async function performDelete(repo: ReturnType<typeof getExportRepository>, kind: Kind, companyId: string) {
   const counts: Record<string, number> = {};
   if (kind === "kb" || kind === "workspace") {
-    const { data: docs } = await supabase
-      .from("knowledge_documents")
-      .select("id")
-      .eq("company_id", companyId);
-    const ids = (docs ?? []).map((d: any) => d.id);
-    counts.documents = ids.length;
-    if (ids.length) {
-      await supabase.from("knowledge_chunks").delete().in("document_id", ids);
-      await supabase.from("knowledge_documents").delete().in("id", ids);
-    }
+    counts.documents = await repo.deleteKbData(companyId);
   }
   if (kind === "faq" || kind === "workspace") {
-    const { data: faqs } = await supabase.from("faqs").select("id").eq("company_id", companyId);
-    counts.faqs = (faqs ?? []).length;
-    await supabase.from("faqs").delete().eq("company_id", companyId);
+    counts.faqs = await repo.deleteFaqData(companyId);
   }
   return counts;
 }
@@ -475,38 +333,32 @@ async function performDelete(supabase: any, kind: Kind, companyId: string) {
 export const listExports = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await getCloudSupabase(context, "exports")
-      .from("exports")
-      .select(
-        "id, kind, mode, format, status, progress, sha256, bytes, file_count, deletion_status, error, created_at, completed_at, expires_at, storage_path",
-      )
-      .order("created_at", { ascending: false })
-      .limit(50);
-    if (error) throw new Error(error.message);
-    return { exports: data ?? [] };
+    const companyId = await getProfileCompany(context.supabase, context.userId);
+    if (!companyId) return { exports: [] };
+    const repo = getExportRepository(context.supabase);
+    const exports = await repo.listJobs(companyId, 50);
+    return { exports };
   });
 
 export const getExportDownloadUrl = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: row, error } = await getCloudSupabase(context, "exports")
-      .from("exports")
-      .select("storage_path")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!row?.storage_path) throw new Error("Export not available");
-    const { data: signed, error: sigErr } = await getCloudSupabase(context, "exports").storage
-      .from(BUCKET)
-      .createSignedUrl(row.storage_path, 60 * 60);
-    if (sigErr) throw new Error(sigErr.message);
-    return { url: signed?.signedUrl };
+    const repo = getExportRepository(context.supabase);
+    const storagePath = await repo.getStoragePath(data.id);
+    if (!storagePath) throw new Error("Export not available");
+    const bytes = await getStorageProvider().get(BUCKET, storagePath);
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    return { url: `data:application/zip;base64,${btoa(binary)}` };
   });
 
 /* ----------------------------------------------------------------- */
-/* Hierarchy reads (thin wrappers around RPCs)                        */
+/* Hierarchy reads (thin wrappers around RPCs) — Cloud-only surfaces   */
+/* used by the platform-admin knowledge-gap / audit dashboards.       */
 /* ----------------------------------------------------------------- */
+
+import { getCloudSupabase } from "@/lib/providers/not-available";
 
 export const listGapCompanies = createServerFn({ method: "GET" })
   .middleware([requireAuth])
