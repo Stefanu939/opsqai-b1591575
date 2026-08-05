@@ -12,7 +12,7 @@ const greeting=/^(hi|hello|hey|hallo|guten\s*(morgen|tag|abend)|salut|bun[ăa]|m
 const capability=/(what can you (do|tell)|what do you know|how can you help|who are you|help me|was kannst du|wie kannst du helfen|wer bist du|ce po[țt]i (s[ăa] )?(imi |îmi )?(spui|faci|oferi)|cu ce (m[ăa] )?po[țt]i ajuta|cine e[șs]ti|ajut[ăa]-?m[ăa])/i;
 const followup=/\b(explain|more details|elaborate|clarify|continue|erkl[äa]re|mehr details|explic[ăa]|mai multe detalii|continu[ăa])\b/i;
 function textOf(message:UIMessage|undefined){return message?.parts.map((p)=>p.type==="text"?p.text:"").join(" ").trim()??"";}
-function prompt(context:string,hasSources:boolean,language:string){return `You are OPSQAI, an enterprise company knowledge assistant. Answer in the same language as the user's latest message (interface hint: ${language}). Ground every factual statement about the company, its procedures, SOPs, safety rules or people strictly in COMPANY KNOWLEDGE below. Never invent, guess or use outside knowledge for company facts. Be warm, concise and professional.\n\n${hasSources?"Answer from COMPANY KNOWLEDGE, then finish with a translated Sources label and citations. If only part of the question is covered, answer that part and say plainly which part is not documented.":`No relevant company knowledge was retrieved. Do NOT answer the factual question. Reply with a friendly translation of: "${refusal}" and offer to help if they rephrase or point to a document.`}\n\nCOMPANY KNOWLEDGE:\n${context||"(none)"}`;}
+function prompt(context:string,hasSources:boolean,language:string){return `You are OPSQAI, an enterprise company knowledge assistant. Answer in the same language as the user's latest message (interface hint: ${language}). Your ONLY source of truth is COMPANY KNOWLEDGE below (SOPs, documents, FAQs). Never describe your own capabilities, never invent, guess or use outside/general knowledge. Match the user's intent semantically: the SOPs may be written in a different language than the question — translate the relevant SOP/FAQ content into the user's language instead of saying it was not found. Be warm, concise and professional.\n\n${hasSources?"Answer strictly from COMPANY KNOWLEDGE, quoting the concrete steps/rules, then finish with a translated Sources label and citations. If only part of the question is covered, answer that part and say plainly which part is not documented.":`No relevant company knowledge was retrieved. Do NOT answer the factual question. Reply with a friendly translation of: "${refusal}" and offer to help if they rephrase or point to a document.`}\n\nCOMPANY KNOWLEDGE:\n${context||"(none)"}`;}
 
 
 export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({request})=>{
@@ -44,18 +44,18 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   if(isCapability){
     try{
       const [docs,faqs]=await Promise.all([getKnowledgeRepository(dataCtx).listDocuments(companyId,false),getFaqRepository(dataCtx).list(companyId)]);
-      overview=`Available knowledge documents (${docs.length}): ${docs.slice(0,15).map((d:{title:string})=>d.title).join("; ")}\nFrequent questions (${faqs.length}): ${faqs.slice(0,10).map((f:{question_en:string})=>f.question_en).join("; ")}`;
+      overview=`SOPs and knowledge documents (${docs.length}): ${docs.slice(0,25).map((d:{title:string})=>d.title).join("; ")}\nFAQ entries (${faqs.length}): ${faqs.slice(0,15).map((f:{question_en:string})=>f.question_en).join("; ")}`;
     }catch(error){console.error("[chat:overview]",error);}
   } else if(!isGreeting&&query){
     try{
       const [embedding,faqs]=await Promise.all([resolveEmbedOne(query),getFaqRepository(dataCtx).list(companyId)]);
-      const matches=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,8);
+      const matches=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,12);
       const docs=await getKnowledgeRepository(dataCtx).getDocumentsByIds(Array.from(new Set(matches.map((m)=>m.document_id))));
       const meta=new Map(docs.map((d)=>[d.id,d]));
-      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.6?"high":sim>=.4?"medium":"low",primary:index===0});});
+      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.45?"high":sim>=.28?"medium":"low",primary:index===0});});
       const words=query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w)=>w.length>3);
       faqs.map((faq)=>({faq,score:words.reduce((n,w)=>n+(faq.question_en.toLowerCase().includes(w)||faq.question_de.toLowerCase().includes(w)?2:0)+(faq.answer_en.toLowerCase().includes(w)||faq.answer_de.toLowerCase().includes(w)?1:0),0)})).filter((x)=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5).forEach(({faq,score})=>sources.push({type:"faq",id:faq.id,title:`${faq.question_en} / ${faq.question_de}`,excerpt:`EN: ${faq.answer_en}\nDE: ${faq.answer_de}`,confidence:score>=4?"high":score>=2?"medium":"low"}));
-      confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?0.65:0;
+      confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?0.5:0;
       context=sources.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
     }catch(error){console.error("[chat:retrieval]",error);}
   }
@@ -63,13 +63,13 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   const system=isGreeting
     ?`You are OPSQAI. Reply warmly in the user's language in 1-2 sentences and mention you answer from company knowledge.`
     :isCapability
-      ?`You are OPSQAI, the company knowledge assistant. The user asks what you can do. Reply warmly in the user's language (interface hint: ${body.language??"en"}) in 3-5 short lines: explain that you answer questions grounded in the company's knowledge base, SOPs and FAQs with citations, and suggest 3 concrete example questions derived from the inventory below. Do not invent document titles or company facts beyond the inventory.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
+      ?`You are OPSQAI, the company knowledge assistant. The user asks what you can tell them. Reply in the user's language (interface hint: ${body.language??"en"}). Do NOT describe yourself, your AI features or how you work. Instead summarise the actual documented content available below: group the SOPs/documents into 3-5 topic areas using their real titles, then suggest 3 concrete questions the user can ask about them. Use only the inventory below; invent nothing.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
       :prompt(context,sources.length>0||(isFollowup&&Boolean(context)),body.language??"en");
 
   const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(messages)});
   const messageRepo=getMessageRepository(dataCtx);
   const existing=await messageRepo.listByThread(body.threadId);
-  return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?{sources,mode:isGreeting?"greeting":sources.length?"kb":"gap",question:query,confidence,minConfidence:.55,isKnowledgeGap:!isGreeting&&sources.length===0}:undefined,onFinish:async({messages:finished})=>{
+  return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?{sources,mode:isGreeting?"greeting":sources.length?"kb":"gap",question:query,confidence,minConfidence:.3,isKnowledgeGap:!isGreeting&&sources.length===0}:undefined,onFinish:async({messages:finished})=>{
     const fresh=finished.slice(existing.length);
     await messageRepo.insertMany(fresh.map((m)=>({threadId:body.threadId as string,userId:identity.userId,companyId,role:m.role,content:textOf(m).slice(0,100000),parts:JSON.parse(JSON.stringify(m.parts)) as JsonLike,sources:m.role==="assistant"?JSON.parse(JSON.stringify(sources)) as JsonLike:null,confidence:m.role==="assistant"?confidence:null})));
   }});

@@ -148,7 +148,7 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
       }>)("match_document_chunks_for_company", {
         query_embedding: toVectorLiteral(query_embedding),
         match_count: limit,
-        min_similarity: 0.2,
+        min_similarity: 0.12,
         _company_id: company_id,
       });
       if (error) throw new Error(error.message);
