@@ -4,6 +4,7 @@
 import type { Pool } from "pg";
 import type {
   IKnowledgeRepository,
+  KnowledgeChunkContentRow,
   KnowledgeChunkInsert,
   KnowledgeDocumentInsert,
   KnowledgeDocumentRow,
@@ -185,6 +186,29 @@ export function createPgKnowledgeRepository(
         section: row.section, page: row.page, departmentId: row.department_id,
         updatedAt: row.updated_at.toISOString(),
       }));
+    },
+
+    async getChunksContent(documentId, limit) {
+      const { rows } = await pool.query<{ content: string }>(
+        `SELECT content FROM public.document_chunks
+          WHERE document_id = $1
+          ORDER BY chunk_index ASC
+          LIMIT $2`,
+        [documentId, limit],
+      );
+      return rows.map((r) => r.content);
+    },
+
+    async getChunksForDocuments(documentIds, limit): Promise<KnowledgeChunkContentRow[]> {
+      if (documentIds.length === 0) return [];
+      const { rows } = await pool.query<KnowledgeChunkContentRow>(
+        `SELECT document_id, chunk_index, content FROM public.document_chunks
+          WHERE document_id = ANY($1)
+          ORDER BY chunk_index ASC
+          LIMIT $2`,
+        [documentIds, limit],
+      );
+      return rows;
     },
   };
 }

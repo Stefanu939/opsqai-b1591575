@@ -7,6 +7,14 @@
 import type { Pool } from "pg";
 import type {
   AcademyCertificateRow,
+  AcademyDepartmentRow,
+  AcademyDepartmentUpsertInput,
+  AcademyEnrichedEnrollmentRow,
+  AcademyEnrollmentPairRow,
+  AcademyEnrollmentWithPathRow,
+  AcademyEnrollmentWithProfileRow,
+  AcademyPathRefRow,
+  AcademyTrainingSummary,
   AcademyCertificateUpsertInput,
   AcademyCertificateVerification,
   AcademyChapterRow,
@@ -833,10 +841,294 @@ export function createPgAcademyRepository(deps: PgAcademyRepositoryDeps): IAcade
         };
       });
     },
+    async listDepartments(companyId): Promise<AcademyDepartmentRow[]> {
+      const { rows } = await pool.query(
+        `SELECT id, company_id, name, description, created_at
+           FROM public.departments
+          WHERE company_id = $1
+          ORDER BY name`,
+        [companyId],
+      );
+      return rows.map((r) => ({
+        id: r.id,
+        companyId: r.company_id,
+        name: r.name,
+        description: r.description ?? null,
+        createdAt: r.created_at,
+      }));
+    },
+
+    async upsertDepartment(input: AcademyDepartmentUpsertInput) {
+      if (input.id) {
+        await pool.query(
+          `UPDATE public.departments SET name = $2, description = $3 WHERE id = $1`,
+          [input.id, input.name, input.description ?? null],
+        );
+        return { id: input.id };
+      }
+      const { rows } = await pool.query<{ id: string }>(
+        `INSERT INTO public.departments (company_id, name, description)
+         VALUES ($1,$2,$3) RETURNING id`,
+        [input.companyId, input.name, input.description ?? null],
+      );
+      return { id: rows[0].id };
+    },
+
+    async listMyTrainingEnrollments(userId): Promise<AcademyEnrichedEnrollmentRow[]> {
+      const { rows: enrollments } = await pool.query(
+        `SELECT e.id, e.status, e.mandatory, e.priority, e.due_at, e.started_at, e.completed_at,
+                e.created_at, e.assigned_by, e.path_id,
+                p.title AS path_title, p.description AS path_description, p.language AS path_language,
+                d.name AS department_name
+           FROM public.academy_enrollments e
+           JOIN public.academy_learning_paths p ON p.id = e.path_id
+           LEFT JOIN public.departments d ON d.id = p.department_id
+          WHERE e.user_id = $1 AND e.status != 'revoked'
+          ORDER BY e.created_at DESC`,
+        [userId],
+      );
+      if (!enrollments.length) return [];
+
+      const pathIds = Array.from(new Set(enrollments.map((e) => e.path_id)));
+      const enrollmentIds = enrollments.map((e) => e.id);
+      const assignedByIds = Array.from(
+        new Set(enrollments.map((e) => e.assigned_by).filter(Boolean)),
+      );
+
+      const [chaptersRes, progressRes, certsRes, usersRes] = await Promise.all([
+        pool.query(
+          `SELECT c.path_id, COUNT(l.id)::int AS total, COALESCE(SUM(l.estimated_minutes), 0)::int AS minutes
+             FROM public.academy_chapters c
+             LEFT JOIN public.academy_lessons l ON l.chapter_id = c.id
+            WHERE c.path_id = ANY($1::uuid[])
+            GROUP BY c.path_id`,
+          [pathIds],
+        ),
+        pool.query(
+          `SELECT enrollment_id, status FROM public.academy_lesson_progress
+            WHERE enrollment_id = ANY($1::uuid[])`,
+          [enrollmentIds],
+        ),
+        pool.query(
+          `SELECT id, certificate_code, enrollment_id FROM public.academy_certificates
+            WHERE enrollment_id = ANY($1::uuid[])`,
+          [enrollmentIds],
+        ),
+        assignedByIds.length
+          ? pool.query(
+              `SELECT id, full_name, first_name, last_name FROM public.users WHERE id = ANY($1::uuid[])`,
+              [assignedByIds],
+            )
+          : Promise.resolve({ rows: [] as any[] }),
+      ]);
+
+      const lessonsByPath = new Map<string, { total: number; minutes: number }>();
+      for (const ch of chaptersRes.rows) {
+        lessonsByPath.set(ch.path_id, { total: ch.total, minutes: ch.minutes });
+      }
+
+      const completedByEnroll = new Map<string, number>();
+      for (const p of progressRes.rows) {
+        if (p.status === "completed") {
+          completedByEnroll.set(p.enrollment_id, (completedByEnroll.get(p.enrollment_id) ?? 0) + 1);
+        }
+      }
+
+      const certByEnroll = new Map<string, any>();
+      for (const c of certsRes.rows) certByEnroll.set(c.enrollment_id, c);
+
+      const userById = new Map<string, any>();
+      for (const u of usersRes.rows) userById.set(u.id, u);
+
+      const now = Date.now();
+      return enrollments.map((e: any): AcademyEnrichedEnrollmentRow => {
+        const total = lessonsByPath.get(e.path_id)?.total ?? 0;
+        const completed = completedByEnroll.get(e.id) ?? 0;
+        const minutes = lessonsByPath.get(e.path_id)?.minutes ?? 0;
+        const percent =
+          e.status === "completed" ? 100 : total === 0 ? 0 : Math.round((completed / total) * 100);
+        const assignedBy = e.assigned_by ? userById.get(e.assigned_by) : null;
+        const cert = certByEnroll.get(e.id) ?? null;
+        const overdue = e.status !== "completed" && !!e.due_at && new Date(e.due_at).getTime() < now;
+        return {
+          id: e.id,
+          status: e.status,
+          mandatory: e.mandatory,
+          priority: e.priority ?? "normal",
+          due_at: e.due_at,
+          started_at: e.started_at,
+          completed_at: e.completed_at,
+          created_at: e.created_at,
+          path: {
+            id: e.path_id,
+            title: e.path_title ?? "Untitled course",
+            description: e.path_description ?? null,
+            language: e.path_language ?? "en",
+            department: e.department_name ?? null,
+          },
+          progress: {
+            total_lessons: total,
+            completed_lessons: completed,
+            percent,
+            estimated_minutes: minutes,
+          },
+          assigned_by: assignedBy
+            ? {
+                id: assignedBy.id,
+                name:
+                  assignedBy.full_name ??
+                  [assignedBy.first_name, assignedBy.last_name].filter(Boolean).join(" ") ??
+                  "Manager",
+              }
+            : null,
+          certificate: cert ? { id: cert.id, code: cert.certificate_code } : null,
+          is_overdue: overdue,
+        };
+      });
+    },
+
+    async getMyTrainingSummary(userId): Promise<AcademyTrainingSummary> {
+      const [enrollmentsRes, certsRes, quizzesRes] = await Promise.all([
+        pool.query(
+          `SELECT id, status, mandatory, due_at, path_id FROM public.academy_enrollments WHERE user_id = $1`,
+          [userId],
+        ),
+        pool.query(`SELECT id FROM public.academy_certificates WHERE user_id = $1`, [userId]),
+        pool.query(`SELECT score FROM public.academy_quiz_attempts WHERE user_id = $1`, [userId]),
+      ]);
+
+      const enrollments = enrollmentsRes.rows;
+      const now = Date.now();
+      const in14d = now + 14 * 24 * 60 * 60 * 1000;
+
+      const active = enrollments.filter((e) => e.status !== "completed" && e.status !== "revoked");
+      const mandatoryActive = active.filter((e) => e.mandatory);
+      const upcoming = active.filter((e) => e.due_at && new Date(e.due_at).getTime() < in14d);
+
+      const enrollmentIds = active.map((e) => e.id);
+      let learningPct = 0;
+      if (enrollmentIds.length) {
+        const pathIds = Array.from(new Set(active.map((e) => e.path_id)));
+        const [{ rows: chapters }, { rows: progress }] = await Promise.all([
+          pool.query(
+            `SELECT c.path_id, COUNT(l.id)::int AS total
+               FROM public.academy_chapters c
+               LEFT JOIN public.academy_lessons l ON l.chapter_id = c.id
+              WHERE c.path_id = ANY($1::uuid[])
+              GROUP BY c.path_id`,
+            [pathIds],
+          ),
+          pool.query(
+            `SELECT enrollment_id, status FROM public.academy_lesson_progress
+              WHERE enrollment_id = ANY($1::uuid[])`,
+            [enrollmentIds],
+          ),
+        ]);
+        const totalByPath = new Map<string, number>();
+        for (const ch of chapters) totalByPath.set(ch.path_id, ch.total);
+        const doneByEnroll = new Map<string, number>();
+        for (const p of progress) {
+          if (p.status === "completed")
+            doneByEnroll.set(p.enrollment_id, (doneByEnroll.get(p.enrollment_id) ?? 0) + 1);
+        }
+        let tot = 0,
+          done = 0;
+        for (const e of active) {
+          const t = totalByPath.get(e.path_id) ?? 0;
+          tot += t;
+          done += Math.min(doneByEnroll.get(e.id) ?? 0, t);
+        }
+        learningPct = tot === 0 ? 0 : Math.round((done / tot) * 100);
+      }
+
+      const scores = quizzesRes.rows
+        .map((r) => Number(r.score))
+        .filter((n) => !Number.isNaN(n));
+      const avgQuiz = scores.length
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        : null;
+
+      return {
+        mandatory_active: mandatoryActive.length,
+        certificates: certsRes.rows.length,
+        average_quiz_score: avgQuiz,
+        learning_progress_percent: learningPct,
+        upcoming_deadlines: upcoming.length,
+      };
+    },
+
+    async listEnrollmentsByUserWithPath(userId): Promise<AcademyEnrollmentWithPathRow[]> {
+      const { rows } = await pool.query(
+        `SELECT e.*, p.id AS lp_id, p.title AS lp_title, p.description AS lp_description,
+                p.language AS lp_language, p.passing_score AS lp_passing_score,
+                d.name AS lp_department_name
+           FROM public.academy_enrollments e
+           LEFT JOIN public.academy_learning_paths p ON p.id = e.path_id
+           LEFT JOIN public.departments d ON d.id = p.department_id
+          WHERE e.user_id = $1
+          ORDER BY e.created_at DESC`,
+        [userId],
+      );
+      return rows.map((r: any) => {
+        const { lp_id, lp_title, lp_description, lp_language, lp_passing_score, lp_department_name, ...rest } = r;
+        return {
+          ...rest,
+          academy_learning_paths: lp_id
+            ? {
+                id: lp_id,
+                title: lp_title,
+                description: lp_description ?? null,
+                language: lp_language,
+                passing_score: lp_passing_score,
+                department_name: lp_department_name ?? null,
+              }
+            : null,
+        };
+      });
+    },
+
+    async listEnrollmentsByPathWithProfile(pathId): Promise<AcademyEnrollmentWithProfileRow[]> {
+      const { rows } = await pool.query(
+        `SELECT id, user_id, status, mandatory, priority, due_at, started_at, completed_at, created_at,
+                company_id, path_id, assigned_by
+           FROM public.academy_enrollments
+          WHERE path_id = $1
+          ORDER BY created_at DESC`,
+        [pathId],
+      );
+      const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
+      if (userIds.length === 0) return [];
+      const { rows: users } = await pool.query(
+        `SELECT id, full_name, first_name, last_name FROM public.users WHERE id = ANY($1::uuid[])`,
+        [userIds],
+      );
+      const byId = new Map(users.map((u) => [u.id, u]));
+      return rows.map((r) => ({ ...r, profile: byId.get(r.user_id) ?? null })) as AcademyEnrollmentWithProfileRow[];
+    },
+
+    async listLearningPathsByIds(ids): Promise<AcademyPathRefRow[]> {
+      if (!ids.length) return [];
+      const { rows } = await pool.query<AcademyPathRefRow>(
+        `SELECT id, company_id, title FROM public.academy_learning_paths WHERE id = ANY($1::uuid[])`,
+        [ids],
+      );
+      return rows;
+    },
+
+    async listExistingEnrollmentPairs(pathIds, userIds): Promise<AcademyEnrollmentPairRow[]> {
+      if (!pathIds.length || !userIds.length) return [];
+      const { rows } = await pool.query<AcademyEnrollmentPairRow>(
+        `SELECT path_id, user_id FROM public.academy_enrollments
+          WHERE path_id = ANY($1::uuid[]) AND user_id = ANY($2::uuid[])`,
+        [pathIds, userIds],
+      );
+      return rows;
+    },
   };
 
   return repo;
 }
+
 
 export const pgAcademyRepositoryFactory =
   (deps: PgAcademyRepositoryDeps) => (_dataCtx: unknown) => createPgAcademyRepository(deps);

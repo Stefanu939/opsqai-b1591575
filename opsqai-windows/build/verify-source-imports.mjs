@@ -37,6 +37,9 @@ const ALLOWED_PREFIXES = [
 // execute in Self-Hosted (Wave D aliases their imports to the throwing stub).
 // This list is the shrinking backlog for future waves — do NOT grow it.
 const LEGACY_ALLOWED = new Set([
+  // Registers attachSupabaseAuth for Cloud; stubbed out in SH builds by the
+  // vite selfhost stub plugin (verify-bundle guards the final output).
+  "src/start.ts",
   "src/lib/academy-certificate.server.ts",
   "src/lib/email/dispatch.server.ts",
   "src/lib/mcp/tools/list-faqs.ts",

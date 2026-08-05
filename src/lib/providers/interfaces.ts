@@ -629,6 +629,12 @@ export interface KnowledgeMatch {
   similarity: number;
 }
 
+export interface KnowledgeChunkContentRow {
+  document_id: string;
+  chunk_index: number;
+  content: string;
+}
+
 export interface IKnowledgeRepository {
   /** Document list for the library screen. `companyId === null` = all workspaces. */
   listDocuments(companyId: string | null, includeInactive: boolean): Promise<KnowledgeDocumentRow[]>;
@@ -658,6 +664,16 @@ export interface IKnowledgeRepository {
     departmentId: string | null;
     updatedAt: string;
   }>>;
+  /**
+   * Ordered chunk content for a single document, used by SOP → lesson
+   * conversion (`convertSopToLesson`). Content is joined by the caller.
+   */
+  getChunksContent(documentId: string, limit: number): Promise<string[]>;
+  /**
+   * Ordered chunk rows across multiple documents, used by multi-SOP course
+   * generation (`generateAcademyCourse`).
+   */
+  getChunksForDocuments(documentIds: string[], limit: number): Promise<KnowledgeChunkContentRow[]>;
 }
 
 export type KnowledgeRepositoryFactory = (dataCtx: unknown) => IKnowledgeRepository;
@@ -1364,6 +1380,91 @@ export interface AcademyCohortRow {
   is_overdue: boolean;
 }
 
+export interface AcademyDepartmentRow {
+  id: string;
+  companyId: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface AcademyDepartmentUpsertInput {
+  id?: string;
+  companyId: string;
+  name: string;
+  description?: string | null;
+}
+
+export interface AcademyPathRefRow {
+  id: string;
+  company_id: string;
+  title: string;
+}
+
+export interface AcademyEnrollmentPairRow {
+  path_id: string;
+  user_id: string;
+}
+
+export interface AcademyProfileRef {
+  id: string;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+}
+
+export interface AcademyEnrollmentWithProfileRow extends AcademyEnrollmentRow {
+  profile: AcademyProfileRef | null;
+}
+
+export interface AcademyEnrollmentPathRef {
+  id: string;
+  title: string;
+  description: string | null;
+  language: string;
+  passing_score: number;
+  department_name: string | null;
+}
+
+export interface AcademyEnrollmentWithPathRow extends AcademyEnrollmentRow {
+  academy_learning_paths: AcademyEnrollmentPathRef | null;
+}
+
+export interface AcademyEnrichedEnrollmentRow {
+  id: string;
+  status: AcademyEnrollmentRow["status"];
+  mandatory: boolean;
+  priority: string;
+  due_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  path: {
+    id: string;
+    title: string;
+    description: string | null;
+    language: string;
+    department: string | null;
+  };
+  progress: {
+    total_lessons: number;
+    completed_lessons: number;
+    percent: number;
+    estimated_minutes: number;
+  };
+  assigned_by: { id: string; name: string } | null;
+  certificate: { id: string; code: string } | null;
+  is_overdue: boolean;
+}
+
+export interface AcademyTrainingSummary {
+  mandatory_active: number;
+  certificates: number;
+  average_quiz_score: number | null;
+  learning_progress_percent: number;
+  upcoming_deadlines: number;
+}
+
 export interface IAcademyRepository {
   // Learning paths
   listLearningPaths(
@@ -1439,6 +1540,22 @@ export interface IAcademyRepository {
   getDepartmentPerformance(companyId: string): Promise<AcademyDepartmentPerformanceRow[]>;
   getCourseAnalytics(companyId: string): Promise<AcademyCourseAnalyticsRow[]>;
   getCourseCohort(pathId: string): Promise<AcademyCohortRow[]>;
+
+  // Departments (academy_departments on Cloud; public.departments on Self-Hosted)
+  listDepartments(companyId: string): Promise<AcademyDepartmentRow[]>;
+  upsertDepartment(input: AcademyDepartmentUpsertInput): Promise<{ id: string }>;
+
+  // Enriched read models for learner dashboards (My Training card view + summary widget)
+  listMyTrainingEnrollments(userId: string): Promise<AcademyEnrichedEnrollmentRow[]>;
+  getMyTrainingSummary(userId: string): Promise<AcademyTrainingSummary>;
+  /** Legacy "My Enrollments" shape carrying a nested `academy_learning_paths` object. */
+  listEnrollmentsByUserWithPath(userId: string): Promise<AcademyEnrollmentWithPathRow[]>;
+  /** Assignment listing carrying a nested `profile` object per learner. */
+  listEnrollmentsByPathWithProfile(pathId: string): Promise<AcademyEnrollmentWithProfileRow[]>;
+
+  // Bulk-assignment support (multi-target assign flow)
+  listLearningPathsByIds(ids: string[]): Promise<AcademyPathRefRow[]>;
+  listExistingEnrollmentPairs(pathIds: string[], userIds: string[]): Promise<AcademyEnrollmentPairRow[]>;
 }
 
 export type AcademyRepositoryFactory = (dataCtx: unknown) => IAcademyRepository;
