@@ -43,16 +43,16 @@ The account created during setup (full name, email, password) becomes the instal
 - New "Roles & permissions" screen, visible only to the owner: list the four presets (Superadmin, Manager, Supervisor, Worker), edit which permissions each one holds, create additional custom roles, and assign a role to each member. Changes take effect on the member's next page load.
 - Server-side enforcement: role/permission edits and member management require the owner (or an explicit `rbac.manage` permission the owner can delegate) — the UI gate is not the control.
 
-## 7. Demo content for the Self-Hosted demo
+## 7. Demo content for the Self-Hosted demo (already exists — fill the gaps)
 
-Assumption: "demo" means a demo installation/workspace that the Management Center prepares so a prospect sees a populated product. There is no demo seeder today, so this is new work.
+The demo already exists: the Management Center sidebar has a "Demo (Self-Hosted preview)" section pointing at the real product screens, and the demo tenant "OPSQAI Demo" is already seeded with 8 knowledge documents, 10 FAQs, 1 Academy learning path and 1 AI audit record. So this is not new work — only the missing pieces:
 
-- A "Seed demo content" action in the Management Center, applied to a selected demo company/installation, that loads a realistic German/English dataset:
-  - Knowledge Base: several sample PDF documents (SOP, work instruction, safety manual, quality policy), uploaded, chunked and embedded so the AI cites them.
-  - FAQ: a set of bilingual entries linked to the same topics.
-  - Academy: a sample learning path with lessons and a quiz, plus one enrolled demo learner showing progress.
-- AI Audit must be runnable on the demo dataset and produce a real score with findings and recommended actions (not an empty state).
-- The demo dataset is clearly marked as demo data and can be removed in one action.
+- Knowledge Base: the 8 demo documents have no attached file and no text chunks or embeddings at all, so AI Chat cannot cite them. Attach real sample PDFs to those documents and generate chunks + embeddings so answers cite them.
+- FAQ: entries exist; verify they are bilingual (EN/DE) and topically matched to the documents, and top up only where missing.
+- Academy: one learning path exists; verify it has lessons, a quiz and an enrolled demo learner showing progress, and complete it if not.
+- AI Audit: one audit row exists; make the audit runnable on demand from the demo dataset so it produces a real score with findings and recommended actions instead of a stale/empty state.
+- Keep the demo data marked as demo and re-runnable/removable in one action.
+
 
 
 ## Technical notes
