@@ -115,7 +115,7 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
       const ok = await users.verifyPassword(user.id, input.password);
       if (!ok) throw new Error("invalid_credentials");
 
-      await pool.query("UPDATE public.users SET last_login_at = now() WHERE id = $1", [
+      await pool.query("UPDATE public.users SET last_login_at = now(), last_sign_in_at = now() WHERE id = $1", [
         user.id,
       ]);
       await pool.query(

@@ -20,6 +20,17 @@ FROM (VALUES ('platform_owner'),('platform_admin')) AS owners(role_key)
 CROSS JOIN public.permissions p
 ON CONFLICT DO NOTHING;
 
+-- Upgrade the original setup account on existing installations. Fresh
+-- installs are also assigned this role explicitly by admin-seed.mjs.
+INSERT INTO public.user_roles (user_id, role)
+SELECT ur.user_id, 'platform_owner'
+FROM public.user_roles ur
+JOIN public.users u ON u.id=ur.user_id
+WHERE ur.role='admin'
+ORDER BY u.created_at
+LIMIT 1
+ON CONFLICT DO NOTHING;
+
 -- Worker is intentionally restricted to the three approved product areas.
 DELETE FROM public.role_permissions WHERE role_key='employee';
 INSERT INTO public.role_permissions (role_key, permission_key) VALUES

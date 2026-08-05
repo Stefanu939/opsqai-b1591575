@@ -37,8 +37,6 @@ const ALLOWED_PREFIXES = [
 // execute in Self-Hosted (Wave D aliases their imports to the throwing stub).
 // This list is the shrinking backlog for future waves — do NOT grow it.
 const LEGACY_ALLOWED = new Set([
-  "src/start.ts",
-  "src/lib/avatar.ts",
   "src/lib/academy-certificate.server.ts",
   "src/lib/email/dispatch.server.ts",
   "src/lib/mcp/tools/list-faqs.ts",
@@ -58,7 +56,6 @@ const LEGACY_ALLOWED = new Set([
   "src/routes/api/academy-chat.ts",
   "src/routes/lovable/email/queue/process.ts",
   "src/components/support/support-widget.tsx",
-  "src/components/support/chat-glider.tsx",
 ]);
 
 function walk(dir, out = []) {

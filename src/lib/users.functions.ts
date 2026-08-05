@@ -273,6 +273,9 @@ export const updateUser = createServerFn({ method: "POST" })
     const authAdmin = getAuthAdminProvider();
 
     const target = await profileRepo.findByUserId(data.user_id);
+    if (await roleRepo.isPlatformOwner(data.user_id)) {
+      throw new Error("The installation owner cannot be disabled, demoted, or edited here");
+    }
     if (!isPlatformAdmin && target?.companyId !== actorCompany) {
       throw new Error("Forbidden: cross-company edit");
     }
@@ -314,6 +317,9 @@ export const deleteUser = createServerFn({ method: "POST" })
     await requireAnyPermission(context, ["user.delete", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
     if (data.user_id === context.userId) throw new Error("Cannot delete yourself");
+    if (await getAdminRoleRepository().isPlatformOwner(data.user_id)) {
+      throw new Error("The installation owner cannot be deleted");
+    }
     if (!isPlatformAdmin) {
       const actorCompany = await getActorCompany(context.supabase, context.userId);
       const target = await getAdminProfileRepository().findByUserId(data.user_id);
