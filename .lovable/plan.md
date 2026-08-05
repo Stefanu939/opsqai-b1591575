@@ -34,6 +34,27 @@ Existing DB roles are `admin / manager / team_leader / employee / viewer` with a
 - Verify upload and FAQ creation work on Self-Hosted end-to-end (local storage + pgvector embeddings), and make the add/upload buttons visible for the roles that own content.
 - Confirm an uploaded document is chunked, embedded and then actually cited by the AI Chat answer.
 
+## 6. Superadmin: unrestricted owner of the installation
+
+The account created during setup (full name, email, password) becomes the installation owner and must never be blockable.
+
+- The seeder assigns it the owner role and marks it protected: it cannot be deleted, disabled, demoted, or lose permissions — not even by itself if it is the last owner.
+- Every permission check treats the owner as holding all permissions, so no screen, button, or server function can hide from it.
+- New "Roles & permissions" screen, visible only to the owner: list the four presets (Superadmin, Manager, Supervisor, Worker), edit which permissions each one holds, create additional custom roles, and assign a role to each member. Changes take effect on the member's next page load.
+- Server-side enforcement: role/permission edits and member management require the owner (or an explicit `rbac.manage` permission the owner can delegate) — the UI gate is not the control.
+
+## 7. Demo content for the Self-Hosted demo
+
+Assumption: "demo" means a demo installation/workspace that the Management Center prepares so a prospect sees a populated product. There is no demo seeder today, so this is new work.
+
+- A "Seed demo content" action in the Management Center, applied to a selected demo company/installation, that loads a realistic German/English dataset:
+  - Knowledge Base: several sample PDF documents (SOP, work instruction, safety manual, quality policy), uploaded, chunked and embedded so the AI cites them.
+  - FAQ: a set of bilingual entries linked to the same topics.
+  - Academy: a sample learning path with lessons and a quiz, plus one enrolled demo learner showing progress.
+- AI Audit must be runnable on the demo dataset and produce a real score with findings and recommended actions (not an empty state).
+- The demo dataset is clearly marked as demo data and can be removed in one action.
+
+
 ## Technical notes
 
 - All fixes stay behind the provider registry; no new direct Cloud SDK imports (guarded by `verify-source-imports.mjs` / `verify-bundle.mjs`).
