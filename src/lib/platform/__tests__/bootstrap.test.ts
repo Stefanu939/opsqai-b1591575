@@ -66,6 +66,19 @@ const fakeLicensing: ILicensingProvider = {
   },
   async heartbeat() { return { ok: true }; },
   async latestRelease() { return null; },
+  async entitlements() {
+    return {
+      unlimited: false,
+      installId: null,
+      customer: "ACME",
+      edition: "professional",
+      seats: 10,
+      modules: [],
+      expiresAt: null,
+      maintenanceExpiresAt: null,
+      revoked: false,
+    };
+  },
 };
 
 beforeEach(() => {
