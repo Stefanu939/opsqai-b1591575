@@ -1,23 +1,24 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   clearMyAvatarPath,
+  getAvatarBlob,
   getMyAvatarPath,
-  setMyAvatarPath,
+  uploadMyAvatarFile,
 } from "@/lib/profile.functions";
 
-const SIGNED_TTL_SECONDS = 60 * 60; // 1h — refreshed on mount
-
 /**
- * Resolve a `profiles.avatar_url` value (a storage path inside the `avatars`
- * bucket, e.g. `{userId}/avatar-1234.jpg`) to a viewable signed URL. Returns
- * `null` for missing / not-yet-resolved paths.
+ * Resolve a `profiles.avatar_url` value (a storage key inside the `avatars`
+ * bucket, e.g. `{userId}/avatar-1234.jpg`) to a viewable URL. Reads through a
+ * server function so it works on Cloud and Self-Hosted alike. Returns `null`
+ * for missing / not-yet-resolved paths.
  */
 export function useAvatarUrl(path: string | null | undefined): string | null {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    let objectUrl: string | null = null;
+
     if (!path) {
       setUrl(null);
       return;
@@ -27,15 +28,22 @@ export function useAvatarUrl(path: string | null | undefined): string | null {
       setUrl(path);
       return;
     }
-    supabase.storage
-      .from("avatars")
-      .createSignedUrl(path, SIGNED_TTL_SECONDS)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        setUrl(error || !data?.signedUrl ? null : data.signedUrl);
+
+    getAvatarBlob({ data: { path } })
+      .then((res) => {
+        if (cancelled || !res) {
+          if (!cancelled) setUrl(null);
+          return;
+        }
+        setUrl(`data:${res.content_type};base64,${res.data_base64}`);
+      })
+      .catch(() => {
+        if (!cancelled) setUrl(null);
       });
+
     return () => {
       cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [path]);
 
@@ -59,38 +67,42 @@ export function initialsOf(input: {
   return "OP";
 }
 
-const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED = ["image/jpeg", "image/png", "image/webp"] as const;
 const MAX_BYTES = 2 * 1024 * 1024; // 2MB
 
 export interface UploadAvatarResult {
   path: string;
 }
 
+function toBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
 /**
- * Upload an avatar for the current user to `avatars/{userId}/avatar-{ts}.{ext}`
- * and update `profiles.avatar_url` with the storage path.
+ * Upload an avatar for the current user through the platform storage provider
+ * and update `profiles.avatar_url` with the storage key.
  */
 export async function uploadMyAvatar(
   file: File,
-  userId: string,
+  _userId: string,
 ): Promise<UploadAvatarResult> {
-  if (!ACCEPTED.includes(file.type)) {
+  if (!ACCEPTED.includes(file.type as (typeof ACCEPTED)[number])) {
     throw new Error("Please choose a JPG, PNG or WebP image.");
   }
   if (file.size > MAX_BYTES) {
     throw new Error("Image is larger than 2MB.");
   }
-  const ext =
-    file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-  const path = `${userId}/avatar-${Date.now()}.${ext}`;
-
-  const { error: upErr } = await supabase.storage
-    .from("avatars")
-    .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
-  if (upErr) throw upErr;
-
-  await setMyAvatarPath({ data: { path } });
-
+  const data_base64 = toBase64(await file.arrayBuffer());
+  const { path } = await uploadMyAvatarFile({
+    data: {
+      filename: file.name,
+      content_type: file.type as (typeof ACCEPTED)[number],
+      data_base64,
+    },
+  });
   return { path };
 }
 
@@ -99,7 +111,7 @@ export async function clearMyAvatar(_userId: string): Promise<void> {
   await clearMyAvatarPath();
 }
 
-/** Read `profiles.avatar_url` for the given user id. */
+/** Read `profiles.avatar_url` for the current user. */
 export async function readAvatarPath(_userId: string): Promise<string | null> {
   const { path } = await getMyAvatarPath();
   return path;
