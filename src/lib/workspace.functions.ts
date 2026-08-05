@@ -5,7 +5,6 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { extractWorkspaceText } from "@/lib/workspace.extract.server";
 import {
-import { uuidString } from "@/lib/zod-uuid";
   companyFromStoragePath,
   requireAnyPermission,
   resolveCompanyForWrite,
@@ -192,6 +191,7 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
     if (dl.error || !dl.data) throw new Error(dl.error?.message ?? "download failed");
     const buf = await dl.data.arrayBuffer();
     let extracted = "";
+import { uuidString } from "@/lib/zod-uuid";
     try {
       extracted = await extractWorkspaceText(buf, data.file_name, data.mime ?? "");
     } catch (e) {

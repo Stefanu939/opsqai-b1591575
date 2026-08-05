@@ -15,13 +15,13 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles } from "@/lib/authorization";
 import {
-import { uuidString } from "@/lib/zod-uuid";
   getAdminCompanyRepository,
   getAdminDepartmentRepository,
   getAdminProfileRepository,
   getAdminRoleRepository,
   getAuthAdminProvider,
 } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 const INTERNAL_ROLES = ["admin", "manager", "team_leader", "employee"] as const;
 const InternalRoleEnum = z.enum(INTERNAL_ROLES);

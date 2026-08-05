@@ -4,13 +4,13 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, requireAnyPermission } from "@/lib/authorization";
 import {
-import { uuidString } from "@/lib/zod-uuid";
   getAdminCompanyRepository,
   getAdminDepartmentRepository,
   getAdminProfileRepository,
   getAdminRoleRepository,
   getAuthAdminProvider,
 } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 const RoleKey = z.string().regex(/^[a-z][a-z0-9_]{1,63}$/);
 

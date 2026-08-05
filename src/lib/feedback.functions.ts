@@ -4,11 +4,11 @@ import { z } from "zod";
 
 import { getProfileRepository } from "@/lib/providers/registry";
 import {
-import { uuidString } from "@/lib/zod-uuid";
   getFeedbackRepository,
   getKnowledgeGapRepository,
   getMessageRepository,
 } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 export const rateMessage = createServerFn({ method: "POST" })
   .middleware([requireAuth])
