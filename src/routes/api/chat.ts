@@ -44,18 +44,18 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   if(isCapability){
     try{
       const [docs,faqs]=await Promise.all([getKnowledgeRepository(dataCtx).listDocuments(companyId,false),getFaqRepository(dataCtx).list(companyId)]);
-      overview=`Available knowledge documents (${docs.length}): ${docs.slice(0,15).map((d:{title:string})=>d.title).join("; ")}\nFrequent questions (${faqs.length}): ${faqs.slice(0,10).map((f:{question_en:string})=>f.question_en).join("; ")}`;
+      overview=`SOPs and knowledge documents (${docs.length}): ${docs.slice(0,25).map((d:{title:string})=>d.title).join("; ")}\nFAQ entries (${faqs.length}): ${faqs.slice(0,15).map((f:{question_en:string})=>f.question_en).join("; ")}`;
     }catch(error){console.error("[chat:overview]",error);}
   } else if(!isGreeting&&query){
     try{
       const [embedding,faqs]=await Promise.all([resolveEmbedOne(query),getFaqRepository(dataCtx).list(companyId)]);
-      const matches=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,8);
+      const matches=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,12);
       const docs=await getKnowledgeRepository(dataCtx).getDocumentsByIds(Array.from(new Set(matches.map((m)=>m.document_id))));
       const meta=new Map(docs.map((d)=>[d.id,d]));
-      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.6?"high":sim>=.4?"medium":"low",primary:index===0});});
+      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.45?"high":sim>=.28?"medium":"low",primary:index===0});});
       const words=query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w)=>w.length>3);
       faqs.map((faq)=>({faq,score:words.reduce((n,w)=>n+(faq.question_en.toLowerCase().includes(w)||faq.question_de.toLowerCase().includes(w)?2:0)+(faq.answer_en.toLowerCase().includes(w)||faq.answer_de.toLowerCase().includes(w)?1:0),0)})).filter((x)=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5).forEach(({faq,score})=>sources.push({type:"faq",id:faq.id,title:`${faq.question_en} / ${faq.question_de}`,excerpt:`EN: ${faq.answer_en}\nDE: ${faq.answer_de}`,confidence:score>=4?"high":score>=2?"medium":"low"}));
-      confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?0.65:0;
+      confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?0.5:0;
       context=sources.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
     }catch(error){console.error("[chat:retrieval]",error);}
   }
@@ -63,7 +63,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   const system=isGreeting
     ?`You are OPSQAI. Reply warmly in the user's language in 1-2 sentences and mention you answer from company knowledge.`
     :isCapability
-      ?`You are OPSQAI, the company knowledge assistant. The user asks what you can do. Reply warmly in the user's language (interface hint: ${body.language??"en"}) in 3-5 short lines: explain that you answer questions grounded in the company's knowledge base, SOPs and FAQs with citations, and suggest 3 concrete example questions derived from the inventory below. Do not invent document titles or company facts beyond the inventory.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
+      ?`You are OPSQAI, the company knowledge assistant. The user asks what you can tell them. Reply in the user's language (interface hint: ${body.language??"en"}). Do NOT describe yourself, your AI features or how you work. Instead summarise the actual documented content available below: group the SOPs/documents into 3-5 topic areas using their real titles, then suggest 3 concrete questions the user can ask about them. Use only the inventory below; invent nothing.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
       :prompt(context,sources.length>0||(isFollowup&&Boolean(context)),body.language??"en");
 
   const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(messages)});
