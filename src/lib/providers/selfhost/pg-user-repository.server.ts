@@ -85,7 +85,7 @@ export function createPgUserRepository(deps: PgUserRepositoryDeps): IUserReposit
         [input.email, input.displayName, passwordHash],
       );
       await pool.query(
-        "INSERT INTO public.user_roles (user_id, role) VALUES ($1, 'admin')",
+        "INSERT INTO public.user_roles (user_id, role) VALUES ($1, 'platform_owner')",
         [rows[0].id],
       );
       return mapRow(rows[0]);

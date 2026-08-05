@@ -1,8 +1,7 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { attachBearerToken } from "@/integrations/supabase/bearer-attacher";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { attachPlatformAuth } from "@/lib/providers/auth-attacher";
 
 const HEALTH_PATHS = new Set(["/health", "/api/public/ready", "/api/public/health"]);
 
@@ -71,8 +70,7 @@ const providerBootstrapRequestMiddleware = createMiddleware().server(
 export const startInstance = createStart(() => ({
   functionMiddleware: [
     providerBootstrapFunctionMiddleware,
-    attachSupabaseAuth,
-    attachBearerToken,
+    attachPlatformAuth,
   ],
   requestMiddleware: [errorMiddleware, providerBootstrapRequestMiddleware],
 }));

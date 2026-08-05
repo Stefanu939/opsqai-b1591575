@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPermissions(new Set(boot.permissions));
         const cid = boot.companyId;
         setCompanyId(cid);
+        setCompanyName(boot.companyName);
         if (!cid) {
           setCompanyName(null);
           return;
@@ -105,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // single-tenant, so there is no workspace name to resolve.
         const db = await getCloudBrowserDb();
         if (!db) {
-          setCompanyName(null);
           return;
         }
         const { data: c } = await db

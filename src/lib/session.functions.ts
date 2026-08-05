@@ -6,12 +6,13 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
-import { getProfileRepository, getRoleRepository } from "@/lib/providers/registry";
+import { getCompanyRepository, getProfileRepository, getRoleRepository } from "@/lib/providers/registry";
 
 export interface SessionBootstrap {
   roles: string[];
   permissions: string[];
   companyId: string | null;
+  companyName: string | null;
 }
 
 export const bootstrapSession = createServerFn({ method: "GET" })
@@ -37,9 +38,14 @@ export const bootstrapSession = createServerFn({ method: "GET" })
       }),
     );
 
+    const companyId = profile?.companyId ?? null;
+    const company = companyId
+      ? await getCompanyRepository(context.supabase).findById(companyId)
+      : null;
     return {
       roles,
       permissions: [...permSet],
-      companyId: profile?.companyId ?? null,
+      companyId,
+      companyName: company?.name ?? null,
     };
   });
