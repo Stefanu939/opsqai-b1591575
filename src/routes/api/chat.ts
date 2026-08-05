@@ -69,7 +69,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(messages)});
   const messageRepo=getMessageRepository(dataCtx);
   const existing=await messageRepo.listByThread(body.threadId);
-  return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?{sources,mode:isGreeting?"greeting":sources.length?"kb":"gap",question:query,confidence,minConfidence:.55,isKnowledgeGap:!isGreeting&&sources.length===0}:undefined,onFinish:async({messages:finished})=>{
+  return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?{sources,mode:isGreeting?"greeting":sources.length?"kb":"gap",question:query,confidence,minConfidence:.3,isKnowledgeGap:!isGreeting&&sources.length===0}:undefined,onFinish:async({messages:finished})=>{
     const fresh=finished.slice(existing.length);
     await messageRepo.insertMany(fresh.map((m)=>({threadId:body.threadId as string,userId:identity.userId,companyId,role:m.role,content:textOf(m).slice(0,100000),parts:JSON.parse(JSON.stringify(m.parts)) as JsonLike,sources:m.role==="assistant"?JSON.parse(JSON.stringify(sources)) as JsonLike:null,confidence:m.role==="assistant"?confidence:null})));
   }});
