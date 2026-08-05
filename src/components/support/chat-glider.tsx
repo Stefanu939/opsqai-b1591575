@@ -16,7 +16,6 @@ import {
   Image as ImageIcon,
   FileText,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -205,21 +204,14 @@ function ConversationsListView({
     refetchOnWindowFocus: true,
   });
 
-  // Realtime: refresh on any new message
+  // Polling works in both products; Cloud realtime is intentionally not
+  // imported here because this component also ships in Self-Hosted.
   useEffect(() => {
-    const channel = supabase
-      .channel("chat-glider-msgs")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "direct_messages" },
-        () => {
-          qc.invalidateQueries({ queryKey: ["chat-conversations"] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const timer = window.setInterval(
+      () => qc.invalidateQueries({ queryKey: ["chat-conversations"] }),
+      4_000,
+    );
+    return () => window.clearInterval(timer);
   }, [qc]);
 
   const filtered = useMemo(() => {
@@ -359,27 +351,13 @@ function ConversationView({
     queryFn: () => listFn({ data: { conversation_id: conversationId, limit: 100 } }),
   });
 
-  // Realtime for this conversation
+  // Platform-neutral polling (local Postgres has no browser realtime SDK).
   useEffect(() => {
-    const channel = supabase
-      .channel(`chat-conv-${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "direct_messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        () => {
-          refetch();
-          qc.invalidateQueries({ queryKey: ["chat-conversations"] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const timer = window.setInterval(() => {
+      void refetch();
+      void qc.invalidateQueries({ queryKey: ["chat-conversations"] });
+    }, 3_000);
+    return () => window.clearInterval(timer);
   }, [conversationId, refetch, qc]);
 
   // Mark read on open + when new messages arrive
@@ -403,13 +381,15 @@ function ConversationView({
         continue;
       }
       try {
-        const { path, token } = await createChatUploadUrl({
-          data: { conversation_id: conversationId, filename: f.name },
+        const data = await fileToBase64(f);
+        const { path } = await createChatUploadUrl({
+          data: {
+            conversation_id: conversationId,
+            filename: f.name,
+            content_type: f.type || "application/octet-stream",
+            data_base64: data,
+          },
         });
-        const { error } = await supabase.storage
-          .from("chat-attachments")
-          .uploadToSignedUrl(path, token, f);
-        if (error) throw error;
         setPending((p) => [...p, { path, name: f.name, mime: f.type || "application/octet-stream", size: f.size }]);
       } catch (e) {
         toast.error(`Upload failed: ${(e as Error).message}`);
@@ -551,6 +531,15 @@ function ConversationView({
       </div>
     </>
   );
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error("Could not read file"));
+    reader.onload = () => resolve(String(reader.result ?? "").split(",")[1] ?? "");
+    reader.readAsDataURL(file);
+  });
 }
 
 function MessageBubble({

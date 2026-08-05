@@ -38,6 +38,23 @@ const env = {
   OPSQAI_DEPLOYMENT_TYPE: "SelfHosted",
   OPSQAI_EDITION: cfg.license?.edition || "community",
   OPSQAI_INSTALL_ID: cfg.installId || "",
+  OPSQAI_TENANT_NAME: cfg.company?.name || "OPSQAI",
+
+  // --- Customer-owned AI provider ------------------------------------
+  AI_PROVIDER:
+    cfg.ai?.provider === "azure" ? "azure" :
+    cfg.ai?.provider && cfg.ai.provider !== "none" ? "openai-compatible" : "",
+  AZURE_OPENAI_RESOURCE_NAME: cfg.ai?.resourceName || cfg.ai?.resource_name || "",
+  AZURE_OPENAI_API_KEY: cfg.ai?.apiKey || cfg.ai?.api_key || "",
+  AZURE_OPENAI_API_VERSION: cfg.ai?.apiVersion || cfg.ai?.api_version || "2024-10-21",
+  AZURE_OPENAI_CHAT_DEPLOYMENT: cfg.ai?.chatModel || cfg.ai?.chat_model || "gpt-4o",
+  AZURE_OPENAI_CHAT_FAST_DEPLOYMENT: cfg.ai?.chatFastModel || cfg.ai?.chat_fast_model || "gpt-4o-mini",
+  AZURE_OPENAI_EMBEDDING_DEPLOYMENT: cfg.ai?.embeddingModel || cfg.ai?.embedding_model || "text-embedding-3-small",
+  GENERIC_AI_BASE_URL: cfg.ai?.baseUrl || cfg.ai?.base_url || "",
+  GENERIC_AI_API_KEY: cfg.ai?.apiKey || cfg.ai?.api_key || "",
+  GENERIC_AI_CHAT_MODEL: cfg.ai?.chatModel || cfg.ai?.chat_model || "gpt-4o",
+  GENERIC_AI_CHAT_FAST_MODEL: cfg.ai?.chatFastModel || cfg.ai?.chat_fast_model || "gpt-4o-mini",
+  GENERIC_AI_EMBEDDING_MODEL: cfg.ai?.embeddingModel || cfg.ai?.embedding_model || "text-embedding-3-small",
 
   // --- Filesystem layout (all under %ProgramData%\OPSQAI\) ------------
   OPSQAI_CONFIG_DIR: path.join(opsqaiData, "config"),

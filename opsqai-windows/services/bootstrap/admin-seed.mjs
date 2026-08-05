@@ -68,11 +68,11 @@ try {
   );
   const userId = up.rows[0].id;
 
-  // Grant admin role. Uses the canonical user_roles table so app-side
-  // has_role() checks pass without further seeding.
+  // The setup account is the protected installation owner. It receives
+  // every permission and cannot be demoted through normal member flows.
   await client.query(
     `INSERT INTO public.user_roles (user_id, role)
-     VALUES ($1, 'admin')
+     VALUES ($1, 'platform_owner')
      ON CONFLICT (user_id, role) DO NOTHING`,
     [userId],
   );
