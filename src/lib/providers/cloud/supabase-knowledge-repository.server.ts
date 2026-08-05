@@ -139,22 +139,27 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
     },
 
     async searchSimilar(company_id, query_embedding, limit): Promise<KnowledgeMatch[]> {
-      // Match RPC signature; if the RPC isn't deployed in a given environment
-      // we surface the provider error rather than silently returning [].
       const { data, error } = await (client.rpc as unknown as (
         fn: string,
         args: Record<string, unknown>,
-      ) => Promise<{ data: KnowledgeMatch[] | null; error: { message: string } | null }>)(
-        "match_knowledge_chunks",
-        {
-          p_company_id: company_id,
-          p_query: toVectorLiteral(query_embedding),
-          p_limit: limit,
-        },
-      );
+      ) => Promise<{
+        data: Array<{ document_id: string; chunk_index: number; content: string; similarity: number }> | null;
+        error: { message: string } | null;
+      }>)("match_document_chunks_for_company", {
+        query_embedding: toVectorLiteral(query_embedding),
+        match_count: limit,
+        min_similarity: 0.2,
+        _company_id: company_id,
+      });
       if (error) throw new Error(error.message);
-      return data ?? [];
+      return (data ?? []).map((row) => ({
+        document_id: row.document_id,
+        chunk_index: row.chunk_index,
+        content: row.content,
+        similarity: Number(row.similarity ?? 0),
+      }));
     },
+
     async getDocumentsByIds(ids) {
       if (ids.length === 0) return [];
       const { data, error } = await client
