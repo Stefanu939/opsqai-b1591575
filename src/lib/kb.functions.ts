@@ -10,6 +10,7 @@ import {
   getKnowledgeRepository,
   getStorageProvider,
 } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 const KB_BUCKET = "knowledge-docs";
 
@@ -247,7 +248,6 @@ export const getKnowledgeDocumentBlob = createServerFn({ method: "POST" })
     if (!filePath) return null;
     const bytes = await getStorageProvider().get(KB_BUCKET, filePath);
     let binary = "";
-import { uuidString } from "@/lib/zod-uuid";
     for (const b of bytes) binary += String.fromCharCode(b);
     const head = await getStorageProvider().head(KB_BUCKET, filePath);
     return {

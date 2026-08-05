@@ -9,6 +9,7 @@ import {
   requireAnyPermission,
   resolveCompanyForWrite,
 } from "@/lib/authorization";
+import { uuidString } from "@/lib/zod-uuid";
 
 const BUCKET = "workspace-temp";
 
@@ -191,7 +192,6 @@ export const registerWorkspaceFile = createServerFn({ method: "POST" })
     if (dl.error || !dl.data) throw new Error(dl.error?.message ?? "download failed");
     const buf = await dl.data.arrayBuffer();
     let extracted = "";
-import { uuidString } from "@/lib/zod-uuid";
     try {
       extracted = await extractWorkspaceText(buf, data.file_name, data.mime ?? "");
     } catch (e) {
