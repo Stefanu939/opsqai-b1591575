@@ -312,6 +312,39 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
       };
     },
 
+    async entitlements() {
+      try {
+        const verified = await readAndVerify();
+        const claims = normalizeInstallClaims(verified.install);
+        return {
+          unlimited: false,
+          installId: claims.install_id ?? null,
+          customer: claims.customer,
+          edition: claims.edition as string,
+          seats: claims.seats ?? null,
+          modules: verified.modules.map((m) => m.claims.module).filter(Boolean) as string[],
+          expiresAt: expirySeconds(claims),
+          maintenanceExpiresAt:
+            typeof claims.maintenance_expires_at === "number" ? claims.maintenance_expires_at : null,
+          revoked: false,
+        };
+      } catch {
+        // No license file / expired / tampered → basic bundle only.
+        return {
+          unlimited: false,
+          installId: null,
+          customer: null,
+          edition: "community",
+          seats: null,
+          modules: [] as string[],
+          expiresAt: null,
+          maintenanceExpiresAt: null,
+          revoked: false,
+        };
+      }
+    },
+
+
     async heartbeat(input: HeartbeatInput) {
       if (!deps.heartbeatUrl) return { ok: true }; // offline mode
       try {

@@ -117,6 +117,19 @@ class CloudLicensingProvider implements ILicensingProvider {
   async latestRelease() {
     return null;
   }
+  async entitlements() {
+    return {
+      unlimited: true,
+      installId: null,
+      customer: null,
+      edition: Edition.Enterprise as string,
+      seats: null,
+      modules: [] as string[],
+      expiresAt: null,
+      maintenanceExpiresAt: null,
+      revoked: false,
+    };
+  }
 }
 
 /**

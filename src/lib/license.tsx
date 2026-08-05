@@ -12,8 +12,9 @@
 // This file is purely additive — nothing imports it yet unless a route
 // opts in via <ModuleGate> or useLicense().
 
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { BASIC_MODULES, effectiveModules, type ModuleKey } from "@/lib/license-modules";
+import { getLicenseEntitlements } from "@/lib/license.functions";
 
 export type DeploymentMode = "cloud" | "selfhost";
 
@@ -156,12 +157,50 @@ function buildSelfHostState(): LicenseState {
 const LicenseContext = createContext<LicenseState | null>(null);
 
 export function LicenseProvider({ children }: { children: ReactNode }) {
-  const value = useMemo<LicenseState>(() => {
+  const base = useMemo<LicenseState>(() => {
     const mode = resolveMode();
     return mode === "cloud" ? CLOUD_STATE : buildSelfHostState();
   }, []);
+  const [value, setValue] = useState<LicenseState>(base);
+
+  useEffect(() => {
+    if (base.mode !== "selfhost") return;
+    let cancelled = false;
+    getLicenseEntitlements()
+      .then((ent) => {
+        if (cancelled || !ent) return;
+        const now = Math.floor(Date.now() / 1000);
+        const expired = typeof ent.expiresAt === "number" && ent.expiresAt < now;
+        setValue({
+          mode: "selfhost",
+          install_id: ent.installId,
+          company_name: ent.customer,
+          tier: (ent.edition === "enterprise"
+            ? "enterprise"
+            : ent.edition === "business"
+              ? "business"
+              : ent.edition === "standard" || ent.edition === "professional"
+                ? "standard"
+                : "basic") as LicenseState["tier"],
+          modules: effectiveModules(ent.modules),
+          max_users: ent.seats,
+          expires_at: ent.expiresAt,
+          maintenance_expires_at: ent.maintenanceExpiresAt,
+          revoked: expired || ent.revoked,
+          unlimited: ent.unlimited,
+        });
+      })
+      .catch(() => {
+        /* keep the basic-bundle fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [base.mode]);
+
   return <LicenseContext.Provider value={value}>{children}</LicenseContext.Provider>;
 }
+
 
 export function useLicense(): LicenseState {
   return useContext(LicenseContext) ?? CLOUD_STATE;
