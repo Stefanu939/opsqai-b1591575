@@ -6,6 +6,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type {
+  AcademyDepartmentRow,
+  AcademyDepartmentUpsertInput,
+  AcademyEnrichedEnrollmentRow,
+  AcademyEnrollmentPairRow,
+  AcademyEnrollmentWithPathRow,
+  AcademyEnrollmentWithProfileRow,
+  AcademyPathRefRow,
+  AcademyTrainingSummary,
   AcademyCertificateRow,
   AcademyCertificateUpsertInput,
   AcademyCertificateVerification,
@@ -725,6 +733,294 @@ export function createSupabaseAcademyRepository(client: AnyClient): IAcademyRepo
           is_overdue: e.status !== "completed" && !!e.due_at && new Date(e.due_at).getTime() < now,
         };
       });
+    },
+
+    async listDepartments(companyId): Promise<AcademyDepartmentRow[]> {
+      const { data, error } = await client
+        .from("academy_departments")
+        .select("id, name, description, created_at, company_id")
+        .eq("company_id", companyId)
+        .order("name");
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((r: any) => ({
+        id: r.id,
+        companyId: r.company_id,
+        name: r.name,
+        description: r.description ?? null,
+        createdAt: r.created_at,
+      }));
+    },
+
+    async upsertDepartment(input: AcademyDepartmentUpsertInput) {
+      if (input.id) {
+        const { error } = await client
+          .from("academy_departments")
+          .update({ name: input.name, description: input.description ?? null })
+          .eq("id", input.id);
+        if (error) throw new Error(error.message);
+        return { id: input.id };
+      }
+      const { data, error } = await client
+        .from("academy_departments")
+        .insert({ name: input.name, description: input.description ?? null, company_id: input.companyId })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      return { id: data.id as string };
+    },
+
+    async listMyTrainingEnrollments(userId): Promise<AcademyEnrichedEnrollmentRow[]> {
+      const { data: enrollments, error } = await client
+        .from("academy_enrollments")
+        .select(
+          `id, status, mandatory, priority, due_at, started_at, completed_at, created_at,
+           assigned_by, path_id,
+           academy_learning_paths (
+             id, title, description, language,
+             academy_departments ( name )
+           )`,
+        )
+        .eq("user_id", userId)
+        .neq("status", "revoked")
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      if (!enrollments?.length) return [];
+
+      const pathIds = Array.from(new Set(enrollments.map((e: any) => e.path_id)));
+      const enrollmentIds = enrollments.map((e: any) => e.id);
+      const assignedByIds = Array.from(
+        new Set(enrollments.map((e: any) => e.assigned_by).filter(Boolean)),
+      );
+
+      const [chaptersRes, progressRes, certsRes, profilesRes] = await Promise.all([
+        client
+          .from("academy_chapters")
+          .select("id, path_id, academy_lessons(id, estimated_minutes)")
+          .in("path_id", pathIds),
+        client
+          .from("academy_lesson_progress")
+          .select("enrollment_id, status")
+          .in("enrollment_id", enrollmentIds),
+        client
+          .from("academy_certificates")
+          .select("id, certificate_code, enrollment_id")
+          .in("enrollment_id", enrollmentIds),
+        assignedByIds.length
+          ? client.from("profiles").select("id, full_name, first_name, last_name").in("id", assignedByIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const lessonsByPath = new Map<string, { total: number; minutes: number }>();
+      for (const ch of chaptersRes.data ?? []) {
+        const bucket = lessonsByPath.get((ch as any).path_id) ?? { total: 0, minutes: 0 };
+        for (const l of (ch as any).academy_lessons ?? []) {
+          bucket.total += 1;
+          bucket.minutes += Number(l.estimated_minutes ?? 0);
+        }
+        lessonsByPath.set((ch as any).path_id, bucket);
+      }
+
+      const completedByEnroll = new Map<string, number>();
+      for (const p of progressRes.data ?? []) {
+        if ((p as any).status === "completed") {
+          completedByEnroll.set(
+            (p as any).enrollment_id,
+            (completedByEnroll.get((p as any).enrollment_id) ?? 0) + 1,
+          );
+        }
+      }
+
+      const certByEnroll = new Map<string, any>();
+      for (const c of certsRes.data ?? []) certByEnroll.set((c as any).enrollment_id, c);
+
+      const profByUser = new Map<string, any>();
+      for (const p of profilesRes.data ?? []) profByUser.set((p as any).id, p);
+
+      const now = Date.now();
+      return enrollments.map((e: any): AcademyEnrichedEnrollmentRow => {
+        const path = e.academy_learning_paths;
+        const total = lessonsByPath.get(e.path_id)?.total ?? 0;
+        const completed = completedByEnroll.get(e.id) ?? 0;
+        const minutes = lessonsByPath.get(e.path_id)?.minutes ?? 0;
+        const percent =
+          e.status === "completed" ? 100 : total === 0 ? 0 : Math.round((completed / total) * 100);
+        const assignedBy = e.assigned_by ? profByUser.get(e.assigned_by) : null;
+        const cert = certByEnroll.get(e.id) ?? null;
+        const overdue = e.status !== "completed" && !!e.due_at && new Date(e.due_at).getTime() < now;
+        return {
+          id: e.id,
+          status: e.status,
+          mandatory: e.mandatory,
+          priority: e.priority ?? "normal",
+          due_at: e.due_at,
+          started_at: e.started_at,
+          completed_at: e.completed_at,
+          created_at: e.created_at,
+          path: {
+            id: path?.id,
+            title: path?.title ?? "Untitled course",
+            description: path?.description ?? null,
+            language: path?.language ?? "en",
+            department: path?.academy_departments?.name ?? null,
+          },
+          progress: {
+            total_lessons: total,
+            completed_lessons: completed,
+            percent,
+            estimated_minutes: minutes,
+          },
+          assigned_by: assignedBy
+            ? {
+                id: assignedBy.id,
+                name:
+                  assignedBy.full_name ??
+                  [assignedBy.first_name, assignedBy.last_name].filter(Boolean).join(" ") ??
+                  "Manager",
+              }
+            : null,
+          certificate: cert ? { id: cert.id, code: cert.certificate_code } : null,
+          is_overdue: overdue,
+        };
+      });
+    },
+
+    async getMyTrainingSummary(userId): Promise<AcademyTrainingSummary> {
+      const [enrollmentsRes, certsRes, quizzesRes] = await Promise.all([
+        client
+          .from("academy_enrollments")
+          .select("id, status, mandatory, due_at, path_id")
+          .eq("user_id", userId),
+        client.from("academy_certificates").select("id").eq("user_id", userId),
+        client.from("academy_quiz_attempts").select("score").eq("user_id", userId),
+      ]);
+
+      const enrollments = enrollmentsRes.data ?? [];
+      const now = Date.now();
+      const in14d = now + 14 * 24 * 60 * 60 * 1000;
+
+      const active = enrollments.filter(
+        (e: any) => e.status !== "completed" && e.status !== "revoked",
+      );
+      const mandatoryActive = active.filter((e: any) => e.mandatory);
+      const upcoming = active.filter((e: any) => e.due_at && new Date(e.due_at).getTime() < in14d);
+
+      const enrollmentIds = active.map((e: any) => e.id);
+      let learningPct = 0;
+      if (enrollmentIds.length) {
+        const pathIds = Array.from(new Set(active.map((e: any) => e.path_id)));
+        const [{ data: chapters }, { data: progress }] = await Promise.all([
+          client
+            .from("academy_chapters")
+            .select("path_id, academy_lessons(id)")
+            .in("path_id", pathIds),
+          client
+            .from("academy_lesson_progress")
+            .select("enrollment_id, status")
+            .in("enrollment_id", enrollmentIds),
+        ]);
+        const totalByPath = new Map<string, number>();
+        for (const ch of chapters ?? []) {
+          totalByPath.set(
+            (ch as any).path_id,
+            (totalByPath.get((ch as any).path_id) ?? 0) + ((ch as any).academy_lessons?.length ?? 0),
+          );
+        }
+        const doneByEnroll = new Map<string, number>();
+        for (const p of progress ?? []) {
+          if ((p as any).status === "completed")
+            doneByEnroll.set(
+              (p as any).enrollment_id,
+              (doneByEnroll.get((p as any).enrollment_id) ?? 0) + 1,
+            );
+        }
+        let tot = 0,
+          done = 0;
+        for (const e of active) {
+          const t = totalByPath.get(e.path_id) ?? 0;
+          tot += t;
+          done += Math.min(doneByEnroll.get(e.id) ?? 0, t);
+        }
+        learningPct = tot === 0 ? 0 : Math.round((done / tot) * 100);
+      }
+
+      const scores = (quizzesRes.data ?? [])
+        .map((r: any) => Number(r.score))
+        .filter((n: number) => !Number.isNaN(n));
+      const avgQuiz = scores.length
+        ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
+        : null;
+
+      return {
+        mandatory_active: mandatoryActive.length,
+        certificates: (certsRes.data ?? []).length,
+        average_quiz_score: avgQuiz,
+        learning_progress_percent: learningPct,
+        upcoming_deadlines: upcoming.length,
+      };
+    },
+
+    async listEnrollmentsByUserWithPath(userId): Promise<AcademyEnrollmentWithPathRow[]> {
+      const { data, error } = await client
+        .from("academy_enrollments")
+        .select(
+          "*, academy_learning_paths(id, title, description, language, passing_score, academy_departments(name))",
+        )
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((r: any) => ({
+        ...r,
+        academy_learning_paths: r.academy_learning_paths
+          ? {
+              id: r.academy_learning_paths.id,
+              title: r.academy_learning_paths.title,
+              description: r.academy_learning_paths.description ?? null,
+              language: r.academy_learning_paths.language,
+              passing_score: r.academy_learning_paths.passing_score,
+              department_name: r.academy_learning_paths.academy_departments?.name ?? null,
+            }
+          : null,
+      }));
+    },
+
+    async listEnrollmentsByPathWithProfile(pathId): Promise<AcademyEnrollmentWithProfileRow[]> {
+      const { data: rows, error } = await client
+        .from("academy_enrollments")
+        .select(
+          "id, user_id, status, mandatory, priority, due_at, started_at, completed_at, created_at, company_id, path_id, assigned_by",
+        )
+        .eq("path_id", pathId)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      const userIds = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
+      if (userIds.length === 0) return [];
+      const { data: profiles } = await client
+        .from("profiles")
+        .select("id, full_name, first_name, last_name")
+        .in("id", userIds);
+      const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      return (rows ?? []).map((r: any) => ({ ...r, profile: byId.get(r.user_id) ?? null }));
+    },
+
+    async listLearningPathsByIds(ids): Promise<AcademyPathRefRow[]> {
+      if (!ids.length) return [];
+      const { data, error } = await client
+        .from("academy_learning_paths")
+        .select("id, company_id, title")
+        .in("id", ids);
+      if (error) throw new Error(error.message);
+      return (data ?? []) as AcademyPathRefRow[];
+    },
+
+    async listExistingEnrollmentPairs(pathIds, userIds): Promise<AcademyEnrollmentPairRow[]> {
+      if (!pathIds.length || !userIds.length) return [];
+      const { data, error } = await client
+        .from("academy_enrollments")
+        .select("path_id, user_id")
+        .in("path_id", pathIds)
+        .in("user_id", userIds);
+      if (error) throw new Error(error.message);
+      return (data ?? []) as AcademyEnrollmentPairRow[];
     },
   };
 }

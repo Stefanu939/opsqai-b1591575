@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type {
   IKnowledgeRepository,
+  KnowledgeChunkContentRow,
   KnowledgeChunkInsert,
   KnowledgeDocumentInsert,
   KnowledgeDocumentRow,
@@ -172,6 +173,29 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
         section: row.section, page: row.page, departmentId: row.department_id,
         updatedAt: row.updated_at,
       }));
+    },
+
+    async getChunksContent(documentId, limit) {
+      const { data, error } = await client
+        .from("document_chunks")
+        .select("content")
+        .eq("document_id", documentId)
+        .order("chunk_index", { ascending: true })
+        .limit(limit);
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((row: any) => row.content as string);
+    },
+
+    async getChunksForDocuments(documentIds, limit): Promise<KnowledgeChunkContentRow[]> {
+      if (documentIds.length === 0) return [];
+      const { data, error } = await client
+        .from("document_chunks")
+        .select("document_id, chunk_index, content")
+        .in("document_id", documentIds)
+        .order("chunk_index", { ascending: true })
+        .limit(limit);
+      if (error) throw new Error(error.message);
+      return (data ?? []) as KnowledgeChunkContentRow[];
     },
   };
 }
