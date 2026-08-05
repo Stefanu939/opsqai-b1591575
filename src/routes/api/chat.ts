@@ -43,8 +43,8 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
 
   if(isCapability){
     try{
-      const [docs,faqs]=await Promise.all([getKnowledgeRepository(dataCtx).list(companyId),getFaqRepository(dataCtx).list(companyId)]);
-      overview=`Available knowledge documents (${docs.length}): ${docs.slice(0,15).map((d)=>d.title).join("; ")}\nFrequent questions (${faqs.length}): ${faqs.slice(0,10).map((f)=>f.question_en).join("; ")}`;
+      const [docs,faqs]=await Promise.all([getKnowledgeRepository(dataCtx).listDocuments(companyId,false),getFaqRepository(dataCtx).list(companyId)]);
+      overview=`Available knowledge documents (${docs.length}): ${docs.slice(0,15).map((d:{title:string})=>d.title).join("; ")}\nFrequent questions (${faqs.length}): ${faqs.slice(0,10).map((f:{question_en:string})=>f.question_en).join("; ")}`;
     }catch(error){console.error("[chat:overview]",error);}
   } else if(!isGreeting&&query){
     try{
