@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
+import { uuidString } from "@/lib/zod-uuid";
 
 async function resolveCompany(context: { supabase: any; userId: string }, hint?: string | null) {
   await requirePermission(context, "dashboard.view");
@@ -26,7 +27,7 @@ async function resolveCompany(context: { supabase: any; userId: string }, hint?:
   return { companyId, isPlatform };
 }
 
-const CompanyArg = z.object({ companyId: z.string().uuid().optional().nullable() }).optional();
+const CompanyArg = z.object({ companyId: uuidString().optional().nullable() }).optional();
 
 export const getDashboardOverview = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -52,7 +53,7 @@ export const getDashboardOverview = createServerFn({ method: "POST" })
   });
 
 const ActivityArg = z.object({
-  companyId: z.string().uuid().optional().nullable(),
+  companyId: uuidString().optional().nullable(),
   from: z.string(),
   to: z.string(),
   bucket: z.enum(["hour", "day", "week"]).default("day"),
@@ -152,7 +153,7 @@ export const getDashboardLayout = createServerFn({ method: "POST" })
 
 const SearchArg = z.object({
   q: z.string().min(1),
-  companyId: z.string().uuid().optional().nullable(),
+  companyId: uuidString().optional().nullable(),
 });
 export const globalSearch = createServerFn({ method: "POST" })
   .middleware([requireAuth])

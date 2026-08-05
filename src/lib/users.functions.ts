@@ -10,6 +10,7 @@ import {
   getAdminRoleRepository,
   getAuthAdminProvider,
 } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 const RoleKey = z.string().regex(/^[a-z][a-z0-9_]{1,63}$/);
 
@@ -110,9 +111,9 @@ export const createUser = createServerFn({ method: "POST" })
         last_name: z.string().optional(),
         position: z.string().optional(),
         phone: z.string().optional(),
-        department_id: z.string().uuid().optional().nullable(),
+        department_id: uuidString().optional().nullable(),
         role: RoleKey,
-        company_id: z.string().uuid().optional(),
+        company_id: uuidString().optional(),
         /**
          * Self-Hosted: force password change on first sign-in (temp-password flow).
          * Cloud: recorded in user_metadata so the app can prompt.
@@ -180,8 +181,8 @@ export const inviteUser = createServerFn({ method: "POST" })
       .object({
         email: z.string().email(),
         role: RoleKey,
-        department_id: z.string().uuid().optional().nullable(),
-        company_id: z.string().uuid().optional(),
+        department_id: uuidString().optional().nullable(),
+        company_id: uuidString().optional(),
         first_name: z.string().optional(),
         last_name: z.string().optional(),
       })
@@ -251,12 +252,12 @@ export const updateUser = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        user_id: z.string().uuid(),
+        user_id: uuidString(),
         first_name: z.string().optional().nullable(),
         last_name: z.string().optional().nullable(),
         position: z.string().optional().nullable(),
         phone: z.string().optional().nullable(),
-        department_id: z.string().uuid().optional().nullable(),
+        department_id: uuidString().optional().nullable(),
         is_active: z.boolean().optional(),
         roles: z.array(RoleKey).optional(),
       })
@@ -308,7 +309,7 @@ export const updateUser = createServerFn({ method: "POST" })
 
 export const deleteUser = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { user_id: string }) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { user_id: string }) => z.object({ user_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["user.delete", "platform.manage"]);
     const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
@@ -327,7 +328,7 @@ export const resetUserPassword = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        user_id: z.string().uuid(),
+        user_id: uuidString(),
         new_password: z.string().min(8),
         must_change_password: z.boolean().optional(),
       })
@@ -360,7 +361,7 @@ export const createDepartment = createServerFn({ method: "POST" })
     z
       .object({
         name: z.string().trim().min(1).max(80),
-        company_id: z.string().uuid().optional(),
+        company_id: uuidString().optional(),
       })
       .parse(d),
   )
@@ -390,7 +391,7 @@ export const updateMyProfile = createServerFn({ method: "POST" })
         last_name: z.string().optional().nullable(),
         position: z.string().optional().nullable(),
         phone: z.string().optional().nullable(),
-        department_id: z.string().uuid().optional().nullable(),
+        department_id: uuidString().optional().nullable(),
         language_pref: z.enum(["de", "en", "ro"]).optional(),
       })
       .parse(d),

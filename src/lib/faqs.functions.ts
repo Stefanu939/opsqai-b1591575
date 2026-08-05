@@ -3,21 +3,22 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
 import { getFaqRepository } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 const FaqInput = z.object({
-  id: z.string().uuid().optional(),
+  id: uuidString().optional(),
   question_de: z.string().min(1),
   question_en: z.string().min(1),
   answer_de: z.string().min(1),
   answer_en: z.string().min(1),
   category: z.string().min(1),
-  company_id: z.string().uuid().optional().nullable(),
+  company_id: uuidString().optional().nullable(),
 });
 
 export const listFaqs = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+    z.object({ company_id: uuidString().nullable().optional() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const repo = getFaqRepository(context.supabase);
@@ -65,7 +66,7 @@ export const upsertFaq = createServerFn({ method: "POST" })
 
 export const deleteFaq = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["faq.delete", "knowledge.manage"]);
     await getFaqRepository(context.supabase).delete(data.id);

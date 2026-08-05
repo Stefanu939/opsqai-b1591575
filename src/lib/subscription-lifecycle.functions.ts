@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requirePlatformAdmin, getProfileCompany, getActorRoles } from "@/lib/authorization";
+import { uuidString } from "@/lib/zod-uuid";
 
 const STATUS = z.enum(["trial", "active", "grace_period", "suspended", "cancelled"]);
 const ActorKind = z.enum(["system", "platform_admin", "company_admin"]);
@@ -53,7 +54,7 @@ async function notify(companyId: string, kind: string, title: string, body: stri
 /** Read the current lifecycle state for a company. */
 export const getSubscriptionState = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ company_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ company_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireCompanyOrPlatform(context, data.company_id);
     const { data: row, error } = await getCloudSupabase(context, "subscription-lifecycle")
@@ -84,7 +85,7 @@ export const listSubscriptionEvents = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
-      .object({ company_id: z.string().uuid(), limit: z.number().int().min(1).max(200).optional() })
+      .object({ company_id: uuidString(), limit: z.number().int().min(1).max(200).optional() })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -108,7 +109,7 @@ export const changeSubscriptionStatus = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid(),
+        company_id: uuidString(),
         to_status: STATUS,
         reason: z.string().max(500).optional().nullable(),
       })
@@ -167,7 +168,7 @@ export const adjustGracePeriod = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid(),
+        company_id: uuidString(),
         ends_at: z.string().datetime().nullable().optional(),
         add_days: z.number().int().min(-90).max(90).optional(),
         reason: z.string().max(500).optional().nullable(),
@@ -217,7 +218,7 @@ export const updateRenewalDate = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid(),
+        company_id: uuidString(),
         renewal_date: z.string().datetime().nullable(),
         next_invoice_due_at: z.string().datetime().nullable().optional(),
         reason: z.string().max(500).optional().nullable(),
@@ -253,7 +254,7 @@ export const setBillingOverride = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid(),
+        company_id: uuidString(),
         enabled: z.boolean(),
         reason: z.string().max(500).optional().nullable(),
       })
@@ -279,7 +280,7 @@ export const setBillingOverride = createServerFn({ method: "POST" })
 export const setInternalNotes = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid(), notes: z.string().max(5000).nullable() }).parse(d),
+    z.object({ company_id: uuidString(), notes: z.string().max(5000).nullable() }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
@@ -303,7 +304,7 @@ export const recordPayment = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid(),
+        company_id: uuidString(),
         paid_at: z.string().datetime().optional().nullable(),
         reactivate: z.boolean().default(true),
         reason: z.string().max(500).optional().nullable(),
@@ -364,7 +365,7 @@ export const runLifecycleTick = createServerFn({ method: "POST" })
 export const setGracePeriodDays = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid(), days: z.number().int().min(0).max(90) }).parse(d),
+    z.object({ company_id: uuidString(), days: z.number().int().min(0).max(90) }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);

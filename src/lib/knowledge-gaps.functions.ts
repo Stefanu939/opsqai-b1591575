@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission } from "@/lib/authorization";
+import { uuidString } from "@/lib/zod-uuid";
 
 export const listKnowledgeGaps = createServerFn({ method: "GET" })
   .middleware([requireAuth])
@@ -75,12 +76,12 @@ export const updateKnowledgeGap = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        id: z.string().uuid(),
+        id: uuidString(),
         status: z.enum(["open", "in_progress", "resolved", "ignored"]).optional(),
-        assignee_id: z.string().uuid().nullable().optional(),
+        assignee_id: uuidString().nullable().optional(),
         resolution: z.enum(["sop", "faq", "dismissed"]).nullable().optional(),
-        resolved_document_id: z.string().uuid().nullable().optional(),
-        resolved_faq_id: z.string().uuid().nullable().optional(),
+        resolved_document_id: uuidString().nullable().optional(),
+        resolved_faq_id: uuidString().nullable().optional(),
       })
       .parse(d),
   )
@@ -101,7 +102,7 @@ export const updateKnowledgeGap = createServerFn({ method: "POST" })
 
 export const deleteKnowledgeGap = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "analytics.view"]);
     const { error } = await getCloudSupabase(context, "knowledge-gaps").from("knowledge_gaps").delete().eq("id", data.id);

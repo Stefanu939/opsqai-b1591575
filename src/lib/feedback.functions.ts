@@ -8,13 +8,14 @@ import {
   getKnowledgeGapRepository,
   getMessageRepository,
 } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 export const rateMessage = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
-        message_id: z.string().uuid(),
+        message_id: uuidString(),
         rating: z.union([z.literal(-1), z.literal(1)]),
         comment: z.string().optional(),
       })

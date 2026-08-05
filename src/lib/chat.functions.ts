@@ -2,13 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { getDirectMessageRepository } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 export type ChatContact = { id:string; full_name:string; email:string; avatar_url:string|null; is_staff:boolean; is_colleague:boolean };
 export type ChatAttachment = { path:string; name:string; mime:string; size:number };
 export type ChatMessage = { id:string; conversation_id:string; sender_id:string; body:string|null; attachments:ChatAttachment[]; created_at:string; edited_at:string|null; deleted_at:string|null };
 export type ChatConversation = { id:string; created_at:string; last_message_at:string; peer:ChatContact|null; last_message:{body:string|null;created_at:string;sender_id:string;has_attachments:boolean}|null; unread_count:number };
 
-const uuid=z.string().uuid();
+const uuid=uuidString();
 const attachment=z.object({path:z.string().min(1).max(400),name:z.string().min(1).max(200),mime:z.string().min(1).max(200),size:z.number().int().min(0).max(25*1024*1024)});
 const contactDto=(r:{id:string;fullName:string;email:string;avatarUrl:string|null;isStaff:boolean;isColleague:boolean}):ChatContact=>({id:r.id,full_name:r.fullName,email:r.email,avatar_url:r.avatarUrl,is_staff:r.isStaff,is_colleague:r.isColleague});
 const messageDto=(r:{id:string;conversationId:string;senderId:string;body:string|null;attachments:unknown[];createdAt:string;editedAt:string|null;deletedAt:string|null}):ChatMessage=>({id:r.id,conversation_id:r.conversationId,sender_id:r.senderId,body:r.body,attachments:r.attachments as ChatAttachment[],created_at:r.createdAt,edited_at:r.editedAt,deleted_at:r.deletedAt});

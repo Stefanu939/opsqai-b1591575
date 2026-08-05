@@ -11,6 +11,7 @@ import {
   getProfileCompany,
 } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
+import { uuidString } from "@/lib/zod-uuid";
 
 const ACADEMY_MODULE = "academy" as const;
 
@@ -56,7 +57,7 @@ async function enforceAcademyForCurrentUser(context: { supabase: any; userId: st
 export const listAcademyDepartments = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
@@ -74,10 +75,10 @@ export const upsertAcademyDepartment = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        id: z.string().uuid().optional(),
+        id: uuidString().optional(),
         name: z.string().min(1),
         description: z.string().optional().nullable(),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )
@@ -104,8 +105,8 @@ export const upsertAcademyDepartment = createServerFn({ method: "POST" })
 /* --------------------------- Learning Paths --------------------------- */
 
 const PathInput = z.object({
-  id: z.string().uuid().optional(),
-  department_id: z.string().uuid().optional().nullable(),
+  id: uuidString().optional(),
+  department_id: uuidString().optional().nullable(),
   title: z.string().min(1),
   description: z.string().optional().nullable(),
   language: z.string().default("en"),
@@ -117,7 +118,7 @@ const PathInput = z.object({
   passing_score: z.number().int().min(0).max(100).default(70),
   difficulty: z.string().default("standard"),
   publish_status: z.enum(["draft", "published", "archived"]).default("draft"),
-  company_id: z.string().uuid().optional().nullable(),
+  company_id: uuidString().optional().nullable(),
 });
 
 export const listAcademyPaths = createServerFn({ method: "POST" })
@@ -125,8 +126,8 @@ export const listAcademyPaths = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        company_id: z.string().uuid().optional().nullable(),
-        department_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
+        department_id: uuidString().optional().nullable(),
         publish_status: z.string().optional(),
       })
       .parse(d ?? {}),
@@ -173,7 +174,7 @@ export const upsertAcademyPath = createServerFn({ method: "POST" })
 
 export const deleteAcademyPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { error } = await (getCloudSupabase(context, "academy") as any)
@@ -186,7 +187,7 @@ export const deleteAcademyPath = createServerFn({ method: "POST" })
 
 export const getAcademyPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: path, error } = await (getCloudSupabase(context, "academy") as any)
       .from("academy_learning_paths")
@@ -223,12 +224,12 @@ export const upsertAcademyChapter = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        id: z.string().uuid().optional(),
-        path_id: z.string().uuid(),
+        id: uuidString().optional(),
+        path_id: uuidString(),
         title: z.string().min(1),
         summary: z.string().optional().nullable(),
         order_index: z.number().int().default(0),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )
@@ -260,7 +261,7 @@ export const upsertAcademyChapter = createServerFn({ method: "POST" })
 
 export const deleteAcademyChapter = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { error } = await (getCloudSupabase(context, "academy") as any)
@@ -274,8 +275,8 @@ export const deleteAcademyChapter = createServerFn({ method: "POST" })
 /* ------------------------------- Lessons ----------------------------- */
 
 const LessonInput = z.object({
-  id: z.string().uuid().optional(),
-  chapter_id: z.string().uuid(),
+  id: uuidString().optional(),
+  chapter_id: uuidString(),
   title: z.string().min(1),
   objectives: z.array(z.string()).default([]),
   explanation: z.string().optional().nullable(),
@@ -284,10 +285,10 @@ const LessonInput = z.object({
   summary: z.string().optional().nullable(),
   language: z.string().default("en"),
   estimated_minutes: z.number().int().min(1).max(240).default(10),
-  source_document_id: z.string().uuid().optional().nullable(),
+  source_document_id: uuidString().optional().nullable(),
   publish_status: z.enum(["draft", "published", "archived"]).default("draft"),
   order_index: z.number().int().default(0),
-  company_id: z.string().uuid().optional().nullable(),
+  company_id: uuidString().optional().nullable(),
 });
 
 export const upsertAcademyLesson = createServerFn({ method: "POST" })
@@ -317,7 +318,7 @@ export const upsertAcademyLesson = createServerFn({ method: "POST" })
 
 export const deleteAcademyLesson = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { error } = await (getCloudSupabase(context, "academy") as any)
@@ -330,7 +331,7 @@ export const deleteAcademyLesson = createServerFn({ method: "POST" })
 
 export const getAcademyLesson = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: lesson, error } = await (getCloudSupabase(context, "academy") as any)
       .from("academy_lessons")
@@ -346,7 +347,7 @@ export const getAcademyLesson = createServerFn({ method: "POST" })
 
 export const listAcademyLessonVersions = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ lesson_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ lesson_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { data: rows, error } = await (getCloudSupabase(context, "academy") as any)
@@ -361,7 +362,7 @@ export const listAcademyLessonVersions = createServerFn({ method: "POST" })
 export const restoreAcademyLessonVersion = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ lesson_id: z.string().uuid(), version: z.number().int() }).parse(d),
+    z.object({ lesson_id: uuidString(), version: z.number().int() }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
@@ -502,11 +503,11 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        document_id: z.string().uuid(),
-        chapter_id: z.string().uuid(),
+        document_id: uuidString(),
+        chapter_id: uuidString(),
         language: z.string().default("en"),
         auto_publish: z.boolean().default(false),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )
@@ -597,11 +598,11 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        document_ids: z.array(z.string().uuid()).min(1).max(15),
-        department_id: z.string().uuid().optional().nullable(),
+        document_ids: z.array(uuidString()).min(1).max(15),
+        department_id: uuidString().optional().nullable(),
         language: z.string().default("en"),
         target_role: z.string().optional().nullable(),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )
@@ -753,7 +754,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        lesson_id: z.string().uuid(),
+        lesson_id: uuidString(),
         language: z.string().default("en"),
         count: z.number().int().min(2).max(5).default(4),
       })
@@ -874,8 +875,8 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
   });
 
 const SubmitSchema = z.object({
-  attempt_id: z.string().uuid(),
-  enrollment_id: z.string().uuid().optional().nullable(),
+  attempt_id: uuidString(),
+  enrollment_id: uuidString().optional().nullable(),
   answers: z.array(z.string()),
   duration_seconds: z.number().int().optional(),
   time_spent_seconds: z.number().int().optional(),
@@ -1008,7 +1009,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
 
 export const enrollSelf = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAcademyForCurrentUser(context);
     const { data: path } = await (getCloudSupabase(context, "academy") as any)
@@ -1045,8 +1046,8 @@ export const assignEnrollment = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        path_id: z.string().uuid(),
-        user_ids: z.array(z.string().uuid()).min(1),
+        path_id: uuidString(),
+        user_ids: z.array(uuidString()).min(1),
         due_at: z.string().datetime().optional().nullable(),
         mandatory: z.boolean().default(false),
       })
@@ -1080,7 +1081,7 @@ export const assignEnrollment = createServerFn({ method: "POST" })
 /** List all learners already assigned to a path (managers/admins only). */
 export const listPathAssignments = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { data: rows, error } = await (getCloudSupabase(context, "academy") as any)
@@ -1104,7 +1105,7 @@ export const listPathAssignments = createServerFn({ method: "POST" })
 /** List profiles for the same company as a path (used by the Assign picker). */
 export const listAssignablePathLearners = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ path_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { data: path } = await (getCloudSupabase(context, "academy") as any)
@@ -1125,7 +1126,7 @@ export const listAssignablePathLearners = createServerFn({ method: "POST" })
 
 export const removeEnrollment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ enrollment_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePermission(context, "academy.manage");
     const { error } = await (getCloudSupabase(context, "academy") as any)
@@ -1158,7 +1159,7 @@ export const listMyEnrollments = createServerFn({ method: "POST" })
 
 export const startEnrollment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAcademyForCurrentUser(context);
     await (getCloudSupabase(context, "academy") as any)
@@ -1172,7 +1173,7 @@ export const startEnrollment = createServerFn({ method: "POST" })
 
 export const getEnrollmentProgress = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ enrollment_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAcademyForCurrentUser(context);
     const { data: rows } = await (getCloudSupabase(context, "academy") as any)
@@ -1184,7 +1185,7 @@ export const getEnrollmentProgress = createServerFn({ method: "POST" })
 
 export const completeEnrollment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ enrollment_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ enrollment_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAcademyForCurrentUser(context);
     const { data: enroll } = await (getCloudSupabase(context, "academy") as any)
@@ -1277,7 +1278,7 @@ export const listMyCertificates = createServerFn({ method: "POST" })
 
 export const certificateSignedUrl = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await enforceAcademyForCurrentUser(context);
     const { data: cert } = await (getCloudSupabase(context, "academy") as any)
@@ -1307,7 +1308,7 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
 export const academyDashboard = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
@@ -1358,7 +1359,7 @@ export const academySuggestPath = createServerFn({ method: "POST" })
 export const getAcademySettings = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ company_id: z.string().uuid().optional().nullable() }).parse(d ?? {}),
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const companyId = await companyForRead(context, data.company_id ?? null);
@@ -1390,7 +1391,7 @@ export const saveAcademySettings = createServerFn({ method: "POST" })
         quiz_max: z.number().int().min(1).max(20),
         default_difficulty: z.string(),
         languages: z.array(z.string()).min(1),
-        company_id: z.string().uuid().optional().nullable(),
+        company_id: uuidString().optional().nullable(),
       })
       .parse(d),
   )

@@ -2,10 +2,11 @@ import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
+import { uuidString } from "@/lib/zod-uuid";
 
 export const acknowledgeSop = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ document_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ document_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: doc } = await getCloudSupabase(context, "sop-ack")
       .from("knowledge_documents")

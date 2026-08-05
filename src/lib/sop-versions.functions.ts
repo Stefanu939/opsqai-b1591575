@@ -13,6 +13,7 @@ import {
 } from "@/lib/authorization";
 import { getCloudSupabase } from "@/lib/providers/not-available";
 import { getStorageProvider } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 const KB_BUCKET = "knowledge-docs";
 
@@ -21,7 +22,7 @@ function toArrayBuffer(u8: Uint8Array): ArrayBuffer {
 }
 
 const ReplaceInput = z.object({
-  previous_id: z.string().uuid(),
+  previous_id: uuidString(),
   title: z.string().min(1),
   category: z.string().min(1),
   doc_code: z.string().min(1),
@@ -119,7 +120,7 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
 
 export const rollbackToVersion = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit", "sop.publish"]);
     const db = getCloudSupabase(context, "sop-versions");
@@ -147,7 +148,7 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
 export const setCriticalFlag = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), is_critical: z.boolean() }).parse(d),
+    z.object({ id: uuidString(), is_critical: z.boolean() }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);

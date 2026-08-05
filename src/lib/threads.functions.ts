@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { getActorRoles, getProfileCompany } from "@/lib/authorization";
 import { getThreadRepository } from "@/lib/providers/registry";
+import { uuidString } from "@/lib/zod-uuid";
 
 const UUID_RE =
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
@@ -35,7 +36,7 @@ export const createThread = createServerFn({ method: "POST" })
 
 export const deleteThread = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await getThreadRepository(context.supabase).deleteOwned(data.id, context.userId);
     return { ok: true };
@@ -56,7 +57,7 @@ export const listThreads = createServerFn({ method: "GET" })
 export const renameThread = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: { id: string; title: string }) =>
-    z.object({ id: z.string().uuid(), title: z.string().min(1).max(120) }).parse(d),
+    z.object({ id: uuidString(), title: z.string().min(1).max(120) }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await getThreadRepository(context.supabase).renameOwned(
@@ -70,7 +71,7 @@ export const renameThread = createServerFn({ method: "POST" })
 /** Ordered transcript for a thread, resolved through the active data provider. */
 export const listThreadMessages = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: { threadId: string }) => z.object({ threadId: z.string().uuid() }).parse(d))
+  .inputValidator((d: { threadId: string }) => z.object({ threadId: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     const { getMessageRepository } = await import("@/lib/providers/registry");
     return getMessageRepository(context.supabase).listByThread(data.threadId);
