@@ -9,6 +9,7 @@ import {
   getAdminProfileRepository,
   getAdminRoleRepository,
   getAuthAdminProvider,
+  getProfileRepository,
 } from "@/lib/providers/registry";
 import { uuidString } from "@/lib/zod-uuid";
 
@@ -359,6 +360,21 @@ export const listDepartments = createServerFn({ method: "GET" })
   .handler(async () => {
     const depts = await getAdminDepartmentRepository().list();
     return depts.map((d) => ({ id: d.id, name: d.name, company_id: d.companyId }));
+  });
+
+export const getMyProfile = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const profile = await getProfileRepository(context.supabase).findByUserId(context.userId);
+    if (!profile) return null;
+    return {
+      first_name: profile.firstName,
+      last_name: profile.lastName,
+      position: profile.position,
+      phone: profile.phone,
+      department_id: profile.departmentId,
+      language_pref: profile.languagePref,
+    };
   });
 
 export const createDepartment = createServerFn({ method: "POST" })
