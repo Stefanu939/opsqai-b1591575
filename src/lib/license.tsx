@@ -120,6 +120,35 @@ function resolveLicenseToken(): string | null {
   return null;
 }
 
+interface ActivationBundlePayload {
+  bundle_version?: number;
+  install_id?: string;
+  install_token?: string;
+  module_tokens?: Array<{ module_key?: string; signed_token?: string }>;
+}
+
+function resolveInstallPayload(token: string): RawPayload | null {
+  const outer = decodeTokenPayload(token);
+  if (!outer) return null;
+
+  // Activation bundle: unwrap the inner install JWT to read tier/modules.
+  const bundle = outer as unknown as ActivationBundlePayload;
+  if (typeof bundle.install_token === "string" && bundle.install_token.length > 0) {
+    const inner = decodeTokenPayload(bundle.install_token);
+    if (inner) {
+      // Merge module list from bundle if the inner token doesn't already carry it.
+      if (!inner.modules && Array.isArray(bundle.module_tokens)) {
+        inner.modules = bundle.module_tokens
+          .map((m) => m.module_key)
+          .filter((k): k is string => typeof k === "string" && k.length > 0);
+      }
+      return inner;
+    }
+  }
+
+  return outer;
+}
+
 function buildSelfHostState(): LicenseState {
   const token = resolveLicenseToken();
   if (!token) {
@@ -137,7 +166,7 @@ function buildSelfHostState(): LicenseState {
       unlimited: false,
     };
   }
-  const payload = decodeTokenPayload(token);
+  const payload = resolveInstallPayload(token);
   if (!payload) {
     return {
       mode: "selfhost",
