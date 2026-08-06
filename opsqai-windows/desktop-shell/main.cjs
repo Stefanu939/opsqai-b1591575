@@ -437,6 +437,9 @@ ipcMain.handle("shell:runDoctor", () => {
   const dir = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "logs");
   return shell.openPath(dir);
 });
+ipcMain.on("shell:getLicenseTokenSync", (event) => {
+  event.returnValue = LICENSE_TOKEN;
+});
 
 // ---------------------------------------------------------------------------
 // Boot sequence
