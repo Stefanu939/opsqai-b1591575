@@ -43,6 +43,22 @@ const { spawn, spawnSync } = require("child_process");
 const APP_URL = "https://localhost/auth?audience=company";
 const HEALTH_URL = "https://localhost/health";
 
+const LICENSE_FILE_PATH = path.join(
+  process.env.ProgramData || "C:\\ProgramData",
+  "OPSQAI",
+  "config",
+  "license.opsqai",
+);
+
+function readLicenseToken() {
+  try {
+    return fs.readFileSync(LICENSE_FILE_PATH, "utf8").trim();
+  } catch (_) {
+    return "";
+  }
+}
+const LICENSE_TOKEN = readLicenseToken();
+
 const HEALTH_TIMEOUT_MS = 45_000;
 const HEALTH_POLL_INTERVAL_MS = 750;
 const REQUIRED_SERVICES = ["OpsqaiDatabase", "OpsqaiPlatform", "OpsqaiCaddy"];
