@@ -39,7 +39,13 @@ export async function hasPermission(
   context: { supabase: any; userId: string },
   permission: string,
 ) {
-  return getRoleRepository(context.supabase).hasPermission(context.userId, permission);
+  const repo = getRoleRepository(context.supabase);
+  const [isOwner, has] = await Promise.all([
+    repo.isPlatformOwner(context.userId),
+    repo.hasPermission(context.userId, permission),
+  ]);
+  // Platform Owner is the installation owner and bypasses all permission checks.
+  return isOwner || has;
 }
 
 export async function requirePermission(
