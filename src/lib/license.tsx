@@ -67,13 +67,29 @@ function base64UrlDecode(s: string): string {
 export function decodeTokenPayload(token: string): RawPayload | null {
   try {
     const parts = token.split(".");
-    if (parts.length !== 4 || parts[0] !== "opsqai" || parts[1] !== "v1") return null;
-    const json = decodeURIComponent(
-      Array.from(base64UrlDecode(parts[2]))
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join(""),
-    );
-    return JSON.parse(json) as RawPayload;
+
+    // Standard JWT compact format (EdDSA-signed activation bundle or module token).
+    // Client-side we only decode the payload; signature verification happens server-side.
+    if (parts.length === 3) {
+      const json = decodeURIComponent(
+        Array.from(base64UrlDecode(parts[1]))
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      );
+      return JSON.parse(json) as RawPayload;
+    }
+
+    // Legacy OPSQAI 4-part token (kept for backwards compatibility).
+    if (parts.length === 4 && parts[0] === "opsqai" && parts[1] === "v1") {
+      const json = decodeURIComponent(
+        Array.from(base64UrlDecode(parts[2]))
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      );
+      return JSON.parse(json) as RawPayload;
+    }
+
+    return null;
   } catch {
     return null;
   }
