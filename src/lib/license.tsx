@@ -114,8 +114,10 @@ function resolveLicenseToken(): string | null {
   const fromEnv = import.meta.env.VITE_OPSQAI_LICENSE_JWT as string | undefined;
   if (fromEnv) return fromEnv;
   if (typeof window !== "undefined") {
-    const w = window as unknown as { __OPSQAI_LICENSE__?: string };
+    const w = window as unknown as { __OPSQAI_LICENSE__?: string; opsqai?: { getLicenseToken?: () => string } };
     if (w.__OPSQAI_LICENSE__) return w.__OPSQAI_LICENSE__;
+    const fromShell = w.opsqai?.getLicenseToken?.();
+    if (fromShell) return fromShell;
   }
   return null;
 }
