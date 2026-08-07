@@ -109,6 +109,35 @@ function OrganizationPage() {
       .catch(() => {});
   }, [canConfigureAi, getCfg]);
 
+  useEffect(() => {
+    if (isCloud) return;
+    fetchLogo({ data: {} } as never).then((r) => setLogoUrl(r.logo_url)).catch(() => {});
+  }, [fetchLogo, isCloud]);
+
+  async function handleLogoPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Only image files are allowed"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2 MB"); return; }
+    setLogoBusy(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { logo_url } = await saveLogo({ data: { data_base64: base64, content_type: file.type } });
+      setLogoUrl(logo_url);
+      toast.success("Company logo saved");
+    } catch (err) {
+      toast.error("Could not save logo");
+    } finally {
+      setLogoBusy(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  }
+
   const submitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
