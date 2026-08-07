@@ -105,7 +105,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       module: null,
     },
     { to: "/app/organization", label: "Organization", icon: Building2, show: true, module: null },
-    { to: "/app/subscription", label: "Subscription", icon: Package, show: true, module: null },
+    {
+      to: "/app/subscription",
+      label: "Subscription",
+      icon: Package,
+      // Self-Hosted access is governed by the local license (Modules), not billing.
+      show: mode !== "selfhost",
+      module: null,
+    },
+
     { to: "/app/updates", label: "Updates", icon: Download, show: true, module: null },
     { to: "/app/modules", label: "Modules", icon: ClipboardCheck, show: true, module: null },
   ];

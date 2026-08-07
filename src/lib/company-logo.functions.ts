@@ -7,12 +7,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { getPlatformMode, PlatformMode } from "@/lib/platform";
 
-const LogoInput = {
-  data_base64: z.string().min(1),
-  content_type: z.string().min(1),
-};
-
 import { z } from "zod";
+
 
 const logoInput = z.object({
   data_base64: z.string().min(1),

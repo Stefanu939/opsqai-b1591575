@@ -388,7 +388,9 @@ function KnowledgePage() {
                   <div className="space-y-2">
                     <Label>
                       {t("file")}{" "}
-                      <span className="text-muted-foreground text-xs">(PDF, DOCX, TXT)</span>
+                      <span className="text-muted-foreground text-xs">
+                        (PDF, DOCX, TXT, MD — max 20 MB)
+                      </span>
                     </Label>
                     <Input
                       type="file"
@@ -396,7 +398,12 @@ function KnowledgePage() {
                       onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                       required
                     />
+                    <p className="text-xs text-muted-foreground">
+                      The document is indexed for grounded AI answers — the assistant only cites
+                      uploaded SOPs and FAQs.
+                    </p>
                   </div>
+
                   <DialogFooter>
                     <Button type="submit" disabled={busy} className="w-full">
                       {busy ? (
