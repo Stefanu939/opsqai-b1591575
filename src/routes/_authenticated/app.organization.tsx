@@ -283,7 +283,39 @@ function OrganizationPage() {
         </TabsContent>
 
         <TabsContent value="company">
-          <Card className="p-6 space-y-3">
+          <Card className="p-6 space-y-5">
+            <div className="flex items-center gap-4">
+              <div className="h-16 w-16 rounded-lg border border-border bg-muted/40 flex items-center justify-center overflow-hidden shrink-0">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Company logo" className="h-full w-full object-contain" />
+                ) : (
+                  <Building2 className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Company logo</Label>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                  className="hidden"
+                  onChange={handleLogoPick}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={logoBusy}
+                    onClick={() => logoInputRef.current?.click()}
+                  >
+                    {logoBusy ? "Uploading…" : logoUrl ? "Change logo" : "Upload logo"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">PNG, JPG, SVG or WebP — max 2 MB.</p>
+              </div>
+            </div>
+
             <div>
               <Label className="text-xs">Company name</Label>
               <Input value={companyName ?? ""} disabled />
@@ -294,6 +326,7 @@ function OrganizationPage() {
             </p>
           </Card>
         </TabsContent>
+
 
         {canConfigureAi && (
           <TabsContent value="ai">
