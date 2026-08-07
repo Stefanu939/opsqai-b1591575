@@ -49,6 +49,10 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
 const providerBootstrapFunctionMiddleware = createMiddleware({
   type: "function",
 }).server(async ({ next }) => {
+  const { applySelfHostConfigAtStartup } = await import(
+    "./lib/selfhost-config.server"
+  );
+  applySelfHostConfigAtStartup();
   const { ensureServerProviders } = await import(
     "./lib/providers/server-bootstrap.server"
   );
@@ -63,6 +67,10 @@ const providerBootstrapRequestMiddleware = createMiddleware().server(
     if (isHealthPath(request)) {
       return next();
     }
+    const { applySelfHostConfigAtStartup } = await import(
+      "./lib/selfhost-config.server"
+    );
+    applySelfHostConfigAtStartup();
     const { ensureServerProviders } = await import(
       "./lib/providers/server-bootstrap.server"
     );

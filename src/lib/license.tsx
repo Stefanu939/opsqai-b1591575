@@ -67,13 +67,29 @@ function base64UrlDecode(s: string): string {
 export function decodeTokenPayload(token: string): RawPayload | null {
   try {
     const parts = token.split(".");
-    if (parts.length !== 4 || parts[0] !== "opsqai" || parts[1] !== "v1") return null;
-    const json = decodeURIComponent(
-      Array.from(base64UrlDecode(parts[2]))
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join(""),
-    );
-    return JSON.parse(json) as RawPayload;
+
+    // Standard JWT compact format (EdDSA-signed activation bundle or module token).
+    // Client-side we only decode the payload; signature verification happens server-side.
+    if (parts.length === 3) {
+      const json = decodeURIComponent(
+        Array.from(base64UrlDecode(parts[1]))
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      );
+      return JSON.parse(json) as RawPayload;
+    }
+
+    // Legacy OPSQAI 4-part token (kept for backwards compatibility).
+    if (parts.length === 4 && parts[0] === "opsqai" && parts[1] === "v1") {
+      const json = decodeURIComponent(
+        Array.from(base64UrlDecode(parts[2]))
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      );
+      return JSON.parse(json) as RawPayload;
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -98,10 +114,41 @@ function resolveLicenseToken(): string | null {
   const fromEnv = import.meta.env.VITE_OPSQAI_LICENSE_JWT as string | undefined;
   if (fromEnv) return fromEnv;
   if (typeof window !== "undefined") {
-    const w = window as unknown as { __OPSQAI_LICENSE__?: string };
+    const w = window as unknown as { __OPSQAI_LICENSE__?: string; opsqai?: { getLicenseToken?: () => string } };
     if (w.__OPSQAI_LICENSE__) return w.__OPSQAI_LICENSE__;
+    const fromShell = w.opsqai?.getLicenseToken?.();
+    if (fromShell) return fromShell;
   }
   return null;
+}
+
+interface ActivationBundlePayload {
+  bundle_version?: number;
+  install_id?: string;
+  install_token?: string;
+  module_tokens?: Array<{ module_key?: string; signed_token?: string }>;
+}
+
+function resolveInstallPayload(token: string): RawPayload | null {
+  const outer = decodeTokenPayload(token);
+  if (!outer) return null;
+
+  // Activation bundle: unwrap the inner install JWT to read tier/modules.
+  const bundle = outer as unknown as ActivationBundlePayload;
+  if (typeof bundle.install_token === "string" && bundle.install_token.length > 0) {
+    const inner = decodeTokenPayload(bundle.install_token);
+    if (inner) {
+      // Merge module list from bundle if the inner token doesn't already carry it.
+      if (!inner.modules && Array.isArray(bundle.module_tokens)) {
+        inner.modules = bundle.module_tokens
+          .map((m) => m.module_key)
+          .filter((k): k is string => typeof k === "string" && k.length > 0);
+      }
+      return inner;
+    }
+  }
+
+  return outer;
 }
 
 function buildSelfHostState(): LicenseState {
@@ -121,7 +168,7 @@ function buildSelfHostState(): LicenseState {
       unlimited: false,
     };
   }
-  const payload = decodeTokenPayload(token);
+  const payload = resolveInstallPayload(token);
   if (!payload) {
     return {
       mode: "selfhost",

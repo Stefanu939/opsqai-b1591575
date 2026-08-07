@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { getMyProfile, updateMyProfile, listDepartments } from "@/lib/users.functions";
 import { getPlatformConfig, savePlatformAiConfig } from "@/lib/mc-admin.functions";
+import { getCompanyLogo, saveCompanyLogo } from "@/lib/company-logo.functions";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
-import { Building2, User, Cpu } from "lucide-react";
+import { Building2, User, Cpu, Upload, Trash2, Loader2 } from "lucide-react";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 
 export const Route = createFileRoute("/_authenticated/app/organization")({
@@ -50,6 +51,8 @@ function OrganizationPage() {
   const fetchDepts = useServerFn(listDepartments);
   const getCfg = useServerFn(getPlatformConfig);
   const saveAi = useServerFn(savePlatformAiConfig);
+  const fetchLogo = useServerFn(getCompanyLogo);
+  const saveLogo = useServerFn(saveCompanyLogo);
 
   const [depts, setDepts] = useState<Dept[]>([]);
   const [form, setForm] = useState({
@@ -71,6 +74,10 @@ function OrganizationPage() {
   });
   const [aiBusy, setAiBusy] = useState(false);
   const [aiInstallId, setAiInstallId] = useState<string | null>(null);
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetchDepts()
@@ -101,6 +108,34 @@ function OrganizationPage() {
       })
       .catch(() => {});
   }, [canConfigureAi, getCfg]);
+
+  useEffect(() => {
+    fetchLogo({ data: {} } as never).then((r) => setLogoUrl(r.logo_url)).catch(() => {});
+  }, [fetchLogo]);
+
+  async function handleLogoPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Only image files are allowed"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2 MB"); return; }
+    setLogoBusy(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { logo_url } = await saveLogo({ data: { data_base64: base64, content_type: file.type } });
+      setLogoUrl(logo_url);
+      toast.success("Company logo saved");
+    } catch (err) {
+      toast.error("Could not save logo");
+    } finally {
+      setLogoBusy(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  }
 
   const submitProfile = async (e: React.FormEvent) => {
     e.preventDefault();

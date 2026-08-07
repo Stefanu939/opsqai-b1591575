@@ -74,6 +74,8 @@ const installId = arg("install-id", crypto.randomUUID());
 const companyName = arg("company", "OPSQAI Customer");
 const adminEmail = arg("admin-email");
 const adminPassword = arg("admin-password");
+const adminFirstName = arg("admin-first-name", "");
+const adminLastName = arg("admin-last-name", "");
 const dbMode = arg("db-mode", "embedded");
 const storageMode = arg("storage-mode", "local");
 const licenseContents = arg("license", "");
@@ -693,6 +695,8 @@ function resetEmbeddedDatabase() {
           ...process.env,
           OPSQAI_ADMIN_EMAIL: adminEmail,
           OPSQAI_ADMIN_PASSWORD: adminPassword,
+          OPSQAI_ADMIN_FIRST_NAME: adminFirstName,
+          OPSQAI_ADMIN_LAST_NAME: adminLastName,
           OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
         },
       });

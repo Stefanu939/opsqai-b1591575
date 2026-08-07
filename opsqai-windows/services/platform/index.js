@@ -43,6 +43,7 @@ const env = {
   // --- Customer-owned AI provider ------------------------------------
   AI_PROVIDER:
     cfg.ai?.provider === "azure" ? "azure" :
+    cfg.ai?.provider === "gateway" ? "lovable" :
     cfg.ai?.provider && cfg.ai.provider !== "none" ? "openai-compatible" : "",
   AZURE_OPENAI_RESOURCE_NAME: cfg.ai?.resourceName || cfg.ai?.resource_name || "",
   AZURE_OPENAI_API_KEY: cfg.ai?.apiKey || cfg.ai?.api_key || "",

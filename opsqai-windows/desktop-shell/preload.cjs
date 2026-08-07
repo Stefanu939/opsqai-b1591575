@@ -28,4 +28,8 @@ contextBridge.exposeInMainWorld("opsqai", {
   openLogs: () => ipcRenderer.invoke("shell:openLogs"),
   runDoctor: () => ipcRenderer.invoke("shell:runDoctor"),
   quit: () => ipcRenderer.invoke("shell:quit"),
+
+  // Self-Hosted license token: injected synchronously so the web app can
+  // decode module entitlements before its first render.
+  getLicenseToken: () => ipcRenderer.sendSync("shell:getLicenseTokenSync"),
 });

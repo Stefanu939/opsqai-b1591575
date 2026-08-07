@@ -16,6 +16,8 @@ import argon2 from "argon2";
 
 const email = (process.env.OPSQAI_ADMIN_EMAIL || "").trim().toLowerCase();
 const password = process.env.OPSQAI_ADMIN_PASSWORD || "";
+const firstName = (process.env.OPSQAI_ADMIN_FIRST_NAME || "").trim();
+const lastName = (process.env.OPSQAI_ADMIN_LAST_NAME || "").trim();
 const cfgPath = process.env.OPSQAI_CONFIG;
 
 function fail(msg, code = 1) {
@@ -26,6 +28,8 @@ if (!email || !password) fail("OPSQAI_ADMIN_EMAIL / OPSQAI_ADMIN_PASSWORD requir
 if (!cfgPath) fail("OPSQAI_CONFIG not set", 2);
 
 const cfg = JSON.parse(readFileSync(cfgPath, "utf8"));
+const installId = cfg.installId;
+if (!installId) fail("config.json missing installId", 2);
 
 function databaseUrl() {
   if (cfg.database?.mode === "external") {
@@ -45,6 +49,8 @@ const hash = await argon2.hash(password, {
   parallelism: 1,
 });
 
+const fullName = [firstName, lastName].filter(Boolean).join(" ") || email.split("@")[0];
+
 const client = new Client({ connectionString: databaseUrl() });
 await client.connect();
 
@@ -57,14 +63,18 @@ try {
   // there is no email_verified_at column in the Self-Hosted schema (the
   // installer-seeded admin is implicitly trusted). Do not add one here.
   const up = await client.query(
-    `INSERT INTO public.users (email, password_hash, is_active)
-     VALUES (LOWER($1), $2, TRUE)
+    `INSERT INTO public.users (email, password_hash, is_active, first_name, last_name, full_name, company_id)
+     VALUES (LOWER($1), $2, TRUE, $3, $4, $5, $6)
      ON CONFLICT (lower(email)) DO UPDATE
        SET password_hash = EXCLUDED.password_hash,
            is_active = TRUE,
+           first_name = COALESCE(EXCLUDED.first_name, public.users.first_name),
+           last_name = COALESCE(EXCLUDED.last_name, public.users.last_name),
+           full_name = COALESCE(EXCLUDED.full_name, public.users.full_name),
+           company_id = COALESCE(EXCLUDED.company_id, public.users.company_id),
            updated_at = NOW()
      RETURNING id`,
-    [email, hash],
+    [email, hash, firstName || null, lastName || null, fullName, installId],
   );
   const userId = up.rows[0].id;
 
