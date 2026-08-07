@@ -118,22 +118,23 @@ export function ChatGlider() {
 
   return (
     <>
-      {/* Glider tab — hidden 60% off-screen, slides in on hover/focus */}
+      {/* Always-visible chat launcher */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open chat"
+        title="Chat"
         className={cn(
-          "fixed right-0 bottom-24 z-40 group flex items-center gap-2 rounded-l-full",
-          "bg-primary text-primary-foreground shadow-lg",
-          "h-14 pl-4 pr-3 transition-transform duration-300 ease-out",
-          "translate-x-[calc(100%-40px)] hover:translate-x-0 focus:translate-x-0",
+          "fixed right-5 bottom-6 z-40 flex items-center justify-center rounded-full",
+          "bg-primary text-primary-foreground shadow-xl ring-1 ring-primary/40",
+          "h-14 w-14 transition-transform duration-200 ease-out hover:scale-105",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           open && "opacity-0 pointer-events-none",
         )}
       >
-        <MessageCircle className="h-5 w-5" />
-        <span className="font-medium whitespace-nowrap">Chat</span>
+        <MessageCircle className="h-6 w-6" />
       </button>
+
 
       {/* Panel */}
       <div
