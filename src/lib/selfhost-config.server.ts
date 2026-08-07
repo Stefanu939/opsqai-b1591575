@@ -30,7 +30,7 @@ export interface SelfHostAiConfig {
 
 export interface SelfHostConfig {
   installId?: string;
-  company?: { name?: string };
+  company?: { name?: string; logo_url?: string };
   ai?: SelfHostAiConfig;
   [key: string]: unknown;
 }
