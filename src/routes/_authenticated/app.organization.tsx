@@ -110,9 +110,8 @@ function OrganizationPage() {
   }, [canConfigureAi, getCfg]);
 
   useEffect(() => {
-    if (isCloud) return;
     fetchLogo({ data: {} } as never).then((r) => setLogoUrl(r.logo_url)).catch(() => {});
-  }, [fetchLogo, isCloud]);
+  }, [fetchLogo]);
 
   async function handleLogoPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
