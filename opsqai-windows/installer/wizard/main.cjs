@@ -377,6 +377,9 @@ ipcMain.handle("wizard:testDatabase", async (_e, cfg) => {
 
 
 function buildBootstrapArgs(config, extraFlags = []) {
+  const nameParts = String(config.admin.name || "").trim().split(/\s+/);
+  const firstName = nameParts[0] || "";
+  const lastName = nameParts.slice(1).join(" ") || "";
   const args = [
     bootstrap,
     "--install-id",
@@ -387,6 +390,10 @@ function buildBootstrapArgs(config, extraFlags = []) {
     config.admin.email,
     "--admin-password",
     config.admin.password,
+    "--admin-first-name",
+    firstName,
+    "--admin-last-name",
+    lastName,
     "--db-mode",
     config.database.mode,
     "--storage-mode",
