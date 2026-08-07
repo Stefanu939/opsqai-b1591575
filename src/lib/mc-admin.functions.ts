@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { uuidString } from "@/lib/zod-uuid";
+import { PlatformMode, getPlatformMode } from "@/lib/platform";
 
 // ── Audit Log ─────────────────────────────────────────────────────────
 
@@ -43,6 +44,19 @@ export const getPlatformConfig = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
+
+    if (getPlatformMode() === PlatformMode.SelfHosted) {
+      const { readSelfHostConfig } = await import("@/lib/selfhost-config.server");
+      const cfg = readSelfHostConfig();
+      return {
+        install_id: cfg.installId ?? process.env.OPSQAI_INSTALL_ID ?? null,
+        ai_provider_config: cfg.ai ?? null,
+        backup_config: null,
+        recovery_mode: false,
+        updated_at: null,
+      };
+    }
+
     const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const { data, error } = await supabaseAdmin
       .from("platform_config")
@@ -68,6 +82,25 @@ export const savePlatformAiConfig = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AiConfigSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+
+    if (getPlatformMode() === PlatformMode.SelfHosted) {
+      const { readSelfHostConfig, setSelfHostAiConfig } = await import(
+        "@/lib/selfhost-config.server"
+      );
+      const cfg = readSelfHostConfig();
+      // Preserve keys the UI does not collect (api_key, api_version, resource_name, etc.)
+      const merged = {
+        ...cfg.ai,
+        provider: data.provider,
+        model: data.model,
+        base_url: data.base_url,
+        temperature: data.temperature,
+        max_tokens: data.max_tokens,
+      };
+      setSelfHostAiConfig(merged);
+      return { ok: true };
+    }
+
     const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const { error } = await supabaseAdmin
       .from("platform_config")
