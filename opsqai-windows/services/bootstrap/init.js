@@ -695,6 +695,8 @@ function resetEmbeddedDatabase() {
           ...process.env,
           OPSQAI_ADMIN_EMAIL: adminEmail,
           OPSQAI_ADMIN_PASSWORD: adminPassword,
+          OPSQAI_ADMIN_FIRST_NAME: adminFirstName,
+          OPSQAI_ADMIN_LAST_NAME: adminLastName,
           OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
         },
       });
