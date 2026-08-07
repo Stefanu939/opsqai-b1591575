@@ -747,7 +747,13 @@ async function runInstall(withReset) {
     admin: state.data.admin,
     database: state.data.database,
     storage: { mode: "local", local: {} },
-    ai: { provider: "none" },
+    ai: {
+      provider: "gateway",
+      model: "openai/gpt-5.5",
+      chatModel: "openai/gpt-5.5",
+      chatFastModel: "openai/gpt-5.5-mini",
+      embeddingModel: "openai/text-embedding-3-small",
+    },
     license: state.data.license || null,
     smtp: null,
   };
