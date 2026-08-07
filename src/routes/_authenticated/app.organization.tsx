@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { getMyProfile, updateMyProfile, listDepartments } from "@/lib/users.functions";
 import { getPlatformConfig, savePlatformAiConfig } from "@/lib/mc-admin.functions";
+import { getCompanyLogo, saveCompanyLogo } from "@/lib/company-logo.functions";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
-import { Building2, User, Cpu } from "lucide-react";
+import { Building2, User, Cpu, Upload, Trash2, Loader2 } from "lucide-react";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 
 export const Route = createFileRoute("/_authenticated/app/organization")({
