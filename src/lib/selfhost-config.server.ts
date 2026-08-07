@@ -112,9 +112,13 @@ export function applyAiEnv(ai: SelfHostAiConfig): void {
   }
 }
 
+let applied = false;
+
 /** Apply config.json AI settings to the current process on bootstrap. */
 export function applySelfHostConfigAtStartup(): void {
   if (getPlatformMode() !== PlatformMode.SelfHosted) return;
+  if (applied) return;
+  applied = true;
   const ai = getSelfHostAiConfig();
   if (ai) applyAiEnv(ai);
 }
