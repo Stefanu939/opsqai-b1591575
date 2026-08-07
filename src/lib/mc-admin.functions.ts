@@ -93,9 +93,9 @@ export const savePlatformAiConfig = createServerFn({ method: "POST" })
         ...cfg.ai,
         provider: data.provider,
         model: data.model,
-        base_url: data.base_url,
+        base_url: data.base_url ?? undefined,
         temperature: data.temperature,
-        max_tokens: data.max_tokens,
+        max_tokens: data.max_tokens ?? undefined,
       };
       setSelfHostAiConfig(merged);
       return { ok: true };
