@@ -51,6 +51,8 @@ function OrganizationPage() {
   const fetchDepts = useServerFn(listDepartments);
   const getCfg = useServerFn(getPlatformConfig);
   const saveAi = useServerFn(savePlatformAiConfig);
+  const fetchLogo = useServerFn(getCompanyLogo);
+  const saveLogo = useServerFn(saveCompanyLogo);
 
   const [depts, setDepts] = useState<Dept[]>([]);
   const [form, setForm] = useState({
@@ -72,6 +74,10 @@ function OrganizationPage() {
   });
   const [aiBusy, setAiBusy] = useState(false);
   const [aiInstallId, setAiInstallId] = useState<string | null>(null);
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetchDepts()
