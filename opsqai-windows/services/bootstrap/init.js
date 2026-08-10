@@ -778,7 +778,7 @@ function resetEmbeddedDatabase() {
           applyDim: async (dim) => {
             const r = psqlExec(`SELECT public.kb_apply_embedding_dim(${Number(dim)});`);
             if (r.status !== 0) {
-              const detail = ((r.stderr || r.stdout || "") + "").trim().slice(-400);
+              const detail = scrubSecrets((r.stderr || r.stdout || "") + "").trim().slice(-400);
               throw new AiSetupError(
                 /dimension change refused/i.test(detail)
                   ? "OPSQAI-E1505"
