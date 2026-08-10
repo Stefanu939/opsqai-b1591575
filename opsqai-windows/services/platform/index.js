@@ -5,11 +5,43 @@
 "use strict";
 const { spawn } = require("child_process");
 const path = require("path");
-const { loadConfig, programFiles } = require("../common/config");
+const { loadConfig, programFiles, DEFAULT_PATH } = require("../common/config");
 
-const cfg = loadConfig();
+const CONFIG_PATH = process.env.OPSQAI_CONFIG || DEFAULT_PATH;
+
+function fatal(reason) {
+  console.error(`[platform] FATAL: ${reason}`);
+  console.error(`[platform] config path: ${CONFIG_PATH}`);
+  console.error(
+    "[platform] the application was NOT started. Re-run the OPSQAI Setup Wizard " +
+      "(or services\\bootstrap\\init.js) to repair the configuration.",
+  );
+  process.exit(78); // EX_CONFIG — distinct from a crashed app (see logs)
+}
+
+let cfg;
+try {
+  cfg = loadConfig(CONFIG_PATH);
+} catch (e) {
+  fatal(e.message);
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// The install ID is the tenant identity for a Self-Hosted install. Launching the
+// app without it only produces "Missing environment variable:
+// OPSQAI_INSTALL_ID" + HTTP 500 in a restart loop, so fail here with the cause.
+// Never invent one locally: config.json holds the single canonical value.
+if (!UUID_RE.test(String(cfg.installId || "").trim())) {
+  fatal(
+    `config.json has no valid installId (got ${JSON.stringify(cfg.installId ?? null)}). ` +
+      "OPSQAI_INSTALL_ID cannot be derived anywhere else.",
+  );
+}
+const installId = String(cfg.installId).trim();
+
 const appEntry = programFiles("app", "server", "index.mjs");
 const appPort = Number(process.env.OPSQAI_APP_PORT || 3000);
+
 
 function buildDatabaseUrl() {
   if (cfg.database.mode === "embedded") {
@@ -92,7 +124,7 @@ const env = {
   OPSQAI_PLATFORM_MODE: "selfhost",
   OPSQAI_DEPLOYMENT_TYPE: "SelfHosted",
   OPSQAI_EDITION: cfg.license?.edition || "community",
-  OPSQAI_INSTALL_ID: cfg.installId || "",
+  OPSQAI_INSTALL_ID: installId,
   OPSQAI_TENANT_NAME: cfg.company?.name || "OPSQAI",
 
   // --- Local AI engine (Ollama) ---------------------------------------
@@ -102,6 +134,7 @@ const env = {
   ...aiEnv(cfg),
 
   // --- Filesystem layout (all under %ProgramData%\OPSQAI\) ------------
+  OPSQAI_CONFIG: CONFIG_PATH,
   OPSQAI_CONFIG_DIR: path.join(opsqaiData, "config"),
   OPSQAI_STORAGE_LOCAL_PATH:
     cfg.storage?.local?.path || path.join(opsqaiData, "storage"),
@@ -138,7 +171,9 @@ const env = {
   OPSQAI_SMTP_FROM_NAME: cfg.smtp?.fromName || "",
 };
 
+console.log(`[platform] config ${CONFIG_PATH} loaded; install_id=${installId}`);
 console.log(`[platform] Launching app on 127.0.0.1:${appPort}`);
+console.log(`[platform] health probe: http://127.0.0.1:${appPort}/health`);
 const node = process.execPath; // bundled Node
 const child = spawn(node, [appEntry], { env, stdio: "inherit" });
 

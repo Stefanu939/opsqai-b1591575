@@ -23,7 +23,7 @@ const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
 const { execFileSync, spawnSync } = require("child_process");
-const { programData, programFiles, saveConfig } = require("../common/config");
+const { programData, programFiles, saveConfig, readJsonFile } = require("../common/config");
 const { formatFail, parseFail } = require("./errors.cjs");
 const { setupAiEngine, AiSetupError } = require("./ollama.cjs");
 
@@ -71,7 +71,12 @@ function log(m) {
 }
 log(`log: ${LOG_PATH}`);
 
-const installId = arg("install-id", crypto.randomUUID());
+const installIdArg = arg("install-id", "");
+
+function isUuid(v) {
+  return typeof v === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim());
+}
 const companyName = arg("company", "OPSQAI Customer");
 const adminEmail = arg("admin-email");
 const adminPassword = arg("admin-password");
@@ -156,9 +161,13 @@ const smtpCfg = smtpJson ? JSON.parse(smtpJson) : null;
 const configPath = path.join(programData("config"), "config.json");
 let priorEmbeddedPassword = "";
 let priorEmbeddedPort = 55432;
+let priorInstallId = "";
 try {
   if (fs.existsSync(configPath)) {
-    const prior = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    // readJsonFile() is the single OPSQAI config parsing contract: tolerant of a
+    // UTF-8 BOM (PowerShell/Notepad write one), strict about everything else.
+    const prior = readJsonFile(configPath);
+    if (isUuid(prior?.installId)) priorInstallId = String(prior.installId);
     if (prior?.database?.mode === "embedded" && prior?.database?.embedded) {
       priorEmbeddedPassword = String(prior.database.embedded.password || "");
       if (Number.isFinite(Number(prior.database.embedded.port))) {
@@ -168,6 +177,20 @@ try {
   }
 } catch (e) {
   console.warn(`[bootstrap] could not read prior config: ${e.message}`);
+}
+
+// ONE canonical persisted installId. An upgrade / re-run must never mint a new
+// one (licences and every seeded row are keyed on it); a fresh install gets a
+// UUID. An explicitly passed --install-id only wins on a fresh install.
+const installId = priorInstallId || (isUuid(installIdArg) ? installIdArg : crypto.randomUUID());
+if (priorInstallId) {
+  log(`preserving existing installId ${installId}`);
+} else {
+  log(`generated installId ${installId}`);
+}
+if (!isUuid(installId)) {
+  console.error("[bootstrap] refusing to write config.json without a valid installId");
+  process.exit(2);
 }
 
 const config = {

@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { spawnSync } = require("child_process");
+const { readJsonFile } = require("../common/config");
 
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);
@@ -17,7 +18,7 @@ if (!cfgPath || !fs.existsSync(cfgPath)) {
   console.error("[unattended] --config <answers.json> is required");
   process.exit(2);
 }
-const a = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+const a = readJsonFile(cfgPath); // BOM-tolerant, same contract as config.json
 
 function required(obj, dotted) {
   const v = dotted.split(".").reduce((o, k) => (o ? o[k] : undefined), obj);

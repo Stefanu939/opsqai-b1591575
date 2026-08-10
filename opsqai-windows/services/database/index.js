@@ -24,16 +24,28 @@ const fs = require("fs");
 const net = require("net");
 const os = require("os");
 const path = require("path");
-const { loadConfig, saveConfig, programData, programFiles } = require("../common/config");
+const { loadConfig, saveConfig, programData, programFiles, DEFAULT_PATH } = require("../common/config");
 const { ensureConfig } = require("./ensure-config");
 
-const cfg = loadConfig();
+const CONFIG_PATH = process.env.OPSQAI_CONFIG || DEFAULT_PATH;
+let cfg;
+try {
+  cfg = loadConfig(CONFIG_PATH);
+} catch (e) {
+  // Loud, actionable, and non-zero so WinSW does not silently loop on a
+  // missing/corrupt config (a BOM used to surface as an opaque SyntaxError).
+  console.error(`[db] FATAL: cannot load OPSQAI config: ${e.message}`);
+  console.error(`[db] config path: ${CONFIG_PATH}`);
+  process.exit(78);
+}
+console.log(`[db] config ${CONFIG_PATH} loaded`);
 if (cfg.database.mode !== "embedded") {
   console.log("[db] External DB mode — this service should not have been registered. Exiting.");
   process.exit(0);
 }
 
 const port = cfg.database.embedded.port || 55432;
+console.log(`[db] embedded postgres port ${port}; data dir ${programData("data", "pgsql")}`);
 const pgBin = programFiles("pgsql", "bin");
 const dataDir = programData("data", "pgsql");
 const pgCtl = path.join(pgBin, "pg_ctl.exe");

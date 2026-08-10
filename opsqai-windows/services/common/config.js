@@ -11,11 +11,31 @@ const DEFAULT_PATH =
   process.env.OPSQAI_CONFIG ||
   path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "config", "config.json");
 
+/**
+ * Single parsing contract for every OPSQAI JSON config file.
+ *
+ * Windows tooling (PowerShell `Set-Content`/`Out-File`, Notepad, some
+ * installers) happily writes UTF-8 **with** a BOM. `JSON.parse` then dies with
+ * `Unexpected token '\uFEFF'`, which used to take down bootstrap, the platform
+ * service and admin-seed. Strip only a single leading U+FEFF — never transcode
+ * the rest of the content, so valid Unicode survives untouched. Malformed JSON
+ * still throws, with the file path attached.
+ */
+function readJsonFile(p) {
+  const raw = fs.readFileSync(p, "utf8").replace(/^\uFEFF/, "");
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    throw new Error(`Invalid JSON in ${p}: ${e.message}`);
+  }
+}
+
 function loadConfig(p = DEFAULT_PATH) {
   if (!fs.existsSync(p)) {
     throw new Error(`OPSQAI config not found at ${p}. Run the installer.`);
   }
-  const raw = JSON.parse(fs.readFileSync(p, "utf8"));
+  const raw = readJsonFile(p);
+
   raw.database ??= { mode: "embedded", embedded: { port: 55432 } };
   raw.database.embedded ??= { port: 55432 };
   raw.storage ??= {
@@ -94,4 +114,4 @@ function programFiles(...parts) {
   return path.join(base, "OPSQAI", ...parts);
 }
 
-module.exports = { loadConfig, saveConfig, programData, programFiles, DEFAULT_PATH };
+module.exports = { loadConfig, saveConfig, readJsonFile, programData, programFiles, DEFAULT_PATH };
