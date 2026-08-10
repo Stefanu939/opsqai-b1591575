@@ -227,6 +227,45 @@ describe("pack-payload", () => {
       { cwd: "/payload", stdio: "inherit" },
     );
   });
+
+  // Regression (CI: `app.7z ... also has pgsql\pgAdmin 4\...\app`): with `-r`,
+  // 7-Zip treats the bare `app` argument as a *name pattern* and walks the whole
+  // cwd tree, so a sibling component's nested `app` directory (pgAdmin ships
+  // one) lands at the archive ROOT as `pgsql/...`. Verified against real 7-Zip.
+  it("never passes -r (which recurses from the payload parent into siblings)", () => {
+    const h = harness();
+    const calls: string[][] = [];
+    const runner = vi.fn((_bin: string, args: string[]) => {
+      calls.push(args);
+      if (args[0] === "a") {
+        h.written.set(args[args.length - 2]!, "7z");
+        return { status: 0 };
+      }
+      const dir = args[args.length - 1]!.split("/").pop()!.replace(/\.7z$/, "");
+      return { status: 0, stdout: `Path = ${dir}\nPath = ${dir}/content.bin\n` };
+    });
+    packPayload({
+      payloadDir: "/payload",
+      partsDir: "/build/parts",
+      nshPath: "/nsis/parts.generated.nsh",
+      archiver: "/tools/7zr.exe",
+      stashDir: "/build/staged",
+      deps: { ...h.deps, archive: undefined as never, verify: undefined as never, run: runner },
+    });
+    const addCalls = calls.filter((a) => a[0] === "a");
+    expect(addCalls).toHaveLength(8);
+    for (const args of addCalls) {
+      expect(args).not.toContain("-r");
+      expect(args.some((a) => a.startsWith("-r"))).toBe(false);
+      // The component directory is the LAST argument and is a bare relative
+      // name resolved against cwd=payloadDir — never a glob and never `..`.
+      const dir = args[args.length - 1]!;
+      expect(dir).not.toContain("*");
+      expect(dir).not.toContain("..");
+      expect(dir).toBe(dir.replace(/^[\\/]+/, ""));
+    }
+  });
+
 });
 
 describe("archive structure validation", () => {
@@ -256,6 +295,85 @@ describe("archive structure validation", () => {
     ).toBe(2);
   });
 
+  // Nested directories that happen to REPEAT a component name are legitimate
+  // payload content (pgAdmin ships resources/app) and must stay valid as long as
+  // the first path segment is the component itself.
+  it("accepts deeply nested directories that reuse component names", () => {
+    const paths = [
+      "app",
+      "app/server/migrate.mjs",
+      "app/pgsql/pgAdmin 4/runtime/resources/app",
+      "app/pgsql/pgAdmin 4/runtime/resources/app/index.js",
+      "app/runtime/node/node.exe",
+      "app/vendor/wizard/desktop-shell/caddy/winsw/app",
+    ];
+    expect(
+      verifyArchiveRoot({ archiver: "7zr", target: "/parts/app.7z", dir: "app", run: () => listing(paths) }),
+    ).toBe(paths.length);
+  });
+
+  it("rejects app.7z when a sibling component leaks in at the archive root", () => {
+    // Exactly what real 7-Zip produced with `-r`: the sibling pgsql tree's own
+    // nested `app` directory matched the name pattern and was stored at root.
+    expect(() =>
+      verifyArchiveRoot({
+        archiver: "7zr",
+        target: "/parts/app.7z",
+        dir: "app",
+        run: () =>
+          listing([
+            "app",
+            "app/server/migrate.mjs",
+            "pgsql/pgAdmin 4/runtime/resources/app",
+            "pgsql/pgAdmin 4/runtime/resources/app/main.js",
+          ]),
+      }),
+    ).toThrow(/must contain exactly one top-level directory "app\/"[\s\S]*pgsql/);
+  });
+
+  it("rejects a wrong-root archive even when it has exactly one root", () => {
+    expect(() =>
+      verifyArchiveRoot({
+        archiver: "7zr",
+        target: "/parts/desktop-shell.7z",
+        dir: "desktop-shell",
+        run: () => listing(["wizard", "wizard/main.cjs"]),
+      }),
+    ).toThrow(/exactly one top-level directory "desktop-shell\/"/);
+  });
+
+  it("rejects a near-miss prefix that is not a real path segment", () => {
+    expect(() =>
+      verifyArchiveRoot({
+        archiver: "7zr",
+        target: "/parts/app.7z",
+        dir: "app",
+        run: () => listing(["app-backup/server.js"]),
+      }),
+    ).toThrow(/exactly one top-level directory "app\/"/);
+  });
+
+  it("enforces the invariant for every packed component", () => {
+    for (const { dir } of PACK_COMPONENTS as { dir: string }[]) {
+      expect(
+        verifyArchiveRoot({
+          archiver: "7zr",
+          target: `/parts/${dir}.7z`,
+          dir,
+          run: () => listing([dir, `${dir}/nested/${dir}/file.bin`]),
+        }),
+      ).toBe(2);
+      expect(() =>
+        verifyArchiveRoot({
+          archiver: "7zr",
+          target: `/parts/${dir}.7z`,
+          dir,
+          run: () => listing([`${dir}/ok.bin`, "stray/at/root.bin"]),
+        }),
+      ).toThrow(new RegExp(`exactly one top-level directory "${dir}/"`));
+    }
+  });
+
   it("rejects a flat archive that would explode into $INSTDIR", () => {
     expect(() =>
       verifyArchiveRoot({
@@ -266,6 +384,19 @@ describe("archive structure validation", () => {
       }),
     ).toThrow(/must contain exactly one top-level directory "runtime\/"/);
   });
+
+  it("rejects a fully flat archive of loose files", () => {
+    expect(() =>
+      verifyArchiveRoot({
+        archiver: "7zr",
+        target: "/parts/wizard.7z",
+        dir: "wizard",
+        run: () => listing(["main.cjs", "package.json", "renderer/wizard.js"]),
+      }),
+    ).toThrow(/exactly one top-level directory "wizard\/"/);
+  });
+
+
 
   it("rejects an empty archive", () => {
     expect(() =>
