@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { ManagementShell } from "@/components/mc/mc-shell";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
+import { RouteErrorState } from "@/components/app/route-error-state";
 
 // Management Center — cloud-only, OPSQAI staff only. It never ships inside
 // the customer's Windows installation.
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/management")({
     if (!ok) throw redirect({ to: "/portal" });
   },
   component: ManagementLayout,
+  errorComponent: ({ error }) => <RouteErrorState error={error} homeTo="/management" />,
 });
 
 function ManagementLayout() {
