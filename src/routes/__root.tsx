@@ -175,6 +175,7 @@ function RootComponent() {
             <Outlet />
             <ChatGlider />
             <Toaster />
+            <ConfirmHost />
           </LicenseProvider>
         </AuthProvider>
       </LanguageProvider>
