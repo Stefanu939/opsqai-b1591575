@@ -523,6 +523,25 @@ if (-not (Test-Path $partsManifest)) {
 if (-not (Test-Path $partsNsh)) {
   throw "pack-payload.mjs exited 0 but wrote no NSIS include at $partsNsh. The payload was not packed; see docs/engineering/windows-installer-packaging.md."
 }
+# Structural guardrail: every non-skipped heavy component must have its own part.
+# pack-payload.mjs additionally verifies that each archive's ONLY top-level entry
+# is the component directory (app/, runtime/, pgsql/, ...), because NSIS extracts
+# the parts straight into $INSTDIR and the archive root defines the installed
+# layout. Archiving a component's contents produced $INSTDIR\server / \node / \bin
+# instead of $INSTDIR\app\server / \runtime\node / \pgsql\bin.
+$manifestJson = Get-Content $partsManifest -Raw | ConvertFrom-Json
+$packedParts  = @($manifestJson.parts | ForEach-Object { $_.name })
+$expectedParts = @('app', 'runtime', 'winsw', 'caddy', 'wizard', 'desktop-shell')
+if (-not $SkipPostgres) { $expectedParts += 'pgsql' }
+if (-not $SkipOllama)   { $expectedParts += 'vendor' }
+foreach ($expected in $expectedParts) {
+  if ($packedParts -notcontains $expected) {
+    throw "pack-payload.mjs produced no '$expected.7z' part. Installed layout would be incomplete."
+  }
+}
+if ($SkipPostgres) { Write-Host "  skipped: pgsql (PostgreSQL + pgvector)" }
+if ($SkipOllama)   { Write-Host "  skipped: vendor (local AI engine)" }
+Write-Host ("Payload parts verified: {0}" -f ($packedParts -join ', '))
 
 # --- 7. Run NSIS -----------------------------------------------------------
 # A 64-bit makensis (NSIS 3.10+ ships one under Bin\) has no 2 GB address-space

@@ -55,7 +55,14 @@ if (!existsSync(configPath)) fail("OPSQAI-E1901", { message: `config not found a
 if (!existsSync(migrationsDir)) fail("OPSQAI-E1901", { message: `migrations not found at ${migrationsDir}` });
 if (!existsSync(psql)) fail("OPSQAI-E1101", { message: `psql.exe not found at ${psql}` });
 
-const cfg = JSON.parse(readFileSync(configPath, "utf8"));
+// BOM-tolerant config read: a UTF-8 BOM in config.json used to abort the
+// migrator with an unstructured SyntaxError before any migration ran.
+let cfg;
+try {
+  cfg = JSON.parse(readFileSync(configPath, "utf8").replace(/^\uFEFF/, ""));
+} catch (e) {
+  fail("OPSQAI-E1901", { message: `config at ${configPath} is not valid JSON: ${e.message}` });
+}
 
 function databaseEnv() {
   if (cfg.database?.mode === "external") {

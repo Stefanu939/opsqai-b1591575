@@ -19,6 +19,7 @@ import {
   packPayload,
   planParts,
   renderPartsNsh,
+  verifyArchiveRoot,
 } from "../pack-payload.mjs";
 
 const ALL_DIRS = (PACK_COMPONENTS as { dir: string }[]).map((c) => c.dir);
@@ -53,6 +54,9 @@ function harness(present: string[] = ALL_DIRS) {
       written.set(target, "7z");
       return target;
     },
+    // Structure validation is exercised on its own below; the fs double has no
+    // real archives to list.
+    verify: () => 1,
   };
 
   return { deps, written, archived, removed, moved, sizes, dirs };
@@ -198,8 +202,13 @@ describe("pack-payload", () => {
     // Real `archive` impl, faked process runner: the archive appears on disk
     // exactly as 7zr would leave it.
     const runner = vi.fn((_bin: string, args: string[]) => {
-      h.written.set(args[args.length - 2]!, "7z");
-      return { status: 0 };
+      if (args[0] === "a") {
+        h.written.set(args[args.length - 2]!, "7z");
+        return { status: 0 };
+      }
+      // `l -ba -slt <target>` — emit a listing rooted at the component dir.
+      const dir = args[args.length - 1]!.split("/").pop()!.replace(/\.7z$/, "");
+      return { status: 0, stdout: `Path = ${dir}\nPath = ${dir}/content.bin\n` };
     });
     packPayload({
       payloadDir: "/payload",
@@ -207,13 +216,91 @@ describe("pack-payload", () => {
       nshPath: "/nsis/parts.generated.nsh",
       archiver: "/tools/7zr.exe",
       stashDir: "/build/staged",
-      deps: { ...h.deps, archive: undefined as never, run: runner },
+      deps: { ...h.deps, archive: undefined as never, verify: undefined as never, run: runner },
     });
+    // The archive MUST be created from the payload parent with the component
+    // directory as the argument, so the archive root is `app/…` and NSIS
+    // extraction into $INSTDIR reproduces $INSTDIR\app\server\….
     expect(runner).toHaveBeenCalledWith(
       "/tools/7zr.exe",
-      ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "-r", "/build/parts/app.7z", "*"],
-      { cwd: "/payload/app", stdio: "inherit" },
+      ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "-r", "/build/parts/app.7z", "app"],
+      { cwd: "/payload", stdio: "inherit" },
     );
+  });
+});
+
+describe("archive structure validation", () => {
+  const listing = (paths: string[]) => ({
+    status: 0,
+    stdout: paths.map((p) => `Path = ${p}\nSize = 1\n`).join(""),
+  });
+
+  it("accepts an archive whose single root is the component directory", () => {
+    const count = verifyArchiveRoot({
+      archiver: "7zr",
+      target: "/parts/app.7z",
+      dir: "app",
+      run: () => listing(["app", "app/server", "app/server/migrate.mjs"]),
+    });
+    expect(count).toBe(3);
+  });
+
+  it("accepts Windows backslash listings", () => {
+    expect(
+      verifyArchiveRoot({
+        archiver: "7zr",
+        target: "/parts/pgsql.7z",
+        dir: "pgsql",
+        run: () => listing(["pgsql\\bin\\psql.exe", "pgsql\\lib\\vector.dll"]),
+      }),
+    ).toBe(2);
+  });
+
+  it("rejects a flat archive that would explode into $INSTDIR", () => {
+    expect(() =>
+      verifyArchiveRoot({
+        archiver: "7zr",
+        target: "/parts/runtime.7z",
+        dir: "runtime",
+        run: () => listing(["node", "node/node.exe"]),
+      }),
+    ).toThrow(/must contain exactly one top-level directory "runtime\/"/);
+  });
+
+  it("rejects an empty archive", () => {
+    expect(() =>
+      verifyArchiveRoot({ archiver: "7zr", target: "/parts/app.7z", dir: "app", run: () => listing([]) }),
+    ).toThrow(/contains no entries/);
+  });
+
+  it("fails the build when the listing command errors", () => {
+    expect(() =>
+      verifyArchiveRoot({
+        archiver: "7zr",
+        target: "/parts/app.7z",
+        dir: "app",
+        run: () => ({ status: 2, stdout: "" }),
+      }),
+    ).toThrow(/could not list/);
+  });
+
+  it("propagates structure validation through packPayload", () => {
+    const h = harness();
+    expect(() =>
+      packPayload({
+        payloadDir: "/payload",
+        partsDir: "/build/parts",
+        nshPath: "/nsis/parts.generated.nsh",
+        archiver: "/tools/7zr.exe",
+        stashDir: "/build/staged",
+        deps: {
+          ...h.deps,
+          verify: undefined as never,
+          run: (_bin: string, args: string[]) =>
+            args[0] === "a" ? { status: 0 } : { status: 0, stdout: "Path = server\n" },
+        },
+      }),
+    ).toThrow(/exactly one top-level directory "app\/"/);
   });
 });
 
@@ -232,7 +319,13 @@ describe("pack-payload CLI entrypoint", () => {
     const archiver = join(tmp, "fake7z.mjs");
     writeFileSync(
       archiver,
-      "import{writeFileSync}from'node:fs';writeFileSync(process.argv[process.argv.length-2],'archive');",
+      [
+        "import{writeFileSync}from'node:fs';",
+        "const a=process.argv.slice(2);",
+        "if(a[0]==='a'){writeFileSync(a[a.length-2],'archive');}",
+        "else{const d=a[a.length-1].split(/[\\\\/]/).pop().replace(/\\.7z$/,'');",
+        "process.stdout.write('Path = '+d+'\\nPath = '+d+'/content.bin\\n');}",
+      ].join(""),
     );
     const shim = join(tmp, process.platform === "win32" ? "fake7z.cmd" : "fake7z.sh");
     writeFileSync(

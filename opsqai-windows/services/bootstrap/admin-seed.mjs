@@ -27,7 +27,14 @@ function fail(msg, code = 1) {
 if (!email || !password) fail("OPSQAI_ADMIN_EMAIL / OPSQAI_ADMIN_PASSWORD required", 2);
 if (!cfgPath) fail("OPSQAI_CONFIG not set", 2);
 
-const cfg = JSON.parse(readFileSync(cfgPath, "utf8"));
+let cfg;
+try {
+  // Same parsing contract as services/common/config.js: strip a leading BOM,
+  // fail clearly on anything else.
+  cfg = JSON.parse(readFileSync(cfgPath, "utf8").replace(/^\uFEFF/, ""));
+} catch (e) {
+  fail(`config at ${cfgPath} is not valid JSON: ${e.message}`, 2);
+}
 const installId = cfg.installId;
 if (!installId) fail("config.json missing installId", 2);
 

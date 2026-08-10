@@ -70,3 +70,35 @@ bunx vitest run opsqai-windows/build/__tests__/pack-payload.test.ts
 ```
 
 The full build itself only runs on Windows (`pwsh ./opsqai-windows/build/build.ps1 -Configuration Release`).
+
+## Installed layout contract
+
+Each `.7z` part is extracted straight into `$INSTDIR`, so **the archive root
+defines the installed layout**. Every part must contain exactly one top-level
+entry — its component directory (`app/`, `runtime/`, `pgsql/`, `caddy/`,
+`winsw/`, `wizard/`, `desktop-shell/`, `vendor/`). Archiving a component's
+*contents* produced `$INSTDIR\server`, `$INSTDIR\node`, `$INSTDIR\bin` instead of
+`$INSTDIR\app\server`, `$INSTDIR\runtime\node`, `$INSTDIR\pgsql\bin`, and every
+service then failed to start. `pack-payload.mjs` enforces this via
+`verifyArchiveRoot`, `build.ps1` asserts every non-skipped component produced a
+part, and `verify-install-layout.ps1` re-checks it on the installed machine.
+
+## Acceptance on a clean machine
+
+After `OPSQAI-Setup.exe` finishes:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File opsqai-windows\build\verify-install-layout.ps1
+# restart the services (or re-run Setup), then:
+powershell -ExecutionPolicy Bypass -File opsqai-windows\build\verify-install-layout.ps1 -Rerun
+```
+
+The first pass asserts directory layout, BOM-safe `config.json` with a UUID
+`installId`, PostgreSQL listening on 55432, the `opsqai` database and all
+migrations applied, the seeded owner account, the platform answering
+`/health` (distinguishing *not listening* from *listening but unhealthy*),
+`install_id` propagation into the app process, Caddy on `https://localhost`, and
+no service restart loops. `-Rerun` compares against the baseline it wrote to
+prove an upgrade preserved `installId`, the embedded PostgreSQL password, the
+data directory and existing rows. Trusting the local Caddy CA is best-effort: a
+failure only causes a browser certificate warning and never aborts install.

@@ -101,19 +101,71 @@ export function sha256File(path) {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
-/** Builds one .7z part with 7zr/7z. `-mx=5` keeps CI time sane at ~same ratio. */
-export function archiveComponent({ archiver, source, target, run = spawnSync }) {
+/**
+ * Builds one .7z part with 7zr/7z. `-mx=5` keeps CI time sane at ~same ratio.
+ *
+ * CRITICAL: the archive is created from the payload PARENT with the component
+ * directory itself as the argument (`app`, not `*` inside `payload\app`), so
+ * the archive root is `app/…`. NSIS extracts every part straight into
+ * $INSTDIR; archiving the component's CONTENTS produced
+ * `C:\Program Files\OPSQAI\server` / `…\node` / `…\bin` instead of
+ * `app\server` / `runtime\node` / `pgsql\bin`, which every service launcher
+ * and migrate.mjs expects.
+ */
+export function archiveComponent({ archiver, payloadDir, dir, target, run = spawnSync }) {
   const result = run(
     archiver,
-    ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "-r", target, "*"],
-    { cwd: source, stdio: "inherit" },
+    ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "-r", target, dir],
+    { cwd: payloadDir, stdio: "inherit" },
   );
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error(`pack-payload: ${archiver} failed with ${result.status} for ${source}`);
+    throw new Error(
+      `pack-payload: ${archiver} failed with ${result.status} for ${join(payloadDir, dir)}`,
+    );
   }
   return target;
 }
+
+/**
+ * Reads the archive listing back and fails the build unless EVERY entry lives
+ * under `<dir>/`. Without this, a packaging regression yields an installer that
+ * compiles and installs but lays the payload out flat in $INSTDIR.
+ */
+export function verifyArchiveRoot({ archiver, target, dir, run = spawnSync }) {
+  const result = run(archiver, ["l", "-ba", "-slt", target], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(
+      `pack-payload: could not list ${target} for structure validation (exit ${result.status})`,
+    );
+  }
+  const paths = String(result.stdout || "")
+    .split(/\r?\n/)
+    .filter((l) => l.startsWith("Path = "))
+    .map((l) => l.slice("Path = ".length).trim())
+    .filter(Boolean);
+  if (paths.length === 0) {
+    throw new Error(`pack-payload: ${target} contains no entries — refusing to ship it`);
+  }
+  const prefix = `${dir}/`;
+  const stray = paths.filter((p) => {
+    const norm = p.replace(/\\/g, "/");
+    return norm !== dir && !norm.startsWith(prefix);
+  });
+  if (stray.length > 0) {
+    throw new Error(
+      `pack-payload: ${target} must contain exactly one top-level directory "${dir}/" but also has ` +
+        `${stray.slice(0, 5).join(", ")}${stray.length > 5 ? ", …" : ""}. ` +
+        `NSIS extracts parts into $INSTDIR, so the archive root defines the installed layout.`,
+    );
+  }
+  return paths.length;
+}
+
 
 /**
  * NSIS include emitted next to the .nsi. Stores each part uncompressed,
@@ -167,7 +219,9 @@ export function packPayload({
     hash = sha256File,
     write = writeFileSync,
     archive = archiveComponent,
+    verify = verifyArchiveRoot,
     run = spawnSync,
+
   } = deps;
 
   const stash = stashDir ?? join(partsDir, "..", "staged");
@@ -189,13 +243,15 @@ export function packPayload({
   for (const component of planned) {
     const file = `${component.name}.7z`;
     const target = join(partsDir, file);
-    archive({ archiver, source: component.source, target, run });
+    archive({ archiver, payloadDir, dir: component.dir, source: component.source, target, run });
     if (!exists(target)) {
       throw new Error(`pack-payload: ${archiver} produced no archive at ${target}`);
     }
+    verify({ archiver, target, dir: component.dir, run });
     const bytes = size(target);
     const sha256 = hash(target);
     write(`${target}.sha256`, `${sha256}\n`);
+
     parts.push({ name: component.name, file, label: component.label, bytes, sha256 });
     // Moved out of the NSIS-visible payload root: `File /r payload\*.*` must
     // not also ship the uncompressed tree. Kept in the stash so the next build
@@ -240,6 +296,7 @@ function main() {
       process.exit(2);
     }
   }
+  console.log("Packing payload parts...");
   const manifest = packPayload(args);
   if (args.json) {
     console.log(JSON.stringify(manifest, null, 2));
@@ -248,8 +305,13 @@ function main() {
     for (const part of manifest.parts) {
       console.log(`  ${part.file.padEnd(20)} ${(part.bytes / 1024 / 1024).toFixed(1).padStart(9)} MB  ${part.sha256.slice(0, 16)}…`);
     }
+    const packed = new Set(manifest.parts.map((p) => p.name));
+    for (const component of PACK_COMPONENTS) {
+      if (!packed.has(component.name)) console.log(`  skipped: ${component.name} (${component.label})`);
+    }
     console.log(`  total${" ".repeat(16)}${(manifest.total_bytes / 1024 / 1024).toFixed(1).padStart(9)} MB`);
   }
+
 }
 
 // NOTE: compare against pathToFileURL(...) — on Windows process.argv[1] is a

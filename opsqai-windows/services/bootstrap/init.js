@@ -23,7 +23,7 @@ const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
 const { execFileSync, spawnSync } = require("child_process");
-const { programData, programFiles, saveConfig } = require("../common/config");
+const { programData, programFiles, saveConfig, readJsonFile } = require("../common/config");
 const { formatFail, parseFail } = require("./errors.cjs");
 const { setupAiEngine, AiSetupError } = require("./ollama.cjs");
 
@@ -71,7 +71,12 @@ function log(m) {
 }
 log(`log: ${LOG_PATH}`);
 
-const installId = arg("install-id", crypto.randomUUID());
+const installIdArg = arg("install-id", "");
+
+function isUuid(v) {
+  return typeof v === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim());
+}
 const companyName = arg("company", "OPSQAI Customer");
 const adminEmail = arg("admin-email");
 const adminPassword = arg("admin-password");
@@ -156,9 +161,13 @@ const smtpCfg = smtpJson ? JSON.parse(smtpJson) : null;
 const configPath = path.join(programData("config"), "config.json");
 let priorEmbeddedPassword = "";
 let priorEmbeddedPort = 55432;
+let priorInstallId = "";
 try {
   if (fs.existsSync(configPath)) {
-    const prior = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    // readJsonFile() is the single OPSQAI config parsing contract: tolerant of a
+    // UTF-8 BOM (PowerShell/Notepad write one), strict about everything else.
+    const prior = readJsonFile(configPath);
+    if (isUuid(prior?.installId)) priorInstallId = String(prior.installId);
     if (prior?.database?.mode === "embedded" && prior?.database?.embedded) {
       priorEmbeddedPassword = String(prior.database.embedded.password || "");
       if (Number.isFinite(Number(prior.database.embedded.port))) {
@@ -168,6 +177,20 @@ try {
   }
 } catch (e) {
   console.warn(`[bootstrap] could not read prior config: ${e.message}`);
+}
+
+// ONE canonical persisted installId. An upgrade / re-run must never mint a new
+// one (licences and every seeded row are keyed on it); a fresh install gets a
+// UUID. An explicitly passed --install-id only wins on a fresh install.
+const installId = priorInstallId || (isUuid(installIdArg) ? installIdArg : crypto.randomUUID());
+if (priorInstallId) {
+  log(`preserving existing installId ${installId}`);
+} else {
+  log(`generated installId ${installId}`);
+}
+if (!isUuid(installId)) {
+  console.error("[bootstrap] refusing to write config.json without a valid installId");
+  process.exit(2);
 }
 
 const config = {
@@ -773,13 +796,25 @@ function resetEmbeddedDatabase() {
     for (let i = 0; i < 30 && !fs.existsSync(rootCert); i++) {
       await new Promise((r) => setTimeout(r, 1000));
     }
+    // NOTE: trusting the local Caddy CA is a convenience, never a gate. A
+    // failure here only means the browser shows a certificate warning on
+    // https://localhost — the application itself is unaffected, so log a clear
+    // warning and continue instead of failing the installation.
     if (fs.existsSync(rootCert)) {
       try {
         execFileSync("certutil.exe", ["-addstore", "-f", "Root", rootCert], { stdio: "inherit" });
         log("Caddy root CA trusted in LocalMachine\\Root");
       } catch (e) {
-        console.warn(`[bootstrap] failed to trust Caddy root: ${e.message}`);
+        console.warn(
+          `[bootstrap] WARNING: could not trust the Caddy root CA (${e.message}). ` +
+            "OPSQAI still works on https://localhost; the browser will show a certificate warning.",
+        );
       }
+    } else {
+      console.warn(
+        `[bootstrap] WARNING: Caddy root CA not found at ${rootCert} yet. ` +
+          "https://localhost will show a certificate warning until Caddy issues it.",
+      );
     }
   }
 
