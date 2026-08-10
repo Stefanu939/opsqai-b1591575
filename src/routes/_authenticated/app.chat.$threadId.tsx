@@ -388,6 +388,7 @@ function ChatInner({
             <Button
               type="submit"
               size="icon"
+              aria-label="Send message"
               disabled={loading || !input.trim()}
               className="h-10 w-10 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
             >

@@ -424,6 +424,7 @@ function ConversationView({
           variant="ghost"
           className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onBack}
+          aria-label="Back"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -445,6 +446,7 @@ function ConversationView({
           variant="ghost"
           className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onClose}
+          aria-label="Close chat"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -699,6 +701,7 @@ function NewChatView({
           variant="ghost"
           className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onBack}
+          aria-label="Back"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -708,6 +711,7 @@ function NewChatView({
           variant="ghost"
           className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
           onClick={onClose}
+          aria-label="Close chat"
         >
           <X className="h-4 w-4" />
         </Button>

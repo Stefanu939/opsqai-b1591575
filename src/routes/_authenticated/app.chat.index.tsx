@@ -113,6 +113,7 @@ function ChatWelcome() {
               onClick={submit}
               disabled={!text.trim() || busy}
               size="icon"
+              aria-label={lang === "de" ? "Frage senden" : "Send question"
               className="h-9 w-9 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40"
             >
               <ArrowUp className="h-4 w-4" />
