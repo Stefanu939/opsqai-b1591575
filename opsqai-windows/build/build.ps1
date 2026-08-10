@@ -367,6 +367,35 @@ if (-not $SkipPostgres) {
   Write-Host "Skipping pgvector (dev build without Postgres)"
 }
 
+# --- 5c. Ollama local AI runtime -------------------------------------------
+# Self-Hosted runs Ollama as its only local AI engine. The Windows setup
+# binary is bundled so the machine never needs a browser download; the models
+# themselves are pulled from the internet during setup (documented behaviour).
+# -SkipOllama produces a dev build without the ~700 MB setup binary.
+if (-not $SkipOllama) {
+  $ollamaDir   = Join-Path $payload 'vendor\ollama'
+  $ollamaSetup = Join-Path $ollamaDir 'OllamaSetup.exe'
+  New-Item -ItemType Directory -Force -Path $ollamaDir | Out-Null
+  if (-not (Test-Path $ollamaSetup)) {
+    $ollamaVersion = $env:OPSQAI_OLLAMA_VERSION
+    if (-not $ollamaVersion) { $ollamaVersion = 'v0.5.7' }
+    Write-Host "Ollama runtime $ollamaVersion"
+    Fetch "https://github.com/ollama/ollama/releases/download/$ollamaVersion/OllamaSetup.exe" $ollamaSetup
+  }
+  $ollamaSha = (Get-FileHash -Algorithm SHA256 -Path $ollamaSetup).Hash.ToLowerInvariant()
+  $expected  = $env:OPSQAI_OLLAMA_SHA256
+  if ($expected) {
+    if ($ollamaSha -ne $expected.ToLowerInvariant()) {
+      throw "Ollama setup SHA-256 mismatch. Expected $expected but got $ollamaSha"
+    }
+  } else {
+    Write-Host "Ollama setup SHA-256: $ollamaSha (set OPSQAI_OLLAMA_SHA256 to pin it)"
+  }
+  Set-Content -Path (Join-Path $ollamaDir 'OllamaSetup.exe.sha256') -Value $ollamaSha -Encoding ascii
+} else {
+  Write-Host "Skipping Ollama runtime (dev build)"
+}
+
 # --- 6. Assets -------------------------------------------------------------
 $assetsDest = Join-Path $payload 'assets'
 New-Item -ItemType Directory -Force -Path $assetsDest | Out-Null
@@ -398,6 +427,10 @@ Assert-Exists (Join-Path $payload 'app\server\admin-seed\node_modules\argon2\pac
 Assert-Exists (Join-Path $payload 'app\server\admin-seed\node_modules\argon2\prebuilds\win32-x64') 'argon2 win32-x64 prebuild'
 
 Assert-Exists (Join-Path $payload 'caddy\caddy.exe') 'Caddy runtime'
+Assert-Exists (Join-Path $payload 'services\bootstrap\ollama.cjs') 'local AI engine setup module'
+if (-not $SkipOllama) {
+  Assert-Exists (Join-Path $payload 'vendor\ollama\OllamaSetup.exe') 'Ollama local AI runtime setup'
+}
 if (-not $SkipPostgres) {
   Assert-Exists (Join-Path $payload 'pgsql\bin\postgres.exe') 'PostgreSQL runtime'
   Assert-Exists (Join-Path $payload 'pgsql\lib\vector.dll')                 'pgvector runtime (vector.dll)'
