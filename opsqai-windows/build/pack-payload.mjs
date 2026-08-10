@@ -153,6 +153,7 @@ export function packPayload({
   partsDir,
   nshPath,
   archiver,
+  stashDir,
   flags = {},
   deps = {},
 }) {
@@ -167,6 +168,17 @@ export function packPayload({
     archive = archiveComponent,
     run = spawnSync,
   } = deps;
+
+  const stash = stashDir ?? join(partsDir, "..", "staged");
+  // A previous run moved the packed components into the stash. Restore them so
+  // repeated builds (for example `-SkipApp -SkipOllama`) do not re-download
+  // gigabytes of runtimes.
+  mkdir(stash);
+  for (const component of PACK_COMPONENTS) {
+    const source = join(payloadDir, component.dir);
+    const stashed = join(stash, component.dir);
+    if (!exists(source) && exists(stashed)) move(stashed, source);
+  }
 
   const planned = planParts({ payloadDir, exists, flags });
   rm(partsDir);
@@ -185,8 +197,11 @@ export function packPayload({
     write(`${target}.sha256`, `${sha256}\n`);
     parts.push({ name: component.name, file, label: component.label, bytes, sha256 });
     // Moved out of the NSIS-visible payload root: `File /r payload\*.*` must
-    // not also ship the uncompressed tree.
-    rm(component.source);
+    // not also ship the uncompressed tree. Kept in the stash so the next build
+    // can reuse it instead of re-downloading.
+    const stashed = join(stash, component.dir);
+    rm(stashed);
+    move(component.source, stashed);
   }
 
   const total = assertPartSizes(parts);
