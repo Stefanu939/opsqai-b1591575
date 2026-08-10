@@ -71,6 +71,26 @@ function log(m) {
 }
 log(`log: ${LOG_PATH}`);
 
+// ─── Self-identification ──────────────────────────────────────────────────
+// Prints the SHA-256 of THIS file plus the recorded build provenance so an
+// install log can be matched against the "[build] bootstrap init.js sha256="
+// line emitted while packaging. Without it, "is the fix in the EXE?" is
+// unanswerable from the log alone.
+(function logProvenance() {
+  try {
+    const selfHash = crypto.createHash("sha256").update(fs.readFileSync(__filename)).digest("hex");
+    let build = "unknown";
+    try {
+      const rec = JSON.parse(
+        fs.readFileSync(path.join(__dirname, "build-provenance.json"), "utf8").replace(/^\uFEFF/, ""),
+      );
+      build = `${rec.version || "unknown"}${rec.sha256 === selfHash ? "" : " (PROVENANCE MISMATCH)"}`;
+    } catch (_) {}
+    log(`init.js sha256=${selfHash} build=${build}`);
+  } catch (_) {}
+})();
+
+
 const installIdArg = arg("install-id", "");
 
 function isUuid(v) {
