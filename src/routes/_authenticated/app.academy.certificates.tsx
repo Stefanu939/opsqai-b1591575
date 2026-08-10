@@ -28,7 +28,7 @@ function CertificatesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <AcademySubnav />
       <div className="p-6 max-w-5xl mx-auto w-full space-y-4">
         <h1 className="text-xl font-semibold flex items-center gap-2">

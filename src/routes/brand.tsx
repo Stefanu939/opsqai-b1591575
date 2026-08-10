@@ -34,7 +34,7 @@ const ASSETS: Array<{ label: string; file: string; ground: "onyx" | "bone" | "go
 function BrandBoard() {
   return (
     <div
-      className="min-h-screen"
+      className="min-h-dvh"
       style={{
         background: "#0A0A0A",
         color: "#F5F0E6",

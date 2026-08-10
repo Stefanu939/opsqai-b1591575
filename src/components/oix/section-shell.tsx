@@ -29,7 +29,7 @@ export function SectionShell({
       id={id}
       className={cn(
         "relative w-full py-24 md:py-32",
-        fullHeight && "min-h-screen flex items-center",
+        fullHeight && "min-h-dvh flex items-center",
         bracketed && "oix-brackets",
         className,
       )}

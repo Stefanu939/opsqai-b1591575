@@ -40,7 +40,7 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <div className="p-4">
         <Link to="/" className="flex items-center gap-2 w-fit">
           <LogoMark size={28} className="text-foreground" />

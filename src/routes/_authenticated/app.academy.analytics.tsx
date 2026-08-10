@@ -87,7 +87,7 @@ function AnalyticsPage() {
 
   if (selected) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-dvh flex flex-col">
         <AcademySubnav />
         <div className="p-6 max-w-6xl mx-auto w-full space-y-4">
           <button
@@ -189,7 +189,7 @@ function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <AcademySubnav />
       <div className="p-6 max-w-6xl mx-auto w-full space-y-6">
         <div className="flex items-start justify-between gap-3">

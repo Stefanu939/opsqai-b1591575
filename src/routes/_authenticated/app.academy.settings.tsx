@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/app/academy/settings")({
 
 function SettingsPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <AcademySubnav />
       <div className="p-6 max-w-3xl mx-auto w-full">
         <Card className="p-6 space-y-3">

@@ -186,7 +186,7 @@ function AcademyHome() {
   ];
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-3.5rem)] md:min-h-screen">
+    <div className="flex flex-col min-h-[calc(100vh-3.5rem)] md:min-h-dvh">
       <AcademySubnav />
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-10">
         <div className="w-full max-w-2xl text-center">

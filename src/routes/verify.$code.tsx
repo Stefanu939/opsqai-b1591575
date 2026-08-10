@@ -54,7 +54,7 @@ function VerifyPage() {
   }, [code]);
 
   return (
-    <div className="min-h-screen grid place-items-center bg-background p-6">
+    <div className="min-h-dvh grid place-items-center bg-background p-6">
       <Card className="p-8 max-w-md w-full text-center space-y-4">
         <div className="flex justify-center">
           <GraduationCap className="h-10 w-10 text-primary" />
