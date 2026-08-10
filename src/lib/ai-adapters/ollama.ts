@@ -9,6 +9,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 import type { AIChatRole, AIProviderAdapter, ResolvedEmbeddings, ResolvedTTS } from "./types";
 import { OLLAMA_DEFAULT_BASE_URL, OLLAMA_DEFAULT_MODELS } from "./ollama-models";
+import { capabilities, type AICapabilities } from "../ai-capabilities";
 
 export function ollamaBaseUrl(): string {
   const raw = process.env.OLLAMA_BASE_URL?.trim() || OLLAMA_DEFAULT_BASE_URL;
@@ -32,6 +33,34 @@ export const ollamaAdapter: AIProviderAdapter = {
   id: "ollama",
   aliases: ["ollama-local"],
   label: "Ollama — Local",
+  // Declared capabilities of the local engine. `probeCapabilities()` below
+  // confirms them against the models that are actually installed. Anything
+  // Ollama cannot do stays false — it is NEVER routed to a cloud provider.
+  capabilities: capabilities({
+    chat: true,
+    fastChat: true,
+    embeddings: true,
+    jsonOutput: true,
+    structuredOutput: true,
+    streaming: true,
+    toolCalling: true,
+  }),
+
+  async probeCapabilities(): Promise<AICapabilities> {
+    const probe = await probeOllama(15_000);
+    const step = (id: OllamaProbeStep["id"]) => probe.steps.find((s) => s.id === id)?.ok === true;
+    const chatOk = step("chat");
+    const embedOk = step("embeddings");
+    return capabilities({
+      chat: chatOk,
+      fastChat: chatOk,
+      embeddings: embedOk,
+      jsonOutput: chatOk,
+      structuredOutput: chatOk,
+      streaming: chatOk,
+      toolCalling: chatOk,
+    });
+  },
 
   resolveChat(role: AIChatRole): LanguageModel {
     // No apiKey: createOpenAICompatible omits the Authorization header when
