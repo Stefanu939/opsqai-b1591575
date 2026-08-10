@@ -814,7 +814,9 @@ function resetEmbeddedDatabase() {
           cfg: config.ai || {},
           setupExe: programFiles("vendor", "ollama", "OllamaSetup.exe"),
           applyDim: async (dim) => {
+            describePgTarget("vector storage");
             const r = psqlExec(`SELECT public.kb_apply_embedding_dim(${Number(dim)});`);
+
             if (r.status !== 0) {
               const detail = scrubSecrets((r.stderr || r.stdout || "") + "").trim().slice(-400);
               throw new AiSetupError(
