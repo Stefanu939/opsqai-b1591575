@@ -28,7 +28,7 @@ export function LocalAiEngineCard() {
       base_url: string;
       models: { chat: string; "chat-fast": string; embedding: string };
       pinned_embedding_dim: number | null;
-      probe: { ok: boolean; steps: ProbeStep[]; embeddingDimension?: number | null };
+      probe: { ok: boolean; steps: ProbeStep[]; embeddingDim: number | null };
     }>,
     refetchOnWindowFocus: false,
   });
