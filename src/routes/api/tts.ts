@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 /**
- * Public TTS proxy → Lovable AI Gateway (openai/gpt-4o-mini-tts).
+ * Public TTS proxy → the central AI provider's speech endpoint.
+ * The provider (Cloud gateway or a local engine) is resolved centrally;
+ * this route never names a model, a host or an API key. When the active
+ * engine has no speech capability (local Ollama), it answers 501 — it
+ * NEVER falls back to a cloud provider.
  * Body: { text: string, lang: "en" | "de" }
  * Returns: audio/mpeg (mp3) so the browser can cache it and play with <audio>.
  *
@@ -39,8 +43,22 @@ export const Route = createFileRoute("/api/tts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env.LOVABLE_API_KEY;
-        if (!key) return new Response("AI disabled", { status: 503 });
+        const { resolveTTSOrNull, activeAiProviderLabel } = await import(
+          "@/lib/ai-provider.server"
+        );
+        const tts = resolveTTSOrNull();
+        if (!tts) {
+          return new Response(
+            JSON.stringify({
+              error: "text_to_speech_unsupported",
+              provider: activeAiProviderLabel(),
+              message:
+                "Text-to-speech is not available on the active AI engine. " +
+                "No external AI provider is contacted.",
+            }),
+            { status: 501, headers: { "Content-Type": "application/json" } },
+          );
+        }
 
         const ip = getClientIp(request);
         const rl = rateLimit(ip);
@@ -65,11 +83,11 @@ export const Route = createFileRoute("/api/tts")({
           lang === "de"
             ? "Ruhig, souverän und premium. Sprich langsam, warm und vertrauenswürdig, wie eine Enterprise-Produktnarration von Apple oder Stripe. Kurze Pausen zwischen Sätzen."
             : "Calm, confident, premium. Speak slowly, warm and trustworthy, like an enterprise product narration from Apple or Stripe. Short pauses between sentences.";
-        const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
+        const res = await fetch(tts.url, {
           method: "POST",
-          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          headers: tts.headers,
           body: JSON.stringify({
-            model: "openai/gpt-4o-mini-tts",
+            ...(tts.modelInPath ? {} : { model: tts.model }),
             input: text,
             voice,
             instructions,
