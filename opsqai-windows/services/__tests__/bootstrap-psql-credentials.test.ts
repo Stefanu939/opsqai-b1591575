@@ -58,11 +58,12 @@ function sandbox(config: Record<string, unknown>) {
   return { dataRoot, configPath, pfRoot, callLog };
 }
 
-function runInit(dataRoot: string, pfRoot: string) {
+function runInit(dataRoot: string, pfRoot: string, extraArgs: string[] = []) {
   return spawnSync(
     process.execPath,
     [
       INIT,
+      ...extraArgs,
       "--admin-email", "owner@example.test",
       "--admin-password", "Admin-Pass-123",
       "--company", "Acme GmbH",
@@ -142,21 +143,22 @@ describe("bootstrap psql credentials", () => {
     rmSync(dataRoot, { recursive: true, force: true });
   });
 
-  it("resolves external-mode credentials from config.database.external", () => {
+  it("resolves external-mode credentials from the external database config", () => {
+    const external = {
+      host: "db.internal",
+      port: 6432,
+      username: "opsqai_app",
+      database: "opsqai_prod",
+      password: PASSWORD,
+    };
     const { dataRoot, pfRoot, callLog } = sandbox({
       ...EMBEDDED,
-      database: {
-        mode: "external",
-        external: {
-          host: "db.internal",
-          port: 6432,
-          username: "opsqai_app",
-          database: "opsqai_prod",
-          password: PASSWORD,
-        },
-      },
+      database: { mode: "external", external },
     });
-    runInit(dataRoot, pfRoot);
+    runInit(dataRoot, pfRoot, [
+      "--db-mode", "external",
+      "--db-external", JSON.stringify(external),
+    ]);
     const recorded = calls(callLog);
     expect(recorded.length).toBeGreaterThan(0);
     for (const c of recorded) {
