@@ -78,6 +78,34 @@ foreach ($stray in @('server', 'node', 'bin', 'lib')) {
   }.GetNewClosure()
 }
 
+# --- 3b. bootstrap provenance ---------------------------------------------
+# The installed init.js must be byte-identical to the one recorded at build
+# time, and must be the ONLY bootstrap entrypoint (no stale copy a launcher
+# could pick up instead).
+$bootstrapInit = Join-Path $InstallDir 'services\bootstrap\init.js'
+$provPath      = Join-Path $InstallDir 'services\bootstrap\build-provenance.json'
+Check 'bootstrap provenance record shipped' { Expect (Test-Path $provPath) "missing $provPath" }
+Check 'installed init.js matches build provenance sha256' {
+  $raw  = (Get-Content $provPath -Raw) -replace "^\uFEFF", ''
+  $rec  = $raw | ConvertFrom-Json
+  $hash = (Get-FileHash $bootstrapInit -Algorithm SHA256).Hash.ToLower()
+  Expect ($hash -eq $rec.sha256) "installed init.js sha256=$hash but provenance says $($rec.sha256)"
+}
+Check 'installed init.js resolves the embedded DB password from config' {
+  $src = Get-Content $bootstrapInit -Raw
+  Expect ($src -match [regex]::Escape('config.database.embedded?.password')) `
+    'init.js does not read config.database.embedded.password'
+  Expect ($src -notmatch 'const\s+pw\s*=\s*embedded\s*\?\s*""') `
+    'init.js still hardcodes an empty embedded password (fe_sendauth regression)'
+}
+Check 'exactly one bootstrap init.js is installed' {
+  $copies = @(Get-ChildItem -Path $InstallDir -Filter 'init.js' -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notmatch '\\node_modules\\' })
+  Expect ($copies.Count -eq 1) ("found {0} init.js copies: {1}" -f $copies.Count, ($copies.FullName -join '; '))
+}
+
+
+
 # --- 4..7 configuration ----------------------------------------------------
 $cfg = $null
 Check 'config.json exists' { Expect (Test-Path $configPath) "missing $configPath" }
