@@ -35,6 +35,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 /** NSIS cannot map a datablock this large; refuse long before makensis dies. */
 export const MAX_PART_BYTES = 1_500 * 1024 * 1024; // 1.5 GB per part
@@ -251,4 +252,8 @@ function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+// NOTE: compare against pathToFileURL(...) — on Windows process.argv[1] is a
+// drive path (D:\a\...) while import.meta.url is file:///D:/a/..., so a
+// hand-built `file://${argv[1]}` string never matches and the CLI silently
+// exits 0 without packing anything.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

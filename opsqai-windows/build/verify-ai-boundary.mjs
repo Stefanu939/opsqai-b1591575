@@ -10,6 +10,7 @@
  * Exits 1 on any violation.
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 import { join, relative, sep } from "node:path";
 
 const ROOT = process.cwd();
@@ -149,4 +150,5 @@ function main() {
   process.exit(violations.length === 0 ? 0 : 1);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+// Windows-safe entrypoint check (see pack-payload.mjs for why).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

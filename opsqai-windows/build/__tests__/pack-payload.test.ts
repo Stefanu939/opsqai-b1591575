@@ -1,4 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
+import { spawnSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 // @ts-expect-error — plain .mjs build script, no type declarations.
 import {
   MAX_PART_BYTES,
@@ -203,5 +214,56 @@ describe("pack-payload", () => {
       ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "-r", "/build/parts/app.7z", "*"],
       { cwd: "/payload/app", stdio: "inherit" },
     );
+  });
+});
+
+describe("pack-payload CLI entrypoint", () => {
+  // Regression: the entrypoint guard used to compare import.meta.url against
+  // `file://${process.argv[1]}`, which never matches a Windows drive path, so
+  // CI ran the packer, got exit 0, and packed nothing.
+  it("packs and writes both outputs when run as a child process", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "opsqai-pack-"));
+    const payload = join(tmp, "payload");
+    for (const dir of ALL_DIRS) {
+      mkdirSync(join(payload, dir), { recursive: true });
+      writeFileSync(join(payload, dir, "content.bin"), dir);
+    }
+    // Fake archiver: 7z-compatible enough for the packer (create the target).
+    const archiver = join(tmp, "fake7z.mjs");
+    writeFileSync(
+      archiver,
+      "import{writeFileSync}from'node:fs';writeFileSync(process.argv[process.argv.length-2],'archive');",
+    );
+    const shim = join(tmp, process.platform === "win32" ? "fake7z.cmd" : "fake7z.sh");
+    writeFileSync(
+      shim,
+      process.platform === "win32"
+        ? `@echo off\r\nnode "${archiver}" %*\r\n`
+        : `#!/bin/sh\nexec node "${archiver}" "$@"\n`,
+      { mode: 0o755 },
+    );
+
+    const partsDir = join(tmp, "parts");
+    const nsh = join(tmp, "parts.generated.nsh");
+    const result = spawnSync(
+      process.execPath,
+      [
+        join(import.meta.dirname, "..", "pack-payload.mjs"),
+        "--payload", payload,
+        "--parts", partsDir,
+        "--nsh", nsh,
+        "--archiver", shim,
+      ],
+      { encoding: "utf8" },
+    );
+
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+    expect(existsSync(nsh)).toBe(true);
+    expect(existsSync(join(partsDir, "parts.manifest.json"))).toBe(true);
+    expect(readFileSync(nsh, "utf8")).toContain("OPSQAI_EXTRACT_PARTS");
+    expect(result.stdout).toContain("app.7z");
+
+    rmSync(tmp, { recursive: true, force: true });
   });
 });

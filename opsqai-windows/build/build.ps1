@@ -513,7 +513,16 @@ if ($SkipPostgres) { $packArgs += '--skip-postgres' }
 if ($SkipOllama)   { $packArgs += '--skip-ollama' }
 & $packNode @packArgs
 if ($LASTEXITCODE -ne 0) { throw "pack-payload.mjs failed with $LASTEXITCODE" }
-Assert-Exists $partsNsh 'generated NSIS parts include'
+# The packer must have produced BOTH outputs. A packer that exits 0 without
+# writing them (for example an entrypoint that never runs) is a build failure,
+# not something to discover later inside makensis.
+$partsManifest = Join-Path $partsDir 'parts.manifest.json'
+if (-not (Test-Path $partsManifest)) {
+  throw "pack-payload.mjs exited 0 but wrote no parts manifest at $partsManifest. The payload was not packed; see docs/engineering/windows-installer-packaging.md."
+}
+if (-not (Test-Path $partsNsh)) {
+  throw "pack-payload.mjs exited 0 but wrote no NSIS include at $partsNsh. The payload was not packed; see docs/engineering/windows-installer-packaging.md."
+}
 
 # --- 7. Run NSIS -----------------------------------------------------------
 # A 64-bit makensis (NSIS 3.10+ ships one under Bin\) has no 2 GB address-space
