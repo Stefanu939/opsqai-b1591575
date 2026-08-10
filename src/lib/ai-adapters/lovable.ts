@@ -2,6 +2,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 import type { AIChatRole, AIProviderAdapter, ResolvedEmbeddings, ResolvedTTS } from "./types";
+import { capabilities } from "../ai-capabilities";
 
 const MODELS = {
   chat: "google/gemini-3-flash-preview",
@@ -28,6 +29,17 @@ function gatewayHeaders(key: string): Record<string, string> {
 export const lovableAdapter: AIProviderAdapter = {
   id: "lovable",
   label: "Lovable AI Gateway",
+  capabilities: capabilities({
+    chat: true,
+    fastChat: true,
+    embeddings: true,
+    structuredOutput: true,
+    jsonOutput: true,
+    streaming: true,
+    toolCalling: true,
+    vision: true,
+    textToSpeech: true,
+  }),
 
   resolveChat(role: AIChatRole): LanguageModel {
     const key = requireKey();

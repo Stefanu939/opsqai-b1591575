@@ -1,20 +1,39 @@
-// AI provider facade for OPSQAI.
+// Central AI provider — the ONLY boundary between OPSQAI feature code and
+// AI inference (Global Self-Hosted AI Contract).
 //
-// Phase 2: this module is now a thin facade over the adapter registry in
-// `src/lib/ai-adapters/`. Adding a new provider does NOT require editing
-// this file — register the adapter and it becomes selectable via the
-// `AI_PROVIDER` env var. See `docs/engineering/adding-an-ai-provider.md`
-// (Engineering Handbook, ships in Phase 7).
+// Every module, route, server function, repository, worker and scheduled job
+// resolves AI through this file. Modules never instantiate a provider, never
+// name a model, and never know whether inference happens locally (Ollama on
+// Self-Hosted) or through the Cloud gateway. Adding a provider means adding
+// an adapter in `src/lib/ai-adapters/` — no feature code changes.
 //
-// The public surface (`resolveChatModel`, `resolveTTS`, `resolveEmbeddings`,
-// `resolveEmbedOne`) is preserved so existing call sites (chat routes,
-// embeddings pipeline, TTS route) continue to work unchanged.
+// Enforced at build time by `opsqai-windows/build/verify-ai-boundary.mjs`.
 
-import type { LanguageModel } from "ai";
+import {
+  generateText as sdkGenerateText,
+  streamText as sdkStreamText,
+  Output,
+  NoObjectGeneratedError,
+  type LanguageModel,
+  type ModelMessage,
+} from "ai";
+import type { z } from "zod";
 import { getActiveAdapter } from "./ai-adapters/registry";
 import type { AIChatRole, ResolvedTTS } from "./ai-adapters/types";
+import {
+  AiCapabilityError,
+  NO_CAPABILITIES,
+  type AICapabilities,
+  type AICapabilityName,
+} from "./ai-capabilities";
 
 export type { AIChatRole, AIModelRole, ResolvedTTS } from "./ai-adapters/types";
+export {
+  AiCapabilityError,
+  AI_CAPABILITY_LABELS,
+  AI_CAPABILITY_NAMES,
+} from "./ai-capabilities";
+export type { AICapabilities, AICapabilityName } from "./ai-capabilities";
 
 // Embedding vector dimensions.
 //
@@ -29,27 +48,101 @@ export function embeddingDimensions(): number {
   return Number.isFinite(n) && n > 0 ? n : 1536;
 }
 
+// ---------------------------------------------------------------------------
+// Capability registry
+// ---------------------------------------------------------------------------
+
+/** Stable id of the active engine (for audit logs and admin UI). */
+export function activeAiProviderId(): string {
+  try {
+    return getActiveAdapter().id;
+  } catch {
+    return "unconfigured";
+  }
+}
+
+/** Human label of the active engine. */
+export function activeAiProviderLabel(): string {
+  try {
+    return getActiveAdapter().label;
+  } catch {
+    return "Not configured";
+  }
+}
 
 /**
- * Returns a chat-capable LanguageModel for the given logical role.
- * OPSQAI Cloud: AI_PROVIDER unset -> Lovable Gateway.
- * OPSQAI Self-Hosted: AI_PROVIDER=azure|openai-compatible -> customer's provider.
+ * What the active engine can do. Declared by the adapter; modules must query
+ * this instead of assuming a capability exists.
+ */
+export function aiCapabilities(): AICapabilities {
+  try {
+    return getActiveAdapter().capabilities;
+  } catch {
+    return NO_CAPABILITIES;
+  }
+}
+
+/** Live verification against the running engine (health probe). */
+export async function probeAiCapabilities(): Promise<AICapabilities> {
+  let adapter;
+  try {
+    adapter = getActiveAdapter();
+  } catch {
+    return NO_CAPABILITIES;
+  }
+  if (!adapter.probeCapabilities) return adapter.capabilities;
+  try {
+    return await adapter.probeCapabilities();
+  } catch {
+    return NO_CAPABILITIES;
+  }
+}
+
+export function hasAiCapability(name: AICapabilityName): boolean {
+  return aiCapabilities()[name] === true;
+}
+
+/** Throws an `AiCapabilityError` when the capability is unsupported locally. */
+export function assertAiCapability(name: AICapabilityName): void {
+  if (!hasAiCapability(name)) {
+    throw new AiCapabilityError({ capability: name, providerId: activeAiProviderId() });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Model / endpoint resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns a chat-capable LanguageModel for the given logical role. The model
+ * id lives in the adapter — never in feature code.
  */
 export function resolveChatModel(role: AIChatRole): LanguageModel {
+  assertAiCapability(role === "chat-fast" ? "fastChat" : "chat");
   return getActiveAdapter().resolveChat(role);
 }
 
-/** Resolved TTS endpoint descriptor. */
+/** Resolved TTS endpoint descriptor. Throws `AiCapabilityError` when unsupported. */
 export function resolveTTS(): ResolvedTTS {
+  assertAiCapability("textToSpeech");
   return getActiveAdapter().resolveTTS();
+}
+
+/** Non-throwing variant for routes that must answer with a clean 501. */
+export function resolveTTSOrNull(): ResolvedTTS | null {
+  try {
+    return resolveTTS();
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Returns embedding vectors for the given texts, using whichever provider
- * is configured. Vector length is EMBEDDING_DIMENSIONS (default 1536) and
- * must match the pgvector column.
+ * is configured. Vector length must match the pgvector column.
  */
 export async function resolveEmbeddings(texts: string[]): Promise<number[][]> {
+  assertAiCapability("embeddings");
   const { url, headers, buildBody } = getActiveAdapter().resolveEmbeddings();
   const res = await fetch(url, {
     method: "POST",
@@ -67,4 +160,95 @@ export async function resolveEmbeddings(texts: string[]): Promise<number[][]> {
 export async function resolveEmbedOne(text: string): Promise<number[]> {
   const [v] = await resolveEmbeddings([text]);
   return v;
+}
+
+// ---------------------------------------------------------------------------
+// Capability-checked generation helpers
+//
+// Summarization, classification, extraction, rewriting, SOP generation and
+// validation, Academy content and assessments, AI Audit, recommendations,
+// reports, KB/FAQ generation, document analysis, RAG and future agents all
+// call these. None of them names a model or a provider.
+// ---------------------------------------------------------------------------
+
+type ChatRoleArg = AIChatRole;
+
+export interface AiTextRequest {
+  role?: ChatRoleArg;
+  system?: string;
+  prompt?: string;
+  messages?: ModelMessage[];
+  temperature?: number;
+  maxOutputTokens?: number;
+  abortSignal?: AbortSignal;
+}
+
+type StreamArgs = Parameters<typeof sdkStreamText>[0];
+type GenerateArgs = Parameters<typeof sdkGenerateText>[0];
+
+function callArgs(req: AiTextRequest): Record<string, unknown> {
+  const { role: _role, ...rest } = req;
+  return rest as Record<string, unknown>;
+}
+
+/**
+ * One-shot text generation. Streams on the wire and resolves the final text,
+ * so long local generations are not cut off by request timeouts.
+ */
+export async function generateAiText(req: AiTextRequest): Promise<string> {
+  const role = req.role ?? "chat";
+  const model = resolveChatModel(role);
+  if (hasAiCapability("streaming")) {
+    const result = sdkStreamText({ model, ...callArgs(req) } as StreamArgs);
+    return await result.text;
+  }
+  const { text } = await sdkGenerateText({ model, ...callArgs(req) } as GenerateArgs);
+  return text;
+}
+
+/** Streaming text generation for chat UIs. Returns the AI SDK stream result. */
+export function streamAiText(req: AiTextRequest & Record<string, unknown>) {
+  const role = (req.role as ChatRoleArg | undefined) ?? "chat";
+  assertAiCapability("streaming");
+  const { role: _role, ...rest } = req;
+  return sdkStreamText({ model: resolveChatModel(role), ...rest } as StreamArgs);
+}
+
+/**
+ * Structured generation. Schemas stay constraint-free (state limits in the
+ * prompt); malformed local output degrades through `fallback` instead of
+ * crashing the caller.
+ */
+export async function generateAiObject<T>(
+  req: AiTextRequest & {
+    schema: z.ZodType<T>;
+    fallback?: (rawText: string) => T | null;
+  },
+): Promise<T> {
+  assertAiCapability("structuredOutput");
+  const { schema, fallback, role, ...rest } = req;
+  const model = resolveChatModel(role ?? "chat");
+  try {
+    const result = sdkStreamText({
+      model,
+      ...rest,
+      output: Output.object({ schema }),
+    } as StreamArgs);
+    return (await (result as unknown as { output: Promise<T> }).output) as T;
+  } catch (error) {
+    if (NoObjectGeneratedError.isInstance(error)) {
+      const recovered = fallback?.(error.text ?? "");
+      if (recovered != null) return recovered;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Free-form JSON generation for callers that parse the payload themselves
+ * (the pattern used by the Academy / Audit generators).
+ */
+export async function generateAiJson(req: AiTextRequest): Promise<string> {
+  assertAiCapability("jsonOutput");
+  return generateAiText(req);
 }

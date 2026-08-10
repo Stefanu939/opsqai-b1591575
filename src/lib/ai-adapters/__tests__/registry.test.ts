@@ -56,7 +56,8 @@ describe("ai-adapters registry", () => {
     const custom: AIProviderAdapter = {
       id: "test-custom",
       label: "Custom Test",
-      resolveChat: () => {
+      capabilities: { chat: true, fastChat: true, embeddings: true, structuredOutput: false, jsonOutput: false, streaming: true, toolCalling: false, vision: false, audioInput: false, textToSpeech: false },
+    resolveChat: () => {
         throw new Error("nope");
       },
       resolveTTS: () => {

@@ -158,6 +158,13 @@ function assertContains(parent, child, label) {
     Write-Host "Wrote migration fingerprint manifest: $manifestPath"
 
 
+    # Global Self-Hosted AI Contract — no AI path around the central provider.
+    Write-Host "Verifying AI provider boundary..."
+    & $nodeCmd (Join-Path $root 'build\verify-ai-boundary.mjs')
+    if ($LASTEXITCODE -ne 0) {
+      throw "verify-ai-boundary.mjs failed — feature code calls an AI provider directly. See output above."
+    }
+
     # Phase 9 — bundle scan. Refuse to package if any Cloud-only surface
     # (Supabase URLs, publishable/anon/service keys, `client.server` import,
     # `VITE_SUPABASE_*` env references) leaked into the Self-Hosted output.

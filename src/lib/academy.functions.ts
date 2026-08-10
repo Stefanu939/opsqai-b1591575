@@ -3,8 +3,7 @@ import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-ava
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
-import { generateText } from "ai";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { generateAiText } from "@/lib/ai-provider.server";
 import {
   requirePermission,
   resolveCompanyForWrite,
@@ -14,14 +13,6 @@ import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 import { uuidString } from "@/lib/zod-uuid";
 
 const ACADEMY_MODULE = "academy" as const;
-
-const MODEL = "google/gemini-3-flash-preview";
-
-async function ai() {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
-  return createLovableAiGatewayProvider(key);
-}
 
 async function companyForRead(context: { supabase: any; userId: string }, hint?: string | null) {
   const companyId = hint ?? (await resolveCompanyForWrite(context, null));
@@ -534,9 +525,9 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
       .join("\n\n")
       .slice(0, 18000);
 
-    const gateway = await ai();
-    const { text } = await generateText({
-      model: gateway(MODEL),
+
+    const text = await generateAiText({
+      role: "chat",
       messages: [
         {
           role: "system",
@@ -632,9 +623,9 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
     if (!corpus.trim())
       throw new Error("The selected SOPs do not contain readable text for course generation.");
 
-    const gateway = await ai();
-    const { text } = await generateText({
-      model: gateway(MODEL),
+
+    const text = await generateAiText({
+      role: "chat",
       messages: [
         {
           role: "system",
@@ -779,9 +770,9 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
       .join("\n\n")
       .slice(0, 12000);
 
-    const gateway = await ai();
-    const { text } = await generateText({
-      model: gateway(MODEL),
+
+    const text = await generateAiText({
+      role: "chat",
       messages: [
         {
           role: "system",
@@ -918,7 +909,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
 
     // Grade using stored, trusted correct_answer values.
     const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
-    const gateway = await ai();
+
     for (let i = 0; i < parsedQuestions.length; i++) {
       const q: StoredQuestion = parsedQuestions[i];
       const a = (data.answers[i] ?? "").trim();
@@ -926,8 +917,8 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
         const correct = a.toLowerCase() === q.correct_answer.trim().toLowerCase();
         results.push({ correct, explanation: q.explanation, correct_answer: q.correct_answer });
       } else {
-        const { text } = await generateText({
-          model: gateway(MODEL),
+        const text = await generateAiText({
+          role: "chat",
           messages: [
             {
               role: "system",

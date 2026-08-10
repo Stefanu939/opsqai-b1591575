@@ -342,17 +342,14 @@ async function enrichWithAi(args: {
   templateLabel: string;
   templateCategory: string;
 }): Promise<{ markdown: string; missing: string[]; usedAi: boolean }> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) {
+  const { generateAiText, hasAiCapability } = await import("@/lib/ai-provider.server");
+  if (!hasAiCapability("chat")) {
     const missing = Array.from(args.skeleton.matchAll(/\*\*\[MISSING:\s*([^\]]+)\]\*\*/g)).map(
       (m) => m[1],
     );
     return { markdown: args.skeleton, missing, usedAi: false };
   }
   try {
-    const { generateText } = await import("ai");
-    const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
-    const gateway = createLovableAiGatewayProvider(key);
     const system = [
       "You are a senior management consultant from a tier-1 strategy firm (Deloitte / PwC / KPMG / Accenture / McKinsey), writing under the OPSQAI brand for an enterprise B2B audience in Germany.",
       "DELIVERABLE QUALITY BAR — must read as drafted by a senior consultant for the executive sponsor:",
@@ -381,8 +378,8 @@ async function enrichWithAi(args: {
       OPSQAI_FACTS,
       DOCUMENT: { label: args.templateLabel, category: args.templateCategory },
     };
-    const { text } = await generateText({
-      model: gateway("google/gemini-2.5-flash"),
+    const text = await generateAiText({
+      role: "chat-fast",
       temperature: 0.2,
       system,
       prompt: `SOURCES (JSON):\n${JSON.stringify(sources, null, 2)}\n\nSKELETON:\n${args.skeleton}\n\nReturn the polished markdown.`,

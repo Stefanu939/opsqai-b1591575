@@ -8,7 +8,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveChatModel } from "@/lib/ai-provider.server";
 import { embedOne } from "@/lib/embeddings.server";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -52,10 +52,9 @@ export const Route = createFileRoute("/api/internal-chat")({
         const token = authHeader?.replace("Bearer ", "");
         if (!token) return new Response("Unauthorized", { status: 401 });
 
-        const apiKey = process.env.LOVABLE_API_KEY;
         const supaUrl = process.env.SUPABASE_URL;
         const supaKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-        if (!apiKey || !supaUrl || !supaKey)
+        if (!supaUrl || !supaKey)
           return new Response("Server misconfigured", { status: 500 });
 
         const supabase = createClient<Database>(supaUrl, supaKey, {
@@ -166,10 +165,8 @@ export const Route = createFileRoute("/api/internal-chat")({
         }
 
         const hasSources = sources.length > 0;
-        const gateway = createLovableAiGatewayProvider(apiKey);
-
         const result = streamText({
-          model: gateway("google/gemini-3-flash-preview"),
+          model: resolveChatModel("chat"),
           system: hasSources
             ? SYSTEM_PROMPT(context, true, langHint)
             : SYSTEM_PROMPT("", false, langHint),

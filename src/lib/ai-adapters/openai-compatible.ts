@@ -3,6 +3,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 import type { AIChatRole, AIProviderAdapter, ResolvedEmbeddings, ResolvedTTS } from "./types";
+import { capabilities } from "../ai-capabilities";
 
 function models() {
   return {
@@ -26,6 +27,15 @@ export const openaiCompatibleAdapter: AIProviderAdapter = {
   id: "openai-compatible",
   aliases: ["generic"],
   label: "OpenAI-compatible endpoint",
+  capabilities: capabilities({
+    chat: true,
+    fastChat: true,
+    embeddings: true,
+    jsonOutput: true,
+    streaming: true,
+    toolCalling: true,
+    textToSpeech: true,
+  }),
 
   resolveChat(role: AIChatRole): LanguageModel {
     const { baseURL, apiKey } = requireConfig();
