@@ -431,6 +431,7 @@ function OrganizationPage() {
                 </p>
               </form>
             </Card>
+            )}
           </TabsContent>
         )}
       </Tabs>
