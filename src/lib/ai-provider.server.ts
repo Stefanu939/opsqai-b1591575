@@ -183,9 +183,12 @@ export interface AiTextRequest {
   abortSignal?: AbortSignal;
 }
 
-function callArgs(req: AiTextRequest) {
+type StreamArgs = Parameters<typeof sdkStreamText>[0];
+type GenerateArgs = Parameters<typeof sdkGenerateText>[0];
+
+function callArgs(req: AiTextRequest): Record<string, unknown> {
   const { role: _role, ...rest } = req;
-  return rest;
+  return rest as Record<string, unknown>;
 }
 
 /**
@@ -196,10 +199,10 @@ export async function generateAiText(req: AiTextRequest): Promise<string> {
   const role = req.role ?? "chat";
   const model = resolveChatModel(role);
   if (hasAiCapability("streaming")) {
-    const result = sdkStreamText({ model, ...callArgs(req) });
+    const result = sdkStreamText({ model, ...callArgs(req) } as StreamArgs);
     return await result.text;
   }
-  const { text } = await sdkGenerateText({ model, ...callArgs(req) });
+  const { text } = await sdkGenerateText({ model, ...callArgs(req) } as GenerateArgs);
   return text;
 }
 
@@ -208,7 +211,7 @@ export function streamAiText(req: AiTextRequest & Record<string, unknown>) {
   const role = (req.role as ChatRoleArg | undefined) ?? "chat";
   assertAiCapability("streaming");
   const { role: _role, ...rest } = req;
-  return sdkStreamText({ model: resolveChatModel(role), ...rest });
+  return sdkStreamText({ model: resolveChatModel(role), ...rest } as StreamArgs);
 }
 
 /**
@@ -230,7 +233,7 @@ export async function generateAiObject<T>(
       model,
       ...rest,
       output: Output.object({ schema }),
-    } as Parameters<typeof sdkStreamText>[0]);
+    } as StreamArgs);
     return (await (result as unknown as { output: Promise<T> }).output) as T;
   } catch (error) {
     if (NoObjectGeneratedError.isInstance(error)) {
