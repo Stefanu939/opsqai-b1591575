@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
+import { buildInstallLicenseRow, mapLicenseDbError } from "@/lib/license-issue";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 
 // ─── Input schemas ──────────────────────────────────────────────────────
