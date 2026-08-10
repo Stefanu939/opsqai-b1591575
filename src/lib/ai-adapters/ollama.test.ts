@@ -103,7 +103,7 @@ describe("Self-Hosted offline AI acceptance", () => {
     const resolved = ollamaAdapter.resolveEmbeddings();
     expect(isLocal(resolved.url)).toBe(true);
     expect(Object.keys(resolved.headers).map((h) => h.toLowerCase())).not.toContain("authorization");
-    const body = resolved.buildBody(["chunk one", "chunk two"]) as Record<string, unknown>;
+    const body = resolved.buildBody(["chunk one", "chunk two"], DIM) as Record<string, unknown>;
     expect(body.model).toBe("bge-m3");
     expect(body).not.toHaveProperty("dimensions");
   });
@@ -114,7 +114,7 @@ describe("Self-Hosted offline AI acceptance", () => {
     const res = await fetch(resolved.url, {
       method: "POST",
       headers: resolved.headers,
-      body: JSON.stringify(resolved.buildBody(["How do I lock out a conveyor?"])),
+      body: JSON.stringify(resolved.buildBody(["How do I lock out a conveyor?"], DIM)),
     });
     const embedded = (await res.json()) as { data: { embedding: number[] }[] };
     const queryVector = embedded.data[0].embedding;
