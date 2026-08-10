@@ -27,6 +27,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, Pencil, Trash2, Package, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/portal/admin/downloads")({
   component: AdminDownloads,
@@ -203,9 +204,16 @@ function AdminDownloads() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    if (confirm(`Delete "${r.title}"?`)) deleteMut.mutate(r.id);
+                  onClick={async () => {
+                    if (
+                      await confirmAction({
+                        title: `Delete "${r.title}"?`,
+                        confirmLabel: "Delete",
+                      })
+                    )
+                      deleteMut.mutate(r.id);
                   }}
+                  aria-label={`Delete ${r.title}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

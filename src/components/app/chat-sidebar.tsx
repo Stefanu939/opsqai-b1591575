@@ -8,6 +8,7 @@ import { MessageSquarePlus, Search, Trash2, Pencil, Check, X, MessagesSquare } f
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 type Thread = { id: string; title: string; created_at: string; updated_at: string };
 
@@ -86,12 +87,12 @@ export function ChatSidebar() {
 
   const onDelete = async (id: string) => {
     if (
-      !confirm(
-        lang === "de"
-          ? "Diese Unterhaltung löschen?"
-          
-            : "Delete this conversation?",
-      )
+      !(await confirmAction({
+        title:
+          lang === "de" ? "Diese Unterhaltung löschen?" : "Delete this conversation?",
+        confirmLabel: lang === "de" ? "Löschen" : "Delete",
+        cancelLabel: lang === "de" ? "Abbrechen" : "Cancel",
+      }))
     )
       return;
     try {

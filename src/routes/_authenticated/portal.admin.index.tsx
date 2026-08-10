@@ -31,6 +31,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, Pencil, Trash2, Pin, Newspaper, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/portal/admin/")({
   component: AdminNews,
@@ -223,9 +224,16 @@ function AdminNews() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    if (confirm(`Delete "${row.title}"?`)) deleteMut.mutate(row.id);
+                  onClick={async () => {
+                    if (
+                      await confirmAction({
+                        title: `Delete "${row.title}"?`,
+                        confirmLabel: "Delete",
+                      })
+                    )
+                      deleteMut.mutate(row.id);
                   }}
+                  aria-label={`Delete ${row.title}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
