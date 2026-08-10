@@ -92,7 +92,7 @@ function LessonPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-sm">
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-3 text-sm">
         <div className="text-destructive">{error}</div>
         <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
           Retry
@@ -103,7 +103,7 @@ function LessonPage() {
 
   if (!lesson || !token) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+      <div className="min-h-dvh flex items-center justify-center text-sm text-muted-foreground">
         <Sparkles className="h-4 w-4 mr-2 animate-pulse text-primary" /> Preparing your AI Teacher…
       </div>
     );
@@ -315,7 +315,7 @@ function TeacherChat({
     .filter((m) => (m.parts ?? []).length > 0);
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-dvh bg-background">
       <header className="border-b border-border/70 px-4 md:px-6 py-2.5 flex items-center gap-3 bg-background/90 backdrop-blur sticky top-0 z-10">
         <Link
           to="/app/academy/path/$pathId"

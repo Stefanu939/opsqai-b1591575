@@ -46,7 +46,7 @@ function AcademyKBPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <AcademySubnav />
       <div className="p-6 max-w-6xl mx-auto w-full space-y-5">
         <header className="flex items-start justify-between gap-4 flex-wrap">

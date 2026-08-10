@@ -186,7 +186,7 @@ function AuthPage() {
 
   return (
     <div
-      className="min-h-screen bg-background flex flex-col"
+      className="min-h-dvh bg-background flex flex-col"
       style={{
         paddingTop: "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",

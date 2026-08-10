@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
+import { buildInstallLicenseRow, mapLicenseDbError } from "@/lib/license-issue";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 
 // ─── Input schemas ──────────────────────────────────────────────────────
@@ -114,25 +115,42 @@ export const issueLicense = createServerFn({ method: "POST" })
     });
 
     const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
-    const { error } = await supabaseAdmin.from("licenses").insert({
+
+    // An install_id carries exactly ONE Installation License (DB unique index
+    // `licenses_install_id_key`). Re-issuing must replace the existing token
+    // instead of inserting a duplicate row.
+    const { data: existingInstall, error: lookupError } = await supabaseAdmin
+      .from("licenses")
+      .select("id")
+      .eq("install_id", data.install_id)
+      .eq("kind", "install")
+      .maybeSingle();
+    if (lookupError) throw new Error(mapLicenseDbError(lookupError.message, data.install_id));
+
+    const row = buildInstallLicenseRow({
       install_id: data.install_id,
-      kind: "install",
-      module_key: null,
       company_name: data.company_name,
       contact_email: data.contact_email ?? null,
       tier: data.tier,
-      modules: [],
       seats: data.seats,
-      max_users: data.seats,
       expires_at: data.expires_at ?? null,
-      maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
-      signed_token: token,
+      maintenance_expires_at: data.maintenance_expires_at ?? null,
       notes: data.notes ?? null,
+      signed_token: token,
       issued_by: context.userId,
-      license_version: 1,
     });
-    if (error) throw new Error(error.message);
-    return { ok: true, token, install_id: data.install_id, basic_modules: BASIC_MODULES };
+
+    const { error } = existingInstall
+      ? await supabaseAdmin.from("licenses").update(row).eq("id", existingInstall.id)
+      : await supabaseAdmin.from("licenses").insert(row);
+    if (error) throw new Error(mapLicenseDbError(error.message, data.install_id));
+    return {
+      ok: true,
+      token,
+      install_id: data.install_id,
+      reissued: Boolean(existingInstall),
+      basic_modules: BASIC_MODULES,
+    };
   });
 
 // ─── Issue Module License ───────────────────────────────────────────────

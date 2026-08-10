@@ -171,7 +171,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground">
+    <div className="flex min-h-dvh w-full bg-background text-foreground">
       <div className="hidden md:block">{Sidebar}</div>
 
       {mobileOpen && (
@@ -184,7 +184,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:px-6">
           <Button
             variant="ghost"

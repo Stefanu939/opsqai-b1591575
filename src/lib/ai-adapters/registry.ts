@@ -54,22 +54,26 @@ export const SELFHOST_DEFAULT_ADAPTER_ID = "ollama";
  * local Ollama engine so a properly installed Self-Hosted deployment can
  * never accidentally reach the Lovable Gateway; Cloud keeps the Gateway.
  */
-export function defaultAdapterId(): string {
+export function isSelfHostedRuntime(): boolean {
   const mode = (process.env.OPSQAI_PLATFORM_MODE ?? "").trim().toLowerCase();
   const deployment = (process.env.OPSQAI_DEPLOYMENT_TYPE ?? "").trim().toLowerCase();
-  if (mode === "selfhost" || mode === "self-hosted" || deployment === "selfhosted") {
-    return SELFHOST_DEFAULT_ADAPTER_ID;
-  }
-  return DEFAULT_ADAPTER_ID;
+  return mode === "selfhost" || mode === "self-hosted" || deployment === "selfhosted";
+}
+
+export function defaultAdapterId(): string {
+  return isSelfHostedRuntime() ? SELFHOST_DEFAULT_ADAPTER_ID : DEFAULT_ADAPTER_ID;
 }
 
 /**
- * Resolve the active adapter from the `AI_PROVIDER` env var, falling back
- * to the Lovable Gateway. Throws if the env var names an unknown adapter
- * — silent fallback would hide misconfiguration.
+ * Resolve the active adapter from the `AI_PROVIDER` env var.
+ *
+ * Never falls back silently: an unknown id throws, and on Self-Hosted an
+ * adapter that is not local throws too (Global Self-Hosted AI Contract —
+ * inference must stay on the customer's own machine).
  */
 export function getActiveAdapter(): AIProviderAdapter {
   const raw = process.env.AI_PROVIDER;
+  const selfHosted = isSelfHostedRuntime();
   if (!raw || !raw.trim()) return getAdapter(defaultAdapterId())!;
   const found = getAdapter(raw);
   if (!found) {
@@ -78,5 +82,12 @@ export function getActiveAdapter(): AIProviderAdapter {
       .join(", ");
     throw new Error(`Unknown AI_PROVIDER "${raw}". Registered: ${known}`);
   }
+  if (selfHosted && found.local !== true) {
+    throw new Error(
+      `AI_PROVIDER "${found.id}" is a cloud engine and cannot be used on a Self-Hosted install. ` +
+        `Self-Hosted runs inference locally (${SELFHOST_DEFAULT_ADAPTER_ID}).`,
+    );
+  }
   return found;
 }
+

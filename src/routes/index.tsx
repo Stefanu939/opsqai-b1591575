@@ -177,7 +177,7 @@ function Hero() {
   const activeAct = Math.min(4, Math.max(0, Math.round(progress)));
 
   return (
-    <section className="relative isolate min-h-screen overflow-hidden">
+    <section className="relative isolate min-h-dvh overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <Scene3D cameraPosition={[0, 0.5, 7]} cameraFov={48}>
           <ambientLight intensity={0.25} />

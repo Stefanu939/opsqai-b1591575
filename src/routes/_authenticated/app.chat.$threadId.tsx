@@ -1,4 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  classifyChatError,
+  chatErrorMessage,
+  isChatStalled,
+} from "@/lib/chat-reliability";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -175,16 +180,19 @@ function ChatInner({
   scrollRef: React.RefObject<HTMLDivElement | null>;
   t: (k: never) => string;
 }) {
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error, stop, regenerate } = useChat({
     id: threadId,
     messages: initial,
     transport,
     onError: (e) => console.error(e),
   });
   const [input, setInput] = useState("");
+  const [timedOut, setTimedOut] = useState(false);
   const loading = status === "submitted" || status === "streaming";
   const T = t as (k: string) => string;
   const initialIds = useMemo(() => new Set(initial.map((m) => m.id)), [initial]);
+
+  const failureKind = timedOut ? "timeout" : error ? classifyChatError(error.message) : null;
 
   useEffect(() => {
     if (seed && !seededRef.current && initial.length === 0) {
@@ -201,13 +209,36 @@ function ChatInner({
     if (!loading) taRef.current?.focus();
   }, [loading, taRef]);
 
+  // Stall watchdog: a local engine that dies mid-stream must not leave the UI
+  // "thinking" forever. Abort and surface a retryable timeout instead.
+  useEffect(() => {
+    if (!loading) return;
+    let lastActivity = Date.now();
+    const tick = window.setInterval(() => {
+      if (isChatStalled(lastActivity, Date.now())) {
+        window.clearInterval(tick);
+        stop();
+        setTimedOut(true);
+      }
+    }, 2_000);
+    lastActivity = Date.now();
+    return () => window.clearInterval(tick);
+  }, [loading, messages, stop]);
+
+  const onRetry = () => {
+    setTimedOut(false);
+    void regenerate();
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
     if (!text || loading) return;
+    setTimedOut(false);
     sendMessage({ text });
     setInput("");
   };
+
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -320,6 +351,25 @@ function ChatInner({
 
       <form onSubmit={onSubmit} className="border-t border-border bg-background/80 backdrop-blur">
         <div className="max-w-3xl mx-auto p-3 md:p-4">
+          {failureKind && (
+            <div
+              role="alert"
+              className="mb-2 flex flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+            >
+              <span className="flex-1 min-w-[12rem]">{chatErrorMessage(failureKind)}</span>
+              {failureKind !== "unauthorized" && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onRetry}
+                  className="h-7 px-2 text-xs"
+                >
+                  Retry
+                </Button>
+              )}
+            </div>
+          )}
           <div className="flex gap-2 items-end rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
             <Textarea
               ref={taRef}

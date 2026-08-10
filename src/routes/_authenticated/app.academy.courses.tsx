@@ -49,7 +49,7 @@ function MyCourses() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <AcademySubnav />
       <div className="p-6 max-w-6xl mx-auto space-y-8 w-full">
         <section className="space-y-3">
