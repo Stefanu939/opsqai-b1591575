@@ -23,7 +23,26 @@ InstallDir     "$PROGRAMFILES64\OPSQAI"
 InstallDirRegKey HKLM "Software\OPSQAI" "InstallDir"
 RequestExecutionLevel admin
 BrandingText   "OPSQAI ${VERSION}"
-SetCompressor  /SOLID lzma
+
+; Compression strategy — do NOT switch back to /SOLID.
+;
+; makensis.exe is a 32-bit process and a SOLID compressor keeps the whole data
+; block in one growable memory-mapped region. With the full Self-Hosted payload
+; (app + Node + PostgreSQL/pgvector + Caddy + WinSW + Electron wizard +
+; Electron desktop shell + OllamaSetup.exe) growing that mapping fails with:
+;   Internal compiler error #12345: error mmapping datablock to 33556560
+;
+; Heavy components are therefore pre-compressed into .7z parts by
+; build\pack-payload.mjs and merely STORED here (see parts.generated.nsh),
+; while the remaining small files use non-solid LZMA.
+SetCompressor /FINAL lzma
+SetDatablockOptimize on
+
+; Emitted by build\pack-payload.mjs right before makensis runs. /NONFATAL keeps
+; a manual `makensis OPSQAI-Setup.nsi` compile working; the build script always
+; generates it and the guard below turns a missing file into a clear error.
+!include /NONFATAL "parts.generated.nsh"
+
 
 VIProductVersion "${VERSION}.0"
 VIAddVersionKey  "ProductName"     "OPSQAI Self-Hosted"
