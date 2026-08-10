@@ -473,8 +473,20 @@ function pgArgs() {
   const host = embedded ? "127.0.0.1" : config.database.external.host;
   const user = embedded ? "opsqai" : config.database.external.username;
   const db = embedded ? "opsqai" : config.database.external.database;
-  const pw = embedded ? "" : config.database.external.password;
+  // The embedded cluster requires a password (scram) exactly like the
+  // migration runner uses. Reading it from the canonical config is the ONLY
+  // supported source — never hardcoded, never printed.
+  const pw = embedded
+    ? config.database.embedded?.password || ""
+    : config.database.external.password || "";
   return { host, port, user, db, pw };
+}
+/** Removes any occurrence of the DB password from text before it is logged. */
+function scrubSecrets(text) {
+  const s = String(text ?? "");
+  const { pw } = pgArgs();
+  if (!pw) return s;
+  return s.split(pw).join("***");
 }
 function psqlExec(sql) {
   const psql = programFiles("pgsql", "bin", "psql.exe");
@@ -482,6 +494,7 @@ function psqlExec(sql) {
   const { host, port, user, db, pw } = pgArgs();
   try {
     // -w: never prompt for password (would block on a headless child).
+    // Password travels only through the child env, never through argv.
     // timeout: hard cap so a misconfigured pg_hba can never stall bootstrap.
     return spawnSync(
       psql,
@@ -498,6 +511,7 @@ function psqlExec(sql) {
     return { status: -1, error: e.message };
   }
 }
+
 function writeInstallState(state, stage, lastError) {
   // Best-effort: if the DB is unreachable (embedded not up yet, or app db
   // does not exist before migrations) we silently skip. State is a
@@ -764,7 +778,7 @@ function resetEmbeddedDatabase() {
           applyDim: async (dim) => {
             const r = psqlExec(`SELECT public.kb_apply_embedding_dim(${Number(dim)});`);
             if (r.status !== 0) {
-              const detail = ((r.stderr || r.stdout || "") + "").trim().slice(-400);
+              const detail = scrubSecrets((r.stderr || r.stdout || "") + "").trim().slice(-400);
               throw new AiSetupError(
                 /dimension change refused/i.test(detail)
                   ? "OPSQAI-E1505"
