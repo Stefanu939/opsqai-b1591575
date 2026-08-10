@@ -22,6 +22,8 @@ import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { Building2, User, Cpu, Upload, Trash2, Loader2 } from "lucide-react";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
+import { LocalAiEngineCard } from "@/components/admin/local-ai-engine-card";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
 export const Route = createFileRoute("/_authenticated/app/organization")({
   head: () => ({ meta: [{ title: "Organization — OPSQAI" }] }),
@@ -73,6 +75,7 @@ function OrganizationPage() {
     max_tokens: null,
   });
   const [aiBusy, setAiBusy] = useState(false);
+  const isSelfHosted = getClientDeploymentMode() === "selfhost";
   const [aiInstallId, setAiInstallId] = useState<string | null>(null);
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
