@@ -26,6 +26,9 @@ export interface SelfHostAiConfig {
   chatFastModel?: string;
   embedding_model?: string;
   embeddingModel?: string;
+  /** Probed native vector length of the embedding model, pinned per install. */
+  embedding_dim?: number;
+  embeddingDim?: number;
 }
 
 export interface SelfHostConfig {
@@ -81,7 +84,24 @@ export function applyAiEnv(ai: SelfHostAiConfig): void {
     return;
   }
 
-  const provider = ai.provider;
+  const dim = pick(ai.embeddingDim, ai.embedding_dim);
+  if (dim && dim > 0) process.env.OPSQAI_EMBEDDING_DIM = String(dim);
+
+  const provider = ai.provider ?? "ollama";
+
+  // Local Ollama — the Self-Hosted default. No API key, no external host.
+  if (provider === "ollama") {
+    process.env.AI_PROVIDER = "ollama";
+    process.env.OLLAMA_BASE_URL =
+      pick(ai.base_url, ai.baseUrl) ?? "http://127.0.0.1:11434";
+    process.env.OLLAMA_CHAT_MODEL = pick(ai.chat_model, ai.chatModel) ?? "qwen2.5:7b";
+    process.env.OLLAMA_CHAT_FAST_MODEL =
+      pick(ai.chat_fast_model, ai.chatFastModel) ?? "qwen2.5:3b";
+    process.env.OLLAMA_EMBEDDING_MODEL =
+      pick(ai.embedding_model, ai.embeddingModel) ?? "bge-m3";
+    return;
+  }
+
   process.env.AI_PROVIDER =
     provider === "azure"
       ? "azure"
