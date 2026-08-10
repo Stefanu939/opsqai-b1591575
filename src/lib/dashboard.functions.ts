@@ -89,15 +89,11 @@ export const getExecutiveInsights = createServerFn({ method: "POST" })
       getCloudSupabase(context, "dashboard").rpc("dashboard_knowledge_status", { p_company: companyId }),
     ]);
 
-    const apiKey = process.env.LOVABLE_API_KEY;
     const fallback = buildFallbackInsights({ kpis, health, top, status });
-    if (!apiKey) return { insights: fallback };
     try {
-      const { generateText } = await import("ai");
-      const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
-      const gw = createLovableAiGatewayProvider(apiKey);
-      const { text } = await generateText({
-        model: gw("google/gemini-3-flash-preview"),
+      const { generateAiText } = await import("@/lib/ai-provider.server");
+      const text = await generateAiText({
+        role: "chat",
         temperature: 0.4,
         prompt: `You are an operations analyst. Produce exactly 4 short executive insights (max 18 words each) as plain JSON array of strings. Base ONLY on this JSON, do not invent numbers.\n\n${JSON.stringify({ kpis, health, topSops: top, knowledgeStatus: status })}\n\nReturn JSON only, e.g. ["...","...","...","..."].`,
       });

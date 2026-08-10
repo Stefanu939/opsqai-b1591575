@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
-import { generateText } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { generateAiText } from "@/lib/ai-provider.server";
 
