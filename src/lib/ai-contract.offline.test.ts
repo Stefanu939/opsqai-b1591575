@@ -41,18 +41,38 @@ function offlineEngine(input: RequestInfo | URL, init?: RequestInit): Promise<Re
   }
   if (url.includes("/v1/chat/completions")) {
     const body = typeof init?.body === "string" ? init.body : "";
-    const wantsJson = body.includes("json");
+    const wantsJson = /json/i.test(body);
     const content = wantsJson ? '{"summary":"local","score":4}' : "local answer";
-    // Non-streaming shape is enough: the SDK accepts it for both paths.
-    return json({
-      id: "local-1",
-      object: "chat.completion",
-      created: Math.floor(Date.now() / 1000),
-      model: "qwen2.5:7b",
-      choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
-      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-    });
+    // The central provider always streams (long local generations must not be
+    // cut off by request timeouts), so the local engine answers with SSE.
+    const events = [
+      ...content.split(/(?= )/).map((chunk) =>
+        JSON.stringify({
+          id: "local-1",
+          object: "chat.completion.chunk",
+          created: Math.floor(Date.now() / 1000),
+          model: "qwen2.5:7b",
+          choices: [{ index: 0, delta: { role: "assistant", content: chunk }, finish_reason: null }],
+        }),
+      ),
+      JSON.stringify({
+        id: "local-1",
+        object: "chat.completion.chunk",
+        created: Math.floor(Date.now() / 1000),
+        model: "qwen2.5:7b",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+      "[DONE]",
+    ];
+    return Promise.resolve(
+      new Response(events.map((e) => `data: ${e}\n\n`).join(""), {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      }),
+    );
   }
+
   return json({});
 }
 
