@@ -91,6 +91,28 @@ VIAddVersionKey  "LegalCopyright"  "(c) OPSQAI"
   Pop $0
 !macroend
 
+; Verifies one stored payload part with certutil (present on every supported
+; Windows) and extracts it with the bundled 7zr.exe into $INSTDIR. Layout after
+; extraction is byte-for-byte what the previous single-datablock installer
+; produced, so services, bootstrap, updater and doctor paths are unchanged.
+!macro OPSQAI_EXTRACT_PART FILE SHA LABEL
+  DetailPrint "Verifying ${LABEL}..."
+  nsExec::ExecToLog 'cmd.exe /c ""$SYSDIR\certutil.exe" -hashfile "$INSTDIR\parts\${FILE}" SHA256 | "$SYSDIR\findstr.exe" /i /c:"${SHA}""'
+  Pop $0
+  ${If} $0 <> 0
+    DetailPrint "SHA-256 verification FAILED for ${FILE}"
+    Abort "OPSQAI installation aborted: ${LABEL} failed its SHA-256 integrity check. The installer download is corrupt."
+  ${EndIf}
+  DetailPrint "Extracting ${LABEL}..."
+  nsExec::ExecToLog '"$INSTDIR\tools\7zr.exe" x -y -bso0 -bsp0 "-o$INSTDIR" "$INSTDIR\parts\${FILE}"'
+  Pop $0
+  ${If} $0 <> 0
+    DetailPrint "7zr returned $0 for ${FILE}"
+    Abort "OPSQAI installation aborted: could not extract ${LABEL}."
+  ${EndIf}
+  Delete "$INSTDIR\parts\${FILE}"
+!macroend
+
 ; --- Install ---------------------------------------------------------------
 Section "OPSQAI Core" SEC_CORE
   SectionIn RO
@@ -100,8 +122,22 @@ Section "OPSQAI Core" SEC_CORE
     Abort
   ${EndIf}
 
+  !ifndef OPSQAI_PARTS_GENERATED
+    !error "parts.generated.nsh is missing. Build through opsqai-windows\build\build.ps1, which runs build\pack-payload.mjs first."
+  !endif
+
+  ; Small files first (services, tools incl. 7zr.exe, updater key, assets):
+  ; the extractor must be on disk before any part is unpacked.
   SetOutPath "$INSTDIR"
   File /r "${PAYLOAD_DIR}\*.*"
+  Assert7zr:
+  IfFileExists "$INSTDIR\tools\7zr.exe" +2 0
+    Abort "OPSQAI installation aborted: bundled extractor tools\7zr.exe is missing."
+
+  ; Pre-compressed heavy components, stored uncompressed in the installer.
+  !insertmacro OPSQAI_STORE_PARTS
+  !insertmacro OPSQAI_EXTRACT_PARTS
+
 
   ; --- ProgramData layout ---
   ; NSIS $APPDATA points to CurrentUser; we need ProgramData for machine-wide state.
