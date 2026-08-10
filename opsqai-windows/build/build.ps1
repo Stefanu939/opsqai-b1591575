@@ -492,6 +492,15 @@ $archiver = @(
   'C:\Program Files (x86)\7-Zip\7z.exe'
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $archiver) { $archiver = $sevenZip }
+# The packer removes payload\runtime after archiving it, so it must NOT run
+# from the staged node.exe (Windows refuses to delete a running image).
+$packNode = if (Get-Command node -ErrorAction SilentlyContinue) { 'node' } else {
+  $nodeTmp = Join-Path $root 'build\nodetmp'
+  Remove-Item $nodeTmp -Recurse -Force -ErrorAction SilentlyContinue
+  New-Item -ItemType Directory -Force -Path $nodeTmp | Out-Null
+  Copy-Item (Join-Path $payload 'runtime\node\*') $nodeTmp -Recurse -Force
+  Join-Path $nodeTmp 'node.exe'
+}
 Write-Host "Packing payload parts with $archiver ..."
 $packArgs = @(
   (Join-Path $root 'build\pack-payload.mjs'),
@@ -502,7 +511,7 @@ $packArgs = @(
 )
 if ($SkipPostgres) { $packArgs += '--skip-postgres' }
 if ($SkipOllama)   { $packArgs += '--skip-ollama' }
-& $nodeCmd @packArgs
+& $packNode @packArgs
 if ($LASTEXITCODE -ne 0) { throw "pack-payload.mjs failed with $LASTEXITCODE" }
 Assert-Exists $partsNsh 'generated NSIS parts include'
 
