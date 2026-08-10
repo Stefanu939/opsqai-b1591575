@@ -501,6 +501,24 @@ function pgArgs() {
     : config.database.external.password || "";
   return { host, port, user, db, pw };
 }
+/**
+ * Log the psql connection target WITHOUT the secret (status word only) and
+ * fail fast with an actionable message when the embedded password is missing,
+ * instead of letting psql emit the opaque `fe_sendauth: no password supplied`.
+ */
+function describePgTarget(label) {
+  const { host, port, user, db, pw } = pgArgs();
+  const state = pw ? "set" : process.env.PGPASSWORD ? "inherited" : "MISSING";
+  log(`${label}: psql host=${host} port=${port} user=${user} db=${db} pgpassword=${state}`);
+  if (state === "MISSING" && config.database.mode === "embedded") {
+    throw new AiSetupError(
+      "OPSQAI-E1507",
+      "embedded database password missing from config.database.embedded.password — " +
+        "cannot authenticate to the local PostgreSQL instance",
+    );
+  }
+}
+
 /** Removes any occurrence of the DB password from text before it is logged. */
 function scrubSecrets(text) {
   const s = String(text ?? "");
