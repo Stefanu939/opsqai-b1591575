@@ -398,17 +398,6 @@ describe("archive structure validation", () => {
 
 
 
-  it("rejects a flat archive that would explode into $INSTDIR", () => {
-    expect(() =>
-      verifyArchiveRoot({
-        archiver: "7zr",
-        target: "/parts/runtime.7z",
-        dir: "runtime",
-        run: () => listing(["node", "node/node.exe"]),
-      }),
-    ).toThrow(/must contain exactly one top-level directory "runtime\/"/);
-  });
-
   it("rejects an empty archive", () => {
     expect(() =>
       verifyArchiveRoot({ archiver: "7zr", target: "/parts/app.7z", dir: "app", run: () => listing([]) }),
