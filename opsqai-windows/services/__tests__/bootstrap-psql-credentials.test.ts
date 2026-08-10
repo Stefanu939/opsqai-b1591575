@@ -9,6 +9,8 @@
 // the very same embedded credentials from config.json.
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
