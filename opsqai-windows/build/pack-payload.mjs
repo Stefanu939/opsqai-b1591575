@@ -26,14 +26,17 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import {
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   readFileSync,
   renameSync,
   rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -137,17 +140,48 @@ export function archiveComponent({ archiver, payloadDir, dir, target, run = spaw
  * compiles and installs but lays the payload out flat in $INSTDIR.
  */
 export function verifyArchiveRoot({ archiver, target, dir, run = spawnSync }) {
-  const result = run(archiver, ["l", "-ba", "-slt", target], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  if (result.error) throw result.error;
+  // A 20k-entry listing (pgsql) overflows the spawnSync pipe buffer and dies
+  // with ENOBUFS on Windows, so stdout is redirected to a temp file instead of
+  // being piped through memory.
+  const listFile = join(tmpdir(), `opsqai-7z-list-${process.pid}-${Date.now()}.txt`);
+  let fd;
+  let result;
+  try {
+    fd = openSync(listFile, "w");
+    result = run(archiver, ["l", "-ba", "-slt", target], {
+      encoding: "utf8",
+      stdio: ["ignore", fd, "pipe"],
+      maxBuffer: 1024 * 1024 * 1024,
+    });
+  } finally {
+    if (fd !== undefined) {
+      try {
+        closeSync(fd);
+      } catch {
+        /* already closed */
+      }
+    }
+  }
+  if (result.error) {
+    rmSync(listFile, { force: true });
+    throw result.error;
+  }
   if (result.status !== 0) {
+    rmSync(listFile, { force: true });
     throw new Error(
       `pack-payload: could not list ${target} for structure validation (exit ${result.status})`,
     );
   }
-  const paths = String(result.stdout || "")
+  let stdout = String(result.stdout || "");
+  if (!stdout) {
+    try {
+      stdout = readFileSync(listFile, "utf8");
+    } catch {
+      stdout = "";
+    }
+  }
+  rmSync(listFile, { force: true });
+  const paths = stdout
     .split(/\r?\n/)
     .filter((l) => l.startsWith("Path = "))
     .map((l) => l.slice("Path = ".length).trim())
