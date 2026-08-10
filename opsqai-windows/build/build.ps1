@@ -202,6 +202,11 @@ if (-not (Test-Path (Join-Path $nodeDir 'node.exe'))) {
   Remove-Item (Join-Path $payload "runtime\node-v$nodeVersion-win-x64") -Recurse -Force
 }
 
+# Node used for build-time tooling (verifiers, payload packer). The staged
+# runtime is preferred so CI and local builds agree on the version.
+$nodeExeStaged = Join-Path $payload 'runtime\node\node.exe'
+$nodeCmd = if (Test-Path $nodeExeStaged) { $nodeExeStaged } else { 'node' }
+
 # --- 2. WinSW wrappers -----------------------------------------------------
 $winswVersion = '2.12.0'
 $winswDir     = Join-Path $payload 'winsw'
