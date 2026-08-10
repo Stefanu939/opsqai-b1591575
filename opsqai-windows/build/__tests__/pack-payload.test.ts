@@ -223,7 +223,7 @@ describe("pack-payload", () => {
     // extraction into $INSTDIR reproduces $INSTDIR\app\server\….
     expect(runner).toHaveBeenCalledWith(
       "/tools/7zr.exe",
-      ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "-r", "/build/parts/app.7z", "app"],
+      ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "/build/parts/app.7z", "app"],
       { cwd: "/payload", stdio: "inherit" },
     );
   });

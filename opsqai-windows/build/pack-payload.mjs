@@ -115,7 +115,11 @@ export function sha256File(path) {
 export function archiveComponent({ archiver, payloadDir, dir, target, run = spawnSync }) {
   const result = run(
     archiver,
-    ["a", "-t7z", "-mx=5", "-mmt=on", "-y", "-r", target, dir],
+    // NOTE: no `-r`. With -r, 7-Zip treats `app` as a *name pattern* and also
+    // matches nested directories called `app` (e.g. pgsql\pgAdmin 4\...\app),
+    // polluting the archive root. A bare directory argument is already
+    // recursive for its own contents.
+    ["a", "-t7z", "-mx=5", "-mmt=on", "-y", target, dir],
     { cwd: payloadDir, stdio: "inherit" },
   );
   if (result.error) throw result.error;
