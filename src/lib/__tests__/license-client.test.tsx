@@ -37,7 +37,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 }));
 
 describe("client license token payload decoding", () => {
-  it("decodes a real opsqai.v1 token signed by signLicense", async () => {
+  it("decodes a real JWT license signed by signLicense", async () => {
     const input = {
       install_id: "install-prod-001",
       company_name: "Acme Operations GmbH",
@@ -52,7 +52,8 @@ describe("client license token payload decoding", () => {
     const { token } = await signLicense(input);
     const decoded = decodeTokenPayload(token);
 
-    expect(token.split(".")).toHaveLength(4);
+    // Licenses are standard compact JWS (header.payload.signature).
+    expect(token.split(".")).toHaveLength(3);
     expect(decoded).toMatchObject({
       ...input,
       key_id: signingKeys.keyId,
