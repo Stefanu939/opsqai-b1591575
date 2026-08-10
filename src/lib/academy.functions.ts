@@ -525,7 +525,7 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
       .join("\n\n")
       .slice(0, 18000);
 
-    const gateway = await ai();
+
     const text = await generateAiText({
       role: "chat",
       messages: [
@@ -623,7 +623,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
     if (!corpus.trim())
       throw new Error("The selected SOPs do not contain readable text for course generation.");
 
-    const gateway = await ai();
+
     const text = await generateAiText({
       role: "chat",
       messages: [
@@ -770,7 +770,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
       .join("\n\n")
       .slice(0, 12000);
 
-    const gateway = await ai();
+
     const text = await generateAiText({
       role: "chat",
       messages: [
@@ -909,7 +909,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
 
     // Grade using stored, trusted correct_answer values.
     const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
-    const gateway = await ai();
+
     for (let i = 0; i < parsedQuestions.length; i++) {
       const q: StoredQuestion = parsedQuestions[i];
       const a = (data.answers[i] ?? "").trim();
