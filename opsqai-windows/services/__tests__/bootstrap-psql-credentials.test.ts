@@ -9,6 +9,8 @@
 // the very same embedded credentials from config.json.
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -179,4 +181,16 @@ describe("bootstrap psql credentials", () => {
     expect(bootstrapLogs(dataRoot)).not.toContain(PASSWORD);
     rmSync(dataRoot, { recursive: true, force: true });
   });
+
+  it("logs the sha256 of the init.js that actually executed", () => {
+    // Makes "does the packaged installer contain the fix?" answerable from the
+    // install log alone: this hash must equal the one build.ps1 prints.
+    const { dataRoot, pfRoot } = sandbox(EMBEDDED);
+    const r = runInit(dataRoot, pfRoot);
+    const expected = createHash("sha256").update(readFileSync(INIT)).digest("hex");
+    const out = `${r.stdout || ""}\n${bootstrapLogs(dataRoot)}`;
+    expect(out).toContain(`[bootstrap] init.js sha256=${expected}`);
+    rmSync(dataRoot, { recursive: true, force: true });
+  });
 });
+

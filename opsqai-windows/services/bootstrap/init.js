@@ -71,6 +71,26 @@ function log(m) {
 }
 log(`log: ${LOG_PATH}`);
 
+// ─── Self-identification ──────────────────────────────────────────────────
+// Prints the SHA-256 of THIS file plus the recorded build provenance so an
+// install log can be matched against the "[build] bootstrap init.js sha256="
+// line emitted while packaging. Without it, "is the fix in the EXE?" is
+// unanswerable from the log alone.
+(function logProvenance() {
+  try {
+    const selfHash = crypto.createHash("sha256").update(fs.readFileSync(__filename)).digest("hex");
+    let build = "unknown";
+    try {
+      const rec = JSON.parse(
+        fs.readFileSync(path.join(__dirname, "build-provenance.json"), "utf8").replace(/^\uFEFF/, ""),
+      );
+      build = `${rec.version || "unknown"}${rec.sha256 === selfHash ? "" : " (PROVENANCE MISMATCH)"}`;
+    } catch (_) {}
+    log(`init.js sha256=${selfHash} build=${build}`);
+  } catch (_) {}
+})();
+
+
 const installIdArg = arg("install-id", "");
 
 function isUuid(v) {
@@ -481,6 +501,24 @@ function pgArgs() {
     : config.database.external.password || "";
   return { host, port, user, db, pw };
 }
+/**
+ * Log the psql connection target WITHOUT the secret (status word only) and
+ * fail fast with an actionable message when the embedded password is missing,
+ * instead of letting psql emit the opaque `fe_sendauth: no password supplied`.
+ */
+function describePgTarget(label) {
+  const { host, port, user, db, pw } = pgArgs();
+  const state = pw ? "set" : process.env.PGPASSWORD ? "inherited" : "MISSING";
+  log(`${label}: psql host=${host} port=${port} user=${user} db=${db} pgpassword=${state}`);
+  if (state === "MISSING" && config.database.mode === "embedded") {
+    throw new AiSetupError(
+      "OPSQAI-E1507",
+      "embedded database password missing from config.database.embedded.password — " +
+        "cannot authenticate to the local PostgreSQL instance",
+    );
+  }
+}
+
 /** Removes any occurrence of the DB password from text before it is logged. */
 function scrubSecrets(text) {
   const s = String(text ?? "");
@@ -776,7 +814,9 @@ function resetEmbeddedDatabase() {
           cfg: config.ai || {},
           setupExe: programFiles("vendor", "ollama", "OllamaSetup.exe"),
           applyDim: async (dim) => {
+            describePgTarget("vector storage");
             const r = psqlExec(`SELECT public.kb_apply_embedding_dim(${Number(dim)});`);
+
             if (r.status !== 0) {
               const detail = scrubSecrets((r.stderr || r.stdout || "") + "").trim().slice(-400);
               throw new AiSetupError(
