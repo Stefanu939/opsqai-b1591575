@@ -2,6 +2,7 @@
 import { createAzure } from "@ai-sdk/azure";
 import type { LanguageModel } from "ai";
 import type { AIChatRole, AIProviderAdapter, ResolvedEmbeddings, ResolvedTTS } from "./types";
+import { capabilities } from "../ai-capabilities";
 
 function models() {
   return {
@@ -26,6 +27,17 @@ export const azureAdapter: AIProviderAdapter = {
   id: "azure-openai",
   aliases: ["azure"],
   label: "Azure OpenAI",
+  capabilities: capabilities({
+    chat: true,
+    fastChat: true,
+    embeddings: true,
+    structuredOutput: true,
+    jsonOutput: true,
+    streaming: true,
+    toolCalling: true,
+    vision: true,
+    textToSpeech: true,
+  }),
 
   resolveChat(role: AIChatRole): LanguageModel {
     const { resourceName, apiKey, apiVersion } = requireConfig();

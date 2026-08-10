@@ -11,6 +11,7 @@
 // and register it in `registry.ts`. Nothing else in the app changes.
 
 import type { LanguageModel } from "ai";
+import type { AICapabilities } from "../ai-capabilities";
 
 export type AIChatRole = "chat" | "chat-fast";
 export type AIModelRole = AIChatRole | "tts" | "embedding";
