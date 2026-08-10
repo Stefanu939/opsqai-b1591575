@@ -227,6 +227,45 @@ describe("pack-payload", () => {
       { cwd: "/payload", stdio: "inherit" },
     );
   });
+
+  // Regression (CI: `app.7z ... also has pgsql\pgAdmin 4\...\app`): with `-r`,
+  // 7-Zip treats the bare `app` argument as a *name pattern* and walks the whole
+  // cwd tree, so a sibling component's nested `app` directory (pgAdmin ships
+  // one) lands at the archive ROOT as `pgsql/...`. Verified against real 7-Zip.
+  it("never passes -r (which recurses from the payload parent into siblings)", () => {
+    const h = harness();
+    const calls: string[][] = [];
+    const runner = vi.fn((_bin: string, args: string[]) => {
+      calls.push(args);
+      if (args[0] === "a") {
+        h.written.set(args[args.length - 2]!, "7z");
+        return { status: 0 };
+      }
+      const dir = args[args.length - 1]!.split("/").pop()!.replace(/\.7z$/, "");
+      return { status: 0, stdout: `Path = ${dir}\nPath = ${dir}/content.bin\n` };
+    });
+    packPayload({
+      payloadDir: "/payload",
+      partsDir: "/build/parts",
+      nshPath: "/nsis/parts.generated.nsh",
+      archiver: "/tools/7zr.exe",
+      stashDir: "/build/staged",
+      deps: { ...h.deps, archive: undefined as never, verify: undefined as never, run: runner },
+    });
+    const addCalls = calls.filter((a) => a[0] === "a");
+    expect(addCalls).toHaveLength(8);
+    for (const args of addCalls) {
+      expect(args).not.toContain("-r");
+      expect(args.some((a) => a.startsWith("-r"))).toBe(false);
+      // The component directory is the LAST argument and is a bare relative
+      // name resolved against cwd=payloadDir — never a glob and never `..`.
+      const dir = args[args.length - 1]!;
+      expect(dir).not.toContain("*");
+      expect(dir).not.toContain("..");
+      expect(dir).toBe(dir.replace(/^[\\/]+/, ""));
+    }
+  });
+
 });
 
 describe("archive structure validation", () => {
