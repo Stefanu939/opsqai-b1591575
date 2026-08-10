@@ -289,6 +289,24 @@ New-Item -ItemType Directory -Force -Path $binDir | Out-Null
 Copy-Item (Join-Path $toolsDest 'service-manager\opsqai.cmd')          (Join-Path $binDir 'opsqai.cmd')          -Force
 Copy-Item (Join-Path $toolsDest 'docker-migrator\opsqai-migrate.cmd')  (Join-Path $binDir 'opsqai-migrate.cmd')  -Force
 
+# --- 3d. Bundled 7-Zip extractor ------------------------------------------
+# Heavy payload components ship as pre-compressed .7z parts (see
+# build\pack-payload.mjs) because makensis cannot memory-map one huge solid
+# datablock. 7zr.exe is the ~600 KB standalone extractor that unpacks them at
+# install time; it is also used to CREATE the parts when the runner has no
+# 7z.exe of its own.
+$sevenZip = Join-Path $toolsDest '7zr.exe'
+Fetch 'https://www.7-zip.org/a/7zr.exe' $sevenZip
+$sevenZipSha = (Get-FileHash -Algorithm SHA256 -Path $sevenZip).Hash.ToLowerInvariant()
+$sevenZipExpected = $env:OPSQAI_7ZR_SHA256
+if ($sevenZipExpected) {
+  if ($sevenZipSha -ne $sevenZipExpected.ToLowerInvariant()) {
+    throw "7zr.exe SHA-256 mismatch. Expected $sevenZipExpected but got $sevenZipSha"
+  }
+} else {
+  Write-Host "7zr.exe SHA-256: $sevenZipSha (set OPSQAI_7ZR_SHA256 to pin it)"
+}
+
 # --- 3c. Updater signing key ----------------------------------------------
 # The pinned Ed25519 public key MUST be present before shipping. In CI the
 # key is materialised from a secret; local dev builds fall back to a
@@ -451,12 +469,50 @@ if ($payloadBytes -lt $minimumBytes) {
   throw "Payload is too small ($([Math]::Round($payloadBytes / 1MB, 1)) MB). Refusing to build a stub installer."
 }
 
+# --- 6c. Pre-compress heavy payload components -----------------------------
+# makensis.exe is 32-bit and a SOLID compressor holds the entire data block in
+# one growable memory-mapped region. Past a certain payload size that mapping
+# cannot grow and makensis dies with:
+#   Internal compiler error #12345: error mmapping datablock to 33556560
+# So we compress the heavy components here (7z) and let NSIS merely STORE the
+# resulting blobs. Guardrails above already validated the staged tree, and the
+# installer verifies each part's SHA-256 before extracting it.
+Assert-Exists $sevenZip 'bundled 7zr.exe extractor'
+$partsDir = Join-Path $root 'build\parts'
+$partsNsh = Join-Path $root 'installer\nsis\parts.generated.nsh'
+# Prefer a full 7z.exe when the runner has one (faster multithreaded packing),
+# otherwise the bundled standalone 7zr.exe creates the archives.
+$archiver = @(
+  'C:\Program Files\7-Zip\7z.exe',
+  'C:\Program Files (x86)\7-Zip\7z.exe'
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $archiver) { $archiver = $sevenZip }
+Write-Host "Packing payload parts with $archiver ..."
+$packArgs = @(
+  (Join-Path $root 'build\pack-payload.mjs'),
+  '--payload', $payload,
+  '--parts',   $partsDir,
+  '--nsh',     $partsNsh,
+  '--archiver', $archiver
+)
+if ($SkipPostgres) { $packArgs += '--skip-postgres' }
+if ($SkipOllama)   { $packArgs += '--skip-ollama' }
+& $nodeCmd @packArgs
+if ($LASTEXITCODE -ne 0) { throw "pack-payload.mjs failed with $LASTEXITCODE" }
+Assert-Exists $partsNsh 'generated NSIS parts include'
+
 # --- 7. Run NSIS -----------------------------------------------------------
+# A 64-bit makensis (NSIS 3.10+ ships one under Bin\) has no 2 GB address-space
+# ceiling at all. Prefer it when present; the parts strategy above keeps the
+# 32-bit compiler well inside its limits either way.
 $makensis = @(
+  'C:\Program Files (x86)\NSIS\Bin\makensis.exe',
+  'C:\Program Files\NSIS\Bin\makensis.exe',
   'C:\Program Files (x86)\NSIS\makensis.exe',
   'C:\Program Files\NSIS\makensis.exe'
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $makensis) { throw 'NSIS not found. Install NSIS 3.09+.' }
+Write-Host "Using $makensis"
 
 Write-Host "makensis..."
 $flags = @("/DVERSION=$Version", "/DPAYLOAD_DIR=$payload")
