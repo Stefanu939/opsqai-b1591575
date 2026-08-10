@@ -31,6 +31,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
         }),
       }),
       insert: async () => ({ error: null }),
+      update: () => ({ eq: async () => ({ error: null }) }),
     }),
   },
 }));
