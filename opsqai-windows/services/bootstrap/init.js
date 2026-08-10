@@ -796,13 +796,25 @@ function resetEmbeddedDatabase() {
     for (let i = 0; i < 30 && !fs.existsSync(rootCert); i++) {
       await new Promise((r) => setTimeout(r, 1000));
     }
+    // NOTE: trusting the local Caddy CA is a convenience, never a gate. A
+    // failure here only means the browser shows a certificate warning on
+    // https://localhost — the application itself is unaffected, so log a clear
+    // warning and continue instead of failing the installation.
     if (fs.existsSync(rootCert)) {
       try {
         execFileSync("certutil.exe", ["-addstore", "-f", "Root", rootCert], { stdio: "inherit" });
         log("Caddy root CA trusted in LocalMachine\\Root");
       } catch (e) {
-        console.warn(`[bootstrap] failed to trust Caddy root: ${e.message}`);
+        console.warn(
+          `[bootstrap] WARNING: could not trust the Caddy root CA (${e.message}). ` +
+            "OPSQAI still works on https://localhost; the browser will show a certificate warning.",
+        );
       }
+    } else {
+      console.warn(
+        `[bootstrap] WARNING: Caddy root CA not found at ${rootCert} yet. ` +
+          "https://localhost will show a certificate warning until Caddy issues it.",
+      );
     }
   }
 
