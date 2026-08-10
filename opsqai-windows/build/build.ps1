@@ -19,6 +19,7 @@ param(
   [switch]$SkipApp,        # skip the npm build (use previously staged payload\app)
   [switch]$SkipWizard,     # skip Electron wizard packaging (use previously staged payload\wizard)
   [switch]$SkipDesktop,    # skip Electron desktop shell packaging (use previously staged payload\desktop-shell)
+  [switch]$SkipOllama,     # skip bundling the Ollama setup binary (dev builds only)
   [string]$Version = '0.0.0-dev'
 )
 
