@@ -32,6 +32,7 @@ import {
 import { Users, Search, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/management/customers")({
   head: () => ({ meta: [{ title: "Customers — Management Center" }] }),
@@ -292,9 +293,17 @@ function CustomersPage() {
             size="sm"
             variant="ghost"
             className="text-destructive hover:text-destructive"
-            onClick={() => {
-              if (confirm(`Delete ${r.name}? All data will be lost.`)) removeMut.mutate(r.id);
+            onClick={async () => {
+              if (
+                await confirmAction({
+                  title: `Delete ${r.name}?`,
+                  description: "All data for this customer will be lost. This cannot be undone.",
+                  confirmLabel: "Delete customer",
+                })
+              )
+                removeMut.mutate(r.id);
             }}
+            aria-label={`Delete ${r.name}`}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

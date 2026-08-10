@@ -45,6 +45,7 @@ import { listCompanies } from "@/lib/companies.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
+import { confirmAction } from "@/components/ui/confirm";
 
 const searchSchema = z.object({ install: z.string().optional() });
 
@@ -237,8 +238,14 @@ function LicensesPage() {
               size="sm"
               variant="ghost"
               className="text-destructive hover:text-destructive"
-              onClick={() => {
-                if (confirm(`Revoke license for ${l.company_name}?`))
+              onClick={async () => {
+                if (
+                  await confirmAction({
+                    title: `Revoke license for ${l.company_name}?`,
+                    description: "The install stops validating at its next license check.",
+                    confirmLabel: "Revoke license",
+                  })
+                )
                   revokeMut.mutate({ install_id: l.install_id, kind: "install" });
               }}
             >
@@ -250,14 +257,17 @@ function LicensesPage() {
             variant="ghost"
             className="text-destructive hover:text-destructive"
             title="Delete license"
-            onClick={() => {
+            onClick={async () => {
               if (
-                confirm(
-                  `Delete license for ${l.company_name} (${l.install_id})? This removes the license and all its module entitlements. This cannot be undone.`,
-                )
+                await confirmAction({
+                  title: `Delete license for ${l.company_name}?`,
+                  description: `Install ${l.install_id} loses its license and all module entitlements. This cannot be undone.`,
+                  confirmLabel: "Delete license",
+                })
               )
                 deleteMut.mutate(l.install_id);
             }}
+            aria-label={`Delete license for ${l.company_name}`}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

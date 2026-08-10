@@ -22,6 +22,8 @@ import { useT } from "@/i18n";
 import { toast } from "sonner";
 import { Building2, User, Cpu, Upload, Trash2, Loader2 } from "lucide-react";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
+import { LocalAiEngineCard } from "@/components/admin/local-ai-engine-card";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 
 export const Route = createFileRoute("/_authenticated/app/organization")({
   head: () => ({ meta: [{ title: "Organization — OPSQAI" }] }),
@@ -73,6 +75,7 @@ function OrganizationPage() {
     max_tokens: null,
   });
   const [aiBusy, setAiBusy] = useState(false);
+  const isSelfHosted = getClientDeploymentMode() === "selfhost";
   const [aiInstallId, setAiInstallId] = useState<string | null>(null);
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -330,7 +333,28 @@ function OrganizationPage() {
 
         {canConfigureAi && (
           <TabsContent value="ai">
+            {isSelfHosted ? (
+              <div className="space-y-4">
+                <Card className="p-6 space-y-2">
+                  <h3 className="font-display text-lg font-semibold">On-premise AI engine</h3>
+                  <p className="text-sm text-muted-foreground">
+                    This installation runs every AI feature — chat, document understanding,
+                    embeddings and audits — on the local engine bundled with OPSQAI. No prompt,
+                    document or answer ever leaves this machine, and there is no cloud fallback:
+                    if the local engine is unavailable, the affected feature reports it instead of
+                    routing your data outside.
+                  </p>
+                  {aiInstallId && (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      Install: {aiInstallId}
+                    </p>
+                  )}
+                </Card>
+                <LocalAiEngineCard />
+              </div>
+            ) : (
             <Card className="p-6">
+
               <form onSubmit={submitAi} className="space-y-4">
                 {aiInstallId && (
                   <div className="text-xs text-muted-foreground font-mono">
@@ -410,6 +434,7 @@ function OrganizationPage() {
                 </p>
               </form>
             </Card>
+            )}
           </TabsContent>
         )}
       </Tabs>

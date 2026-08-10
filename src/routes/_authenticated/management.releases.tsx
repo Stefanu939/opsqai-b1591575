@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Rocket, Plus, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/management/releases")({
   head: () => ({ meta: [{ title: "Releases — Management Center" }] }),
@@ -187,9 +188,17 @@ function ReleasesPage() {
             size="sm"
             variant="ghost"
             className="text-destructive hover:text-destructive"
-            onClick={() => {
-              if (confirm(`Delete release ${r.version}?`)) removeMut.mutate(r.id);
+            onClick={async () => {
+              if (
+                await confirmAction({
+                  title: `Delete release ${r.version}?`,
+                  description: "The release entry is removed for all customers.",
+                  confirmLabel: "Delete release",
+                })
+              )
+                removeMut.mutate(r.id);
             }}
+            aria-label={`Delete release ${r.version}`}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

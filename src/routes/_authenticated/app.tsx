@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
+import { RouteErrorState } from "@/components/app/route-error-state";
 
 // The OPSQAI application (`/app/*`) is the Self-Hosted Windows product.
 // It runs INSIDE the customer's infrastructure. On the cloud deployment
@@ -31,4 +32,5 @@ export const Route = createFileRoute("/_authenticated/app")({
     if (!isStaff) throw redirect({ to: "/windows-only" });
   },
   component: () => <Outlet />,
+  errorComponent: ({ error }) => <RouteErrorState error={error} homeTo="/app" />,
 });

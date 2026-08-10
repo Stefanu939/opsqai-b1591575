@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Users, UserPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/app/users")({
   head: () => ({ meta: [{ title: "Users — OPSQAI" }] }),
@@ -105,7 +106,14 @@ function UsersPage() {
   }
 
   async function onDelete(id: string) {
-    if (!confirm("Permanently delete this user? This cannot be undone.")) return;
+    if (
+      !(await confirmAction({
+        title: "Permanently delete this user?",
+        description: "This cannot be undone.",
+        confirmLabel: "Delete user",
+      }))
+    )
+      return;
     try {
       await deleteFn({ data: { user_id: id } });
       toast.success("User deleted");

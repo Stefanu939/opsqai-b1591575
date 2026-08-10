@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Crown, Shield, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/management/ownership")({
   head: () => ({ meta: [{ title: "Ownership — Management Center" }] }),
@@ -188,8 +189,15 @@ function OwnershipPage() {
           size="sm"
           variant="ghost"
           className="text-destructive hover:text-destructive"
-          onClick={() => {
-            if (confirm(`Demote ${a.email}?`)) demoteMut.mutate(a.id);
+          onClick={async () => {
+            if (
+              await confirmAction({
+                title: `Demote ${a.email}?`,
+                description: "They lose platform owner privileges immediately.",
+                confirmLabel: "Demote",
+              })
+            )
+              demoteMut.mutate(a.id);
           }}
         >
           Demote

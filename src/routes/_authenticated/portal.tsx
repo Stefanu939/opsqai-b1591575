@@ -5,6 +5,7 @@ import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, 
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { RouteErrorState } from "@/components/app/route-error-state";
 
 // Customer Portal — cloud-only surface for designated customer contacts:
 // download installers, retrieve activation bundles, read release notes,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/portal")({
     }
   },
   component: PortalLayout,
+  errorComponent: ({ error }) => <RouteErrorState error={error} homeTo="/portal" />,
 });
 
 type NavItem = {

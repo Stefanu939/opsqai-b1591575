@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "@/i18n";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
+import { ConfirmHost } from "@/components/ui/confirm";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { ChatGlider } from "@/components/support/chat-glider";
 import { LicenseProvider } from "@/lib/license";
@@ -175,6 +176,7 @@ function RootComponent() {
             <Outlet />
             <ChatGlider />
             <Toaster />
+            <ConfirmHost />
           </LicenseProvider>
         </AuthProvider>
       </LanguageProvider>

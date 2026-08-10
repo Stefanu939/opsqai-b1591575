@@ -27,6 +27,7 @@ import { upsertFaq, deleteFaq, listFaqs } from "@/lib/faqs.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
 import { FaqImportDialog } from "@/components/admin/faq-import-dialog";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/app/faq")({
   head: () => ({
@@ -107,7 +108,7 @@ function FaqPage() {
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm("Delete?")) return;
+    if (!(await confirmAction({ title: "Delete this FAQ?", confirmLabel: "Delete" }))) return;
     try {
       await del({ data: { id } });
       load();

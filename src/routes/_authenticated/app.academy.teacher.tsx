@@ -232,7 +232,13 @@ function AcademyHome() {
                   
                     : "Grounded in your Academy curriculum"}
               </div>
-              <Button onClick={submit} disabled={busy} size="icon" className="h-8 w-8 rounded-full">
+              <Button
+                onClick={submit}
+                disabled={busy}
+                size="icon"
+                aria-label={lang === "de" ? "Frage senden" : "Send question"}
+                className="h-8 w-8 rounded-full"
+              >
                 <ArrowUp className="h-4 w-4" />
               </Button>
             </div>

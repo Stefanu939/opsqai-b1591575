@@ -59,6 +59,7 @@ import {
 } from "@/lib/sop-versions.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/app/knowledge")({
   head: () => ({
@@ -207,7 +208,14 @@ function KnowledgePage() {
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm("Delete this document and all its indexed chunks?")) return;
+    if (
+      !(await confirmAction({
+        title: "Delete this document?",
+        description: "All indexed chunks are removed and it stops answering questions.",
+        confirmLabel: "Delete document",
+      }))
+    )
+      return;
     try {
       await del({ data: { id } });
       load();
@@ -288,7 +296,15 @@ function KnowledgePage() {
   };
 
   const onRollback = async (id: string) => {
-    if (!confirm("Roll back to this version? Newer versions will be deactivated.")) return;
+    if (
+      !(await confirmAction({
+        title: "Roll back to this version?",
+        description: "Newer versions will be deactivated.",
+        confirmLabel: "Roll back",
+        destructive: false,
+      }))
+    )
+      return;
     try {
       await rollback({ data: { id } });
       toast.success("Rolled back");
