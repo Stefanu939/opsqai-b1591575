@@ -72,3 +72,26 @@ Adapter/unit: `AI_PROVIDER=ollama` resolves the Ollama adapter; no auth header a
 Installer/bootstrap: mocked Ollama-setup + pull flow with a fresh bundled-PostgreSQL install; failure paths surface the right error codes.
 
 Integration: KB upload → local embedding → pgvector → retrieval → Ollama answer with citations.
+
+## 8. Final architectural requirement
+
+The Self-Hosted edition must be genuinely local once installed. Internet access is needed only during setup, to fetch the Ollama runtime and the selected models.
+
+After installation, with the network disconnected, all of these keep working: chat, fast chat, embeddings, KB ingestion, RAG retrieval, FAQ retrieval, grounded answers, citations, AI Audit.
+
+The embedding model's actual returned vector length is the single source of truth for pgvector. No hard-coded 1024 or 1536 anywhere in the database layer.
+
+Fresh installation order:
+
+1. Install/start Ollama.
+2. Pull models.
+3. Probe the embedding model.
+4. Obtain the actual vector length.
+5. Persist `ai.embeddingDim`.
+6. Create the pgvector column and retrieval function at that exact dimension.
+7. Run chat + embedding + RAG health checks.
+8. Only then report "AI Engine Ready".
+
+Existing installations never change dimension silently — an explicit re-embedding operation is required.
+
+Additionally: an automated offline acceptance test that proves a fully installed Self-Hosted OPSQAI performs Chat + Embeddings + RAG with external network access disabled (only loopback to Ollama and PostgreSQL permitted).
