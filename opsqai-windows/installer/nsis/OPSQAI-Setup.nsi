@@ -130,13 +130,13 @@ Section "OPSQAI Core" SEC_CORE
   ; the extractor must be on disk before any part is unpacked.
   SetOutPath "$INSTDIR"
   File /r "${PAYLOAD_DIR}\*.*"
-  Assert7zr:
   IfFileExists "$INSTDIR\tools\7zr.exe" +2 0
     Abort "OPSQAI installation aborted: bundled extractor tools\7zr.exe is missing."
 
   ; Pre-compressed heavy components, stored uncompressed in the installer.
   !insertmacro OPSQAI_STORE_PARTS
   !insertmacro OPSQAI_EXTRACT_PARTS
+  SetOutPath "$INSTDIR"
 
 
   ; --- ProgramData layout ---
