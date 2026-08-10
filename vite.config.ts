@@ -16,6 +16,11 @@ export default defineConfig({
   },
   vite: {
     plugins: [mcpPlugin()],
+    // The Windows service tests are plain `node:test` files run by Node, not
+    // Vitest — including them makes the suite fail with "no test suite found".
+    test: {
+      exclude: ["**/node_modules/**", "**/dist/**", "**/*.test.cjs"],
+    },
     ...(selfhostAliases ? { resolve: { alias: selfhostAliases } } : {}),
   },
 });
