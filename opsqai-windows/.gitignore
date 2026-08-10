@@ -5,9 +5,15 @@ payload/caddy/
 payload/app/
 payload/wizard/
 payload/tools/
+payload/desktop-shell/
+payload/vendor/
 payload/assets/
 payload/updater/pubkey.pem
 build/artifacts/
+build/parts/
+build/staged/
+build/nodetmp/
+installer/nsis/parts.generated.nsh
 installer/wizard/dist/
 installer/wizard/node_modules/
 node_modules/
