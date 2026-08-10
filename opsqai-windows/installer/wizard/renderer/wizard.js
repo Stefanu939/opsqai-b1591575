@@ -194,6 +194,25 @@ const WIZARD_SHELL_HTML = String.raw`
           <p class="hint">Space required: <strong>~4.8 GB</strong> · Available: <strong id="opt-disk-free">—</strong></p>
         </label>
 
+        <div class="ai-engine">
+          <span class="label-row">Local AI engine</span>
+          <p class="hint">
+            OPSQAI Self-Hosted runs its AI entirely on this machine using
+            <strong>Ollama</strong>. No API key and no external AI service are
+            required. Setup downloads the models below once (several GB);
+            afterwards chat, embeddings and knowledge retrieval work offline.
+          </p>
+          <div class="grid-2">
+            <label>Chat model<input id="ai-chat-model" value="qwen2.5:7b" spellcheck="false" /></label>
+            <label>Fast model<input id="ai-fast-model" value="qwen2.5:3b" spellcheck="false" /></label>
+          </div>
+          <div class="grid-2">
+            <label>Embedding model<input id="ai-embedding-model" value="bge-m3" spellcheck="false" /></label>
+            <label>Ollama URL<input id="ai-base-url" value="http://127.0.0.1:11434" spellcheck="false" /></label>
+          </div>
+          <p class="hint">Keep the recommended defaults unless your organisation standardises on other Ollama models.</p>
+        </div>
+
         <div class="opt-toggles">
           <label class="checkbox"><input type="checkbox" id="opt-desktop" checked /><span>Create Desktop shortcut</span></label>
           <label class="checkbox"><input type="checkbox" id="opt-startmenu" checked /><span>Add OPSQAI to Start Menu</span></label>
@@ -283,7 +302,12 @@ const WIZARD_SHELL_HTML = String.raw`
         <li data-stage="postgres"><span class="stage-dot"></span>Installing bundled PostgreSQL</li>
         <li data-stage="services"><span class="stage-dot"></span>Installing OPSQAI services</li>
         <li data-stage="migrate"><span class="stage-dot"></span>Creating database &amp; applying migrations</li>
-        <li data-stage="ai"><span class="stage-dot"></span>Initializing AI engine</li>
+        <li data-stage="ai-install"><span class="stage-dot"></span>Installing local AI runtime (Ollama)</li>
+        <li data-stage="ai-start"><span class="stage-dot"></span>Starting local AI runtime</li>
+        <li data-stage="ai-chat-model"><span class="stage-dot"></span>Downloading chat model</li>
+        <li data-stage="ai-embed-model"><span class="stage-dot"></span>Downloading embedding model</li>
+        <li data-stage="ai-dim"><span class="stage-dot"></span>Configuring vector storage</li>
+        <li data-stage="ai-health"><span class="stage-dot"></span>Verifying chat &amp; embeddings</li>
         <li data-stage="kb"><span class="stage-dot"></span>Creating knowledge storage</li>
         <li data-stage="finalize"><span class="stage-dot"></span>Finalizing installation</li>
       </ol>
@@ -669,6 +693,18 @@ function buildConfig() {
         },
       }
     : { mode: "embedded", embedded: { port: 55432 } };
+  const val = (sel, fallback) => {
+    const el = document.querySelector(sel);
+    const v = el && el.value ? el.value.trim() : "";
+    return v || fallback;
+  };
+  state.data.ai = {
+    provider: "ollama",
+    baseUrl: val("#ai-base-url", "http://127.0.0.1:11434"),
+    chatModel: val("#ai-chat-model", "qwen2.5:7b"),
+    chatFastModel: val("#ai-fast-model", "qwen2.5:3b"),
+    embeddingModel: val("#ai-embedding-model", "bge-m3"),
+  };
   state.data.admin = {
     name: $("#admin-name").value.trim(),
     email: $("#admin-email").value.trim(),
@@ -682,9 +718,14 @@ const STAGE_MARKERS = [
   { stage: "postgres", match: /postgres|initdb|pg_ctl/i,              pct: 22 },
   { stage: "services", match: /installing services|winsw|nssm/i,      pct: 40 },
   { stage: "migrate",  match: /running app migrations|migrate|admin seeded/i, pct: 62 },
-  { stage: "ai",       match: /ai engine|embeddings|model/i,          pct: 76 },
-  { stage: "kb",       match: /knowledge|storage bucket|kb ready/i,   pct: 88 },
-  { stage: "finalize", match: /health OK|Caddy root|finalizing/i,     pct: 96 },
+  { stage: "ai-install",     match: /ai engine: installing Ollama runtime/i,   pct: 66 },
+  { stage: "ai-start",       match: /ai engine: starting local runtime/i,      pct: 70 },
+  { stage: "ai-chat-model",  match: /ai engine: downloading chat model/i,      pct: 74 },
+  { stage: "ai-embed-model", match: /ai engine: downloading embedding model/i, pct: 80 },
+  { stage: "ai-dim",         match: /ai engine: (probing embedding dimension|configuring vector storage)/i, pct: 84 },
+  { stage: "ai-health",      match: /ai engine: (chat|embedding) health check|ai engine ready/i, pct: 88 },
+  { stage: "kb",             match: /knowledge base storage ready|storage bucket/i, pct: 92 },
+  { stage: "finalize",       match: /health OK|Caddy root|finalizing/i,        pct: 96 },
 ];
 let currentStageIdx = -1;
 
@@ -747,12 +788,12 @@ async function runInstall(withReset) {
     admin: state.data.admin,
     database: state.data.database,
     storage: { mode: "local", local: {} },
-    ai: {
-      provider: "gateway",
-      model: "openai/gpt-5.5",
-      chatModel: "openai/gpt-5.5",
-      chatFastModel: "openai/gpt-5.5-mini",
-      embeddingModel: "openai/text-embedding-3-small",
+    ai: state.data.ai || {
+      provider: "ollama",
+      baseUrl: "http://127.0.0.1:11434",
+      chatModel: "qwen2.5:7b",
+      chatFastModel: "qwen2.5:3b",
+      embeddingModel: "bge-m3",
     },
     license: state.data.license || null,
     smtp: null,
