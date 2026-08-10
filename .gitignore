@@ -30,3 +30,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Stray Windows-style paths created if a bootstrap/service script is run on a
+# non-Windows machine (%ProgramData% / %ProgramFiles% are unset, so paths fall
+# back to literal "C:\..." directory names). Committing these breaks
+# `git checkout` on Windows runners with: invalid path 'C:\ProgramData/...'.
+C:\\*
+OPSQAI/
