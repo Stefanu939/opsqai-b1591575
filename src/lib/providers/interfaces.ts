@@ -618,7 +618,7 @@ export interface KnowledgeChunkInsert {
   chunk_index: number;
   content: string;
   token_count: number;
-  /** 1536-dim vector; repository formats it as pgvector text. */
+  /** Embedding vector at the install's pinned dimension; repository formats it as pgvector text. */
   embedding: number[];
 }
 
