@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveChatModel } from "@/lib/ai-provider.server";
 import { generatePptx } from "@/lib/generators/pptx.server";
 import { generateXlsx } from "@/lib/generators/xlsx.server";
 import { generateDocx } from "@/lib/generators/docx.server";
@@ -42,10 +42,9 @@ export const Route = createFileRoute("/api/workspace-chat")({
           const token = request.headers.get("authorization")?.replace("Bearer ", "");
           if (!token) return new Response("Unauthorized", { status: 401 });
 
-          const apiKey = process.env.LOVABLE_API_KEY;
           const supaUrl = process.env.SUPABASE_URL;
           const supaKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-          if (!apiKey || !supaUrl || !supaKey)
+          if (!supaUrl || !supaKey)
             return new Response("Server misconfigured", { status: 500 });
 
           const supabase = createClient<Database>(supaUrl, supaKey, {
@@ -309,11 +308,10 @@ export const Route = createFileRoute("/api/workspace-chat")({
             .filter((m) => m.parts.length > 0);
           timer.mark("sanitize_history", { kept: safeMessages.length, original: messages.length });
 
-          const gateway = createLovableAiGatewayProvider(apiKey);
           const modelMessages = await convertToModelMessages(safeMessages as UIMessage[]);
           timer.mark("prepare_llm");
           const result = streamText({
-            model: gateway("google/gemini-3-flash-preview"),
+            model: resolveChatModel("chat"),
             system: SYSTEM_PROMPT(filesBlock, retention) + `\n\nLanguage hint: ${langHint}`,
             messages: modelMessages,
 

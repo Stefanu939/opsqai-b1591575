@@ -2,10 +2,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveChatModel } from "@/lib/ai-provider.server";
 import type { Database } from "@/integrations/supabase/types";
 
-const MODEL = "google/gemini-3-flash-preview";
 
 const LANG_LABEL: Record<string, string> = {
   en: "English",
@@ -78,10 +77,9 @@ export const Route = createFileRoute("/api/academy-chat")({
         try {
           const token = request.headers.get("authorization")?.replace("Bearer ", "");
           if (!token) return new Response("Unauthorized", { status: 401 });
-          const apiKey = process.env.LOVABLE_API_KEY;
           const supaUrl = process.env.SUPABASE_URL;
           const supaKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-          if (!apiKey || !supaUrl || !supaKey)
+          if (!supaUrl || !supaKey)
             return new Response("Server misconfigured", { status: 500 });
 
           const supabase = createClient<Database>(supaUrl, supaKey, {
@@ -139,9 +137,8 @@ export const Route = createFileRoute("/api/academy-chat")({
             .join("\n\n")
             .slice(0, 16000);
 
-          const gateway = createLovableAiGatewayProvider(apiKey);
           const result = streamText({
-            model: gateway(MODEL),
+            model: resolveChatModel("chat"),
             system: SYSTEM(block, chosen),
             messages: await convertToModelMessages(body.messages ?? []),
             temperature: 0.4,

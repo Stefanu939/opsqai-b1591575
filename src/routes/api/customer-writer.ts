@@ -2,9 +2,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { generateText } from "ai";
 import { createClient } from "@supabase/supabase-js";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { generateAiText } from "@/lib/ai-provider.server";
 
-const MODEL = "google/gemini-3-flash-preview";
 
 const ACTIONS = {
   generate: "Write a new high-quality enterprise document based on the brief.",
@@ -31,10 +30,9 @@ export const Route = createFileRoute("/api/customer-writer")({
         try {
           const token = request.headers.get("authorization")?.replace("Bearer ", "");
           if (!token) return new Response("Unauthorized", { status: 401 });
-          const apiKey = process.env.LOVABLE_API_KEY;
           const supaUrl = process.env.SUPABASE_URL;
           const supaKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-          if (!apiKey || !supaUrl || !supaKey)
+          if (!supaUrl || !supaKey)
             return new Response("Server misconfigured", { status: 500 });
 
           const supabase = createClient(supaUrl, supaKey, {
@@ -110,14 +108,13 @@ ${ctx._systemBlock || "(no profile data yet — work from generic best practice 
                 ? `Task: ${ACTIONS[action]}\nTarget language: ${body.target_language ?? "English"}\nSource:\n${body.text ?? ""}`
                 : `Task: ${ACTIONS[action]}\nSource:\n${body.text ?? ""}`;
 
-          const gateway = createLovableAiGatewayProvider(apiKey);
-          const result = await generateText({
-            model: gateway(MODEL),
+          const markdown = await generateAiText({
+            role: "chat",
             system,
             prompt: userPrompt,
             temperature: 0.3,
           });
-          return new Response(JSON.stringify({ markdown: result.text }), {
+          return new Response(JSON.stringify({ markdown }), {
             headers: { "Content-Type": "application/json" },
           });
         } catch (e) {
