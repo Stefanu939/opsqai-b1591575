@@ -55,6 +55,41 @@ const CODES = {
     title: "Stale or Cloud-contaminated migration payload",
     docsAnchor: "opsqai-e1011",
   },
+  "OPSQAI-E1501": {
+    category: "ai",
+    title: "Ollama runtime is not installed",
+    docsAnchor: "opsqai-e1501",
+  },
+  "OPSQAI-E1502": {
+    category: "ai",
+    title: "Ollama service failed to start",
+    docsAnchor: "opsqai-e1502",
+  },
+  "OPSQAI-E1503": {
+    category: "ai",
+    title: "Ollama API unreachable on 127.0.0.1:11434",
+    docsAnchor: "opsqai-e1503",
+  },
+  "OPSQAI-E1504": {
+    category: "ai",
+    title: "AI model download failed",
+    docsAnchor: "opsqai-e1504",
+  },
+  "OPSQAI-E1505": {
+    category: "ai",
+    title: "Embedding dimension mismatch with existing knowledge base",
+    docsAnchor: "opsqai-e1505",
+  },
+  "OPSQAI-E1506": {
+    category: "ai",
+    title: "Local chat test failed",
+    docsAnchor: "opsqai-e1506",
+  },
+  "OPSQAI-E1507": {
+    category: "ai",
+    title: "Local embedding test failed",
+    docsAnchor: "opsqai-e1507",
+  },
   "OPSQAI-E1902": {
     category: "packaging",
     title: "Installer payload incomplete",
@@ -64,7 +99,7 @@ const CODES = {
 
 // Categories that should NEVER suggest a database reset — those are
 // transient service/port issues or packaging problems, not schema corruption.
-const TRANSIENT_CATEGORIES = new Set(["database", "services", "packaging"]);
+const TRANSIENT_CATEGORIES = new Set(["database", "services", "packaging", "ai"]);
 
 function describe(code) {
   return CODES[code] || CODES["OPSQAI-E1901"];

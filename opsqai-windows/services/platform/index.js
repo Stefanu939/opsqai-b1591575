@@ -26,13 +26,68 @@ function buildDatabaseUrl() {
 const programData = process.env.ProgramData || "C:\\ProgramData";
 const opsqaiData = path.join(programData, "OPSQAI");
 
+
+// Maps config.json `ai` block to environment variables.
+//
+// Default (and only supported standard local case): Ollama. No API key is
+// ever emitted for it, and Cloud/gateway variables stay unset so a local
+// install can never reach an external AI endpoint.
+function aiEnv(cfg) {
+  const ai = cfg.ai || {};
+  const provider = ai.provider || "ollama";
+  const dim = Number(ai.embeddingDim || ai.embedding_dim || 0);
+  const base = {
+    OPSQAI_EMBEDDING_DIM: dim > 0 ? String(dim) : "",
+  };
+
+  if (provider === "none") return { ...base, AI_PROVIDER: "" };
+
+  if (provider === "ollama") {
+    return {
+      ...base,
+      AI_PROVIDER: "ollama",
+      OLLAMA_BASE_URL: ai.baseUrl || ai.base_url || "http://127.0.0.1:11434",
+      OLLAMA_CHAT_MODEL: ai.chatModel || ai.chat_model || "qwen2.5:7b",
+      OLLAMA_CHAT_FAST_MODEL: ai.chatFastModel || ai.chat_fast_model || "qwen2.5:3b",
+      OLLAMA_EMBEDDING_MODEL: ai.embeddingModel || ai.embedding_model || "bge-m3",
+    };
+  }
+
+  if (provider === "azure") {
+    return {
+      ...base,
+      AI_PROVIDER: "azure",
+      AZURE_OPENAI_RESOURCE_NAME: ai.resourceName || ai.resource_name || "",
+      AZURE_OPENAI_API_KEY: ai.apiKey || ai.api_key || "",
+      AZURE_OPENAI_API_VERSION: ai.apiVersion || ai.api_version || "2024-10-21",
+      AZURE_OPENAI_CHAT_DEPLOYMENT: ai.chatModel || ai.chat_model || "gpt-4o",
+      AZURE_OPENAI_CHAT_FAST_DEPLOYMENT: ai.chatFastModel || ai.chat_fast_model || "gpt-4o-mini",
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT:
+        ai.embeddingModel || ai.embedding_model || "text-embedding-3-small",
+    };
+  }
+
+  if (provider === "gateway") {
+    return { ...base, AI_PROVIDER: "lovable", LOVABLE_API_KEY: ai.apiKey || ai.api_key || "" };
+  }
+
+  return {
+    ...base,
+    AI_PROVIDER: "openai-compatible",
+    GENERIC_AI_BASE_URL: ai.baseUrl || ai.base_url || "",
+    GENERIC_AI_API_KEY: ai.apiKey || ai.api_key || "",
+    GENERIC_AI_CHAT_MODEL: ai.chatModel || ai.chat_model || "gpt-4o",
+    GENERIC_AI_CHAT_FAST_MODEL: ai.chatFastModel || ai.chat_fast_model || "gpt-4o-mini",
+    GENERIC_AI_EMBEDDING_MODEL: ai.embeddingModel || ai.embedding_model || "text-embedding-3-small",
+  };
+}
+
 const env = {
   ...process.env,
   NODE_ENV: "production",
   PORT: String(appPort),
   HOST: "127.0.0.1",
   DATABASE_URL: buildDatabaseUrl(),
-
   // --- Platform mode --------------------------------------------------
   OPSQAI_PLATFORM_MODE: "selfhost",
   OPSQAI_DEPLOYMENT_TYPE: "SelfHosted",
@@ -40,22 +95,11 @@ const env = {
   OPSQAI_INSTALL_ID: cfg.installId || "",
   OPSQAI_TENANT_NAME: cfg.company?.name || "OPSQAI",
 
-  // --- Customer-owned AI provider ------------------------------------
-  AI_PROVIDER:
-    cfg.ai?.provider === "azure" ? "azure" :
-    cfg.ai?.provider === "gateway" ? "lovable" :
-    cfg.ai?.provider && cfg.ai.provider !== "none" ? "openai-compatible" : "",
-  AZURE_OPENAI_RESOURCE_NAME: cfg.ai?.resourceName || cfg.ai?.resource_name || "",
-  AZURE_OPENAI_API_KEY: cfg.ai?.apiKey || cfg.ai?.api_key || "",
-  AZURE_OPENAI_API_VERSION: cfg.ai?.apiVersion || cfg.ai?.api_version || "2024-10-21",
-  AZURE_OPENAI_CHAT_DEPLOYMENT: cfg.ai?.chatModel || cfg.ai?.chat_model || "gpt-4o",
-  AZURE_OPENAI_CHAT_FAST_DEPLOYMENT: cfg.ai?.chatFastModel || cfg.ai?.chat_fast_model || "gpt-4o-mini",
-  AZURE_OPENAI_EMBEDDING_DEPLOYMENT: cfg.ai?.embeddingModel || cfg.ai?.embedding_model || "text-embedding-3-small",
-  GENERIC_AI_BASE_URL: cfg.ai?.baseUrl || cfg.ai?.base_url || "",
-  GENERIC_AI_API_KEY: cfg.ai?.apiKey || cfg.ai?.api_key || "",
-  GENERIC_AI_CHAT_MODEL: cfg.ai?.chatModel || cfg.ai?.chat_model || "gpt-4o",
-  GENERIC_AI_CHAT_FAST_MODEL: cfg.ai?.chatFastModel || cfg.ai?.chat_fast_model || "gpt-4o-mini",
-  GENERIC_AI_EMBEDDING_MODEL: cfg.ai?.embeddingModel || cfg.ai?.embedding_model || "text-embedding-3-small",
+  // --- Local AI engine (Ollama) ---------------------------------------
+  // Self-Hosted runs Ollama on this machine and needs no API key. The
+  // legacy cloud/enterprise providers are only emitted when a customer
+  // explicitly configured one (Enterprise BYO-provider path).
+  ...aiEnv(cfg),
 
   // --- Filesystem layout (all under %ProgramData%\OPSQAI\) ------------
   OPSQAI_CONFIG_DIR: path.join(opsqaiData, "config"),

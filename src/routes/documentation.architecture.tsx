@@ -58,7 +58,7 @@ function Architecture() {
         <ol className="list-decimal pl-6 space-y-1">
           <li>User uploads a PDF via the Portal → <code>opsqai-web</code> writes bytes to S3 and a row to <code>documents</code>.</li>
           <li><code>opsqai-web</code> enqueues an <code>ingest</code> job.</li>
-          <li><code>opsqai-worker</code> pulls the job, extracts text, chunks it, requests embeddings from the configured AI provider, writes <code>document_chunks</code> with <code>embedding vector(1536)</code>.</li>
+          <li><code>opsqai-worker</code> pulls the job, extracts text, chunks it, requests embeddings from the configured AI provider, writes <code>document_chunks</code> with <code>embedding vector(N)</code> at the install's pinned embedding dimension.</li>
           <li>User asks a question → <code>opsqai-web</code> embeds the query, runs <code>ORDER BY embedding &lt;-&gt; :q LIMIT 8</code> under the tenant's RLS policy, and passes the top chunks as context to the AI provider.</li>
           <li>The answer streams back to the user with inline citations pointing to the source chunks.</li>
         </ol>

@@ -88,8 +88,8 @@ volumes:
         <ol className="list-decimal pl-6 space-y-1">
           <li>Extract — PDF / DOCX / HTML → normalised text.</li>
           <li>Chunk — recursive splitter, ~800 tokens with 120-token overlap.</li>
-          <li>Embed — batched to the configured adapter, 1536-dim vectors.</li>
-          <li>Store — <code>document_chunks(embedding vector(1536))</code> with an IVFFlat index.</li>
+          <li>Embed — batched to the configured adapter (Ollama locally); the model's native vector length is authoritative.</li>
+          <li>Store — <code>document_chunks(embedding vector(N))</code> where N is the probed embedding dimension, with an HNSW index.</li>
           <li>Retrieve — <code>&lt;-&gt;</code> cosine, top-k=8, MMR re-rank optional.</li>
           <li>Generate — pass chunks + question as system context; response cites chunk ids.</li>
         </ol>

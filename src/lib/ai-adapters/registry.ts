@@ -9,11 +9,13 @@ import type { AIProviderAdapter } from "./types";
 import { lovableAdapter } from "./lovable";
 import { azureAdapter } from "./azure";
 import { openaiCompatibleAdapter } from "./openai-compatible";
+import { ollamaAdapter } from "./ollama";
 
 const BUILT_IN_ADAPTERS: readonly AIProviderAdapter[] = [
   lovableAdapter,
   azureAdapter,
   openaiCompatibleAdapter,
+  ollamaAdapter,
 ];
 
 const REGISTRY = new Map<string, AIProviderAdapter>();
@@ -42,7 +44,24 @@ export function listAdapters(): AIProviderAdapter[] {
   return Array.from(new Set(REGISTRY.values()));
 }
 
+/** Cloud default. */
 export const DEFAULT_ADAPTER_ID = "lovable";
+/** Self-Hosted default — the bundled local engine. */
+export const SELFHOST_DEFAULT_ADAPTER_ID = "ollama";
+
+/**
+ * Default adapter id for the current platform. Self-Hosted resolves to the
+ * local Ollama engine so a properly installed Self-Hosted deployment can
+ * never accidentally reach the Lovable Gateway; Cloud keeps the Gateway.
+ */
+export function defaultAdapterId(): string {
+  const mode = (process.env.OPSQAI_PLATFORM_MODE ?? "").trim().toLowerCase();
+  const deployment = (process.env.OPSQAI_DEPLOYMENT_TYPE ?? "").trim().toLowerCase();
+  if (mode === "selfhost" || mode === "self-hosted" || deployment === "selfhosted") {
+    return SELFHOST_DEFAULT_ADAPTER_ID;
+  }
+  return DEFAULT_ADAPTER_ID;
+}
 
 /**
  * Resolve the active adapter from the `AI_PROVIDER` env var, falling back
@@ -51,7 +70,7 @@ export const DEFAULT_ADAPTER_ID = "lovable";
  */
 export function getActiveAdapter(): AIProviderAdapter {
   const raw = process.env.AI_PROVIDER;
-  if (!raw || !raw.trim()) return getAdapter(DEFAULT_ADAPTER_ID)!;
+  if (!raw || !raw.trim()) return getAdapter(defaultAdapterId())!;
   const found = getAdapter(raw);
   if (!found) {
     const known = listAdapters()

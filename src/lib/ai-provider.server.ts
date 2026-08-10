@@ -16,10 +16,19 @@ import type { AIChatRole, ResolvedTTS } from "./ai-adapters/types";
 
 export type { AIChatRole, AIModelRole, ResolvedTTS } from "./ai-adapters/types";
 
-// Embedding vector dimensions. Must match the pgvector column across all
-// providers. Override via EMBEDDING_DIMENSIONS if a customer picks a model
-// with a different native size (e.g. text-embedding-3-large = 3072).
-const EMBEDDING_DIMENSIONS = Number(process.env.EMBEDDING_DIMENSIONS ?? 1536);
+// Embedding vector dimensions.
+//
+// This is NOT a hard-coded constant for the database layer: on Self-Hosted
+// the value is probed from the local embedding model at install time and
+// pinned per install (config.json `ai.embeddingDim` -> OPSQAI_EMBEDDING_DIM).
+// Cloud keeps the Gateway model's 1536. Providers that cannot truncate
+// (Ollama) ignore the hint and return their native length.
+export function embeddingDimensions(): number {
+  const raw = process.env.OPSQAI_EMBEDDING_DIM ?? process.env.EMBEDDING_DIMENSIONS;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 1536;
+}
+
 
 /**
  * Returns a chat-capable LanguageModel for the given logical role.
@@ -45,7 +54,7 @@ export async function resolveEmbeddings(texts: string[]): Promise<number[][]> {
   const res = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(buildBody(texts, EMBEDDING_DIMENSIONS)),
+    body: JSON.stringify(buildBody(texts, embeddingDimensions())),
   });
   if (!res.ok) {
     const t = await res.text();

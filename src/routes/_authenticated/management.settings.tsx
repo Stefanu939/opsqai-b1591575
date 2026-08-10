@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { LocalAiEngineCard } from "@/components/admin/local-ai-engine-card";
+import { PlatformMode, getPlatformMode } from "@/lib/platform";
 
 export const Route = createFileRoute("/_authenticated/management/settings")({
   head: () => ({ meta: [{ title: "Settings — Management Center" }] }),
@@ -106,6 +108,9 @@ function SettingsPage() {
         description="Global platform configuration."
       />
 
+      {getPlatformMode() === PlatformMode.SelfHosted ? (
+        <LocalAiEngineCard />
+      ) : (
       <SectionCard
         title="AI Provider"
         description="Default AI provider used across the platform when no per-install override is set."
@@ -195,6 +200,7 @@ function SettingsPage() {
           </div>
         )}
       </SectionCard>
+      )}
 
       <SectionCard title="Runtime" description="Read-only platform state.">
         {isLoading ? (

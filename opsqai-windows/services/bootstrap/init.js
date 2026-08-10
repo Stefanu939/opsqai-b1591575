@@ -25,6 +25,7 @@ const crypto = require("crypto");
 const { execFileSync, spawnSync } = require("child_process");
 const { programData, programFiles, saveConfig } = require("../common/config");
 const { formatFail, parseFail } = require("./errors.cjs");
+const { setupAiEngine, AiSetupError } = require("./ollama.cjs");
 
 function arg(name, dflt) {
   const i = process.argv.indexOf(`--${name}`);
@@ -190,7 +191,19 @@ const config = {
     storageMode === "local"
       ? { mode: "local", local: { path: programData("data", "storage") } }
       : { mode: "s3", s3: JSON.parse(arg("storage-s3", "{}")) },
-  ai: JSON.parse(arg("ai", '{"provider":"none"}')),
+  // Ollama is the default (and only) local AI engine on Self-Hosted.
+  ai: JSON.parse(
+    arg(
+      "ai",
+      JSON.stringify({
+        provider: "ollama",
+        baseUrl: "http://127.0.0.1:11434",
+        chatModel: "qwen2.5:7b",
+        chatFastModel: "qwen2.5:3b",
+        embeddingModel: "bge-m3",
+      }),
+    ),
+  ),
   smtp: smtpCfg,
   license: licenseClaims
     ? {
@@ -715,7 +728,43 @@ function resetEmbeddedDatabase() {
 
   // --- 3. Caddy + trust CA ---
   if (startServices) {
-    stage("ai engine (skipped: configure post-install)");
+    // --- Local AI engine (Ollama) -------------------------------------
+    // Runs BEFORE the app services start so the platform boots with a
+    // verified engine and the pinned embedding dimension already applied.
+    if ((config.ai?.provider || "ollama") === "ollama") {
+      try {
+        const resolved = await setupAiEngine({
+          log,
+          stage,
+          cfg: config.ai || {},
+          setupExe: programFiles("vendor", "ollama", "OllamaSetup.exe"),
+          applyDim: async (dim) => {
+            const r = psqlExec(`SELECT public.kb_apply_embedding_dim(${Number(dim)});`);
+            if (r.status !== 0) {
+              const detail = ((r.stderr || r.stdout || "") + "").trim().slice(-400);
+              throw new AiSetupError(
+                /dimension change refused/i.test(detail)
+                  ? "OPSQAI-E1505"
+                  : "OPSQAI-E1507",
+                `applying embedding dimension ${dim} failed: ${detail || `psql status ${r.status}`}`,
+              );
+            }
+          },
+        });
+        config.ai = { ...(config.ai || {}), ...resolved };
+        saveConfig(config);
+        log(`ai engine ready (ollama, ${resolved.embeddingDim} dims)`);
+      } catch (e) {
+        const code = e instanceof AiSetupError ? e.code : "OPSQAI-E1503";
+        writeInstallState("failed", "ai", { code, message: e.message });
+        console.log(
+          formatFail("bootstrap", code, { message: e.message, log_path: LOG_PATH }),
+        );
+        process.exit(7);
+      }
+    } else {
+      stage("ai engine (external provider configured)");
+    }
     stage("knowledge base storage ready");
     stage("finalizing");
     log("starting OpsqaiCaddy");
