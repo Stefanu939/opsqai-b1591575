@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "installId": "c669ac20-22f8-44f1-8707-683168560c48",
+  "company": {
+    "name": "Acme",
+    "contactEmail": "a@b.c",
+    "timezone": "UTC"
+  },
+  "database": {
+    "mode": "embedded",
+    "embedded": {
+      "port": 55432,
+      "password": ""
+    }
+  },
+  "storage": {
+    "mode": "local",
+    "local": {
+      "path": "C:\\ProgramData/OPSQAI/data/storage"
+    }
+  },
+  "ai": {
+    "provider": "ollama",
+    "baseUrl": "http://127.0.0.1:11434",
+    "chatModel": "qwen2.5:7b",
+    "chatFastModel": "qwen2.5:3b",
+    "embeddingModel": "bge-m3"
+  },
+  "smtp": null,
+  "license": {
+    "edition": "community"
+  },
+  "updates": {
+    "channel": "stable",
+    "manifestUrl": "https://updates.opsqai.de/channel/stable/manifest.json"
+  }
+}
