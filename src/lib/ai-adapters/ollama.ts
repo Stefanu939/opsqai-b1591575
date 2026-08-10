@@ -31,6 +31,7 @@ export function ollamaModels() {
 
 export const ollamaAdapter: AIProviderAdapter = {
   id: "ollama",
+  local: true,
   aliases: ["ollama-local"],
   label: "Ollama — Local",
   // Declared capabilities of the local engine. `probeCapabilities()` below

@@ -51,6 +51,12 @@ export interface AIProviderAdapter {
   /** Human-readable label for admin UI + docs. */
   readonly label: string;
   /**
+   * True when inference happens on the customer's own machine/network.
+   * Self-Hosted refuses to activate an adapter that is not local — the
+   * Global Self-Hosted AI Contract forbids silent cloud fallback.
+   */
+  readonly local?: boolean;
+  /**
    * What this engine can do. Modules query this through
    * `aiCapabilities()` instead of assuming a feature exists.
    * Adapters whose real capabilities depend on the installed models
