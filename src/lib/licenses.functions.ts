@@ -152,10 +152,6 @@ export const issueLicense = createServerFn({ method: "POST" })
     };
   });
 
-    if (error) throw new Error(error.message);
-    return { ok: true, token, install_id: data.install_id, basic_modules: BASIC_MODULES };
-  });
-
 // ─── Issue Module License ───────────────────────────────────────────────
 
 export const issueModuleLicense = createServerFn({ method: "POST" })
