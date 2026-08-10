@@ -54,7 +54,7 @@ export async function resolveEmbeddings(texts: string[]): Promise<number[][]> {
   const res = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(buildBody(texts, EMBEDDING_DIMENSIONS)),
+    body: JSON.stringify(buildBody(texts, embeddingDimensions())),
   });
   if (!res.ok) {
     const t = await res.text();
