@@ -442,6 +442,20 @@ Assert-Exists (Join-Path $payload 'wizard\OPSQAI-Wizard.exe') 'Electron setup wi
 Assert-Exists (Join-Path $payload 'desktop-shell\OPSQAI.exe') 'Electron desktop shell'
 Assert-Exists (Join-Path $payload 'services\bootstrap\init.js') 'bootstrap service'
 Assert-Exists (Join-Path $payload 'services\bootstrap\migrate.mjs') 'migration runner source'
+
+# Provenance: prove WHICH init.js is being shipped, and refuse to ship one that
+# still hardcodes an empty embedded PostgreSQL password (the psql
+# "fe_sendauth: no password supplied" regression). The printed SHA-256 must
+# match the "[bootstrap] init.js sha256=" line in the install log.
+$provNode = if (Get-Command node -ErrorAction SilentlyContinue) { 'node' } else {
+  Join-Path $payload 'runtime\node\node.exe'
+}
+& $provNode (Join-Path $root 'build\bootstrap-provenance.mjs') `
+  '--init' (Join-Path $payload 'services\bootstrap\init.js') `
+  '--version' $Version
+if ($LASTEXITCODE -ne 0) { throw "bootstrap provenance check failed with $LASTEXITCODE" }
+Assert-Exists (Join-Path $payload 'services\bootstrap\build-provenance.json') 'bootstrap provenance record'
+
 Assert-Exists (Join-Path $payload 'services\updater\apply.js') 'update apply orchestrator'
 Assert-Exists (Join-Path $payload 'services\backup\create.js')    'backup create script'
 Assert-Exists (Join-Path $payload 'services\backup\list.js')      'backup list script'
