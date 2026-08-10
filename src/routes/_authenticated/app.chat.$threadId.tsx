@@ -1,4 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  classifyChatError,
+  chatErrorMessage,
+  isChatStalled,
+} from "@/lib/chat-reliability";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -346,6 +351,25 @@ function ChatInner({
 
       <form onSubmit={onSubmit} className="border-t border-border bg-background/80 backdrop-blur">
         <div className="max-w-3xl mx-auto p-3 md:p-4">
+          {failureKind && (
+            <div
+              role="alert"
+              className="mb-2 flex flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+            >
+              <span className="flex-1 min-w-[12rem]">{chatErrorMessage(failureKind)}</span>
+              {failureKind !== "unauthorized" && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onRetry}
+                  className="h-7 px-2 text-xs"
+                >
+                  Retry
+                </Button>
+              )}
+            </div>
+          )}
           <div className="flex gap-2 items-end rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
             <Textarea
               ref={taRef}
