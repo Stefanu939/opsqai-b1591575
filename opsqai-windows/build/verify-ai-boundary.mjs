@@ -149,4 +149,6 @@ function main() {
   process.exit(violations.length === 0 ? 0 : 1);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+const { pathToFileURL } = await import("node:url");
+// Windows-safe entrypoint check (see pack-payload.mjs for why).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
