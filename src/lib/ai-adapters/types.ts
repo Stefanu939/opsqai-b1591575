@@ -49,6 +49,13 @@ export interface AIProviderAdapter {
   readonly aliases?: readonly string[];
   /** Human-readable label for admin UI + docs. */
   readonly label: string;
+  /**
+   * What this engine can do. Modules query this through
+   * `aiCapabilities()` instead of assuming a feature exists.
+   * Adapters whose real capabilities depend on the installed models
+   * (Ollama) also implement `probeCapabilities()`.
+   */
+  readonly capabilities: AICapabilities;
 
   /** Return a chat-capable LanguageModel for the given role. */
   resolveChat(role: AIChatRole): LanguageModel;
@@ -56,4 +63,11 @@ export interface AIProviderAdapter {
   resolveTTS(): ResolvedTTS;
   /** Return an embeddings endpoint descriptor. */
   resolveEmbeddings(): ResolvedEmbeddings;
+  /**
+   * Optional live verification of the declared capabilities (health probe).
+   * Self-Hosted uses this so a missing model reports `false` instead of
+   * failing mid-request.
+   */
+  probeCapabilities?(): Promise<AICapabilities>;
 }
+
