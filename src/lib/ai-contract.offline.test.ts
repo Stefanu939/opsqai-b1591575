@@ -42,6 +42,17 @@ function offlineEngine(input: RequestInfo | URL, init?: RequestInit): Promise<Re
   if (url.includes("/v1/chat/completions")) {
     const body = typeof init?.body === "string" ? init.body : "";
     const wantsJson = /json/i.test(body);
+    if (!/"stream"\s*:\s*true/.test(body)) {
+      const plain = wantsJson ? '{"summary":"local","score":4}' : "local answer";
+      return json({
+        id: "local-1",
+        object: "chat.completion",
+        created: Math.floor(Date.now() / 1000),
+        model: "qwen2.5:7b",
+        choices: [{ index: 0, message: { role: "assistant", content: plain }, finish_reason: "stop" }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      });
+    }
     const content = wantsJson ? '{"summary":"local","score":4}' : "local answer";
     // The central provider always streams (long local generations must not be
     // cut off by request timeouts), so the local engine answers with SSE.
