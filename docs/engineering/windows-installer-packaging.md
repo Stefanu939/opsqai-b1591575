@@ -83,6 +83,30 @@ service then failed to start. `pack-payload.mjs` enforces this via
 `verifyArchiveRoot`, `build.ps1` asserts every non-skipped component produced a
 part, and `verify-install-layout.ps1` re-checks it on the installed machine.
 
+Nested directories that *repeat* a component name are legitimate content and
+stay valid — e.g. `app/pgsql/pgAdmin 4/runtime/resources/app/…`. Only the FIRST
+path segment is constrained.
+
+### Why the 7-Zip command has no `-r`
+
+The archive is created from the payload parent with the component directory as a
+bare argument: `7z a -t7z -mx=5 -mmt=on -y <parts>\app.7z app` with
+`cwd = payload`. That is already recursive for the directory's own contents.
+Adding `-r` makes 7-Zip treat `app` as a *name pattern* and walk the whole cwd
+tree, so a sibling component's nested `app` directory (pgAdmin ships
+`pgsql\pgAdmin 4\runtime\resources\app`) is stored at the ARCHIVE ROOT as
+`pgsql/…`. Verified against real 7-Zip:
+
+```text
+7z a -r app.7z app   ->  app/…  AND  pgsql/pgAdmin 4/runtime/resources/app/…   (broken)
+7z a    app.7z app   ->  app/…  only, nested app/pgsql/…/app/… preserved       (correct)
+```
+
+`verifyArchiveRoot` is the backstop and must never be weakened to ignore nested
+or stray paths.
+
+
+
 ## Acceptance on a clean machine
 
 After `OPSQAI-Setup.exe` finishes:
