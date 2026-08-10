@@ -330,7 +330,28 @@ function OrganizationPage() {
 
         {canConfigureAi && (
           <TabsContent value="ai">
+            {isSelfHosted ? (
+              <div className="space-y-4">
+                <Card className="p-6 space-y-2">
+                  <h3 className="font-display text-lg font-semibold">On-premise AI engine</h3>
+                  <p className="text-sm text-muted-foreground">
+                    This installation runs every AI feature — chat, document understanding,
+                    embeddings and audits — on the local engine bundled with OPSQAI. No prompt,
+                    document or answer ever leaves this machine, and there is no cloud fallback:
+                    if the local engine is unavailable, the affected feature reports it instead of
+                    routing your data outside.
+                  </p>
+                  {aiInstallId && (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      Install: {aiInstallId}
+                    </p>
+                  )}
+                </Card>
+                <LocalAiEngineCard />
+              </div>
+            ) : (
             <Card className="p-6">
+
               <form onSubmit={submitAi} className="space-y-4">
                 {aiInstallId && (
                   <div className="text-xs text-muted-foreground font-mono">
