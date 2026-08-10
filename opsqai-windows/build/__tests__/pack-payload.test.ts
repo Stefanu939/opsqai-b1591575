@@ -183,9 +183,13 @@ describe("pack-payload", () => {
   });
 
   it("invokes the archiver with deterministic 7z flags", () => {
-    const runner = vi.fn().mockReturnValue({ status: 0 });
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const h = harness();
+    // Real `archive` impl, faked process runner: the archive appears on disk
+    // exactly as 7zr would leave it.
+    const runner = vi.fn((_bin: string, args: string[]) => {
+      h.written.set(args[args.length - 2]!, "7z");
+      return { status: 0 };
+    });
     packPayload({
       payloadDir: "/payload",
       partsDir: "/build/parts",
