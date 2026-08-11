@@ -518,6 +518,48 @@ export interface IKnowledgeGapRepository {
   matchExisting(companyId: string, questionNormalized: string): Promise<string | null>;
   incrementOccurrence(id: string): Promise<void>;
   create(input: KnowledgeGapCreateInput): Promise<{ id: string }>;
+
+  /**
+   * Company-scoped gap list, already enriched with the display names the
+   * Knowledge Gaps page renders (department, reporter, resolved SOP/FAQ).
+   */
+  list(companyId: string, limit: number): Promise<KnowledgeGapListRow[]>;
+  update(companyId: string, id: string, patch: KnowledgeGapPatch): Promise<void>;
+  remove(companyId: string, id: string): Promise<void>;
+}
+
+export interface KnowledgeGapListRow {
+  id: string;
+  question_sample: string;
+  question_normalized: string;
+  occurrences: number;
+  first_seen: string;
+  last_seen: string;
+  status: string;
+  assignee_id: string | null;
+  resolution: string | null;
+  resolved_document_id: string | null;
+  resolved_faq_id: string | null;
+  department_id: string | null;
+  created_by: string | null;
+  confidence: number | null;
+  source_thread_id: string | null;
+  source_message_id: string | null;
+  resolution_date: string | null;
+  updated_at: string;
+  department_name: string | null;
+  created_by_name: string | null;
+  resolved_document: { id: string; title: string; doc_code: string | null } | null;
+  resolved_faq: { id: string; question_en: string | null } | null;
+}
+
+export interface KnowledgeGapPatch {
+  status?: "open" | "in_progress" | "resolved" | "ignored";
+  assignee_id?: string | null;
+  resolution?: "sop" | "faq" | "dismissed" | null;
+  resolved_document_id?: string | null;
+  resolved_faq_id?: string | null;
+  resolution_date?: string | null;
 }
 
 export interface IntegrationRecord {
@@ -554,6 +596,82 @@ export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRep
 export type RbacAdminRepositoryFactory = (dataCtx: unknown) => IRbacAdminRepository;
 export type DirectMessageRepositoryFactory = (dataCtx: unknown) => IDirectMessageRepository;
 export type AiAuditRepositoryFactory = (dataCtx: unknown) => IAiAuditRepository;
+export type DashboardRepositoryFactory = (dataCtx: unknown) => IDashboardRepository;
+
+// --------------------------------------------------------------------
+// Dashboard read models
+//
+// Cloud delegates to the `dashboard_*` SQL functions; Self-Hosted computes
+// the same shapes from the local PostgreSQL schema. The returned shapes are
+// the contract the dashboard UI renders, so both must stay identical.
+// --------------------------------------------------------------------
+
+export interface DashboardKpis {
+  questionsAnswered: number;
+  questions30d: number;
+  questionsToday: number;
+  avgConfidence: number;
+  openGaps: number;
+  criticalSops: number;
+  documents: number;
+  faqs: number;
+  aiAudits: number;
+  auditEvents: number;
+  activeUsers: number;
+}
+
+export interface DashboardHealth {
+  score: number;
+  label: string;
+  breakdown: Record<string, number>;
+}
+
+export interface DashboardKnowledgeStatus {
+  complete: number;
+  inProgress: number;
+  missing: number;
+}
+
+export interface DashboardTopSop {
+  code: string | null;
+  title: string | null;
+  usage: number;
+  updatedAt: string | null;
+}
+
+export interface DashboardCriticalSop {
+  id: string;
+  title: string;
+  code: string | null;
+  version: number;
+  updatedAt: string | null;
+  reason: string;
+}
+
+export interface DashboardActivityRow {
+  bucket: string;
+  questions: number;
+  conversations: number;
+  users: number;
+  aiResponses: number;
+}
+
+export interface IDashboardRepository {
+  kpis(companyId: string): Promise<DashboardKpis>;
+  health(companyId: string): Promise<DashboardHealth>;
+  knowledgeStatus(companyId: string): Promise<DashboardKnowledgeStatus>;
+  topSops(companyId: string, limit: number): Promise<DashboardTopSop[]>;
+  criticalSops(companyId: string): Promise<DashboardCriticalSop[]>;
+  lastAiAudit(companyId: string): Promise<AiAuditRecord | null>;
+  activity(
+    companyId: string,
+    from: string,
+    to: string,
+    bucket: "hour" | "day" | "week",
+  ): Promise<DashboardActivityRow[]>;
+  getLayout(userId: string): Promise<unknown | null>;
+  saveLayout(userId: string, layout: unknown): Promise<void>;
+}
 
 // --------------------------------------------------------------------
 // FAQs

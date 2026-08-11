@@ -1,30 +1,21 @@
-import { getCloudSupabase } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
-import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
 import { uuidString } from "@/lib/zod-uuid";
 
-async function resolveCompany(context: { supabase: any; userId: string }, hint?: string | null) {
-  await requirePermission(context, "dashboard.view");
-  const actor = await getActorRoles(getCloudSupabase(context, "dashboard"), context.userId);
-  const isPlatform = actor.isPlatformAdmin;
-  let companyId = hint ?? null;
-  if (!companyId || !isPlatform) {
-    companyId = (await getProfileCompany(getCloudSupabase(context, "dashboard"), context.userId)) ?? companyId;
-  }
-  if (!companyId && isPlatform) {
-    const { data: firstCompany } = await getCloudSupabase(context, "dashboard")
-      .from("companies")
-      .select("id")
-      .eq("active", true)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    companyId = firstCompany?.id ?? null;
-  }
-  if (!companyId) throw new Error("No company");
-  return { companyId, isPlatform };
+/**
+ * Dashboard read models are repository-backed: Self-Hosted computes them from
+ * the local PostgreSQL schema, Cloud delegates to the `dashboard_*` SQL
+ * functions. Neither path touches a Supabase client from this module.
+ */
+async function dashboardContext(context: unknown, hint?: string | null) {
+  const [{ resolveDashboardCompany }, { getDashboardRepository }] = await Promise.all([
+    import("@/lib/dashboard-search.server"),
+    import("@/lib/providers/registry"),
+  ]);
+  const ctx = context as { supabase: unknown; userId: string };
+  const { companyId, isPlatform } = await resolveDashboardCompany(ctx as never, hint ?? null);
+  return { companyId, isPlatform, repo: getDashboardRepository(ctx.supabase) };
 }
 
 const CompanyArg = z.object({ companyId: uuidString().optional().nullable() }).optional();
@@ -33,23 +24,16 @@ export const getDashboardOverview = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyArg.parse(d) ?? {})
   .handler(async ({ data, context }) => {
-    const { companyId } = await resolveCompany(context, data?.companyId ?? null);
-    const [kpis, health, status, top, critical, lastAudit] = await Promise.all([
-      getCloudSupabase(context, "dashboard").rpc("dashboard_kpis", { p_company: companyId }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_health", { p_company: companyId }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_knowledge_status", { p_company: companyId }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 5 }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_critical_sops", { p_company: companyId }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_last_ai_audit", { p_company: companyId }),
+    const { companyId, repo } = await dashboardContext(context, data?.companyId ?? null);
+    const [kpis, health, knowledgeStatus, topSops, criticalSops, lastAudit] = await Promise.all([
+      repo.kpis(companyId),
+      repo.health(companyId),
+      repo.knowledgeStatus(companyId),
+      repo.topSops(companyId, 5),
+      repo.criticalSops(companyId),
+      repo.lastAiAudit(companyId),
     ]);
-    return {
-      kpis: kpis.data ?? {},
-      health: health.data ?? { score: 0, label: "—", breakdown: {} },
-      knowledgeStatus: status.data ?? { complete: 0, inProgress: 0, missing: 0 },
-      topSops: top.data ?? [],
-      criticalSops: critical.data ?? [],
-      lastAudit: lastAudit.data ?? null,
-    };
+    return { kpis, health, knowledgeStatus, topSops, criticalSops, lastAudit };
   });
 
 const ActivityArg = z.object({
@@ -62,15 +46,8 @@ export const getDashboardActivity = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => ActivityArg.parse(d))
   .handler(async ({ data, context }) => {
-    const { companyId } = await resolveCompany(context, data.companyId ?? null);
-    const { data: rows, error } = await getCloudSupabase(context, "dashboard").rpc("dashboard_activity", {
-      p_company: companyId,
-      p_from: data.from,
-      p_to: data.to,
-      p_bucket: data.bucket,
-    });
-    if (error) throw new Error(error.message);
-    return { rows: rows ?? [] };
+    const { companyId, repo } = await dashboardContext(context, data.companyId ?? null);
+    return { rows: await repo.activity(companyId, data.from, data.to, data.bucket) };
   });
 
 /**
@@ -81,14 +58,15 @@ export const getExecutiveInsights = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => CompanyArg.parse(d) ?? {})
   .handler(async ({ data, context }) => {
-    const { companyId } = await resolveCompany(context, data?.companyId ?? null);
-    const [{ data: kpis }, { data: health }, { data: top }, { data: status }] = await Promise.all([
-      getCloudSupabase(context, "dashboard").rpc("dashboard_kpis", { p_company: companyId }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_health", { p_company: companyId }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_top_sops", { p_company: companyId, p_limit: 3 }),
-      getCloudSupabase(context, "dashboard").rpc("dashboard_knowledge_status", { p_company: companyId }),
+    const { companyId, repo } = await dashboardContext(context, data?.companyId ?? null);
+    const [kpis, health, top, status] = await Promise.all([
+      repo.kpis(companyId),
+      repo.health(companyId),
+      repo.topSops(companyId, 3),
+      repo.knowledgeStatus(companyId),
     ]);
 
+    const { buildFallbackInsights } = await import("@/lib/dashboard-insights");
     const fallback = buildFallbackInsights({ kpis, health, top, status });
     try {
       const { generateAiText } = await import("@/lib/ai-provider.server");
@@ -108,43 +86,22 @@ export const getExecutiveInsights = createServerFn({ method: "POST" })
     return { insights: fallback };
   });
 
-function buildFallbackInsights(o: { kpis: any; health: any; top: any; status: any }): string[] {
-  const out: string[] = [];
-  if (o.health?.score != null)
-    out.push(`Workspace health is ${o.health.score}/100 — ${o.health.label}.`);
-  if (o.kpis?.openGaps > 0) out.push(`${o.kpis.openGaps} open knowledge gap(s) require attention.`);
-  if (o.kpis?.questionsToday != null)
-    out.push(
-      `${o.kpis.questionsToday} questions answered today (last 30d: ${o.kpis.questions30d}).`,
-    );
-  if (Array.isArray(o.top) && o.top[0]?.title)
-    out.push(`Most accessed SOP this month: ${o.top[0].title}.`);
-  if (o.status?.missing > 0)
-    out.push(`${o.status.missing} missing knowledge items detected from gap analysis.`);
-  return out.length ? out : ["Workspace is quiet — no significant operational signals."];
-}
-
 const SaveLayoutArg = z.object({ layout: z.any() });
 export const saveDashboardLayout = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => SaveLayoutArg.parse(d))
   .handler(async ({ data, context }) => {
-    await getCloudSupabase(context, "dashboard")
-      .from("profiles")
-      .update({ dashboard_layout: data.layout })
-      .eq("id", context.userId);
+    const { getDashboardRepository } = await import("@/lib/providers/registry");
+    await getDashboardRepository(context.supabase).saveLayout(context.userId, data.layout);
     return { ok: true };
   });
 
 export const getDashboardLayout = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { data } = await getCloudSupabase(context, "dashboard")
-      .from("profiles")
-      .select("dashboard_layout")
-      .eq("id", context.userId)
-      .maybeSingle();
-    return { layout: data?.dashboard_layout ?? null };
+    const { getDashboardRepository } = await import("@/lib/providers/registry");
+    const layout = await getDashboardRepository(context.supabase).getLayout(context.userId);
+    return { layout: layout ?? null };
   });
 
 const SearchArg = z.object({
