@@ -968,10 +968,22 @@ function deriveCompany(email) {
 
 // ── Finish (Step 9) ────────────────────────────────────────────────
 function wireFinish() {
-  $("#btn-finish").onclick = () => window.opsqai.finish($("#launch-app").checked);
-  $("#btn-open-folder").onclick = () => window.opsqai.openExternal("file:///C:/Program%20Files/OPSQAI");
+  // Only truthful facts: what this installation actually configured.
+  const d = state.data;
+  const items = [
+    d.database?.mode === "external" ? "External PostgreSQL connected" : "Bundled PostgreSQL 16 installed",
+    "OPSQAI services installed and started",
+    `Local AI engine ready (${d.ai?.chatModel || "Ollama"})`,
+    d.admin?.email ? `Administrator ${d.admin.email} created` : "Administrator created",
+    d.licenseCommunity ? "Community edition" : "License activated",
+  ];
+  const summary = document.getElementById("finish-summary");
+  if (summary) summary.innerHTML = items.map((i) => `<li>${escapeHtml(i)}</li>`).join("");
+  // "Launch OPSQAI" always launches desktop-shell\OPSQAI.exe via the main process.
+  $("#btn-finish").onclick = () => window.opsqai.finish(true);
   $("#btn-view-logs").onclick = () => window.opsqai.openLogsFolder();
 }
+
 
 // ── Utils ──────────────────────────────────────────────────────────
 function escapeHtml(s) {
