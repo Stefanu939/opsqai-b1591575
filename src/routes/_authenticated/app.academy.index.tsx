@@ -263,6 +263,12 @@ function MyTrainingHome() {
           })();
         }}
       />
+      <CreateCourseDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(pathId) => navigate({ to: "/app/academy/path/$pathId", params: { pathId } })}
+      />
+
     </div>
   );
 }
