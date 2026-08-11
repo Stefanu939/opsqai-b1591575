@@ -262,22 +262,36 @@ async function setupAiEngine(deps) {
     embedding: cfg.embeddingModel || cfg.embedding_model || "bge-m3",
   };
 
+  const aiStartedAt = Date.now();
   stage("ai engine: installing Ollama runtime");
-  const exe = ensureInstalled(log, setupExe);
+  const { exe, installedNow } = ensureInstalled(log, setupExe);
 
   stage("ai engine: starting local runtime");
   await ensureRunning(log, exe, cfg);
 
   let tags = await listModels(cfg);
+  log(`ollama has ${tags.length} model tag(s) present`);
 
   stage("ai engine: downloading chat model");
-  if (!hasModel(tags, models.chat)) await pullModel(log, exe, models.chat);
-  if (models.fast && models.fast !== models.chat && !hasModel(tags, models.fast)) {
-    await pullModel(log, exe, models.fast);
+  if (!hasModel(tags, models.chat)) {
+    await pullModel(log, exe, models.chat);
+  } else {
+    log(`chat model ${models.chat} already present — skipping pull`);
+  }
+  if (models.fast && models.fast !== models.chat) {
+    if (!hasModel(tags, models.fast)) {
+      await pullModel(log, exe, models.fast);
+    } else {
+      log(`fast chat model ${models.fast} already present — skipping pull`);
+    }
   }
 
   stage("ai engine: downloading embedding model");
-  if (!hasModel(tags, models.embedding)) await pullModel(log, exe, models.embedding);
+  if (!hasModel(tags, models.embedding)) {
+    await pullModel(log, exe, models.embedding);
+  } else {
+    log(`embedding model ${models.embedding} already present — skipping pull`);
+  }
 
   stage("ai engine: verifying models");
   tags = await listModels(cfg);
@@ -285,6 +299,7 @@ async function setupAiEngine(deps) {
     if (name && !hasModel(tags, name)) {
       throw new AiSetupError("OPSQAI-E1504", `${role} model ${name} is not installed after pull`);
     }
+    log(`model verification ok: ${role}=${name}`);
   }
 
   stage("ai engine: probing embedding dimension");
@@ -293,6 +308,7 @@ async function setupAiEngine(deps) {
 
   stage("ai engine: configuring vector storage");
   await applyDim(dim);
+  log(`vector storage pinned to embedding dimension ${dim}`);
 
   stage("ai engine: chat health check");
   const reply = await chatTest(cfg, models.chat);
@@ -306,8 +322,15 @@ async function setupAiEngine(deps) {
       `embedding dimension is unstable (${dim} then ${confirmDim})`,
     );
   }
+  log(`embedding health check ok (${confirmDim} dims)`);
 
   stage("ai engine ready");
+  const totalAiSeconds = ((Date.now() - aiStartedAt) / 1000).toFixed(1);
+  log(
+    `ai engine summary: provider=ollama runtime=${installedNow ? "installed-now" : "already-present"} ` +
+      `chat=${models.chat} fast=${models.fast || "(none)"} embedding=${models.embedding} dim=${dim} ` +
+      `elapsed=${totalAiSeconds}s`,
+  );
   return {
     provider: "ollama",
     baseUrl: baseUrl(cfg),
