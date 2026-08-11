@@ -7,15 +7,18 @@ export const Route = createFileRoute("/health")({
     handlers: {
       GET: async () => {
         try {
+          const { readBuildProvenance } = await import("@/lib/platform/build-provenance.server");
           return Response.json(
             {
               ok: true,
               ready: true,
               mode: getPlatformMode(),
+              build: await readBuildProvenance(),
               at: new Date().toISOString(),
             },
             { status: 200, headers: { "Cache-Control": "no-store" } },
           );
+
         } catch (error) {
           return Response.json(
             {
