@@ -66,8 +66,11 @@ interface Faq {
 function FaqPage() {
   const { t, lang } = useT();
   const { isAdmin, scopeCompanyId, hasAnyPermission } = useAuth();
+  // Mirrors faqs.functions.ts / faq-import.functions.ts requirements.
   const canEditFaq =
-    isAdmin || hasAnyPermission("faq.edit", "faq.create", "knowledge.manage");
+    isAdmin ||
+    hasAnyPermission("faq.edit", "faq.create", "faq.delete", "knowledge.manage");
+
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faq | null>(null);

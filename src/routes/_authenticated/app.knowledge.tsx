@@ -120,10 +120,20 @@ function KnowledgePage() {
     scopeCompanyId,
     hasAnyPermission,
   } = useAuth();
-  // Mirror the server-side permission contract (kb.functions.ts) so the UI never
-  // hides an action the backend would actually allow.
+  // Mirror the server-side permission contract (kb.functions.ts +
+  // sop-versions.functions.ts) so the UI never hides an action the backend
+  // would actually allow.
   const canEdit =
-    isAdmin || isManager || hasAnyPermission("knowledge.manage", "sop.create", "sop.edit");
+    isAdmin ||
+    isManager ||
+    hasAnyPermission(
+      "knowledge.manage",
+      "sop.create",
+      "sop.edit",
+      "sop.publish",
+      "sop.delete",
+    );
+
   const [docs, setDocs] = useState<Doc[]>([]);
   const [showInactive, setShowInactive] = useState(false);
   const [open, setOpen] = useState(false);
