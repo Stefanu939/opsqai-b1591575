@@ -58,7 +58,27 @@ if (-not $SkipApp) {
   Write-Host "Building OPSQAI app (NITRO_PRESET=node-server)..."
   Push-Location $projectRoot
   try {
+# --- 0. Build OPSQAI app (Node-server preset) -----------------------------
+$appStage = Join-Path $payload 'app'
+if (-not $SkipApp) {
+  $projectRoot = Split-Path -Parent $root   # opsqai-windows/ -> repo root
+  Write-Host "Building OPSQAI app (NITRO_PRESET=node-server)..."
+  Push-Location $projectRoot
+  try {
     if (-not (Test-Path 'node_modules')) { & bun install --frozen-lockfile; if ($LASTEXITCODE -ne 0) { throw "bun install failed" } }
+
+    # Wipe .output before building. Nitro writes (not diffs) its output, but a
+    # leftover tree from a previous `bun run build` (Cloud/Cloudflare preset)
+    # could survive at paths the Self-Hosted build never writes and then be
+    # staged into payload\app. Content checks (verify-bundle,
+    # frontend-provenance --verify) catch gross staleness after the fact; this
+    # prevents it outright.
+    $outClean = Join-Path $projectRoot '.output'
+    if (Test-Path $outClean) {
+      Write-Host "Removing stale .output before Self-Hosted build..."
+      Remove-Item $outClean -Recurse -Force
+    }
+
 
     # Patch @lovable.dev/mcp-js (<=0.20.1) Windows path-separator bug:
     # configResolved gives projectRoot with forward slashes, but node's
