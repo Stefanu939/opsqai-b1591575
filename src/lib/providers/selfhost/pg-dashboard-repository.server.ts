@@ -22,9 +22,12 @@ import type {
  * - Top SOPs are derived from the citations stored on assistant messages.
  */
 export function createPgDashboardRepository({ pool }: { pool: Pool }): IDashboardRepository {
-  const one = async <T>(sql: string, params: unknown[]): Promise<T> => {
+  const one = async <T extends Record<string, unknown>>(
+    sql: string,
+    params: unknown[],
+  ): Promise<T | undefined> => {
     const { rows } = await pool.query<T>(sql, params);
-    return rows[0] as T;
+    return rows[0];
   };
 
   const bucketExpr = (bucket: "hour" | "day" | "week") =>
@@ -68,7 +71,7 @@ export function createPgDashboardRepository({ pool }: { pool: Pool }): IDashboar
     },
 
     async health(companyId) {
-      const row = await one<Record<string, string | null>>(
+      const row = await one<Record<string, string>>(
         `SELECT
            (SELECT count(*) FROM public.knowledge_documents WHERE company_id=$1 AND is_active) AS docs,
            (SELECT count(*) FROM public.knowledge_documents WHERE company_id=$1 AND is_critical AND is_active) AS critical,
