@@ -173,26 +173,19 @@ const WIZARD_SHELL_HTML = String.raw`
     <section class="pane" data-pane="4" hidden>
       <header class="pane-head">
         <h1>Installation options</h1>
-        <p class="lead">Where to install OPSQAI and how it should integrate with Windows.</p>
+        <p class="lead">Install locations are managed by the installer. Configure the local AI engine below.</p>
       </header>
 
       <div class="form">
-        <label>
-          <span class="label-row">Installation folder</span>
-          <div class="path-row">
-            <input id="opt-install-dir" value="C:\\Program Files\\OPSQAI" readonly />
-            <button type="button" class="btn btn-ghost" disabled title="Fixed in this release">Browse…</button>
-          </div>
-        </label>
-
-        <label>
-          <span class="label-row">Data folder <em class="hint-inline">databases, backups, uploads</em></span>
-          <div class="path-row">
-            <input id="opt-data-dir" value="C:\\ProgramData\\OPSQAI" readonly />
-            <button type="button" class="btn btn-ghost" disabled title="Fixed in this release">Browse…</button>
-          </div>
-          <p class="hint">Space required: <strong>~4.8 GB</strong> · Available: <strong id="opt-disk-free">—</strong></p>
-        </label>
+        <div class="info-block">
+          <span class="label-row">Install locations</span>
+          <div class="row"><span>Application</span><strong id="opt-install-dir" data-path>C:\\Program Files\\OPSQAI</strong></div>
+          <div class="row"><span>Data <em class="hint-inline">databases, backups, uploads</em></span><strong id="opt-data-dir" data-path>C:\\ProgramData\\OPSQAI</strong></div>
+          <p class="hint">
+            These locations are managed by the OPSQAI installer and cannot be changed in this release.
+            Space required: <strong>~4.8 GB</strong> · Available: <strong id="opt-disk-free">—</strong>
+          </p>
+        </div>
 
         <div class="ai-engine">
           <span class="label-row">Local AI engine</span>
@@ -213,13 +206,16 @@ const WIZARD_SHELL_HTML = String.raw`
           <p class="hint">Keep the recommended defaults unless your organisation standardises on other Ollama models.</p>
         </div>
 
-        <div class="opt-toggles">
-          <label class="checkbox"><input type="checkbox" id="opt-desktop" checked /><span>Create Desktop shortcut</span></label>
-          <label class="checkbox"><input type="checkbox" id="opt-startmenu" checked /><span>Add OPSQAI to Start Menu</span></label>
-          <label class="checkbox"><input type="checkbox" id="opt-autostart" /><span>Start OPSQAI when Windows starts</span></label>
+        <div class="info-block">
+          <span class="label-row">Windows integration</span>
+          <div class="row"><span>Desktop shortcut</span><strong>Created</strong></div>
+          <div class="row"><span>Start Menu entry</span><strong>Created</strong></div>
+          <div class="row"><span>OPSQAI services</span><strong>Installed and started automatically</strong></div>
+          <p class="hint">OPSQAI runs as Windows services, so the platform starts with Windows.</p>
         </div>
       </div>
     </section>
+
 
     <!-- 5 · Database -->
     <section class="pane" data-pane="5" hidden>
@@ -260,7 +256,12 @@ const WIZARD_SHELL_HTML = String.raw`
     <section class="pane" data-pane="6" hidden>
       <header class="pane-head">
         <h1>Create the first administrator</h1>
-        <p class="lead">This account has full access to OPSQAI. You can add more users after installation.</p>
+        <p class="lead">
+          This creates the first local OPSQAI platform administrator for this
+          Self-Hosted installation. It is not an OPSQAI Cloud account and it is
+          stored only in your own database. You can add more users afterwards.
+        </p>
+
       </header>
 
       <div class="form">
@@ -329,25 +330,16 @@ const WIZARD_SHELL_HTML = String.raw`
             <path d="M12 20l6 6 12-13" fill="none" stroke="currentColor" stroke-width="3" />
           </svg>
         </div>
-        <h1 class="hero-title">OPSQAI is ready</h1>
-        <p class="hero-sub">Your platform is installed and running.</p>
+        <h1 class="hero-title">Installation successful</h1>
+        <p class="hero-sub">OPSQAI is installed and running on this machine.</p>
 
-        <ul class="finish-grid">
-          <li>License activated</li>
-          <li>Database created</li>
-          <li>Services installed</li>
-          <li>AI engine online</li>
-          <li>Knowledge base ready</li>
-          <li>Administrator created</li>
-        </ul>
-
-        <label class="checkbox center"><input type="checkbox" id="launch-app" checked /><span>Launch OPSQAI now</span></label>
+        <ul class="finish-grid" id="finish-summary"></ul>
 
         <div class="finish-actions">
-          <button class="btn" id="btn-open-folder">Open installation folder</button>
-          <button class="btn" id="btn-view-logs">View logs</button>
+          <button class="btn" id="btn-view-logs">Open logs</button>
           <button class="btn btn-primary" id="btn-finish">Launch OPSQAI</button>
         </div>
+
       </div>
     </section>
 
@@ -489,11 +481,16 @@ async function runSystemChecks() {
     li.setAttribute("data-state", r.ok ? "ok" : "err");
     li.querySelector("em").textContent = r.detail;
   }
+  // Mirror the real free-space probe onto the options pane instead of leaving
+  // a decorative placeholder there.
+  const diskEl = document.getElementById("opt-disk-free");
+  if (diskEl) diskEl.textContent = results.disk?.detail || "unknown";
   state.data.systemChecksPassed = !!payload?.ok;
   $("#checks-summary").textContent = payload?.ok
     ? "All checks passed."
     : "Fix the highlighted items before continuing.";
   updateNextButton();
+
 }
 $("#btn-rerun-checks").addEventListener("click", runSystemChecks);
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
@@ -651,18 +648,39 @@ function renderReview() {
   const rows = [
     ["section", "License"],
     ["Edition", licLine],
+  ];
+  if (!d.licenseCommunity && Array.isArray(d.license?.claims?.modules) && d.license.claims.modules.length) {
+    rows.push(["Modules", d.license.claims.modules.join(", ")]);
+  }
+  rows.push(
     ["section", "Installation"],
-    ["Install folder", d.options.installDir],
+    ["Application folder", d.options.installDir],
     ["Data folder", d.options.dataDir],
-    ["Desktop shortcut", d.options.desktopShortcut ? "Yes" : "No"],
-    ["Start with Windows", d.options.autostart ? "Yes" : "No"],
     ["section", "Database"],
     ["Mode", dbLine],
+  );
+  if (d.database.mode === "external") {
+    rows.push(["Database", d.database.external.database || "—"], ["Username", d.database.external.username || "—"]);
+  }
+  rows.push(
+    ["section", "Local AI engine"],
+    ["Engine", "Ollama (local)"],
+    ["Ollama URL", d.ai.baseUrl],
+    ["Chat model", d.ai.chatModel],
+    ["Fast model", d.ai.chatFastModel],
+    ["Embedding model", d.ai.embeddingModel],
     ["section", "Administrator"],
     ["Name", d.admin.name || "—"],
     ["Email", d.admin.email],
     ["Password", "••••••••••••"],
-  ];
+  );
+  if (d.smtp && d.smtp.host) {
+    rows.push(
+      ["section", "Email (SMTP)"],
+      ["Host", `${d.smtp.host}:${d.smtp.port ?? 587}`],
+      ["From", d.smtp.from || "—"],
+    );
+  }
   $("#review").innerHTML = rows
     .map(([k, v]) =>
       k === "section"
@@ -674,13 +692,12 @@ function renderReview() {
 
 function buildConfig() {
   const dbMode = document.querySelector('input[name="db-mode"]:checked')?.value || "embedded";
+  // Install locations are owned by NSIS and are informational in the wizard.
   state.data.options = {
-    installDir: $("#opt-install-dir").value,
-    dataDir: $("#opt-data-dir").value,
-    desktopShortcut: $("#opt-desktop").checked,
-    startMenu: $("#opt-startmenu").checked,
-    autostart: $("#opt-autostart").checked,
+    installDir: ($("#opt-install-dir")?.textContent || "C:\\Program Files\\OPSQAI").trim(),
+    dataDir: ($("#opt-data-dir")?.textContent || "C:\\ProgramData\\OPSQAI").trim(),
   };
+
   state.data.database = dbMode === "external"
     ? {
         mode: "external",
@@ -951,10 +968,22 @@ function deriveCompany(email) {
 
 // ── Finish (Step 9) ────────────────────────────────────────────────
 function wireFinish() {
-  $("#btn-finish").onclick = () => window.opsqai.finish($("#launch-app").checked);
-  $("#btn-open-folder").onclick = () => window.opsqai.openExternal("file:///C:/Program%20Files/OPSQAI");
+  // Only truthful facts: what this installation actually configured.
+  const d = state.data;
+  const items = [
+    d.database?.mode === "external" ? "External PostgreSQL connected" : "Bundled PostgreSQL 16 installed",
+    "OPSQAI services installed and started",
+    `Local AI engine ready (${d.ai?.chatModel || "Ollama"})`,
+    d.admin?.email ? `Administrator ${d.admin.email} created` : "Administrator created",
+    d.licenseCommunity ? "Community edition" : "License activated",
+  ];
+  const summary = document.getElementById("finish-summary");
+  if (summary) summary.innerHTML = items.map((i) => `<li>${escapeHtml(i)}</li>`).join("");
+  // "Launch OPSQAI" always launches desktop-shell\OPSQAI.exe via the main process.
+  $("#btn-finish").onclick = () => window.opsqai.finish(true);
   $("#btn-view-logs").onclick = () => window.opsqai.openLogsFolder();
 }
+
 
 // ── Utils ──────────────────────────────────────────────────────────
 function escapeHtml(s) {

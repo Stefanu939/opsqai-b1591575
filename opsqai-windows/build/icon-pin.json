@@ -1,0 +1,6 @@
+{
+  "_comment": "SHA-256 of the approved OPSQAI Windows icon, generated from public/brand/sovereign-mark.svg by scripts/gen_icons.py. Update deliberately when the mark changes.",
+  "source": "public/brand/sovereign-mark.svg",
+  "sizes": [16, 24, 32, 48, 64, 128, 256],
+  "opsqaiIcoSha256": "53cf711411527af497679d7052c6c636ad53e8d5766618e9de2636dbeed86a9e"
+}

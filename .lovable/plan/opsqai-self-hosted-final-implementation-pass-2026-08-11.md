@@ -2,7 +2,58 @@
 
 Self-Hosted only. Cloud, Management Center, demo tenant, licensing, migrations, Ollama and provider architecture stay as they are; shared files get platform-scoped additions, never Cloud removals.
 
-## 1. Icons — one approved source
+IMPORTANT — IMPLEMENTATION, NOT AUDIT
+
+This is the final implementation pass.
+
+Do not respond with another audit/plan instead of implementing the changes.
+
+Do not stop after source changes or green tests.
+
+For every feature, follow the complete chain:
+
+SOURCE
+
+→ SELF-HOSTED BUILD
+
+→ PACKAGED ARTIFACT
+
+→ INSTALLED SELF-HOSTED APPLICATION
+
+Management Center, Demo and Cloud are NOT the target of this work.
+
+If the same shared component is used by Cloud and Self-Hosted, preserve the
+
+Cloud behavior and add the Self-Hosted behavior through platform-aware logic.
+
+Do not create duplicate UI implementations.
+
+Do not claim a UI feature is implemented because the component/button exists
+
+in source code. Verify that the permission state, route, bundle and installed
+
+Self-Hosted application actually render it.
+
+Do not claim runtime verification unless the installed Windows application was
+
+actually opened and tested.
+
+When something cannot be runtime-verified in your environment, explicitly mark
+
+it:
+
+SOURCE: verified
+
+TESTED: verified/not verified
+
+PACKAGED: verified/not verified
+
+RUNTIME VERIFIED: pending local Windows test
+
+Do not hide incomplete work behind "tests green", "typecheck clean", or
+
+"build successful".  
+1. Icons — one approved source
 
 Audited mapping (verified in repo):
 
@@ -58,6 +109,7 @@ For Knowledge, align the client-side permission gates with the permissions the s
 ## 8. Chat — multilingual + strict grounding
 
 Server-side enforcement inside the existing Self-Hosted retrieval path (local pgvector + bge-m3 + Ollama):
+
 - Detect the language of the current user query and instruct the model to answer in that language regardless of evidence language; document language never selects the answer language.
 - Retrieval stays language-agnostic (multilingual embeddings), so a Romanian question can match a German document.
 - Hard grounding gate: if no KB/FAQ evidence clears the relevance threshold, return the configured "not available in the knowledge base" response in the user's language instead of calling the model for a free answer. When evidence exists, the prompt restricts the answer to that evidence and requires citations, and prior conversation turns cannot reintroduce world knowledge.
@@ -79,4 +131,3 @@ Only in the areas above: dead-looking buttons, buttons hidden by wrong client-si
 Every item in the final report is labelled SOURCE / TESTED / PACKAGED / RUNTIME VERIFIED. Note upfront: RUNTIME VERIFIED means observed in an installed Windows build. This environment cannot install and click through a Windows EXE, so those checks are prepared as a clean-install checklist (installer screens, admin/Worker login, temp-password redirect, Users row persistence, Knowledge/FAQ/Academy/AI Audit actions, chat grounding and language cases, Bubble Chat unread, icons/shortcut) for you to run on the produced installer; nothing will be reported as runtime-verified without your confirmation.
 
 Final report contents: files changed, Academy Create Course, temp-password fix, Users root cause and fix, Bubble Chat unread, Knowledge fixes, FAQ fixes, AI Audit verification, multilingual retrieval fix, grounding enforcement, installer UI changes, icon pipeline changes, UI/UX changes, typecheck result, full test counts, Self-Hosted build result, Windows installer build result, provenance hash, artifact verification, and the clean-install checklist status.
-

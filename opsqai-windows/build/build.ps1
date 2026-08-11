@@ -537,10 +537,18 @@ if (-not $SkipOllama) {
 }
 
 # --- 6. Assets -------------------------------------------------------------
+# One approved branding source: public\brand\sovereign-mark.svg is rendered into
+# installer\nsis\assets\opsqai.ico (scripts\gen_icons.py) and mirrored to the
+# Electron apps. Every copy must be byte-identical or the build fails.
 $assetsDest = Join-Path $payload 'assets'
 New-Item -ItemType Directory -Force -Path $assetsDest | Out-Null
 $icon = Join-Path $root 'installer\nsis\assets\opsqai.ico'
-if (Test-Path $icon) { Copy-Item $icon $assetsDest -Force }
+Assert-Exists $icon 'OPSQAI Windows icon'
+Copy-Item $icon $assetsDest -Force
+Copy-Item $icon (Join-Path $root 'installer\wizard\assets\opsqai.ico') -Force
+New-Item -ItemType Directory -Force -Path (Join-Path $root 'desktop-shell\assets') | Out-Null
+Copy-Item $icon (Join-Path $root 'desktop-shell\assets\opsqai.ico') -Force
+
 
 # --- 6b. Payload guardrails ------------------------------------------------
 # Never ship a stub installer. These checks fail the build before makensis if
@@ -564,6 +572,19 @@ $provNode = if (Get-Command node -ErrorAction SilentlyContinue) { 'node' } else 
   '--version' $Version
 if ($LASTEXITCODE -ne 0) { throw "bootstrap provenance check failed with $LASTEXITCODE" }
 Assert-Exists (Join-Path $payload 'services\bootstrap\build-provenance.json') 'bootstrap provenance record'
+
+# Icon provenance: the staged payload icon and both packaged Electron apps must
+# carry the approved Sovereign Mark. A placeholder or stale icon fails here.
+& $provNode (Join-Path $root 'build\verify-icons.mjs') `
+  '--source' $icon `
+  '--copy' (Join-Path $assetsDest 'opsqai.ico') `
+  '--copy' (Join-Path $root 'installer\wizard\assets\opsqai.ico') `
+  '--copy' (Join-Path $root 'desktop-shell\assets\opsqai.ico') `
+  '--exe' (Join-Path $payload 'wizard\OPSQAI-Wizard.exe') `
+  '--exe' (Join-Path $payload 'desktop-shell\OPSQAI.exe')
+if ($LASTEXITCODE -ne 0) { throw "icon verification failed with $LASTEXITCODE" }
+
+
 
 # Frontend/server provenance: prove WHICH frontend build is packaged. The
 # printed buildHash must match the "[provenance] frontend ..." line in the
@@ -701,6 +722,11 @@ if ($LASTEXITCODE -ne 0) { throw "makensis failed with $LASTEXITCODE" }
 
 $exe = Join-Path $artifacts 'OPSQAI-Setup.exe'
 if (-not (Test-Path $exe)) { throw "Installer not produced at $exe" }
+
+# The produced installer must carry the approved icon too (MUI_ICON/MUI_UNICON).
+& $provNode (Join-Path $root 'build\verify-icons.mjs') '--source' $icon '--exe' $exe
+if ($LASTEXITCODE -ne 0) { throw "installer icon verification failed with $LASTEXITCODE" }
+
 
 # --- 8. Sign ---------------------------------------------------------------
 if ($Sign) {
