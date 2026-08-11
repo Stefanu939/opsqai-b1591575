@@ -106,20 +106,11 @@ async function main() {
   const client = new Client({ connectionString: conn.dsn });
   await client.connect();
   try {
-    // Ensure table exists — the app also does this on boot.
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS platform_snapshots (
-        id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-        path         TEXT NOT NULL,
-        size_bytes   BIGINT NOT NULL,
-        detail       JSONB NOT NULL DEFAULT '{}'::JSONB,
-        sha256       TEXT,
-        verified_at  TIMESTAMPTZ,
-        tag          TEXT,
-        kind         TEXT NOT NULL DEFAULT 'manual'
-      )
-    `);
+    // Schema note: `platform_snapshots` is created by migrations
+    // 0003_snapshots.sql + 0005_snapshots_integrity.sql. Do NOT recreate it
+    // here — a single versioned source of truth prevents an older binary from
+    // silently creating a divergent table shape.
+
     const r = await client.query(
       `INSERT INTO platform_snapshots
          (path, size_bytes, sha256, tag, kind,

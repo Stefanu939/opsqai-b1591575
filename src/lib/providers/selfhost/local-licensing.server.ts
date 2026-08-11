@@ -72,10 +72,40 @@ interface ActivationBundleJwt {
   issued_at?: number;
 }
 
+interface CrlEntry {
+  install_id: string;
+  kind: "install" | "module";
+  module_key: string | null;
+  revoked: boolean;
+  suspended: boolean;
+}
+
+interface CrlPayload {
+  crl_version: number;
+  key_id?: string;
+  issued_at?: number;
+  entries?: CrlEntry[];
+}
+
 interface VerifiedLicenseSet {
   install: InstallLicenseClaims;
   installRaw: string;
   modules: Array<{ claims: ModuleLicenseClaims; raw: string }>;
+  /** Verified revocation entries carried by the activation bundle, if any. */
+  crl: CrlEntry[];
+}
+
+/** Why a license is not usable. Kept distinct so the UI can explain itself. */
+export type LicenseFailureKind = "missing" | "expired" | "invalid" | "revoked";
+
+export class LicenseFailure extends Error {
+  constructor(
+    readonly kind: LicenseFailureKind,
+    message: string,
+  ) {
+    super(message);
+    this.name = "LicenseFailure";
+  }
 }
 
 const NO_EXPIRY_ISO = "9999-12-31T23:59:59.000Z";
@@ -84,6 +114,49 @@ function b64urlDecode(input: string): Buffer {
   const pad = input.length % 4 ? "=".repeat(4 - (input.length % 4)) : "";
   return Buffer.from((input + pad).replace(/-/g, "+").replace(/_/g, "/"), "base64");
 }
+
+/**
+ * Verify an `opsqai-crl.v1.<payload>.<sig>` token with the SAME pinned public
+ * key that verifies license tokens. An unverifiable CRL is ignored (an
+ * attacker must not be able to lift entitlements by corrupting it), but a
+ * verified CRL is authoritative: revoked/suspended entries win over the
+ * signed install/module tokens.
+ */
+function verifyCrlToken(token: string, publicKey: KeyObject): CrlEntry[] {
+  const parts = token.trim().split(".");
+  if (parts.length !== 4 || parts[0] !== "opsqai-crl" || parts[1] !== "v1") return [];
+  try {
+    const ok = cryptoVerify(null, Buffer.from(parts[2]), publicKey, b64urlDecode(parts[3]));
+    if (!ok) return [];
+    const payload = JSON.parse(b64urlDecode(parts[2]).toString("utf8")) as CrlPayload;
+    if (payload.crl_version !== 1 || !Array.isArray(payload.entries)) return [];
+    return payload.entries.filter((e) => e && typeof e.install_id === "string");
+  } catch {
+    return [];
+  }
+}
+
+function crlBlocksInstall(crl: CrlEntry[], installId: string | null | undefined): boolean {
+  if (!installId) return false;
+  return crl.some(
+    (e) => e.install_id === installId && e.kind === "install" && (e.revoked || e.suspended),
+  );
+}
+
+function crlBlocksModule(
+  crl: CrlEntry[],
+  installId: string | null | undefined,
+  moduleKey: string,
+): boolean {
+  return crl.some(
+    (e) =>
+      e.kind === "module" &&
+      e.module_key === moduleKey &&
+      (!installId || e.install_id === installId) &&
+      (e.revoked || e.suspended),
+  );
+}
+
 
 function verifyCompactToken(token: string, publicKey: KeyObject): unknown {
   const parts = token.trim().split(".");
@@ -130,7 +203,9 @@ function expiryIso(claims: BaseLicenseClaims): string {
 
 function assertNotExpired(claims: BaseLicenseClaims, now: Date): void {
   const exp = expirySeconds(claims);
-  if (exp && exp * 1000 < now.getTime()) throw new Error("License expired");
+  if (exp && exp * 1000 < now.getTime()) {
+    throw new LicenseFailure("expired", "License expired");
+  }
 }
 
 function normalizeInstallClaims(claims: InstallLicenseClaims): InstallLicenseClaims {
@@ -150,36 +225,79 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
   const now = deps.now ?? (() => new Date());
 
   async function readAndVerify(): Promise<VerifiedLicenseSet> {
-    const raw = (await readFile(licenseFilePath, "utf8")).trim();
-    const outer = verifyCompactToken(raw, licensePublicKey);
-
-    if (isActivationBundle(outer)) {
-      const install = normalizeInstallClaims(
-        verifyCompactToken(outer.install_token, licensePublicKey) as InstallLicenseClaims,
-      );
-      if (install.kind !== "install") throw new Error("Activation bundle install token has wrong kind");
-      assertNotExpired(install, now());
-
-      const modules = (outer.module_tokens ?? []).map((m) => {
-        const claims = verifyCompactToken(m.signed_token, licensePublicKey) as ModuleLicenseClaims;
-        if (claims.kind !== "module") throw new Error(`Module token ${m.module_key} has wrong kind`);
-        if (m.module_key && claims.module !== m.module_key) {
-          throw new Error(`Module token mismatch: ${m.module_key} != ${claims.module}`);
-        }
-        if (install.install_id && claims.install_id && claims.install_id !== install.install_id) {
-          throw new Error(`Module token install_id mismatch for ${claims.module}`);
-        }
-        return { claims, raw: m.signed_token };
-      });
-
-      return { install, installRaw: outer.install_token, modules };
+    let raw: string;
+    try {
+      raw = (await readFile(licenseFilePath, "utf8")).trim();
+    } catch {
+      throw new LicenseFailure("missing", "No license file present on this installation");
     }
 
-    const install = normalizeInstallClaims(outer as InstallLicenseClaims);
-    if (install.kind !== "install") throw new Error("License token has wrong kind");
+    let outer: unknown;
+    try {
+      outer = verifyCompactToken(raw, licensePublicKey);
+    } catch (e) {
+      throw new LicenseFailure("invalid", (e as Error).message);
+    }
+
+    if (isActivationBundle(outer)) {
+      let install: InstallLicenseClaims;
+      try {
+        install = normalizeInstallClaims(
+          verifyCompactToken(outer.install_token, licensePublicKey) as InstallLicenseClaims,
+        );
+        if (install.kind !== "install") {
+          throw new Error("Activation bundle install token has wrong kind");
+        }
+      } catch (e) {
+        if (e instanceof LicenseFailure) throw e;
+        throw new LicenseFailure("invalid", (e as Error).message);
+      }
+      assertNotExpired(install, now());
+
+      // The bundle's CRL is verified with the same pinned key. Revocation is
+      // authoritative and applies before anything is mirrored or granted.
+      const crl = outer.crl_token ? verifyCrlToken(outer.crl_token, licensePublicKey) : [];
+      if (crlBlocksInstall(crl, install.install_id)) {
+        throw new LicenseFailure("revoked", "Installation license revoked or suspended by the vendor");
+      }
+
+      const modules: VerifiedLicenseSet["modules"] = [];
+      for (const m of outer.module_tokens ?? []) {
+        let claims: ModuleLicenseClaims;
+        try {
+          claims = verifyCompactToken(m.signed_token, licensePublicKey) as ModuleLicenseClaims;
+          if (claims.kind !== "module") throw new Error(`Module token ${m.module_key} has wrong kind`);
+          if (m.module_key && claims.module !== m.module_key) {
+            throw new Error(`Module token mismatch: ${m.module_key} != ${claims.module}`);
+          }
+          if (install.install_id && claims.install_id && claims.install_id !== install.install_id) {
+            throw new Error(`Module token install_id mismatch for ${claims.module}`);
+          }
+        } catch (e) {
+          throw new LicenseFailure("invalid", (e as Error).message);
+        }
+        // A revoked or expired module is dropped silently — the install stays
+        // valid, the module simply is not entitled.
+        if (crlBlocksModule(crl, claims.install_id ?? install.install_id, claims.module)) continue;
+        const exp = expirySeconds(claims);
+        if (exp && exp * 1000 < now().getTime()) continue;
+        modules.push({ claims, raw: m.signed_token });
+      }
+
+      return { install, installRaw: outer.install_token, modules, crl };
+    }
+
+    let install: InstallLicenseClaims;
+    try {
+      install = normalizeInstallClaims(outer as InstallLicenseClaims);
+      if (install.kind !== "install") throw new Error("License token has wrong kind");
+    } catch (e) {
+      throw new LicenseFailure("invalid", (e as Error).message);
+    }
     assertNotExpired(install, now());
-    return { install, installRaw: raw, modules: [] };
+    return { install, installRaw: raw, modules: [], crl: [] };
   }
+
 
   async function upsertMirrorRow(input: {
     installId: string | null;
@@ -327,9 +445,14 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
           maintenanceExpiresAt:
             typeof claims.maintenance_expires_at === "number" ? claims.maintenance_expires_at : null,
           revoked: false,
+          status: "licensed" as const,
+          statusDetail: null,
         };
-      } catch {
-        // No license file / expired / tampered → basic bundle only.
+      } catch (e) {
+        // Distinguish "never activated" from "activation no longer valid" so
+        // the UI can tell the operator what to actually do about it.
+        const failure = e instanceof LicenseFailure ? e : null;
+        const kind = failure?.kind ?? "invalid";
         return {
           unlimited: false,
           installId: null,
@@ -339,10 +462,13 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
           modules: [] as string[],
           expiresAt: null,
           maintenanceExpiresAt: null,
-          revoked: false,
+          revoked: kind === "revoked",
+          status: kind,
+          statusDetail: failure?.message ?? (e as Error)?.message ?? null,
         };
       }
     },
+
 
 
     async heartbeat(input: HeartbeatInput) {

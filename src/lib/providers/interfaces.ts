@@ -34,7 +34,13 @@ export interface AuthenticatedContext {
 export interface SignInInput {
   email: string;
   password: string;
+  /**
+   * Optional caller IP. Self-Hosted uses it as a second throttling bucket so a
+   * single host cannot spray guesses across many accounts.
+   */
+  ip?: string | null;
 }
+
 
 export interface SignInResult {
   accessToken: string;
@@ -765,7 +771,16 @@ export interface LicenseEntitlements {
   expiresAt: number | null; // unix seconds
   maintenanceExpiresAt: number | null; // unix seconds
   revoked: boolean;
+  /**
+   * Why the caller sees what it sees. `missing` (no license file at all) is
+   * deliberately distinct from `expired` / `invalid` / `revoked` so the UI can
+   * tell "never activated" apart from "activation is no longer valid".
+   */
+  status?: "licensed" | "missing" | "expired" | "invalid" | "revoked" | "unlimited";
+  /** Human-readable detail for `status !== 'licensed'`. Never contains secrets. */
+  statusDetail?: string | null;
 }
+
 
 export interface ILicensingProvider extends Provider {
   validate(): Promise<LicenseDetails>;

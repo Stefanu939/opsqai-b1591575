@@ -28,6 +28,32 @@ const PASSWORD_RESET_TTL_SEC = 30 * 60;
 const JWT_ISSUER = "opsqai-selfhost";
 const JWT_AUDIENCE = "opsqai-app";
 
+// --- Sign-in throttling ----------------------------------------------------
+// Exponential backoff after 3 failures, hard lockout after 10. Buckets are
+// per-email AND per-IP so neither "one account, many hosts" nor "one host,
+// many accounts" slips through. Windows are deliberately short enough that a
+// legitimate operator who mistyped is never locked out for long.
+const THROTTLE_FREE_ATTEMPTS = 3;
+const THROTTLE_MAX_ATTEMPTS = 10;
+const THROTTLE_BASE_DELAY_SEC = 2;
+const THROTTLE_MAX_DELAY_SEC = 300; // 5 min
+const THROTTLE_LOCKOUT_SEC = 900; // 15 min after MAX failures
+
+/** Seconds a bucket must wait after `failures` consecutive failures. */
+export function throttleDelaySeconds(failures: number): number {
+  if (failures <= THROTTLE_FREE_ATTEMPTS) return 0;
+  if (failures >= THROTTLE_MAX_ATTEMPTS) return THROTTLE_LOCKOUT_SEC;
+  const delay = THROTTLE_BASE_DELAY_SEC * 2 ** (failures - THROTTLE_FREE_ATTEMPTS - 1);
+  return Math.min(delay, THROTTLE_MAX_DELAY_SEC);
+}
+
+export class SignInThrottledError extends Error {
+  constructor(readonly retryAfterSeconds: number) {
+    super("too_many_attempts");
+    this.name = "SignInThrottledError";
+  }
+}
+
 export interface LocalAuthDeps {
   pool: Pool;
   privateKey: KeyObject;
@@ -36,6 +62,7 @@ export interface LocalAuthDeps {
   now?: () => Date; // injectable for tests
 }
 
+
 function sha256Hex(input: string): string {
   return createHash("sha256").update(input, "utf8").digest("hex");
 }
@@ -43,6 +70,7 @@ function sha256Hex(input: string): string {
 function newOpaqueToken(): string {
   return randomBytes(32).toString("base64url");
 }
+
 
 export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
   const { pool, privateKey, publicKey, keyId } = deps;
@@ -100,21 +128,82 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
     };
   }
 
+  /** Throws SignInThrottledError when any bucket is still cooling down. */
+  async function assertNotThrottled(buckets: string[]): Promise<void> {
+    if (buckets.length === 0) return;
+    const { rows } = await pool.query<{ identifier: string; failures: number; last_failed_at: Date; locked_until: Date | null }>(
+      `SELECT identifier, failures, last_failed_at, locked_until
+         FROM public.login_attempts WHERE identifier = ANY($1::text[])`,
+      [buckets],
+    );
+    const nowMs = now().getTime();
+    let retryAfter = 0;
+    for (const row of rows) {
+      if (row.locked_until && new Date(row.locked_until).getTime() > nowMs) {
+        retryAfter = Math.max(
+          retryAfter,
+          Math.ceil((new Date(row.locked_until).getTime() - nowMs) / 1000),
+        );
+        continue;
+      }
+      const delay = throttleDelaySeconds(row.failures);
+      const readyAt = new Date(row.last_failed_at).getTime() + delay * 1000;
+      if (readyAt > nowMs) retryAfter = Math.max(retryAfter, Math.ceil((readyAt - nowMs) / 1000));
+    }
+    if (retryAfter > 0) throw new SignInThrottledError(retryAfter);
+  }
+
+  async function recordFailure(buckets: string[]): Promise<void> {
+    for (const identifier of buckets) {
+      await pool
+        .query(
+          `INSERT INTO public.login_attempts (identifier, failures, first_failed_at, last_failed_at)
+             VALUES ($1, 1, now(), now())
+           ON CONFLICT (identifier) DO UPDATE
+             SET failures = public.login_attempts.failures + 1,
+                 last_failed_at = now(),
+                 locked_until = CASE
+                   WHEN public.login_attempts.failures + 1 >= $2
+                     THEN now() + ($3 || ' seconds')::interval
+                   ELSE NULL
+                 END`,
+          [identifier, THROTTLE_MAX_ATTEMPTS, THROTTLE_LOCKOUT_SEC],
+        )
+        .catch(() => {}); // never let throttle bookkeeping break auth
+    }
+  }
+
+  async function clearFailures(buckets: string[]): Promise<void> {
+    if (buckets.length === 0) return;
+    await pool
+      .query(`DELETE FROM public.login_attempts WHERE identifier = ANY($1::text[])`, [buckets])
+      .catch(() => {});
+  }
+
   const provider: IAuthProvider = {
     capability: Capability.Authentication,
     name: "opsqai.selfhost.local-auth",
 
     async signIn(input: SignInInput): Promise<SignInResult> {
       const email = input.email.trim().toLowerCase();
+      const buckets = [`email:${email}`];
+      if (input.ip) buckets.push(`ip:${input.ip}`);
+      await assertNotThrottled(buckets);
+
       const user = await users.findByEmail(email);
       if (!user || user.disabled) {
         // Still run a dummy verify to keep timing constant.
         await users.verifyPassword("00000000-0000-0000-0000-000000000000", input.password);
+        await recordFailure(buckets);
         throw new Error("invalid_credentials");
       }
       const ok = await users.verifyPassword(user.id, input.password);
-      if (!ok) throw new Error("invalid_credentials");
+      if (!ok) {
+        await recordFailure(buckets);
+        throw new Error("invalid_credentials");
+      }
 
+      await clearFailures(buckets);
       await pool.query("UPDATE public.users SET last_login_at = now(), last_sign_in_at = now() WHERE id = $1", [
         user.id,
       ]);
@@ -125,6 +214,7 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
       );
       return issueSession(user.id, user.email);
     },
+
 
     async signOut(refreshToken: string): Promise<void> {
       const tokenHash = sha256Hex(refreshToken);
