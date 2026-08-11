@@ -99,7 +99,6 @@ function isUuid(v) {
 }
 const companyName = arg("company", "OPSQAI Customer");
 const adminEmail = arg("admin-email");
-const adminPassword = arg("admin-password");
 const adminFirstName = arg("admin-first-name", "");
 const adminLastName = arg("admin-last-name", "");
 const dbMode = arg("db-mode", "embedded");
@@ -109,10 +108,32 @@ const smtpJson = arg("smtp", "");
 const startServices = arg("start-services", "true") !== "false";
 const doResetEmbeddedDb = hasFlag("reset-embedded-db");
 
+// --- Admin password -------------------------------------------------------
+// P0 hardening: unattended / reset paths MUST NOT ship a hardcoded password.
+// `--generate-admin-password` mints a 24-char CSPRNG password, forces a change
+// on first sign-in, and writes it once to a file only Administrators can read.
+const generateAdminPassword = hasFlag("generate-admin-password");
+
+function mintAdminPassword() {
+  // Unambiguous alphabet (no O/0/I/l/1) so the operator can retype it.
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789-_";
+  const bytes = crypto.randomBytes(24);
+  let out = "";
+  for (const b of bytes) out += alphabet[b % alphabet.length];
+  return out;
+}
+
+const adminPassword = generateAdminPassword ? mintAdminPassword() : arg("admin-password");
+// A generated password is always one-time: the operator is forced to replace it.
+const adminMustChangePassword = generateAdminPassword || hasFlag("admin-must-change-password");
+
 if (!adminEmail || !adminPassword) {
-  console.error("Usage: init.js --admin-email <e> --admin-password <p> [--company <name>]");
+  console.error(
+    "Usage: init.js --admin-email <e> (--admin-password <p> | --generate-admin-password) [--company <name>]",
+  );
   process.exit(2);
 }
+
 
 function decodeB64UrlJson(segment) {
   const pad = segment.length % 4 ? "=".repeat(4 - (segment.length % 4)) : "";
