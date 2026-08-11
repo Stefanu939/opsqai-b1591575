@@ -1,47 +1,27 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { RouteErrorState } from "@/components/app/route-error-state";
 
 // The OPSQAI application (`/app/*`) is the Self-Hosted Windows product.
-// It runs INSIDE the customer's infrastructure. On the cloud deployment
-// (`OPSQAI_MODE=mc`, opsqai.de), no company end user should ever reach it —
-// they authenticate only into their local Windows installation.
-//
-// EXCEPTION — Staff Preview: OPSQAI staff (`platform_admin` / `platform_owner`)
-// are allowed through on the cloud so they can demo, QA, and review the
-// Self-Hosted UI from the Management Center. A visible banner (see
-// `staff-preview-banner.tsx`, mounted by `app-shell.tsx`) makes it explicit
-// that they are in a preview mode, not looking at a real customer install.
-// Regular customers/members continue to be redirected to `/windows-only`.
+// It runs INSIDE the customer's infrastructure. On the cloud / Management
+// Center deployment (`OPSQAI_MODE=mc`, opsqai.de) NOBODY reaches it — not
+// customers, not OPSQAI staff. There is no staff preview and no demo tenant:
+// the Self-Hosted product is only ever exercised on a real installation.
 export const Route = createFileRoute("/_authenticated/app")({
   beforeLoad: async () => {
-    if (getClientDeploymentMode() !== "mc") {
-      // Self-Hosted: a one-time / temporary password must be replaced before
-      // the operator can use the platform. The claim comes from the signed
-      // access token, so this cannot be bypassed by editing local storage —
-      // the server also rejects the stale password on the next refresh.
-      const { mustChangePassword } = await import("@/lib/must-change-password");
-      if (await mustChangePassword()) {
-        throw redirect({ to: "/reset-password", search: { forced: true } });
-      }
-      return;
+    if (getClientDeploymentMode() === "mc") {
+      throw redirect({ to: "/windows-only" });
     }
-
-
-    // Cloud mode — only OPSQAI staff may enter the Self-Hosted preview.
-    const user = await getBrowserAuthProvider().getUser();
-    if (!user) throw redirect({ to: "/windows-only" });
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-    const isStaff = (roles ?? []).some(
-      (r) => r.role === "platform_admin" || r.role === "platform_owner",
-    );
-    if (!isStaff) throw redirect({ to: "/windows-only" });
+    // Self-Hosted: a one-time / temporary password must be replaced before
+    // the operator can use the platform. The claim comes from the signed
+    // access token, so this cannot be bypassed by editing local storage —
+    // the server also rejects the stale password on the next refresh.
+    const { mustChangePassword } = await import("@/lib/must-change-password");
+    if (await mustChangePassword()) {
+      throw redirect({ to: "/reset-password", search: { forced: true } });
+    }
   },
+
   component: () => <Outlet />,
   errorComponent: ({ error }) => <RouteErrorState error={error} homeTo="/app" />,
 });
