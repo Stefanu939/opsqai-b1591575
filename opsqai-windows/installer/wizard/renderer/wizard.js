@@ -173,26 +173,19 @@ const WIZARD_SHELL_HTML = String.raw`
     <section class="pane" data-pane="4" hidden>
       <header class="pane-head">
         <h1>Installation options</h1>
-        <p class="lead">Where to install OPSQAI and how it should integrate with Windows.</p>
+        <p class="lead">Install locations are managed by the installer. Configure the local AI engine below.</p>
       </header>
 
       <div class="form">
-        <label>
-          <span class="label-row">Installation folder</span>
-          <div class="path-row">
-            <input id="opt-install-dir" value="C:\\Program Files\\OPSQAI" readonly />
-            <button type="button" class="btn btn-ghost" disabled title="Fixed in this release">Browse…</button>
-          </div>
-        </label>
-
-        <label>
-          <span class="label-row">Data folder <em class="hint-inline">databases, backups, uploads</em></span>
-          <div class="path-row">
-            <input id="opt-data-dir" value="C:\\ProgramData\\OPSQAI" readonly />
-            <button type="button" class="btn btn-ghost" disabled title="Fixed in this release">Browse…</button>
-          </div>
-          <p class="hint">Space required: <strong>~4.8 GB</strong> · Available: <strong id="opt-disk-free">—</strong></p>
-        </label>
+        <div class="info-block">
+          <span class="label-row">Install locations</span>
+          <div class="row"><span>Application</span><strong id="opt-install-dir" data-path>C:\\Program Files\\OPSQAI</strong></div>
+          <div class="row"><span>Data <em class="hint-inline">databases, backups, uploads</em></span><strong id="opt-data-dir" data-path>C:\\ProgramData\\OPSQAI</strong></div>
+          <p class="hint">
+            These locations are managed by the OPSQAI installer and cannot be changed in this release.
+            Space required: <strong>~4.8 GB</strong> · Available: <strong id="opt-disk-free">—</strong>
+          </p>
+        </div>
 
         <div class="ai-engine">
           <span class="label-row">Local AI engine</span>
@@ -213,13 +206,16 @@ const WIZARD_SHELL_HTML = String.raw`
           <p class="hint">Keep the recommended defaults unless your organisation standardises on other Ollama models.</p>
         </div>
 
-        <div class="opt-toggles">
-          <label class="checkbox"><input type="checkbox" id="opt-desktop" checked /><span>Create Desktop shortcut</span></label>
-          <label class="checkbox"><input type="checkbox" id="opt-startmenu" checked /><span>Add OPSQAI to Start Menu</span></label>
-          <label class="checkbox"><input type="checkbox" id="opt-autostart" /><span>Start OPSQAI when Windows starts</span></label>
+        <div class="info-block">
+          <span class="label-row">Windows integration</span>
+          <div class="row"><span>Desktop shortcut</span><strong>Created</strong></div>
+          <div class="row"><span>Start Menu entry</span><strong>Created</strong></div>
+          <div class="row"><span>OPSQAI services</span><strong>Installed and started automatically</strong></div>
+          <p class="hint">OPSQAI runs as Windows services, so the platform starts with Windows.</p>
         </div>
       </div>
     </section>
+
 
     <!-- 5 · Database -->
     <section class="pane" data-pane="5" hidden>
