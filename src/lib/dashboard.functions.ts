@@ -155,12 +155,12 @@ export const globalSearch = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => SearchArg.parse(d))
   .handler(async ({ data, context }) => {
-    const { companyId } = await resolveCompany(context, data.companyId ?? null);
-    const { data: rows, error } = await getCloudSupabase(context, "dashboard").rpc("search_everywhere", {
-      p_company: companyId,
-      p_q: data.q,
-      p_limit: 8,
-    });
-    if (error) throw new Error(error.message);
-    return { results: rows ?? [] };
+    // Repository-backed so Self-Hosted (local PostgreSQL) never reaches the
+    // Cloud data client; Cloud resolves the same repositories over Supabase.
+    const { resolveDashboardCompany, searchEverywhere } = await import(
+      "@/lib/dashboard-search.server"
+    );
+    const { companyId } = await resolveDashboardCompany(context, data.companyId ?? null);
+    return { results: await searchEverywhere(context, companyId, data.q, 8) };
   });
+
