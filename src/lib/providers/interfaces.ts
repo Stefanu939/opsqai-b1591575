@@ -641,6 +641,23 @@ export interface KnowledgeChunkContentRow {
   content: string;
 }
 
+/** Lineage anchor used by SOP version replace / rollback. */
+export interface KnowledgeVersionAnchor {
+  id: string;
+  company_id: string;
+  doc_code: string | null;
+  version: number;
+  parent_document_id: string | null;
+}
+
+/** New revision of an existing document (SOP version replace). */
+export interface KnowledgeVersionInsert extends KnowledgeDocumentInsert {
+  version: number;
+  parent_document_id: string;
+  change_notes?: string | null;
+}
+
+
 export interface IKnowledgeRepository {
   /** Document list for the library screen. `companyId === null` = all workspaces. */
   listDocuments(companyId: string | null, includeInactive: boolean): Promise<KnowledgeDocumentRow[]>;
