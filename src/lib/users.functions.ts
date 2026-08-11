@@ -60,18 +60,19 @@ export const listUsers = createServerFn({ method: "POST" })
       companyRepo.list(),
     ]);
 
-    // When scope is null (platform admin, no filter), listByCompany("")
-    // returns rows for that literal — instead fall back to per-user auth
-    // records + a role join. For simplicity, when scope is null we
-    // aggregate from auth users.
+    // Platform admin without a company filter: aggregate from the auth roster.
+    // A user whose profile row is missing (or was created a moment ago and has
+    // not been patched yet) must still appear, so profile misses are backfilled
+    // from the auth record instead of being dropped.
     const profilesEffective = scope
       ? profiles
-      : await Promise.all(
-          users.map((u) => profileRepo.findByUserId(u.id)),
-        ).then((rs) => rs.filter((r): r is NonNullable<typeof r> => !!r));
+      : await Promise.all(users.map((u) => profileRepo.findByUserId(u.id))).then((rs) =>
+          rs.filter((r): r is NonNullable<typeof r> => !!r),
+        );
 
     const emailById = new Map(users.map((u) => [u.id, u.email]));
     const lastSignInById = new Map(users.map((u) => [u.id, u.lastSignInAt]));
+    const createdById = new Map(users.map((u) => [u.id, u.createdAt]));
     const rolesByUser = new Map<string, string[]>();
     for (const r of roles) {
       const list = rolesByUser.get(r.userId) ?? [];
@@ -81,7 +82,7 @@ export const listUsers = createServerFn({ method: "POST" })
     const deptById = new Map(depts.map((d) => [d.id, d.name]));
     const compById = new Map(companies.map((c) => [c.id, c.name]));
 
-    return profilesEffective.map((p) => ({
+    const rows = profilesEffective.map((p) => ({
       id: p.userId,
       email: emailById.get(p.userId) ?? p.email ?? "",
       full_name: p.fullName,
@@ -91,7 +92,7 @@ export const listUsers = createServerFn({ method: "POST" })
       phone: p.phone,
       department_id: p.departmentId,
       department_name: p.departmentId ? (deptById.get(p.departmentId) ?? null) : null,
-      company_id: p.companyId,
+      company_id: p.companyId as string | null,
       company_name: p.companyId ? (compById.get(p.companyId) ?? null) : null,
       language_pref: p.languagePref,
       is_active: p.isActive,
@@ -99,6 +100,43 @@ export const listUsers = createServerFn({ method: "POST" })
       created_at: p.createdAt,
       roles: rolesByUser.get(p.userId) ?? [],
     }));
+
+    if (!scope) {
+      // Backfill auth-only users (no profile row yet) so a just-created user is
+      // never invisible. Scoped (multi-tenant) listing stays strict: a user
+      // without a profile has no company and must not leak across tenants.
+      const seen = new Set(rows.map((r) => r.id));
+      for (const u of users) {
+        if (seen.has(u.id)) continue;
+        rows.push({
+          id: u.id,
+          email: u.email ?? "",
+          full_name: null,
+          first_name: null,
+          last_name: null,
+          position: null,
+          phone: null,
+          department_id: null,
+          department_name: null,
+          company_id: null,
+          company_name: null,
+          language_pref: "en",
+          is_active: true,
+          last_sign_in_at: u.lastSignInAt ?? null,
+          created_at: u.createdAt,
+          roles: rolesByUser.get(u.id) ?? [],
+        });
+      }
+    }
+
+    rows.sort((a, b) => {
+      const at = Date.parse(createdById.get(a.id) ?? a.created_at ?? "") || 0;
+      const bt = Date.parse(createdById.get(b.id) ?? b.created_at ?? "") || 0;
+      return bt - at;
+    });
+
+    return rows;
+
   });
 
 export const createUser = createServerFn({ method: "POST" })

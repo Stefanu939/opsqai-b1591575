@@ -113,15 +113,18 @@ export function createPgProfileRepository(deps: PgProfileRepositoryDeps): IProfi
       return mapRow(rows[0], tenantCompanyId);
     },
 
-    async listByCompany(companyId) {
-      // Single-tenant: all users belong to the synthetic tenant.
+    async listByCompany(_companyId) {
+      // Single-tenant install: every local user belongs to the one synthetic
+      // tenant, and mapRow already reports `tenantCompanyId` for rows whose
+      // company_id column is NULL or was written with a different id by an
+      // admin create. Filtering on company_id here silently hid freshly
+      // created users from the Users page, so the whole roster is returned.
       const { rows } = await pool.query<Row>(
-        `SELECT ${COLS} FROM public.users
-          WHERE COALESCE(company_id, $1) = $1`,
-        [companyId],
+        `SELECT ${COLS} FROM public.users ORDER BY created_at DESC`,
       );
       return rows.map((r) => mapRow(r, tenantCompanyId));
     },
+
 
     async create(input: ProfileCreateInput) {
       // On Self-Hosted, the user row is created by the auth flow

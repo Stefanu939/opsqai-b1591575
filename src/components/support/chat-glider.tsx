@@ -91,11 +91,91 @@ function ContactAvatar({
   );
 }
 
+/**
+ * Unread bookkeeping for the floating launcher.
+ *
+ * Reuses the per-conversation `unread_count` returned by
+ * `listMyConversations` — no extra table, no realtime dependency, so it
+ * behaves identically in Self-Hosted and Cloud. Unread for the conversation
+ * that is currently open *and* visible is excluded; unread in other threads
+ * stays visible while another thread is open.
+ */
+function useUnreadTotal(opts: { open: boolean; activeConv: string | null; enabled: boolean }) {
+  const { open, activeConv, enabled } = opts;
+  const list = useServerFn(listMyConversations);
+  const qc = useQueryClient();
+  const [pulse, setPulse] = useState(false);
+  const prevTotal = useRef(0);
+  const lastToast = useRef(0);
+
+  const { data: convs = [] } = useQuery<ChatConversation[]>({
+    queryKey: ["chat-conversations"],
+    queryFn: () => list({ data: {} } as never),
+    refetchOnWindowFocus: true,
+    enabled,
+  });
+
+  // Single poller for the whole bubble (the list view reuses this cache).
+  useEffect(() => {
+    if (!enabled) return;
+    const timer = window.setInterval(
+      () => qc.invalidateQueries({ queryKey: ["chat-conversations"] }),
+      4_000,
+    );
+    return () => window.clearInterval(timer);
+  }, [enabled, qc]);
+
+  const suppressed = open && activeConv ? activeConv : null;
+  const total = convs.reduce(
+    (n, c) => n + (c.id === suppressed ? 0 : (c.unread_count ?? 0)),
+    0,
+  );
+
+  useEffect(() => {
+    const prev = prevTotal.current;
+    prevTotal.current = total;
+    if (total <= prev || total === 0) return;
+    setPulse(true);
+    const t = window.setTimeout(() => setPulse(false), 1200);
+    // One grouped, throttled toast per arrival burst. Only when the panel is
+    // closed or the window is unfocused, so an open thread stays quiet.
+    const now = Date.now();
+    const hidden = typeof document !== "undefined" && document.visibilityState !== "visible";
+    if ((!open || hidden) && now - lastToast.current > 8_000) {
+      lastToast.current = now;
+      const delta = total - prev;
+      toast.message(
+        delta === 1 ? "New message" : `${delta} new messages`,
+        { description: total === 1 ? "1 unread conversation message" : `${total} unread in total` },
+      );
+    }
+    return () => window.clearTimeout(t);
+  }, [total, open]);
+
+  // Reflect unread in the window title when the tab is in the background.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const base = document.title.replace(/^\(\d+\+?\)\s*/, "");
+    document.title = total > 0 ? `(${total > 9 ? "9+" : total}) ${base}` : base;
+    return () => {
+      document.title = base;
+    };
+  }, [total]);
+
+  return { total, pulse };
+}
+
 export function ChatGlider() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const [activeConv, setActiveConv] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "conv" | "new">("list");
+
+  const { total: unread, pulse } = useUnreadTotal({
+    open,
+    activeConv: view === "conv" ? activeConv : null,
+    enabled: !loading && !!user,
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -122,7 +202,7 @@ export function ChatGlider() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open chat"
+        aria-label={unread > 0 ? `Open chat — ${unread} unread` : "Open chat"}
         title="Chat"
         className={cn(
           "fixed right-5 bottom-6 z-40 flex items-center justify-center rounded-full",
@@ -130,10 +210,24 @@ export function ChatGlider() {
           "h-14 w-14 transition-transform duration-200 ease-out hover:scale-105",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           open && "opacity-0 pointer-events-none",
+          pulse && "animate-pulse",
         )}
       >
         <MessageCircle className="h-6 w-6" />
+        {unread > 0 && (
+          <span
+            data-testid="chat-unread-badge"
+            className={cn(
+              "absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full",
+              "bg-destructive text-destructive-foreground text-[11px] font-semibold",
+              "flex items-center justify-center ring-2 ring-background",
+            )}
+          >
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
       </button>
+
 
 
       {/* Panel */}
@@ -205,15 +299,9 @@ function ConversationsListView({
     refetchOnWindowFocus: true,
   });
 
-  // Polling works in both products; Cloud realtime is intentionally not
-  // imported here because this component also ships in Self-Hosted.
-  useEffect(() => {
-    const timer = window.setInterval(
-      () => qc.invalidateQueries({ queryKey: ["chat-conversations"] }),
-      4_000,
-    );
-    return () => window.clearInterval(timer);
-  }, [qc]);
+  // The launcher-level `useUnreadTotal` hook owns the single 4s poller for
+  // the shared ["chat-conversations"] cache; no second interval here.
+
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -410,11 +498,15 @@ function ConversationView({
       await refetch();
       qc.invalidateQueries({ queryKey: ["chat-conversations"] });
     } catch (e) {
-      toast.error((e as Error).message);
+      // Keep the draft and attachments so the user can retry without retyping.
+      toast.error(`Message not sent: ${(e as Error).message}`, {
+        action: { label: "Retry", onClick: () => void handleSend() },
+      });
     } finally {
       setSending(false);
     }
   }
+
 
   return (
     <>
