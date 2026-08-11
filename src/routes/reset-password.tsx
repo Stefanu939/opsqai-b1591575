@@ -27,6 +27,7 @@ function ResetPassword() {
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     const auth = getBrowserAuthProvider();
@@ -56,6 +57,7 @@ function ResetPassword() {
     try {
       await getBrowserAuthProvider().updatePassword(password);
       toast.success("Password updated. You're signed in.");
+      setDone(true);
       navigate({ to: "/app" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not update password");
@@ -83,7 +85,17 @@ function ResetPassword() {
               into OPSQAI.
             </p>
           )}
-          {!ready ? (
+          {done ? (
+            <div className="mt-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Your password has been updated. If you are not redirected automatically, continue
+                below.
+              </p>
+              <Button className="w-full" onClick={() => navigate({ to: "/app" })}>
+                Continue to OPSQAI
+              </Button>
+            </div>
+          ) : !ready ? (
             <p className="text-sm text-muted-foreground mt-3">
               Open this page from the link in your reset email. If you got here directly,{" "}
               <Link to="/forgot-password" className="underline">
