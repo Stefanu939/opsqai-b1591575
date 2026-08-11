@@ -389,28 +389,14 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
     },
 
     async getDataContext(_token: string): Promise<unknown> {
-      // Wave C bridge: Self-Hosted has no Supabase client. Any server
-      // function whose body still calls `context.supabase.from(...)`
-      // hasn't been migrated to a repository yet. Return a proxy that
-      // throws with a clear diagnostic so partial migration surfaces
-      // as a runtime error rather than silent corruption. Wave C.2
-      // replaces every consumer with `getXRepository()` calls, after
-      // which this proxy is unreachable.
-      const notMigrated = () => {
-        throw new Error(
-          "Self-Hosted: this feature still uses the Supabase data " +
-            "client and has not been migrated to a repository yet " +
-            "(Wave C.2). Do not call it from Self-Hosted code paths.",
-        );
-      };
-      return new Proxy(
-        {},
-        {
-          get: notMigrated,
-          apply: notMigrated,
-        },
-      );
+      // Self-Hosted never has a Supabase client. The returned proxy throws
+      // on real data-client usage while staying awaitable/loggable — see
+      // `no-supabase-context.ts` for why the inert-key allow-list is
+      // required (a fully throwing proxy broke `await getDataContext()`
+      // itself, failing every requireAuth server function).
+      return createSelfHostedDataContext();
     },
+
   };
 
   return provider;
