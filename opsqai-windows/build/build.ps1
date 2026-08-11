@@ -519,6 +519,20 @@ $provNode = if (Get-Command node -ErrorAction SilentlyContinue) { 'node' } else 
 if ($LASTEXITCODE -ne 0) { throw "bootstrap provenance check failed with $LASTEXITCODE" }
 Assert-Exists (Join-Path $payload 'services\bootstrap\build-provenance.json') 'bootstrap provenance record'
 
+# Frontend/server provenance: prove WHICH frontend build is packaged. The
+# printed buildHash must match the "[provenance] frontend ..." line in the
+# platform service log, the Build line in the app shell sidebar, and
+# /api/public/health on the installed machine.
+if (-not $SkipApp) {
+  & $provNode (Join-Path $root 'build\frontend-provenance.mjs') `
+    '--app' $appStage `
+    '--version' $script:FrontendVersion `
+    '--commit' $script:FrontendCommit
+  if ($LASTEXITCODE -ne 0) { throw "frontend provenance check failed with $LASTEXITCODE" }
+  Assert-Exists (Join-Path $appStage 'build-provenance.json') 'frontend provenance record'
+}
+
+
 Assert-Exists (Join-Path $payload 'services\updater\apply.js') 'update apply orchestrator'
 Assert-Exists (Join-Path $payload 'services\backup\create.js')    'backup create script'
 Assert-Exists (Join-Path $payload 'services\backup\list.js')      'backup list script'
