@@ -487,21 +487,67 @@ async function waitForHealthProbe(label, url, getter, seconds) {
   return { ok: false, last };
 }
 
+// ─── Embedded credential refresh ──────────────────────────────────────────
+// On a FRESH install this script writes config.json with an intentionally
+// empty embedded password: the OpsqaiDatabase service generates the real one
+// during initdb (services/database/index.js) and persists it back to disk.
+// The in-memory `config` object built before that service ran is therefore
+// stale, which is what produced OPSQAI-E1507 at the vector-storage stage even
+// though the separate migrator process (which loads config.json from disk)
+// succeeded. Re-read the canonical config and merge the embedded credentials.
+let refreshedFromDisk = false;
+function refreshEmbeddedCredentialsFromDisk({ quiet = false } = {}) {
+  if (config.database.mode !== "embedded") return false;
+  try {
+    if (!fs.existsSync(configPath)) return false;
+    // readJsonFile() is the single OPSQAI config parsing contract (BOM-tolerant).
+    const disk = readJsonFile(configPath);
+    const embedded = disk?.database?.embedded;
+    if (!embedded) return false;
+    let changed = false;
+    const diskPw = String(embedded.password || "");
+    if (diskPw && diskPw !== (config.database.embedded.password || "")) {
+      config.database.embedded.password = diskPw;
+      changed = true;
+    }
+    const diskPort = Number(embedded.port);
+    if (Number.isFinite(diskPort) && diskPort !== config.database.embedded.port) {
+      config.database.embedded.port = diskPort;
+      changed = true;
+    }
+    if (changed && !quiet) {
+      // Status only — the password value is NEVER logged.
+      log("refreshed embedded database credentials from config.json");
+    }
+    return changed;
+  } catch (e) {
+    if (!quiet) console.warn(`[bootstrap] could not refresh embedded credentials: ${e.message}`);
+    return false;
+  }
+}
+
 // ─── installation_state (bootstrap-only table) ────────────────────────────
 function pgArgs() {
   const embedded = config.database.mode === "embedded";
+  // The embedded cluster requires a password (scram) exactly like the
+  // migration runner uses. Reading it from the canonical config is the ONLY
+  // supported source — never hardcoded, never printed. If it is still empty
+  // in memory, the database service may have written it after we loaded the
+  // config: re-read config.json once before giving up.
+  if (embedded && !(config.database.embedded?.password || "") && !refreshedFromDisk) {
+    refreshedFromDisk = true;
+    refreshEmbeddedCredentialsFromDisk();
+  }
   const port = embedded ? config.database.embedded.port : config.database.external.port;
   const host = embedded ? "127.0.0.1" : config.database.external.host;
   const user = embedded ? "opsqai" : config.database.external.username;
   const db = embedded ? "opsqai" : config.database.external.database;
-  // The embedded cluster requires a password (scram) exactly like the
-  // migration runner uses. Reading it from the canonical config is the ONLY
-  // supported source — never hardcoded, never printed.
   const pw = embedded
     ? config.database.embedded?.password || ""
     : config.database.external.password || "";
   return { host, port, user, db, pw };
 }
+
 /**
  * Log the psql connection target WITHOUT the secret (status word only) and
  * fail fast with an actionable message when the embedded password is missing,
