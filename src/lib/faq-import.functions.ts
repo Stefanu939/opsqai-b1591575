@@ -139,6 +139,7 @@ async function parseXlsx(buffer: ArrayBuffer): Promise<FaqImportRow[]> {
 async function parseViaAi(text: string): Promise<FaqImportRow[]> {
   const { generateText } = await import("ai");
   const { resolveChatModel } = await import("@/lib/ai-provider.server");
+  const { extractFaqItems } = await import("@/lib/faq-import-json");
   const truncated = text.slice(0, 30000);
   const { text: raw } = await generateText({
     model: resolveChatModel("chat-fast"),
@@ -146,27 +147,27 @@ async function parseViaAi(text: string): Promise<FaqImportRow[]> {
     system:
       "You extract FAQ question/answer pairs from documents. Respond with STRICT JSON only: " +
       '{"items":[{"question":"...","answer":"...","category":"general"}]}. ' +
-      "No markdown, no commentary, just the JSON object.",
+      "Keep every pair in the SAME language as the source document. " +
+      "Extract all pairs you find, not just the first one. " +
+      "No markdown, no code fences, no commentary, just the JSON object.",
     prompt: `Extract every distinct question/answer pair from this document text:\n\n${truncated}`,
   });
 
-  let parsed: { items?: { question?: string; answer?: string; category?: string }[] };
-  try {
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
-  } catch {
-    throw new Error("AI response could not be parsed as JSON");
+  const items = extractFaqItems(raw);
+  if (items.length === 0) {
+    throw new Error(
+      "No question/answer pairs could be extracted from this document. Check the file content or import a CSV/XLSX instead.",
+    );
   }
-
-  const items = Array.isArray(parsed.items) ? parsed.items : [];
   return items.map((it) =>
     rowFromRecord({
-      question: String(it.question ?? "").trim(),
-      answer: String(it.answer ?? "").trim(),
-      category: String(it.category ?? "general").trim(),
+      question: it.question,
+      answer: it.answer,
+      category: it.category,
     }),
   );
 }
+
 
 const ParseInput = z.object({
   filename: z.string().min(1),
