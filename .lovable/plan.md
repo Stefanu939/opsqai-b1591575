@@ -1,69 +1,140 @@
-# Fix OPSQAI-E1507 on fresh installs — bootstrap holds a stale in-memory config
+# OPSQAI Master Patch — Self-Hosted runtime, UI actions, and first-run Windows install
 
-## Confirmed root cause
+One implementation pass in two tracks: the app-side Cloud-provider bug that breaks nearly every
+interactive Self-Hosted feature, and the bootstrap timing bug that makes a clean Windows install
+fail at vector storage. The Windows installer is in scope.
 
-On a **fresh** install `init.js` writes `config.json` with an intentionally empty embedded
-password (`init.js:225-231`): the `OpsqaiDatabase` service generates it during `initdb` and
-persists it back to `config.json` itself (`services/database/index.js:62-68`).
+## Track A — Self-Hosted provider architecture
 
-`init.js` then keeps using the **in-memory** `config` object it built *before* the service ran:
+### A1. Platform-gated function middleware (root cause)
 
-- `pgArgs()` (`init.js:492-503`) reads `config.database.embedded?.password` — still `""`.
-- `describePgTarget()` (`init.js:509-520`) logs `pgpassword=MISSING` and throws
-  `OPSQAI-E1507`.
+`src/start.ts` registers `attachSupabaseAuth` unconditionally as the first entry of
+`functionMiddleware`. In Self-Hosted builds `@/integrations/supabase/auth-attacher` resolves to the
+throwing Cloud stub, and TanStack touches that middleware on every server-function call — so AI
+Chat, Bubble Chat, Knowledge, FAQ, AI Audit, Organization and My Profile all fail with
+"Cloud provider was reached inside a Self-Hosted build."
 
-That is exactly what the log shows: migrations 0001–0017 all succeed (because `migrate.mjs`
-runs as a separate process and loads `config.json` from disk, so it sees the generated
-password), admin seeding succeeds, Ollama and `bge-m3` verify at 1024 dims — and only the
-vector-storage stage, which uses the in-process `config`, fails.
+Replace it with a single platform-aware function middleware that, in its `.client()` phase:
+- Self-Hosted: attaches the local session bearer via the existing platform auth path only.
+- Cloud: `await import()`s the Supabase attacher lazily and delegates, exactly the pattern already
+  used by `cloud-client.ts` / `not-available.ts`.
 
-The previous credential fix was correct but incomplete: it fixed *where* the password is read
-from, not *when*. A retry "worked" earlier only because the second run found the password
-already on disk via `priorEmbeddedPassword`.
+`providerBootstrapFunctionMiddleware` and `attachPlatformAuth` keep their current order. No Supabase
+fallback, no disabled auth.
 
-## Fix (single file: `opsqai-windows/services/bootstrap/init.js`)
+### A2. Guardrail so it cannot regress
 
-1. **Re-read the canonical config after the database service is up.** Right after
-   `postgres ready on 127.0.0.1:<port>`, reload `config.json` from disk with the existing
-   BOM-tolerant `readJsonFile()` and merge the embedded credentials
-   (`database.embedded.password`, `database.embedded.port`) into the in-memory `config`.
-   Log `refreshed embedded database credentials from config.json` — status only, never the value.
-2. **Make `pgArgs()` resilient rather than cached.** When the embedded password is empty, it
-   re-reads `config.json` once before giving up, so any later stage picks up a password written
-   by the service after bootstrap started.
-3. **Keep the fail-fast, but only when it is genuinely absent.** `describePgTarget()` keeps
-   `OPSQAI-E1507` and its actionable message for the real case (no password on disk either).
-   `scrubSecrets()` continues to mask the value in all output.
+Extend `opsqai-windows/build/verify-source-imports.mjs` to walk the import graph from `src/start.ts`,
+`src/router.tsx` and `src/routes/__root.tsx` and fail the build on any value (non-type) static import
+of `@/integrations/supabase/*`. Add a unit test asserting the Self-Hosted middleware chain contains
+no Cloud attacher.
 
-Everything else stays untouched: installId preservation, the orphaned-data-dir auto-reset gate,
-migration order and fingerprints, admin seeding, the Ollama install/pull guards, stage names,
-error codes, and build provenance logging. Re-running the failed install resumes at the
-vector-storage stage without redownloading models or rerunning applied migrations.
+### A3. Verify the local flows end to end
 
-## Tests (`opsqai-windows/services/__tests__/`)
+With the middleware fixed, exercise and repair each path (local providers only):
+- AI Chat → `/api/chat` → `resolveChatModel` → Ollama → pgvector.
+- Bubble Chat → `chat.functions.ts` → `pg-direct-message-repository`.
+- Knowledge upload → extraction → chunking → bge-m3 → pgvector → **Ready**.
+- FAQ create → local FAQ repository → retrievable by chat.
+- AI Audit → local Knowledge/FAQ repos → `pg-ai-audit-repository` → score + history persisted.
+- Academy → `academy-lms.functions.ts` → `pg-academy-repository` (never `getCloudSupabase`).
 
-Extend `bootstrap-psql-credentials.test.ts`:
+### A4. Honest degradation for Cloud-only surfaces
 
-1. **Fresh-install regression:** `config.json` starts with `password: ""`; a fake database
-   service writes a generated password into `config.json` while bootstrap is running; the
-   vector-storage stage then reports `pgpassword=set` and calls
-   `SELECT public.kb_apply_embedding_dim(1024)` with `PGPASSWORD` equal to that password —
-   asserted to fail before the fix.
-2. **Genuinely missing:** no password in config and none on disk still yields `OPSQAI-E1507`
-   naming `config.database.embedded.password`.
-3. **Secret hygiene:** the password appears in no argv, stdout, stderr, or log content.
-4. External mode keeps resolving from `config.database.external`.
+Support & Tickets (and any genuinely Cloud-only surface) renders a clear Self-Hosted state —
+"managed through the OPSQAI vendor portal, not available in Self-Hosted" — instead of throwing.
+Navigation hides or marks those entries. No fake local implementations.
 
-Then run both vitest configs and confirm no regressions.
+### A5. Restore the permission-gated primary actions
 
-## Not in scope
+`bootstrapSession()` currently fails, so `auth-context.tsx` falls back to `roles: []` /
+`permissions: new Set()` and every gated action disappears. Once A1 lands, verify against the
+seeded `platform_owner` / `platform_admin` that the existing UI actions are visible and wired:
+Knowledge (Upload Document, Upload SOP, processing/Ready/Failed states, re-index, versions, export,
+search, empty-state CTA), FAQ (Add, Import, Export, Edit, Delete, empty-state CTA), AI Audit
+(Run AI Audit, latest score, passed/warnings/critical, history, empty-state CTA), AI Chat (New Chat,
+input, Send, history, citations, local model status), Bubble Chat. RBAC stays enforced —
+`ai_audit.run` is still required, never bypassed.
 
-No change to migrations, the packer, NSIS, Ollama staging, or the app/Cloud code. This is one
-timing bug in the bootstrap script.
+### A6. Visible UI/UX uplift
 
-## Acceptance
+Apply the enterprise polish pass to the Self-Hosted app shell and these pages: refined cards,
+tables, forms, status indicators, spacing scale, hierarchy, subtle gradients, cleaner charts and
+navigation — within the existing OPSQAI identity (OPSQAI · AI Knowledge Platform for Logistics &
+Supply Chain), using the shared design tokens rather than new one-off styles. Responsive at mobile
+and desktop.
 
-A clean Windows install reaches `STAGE ai engine: configuring vector storage` with
-`pgpassword=set`, prints `vector storage pinned to embedding dimension 1024`, then
-`STAGE ai engine ready (ollama, 1024 dims)` and `bootstrap complete` — on the **first** run, with
-no retry needed.
+## Track B — Windows bootstrap first-run fix
+
+### B1. Confirmed root cause of OPSQAI-E1507
+
+On a fresh install `init.js:225-231` writes `config.json` with `database.embedded.password = ""`
+by design; `services/database/index.js:62-68` generates the real password during `initdb` and
+persists it back to disk. `init.js` then keeps its **pre-service in-memory** config, so
+`pgArgs()` (`init.js:492-503`) reads `""` and `describePgTarget()` throws `OPSQAI-E1507`.
+`migrate.mjs` succeeds because it loads `config.json` from disk in its own process — which is
+exactly the observed log: migrations 0001–0017, admin seed and bge-m3 all pass, only vector storage
+fails. A retry "worked" only because the password was already on disk.
+
+### B2. Reload config once PostgreSQL is ready
+
+In `opsqai-windows/services/bootstrap/init.js`, right after
+`postgres ready on 127.0.0.1:<port>`, re-read `config.json` with the existing BOM-tolerant
+`readJsonFile()` and merge `database.embedded.password` and `database.embedded.port` into the
+in-memory config. Log `refreshed embedded database credentials from config.json` — status only.
+
+### B3. Resilient `pgArgs()`
+
+Embedded branch resolves `config.database.embedded?.password`. When empty, re-read `config.json`
+once, update the embedded credentials, retry resolution, and only fail when the password is absent
+in memory **and** on disk. External mode keeps resolving host/port/user/database/password from
+`config.database.external`. No invented passwords.
+
+### B4. Vector-storage diagnostics and secret hygiene
+
+`describePgTarget("vector storage")` logs
+`psql host=… port=… user=opsqai db=opsqai pgpassword=set|MISSING` before the stage, keeps the
+fail-fast `OPSQAI-E1507` naming `config.database.embedded.password`, and never prints the value.
+The password travels only via `PGPASSWORD` in the child env, `psql` keeps `-w`, and
+`scrubSecrets()` keeps masking — no argv, stdout, stderr, log or exception exposure.
+
+### B5. Build provenance and runtime self-identification
+
+`build.ps1`: after staging services, hash `payload\services\bootstrap\init.js`, print
+`[build] bootstrap init.js sha256=<HASH>`, write `build-provenance.json` (`version`, `commit`,
+`initJsSha256`), and fail the build if `init.js` still contains the regressed `embedded ? "" :`
+form or lacks `config.database.embedded?.password`.
+`init.js`: hash its own file at startup and log `init.js sha256=<HASH> build=<VERSION>` read from
+`build-provenance.json`.
+`verify-install-layout.ps1`: assert `$INSTDIR\services\bootstrap\init.js` exists, matches
+`initJsSha256`, and that no duplicate `init.js` exists under `$INSTDIR\services` or `$INSTDIR\app`.
+
+### B6. Tests
+
+Extend `opsqai-windows/services/__tests__/bootstrap-psql-credentials.test.ts`:
+fresh-install regression (empty password → fake service writes it → `pgpassword=set` and
+`kb_apply_embedding_dim(1024)` runs with the generated `PGPASSWORD`), genuinely-missing password →
+`OPSQAI-E1507` naming the config key, secret hygiene across argv/stdout/stderr/logs, and external
+mode unchanged. Add provenance tests: regressed `init.js` fails the guardrail, fixed one passes,
+build hash equals runtime hash for identical bytes, version/commit round-trip.
+
+## Preserved, explicitly untouched
+
+Migrations 0001–0017 and their fingerprints, embedded password generation/preservation, installId
+generation/preservation, reset/idempotency logic, Ollama staging and model guards, Cloud
+functionality, the payload packer (single-root archives, no `7z -r`), SHA-256 manifest,
+`parts.generated.nsh`, size limits.
+
+## Verification
+
+Run both Vitest configurations in full — bootstrap credential, provenance, Self-Hosted middleware,
+source-import guard, packer and all pre-existing suites — and report the actual total, not just the
+new tests. Then a **clean** Windows install (not an upgrade) must reach, on the first run with no
+retry: `pgpassword=set` → `vector storage pinned to embedding dimension 1024` →
+`STAGE ai engine ready (ollama, 1024 dims)` → `bootstrap complete`, with no
+`fe_sendauth: no password supplied`. Final report covers the 23 items requested, including matching
+build-time and runtime `init.js` hashes.
+
+Note on honesty: I can make the source, guardrails and tests green here, but the clean-install
+acceptance and the runtime hash proof require you to run the produced installer on a clean Windows
+machine — I will state clearly which items are verified locally and which await your install run.
