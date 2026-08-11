@@ -498,11 +498,15 @@ function ConversationView({
       await refetch();
       qc.invalidateQueries({ queryKey: ["chat-conversations"] });
     } catch (e) {
-      toast.error((e as Error).message);
+      // Keep the draft and attachments so the user can retry without retyping.
+      toast.error(`Message not sent: ${(e as Error).message}`, {
+        action: { label: "Retry", onClick: () => void handleSend() },
+      });
     } finally {
       setSending(false);
     }
   }
+
 
   return (
     <>
