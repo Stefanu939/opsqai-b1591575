@@ -58,13 +58,7 @@ if (-not $SkipApp) {
   Write-Host "Building OPSQAI app (NITRO_PRESET=node-server)..."
   Push-Location $projectRoot
   try {
-# --- 0. Build OPSQAI app (Node-server preset) -----------------------------
-$appStage = Join-Path $payload 'app'
-if (-not $SkipApp) {
-  $projectRoot = Split-Path -Parent $root   # opsqai-windows/ -> repo root
-  Write-Host "Building OPSQAI app (NITRO_PRESET=node-server)..."
-  Push-Location $projectRoot
-  try {
+
     if (-not (Test-Path 'node_modules')) { & bun install --frozen-lockfile; if ($LASTEXITCODE -ne 0) { throw "bun install failed" } }
 
     # Wipe .output before building. Nitro writes (not diffs) its output, but a
