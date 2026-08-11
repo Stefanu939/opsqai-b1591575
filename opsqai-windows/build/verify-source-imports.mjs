@@ -37,9 +37,6 @@ const ALLOWED_PREFIXES = [
 // execute in Self-Hosted (Wave D aliases their imports to the throwing stub).
 // This list is the shrinking backlog for future waves — do NOT grow it.
 const LEGACY_ALLOWED = new Set([
-  // Registers attachSupabaseAuth for Cloud; stubbed out in SH builds by the
-  // vite selfhost stub plugin (verify-bundle guards the final output).
-  "src/start.ts",
   "src/lib/academy-certificate.server.ts",
   "src/lib/email/dispatch.server.ts",
   "src/lib/mcp/tools/list-faqs.ts",
@@ -61,6 +58,22 @@ const LEGACY_ALLOWED = new Set([
   "src/components/support/support-widget.tsx",
 ]);
 
+// Core layers that EVERY request touches in both platforms. A Cloud import
+// here is not a tracked legacy call site, it is the "Cloud provider was
+// reached inside a Self-Hosted build" bug: TanStack evaluates registered
+// middleware (and the app shell) on every RPC, so a stubbed Cloud module in
+// this layer breaks AI Chat, Knowledge, FAQ and AI Audit globally.
+// These files can never be allow-listed.
+const CORE_FORBIDDEN = [
+  "src/start.ts",
+  "src/router.tsx",
+  "src/routes/__root.tsx",
+  "src/lib/auth-context.tsx",
+  "src/lib/providers/auth-attacher.ts",
+  "src/lib/providers/registry.ts",
+  "src/lib/providers/browser-bootstrap.ts",
+];
+
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
@@ -81,6 +94,7 @@ function isAllowedPath(rel) {
 
 const files = walk(SRC);
 const violations = [];
+const coreViolations = [];
 const staleAllowlist = [];
 
 for (const abs of files) {
@@ -88,6 +102,10 @@ for (const abs of files) {
   if (isAllowedPath(rel)) continue;
   const src = readFileSync(abs, "utf8");
   const hit = BANNED.some((rx) => rx.test(src));
+  if (hit && CORE_FORBIDDEN.includes(rel)) {
+    coreViolations.push(rel);
+    continue;
+  }
   if (hit && !LEGACY_ALLOWED.has(rel)) {
     violations.push(rel);
   }
@@ -97,11 +115,20 @@ for (const abs of files) {
 }
 
 const json = process.argv.includes("--json");
-const result = { violations, staleAllowlist };
+const result = { violations, coreViolations, staleAllowlist };
 if (json) {
   console.log(JSON.stringify(result, null, 2));
 } else {
-  if (violations.length === 0 && staleAllowlist.length === 0) {
+  if (coreViolations.length) {
+    console.error(
+      "[verify-source-imports] Cloud SDK imported by a CORE platform layer (never allowed):",
+    );
+    for (const v of coreViolations) console.error("  - " + v);
+    console.error(
+      "\nThese modules run on every request in BOTH platforms. Resolve the capability through src/lib/providers/registry.ts instead.",
+    );
+  }
+  if (violations.length === 0 && coreViolations.length === 0 && staleAllowlist.length === 0) {
     console.log(
       `[verify-source-imports] OK — ${LEGACY_ALLOWED.size} legacy Cloud-only files tracked, no new violations.`,
     );
@@ -121,4 +148,4 @@ if (json) {
   }
 }
 
-if (violations.length) process.exit(1);
+if (violations.length || coreViolations.length) process.exit(1);
