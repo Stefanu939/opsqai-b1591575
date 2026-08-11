@@ -174,6 +174,17 @@ export async function assertModuleForCompany(
   companyId: string,
   module_key: string,
 ): Promise<void> {
+  const { isSelfHostedRuntime } = await import("@/lib/ai-adapters/registry");
+  if (isSelfHostedRuntime()) {
+    // Self-Hosted has exactly one installation; the company bridge is
+    // irrelevant and the Cloud client must never be reached from here.
+    const res = await requireModule("", module_key);
+    if (!res.ok) {
+      throw new LicenseDeniedError(res.reason ?? "unknown_module", module_key).toResponse();
+    }
+    return;
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("companies")
@@ -187,3 +198,4 @@ export async function assertModuleForCompany(
   }
   await assertModule(install_id, module_key);
 }
+
