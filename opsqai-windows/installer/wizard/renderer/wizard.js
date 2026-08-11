@@ -652,18 +652,39 @@ function renderReview() {
   const rows = [
     ["section", "License"],
     ["Edition", licLine],
+  ];
+  if (!d.licenseCommunity && Array.isArray(d.license?.claims?.modules) && d.license.claims.modules.length) {
+    rows.push(["Modules", d.license.claims.modules.join(", ")]);
+  }
+  rows.push(
     ["section", "Installation"],
-    ["Install folder", d.options.installDir],
+    ["Application folder", d.options.installDir],
     ["Data folder", d.options.dataDir],
-    ["Desktop shortcut", d.options.desktopShortcut ? "Yes" : "No"],
-    ["Start with Windows", d.options.autostart ? "Yes" : "No"],
     ["section", "Database"],
     ["Mode", dbLine],
+  );
+  if (d.database.mode === "external") {
+    rows.push(["Database", d.database.external.database || "—"], ["Username", d.database.external.username || "—"]);
+  }
+  rows.push(
+    ["section", "Local AI engine"],
+    ["Engine", "Ollama (local)"],
+    ["Ollama URL", d.ai.baseUrl],
+    ["Chat model", d.ai.chatModel],
+    ["Fast model", d.ai.chatFastModel],
+    ["Embedding model", d.ai.embeddingModel],
     ["section", "Administrator"],
     ["Name", d.admin.name || "—"],
     ["Email", d.admin.email],
     ["Password", "••••••••••••"],
-  ];
+  );
+  if (d.smtp && d.smtp.host) {
+    rows.push(
+      ["section", "Email (SMTP)"],
+      ["Host", `${d.smtp.host}:${d.smtp.port ?? 587}`],
+      ["From", d.smtp.from || "—"],
+    );
+  }
   $("#review").innerHTML = rows
     .map(([k, v]) =>
       k === "section"
@@ -675,13 +696,12 @@ function renderReview() {
 
 function buildConfig() {
   const dbMode = document.querySelector('input[name="db-mode"]:checked')?.value || "embedded";
+  // Install locations are owned by NSIS and are informational in the wizard.
   state.data.options = {
-    installDir: $("#opt-install-dir").value,
-    dataDir: $("#opt-data-dir").value,
-    desktopShortcut: $("#opt-desktop").checked,
-    startMenu: $("#opt-startmenu").checked,
-    autostart: $("#opt-autostart").checked,
+    installDir: ($("#opt-install-dir")?.textContent || "C:\\Program Files\\OPSQAI").trim(),
+    dataDir: ($("#opt-data-dir")?.textContent || "C:\\ProgramData\\OPSQAI").trim(),
   };
+
   state.data.database = dbMode === "external"
     ? {
         mode: "external",
