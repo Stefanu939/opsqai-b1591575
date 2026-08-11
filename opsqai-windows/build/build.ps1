@@ -537,10 +537,18 @@ if (-not $SkipOllama) {
 }
 
 # --- 6. Assets -------------------------------------------------------------
+# One approved branding source: public\brand\sovereign-mark.svg is rendered into
+# installer\nsis\assets\opsqai.ico (scripts\gen_icons.py) and mirrored to the
+# Electron apps. Every copy must be byte-identical or the build fails.
 $assetsDest = Join-Path $payload 'assets'
 New-Item -ItemType Directory -Force -Path $assetsDest | Out-Null
 $icon = Join-Path $root 'installer\nsis\assets\opsqai.ico'
-if (Test-Path $icon) { Copy-Item $icon $assetsDest -Force }
+Assert-Exists $icon 'OPSQAI Windows icon'
+Copy-Item $icon $assetsDest -Force
+Copy-Item $icon (Join-Path $root 'installer\wizard\assets\opsqai.ico') -Force
+New-Item -ItemType Directory -Force -Path (Join-Path $root 'desktop-shell\assets') | Out-Null
+Copy-Item $icon (Join-Path $root 'desktop-shell\assets\opsqai.ico') -Force
+
 
 # --- 6b. Payload guardrails ------------------------------------------------
 # Never ship a stub installer. These checks fail the build before makensis if
