@@ -934,6 +934,8 @@ function resetEmbeddedDatabase() {
   }
 
   writeInstallState("complete", "ready", null);
+  const totalSeconds = ((Date.now() - bootstrapStartedAt) / 1000).toFixed(1);
+  log(`bootstrap complete: installId=${installId} mode=${dbMode} ai=${config.ai?.provider || "unset"} elapsed=${totalSeconds}s`);
   log(`log: ${LOG_PATH}`);
   log("done");
 })().catch((e) => {
