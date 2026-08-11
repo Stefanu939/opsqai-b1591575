@@ -39,7 +39,6 @@ import { NotificationsBell } from "@/components/app/notifications-bell";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
-import { StaffPreviewBanner } from "@/components/app/staff-preview-banner";
 import { useLicense, hasModule } from "@/lib/license";
 import type { ModuleKey } from "@/lib/license-modules";
 // SupportWidget is mounted globally in __root.tsx so it appears on marketing
@@ -321,7 +320,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <div className="md:contents">
-          <StaffPreviewBanner />
           <SubscriptionStatusBanner />
           
           
