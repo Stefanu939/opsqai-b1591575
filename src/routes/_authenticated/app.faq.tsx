@@ -8,6 +8,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +24,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2, Download, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Upload, HelpCircle, SearchX } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertFaq, deleteFaq, listFaqs } from "@/lib/faqs.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
@@ -71,6 +74,7 @@ function FaqPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const save = useServerFn(upsertFaq);
   const del = useServerFn(deleteFaq);
   const fetchFaqs = useServerFn(listFaqs);
@@ -80,6 +84,7 @@ function FaqPage() {
     // Self-Hosted (local Postgres) resolve through their own repository.
     const rows = await fetchFaqs({ data: { company_id: scopeCompanyId ?? null } });
     setFaqs((rows ?? []) as unknown as Faq[]);
+    setLoading(false);
   };
   useEffect(() => {
     load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -132,8 +137,10 @@ function FaqPage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 max-w-4xl w-full mx-auto">
-      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("faq")}</h1>
+      <PageHeader
+        eyebrow="Self-hosted"
+        title={t("faq")}
+        actions={
         <div className="flex items-center gap-2">
           {canEditFaq && (
             <Button variant="outline" onClick={() => setExportOpen(true)}>
@@ -194,7 +201,8 @@ function FaqPage() {
             </Dialog>
           )}
         </div>
-      </div>
+        }
+      />
 
       <Input
         placeholder={t("search")}
@@ -203,8 +211,27 @@ function FaqPage() {
         className="mb-4"
       />
 
-      {filtered.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-muted-foreground">{t("noFaqs")}</Card>
+      {loading ? (
+        <Card className="p-2">
+          <div className="divide-y divide-border">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="px-3 py-3 space-y-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={faqs.length === 0 ? HelpCircle : SearchX}
+          title={faqs.length === 0 ? t("noFaqs") : "No FAQs match your search"}
+          description={
+            faqs.length === 0
+              ? undefined
+              : "Try a different search term or clear the search to see all FAQs."
+          }
+        />
       ) : (
         <Card className="p-2">
           <Accordion type="single" collapsible>
