@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { AcademySubnav } from "@/components/app/academy-subnav";
 import { AssignTrainingDialog } from "@/components/academy/assign-training-dialog";
+import { CreateCourseDialog } from "@/components/academy/create-course-dialog";
 
 export const Route = createFileRoute("/_authenticated/app/academy/")({
   component: MyTrainingHome,
@@ -80,6 +81,7 @@ function MyTrainingHome() {
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [assignOpen, setAssignOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const name = (user?.metadata as any)?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0];
 
@@ -151,8 +153,13 @@ function MyTrainingHome() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {hasPermission("academy.manage") && (
+              <Button onClick={() => setCreateOpen(true)} className="gap-2">
+                <PlusCircle className="h-4 w-4" /> Create course
+              </Button>
+            )}
             {hasPermission("academy.assign") && (
-              <Button onClick={() => setAssignOpen(true)} className="gap-2">
+              <Button onClick={() => setAssignOpen(true)} variant="secondary" className="gap-2">
                 <PlusCircle className="h-4 w-4" /> Assign training
               </Button>
             )}
