@@ -573,6 +573,19 @@ $provNode = if (Get-Command node -ErrorAction SilentlyContinue) { 'node' } else 
 if ($LASTEXITCODE -ne 0) { throw "bootstrap provenance check failed with $LASTEXITCODE" }
 Assert-Exists (Join-Path $payload 'services\bootstrap\build-provenance.json') 'bootstrap provenance record'
 
+# Icon provenance: the staged payload icon and both packaged Electron apps must
+# carry the approved Sovereign Mark. A placeholder or stale icon fails here.
+& $provNode (Join-Path $root 'build\verify-icons.mjs') `
+  '--source' $icon `
+  '--copy' (Join-Path $assetsDest 'opsqai.ico') `
+  '--copy' (Join-Path $root 'installer\wizard\assets\opsqai.ico') `
+  '--copy' (Join-Path $root 'desktop-shell\assets\opsqai.ico') `
+  '--exe' (Join-Path $payload 'wizard\OPSQAI-Wizard.exe') `
+  '--exe' (Join-Path $payload 'desktop-shell\OPSQAI.exe')
+if ($LASTEXITCODE -ne 0) { throw "icon verification failed with $LASTEXITCODE" }
+
+
+
 # Frontend/server provenance: prove WHICH frontend build is packaged. The
 # printed buildHash must match the "[provenance] frontend ..." line in the
 # platform service log, the Build line in the app shell sidebar, and
