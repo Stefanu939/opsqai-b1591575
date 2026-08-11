@@ -86,8 +86,27 @@ function assertContains(parent, child, label) {
       }
     }
 
+    # --- Frontend/server provenance: stamp identity INTO the bundle ---------
+    # VITE_OPSQAI_BUILD_* are statically replaced by Vite, so the built client
+    # and server both carry the exact version + commit. The content hash is
+    # recorded after staging (frontend-provenance.mjs) because it hashes the
+    # build output itself.
+    $buildCommit = 'unknown'
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+      $sha = (& git rev-parse HEAD 2>$null)
+      if ($LASTEXITCODE -eq 0 -and $sha) { $buildCommit = $sha.Trim() }
+    }
+    if ($env:GITHUB_SHA) { $buildCommit = $env:GITHUB_SHA }
+    # $Version may later gain a '-dev' suffix; provenance must use the value
+    # that was actually stamped into the bundle.
+    $script:FrontendVersion = $Version
+    $script:FrontendCommit  = $buildCommit
+    $env:VITE_OPSQAI_BUILD_VERSION = $Version
+    $env:VITE_OPSQAI_BUILD_COMMIT  = $buildCommit
+    Write-Host "Stamping frontend provenance: version=$Version commit=$buildCommit"
 
     & bun run build:selfhosted
+
     if ($LASTEXITCODE -ne 0) { throw "bun run build:selfhosted failed" }
 
 
@@ -499,6 +518,20 @@ $provNode = if (Get-Command node -ErrorAction SilentlyContinue) { 'node' } else 
   '--version' $Version
 if ($LASTEXITCODE -ne 0) { throw "bootstrap provenance check failed with $LASTEXITCODE" }
 Assert-Exists (Join-Path $payload 'services\bootstrap\build-provenance.json') 'bootstrap provenance record'
+
+# Frontend/server provenance: prove WHICH frontend build is packaged. The
+# printed buildHash must match the "[provenance] frontend ..." line in the
+# platform service log, the Build line in the app shell sidebar, and
+# /api/public/health on the installed machine.
+if (-not $SkipApp) {
+  & $provNode (Join-Path $root 'build\frontend-provenance.mjs') `
+    '--app' $appStage `
+    '--version' $script:FrontendVersion `
+    '--commit' $script:FrontendCommit
+  if ($LASTEXITCODE -ne 0) { throw "frontend provenance check failed with $LASTEXITCODE" }
+  Assert-Exists (Join-Path $appStage 'build-provenance.json') 'frontend provenance record'
+}
+
 
 Assert-Exists (Join-Path $payload 'services\updater\apply.js') 'update apply orchestrator'
 Assert-Exists (Join-Path $payload 'services\backup\create.js')    'backup create script'

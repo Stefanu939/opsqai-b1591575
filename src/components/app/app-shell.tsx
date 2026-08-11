@@ -20,6 +20,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
+import { BuildProvenanceLine } from "@/components/app/build-provenance-line";
+
 import { useAuth } from "@/lib/auth-context";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useT } from "@/i18n";
@@ -204,6 +206,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="px-3 py-1 text-[10px] text-sidebar-foreground/50">
           Mode: <span className="font-mono uppercase">{mode}</span>
         </div>
+        <BuildProvenanceLine />
+
       </nav>
       <div className="border-t border-sidebar-border p-3 space-y-2">
         <div className="flex items-center gap-2 px-1">
