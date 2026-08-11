@@ -495,7 +495,6 @@ async function waitForHealthProbe(label, url, getter, seconds) {
 // stale, which is what produced OPSQAI-E1507 at the vector-storage stage even
 // though the separate migrator process (which loads config.json from disk)
 // succeeded. Re-read the canonical config and merge the embedded credentials.
-let refreshedFromDisk = false;
 function refreshEmbeddedCredentialsFromDisk({ quiet = false } = {}) {
   if (config.database.mode !== "embedded") return false;
   try {
@@ -534,8 +533,9 @@ function pgArgs() {
   // supported source — never hardcoded, never printed. If it is still empty
   // in memory, the database service may have written it after we loaded the
   // config: re-read config.json once before giving up.
-  if (embedded && !(config.database.embedded?.password || "") && !refreshedFromDisk) {
-    refreshedFromDisk = true;
+  // Re-read on EVERY empty-password call: the database service may persist
+  // the generated credential at any point during bootstrap.
+  if (embedded && !(config.database.embedded?.password || "")) {
     refreshEmbeddedCredentialsFromDisk();
   }
   const port = embedded ? config.database.embedded.port : config.database.external.port;
@@ -732,7 +732,6 @@ function resetEmbeddedDatabase() {
     // The service generates the embedded password during initdb and persists
     // it into config.json. Our in-memory copy predates that, so refresh it
     // now — before any psql/vector-storage stage authenticates.
-    refreshedFromDisk = true;
     refreshEmbeddedCredentialsFromDisk();
 
   }
