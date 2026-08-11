@@ -1,87 +1,69 @@
-# Self-Hosted: fix the global provider bug, then close the UI gaps
+# Fix OPSQAI-E1507 on fresh installs — bootstrap holds a stale in-memory config
 
-## Root cause of "Cloud provider was reached inside a Self-Hosted build" (confirmed)
+## Confirmed root cause
 
-`src/start.ts` registers the Cloud auth attacher unconditionally:
+On a **fresh** install `init.js` writes `config.json` with an intentionally empty embedded
+password (`init.js:225-231`): the `OpsqaiDatabase` service generates it during `initdb` and
+persists it back to `config.json` itself (`services/database/index.js:62-68`).
 
-```
-functionMiddleware: [ attachSupabaseAuth, providerBootstrapFunctionMiddleware, attachPlatformAuth ]
-```
+`init.js` then keeps using the **in-memory** `config` object it built *before* the service ran:
 
-In a Self-Hosted build, `@/integrations/supabase/auth-attacher` is aliased to the throwing
-stub (`src/lib/providers/stubs/cloud-stub.ts`), so `attachSupabaseAuth` is a Proxy that throws
-on any property access. TanStack touches that middleware on **every server-function call**, so
-every interactive feature — AI Chat, Bubble Chat, Knowledge, FAQ, AI Audit — fails with that
-exact message. This is one architectural bug, not many feature bugs.
+- `pgArgs()` (`init.js:492-503`) reads `config.database.embedded?.password` — still `""`.
+- `describePgTarget()` (`init.js:509-520`) logs `pgpassword=MISSING` and throws
+  `OPSQAI-E1507`.
 
-Second-order effect that explains the "missing buttons": `bootstrapSession()` is a server
-function, so it fails too. `auth-context.tsx` then falls back to `roles: []`,
-`permissions: new Set()`. Every primary action is permission-gated, so the buttons vanish:
+That is exactly what the log shows: migrations 0001–0017 all succeed (because `migrate.mjs`
+runs as a separate process and loads `config.json` from disk, so it sees the generated
+password), admin seeding succeeds, Ollama and `bge-m3` verify at 1024 dims — and only the
+vector-storage stage, which uses the in-process `config`, fails.
 
-- `app.audit.tsx` — `canRun = hasPermission("ai_audit.run")` gates both the header button and
-  the empty-state "Run audit" button.
-- `app.knowledge.tsx` — `canEdit = isAdmin || isManager` gates the Upload dialog trigger and
-  the empty-state CTA.
-- `app.faq.tsx` — Add FAQ / Import / Export exist but the page depends on the same session.
+The previous credential fix was correct but incomplete: it fixed *where* the password is read
+from, not *when*. A retry "worked" earlier only because the second run found the password
+already on disk via `priorEmbeddedPassword`.
 
-The buttons are already implemented; they are hidden because the session bootstrap dies.
+## Fix (single file: `opsqai-windows/services/bootstrap/init.js`)
 
-## Verified feature matrix (from source, pre-fix)
+1. **Re-read the canonical config after the database service is up.** Right after
+   `postgres ready on 127.0.0.1:<port>`, reload `config.json` from disk with the existing
+   BOM-tolerant `readJsonFile()` and merge the embedded credentials
+   (`database.embedded.password`, `database.embedded.port`) into the in-memory `config`.
+   Log `refreshed embedded database credentials from config.json` — status only, never the value.
+2. **Make `pgArgs()` resilient rather than cached.** When the embedded password is empty, it
+   re-reads `config.json` once before giving up, so any later stage picks up a password written
+   by the service after bootstrap started.
+3. **Keep the fail-fast, but only when it is genuinely absent.** `describePgTarget()` keeps
+   `OPSQAI-E1507` and its actionable message for the real case (no password on disk either).
+   `scrubSecrets()` continues to mask the value in all output.
 
-| Feature | UI complete | Primary action present | Self-Hosted backend | Cloud dependency | Status |
-| --- | --- | --- | --- | --- | --- |
-| AI Chat | yes | send message | `/api/chat` → `resolveChatModel` (Ollama), pg repos, pgvector | none | blocked by start.ts stub |
-| Bubble Chat | yes | send message | `chat.functions.ts` → `pg-direct-message-repository` | none | blocked by start.ts stub |
-| Knowledge | yes (Upload dialog, versions, reindex, export) | Upload document | `kb.functions.ts` → `pg-knowledge-repository`, NTFS storage, local embeddings | none | blocked + hidden by empty permissions |
-| FAQ | yes (Add / Import / Export) | Add FAQ | `faqs.functions.ts` → `pg-faq-repository` | none | blocked by start.ts stub |
-| AI Audit | yes (Run audit, history, empty state) | Run audit | `runWorkspaceAudit` → local knowledge + FAQ repos, `pg-ai-audit-repository` | none | blocked + hidden by `ai_audit.run` gate |
-| Academy | pages exist | varies | `academy-lms.functions.ts` + `pg-academy-repository` exist, but `academy.functions.ts` is wrapped in `getCloudSupabase(...)` | yes — Cloud-gated calls | needs routing to the local repository |
-| Organization | yes (logo upload, company tab) | save / upload logo | `selfhost-config.server.ts`, pg company/profile repos | none | blocked by start.ts stub |
-| Updates | yes | check / apply | local updater service | none | verify after fix |
-| Modules | yes | entitlements from license JWT | `local-licensing.server.ts` | none | verify after fix |
-| My Profile | yes | save profile | `pg-profile-repository` | none | verify after fix |
-| Support & Tickets | yes | create ticket | none — `support.functions.ts` is fully `getCloudSupabase` | yes, by design | must show an explicit "not available on Self-Hosted" state instead of an error |
+Everything else stays untouched: installId preservation, the orphaned-data-dir auto-reset gate,
+migration order and fingerprints, admin seeding, the Ollama install/pull guards, stage names,
+error codes, and build provenance logging. Re-running the failed install resumes at the
+vector-storage stage without redownloading models or rerunning applied migrations.
 
-RBAC is correctly seeded locally: migration `0012` seeds the permission catalog (including
-`ai_audit.run`), `0013` grants every permission to `platform_owner`/`platform_admin`, and
-`admin-seed.mjs` assigns `platform_owner` to the setup account.
+## Tests (`opsqai-windows/services/__tests__/`)
 
-## Implementation
+Extend `bootstrap-psql-credentials.test.ts`:
 
-### Phase 1 — Platform-gated function middleware (the architectural fix)
-Replace the static Cloud attacher in `src/start.ts` with a single platform-aware middleware that
-resolves the token through the registered browser auth provider and only reaches the Supabase
-attacher when the platform mode is Cloud (dynamic import after the mode check, the pattern
-already used by `cloud-client.ts` and `not-available.ts`). Self-Hosted keeps
-`attachPlatformAuth` only. No stub module is evaluated in Self-Hosted anymore.
+1. **Fresh-install regression:** `config.json` starts with `password: ""`; a fake database
+   service writes a generated password into `config.json` while bootstrap is running; the
+   vector-storage stage then reports `pgpassword=set` and calls
+   `SELECT public.kb_apply_embedding_dim(1024)` with `PGPASSWORD` equal to that password —
+   asserted to fail before the fix.
+2. **Genuinely missing:** no password in config and none on disk still yields `OPSQAI-E1507`
+   naming `config.database.embedded.password`.
+3. **Secret hygiene:** the password appears in no argv, stdout, stderr, or log content.
+4. External mode keeps resolving from `config.database.external`.
 
-### Phase 2 — Guardrail so this cannot regress
-Extend `opsqai-windows/build/verify-source-imports.mjs` (and its test) to fail the build when a
-module reachable from `src/start.ts`, `src/router.tsx`, or `src/routes/__root.tsx` statically
-imports `@/integrations/supabase/*` (types excluded). Add a unit test asserting the Self-Hosted
-middleware chain contains no Cloud attacher.
+Then run both vitest configs and confirm no regressions.
 
-### Phase 3 — Verify the five acceptance flows against local providers
-With the fix in place, run each flow and confirm the provider path: chat → Ollama chat model;
-knowledge upload → extract → chunk → bge-m3 embeddings → pgvector; FAQ create → local table →
-retrieved by chat; audit run → score/history from local repos; bubble chat → pg messages.
-Fix only what these runs actually break; no rewrites.
+## Not in scope
 
-### Phase 4 — Academy on local repositories
-Route the Self-Hosted Academy surfaces through the existing `academy-lms.functions.ts` /
-`pg-academy-repository` path and stop calling the `getCloudSupabase`-wrapped
-`academy.functions.ts` from `/app/academy/*`. No new repository is created.
-
-### Phase 5 — Honest degradation for Cloud-only surfaces
-Support & Tickets (and any other `FeatureNotAvailableError` surface) renders a clear
-"handled by your OPSQAI vendor portal" state instead of a runtime error. Navigation hides
-entries that cannot work locally.
-
-## Out of scope
-No changes to the Windows bootstrap, embedded PostgreSQL, migrations 0001–0017, Ollama staging,
-or the payload packer. Nothing in the installer pipeline is touched.
+No change to migrations, the packer, NSIS, Ollama staging, or the app/Cloud code. This is one
+timing bug in the bootstrap script.
 
 ## Acceptance
-On a clean Windows Self-Hosted install: AI Chat and Bubble Chat answer from local Ollama;
-Knowledge upload reaches `Ready` with pgvector chunks; FAQ entries are created and retrieved by
-chat; AI Audit produces a score plus history — and no operation evaluates a Cloud module.
+
+A clean Windows install reaches `STAGE ai engine: configuring vector storage` with
+`pgpassword=set`, prints `vector storage pinned to embedding dimension 1024`, then
+`STAGE ai engine ready (ollama, 1024 dims)` and `bootstrap complete` — on the **first** run, with
+no retry needed.
