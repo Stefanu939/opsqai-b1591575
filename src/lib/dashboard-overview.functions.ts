@@ -55,7 +55,9 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
       users,
       departments,
       displayName,
+      firstName,
       companyName,
       isEmpty: documents === 0 && users <= 1 && departments === 0,
     };
+
   });
