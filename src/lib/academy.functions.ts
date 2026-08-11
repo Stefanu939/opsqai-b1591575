@@ -536,7 +536,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
     const chunks = await knowledgeRepo.getChunksForDocuments(data.document_ids, 400);
     const byDoc: Record<string, string> = {};
     for (const c of chunks) {
-      byDoc[c.documentId] = (byDoc[c.documentId] ?? "") + "\n" + c.content;
+      byDoc[c.document_id] = (byDoc[c.document_id] ?? "") + "\n" + c.content;
     }
     const corpus = (docs ?? [])
       .map((d) => `### SOP: ${d.title}\n${(byDoc[d.id] ?? "").slice(0, 6000)}`)
