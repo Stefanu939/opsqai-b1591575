@@ -84,8 +84,8 @@ function httpJson(url, { method = "GET", body = null, timeout = 20_000 } = {}) {
 function ensureInstalled(log, setupExe) {
   const existing = ollamaExe();
   if (existing) {
-    log(`ollama already installed: ${existing}`);
-    return existing;
+    log(`ollama runtime already installed: ${existing}`);
+    return { exe: existing, installedNow: false };
   }
   if (!setupExe || !fs.existsSync(setupExe)) {
     throw new AiSetupError(
@@ -93,23 +93,26 @@ function ensureInstalled(log, setupExe) {
       `Ollama is not installed and the bundled setup was not found at ${setupExe || "(unset)"}`,
     );
   }
-  log(`installing Ollama from ${setupExe}`);
+  log(`ollama runtime not found; installing from ${setupExe}`);
+  const startedAt = Date.now();
   const r = spawnSync(setupExe, ["/allusers", "/silent"], {
     encoding: "utf8",
     windowsHide: true,
     timeout: 15 * 60_000,
   });
+  const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
   if (r.status !== 0) {
     throw new AiSetupError(
       "OPSQAI-E1501",
-      `Ollama setup exited with ${r.status}: ${(r.stderr || r.stdout || "").slice(0, 300)}`,
+      `Ollama setup exited with ${r.status} after ${elapsed}s: ${(r.stderr || r.stdout || "").slice(0, 300)}`,
     );
   }
   const found = ollamaExe();
   if (!found) {
     throw new AiSetupError("OPSQAI-E1501", "Ollama setup completed but ollama.exe was not found");
   }
-  return found;
+  log(`ollama runtime installed at ${found} in ${elapsed}s`);
+  return { exe: found, installedNow: true };
 }
 
 /** 2. Start the runtime and wait for the local API to answer. */
@@ -259,22 +262,36 @@ async function setupAiEngine(deps) {
     embedding: cfg.embeddingModel || cfg.embedding_model || "bge-m3",
   };
 
+  const aiStartedAt = Date.now();
   stage("ai engine: installing Ollama runtime");
-  const exe = ensureInstalled(log, setupExe);
+  const { exe, installedNow } = ensureInstalled(log, setupExe);
 
   stage("ai engine: starting local runtime");
   await ensureRunning(log, exe, cfg);
 
   let tags = await listModels(cfg);
+  log(`ollama has ${tags.length} model tag(s) present`);
 
   stage("ai engine: downloading chat model");
-  if (!hasModel(tags, models.chat)) await pullModel(log, exe, models.chat);
-  if (models.fast && models.fast !== models.chat && !hasModel(tags, models.fast)) {
-    await pullModel(log, exe, models.fast);
+  if (!hasModel(tags, models.chat)) {
+    await pullModel(log, exe, models.chat);
+  } else {
+    log(`chat model ${models.chat} already present — skipping pull`);
+  }
+  if (models.fast && models.fast !== models.chat) {
+    if (!hasModel(tags, models.fast)) {
+      await pullModel(log, exe, models.fast);
+    } else {
+      log(`fast chat model ${models.fast} already present — skipping pull`);
+    }
   }
 
   stage("ai engine: downloading embedding model");
-  if (!hasModel(tags, models.embedding)) await pullModel(log, exe, models.embedding);
+  if (!hasModel(tags, models.embedding)) {
+    await pullModel(log, exe, models.embedding);
+  } else {
+    log(`embedding model ${models.embedding} already present — skipping pull`);
+  }
 
   stage("ai engine: verifying models");
   tags = await listModels(cfg);
@@ -282,6 +299,7 @@ async function setupAiEngine(deps) {
     if (name && !hasModel(tags, name)) {
       throw new AiSetupError("OPSQAI-E1504", `${role} model ${name} is not installed after pull`);
     }
+    log(`model verification ok: ${role}=${name}`);
   }
 
   stage("ai engine: probing embedding dimension");
@@ -290,6 +308,7 @@ async function setupAiEngine(deps) {
 
   stage("ai engine: configuring vector storage");
   await applyDim(dim);
+  log(`vector storage pinned to embedding dimension ${dim}`);
 
   stage("ai engine: chat health check");
   const reply = await chatTest(cfg, models.chat);
@@ -303,8 +322,15 @@ async function setupAiEngine(deps) {
       `embedding dimension is unstable (${dim} then ${confirmDim})`,
     );
   }
+  log(`embedding health check ok (${confirmDim} dims)`);
 
   stage("ai engine ready");
+  const totalAiSeconds = ((Date.now() - aiStartedAt) / 1000).toFixed(1);
+  log(
+    `ai engine summary: provider=ollama runtime=${installedNow ? "installed-now" : "already-present"} ` +
+      `chat=${models.chat} fast=${models.fast || "(none)"} embedding=${models.embedding} dim=${dim} ` +
+      `elapsed=${totalAiSeconds}s`,
+  );
   return {
     provider: "ollama",
     baseUrl: baseUrl(cfg),

@@ -204,10 +204,11 @@ try {
 // UUID. An explicitly passed --install-id only wins on a fresh install.
 const installId = priorInstallId || (isUuid(installIdArg) ? installIdArg : crypto.randomUUID());
 if (priorInstallId) {
-  log(`preserving existing installId ${installId}`);
+  log(`preserving existing installId ${installId} (continuation / retry of prior run)`);
 } else {
-  log(`generated installId ${installId}`);
+  log(`generated installId ${installId} (fresh install)`);
 }
+const bootstrapStartedAt = Date.now();
 if (!isUuid(installId)) {
   console.error("[bootstrap] refusing to write config.json without a valid installId");
   process.exit(2);
@@ -933,6 +934,8 @@ function resetEmbeddedDatabase() {
   }
 
   writeInstallState("complete", "ready", null);
+  const totalSeconds = ((Date.now() - bootstrapStartedAt) / 1000).toFixed(1);
+  log(`bootstrap complete: installId=${installId} mode=${dbMode} ai=${config.ai?.provider || "unset"} elapsed=${totalSeconds}s`);
   log(`log: ${LOG_PATH}`);
   log("done");
 })().catch((e) => {
