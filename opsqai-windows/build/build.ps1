@@ -228,7 +228,39 @@ function assertContains(parent, child, label) {
   if (-not (Test-Path (Join-Path $appStage 'server\index.mjs'))) {
     Write-Warning "payload\app\server\index.mjs missing — installer bootstrap will skip migrations."
   }
+  if ($Configuration -eq 'Release') {
+    # A Release installer must never ship an unverified frontend. -SkipApp is
+    # a dev shortcut: it reuses whatever is already staged in payload\app and
+    # skips provenance stamping, so the EXE could silently contain an old
+    # bundle. Allow it only when the staged tree still verifies against its
+    # own provenance record AND that record matches the requested identity.
+    $provRecord = Join-Path $appStage 'build-provenance.json'
+    if (-not (Test-Path $provRecord)) {
+      throw "Release build refuses -SkipApp: $provRecord is missing, so the staged payload\app cannot be verified. Re-run without -SkipApp."
+    }
+    $verifyNode = (Get-Command node -ErrorAction SilentlyContinue)
+    if (-not $verifyNode) {
+      throw "Release build refuses -SkipApp: node is required to verify the staged payload\app provenance."
+    }
+    & $verifyNode.Source (Join-Path $PSScriptRoot 'frontend-provenance.mjs') '--app' $appStage '--verify'
+    if ($LASTEXITCODE -ne 0) {
+      throw "Release build refuses -SkipApp: staged payload\app failed frontend provenance verification (content does not match build-provenance.json)."
+    }
+    $staged = Get-Content $provRecord -Raw | ConvertFrom-Json
+    $wantCommit = if ($env:GITHUB_SHA) { $env:GITHUB_SHA } elseif (Get-Command git -ErrorAction SilentlyContinue) { (& git rev-parse HEAD 2>$null) } else { $null }
+    if ($wantCommit) { $wantCommit = $wantCommit.Trim() }
+    if ($staged.version -ne $Version) {
+      throw "Release build refuses -SkipApp: staged payload\app was built for version '$($staged.version)' but this build requests '$Version'."
+    }
+    if ($wantCommit -and $staged.commit -ne $wantCommit) {
+      throw "Release build refuses -SkipApp: staged payload\app was built from commit '$($staged.commit)' but this build requests '$wantCommit'."
+    }
+    Write-Host "Release -SkipApp accepted: staged payload\app verified (version=$($staged.version) commit=$($staged.commit) buildHash=$($staged.buildHash))"
+    $script:FrontendVersion = $staged.version
+    $script:FrontendCommit  = $staged.commit
+  }
 }
+
 
 
 function Fetch($url, $dest) {
