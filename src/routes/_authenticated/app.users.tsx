@@ -77,6 +77,38 @@ function UsersPage() {
   const [role, setRole] = useState("employee");
   const [temporaryPassword, setTemporaryPassword] = useState("");
 
+  // Edit dialog — roles and names, no password reset involved.
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [editRole, setEditRole] = useState("employee");
+
+  const openEdit = (r: UserRow) => {
+    setEditUser(r);
+    setEditFirst(r.first_name ?? "");
+    setEditLast(r.last_name ?? "");
+    setEditRole(r.roles?.[0] ?? "employee");
+  };
+
+  const saveEdit = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          user_id: editUser!.id,
+          first_name: editFirst || null,
+          last_name: editLast || null,
+          roles: [editRole],
+        },
+      }),
+    onSuccess: () => {
+      toast.success("User updated");
+      setEditUser(null);
+      qc.invalidateQueries({ queryKey: ["app-users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   const invite = useMutation({
     mutationFn: () =>
       selfHosted
