@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -109,7 +110,20 @@ function AiAuditPage() {
         />
       </div>
 
-      {audits.length === 0 ? (
+      {list.isLoading ? (
+        <div className="grid md:grid-cols-[1fr_1.5fr] gap-4">
+          <Card className="p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </Card>
+          <Card className="p-4 space-y-3">
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </Card>
+        </div>
+      ) : audits.length === 0 ? (
         <EmptyState
           icon={LineChart}
           title="No audits yet"
