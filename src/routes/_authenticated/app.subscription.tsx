@@ -3,6 +3,7 @@ import { useLicense } from "@/lib/license";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Check, Lock } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const Route = createFileRoute("/_authenticated/app/subscription")({
   head: () => ({ meta: [{ title: "Subscription — OPSQAI" }] }),
@@ -23,16 +24,16 @@ function SubscriptionPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-6 space-y-8">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {selfhost ? "Licensed modules" : "Your subscription"}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {selfhost
+      <PageHeader
+        eyebrow="Self-hosted"
+        title={selfhost ? "Licensed modules" : "Your subscription"}
+        description={
+          selfhost
             ? "Basic bundle is always included. Extra modules unlock from the activation bundle installed on this server — no internet connection required."
-            : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."}
-        </p>
-      </header>
+            : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."
+        }
+        className="mb-0"
+      />
 
 
       <section>
