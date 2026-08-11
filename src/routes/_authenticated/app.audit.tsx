@@ -132,6 +132,10 @@ function AiAuditPage() {
         />
       </div>
 
+      <RecommendationsSection companyId={activeCompanyId ?? null} />
+
+
+
       {list.isLoading ? (
         <div className="grid md:grid-cols-[1fr_1.5fr] gap-4">
           <Card className="p-4 space-y-3">
