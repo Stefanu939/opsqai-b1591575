@@ -157,6 +157,29 @@ describe("bootstrap psql credentials", () => {
     rmSync(dataRoot, { recursive: true, force: true });
   });
 
+  it("re-reads config.json when the password is written after bootstrap started (fresh install)", () => {
+    // FRESH INSTALL ordering: init.js loads config.json before the database
+    // service exists, so its in-memory embedded password is empty; the service
+    // generates and persists the real one during initdb. Without a re-read the
+    // vector-storage stage died with OPSQAI-E1507 / fe_sendauth.
+    const { dataRoot, pfRoot, callLog } = sandbox(
+      { ...EMBEDDED, database: { mode: "embedded", embedded: { port: 55432, password: "" } } },
+      { writePasswordOnFirstCall: true },
+    );
+    const r = runInit(dataRoot, pfRoot);
+    const recorded = calls(callLog);
+    expect(recorded.length).toBeGreaterThan(1);
+    // The first attempt has no password (nothing on disk yet), every later
+    // attempt must pick up the persisted credential.
+    expect(recorded.slice(1).every((c) => c.PGPASSWORD === PASSWORD)).toBe(true);
+    const out = `${r.stdout || ""}\n${bootstrapLogs(dataRoot)}`;
+    expect(out).toContain("refreshed embedded database credentials from config.json");
+    expect(out).not.toContain(PASSWORD);
+    rmSync(dataRoot, { recursive: true, force: true });
+  });
+
+
+
   it("resolves external-mode credentials from the external database config", () => {
     const external = {
       host: "db.internal",
