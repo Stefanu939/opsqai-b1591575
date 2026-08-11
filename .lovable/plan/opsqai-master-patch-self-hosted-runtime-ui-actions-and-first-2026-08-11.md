@@ -15,9 +15,10 @@ Chat, Bubble Chat, Knowledge, FAQ, AI Audit, Organization and My Profile all fai
 "Cloud provider was reached inside a Self-Hosted build."
 
 Replace it with a single platform-aware function middleware that, in its `.client()` phase:
+
 - Self-Hosted: attaches the local session bearer via the existing platform auth path only.
 - Cloud: `await import()`s the Supabase attacher lazily and delegates, exactly the pattern already
-  used by `cloud-client.ts` / `not-available.ts`.
+used by `cloud-client.ts` / `not-available.ts`.
 
 `providerBootstrapFunctionMiddleware` and `attachPlatformAuth` keep their current order. No Supabase
 fallback, no disabled auth.
@@ -32,6 +33,7 @@ no Cloud attacher.
 ### A3. Verify the local flows end to end
 
 With the middleware fixed, exercise and repair each path (local providers only):
+
 - AI Chat → `/api/chat` → `resolveChatModel` → Ollama → pgvector.
 - Bubble Chat → `chat.functions.ts` → `pg-direct-message-repository`.
 - Knowledge upload → extraction → chunking → bge-m3 → pgvector → **Ready**.
@@ -137,4 +139,65 @@ build-time and runtime `init.js` hashes.
 
 Note on honesty: I can make the source, guardrails and tests green here, but the clean-install
 acceptance and the runtime hash proof require you to run the produced installer on a clean Windows
-machine — I will state clearly which items are verified locally and which await your install run.
+machine — I will state clearly which items are verified locally and which await your install run.  
+Criteriul final pentru installer
+
+Nu ne mulțumim cu „testele sunt verzi”. Pe Windows vrem să vedem efectiv:
+
+```
+
+```
+
+```
+[bootstrap] init.js sha256=<HASH> build=0.1.xxx
+...
+[bootstrap] STAGE ai engine: configuring vector storage
+[bootstrap] vector storage: psql host=127.0.0.1 port=55432 user=opsqai db=opsqai pgpassword=set
+[bootstrap] vector storage pinned to embedding dimension 1024
+[bootstrap] STAGE ai engine ready (ollama, 1024 dims)
+...
+[bootstrap] bootstrap complete
+```
+
+și **zero**:
+
+```
+
+```
+
+```
+fe_sendauth: no password supplied
+```
+
+Iar hash-ul din prima linie trebuie să fie același cu hash-ul produs la build.
+
+### Criteriul final pentru Self-Hosted
+
+După instalare și login:
+
+- **Chat** → Ollama local  
+
+- **Bubble Chat** → Ollama/local DB  
+
+- **Knowledge** → Upload SOP/document → processing → `Ready` → embeddings bge-m3 → pgvector  
+
+- **FAQ** → Add / Import / Export / Edit / Delete  
+
+- **AI Audit** → buton vizibil → rulează local → score/history  
+
+- **Academy** → repository local  
+
+- **Organization/Profile** → funcționează local  
+
+- **Cloud-only** → mesaj clar, nu eroare Cloud  
+
+- **RBAC** → rămâne activ, nu facem bypass doar ca să apară butoanele  
+
+- **UI/UX** → modificat efectiv conform imaginilor tale, nu doar cod schimbat în backend.  
+
+
+Și mai ales, problema pe care ai văzut-o acum:
+
+> `Cloud provider was reached inside a Self-Hosted build`
+
+trebuie să dispară **global**, nu să reparăm Chat, apoi Bubble Chat, apoi FAQ individual. Root cause-ul este middleware-ul și îl reparăm acolo.

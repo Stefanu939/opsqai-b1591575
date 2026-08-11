@@ -1,11 +1,15 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
+// `attachPlatformAuth` is the single, platform-aware bearer attacher: on
+// Cloud the registry resolves the Supabase-backed browser auth provider, on
+// Self-Hosted the local one. The generated Cloud attacher
+// (`@/integrations/supabase/auth-attacher`) must NOT be registered here — in
+// Self-Hosted builds it resolves to the throwing Cloud stub, and TanStack
+// touches every registered function middleware on every RPC, which broke AI
+// Chat, Knowledge, FAQ, AI Audit and friends globally.
 import { attachPlatformAuth } from "@/lib/providers/auth-attacher";
-// attachSupabaseAuth stays registered for Cloud (and for the middleware
-// context typing it contributes). In Self-Hosted builds the vite stub plugin
-// rewrites @/integrations/supabase/* to inert stubs, so nothing Cloud ships.
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+
 
 const HEALTH_PATHS = new Set(["/health", "/api/public/ready", "/api/public/health"]);
 
@@ -80,11 +84,8 @@ const providerBootstrapRequestMiddleware = createMiddleware().server(
 );
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [
-    attachSupabaseAuth,
-    providerBootstrapFunctionMiddleware,
-    attachPlatformAuth,
-  ],
+  functionMiddleware: [providerBootstrapFunctionMiddleware, attachPlatformAuth],
+
   requestMiddleware: [errorMiddleware, providerBootstrapRequestMiddleware],
 }));
 
