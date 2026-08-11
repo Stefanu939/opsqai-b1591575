@@ -518,6 +518,48 @@ export interface IKnowledgeGapRepository {
   matchExisting(companyId: string, questionNormalized: string): Promise<string | null>;
   incrementOccurrence(id: string): Promise<void>;
   create(input: KnowledgeGapCreateInput): Promise<{ id: string }>;
+
+  /**
+   * Company-scoped gap list, already enriched with the display names the
+   * Knowledge Gaps page renders (department, reporter, resolved SOP/FAQ).
+   */
+  list(companyId: string, limit: number): Promise<KnowledgeGapListRow[]>;
+  update(companyId: string, id: string, patch: KnowledgeGapPatch): Promise<void>;
+  remove(companyId: string, id: string): Promise<void>;
+}
+
+export interface KnowledgeGapListRow {
+  id: string;
+  question_sample: string;
+  question_normalized: string;
+  occurrences: number;
+  first_seen: string;
+  last_seen: string;
+  status: string;
+  assignee_id: string | null;
+  resolution: string | null;
+  resolved_document_id: string | null;
+  resolved_faq_id: string | null;
+  department_id: string | null;
+  created_by: string | null;
+  confidence: number | null;
+  source_thread_id: string | null;
+  source_message_id: string | null;
+  resolution_date: string | null;
+  updated_at: string;
+  department_name: string | null;
+  created_by_name: string | null;
+  resolved_document: { id: string; title: string; doc_code: string | null } | null;
+  resolved_faq: { id: string; question_en: string | null } | null;
+}
+
+export interface KnowledgeGapPatch {
+  status?: "open" | "in_progress" | "resolved" | "ignored";
+  assignee_id?: string | null;
+  resolution?: "sop" | "faq" | "dismissed" | null;
+  resolved_document_id?: string | null;
+  resolved_faq_id?: string | null;
+  resolution_date?: string | null;
 }
 
 export interface IntegrationRecord {
