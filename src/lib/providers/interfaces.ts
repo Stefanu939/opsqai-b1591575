@@ -554,6 +554,82 @@ export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRep
 export type RbacAdminRepositoryFactory = (dataCtx: unknown) => IRbacAdminRepository;
 export type DirectMessageRepositoryFactory = (dataCtx: unknown) => IDirectMessageRepository;
 export type AiAuditRepositoryFactory = (dataCtx: unknown) => IAiAuditRepository;
+export type DashboardRepositoryFactory = (dataCtx: unknown) => IDashboardRepository;
+
+// --------------------------------------------------------------------
+// Dashboard read models
+//
+// Cloud delegates to the `dashboard_*` SQL functions; Self-Hosted computes
+// the same shapes from the local PostgreSQL schema. The returned shapes are
+// the contract the dashboard UI renders, so both must stay identical.
+// --------------------------------------------------------------------
+
+export interface DashboardKpis {
+  questionsAnswered: number;
+  questions30d: number;
+  questionsToday: number;
+  avgConfidence: number;
+  openGaps: number;
+  criticalSops: number;
+  documents: number;
+  faqs: number;
+  aiAudits: number;
+  auditEvents: number;
+  activeUsers: number;
+}
+
+export interface DashboardHealth {
+  score: number;
+  label: string;
+  breakdown: Record<string, number>;
+}
+
+export interface DashboardKnowledgeStatus {
+  complete: number;
+  inProgress: number;
+  missing: number;
+}
+
+export interface DashboardTopSop {
+  code: string | null;
+  title: string | null;
+  usage: number;
+  updatedAt: string | null;
+}
+
+export interface DashboardCriticalSop {
+  id: string;
+  title: string;
+  code: string | null;
+  version: number;
+  updatedAt: string | null;
+  reason: string;
+}
+
+export interface DashboardActivityRow {
+  bucket: string;
+  questions: number;
+  conversations: number;
+  users: number;
+  aiResponses: number;
+}
+
+export interface IDashboardRepository {
+  kpis(companyId: string): Promise<DashboardKpis>;
+  health(companyId: string): Promise<DashboardHealth>;
+  knowledgeStatus(companyId: string): Promise<DashboardKnowledgeStatus>;
+  topSops(companyId: string, limit: number): Promise<DashboardTopSop[]>;
+  criticalSops(companyId: string): Promise<DashboardCriticalSop[]>;
+  lastAiAudit(companyId: string): Promise<AiAuditRecord | null>;
+  activity(
+    companyId: string,
+    from: string,
+    to: string,
+    bucket: "hour" | "day" | "week",
+  ): Promise<DashboardActivityRow[]>;
+  getLayout(userId: string): Promise<unknown | null>;
+  saveLayout(userId: string, layout: unknown): Promise<void>;
+}
 
 // --------------------------------------------------------------------
 // FAQs
