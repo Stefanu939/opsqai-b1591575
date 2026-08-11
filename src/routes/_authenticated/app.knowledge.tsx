@@ -513,35 +513,38 @@ function KnowledgePage() {
         </div>
       </div>
 
-      {visibleDocs.length === 0 ? (
-        <Card className="p-10 text-center border-dashed">
-          {docs.length === 0 ? (
-            <img
-              src={emptyKnowledgeIllustration}
-              alt=""
-              loading="lazy"
-              className="h-40 w-auto mx-auto mb-4 opacity-90 select-none pointer-events-none"
-            />
-          ) : (
-            <div className="mx-auto h-14 w-14 rounded-2xl bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center mb-4">
-              <Archive className="h-6 w-6 text-gold" />
+      {loading ? (
+        <div className="grid gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-border bg-card p-4 flex items-start gap-3">
+              <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-2/3" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
             </div>
-          )}
-          <p className="font-display text-lg font-medium text-foreground">
-            {docs.length === 0 ? t("noDocs") : "No documents match your filters"}
-          </p>
-          <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-            {docs.length === 0
+          ))}
+        </div>
+      ) : visibleDocs.length === 0 ? (
+        <EmptyState
+          illustration={docs.length === 0 ? emptyKnowledgeIllustration : undefined}
+          icon={docs.length === 0 ? undefined : Archive}
+          title={docs.length === 0 ? t("noDocs") : "No documents match your filters"}
+          description={
+            docs.length === 0
               ? "Upload your first SOP, manual or procedure to make it searchable by the OPSQAI AI."
-              : "Try a different category or clear the search to see more results."}
-          </p>
-          {canEdit && docs.length === 0 && (
-            <Button className="mt-5" onClick={() => setOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              {t("upload")}
-            </Button>
-          )}
-        </Card>
+              : "Try a different category or clear the search to see more results."
+          }
+          action={
+            canEdit && docs.length === 0 ? (
+              <Button onClick={() => setOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                {t("upload")}
+              </Button>
+            ) : undefined
+          }
+        />
 
       ) : (
         <div className="grid gap-3">
