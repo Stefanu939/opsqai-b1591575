@@ -256,7 +256,12 @@ const WIZARD_SHELL_HTML = String.raw`
     <section class="pane" data-pane="6" hidden>
       <header class="pane-head">
         <h1>Create the first administrator</h1>
-        <p class="lead">This account has full access to OPSQAI. You can add more users after installation.</p>
+        <p class="lead">
+          This creates the first local OPSQAI platform administrator for this
+          Self-Hosted installation. It is not an OPSQAI Cloud account and it is
+          stored only in your own database. You can add more users afterwards.
+        </p>
+
       </header>
 
       <div class="form">
