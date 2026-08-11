@@ -11,6 +11,7 @@ import type {
   KnowledgeDocumentInsert,
   KnowledgeDocumentRow,
   KnowledgeMatch,
+  KnowledgeVersionInsert,
 } from "@/lib/providers/interfaces";
 
 type Client = SupabaseClient<Database>;
@@ -196,6 +197,74 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
         .limit(limit);
       if (error) throw new Error(error.message);
       return (data ?? []) as KnowledgeChunkContentRow[];
+    },
+
+    async getVersionAnchor(id) {
+      const { data, error } = await client
+        .from("knowledge_documents")
+        .select("id, company_id, doc_code, version, parent_document_id")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return (data as never) ?? null;
+    },
+
+    async markReplaced(id) {
+      const { error } = await client
+        .from("knowledge_documents")
+        .update({ is_active: false, replaced_at: new Date().toISOString() } as never)
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+
+    async insertVersion(input: KnowledgeVersionInsert) {
+      const { data, error } = await client
+        .from("knowledge_documents")
+        .insert({
+          company_id: input.company_id,
+          title: input.title,
+          category: input.category,
+          doc_code: input.doc_code ?? null,
+          file_path: input.file_path,
+          file_type: input.file_type,
+          content_text: "",
+          status: "processing",
+          uploaded_by: input.uploaded_by ?? null,
+          version: input.version,
+          is_active: true,
+          parent_document_id: input.parent_document_id,
+          change_notes: input.change_notes ?? null,
+        } as never)
+        .select("id, company_id")
+        .single();
+      if (error || !data) throw new Error(error?.message || "Insert failed");
+      return data as { id: string; company_id: string };
+    },
+
+    async deactivateLineage(company_id, doc_code) {
+      let q = client
+        .from("knowledge_documents")
+        .update({ is_active: false } as never)
+        .eq("company_id", company_id);
+      q = doc_code === null ? q.is("doc_code", null) : q.eq("doc_code", doc_code);
+      const { error } = await q;
+      if (error) throw new Error(error.message);
+    },
+
+    async activateDocument(id) {
+      const { error } = await client
+        .from("knowledge_documents")
+        .update({ is_active: true, replaced_at: null } as never)
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+
+    async setCritical(id, is_critical) {
+      const { error } = await client
+        .from("knowledge_documents")
+        .update({ is_critical } as never)
+        .eq("id", id);
+      if (error) throw new Error(error.message);
     },
   };
 }

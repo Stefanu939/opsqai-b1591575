@@ -641,6 +641,23 @@ export interface KnowledgeChunkContentRow {
   content: string;
 }
 
+/** Lineage anchor used by SOP version replace / rollback. */
+export interface KnowledgeVersionAnchor {
+  id: string;
+  company_id: string;
+  doc_code: string | null;
+  version: number;
+  parent_document_id: string | null;
+}
+
+/** New revision of an existing document (SOP version replace). */
+export interface KnowledgeVersionInsert extends KnowledgeDocumentInsert {
+  version: number;
+  parent_document_id: string;
+  change_notes?: string | null;
+}
+
+
 export interface IKnowledgeRepository {
   /** Document list for the library screen. `companyId === null` = all workspaces. */
   listDocuments(companyId: string | null, includeInactive: boolean): Promise<KnowledgeDocumentRow[]>;
@@ -680,9 +697,24 @@ export interface IKnowledgeRepository {
    * generation (`generateAcademyCourse`).
    */
   getChunksForDocuments(documentIds: string[], limit: number): Promise<KnowledgeChunkContentRow[]>;
+
+  // ---- SOP version lineage (used by sop-versions.functions.ts) ----
+  /** Lineage anchor for a single document, or null when it does not exist. */
+  getVersionAnchor(id: string): Promise<KnowledgeVersionAnchor | null>;
+  /** Mark a document superseded (is_active = false, replaced_at = now). */
+  markReplaced(id: string): Promise<void>;
+  /** Insert the next revision in a lineage as the active version. */
+  insertVersion(input: KnowledgeVersionInsert): Promise<{ id: string; company_id: string }>;
+  /** Deactivate every document sharing a company + doc_code. */
+  deactivateLineage(company_id: string, doc_code: string | null): Promise<void>;
+  /** Make one document the active version of its lineage. */
+  activateDocument(id: string): Promise<void>;
+  /** Toggle the "critical SOP" acknowledgement flag. */
+  setCritical(id: string, is_critical: boolean): Promise<void>;
 }
 
 export type KnowledgeRepositoryFactory = (dataCtx: unknown) => IKnowledgeRepository;
+
 
 
 
