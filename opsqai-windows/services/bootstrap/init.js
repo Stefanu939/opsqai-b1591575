@@ -866,10 +866,12 @@ function resetEmbeddedDatabase() {
           OPSQAI_ADMIN_PASSWORD: adminPassword,
           OPSQAI_ADMIN_FIRST_NAME: adminFirstName,
           OPSQAI_ADMIN_LAST_NAME: adminLastName,
+          OPSQAI_MUST_CHANGE_PASSWORD: adminMustChangePassword ? "1" : "0",
           OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
         },
       });
       log("admin seeded");
+      if (generateAdminPassword) writeInitialCredentials();
     } catch (e) {
       const errFields = { code: "OPSQAI-E1201", message: e.message };
       writeInstallState("failed", "seed", errFields);
@@ -879,6 +881,7 @@ function resetEmbeddedDatabase() {
   } else {
     log(`admin seeder not present at ${seeder} — skipping`);
   }
+
 
   writeInstallState("bootstrapping", "services", null);
 
