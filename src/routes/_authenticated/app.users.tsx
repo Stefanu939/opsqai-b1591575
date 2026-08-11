@@ -312,6 +312,55 @@ function UsersPage() {
           empty={{ icon: Users, title: "No users" }}
         />
       )}
+
+      <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit user</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">{editUser?.email}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>First name</Label>
+                <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} />
+              </div>
+              <div>
+                <Label>Last name</Label>
+                <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>Role</Label>
+              <Select value={editRole} onValueChange={setEditRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(roleList.data ?? []).map((r) => (
+                    <SelectItem key={r.key} value={r.key}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Changing the role takes effect immediately. The user keeps their current
+                password — no reset required.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditUser(null)}>
+              Cancel
+            </Button>
+            <Button onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
