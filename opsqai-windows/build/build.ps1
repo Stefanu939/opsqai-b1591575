@@ -36,6 +36,17 @@ $payload   = Join-Path $root 'payload'
 $artifacts = Join-Path $root 'build\artifacts'
 New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 
+# SHA-256 pins for third-party binaries fetched during the build. Kept in the
+# repo (build\vendor-pins.json) so Release builds are fail-closed without
+# depending on CI environment variables; env vars still override.
+$pinsPath = Join-Path $PSScriptRoot 'vendor-pins.json'
+$VendorPins = if (Test-Path $pinsPath) {
+  Get-Content $pinsPath -Raw | ConvertFrom-Json
+} else {
+  Write-Warning "vendor-pins.json not found at $pinsPath"
+  $null
+}
+
 function Assert-Exists($path, $label) {
   if (-not (Test-Path $path)) { throw "Missing $label at $path" }
 }
