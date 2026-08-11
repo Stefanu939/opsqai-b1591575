@@ -20,6 +20,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
+import { BuildProvenanceLine } from "@/components/app/build-provenance-line";
+
 import { useAuth } from "@/lib/auth-context";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useT } from "@/i18n";
