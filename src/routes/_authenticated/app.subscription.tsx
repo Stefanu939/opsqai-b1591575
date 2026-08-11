@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLicense } from "@/lib/license";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Check, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/subscription")({
@@ -10,6 +11,10 @@ export const Route = createFileRoute("/_authenticated/app/subscription")({
 
 function SubscriptionPage() {
   const license = useLicense();
+  // Self-Hosted has no Cloud billing surface: modules are unlocked by the
+  // activation bundle installed on this machine, so the copy must say so
+  // instead of pointing at a purchase flow that does not exist offline.
+  const selfhost = getClientDeploymentMode() === "selfhost";
   const modules = license.modules ?? [];
   const active = new Set<string>([...BASIC_MODULES, ...modules]);
 
@@ -19,12 +24,16 @@ function SubscriptionPage() {
   return (
     <div className="mx-auto max-w-4xl p-6 space-y-8">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Your subscription</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {selfhost ? "Licensed modules" : "Your subscription"}
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Basic bundle is always included. Extra modules unlock when you purchase a license
-          from OPSQAI.
+          {selfhost
+            ? "Basic bundle is always included. Extra modules unlock from the activation bundle installed on this server — no internet connection required."
+            : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."}
         </p>
       </header>
+
 
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
