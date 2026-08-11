@@ -27,6 +27,11 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
+# Set when the build had to substitute a throwaway secret (currently: the
+# updater signing key). A dev build gets a `-dev` version suffix so an
+# untrusted artifact can never be mistaken for a release on disk.
+$script:DevBuild = $false
+
 $payload   = Join-Path $root 'payload'
 $artifacts = Join-Path $root 'build\artifacts'
 New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
@@ -308,6 +313,9 @@ if ($sevenZipExpected) {
   if ($sevenZipSha -ne $sevenZipExpected.ToLowerInvariant()) {
     throw "7zr.exe SHA-256 mismatch. Expected $sevenZipExpected but got $sevenZipSha"
   }
+} elseif ($Configuration -eq 'Release') {
+  # Release artifacts must pin every third-party binary they download.
+  throw "Release build requires OPSQAI_7ZR_SHA256 to pin 7zr.exe (downloaded hash: $sevenZipSha)"
 } else {
   Write-Host "7zr.exe SHA-256: $sevenZipSha (set OPSQAI_7ZR_SHA256 to pin it)"
 }
@@ -325,6 +333,7 @@ if (-not (Test-Path $pubKey)) {
     throw "Release build requires the real updater public key at $pubKey"
   }
   Write-Warning "No updater pubkey found at $pubKey — generating a DEV-ONLY key. Do NOT ship this build."
+  $script:DevBuild = $true
   $tmpPriv = Join-Path $env:TEMP 'opsqai-dev-priv.pem'
   $openssl = Get-Command openssl -ErrorAction SilentlyContinue
   if ($openssl) {
@@ -339,6 +348,15 @@ if (-not (Test-Path $pubKey)) {
 }
 
 # --- 4. Caddy --------------------------------------------------------------
+# --- 3d. Dev-build version marking ----------------------------------------
+# A build that carries a throwaway updater key is not releasable. Mark it in
+# the version string so the installer filename, the NSIS VERSION define and
+# `installer_version` in config.json all say so.
+if ($script:DevBuild -and $Version -notmatch 'dev') {
+  $Version = "$Version-dev"
+  Write-Warning "Marking artifact version as $Version (throwaway updater key)"
+}
+
 $caddyVersion = '2.8.4'
 $caddyDir = Join-Path $payload 'caddy'
 if (-not (Test-Path (Join-Path $caddyDir 'caddy.exe'))) {
@@ -419,10 +437,15 @@ if (-not $SkipOllama) {
     if ($ollamaSha -ne $expected.ToLowerInvariant()) {
       throw "Ollama setup SHA-256 mismatch. Expected $expected but got $ollamaSha"
     }
+  } elseif ($Configuration -eq 'Release') {
+    throw "Release build requires OPSQAI_OLLAMA_SHA256 to pin OllamaSetup.exe (downloaded hash: $ollamaSha)"
   } else {
     Write-Host "Ollama setup SHA-256: $ollamaSha (set OPSQAI_OLLAMA_SHA256 to pin it)"
   }
   Set-Content -Path (Join-Path $ollamaDir 'OllamaSetup.exe.sha256') -Value $ollamaSha -Encoding ascii
+} elseif ($Configuration -eq 'Release') {
+  # The AI contract requires a local engine in every shipped installer.
+  throw "Release build cannot use -SkipOllama: the local AI engine must be bundled"
 } else {
   Write-Host "Skipping Ollama runtime (dev build)"
 }

@@ -177,8 +177,9 @@ Section "OPSQAI Core" SEC_CORE
     ${GetParameters} $R1
     ${GetOptions} $R1 "/CONFIG=" $R2
     ${If} ${Errors}
-      DetailPrint "Silent install: no /CONFIG provided, using placeholders."
-      nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --admin-password "ChangeMe-Silent-1234" --company "OPSQAI"'
+      DetailPrint "Silent install: no /CONFIG provided, generating a one-time admin password."
+      nsExec::ExecToLog '"$INSTDIR\runtime\node\node.exe" "$INSTDIR\services\bootstrap\init.js" --admin-email "admin@localhost" --generate-admin-password --company "OPSQAI"'
+
       Pop $0
     ${Else}
       DetailPrint "Silent install: applying unattended config from $R2"

@@ -80,6 +80,34 @@ function httpJson(url, { method = "GET", body = null, timeout = 20_000 } = {}) {
   });
 }
 
+/**
+ * Verify the bundled setup binary against the SHA-256 recorded at build time
+ * (vendor\ollama\OllamaSetup.exe.sha256). The payload is extracted from 7z
+ * parts on the customer machine, so a truncated or tampered binary must fail
+ * loudly rather than silently install an unknown engine.
+ */
+function verifySetupChecksum(log, setupExe) {
+  const sidecar = `${setupExe}.sha256`;
+  if (!fs.existsSync(sidecar)) {
+    throw new AiSetupError(
+      "OPSQAI-E1501",
+      `Missing integrity file for the bundled AI engine: ${sidecar}`,
+    );
+  }
+  const expected = fs.readFileSync(sidecar, "utf8").trim().toLowerCase();
+  const actual = require("node:crypto")
+    .createHash("sha256")
+    .update(fs.readFileSync(setupExe))
+    .digest("hex");
+  if (!expected || actual !== expected) {
+    throw new AiSetupError(
+      "OPSQAI-E1501",
+      `Bundled AI engine failed integrity check (expected ${expected || "(empty)"}, got ${actual})`,
+    );
+  }
+  log(`ollama setup integrity verified (sha256 ${actual.slice(0, 12)}…)`);
+}
+
 /** 1. Install the bundled Ollama runtime when it is not present. */
 function ensureInstalled(log, setupExe) {
   const existing = ollamaExe();
@@ -93,7 +121,9 @@ function ensureInstalled(log, setupExe) {
       `Ollama is not installed and the bundled setup was not found at ${setupExe || "(unset)"}`,
     );
   }
+  verifySetupChecksum(log, setupExe);
   log(`ollama runtime not found; installing from ${setupExe}`);
+
   const startedAt = Date.now();
   const r = spawnSync(setupExe, ["/allusers", "/silent"], {
     encoding: "utf8",

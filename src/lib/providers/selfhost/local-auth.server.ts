@@ -78,6 +78,14 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
   const users = createPgUserRepository({ pool });
 
   async function issueSession(userId: string, email: string): Promise<SignInResult> {
+    // A temporary / installer-generated password must be replaced before the
+    // account is usable, so the flag travels with the access token claims and
+    // the app shell can force the change-password screen.
+    const { rows: flagRows } = await pool.query(
+      "SELECT must_change_password FROM public.users WHERE id = $1",
+      [userId],
+    );
+    const mustChangePassword = flagRows[0]?.must_change_password === true;
     const issuedAt = now();
     const accessExp = Math.floor(issuedAt.getTime() / 1000) + ACCESS_TOKEN_TTL_SEC;
     const refreshExp = new Date(issuedAt.getTime() + REFRESH_TOKEN_TTL_SEC * 1000);
@@ -114,6 +122,7 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
         email,
         roles,
         sid: sessionId,
+        must_change_password: mustChangePassword,
         exp: accessExp,
       },
       privateKey,
@@ -124,7 +133,11 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
       accessToken,
       refreshToken,
       expiresAt: accessExp,
-      user: { userId, email, claims: { roles, sid: sessionId } },
+      user: {
+        userId,
+        email,
+        claims: { roles, sid: sessionId, must_change_password: mustChangePassword },
+      },
     };
   }
 

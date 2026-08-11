@@ -99,7 +99,6 @@ function isUuid(v) {
 }
 const companyName = arg("company", "OPSQAI Customer");
 const adminEmail = arg("admin-email");
-const adminPassword = arg("admin-password");
 const adminFirstName = arg("admin-first-name", "");
 const adminLastName = arg("admin-last-name", "");
 const dbMode = arg("db-mode", "embedded");
@@ -109,10 +108,32 @@ const smtpJson = arg("smtp", "");
 const startServices = arg("start-services", "true") !== "false";
 const doResetEmbeddedDb = hasFlag("reset-embedded-db");
 
+// --- Admin password -------------------------------------------------------
+// P0 hardening: unattended / reset paths MUST NOT ship a hardcoded password.
+// `--generate-admin-password` mints a 24-char CSPRNG password, forces a change
+// on first sign-in, and writes it once to a file only Administrators can read.
+const generateAdminPassword = hasFlag("generate-admin-password");
+
+function mintAdminPassword() {
+  // Unambiguous alphabet (no O/0/I/l/1) so the operator can retype it.
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789-_";
+  const bytes = crypto.randomBytes(24);
+  let out = "";
+  for (const b of bytes) out += alphabet[b % alphabet.length];
+  return out;
+}
+
+const adminPassword = generateAdminPassword ? mintAdminPassword() : arg("admin-password");
+// A generated password is always one-time: the operator is forced to replace it.
+const adminMustChangePassword = generateAdminPassword || hasFlag("admin-must-change-password");
+
 if (!adminEmail || !adminPassword) {
-  console.error("Usage: init.js --admin-email <e> --admin-password <p> [--company <name>]");
+  console.error(
+    "Usage: init.js --admin-email <e> (--admin-password <p> | --generate-admin-password) [--company <name>]",
+  );
   process.exit(2);
 }
+
 
 function decodeB64UrlJson(segment) {
   const pad = segment.length % 4 ? "=".repeat(4 - (segment.length % 4)) : "";
@@ -359,6 +380,45 @@ try {
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────
+
+/**
+ * Persist the generated first-sign-in credentials exactly once, to a file only
+ * SYSTEM + Administrators can read. The password is NEVER written to the
+ * bootstrap log — the operator reads it here, signs in, and is forced to
+ * change it (must_change_password = true), after which the file can be
+ * deleted.
+ */
+function writeInitialCredentials() {
+  const target = path.join(programData("config"), "initial-admin-credentials.txt");
+  const body = [
+    "OPSQAI — initial administrator credentials",
+    "",
+    "This password was generated randomly during installation and must be",
+    "changed at first sign-in. Delete this file once you have signed in.",
+    "",
+    `email:    ${adminEmail}`,
+    `password: ${adminPassword}`,
+    "",
+    `generated: ${new Date().toISOString()}`,
+    "",
+  ].join("\r\n");
+  try {
+    fs.writeFileSync(target, body, { encoding: "utf8", mode: 0o600 });
+    try {
+      execFileSync(
+        "icacls.exe",
+        [target, "/inheritance:r", "/grant:r", "SYSTEM:F", "/grant:r", "BUILTIN\\Administrators:F"],
+        { stdio: "ignore" },
+      );
+    } catch {}
+    // Path only — never the value.
+    log(`generated a one-time admin password; credentials written to ${target}`);
+  } catch (e) {
+    console.warn(`[bootstrap] cannot write initial credentials file: ${e.message}`);
+  }
+}
+
+
 function svcCmd(name, action) {
   const svc = programFiles("winsw", `${name}.exe`);
   if (!fs.existsSync(svc)) {
@@ -845,10 +905,12 @@ function resetEmbeddedDatabase() {
           OPSQAI_ADMIN_PASSWORD: adminPassword,
           OPSQAI_ADMIN_FIRST_NAME: adminFirstName,
           OPSQAI_ADMIN_LAST_NAME: adminLastName,
+          OPSQAI_MUST_CHANGE_PASSWORD: adminMustChangePassword ? "1" : "0",
           OPSQAI_CONFIG: path.join(programData("config"), "config.json"),
         },
       });
       log("admin seeded");
+      if (generateAdminPassword) writeInitialCredentials();
     } catch (e) {
       const errFields = { code: "OPSQAI-E1201", message: e.message };
       writeInstallState("failed", "seed", errFields);
@@ -858,6 +920,7 @@ function resetEmbeddedDatabase() {
   } else {
     log(`admin seeder not present at ${seeder} — skipping`);
   }
+
 
   writeInstallState("bootstrapping", "services", null);
 

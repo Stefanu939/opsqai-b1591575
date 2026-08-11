@@ -10,12 +10,19 @@ import { LogoMark } from "@/components/brand/logo";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
+  // `forced=true` is used by the Self-Hosted app shell when the signed-in
+  // account still carries `must_change_password` (installer-generated or
+  // admin-issued temporary password).
+  validateSearch: (search: Record<string, unknown>) => ({
+    forced: search["forced"] === true || search["forced"] === "true" || search["forced"] === "1",
+  }),
   head: () => ({ meta: [{ title: "Set a new password — OPSQAI" }] }),
   component: ResetPassword,
 });
 
 function ResetPassword() {
   const navigate = useNavigate();
+  const { forced } = Route.useSearch();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
@@ -28,11 +35,12 @@ function ResetPassword() {
     const unsubscribe = auth.onSessionChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
+    if (forced) setReady(true);
     auth.setSessionFromUrl().then((r) => {
       if (r.session || r.kind === "password_recovery") setReady(true);
     });
     return () => unsubscribe();
-  }, []);
+  }, [forced]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +74,15 @@ function ResetPassword() {
       </div>
       <main className="flex-1 flex items-center justify-center px-4">
         <Card className="w-full max-w-md p-8">
-          <h1 className="text-xl font-semibold tracking-tight">Choose a new password</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            {forced ? "Change your temporary password" : "Choose a new password"}
+          </h1>
+          {forced && (
+            <p className="text-sm text-muted-foreground mt-3">
+              This account was created with a one-time password. Choose a new one to continue
+              into OPSQAI.
+            </p>
+          )}
           {!ready ? (
             <p className="text-sm text-muted-foreground mt-3">
               Open this page from the link in your reset email. If you got here directly,{" "}

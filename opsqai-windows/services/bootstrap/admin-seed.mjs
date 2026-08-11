@@ -69,9 +69,14 @@ try {
   // Schema note: users has (email, password_hash, is_active, updated_at) —
   // there is no email_verified_at column in the Self-Hosted schema (the
   // installer-seeded admin is implicitly trusted). Do not add one here.
+  //
+  // `must_change_password` (migration 0007_admin_surface.sql) is set when the
+  // installer generated the password itself, so a randomly minted credential
+  // can never remain in place after the first sign-in.
+  const mustChange = process.env.OPSQAI_MUST_CHANGE_PASSWORD === "1";
   const up = await client.query(
-    `INSERT INTO public.users (email, password_hash, is_active, first_name, last_name, full_name, company_id)
-     VALUES (LOWER($1), $2, TRUE, $3, $4, $5, $6)
+    `INSERT INTO public.users (email, password_hash, is_active, first_name, last_name, full_name, company_id, must_change_password)
+     VALUES (LOWER($1), $2, TRUE, $3, $4, $5, $6, $7)
      ON CONFLICT (lower(email)) DO UPDATE
        SET password_hash = EXCLUDED.password_hash,
            is_active = TRUE,
@@ -79,9 +84,10 @@ try {
            last_name = COALESCE(EXCLUDED.last_name, public.users.last_name),
            full_name = COALESCE(EXCLUDED.full_name, public.users.full_name),
            company_id = COALESCE(EXCLUDED.company_id, public.users.company_id),
+           must_change_password = EXCLUDED.must_change_password,
            updated_at = NOW()
      RETURNING id`,
-    [email, hash, firstName || null, lastName || null, fullName, installId],
+    [email, hash, firstName || null, lastName || null, fullName, installId, mustChange],
   );
   const userId = up.rows[0].id;
 
@@ -95,7 +101,10 @@ try {
   );
 
   await client.query("COMMIT");
-  console.log(`[admin-seed] admin account ready: ${email}`);
+  console.log(
+    `[admin-seed] admin account ready: ${email}${mustChange ? " (password change required at first sign-in)" : ""}`,
+  );
+
 } catch (e) {
   await client.query("ROLLBACK").catch(() => {});
   fail(`seed failed: ${e.message || e}`, 3);
