@@ -1,18 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse, streamText, type UIMessage } from "ai";
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
 import { resolveChatModel, resolveEmbedOne } from "@/lib/ai-provider.server";
+import { detectLanguage, groundedSystemPrompt, passesGrounding, refusalText } from "@/lib/chat-grounding";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
 type Body={messages?:UIMessage[];threadId?:string;language?:string};
 type Source={type:"document"|"faq";id:string;document_id?:string;title:string;code?:string|null;excerpt:string;similarity?:number;version?:number;section?:string|null;page?:number|null;last_updated?:string|null;confidence?:"high"|"medium"|"low";primary?:boolean};
 
-const refusal="I could not find reliable information inside your company knowledge base.";
 const greeting=/^(hi|hello|hey|hallo|guten\s*(morgen|tag|abend)|salut|bun[ăa]|mul[țt]umesc|danke|thanks)\b/i;
 const capability=/(what can you (do|tell)|what do you know|how can you help|who are you|help me|was kannst du|wie kannst du helfen|wer bist du|ce po[țt]i (s[ăa] )?(imi |îmi )?(spui|faci|oferi)|cu ce (m[ăa] )?po[țt]i ajuta|cine e[șs]ti|ajut[ăa]-?m[ăa])/i;
 const followup=/\b(explain|more details|elaborate|clarify|continue|erkl[äa]re|mehr details|explic[ăa]|mai multe detalii|continu[ăa])\b/i;
 function textOf(message:UIMessage|undefined){return message?.parts.map((p)=>p.type==="text"?p.text:"").join(" ").trim()??"";}
-function prompt(context:string,hasSources:boolean,language:string){return `You are OPSQAI, an enterprise company knowledge assistant. Answer in the same language as the user's latest message (interface hint: ${language}). Your ONLY source of truth is COMPANY KNOWLEDGE below (SOPs, documents, FAQs). Never describe your own capabilities, never invent, guess or use outside/general knowledge. Match the user's intent semantically: the SOPs may be written in a different language than the question — translate the relevant SOP/FAQ content into the user's language instead of saying it was not found. Be warm, concise and professional.\n\n${hasSources?"Answer strictly from COMPANY KNOWLEDGE, quoting the concrete steps/rules, then finish with a translated Sources label and citations. If only part of the question is covered, answer that part and say plainly which part is not documented.":`No relevant company knowledge was retrieved. Do NOT answer the factual question. Reply with a friendly translation of: "${refusal}" and offer to help if they rephrase or point to a document.`}\n\nCOMPANY KNOWLEDGE:\n${context||"(none)"}`;}
+
 
 
 export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({request})=>{
