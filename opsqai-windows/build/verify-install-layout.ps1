@@ -104,6 +104,23 @@ Check 'exactly one bootstrap init.js is installed' {
   Expect ($copies.Count -eq 1) ("found {0} init.js copies: {1}" -f $copies.Count, ($copies.FullName -join '; '))
 }
 
+# --- 3c. frontend/server provenance ---------------------------------------
+# The installed app\ tree must hash to exactly the record produced at build
+# time. This is what proves the installed EXE runs the source that was tested.
+$appDir      = Join-Path $InstallDir 'app'
+$appProvPath = Join-Path $appDir 'build-provenance.json'
+Check 'frontend provenance record shipped' { Expect (Test-Path $appProvPath) "missing $appProvPath" }
+Check 'installed frontend matches build provenance buildHash' {
+  $nodeExe = Join-Path $InstallDir 'runtime\node\node.exe'
+  $nodeCmd = if (Test-Path $nodeExe) { $nodeExe } elseif (Get-Command node -ErrorAction SilentlyContinue) { 'node' } else { $null }
+  Expect ($null -ne $nodeCmd) 'no node runtime available to verify frontend provenance'
+  $script = Join-Path $PSScriptRoot 'frontend-provenance.mjs'
+  $out = & $nodeCmd $script '--app' $appDir '--verify' 2>&1
+  Expect ($LASTEXITCODE -eq 0) ("frontend provenance verification failed: {0}" -f ($out -join ' '))
+  Write-Host ("    {0}" -f ($out -join ' '))
+}
+
+
 
 
 # --- 4..7 configuration ----------------------------------------------------
