@@ -2,25 +2,25 @@
    Design tokens locked in .lovable/product-polish/01-installer-ux-wireframes.md. */
 
 :root {
-  --bg: #0f172a;
-  --bg-elev: #111c33;
-  --bg-elev-2: #17233d;
-  --text: #f5f7fa;
-  --text-muted: #8a94a6;
-  --text-dim: #5b6479;
-  --gold: #c9a24c;
-  --gold-soft: rgba(201, 162, 76, 0.16);
-  --success: #3fb98a;
+  --bg: #04211a;
+  --bg-elev: #072e24;
+  --bg-elev-2: #0a3a2d;
+  --text: #f5f0e0;
+  --text-muted: #a9bdb2;
+  --text-dim: #7d9489;
+  --gold: #c9a84c;
+  --gold-soft: rgba(201, 168, 76, 0.16);
+  --success: #34d399;
   --danger: #e5484d;
   --warning: #f5a524;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --focus: 0 0 0 3px rgba(201, 162, 76, 0.35);
+  --border: rgba(201, 168, 76, 0.18);
+  --border-strong: rgba(201, 168, 76, 0.32);
+  --focus: 0 0 0 3px rgba(201, 168, 76, 0.35);
   --radius-card: 10px;
   --radius-input: 8px;
   --radius-btn: 6px;
   --font-head: "Space Grotesk", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-body: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Karla", "Inter", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --dur: 180ms;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -53,7 +53,7 @@ body {
 
 /* ── Sidebar ────────────────────────────────────────────────────── */
 .sidebar {
-  background: linear-gradient(180deg, #0b1428 0%, #0a1122 100%);
+  background: linear-gradient(180deg, #052a21 0%, #031a14 100%);
   border-right: 1px solid var(--border);
   padding: 24px 0 16px;
   display: flex;
@@ -111,13 +111,13 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(201, 168, 76, 0.10);
   color: var(--text-muted);
   font-weight: 600;
   flex-shrink: 0;
   transition: all var(--dur) var(--ease);
 }
-.steps li.active { color: var(--text); background: rgba(201, 162, 76, 0.08); }
+.steps li.active { color: var(--text); background: rgba(201, 168, 76, 0.08); }
 .steps li.active .idx { background: var(--gold); color: var(--bg); }
 .steps li.done { color: var(--text); }
 .steps li.done .idx { background: var(--success); color: var(--bg); font-size: 0; }
@@ -170,7 +170,7 @@ body {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(1200px 400px at 50% -10%, rgba(201, 162, 76, 0.12), transparent 70%),
+    radial-gradient(1200px 400px at 50% -10%, rgba(201, 168, 76, 0.12), transparent 70%),
     var(--bg);
 }
 .hero-inner {
@@ -183,7 +183,7 @@ body {
   margin: 0 auto 18px;
   width: 84px;
   height: 84px;
-  filter: drop-shadow(0 8px 24px rgba(201, 162, 76, 0.22));
+  filter: drop-shadow(0 8px 24px rgba(201, 168, 76, 0.22));
 }
 .hero-mark {
   font-family: var(--font-head);
@@ -307,7 +307,7 @@ body {
   border-color: var(--gold);
   box-shadow: var(--focus);
 }
-.form input:read-only { background: rgba(255, 255, 255, 0.02); color: var(--text-muted); }
+.form input:read-only { background: rgba(201, 168, 76, 0.05); color: var(--text-muted); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .path-row {
   display: grid;
@@ -318,8 +318,10 @@ body {
 .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 /* ── Checkboxes ─────────────────────────────────────────────────── */
-.checkbox {
+.checkbox,
+.form label.checkbox {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   cursor: pointer;
@@ -426,7 +428,7 @@ body {
 }
 .status-pill.ok { background: rgba(63, 185, 138, 0.14); color: var(--success); border-color: rgba(63, 185, 138, 0.4); }
 .status-pill.err { background: rgba(229, 72, 77, 0.14); color: var(--danger); border-color: rgba(229, 72, 77, 0.4); }
-.status-pill.info { background: rgba(201, 162, 76, 0.14); color: var(--gold); border-color: rgba(201, 162, 76, 0.4); }
+.status-pill.info { background: rgba(201, 168, 76, 0.14); color: var(--gold); border-color: rgba(201, 168, 76, 0.4); }
 
 /* ── System checks ──────────────────────────────────────────────── */
 .checks {
@@ -455,7 +457,7 @@ body {
 .checks li i {
   width: 16px; height: 16px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.06);
+  background: rgba(201,168,76,0.10);
   border: 1px solid var(--border-strong);
   display: inline-block;
   position: relative;
@@ -477,7 +479,7 @@ body {
   gap: 10px;
   margin-top: 2px;
 }
-.pw-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+.pw-bar { flex: 1; height: 4px; background: rgba(201,168,76,0.10); border-radius: 2px; overflow: hidden; }
 .pw-bar > div { height: 100%; width: 0%; transition: all var(--dur) var(--ease); background: var(--danger); }
 .pw-bar > div[data-level="1"] { width: 25%; background: var(--danger); }
 .pw-bar > div[data-level="2"] { width: 50%; background: var(--warning); }
@@ -541,7 +543,7 @@ body {
 .stage-dot {
   width: 14px; height: 14px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.06);
+  background: rgba(201,168,76,0.10);
   border: 1px solid var(--border-strong);
   flex-shrink: 0;
   position: relative;
@@ -562,7 +564,7 @@ body {
 
 .progress {
   height: 6px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(201,168,76,0.10);
   border-radius: 3px;
   overflow: hidden;
   max-width: 560px;
@@ -571,7 +573,7 @@ body {
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--gold), #e4c37a);
+  background: linear-gradient(90deg, #a8862f, var(--gold), #e4d09a);
   transition: width 0.3s var(--ease);
 }
 .progress-bar.indeterminate {
@@ -592,8 +594,8 @@ body {
   margin-bottom: 10px;
 }
 .log {
-  background: #060b17;
-  color: #b8c2d1;
+  background: #031a14;
+  color: #b9d0c4;
   padding: 12px 14px;
   border-radius: var(--radius-card);
   border: 1px solid var(--border);
@@ -632,7 +634,7 @@ body {
   min-width: 92px;
   transition: all var(--dur) var(--ease);
 }
-.btn:hover:not(:disabled) { background: #1e2b47; border-color: rgba(255,255,255,0.22); }
+.btn:hover:not(:disabled) { background: #0a3a2d; border-color: rgba(201,168,76,0.38); }
 .btn:focus-visible { outline: none; box-shadow: var(--focus); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-primary {
@@ -641,14 +643,14 @@ body {
   border-color: var(--gold);
   font-weight: 600;
 }
-.btn-primary:hover:not(:disabled) { background: #d8b25a; border-color: #d8b25a; }
+.btn-primary:hover:not(:disabled) { background: #d8bb63; border-color: #d8bb63; }
 .btn-ghost {
   border-color: transparent;
   background: transparent;
   color: var(--text-muted);
   min-width: auto;
 }
-.btn-ghost:hover:not(:disabled) { color: var(--text); background: rgba(255,255,255,0.04); }
+.btn-ghost:hover:not(:disabled) { color: var(--text); background: rgba(201,168,76,0.08); }
 .btn-lg { padding: 12px 32px; font-size: 14px; min-width: 180px; }
 .btn-linky {
   background: none;
@@ -664,8 +666,8 @@ body {
 /* ── Scrollbar polish ───────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.22); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.38); }
 
 /* Reduced motion — respect OS preference for long installs. */
 @media (prefers-reduced-motion: reduce) {
@@ -719,7 +721,7 @@ body {
 
 /* Local AI engine card (Options step) */
 .ai-engine {
-  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  border: 1px solid var(--line, rgba(201, 168, 76, 0.2));
   border-radius: 10px;
   padding: 16px 18px;
   display: grid;
@@ -761,3 +763,22 @@ body {
   font-size: 12.5px;
 }
 .info-block .hint { margin: 10px 0 0; }
+
+/* ── Enterprise depth pass (aligned with the product shell) ─────── */
+.content {
+  background:
+    radial-gradient(900px 420px at 92% -8%, rgba(201, 168, 76, 0.08), transparent 70%),
+    radial-gradient(700px 500px at 0% 100%, rgba(10, 58, 45, 0.55), transparent 72%),
+    var(--bg);
+}
+.checks,
+.stages,
+.log,
+.card {
+  box-shadow: 0 1px 0 rgba(201, 168, 76, 0.06) inset, 0 12px 32px -22px rgba(0, 0, 0, 0.9);
+}
+.progress { box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.14) inset; }
+.btn-primary {
+  box-shadow: 0 8px 22px -14px rgba(201, 168, 76, 0.9);
+}
+.sidebar { box-shadow: 1px 0 0 rgba(201, 168, 76, 0.12); }
