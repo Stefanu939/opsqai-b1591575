@@ -72,8 +72,11 @@ Using the existing tokens in `src/styles.css` plus `card-enterprise` / `hover-li
 
 Only in the areas above: dead-looking buttons, buttons hidden by wrong client-side permission assumptions, dialogs that cannot close, silent successes, loaders that never resolve, empty states without an action, stale lists after create/edit/delete, duplicate floating elements.
 
-## 11. Verification
+## 11. Verification and honest status reporting
 
-`bunx tsgo --noEmit`; full Vitest suite with total/passed/failed/skipped reported; Self-Hosted frontend build; Windows installer build; confirm the packaged frontend and wizard match the sources just changed via the provenance hash, and that the icon assertions pass on the produced executables.
+`bunx tsgo --noEmit`; full Vitest suite with total/passed/failed/skipped reported; Self-Hosted frontend build; Windows installer build (wizard + desktop shell); confirm the packaged frontend and wizard match the sources just changed via the provenance hash, that no stale frontend artifact is packaged, and that the icon assertions pass on `OPSQAI-Setup.exe`, `OPSQAI-Wizard.exe`, `OPSQAI.exe` and `payload\assets\opsqai.ico`.
 
-Final report: files changed, Academy, temp-password fix, Users root cause and fix, Bubble Chat, Knowledge/FAQ, grounding fix, installer UI, icons, UI/UX, typecheck, test counts, both build results, provenance hash, and exactly what was verified on artifacts rather than source.
+Every item in the final report is labelled SOURCE / TESTED / PACKAGED / RUNTIME VERIFIED. Note upfront: RUNTIME VERIFIED means observed in an installed Windows build. This environment cannot install and click through a Windows EXE, so those checks are prepared as a clean-install checklist (installer screens, admin/Worker login, temp-password redirect, Users row persistence, Knowledge/FAQ/Academy/AI Audit actions, chat grounding and language cases, Bubble Chat unread, icons/shortcut) for you to run on the produced installer; nothing will be reported as runtime-verified without your confirmation.
+
+Final report contents: files changed, Academy Create Course, temp-password fix, Users root cause and fix, Bubble Chat unread, Knowledge fixes, FAQ fixes, AI Audit verification, multilingual retrieval fix, grounding enforcement, installer UI changes, icon pipeline changes, UI/UX changes, typecheck result, full test counts, Self-Hosted build result, Windows installer build result, provenance hash, artifact verification, and the clean-install checklist status.
+
