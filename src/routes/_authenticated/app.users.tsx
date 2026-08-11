@@ -34,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users, UserPlus, Trash2 } from "lucide-react";
+import { Users, UserPlus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
