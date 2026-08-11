@@ -19,7 +19,7 @@ const kpis = (over: Partial<DashboardKpis> = {}): DashboardKpis => ({
 });
 
 describe("workspace health", () => {
-  it("is 0 for an empty workspace with no audit history", () => {
+  it("scores an empty workspace low, credit coming only from having no gaps", () => {
     const h = computeWorkspaceHealth({
       documents: 0,
       criticalSops: 0,
@@ -28,7 +28,7 @@ describe("workspace health", () => {
       faqs: 0,
       lastAuditScore: 0,
     });
-    expect(h.score).toBe(0);
+    expect(h.score).toBe(15);
     expect(h.label).toBe("Needs attention");
   });
 
