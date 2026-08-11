@@ -18,19 +18,24 @@ export const Route = createFileRoute("/api/public/health")({
     handlers: {
       GET: async () => {
         try {
-          const report = await runHealthCheck();
+          const [report, { readBuildProvenance }] = await Promise.all([
+            runHealthCheck(),
+            import("@/lib/platform/build-provenance.server"),
+          ]);
+          const build = await readBuildProvenance();
           counter("opsqai_health_checks_total", "Health check invocations", {
             outcome: report.overall,
           });
           const status =
             report.overall === "fail" ? 503 : 200;
-          return new Response(JSON.stringify(report), {
+          return new Response(JSON.stringify({ ...report, build }), {
             status,
             headers: {
               "Content-Type": "application/json",
               "Cache-Control": "no-store",
             },
           });
+
         } catch (err) {
           counter("opsqai_health_checks_total", "Health check invocations", {
             outcome: "error",
