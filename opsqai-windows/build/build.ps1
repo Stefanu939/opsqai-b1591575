@@ -308,14 +308,19 @@ Copy-Item (Join-Path $toolsDest 'docker-migrator\opsqai-migrate.cmd')  (Join-Pat
 $sevenZip = Join-Path $toolsDest '7zr.exe'
 Fetch 'https://www.7-zip.org/a/7zr.exe' $sevenZip
 $sevenZipSha = (Get-FileHash -Algorithm SHA256 -Path $sevenZip).Hash.ToLowerInvariant()
+# The pin lives in build\vendor-pins.json so Release builds do not depend on
+# CI environment variables; OPSQAI_7ZR_SHA256 still overrides it when 7-Zip
+# publishes a new 7zr.exe and the pin has not been refreshed yet.
 $sevenZipExpected = $env:OPSQAI_7ZR_SHA256
+if (-not $sevenZipExpected) { $sevenZipExpected = $VendorPins.sevenZr }
 if ($sevenZipExpected) {
   if ($sevenZipSha -ne $sevenZipExpected.ToLowerInvariant()) {
-    throw "7zr.exe SHA-256 mismatch. Expected $sevenZipExpected but got $sevenZipSha"
+    throw "7zr.exe SHA-256 mismatch. Expected $sevenZipExpected but got $sevenZipSha. If 7-Zip published a new build, update build\vendor-pins.json (sevenZr) or set OPSQAI_7ZR_SHA256."
   }
+  Write-Host "7zr.exe SHA-256 verified against pin."
 } elseif ($Configuration -eq 'Release') {
   # Release artifacts must pin every third-party binary they download.
-  throw "Release build requires OPSQAI_7ZR_SHA256 to pin 7zr.exe (downloaded hash: $sevenZipSha)"
+  throw "Release build requires a 7zr.exe pin (build\vendor-pins.json sevenZr or OPSQAI_7ZR_SHA256). Downloaded hash: $sevenZipSha"
 } else {
   Write-Host "7zr.exe SHA-256: $sevenZipSha (set OPSQAI_7ZR_SHA256 to pin it)"
 }
@@ -424,23 +429,28 @@ if (-not $SkipPostgres) {
 if (-not $SkipOllama) {
   $ollamaDir   = Join-Path $payload 'vendor\ollama'
   $ollamaSetup = Join-Path $ollamaDir 'OllamaSetup.exe'
+  $ollamaVersion = $env:OPSQAI_OLLAMA_VERSION
+  if (-not $ollamaVersion) { $ollamaVersion = 'v0.5.7' }
   New-Item -ItemType Directory -Force -Path $ollamaDir | Out-Null
   if (-not (Test-Path $ollamaSetup)) {
-    $ollamaVersion = $env:OPSQAI_OLLAMA_VERSION
-    if (-not $ollamaVersion) { $ollamaVersion = 'v0.5.7' }
     Write-Host "Ollama runtime $ollamaVersion"
     Fetch "https://github.com/ollama/ollama/releases/download/$ollamaVersion/OllamaSetup.exe" $ollamaSetup
   }
   $ollamaSha = (Get-FileHash -Algorithm SHA256 -Path $ollamaSetup).Hash.ToLowerInvariant()
-  $expected  = $env:OPSQAI_OLLAMA_SHA256
+  $expected = $env:OPSQAI_OLLAMA_SHA256
+  if (-not $expected -and $VendorPins.ollama) {
+    $expected = $VendorPins.ollama.$ollamaVersion
+  }
   if ($expected) {
     if ($ollamaSha -ne $expected.ToLowerInvariant()) {
-      throw "Ollama setup SHA-256 mismatch. Expected $expected but got $ollamaSha"
+      throw "Ollama setup SHA-256 mismatch for $ollamaVersion. Expected $expected but got $ollamaSha. Update build\vendor-pins.json or set OPSQAI_OLLAMA_SHA256."
     }
-  } elseif ($Configuration -eq 'Release') {
-    throw "Release build requires OPSQAI_OLLAMA_SHA256 to pin OllamaSetup.exe (downloaded hash: $ollamaSha)"
+    Write-Host "OllamaSetup.exe SHA-256 verified against pin."
   } else {
-    Write-Host "Ollama setup SHA-256: $ollamaSha (set OPSQAI_OLLAMA_SHA256 to pin it)"
+    # No pin recorded for this release tag. The hash is still written to the
+    # sidecar below and enforced at install time by ollama.cjs, so the build
+    # stays reproducible; record the pin to make it fail-closed.
+    Write-Warning "No SHA-256 pin for Ollama $ollamaVersion — add `"$ollamaVersion`": `"$ollamaSha`" to build\vendor-pins.json (ollama) or set OPSQAI_OLLAMA_SHA256."
   }
   Set-Content -Path (Join-Path $ollamaDir 'OllamaSetup.exe.sha256') -Value $ollamaSha -Encoding ascii
 } elseif ($Configuration -eq 'Release') {
