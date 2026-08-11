@@ -433,7 +433,7 @@ function TeacherChat({
                 <div className="flex justify-start">
                   <Card className="w-full max-w-[92%] p-4 space-y-2 border-primary/30">
                     <div className="text-sm font-medium flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" /> Lesson complete — your
+                      <CheckCircle2 className="h-4 w-4 text-success" /> Lesson complete — your
                       quiz is unlocked
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -515,7 +515,7 @@ function TeacherChat({
                         )}
                         {result && (
                           <div
-                            className={`text-xs flex items-start gap-2 ${result.results[i].correct ? "text-green-600" : "text-red-600"}`}
+                            className={`text-xs flex items-start gap-2 ${result.results[i].correct ? "text-success" : "text-destructive"}`}
                           >
                             {result.results[i].correct ? (
                               <CheckCircle2 className="h-3 w-3 mt-0.5" />

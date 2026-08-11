@@ -326,7 +326,7 @@ function TrainingCard({ enrollment: e }: { enrollment: Enrollment }) {
             {done && (
               <Badge
                 variant="secondary"
-                className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 h-5 text-[10.5px]"
+                className="bg-success/10 text-success border-success/30 h-5 text-[10.5px]"
               >
                 <CheckCircle2 className="h-3 w-3 mr-1" /> Completed
               </Badge>
@@ -342,7 +342,7 @@ function TrainingCard({ enrollment: e }: { enrollment: Enrollment }) {
             {e.priority === "high" && !done && (
               <Badge
                 variant="outline"
-                className="h-5 text-[10.5px] border-red-500/40 text-red-600 dark:text-red-400"
+                className="h-5 text-[10.5px] border-destructive/40 text-destructive"
               >
                 High priority
               </Badge>

@@ -14,6 +14,8 @@ import type {
   AcademyEnrollmentWithPathRow,
   AcademyEnrollmentWithProfileRow,
   AcademyPathRefRow,
+  AcademyAssignTargets,
+  AcademyNotificationInput,
   AcademyTrainingSummary,
   AcademyCertificateUpsertInput,
   AcademyCertificateVerification,
@@ -1123,6 +1125,41 @@ export function createPgAcademyRepository(deps: PgAcademyRepositoryDeps): IAcade
         [pathIds, userIds],
       );
       return rows;
+    },
+
+    async getAssignTargets(companyId): Promise<AcademyAssignTargets> {
+      const [usersRes, deptsRes, rolesRes] = await Promise.all([
+        pool.query(
+          `SELECT id, full_name, first_name, last_name, department_id
+             FROM public.users
+            WHERE company_id = $1
+            ORDER BY full_name NULLS LAST
+            LIMIT 500`,
+          [companyId],
+        ),
+        pool.query(`SELECT id, name FROM public.departments WHERE company_id = $1 ORDER BY name`, [companyId]),
+        pool.query(`SELECT DISTINCT role FROM public.user_roles WHERE company_id = $1`, [companyId]),
+      ]);
+      return {
+        users: usersRes.rows.map((u) => ({
+          id: u.id,
+          name: u.full_name ?? [u.first_name, u.last_name].filter(Boolean).join(" ") ?? "User",
+          department_id: u.department_id ?? null,
+        })),
+        departments: deptsRes.rows.map((d) => ({ id: d.id, name: d.name })),
+        roles: rolesRes.rows.map((r) => r.role).filter(Boolean),
+      };
+    },
+
+    async createNotifications(rows: AcademyNotificationInput[]): Promise<void> {
+      if (!rows.length) return;
+      for (const n of rows) {
+        await pool.query(
+          `INSERT INTO public.notifications (company_id, user_id, kind, title, body, link, payload)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [n.companyId, n.userId, n.kind, n.title, n.body, n.link, JSON.stringify(n.payload)],
+        );
+      }
     },
   };
 

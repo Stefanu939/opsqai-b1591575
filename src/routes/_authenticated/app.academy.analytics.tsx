@@ -150,7 +150,7 @@ function AnalyticsPage() {
                         Overdue
                       </Badge>
                     ) : r.status === "completed" ? (
-                      <Badge className="text-[10px] bg-green-500/15 text-green-600 border-green-500/30 hover:bg-green-500/15">
+                      <Badge className="text-[10px] bg-success/15 text-success border-success/30 hover:bg-success/15">
                         Completed
                       </Badge>
                     ) : (
@@ -252,17 +252,17 @@ function AnalyticsPage() {
                     value={c.assigned_users}
                   />
                   <Stat
-                    icon={<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
+                    icon={<CheckCircle2 className="h-3.5 w-3.5 text-success" />}
                     label="Completed"
                     value={c.completed}
                   />
                   <Stat
-                    icon={<Clock className="h-3.5 w-3.5 text-blue-500" />}
+                    icon={<Clock className="h-3.5 w-3.5 text-chart-2" />}
                     label="In progress"
                     value={c.in_progress}
                   />
                   <Stat
-                    icon={<AlertTriangle className="h-3.5 w-3.5 text-red-500" />}
+                    icon={<AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                     label="Overdue"
                     value={c.overdue}
                     highlight={c.overdue > 0}
@@ -304,7 +304,7 @@ function Stat({
       <div className="flex items-center gap-1 text-[10.5px] uppercase tracking-wide text-muted-foreground">
         {icon} {label}
       </div>
-      <div className={`text-sm font-semibold ${highlight ? "text-red-600" : ""}`}>{value}</div>
+      <div className={`text-sm font-semibold ${highlight ? "text-destructive" : ""}`}>{value}</div>
     </div>
   );
 }

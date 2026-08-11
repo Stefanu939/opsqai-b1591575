@@ -13,6 +13,8 @@ import type {
   AcademyEnrollmentWithPathRow,
   AcademyEnrollmentWithProfileRow,
   AcademyPathRefRow,
+  AcademyAssignTargets,
+  AcademyNotificationInput,
   AcademyTrainingSummary,
   AcademyCertificateRow,
   AcademyCertificateUpsertInput,
@@ -1021,6 +1023,47 @@ export function createSupabaseAcademyRepository(client: AnyClient): IAcademyRepo
         .in("user_id", userIds);
       if (error) throw new Error(error.message);
       return (data ?? []) as AcademyEnrollmentPairRow[];
+    },
+
+    async getAssignTargets(companyId): Promise<AcademyAssignTargets> {
+      const [usersRes, deptsRes, rolesRes] = await Promise.all([
+        client
+          .from("profiles")
+          .select("id, full_name, first_name, last_name, department_id")
+          .eq("company_id", companyId)
+          .order("full_name", { ascending: true, nullsFirst: false })
+          .limit(500),
+        client.from("departments").select("id, name").eq("company_id", companyId).order("name"),
+        client.from("user_roles").select("role").eq("company_id", companyId),
+      ]);
+      const roles: string[] = Array.from(
+        new Set(((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role).filter(Boolean)),
+      );
+      return {
+        users: (usersRes.data ?? []).map((u: any) => ({
+          id: u.id,
+          name: u.full_name ?? [u.first_name, u.last_name].filter(Boolean).join(" ") ?? "User",
+          department_id: u.department_id,
+        })),
+        departments: (deptsRes.data ?? []) as { id: string; name: string }[],
+        roles,
+      };
+    },
+
+    async createNotifications(rows: AcademyNotificationInput[]): Promise<void> {
+      if (!rows.length) return;
+      const { error } = await client.from("notifications").insert(
+        rows.map((n) => ({
+          company_id: n.companyId,
+          user_id: n.userId,
+          kind: n.kind,
+          title: n.title,
+          body: n.body,
+          link: n.link,
+          payload: n.payload,
+        })),
+      );
+      if (error) console.error("[academy] notification insert failed", error.message);
     },
   };
 }

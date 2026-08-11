@@ -236,18 +236,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span>{t("myProfile")}</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            setMobileOpen(false);
-            if (typeof window !== "undefined")
-              window.dispatchEvent(new CustomEvent("opsqai:open-support"));
-          }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/85 hover:bg-sidebar-accent transition-colors"
-        >
-          <LifeBuoy className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
-          <span>Support &amp; Tickets</span>
-        </button>
+        {/* Ticketing is a Cloud-only surface — the Self-Hosted product has no
+            vendor inbox, so the entry point is hidden instead of dead. */}
+        {mode !== "selfhost" && (
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              if (typeof window !== "undefined")
+                window.dispatchEvent(new CustomEvent("opsqai:open-support"));
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/85 hover:bg-sidebar-accent transition-colors"
+          >
+            <LifeBuoy className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
+            <span>Support &amp; Tickets</span>
+          </button>
+        )}
 
         <button
           type="button"

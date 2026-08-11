@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionCard } from "@/components/ui/section-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -136,6 +140,7 @@ function KnowledgePage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
 
   const process = useServerFn(processDocument);
@@ -164,6 +169,7 @@ function KnowledgePage() {
       data: { company_id: scopeCompanyId ?? null, include_inactive: showInactive },
     });
     setDocs((rows ?? []) as unknown as Doc[]);
+    setLoading(false);
   };
   useEffect(() => {
     load();
@@ -347,25 +353,23 @@ function KnowledgePage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
-      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
-        <div>
-          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
-            {t("knowledge")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-xl">{t("documentsDesc")}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Switch checked={showInactive} onCheckedChange={setShowInactive} />
-            Show archived versions
-          </label>
-          {canEdit && (
-            <Button variant="outline" onClick={() => setExportOpen(true)}>
-              <Download className="h-4 w-4 mr-2" /> Export
-            </Button>
-          )}
-          {canEdit && (
-            <Dialog open={open} onOpenChange={setOpen}>
+      <PageHeader
+        eyebrow="Self-hosted"
+        title={t("knowledge")}
+        description={t("documentsDesc")}
+        actions={
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Switch checked={showInactive} onCheckedChange={setShowInactive} />
+              Show archived versions
+            </label>
+            {canEdit && (
+              <Button variant="outline" onClick={() => setExportOpen(true)}>
+                <Download className="h-4 w-4 mr-2" /> Export
+              </Button>
+            )}
+            {canEdit && (
+              <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Upload className="h-4 w-4 mr-2" />
@@ -444,10 +448,11 @@ function KnowledgePage() {
                   </DialogFooter>
                 </form>
               </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      </div>
+              </Dialog>
+            )}
+          </div>
+        }
+      />
 
       {/* Metrics rail — each stat answers a concrete business question */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
