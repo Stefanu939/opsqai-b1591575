@@ -24,7 +24,7 @@ const PASSWORD = "Sup3r-Embedded-Pg-Pass";
  * refuses to authenticate when PGPASSWORD is empty (exactly like the real
  * cluster's scram verifier does).
  */
-function sandbox(config: Record<string, unknown>) {
+function sandbox(config: Record<string, unknown>, opts: { writePasswordOnFirstCall?: boolean } = {}) {
   const dataRoot = mkdtempSync(join(tmpdir(), "opsqai-pgcred-"));
   const configDir = join(dataRoot, "OPSQAI", "config");
   mkdirSync(configDir, { recursive: true });
@@ -49,6 +49,17 @@ function sandbox(config: Record<string, unknown>) {
       `}) + "\\n");`,
       // Mirror libpq: no password -> fe_sendauth failure on stderr, non-zero.
       `if (!e.PGPASSWORD) {`,
+      ...(opts.writePasswordOnFirstCall
+        ? [
+            // Stand in for the OpsqaiDatabase service, which generates the
+            // embedded password during initdb and persists it to config.json
+            // AFTER init.js already loaded its in-memory copy.
+            `  const p = ${JSON.stringify(configPath)};`,
+            `  const c = JSON.parse(fs.readFileSync(p, "utf8"));`,
+            `  c.database.embedded.password = ${JSON.stringify(PASSWORD)};`,
+            `  fs.writeFileSync(p, JSON.stringify(c, null, 2), "utf8");`,
+          ]
+        : []),
       `  process.stderr.write('psql: error: connection to server at "127.0.0.1", port 55432 failed: fe_sendauth: no password supplied\\n');`,
       `  process.exit(2);`,
       `}`,
@@ -59,6 +70,7 @@ function sandbox(config: Record<string, unknown>) {
   chmodSync(psql, 0o755);
   return { dataRoot, configPath, pfRoot, callLog };
 }
+
 
 function runInit(dataRoot: string, pfRoot: string, extraArgs: string[] = []) {
   return spawnSync(
