@@ -330,25 +330,16 @@ const WIZARD_SHELL_HTML = String.raw`
             <path d="M12 20l6 6 12-13" fill="none" stroke="currentColor" stroke-width="3" />
           </svg>
         </div>
-        <h1 class="hero-title">OPSQAI is ready</h1>
-        <p class="hero-sub">Your platform is installed and running.</p>
+        <h1 class="hero-title">Installation successful</h1>
+        <p class="hero-sub">OPSQAI is installed and running on this machine.</p>
 
-        <ul class="finish-grid">
-          <li>License activated</li>
-          <li>Database created</li>
-          <li>Services installed</li>
-          <li>AI engine online</li>
-          <li>Knowledge base ready</li>
-          <li>Administrator created</li>
-        </ul>
-
-        <label class="checkbox center"><input type="checkbox" id="launch-app" checked /><span>Launch OPSQAI now</span></label>
+        <ul class="finish-grid" id="finish-summary"></ul>
 
         <div class="finish-actions">
-          <button class="btn" id="btn-open-folder">Open installation folder</button>
-          <button class="btn" id="btn-view-logs">View logs</button>
+          <button class="btn" id="btn-view-logs">Open logs</button>
           <button class="btn btn-primary" id="btn-finish">Launch OPSQAI</button>
         </div>
+
       </div>
     </section>
 
