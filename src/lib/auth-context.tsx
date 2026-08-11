@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { toast } from "sonner";
+
 import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import type { OpsqaiSession, OpsqaiUser } from "@/lib/providers/interfaces";
