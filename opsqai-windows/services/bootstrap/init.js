@@ -728,6 +728,13 @@ function resetEmbeddedDatabase() {
       process.exit(3);
     }
     log(`postgres ready on 127.0.0.1:${port}${probe.available ? ` (${probe.out || "pg_isready ok"})` : " (pg_isready.exe missing; TCP-only)"}`);
+
+    // The service generates the embedded password during initdb and persists
+    // it into config.json. Our in-memory copy predates that, so refresh it
+    // now — before any psql/vector-storage stage authenticates.
+    refreshedFromDisk = true;
+    refreshEmbeddedCredentialsFromDisk();
+
   }
 
   // NOTE: do NOT write installation_state here — on a fresh install the
