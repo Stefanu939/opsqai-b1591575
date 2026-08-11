@@ -90,7 +90,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loadProfile = (_uid: string) => {
+  /**
+   * Load roles/permissions for the signed-in user.
+   *
+   * A failure here is NOT cosmetic: every primary action in the app
+   * (Knowledge upload, Add FAQ, Run AI Audit, user management) is gated on
+   * these permissions, so an empty set renders a read-only shell with no
+   * visible actions and no explanation — which is exactly how the
+   * Self-Hosted "missing buttons" report was produced. So: retry once
+   * (the very first call can race provider bootstrap right after sign-in),
+   * keep whatever we already had instead of blanking it, and surface the
+   * failure to the user instead of swallowing it.
+   */
+  const loadProfile = (_uid: string, attempt = 0) => {
     bootstrapSession()
       .then(async (boot) => {
         setRoles(boot.roles);
@@ -115,13 +127,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
         setCompanyName(c?.name ?? null);
       })
-      .catch(() => {
-        setRoles([]);
-        setPermissions(new Set());
-        setCompanyId(null);
-        setCompanyName(null);
+      .catch((error: unknown) => {
+        if (attempt < 2) {
+          setTimeout(() => loadProfile(_uid, attempt + 1), 400 * (attempt + 1));
+          return;
+        }
+        console.error("[auth] session bootstrap failed", error);
+        toast.error(
+          "Could not load your permissions — some actions are hidden. Reload the page to retry.",
+        );
       });
   };
+
+
 
   useEffect(() => {
     const auth = getBrowserAuthProvider();
