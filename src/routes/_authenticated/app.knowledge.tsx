@@ -107,9 +107,19 @@ const CATEGORIES = ["SOP", "Manual", "Procedure", "Safety", "Transport", "Wareho
 
 function KnowledgePage() {
   const { t } = useT();
-  const { isAdmin, isManager, companyId, activeCompanyId, isPlatformAdmin, scopeCompanyId } =
-    useAuth();
-  const canEdit = isAdmin || isManager;
+  const {
+    isAdmin,
+    isManager,
+    companyId,
+    activeCompanyId,
+    isPlatformAdmin,
+    scopeCompanyId,
+    hasAnyPermission,
+  } = useAuth();
+  // Mirror the server-side permission contract (kb.functions.ts) so the UI never
+  // hides an action the backend would actually allow.
+  const canEdit =
+    isAdmin || isManager || hasAnyPermission("knowledge.manage", "sop.create", "sop.edit");
   const [docs, setDocs] = useState<Doc[]>([]);
   const [showInactive, setShowInactive] = useState(false);
   const [open, setOpen] = useState(false);
