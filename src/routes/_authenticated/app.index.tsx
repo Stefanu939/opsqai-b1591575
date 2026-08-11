@@ -116,7 +116,11 @@ function Dashboard() {
     }
   };
 
-  const name = (data?.displayName || "").trim().split(/\s+/)[0] || "there";
+  const name =
+    (data?.firstName || "").trim().split(/\s+/)[0] ||
+    (data?.displayName || "").trim().split(/\s+/)[0] ||
+    "there";
+
   const company = (data?.companyName || "").trim();
 
   const cards: {
@@ -182,7 +186,10 @@ function Dashboard() {
         </div>
         <PageHeader
           title={
-            isEmptyWorkspace ? `Welcome to OPSQAI, ${name}` : `${company || "Workspace"} dashboard`
+            isEmptyWorkspace
+              ? `Welcome to OPSQAI, ${name}`
+              : `Hello, ${name}${company ? ` — ${company}` : ""}`
+
           }
           description={
             isEmptyWorkspace

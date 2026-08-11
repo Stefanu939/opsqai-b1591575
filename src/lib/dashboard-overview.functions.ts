@@ -28,14 +28,18 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
     ]);
 
     let displayName = "";
+    let firstName = "";
     let companyName = "";
     try {
       const p = await sb
         .from("profiles")
-        .select("full_name, company_id")
+        .select("first_name, last_name, full_name, company_id")
         .eq("user_id", context.userId)
         .maybeSingle();
-      displayName = p.data?.full_name ?? "";
+      firstName = (p.data?.first_name ?? "").trim();
+      displayName =
+        (p.data?.full_name ?? "").trim() ||
+        [p.data?.first_name, p.data?.last_name].filter(Boolean).join(" ").trim();
       const cid = p.data?.company_id;
       if (cid) {
         const c = await sb.from("companies").select("name").eq("id", cid).maybeSingle();
@@ -45,12 +49,15 @@ export const getDashboardOverview = createServerFn({ method: "GET" })
       /* non-fatal */
     }
 
+
     return {
       documents,
       users,
       departments,
       displayName,
+      firstName,
       companyName,
       isEmpty: documents === 0 && users <= 1 && departments === 0,
     };
+
   });

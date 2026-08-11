@@ -34,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users, UserPlus, Trash2 } from "lucide-react";
+import { Users, UserPlus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
@@ -76,6 +76,38 @@ function UsersPage() {
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("employee");
   const [temporaryPassword, setTemporaryPassword] = useState("");
+
+  // Edit dialog — roles and names, no password reset involved.
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [editRole, setEditRole] = useState("employee");
+
+  const openEdit = (r: UserRow) => {
+    setEditUser(r);
+    setEditFirst(r.first_name ?? "");
+    setEditLast(r.last_name ?? "");
+    setEditRole(r.roles?.[0] ?? "employee");
+  };
+
+  const saveEdit = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          user_id: editUser!.id,
+          first_name: editFirst || null,
+          last_name: editLast || null,
+          roles: [editRole],
+        },
+      }),
+    onSuccess: () => {
+      toast.success("User updated");
+      setEditUser(null);
+      qc.invalidateQueries({ queryKey: ["app-users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const invite = useMutation({
     mutationFn: () =>
@@ -179,6 +211,10 @@ function UsersPage() {
       align: "right",
       render: (r) => (
         <div className="flex gap-1 justify-end">
+          <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
+            <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
+          </Button>
+
           <Button
             size="sm"
             variant="ghost"
@@ -276,6 +312,55 @@ function UsersPage() {
           empty={{ icon: Users, title: "No users" }}
         />
       )}
+
+      <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit user</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">{editUser?.email}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>First name</Label>
+                <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} />
+              </div>
+              <div>
+                <Label>Last name</Label>
+                <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>Role</Label>
+              <Select value={editRole} onValueChange={setEditRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(roleList.data ?? []).map((r) => (
+                    <SelectItem key={r.key} value={r.key}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Changing the role takes effect immediately. The user keeps their current
+                password — no reset required.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditUser(null)}>
+              Cancel
+            </Button>
+            <Button onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

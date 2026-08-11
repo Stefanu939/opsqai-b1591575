@@ -79,15 +79,50 @@ export function evaluateModuleAccess(
 }
 
 /**
- * Server-side enforcement check. Uses the admin client because enforcement
- * runs regardless of the caller's role and must never be short-circuited by
- * RLS. Callers should treat `ok: false` as a hard deny.
+ * Self-Hosted enforcement source: the offline licensing provider (signed
+ * install/module tokens on the local machine). NEVER touches a Cloud client.
+ */
+async function selfHostLicenseRows(): Promise<{ rows: LicenseRow[]; installId: string | null }> {
+  const { getLicensingProvider } = await import("@/lib/providers/registry");
+  const ent = await getLicensingProvider().entitlements();
+  const iso = (secs: number | null) => (secs ? new Date(secs * 1000).toISOString() : null);
+  if (!ent.installId) return { rows: [], installId: null };
+  const rows: LicenseRow[] = [
+    {
+      kind: "install",
+      module_key: null,
+      revoked: ent.revoked,
+      suspended: false,
+      expires_at: ent.unlimited ? null : iso(ent.expiresAt),
+    },
+    ...ent.modules.map((m) => ({
+      kind: "module" as const,
+      module_key: m,
+      revoked: false,
+      suspended: false,
+      expires_at: null,
+    })),
+  ];
+  return { rows, installId: ent.installId };
+}
+
+/**
+ * Server-side enforcement check. On Cloud it uses the admin client because
+ * enforcement runs regardless of the caller's role and must never be
+ * short-circuited by RLS; on Self-Hosted it reads the locally verified
+ * license set. Callers should treat `ok: false` as a hard deny.
  */
 export async function requireModule(
   install_id: string,
   module_key: string,
   now: Date = new Date(),
 ): Promise<EnforcementResult> {
+  const { isSelfHostedRuntime } = await import("@/lib/ai-adapters/registry");
+  if (isSelfHostedRuntime()) {
+    const { rows, installId } = await selfHostLicenseRows();
+    return evaluateModuleAccess(rows, installId ?? install_id, module_key, now);
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("licenses")
@@ -97,6 +132,7 @@ export async function requireModule(
   if (error) throw new Error(error.message);
   return evaluateModuleAccess((data ?? []) as LicenseRow[], install_id, module_key, now);
 }
+
 
 /**
  * Structured 403 for license denials. Thrown as a `Response` so the
@@ -138,6 +174,17 @@ export async function assertModuleForCompany(
   companyId: string,
   module_key: string,
 ): Promise<void> {
+  const { isSelfHostedRuntime } = await import("@/lib/ai-adapters/registry");
+  if (isSelfHostedRuntime()) {
+    // Self-Hosted has exactly one installation; the company bridge is
+    // irrelevant and the Cloud client must never be reached from here.
+    const res = await requireModule("", module_key);
+    if (!res.ok) {
+      throw new LicenseDeniedError(res.reason ?? "unknown_module", module_key).toResponse();
+    }
+    return;
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("companies")
@@ -151,3 +198,4 @@ export async function assertModuleForCompany(
   }
   await assertModule(install_id, module_key);
 }
+
