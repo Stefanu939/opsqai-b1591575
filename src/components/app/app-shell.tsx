@@ -68,7 +68,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   // customer. Ten flat items — no admin/platform sub-groups. Platform
   // operators run separately on the Management Center (/management/*).
   const workspace: NavItem[] = [
-    { to: "/app", label: "AI Chat", icon: MessageSquare, exact: true, show: true, module: "chat" },
+    { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: null },
+    { to: "/app/chat", label: "AI Chat", icon: MessageSquare, show: true, module: "chat" },
+
     {
       to: "/app/knowledge",
       label: "Knowledge",
