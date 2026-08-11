@@ -723,6 +723,11 @@ if ($LASTEXITCODE -ne 0) { throw "makensis failed with $LASTEXITCODE" }
 $exe = Join-Path $artifacts 'OPSQAI-Setup.exe'
 if (-not (Test-Path $exe)) { throw "Installer not produced at $exe" }
 
+# The produced installer must carry the approved icon too (MUI_ICON/MUI_UNICON).
+& $provNode (Join-Path $root 'build\verify-icons.mjs') '--source' $icon '--exe' $exe
+if ($LASTEXITCODE -ne 0) { throw "installer icon verification failed with $LASTEXITCODE" }
+
+
 # --- 8. Sign ---------------------------------------------------------------
 if ($Sign) {
   Write-Host "Signing $exe with EV cert..."
