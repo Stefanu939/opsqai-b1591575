@@ -84,8 +84,8 @@ function httpJson(url, { method = "GET", body = null, timeout = 20_000 } = {}) {
 function ensureInstalled(log, setupExe) {
   const existing = ollamaExe();
   if (existing) {
-    log(`ollama already installed: ${existing}`);
-    return existing;
+    log(`ollama runtime already installed: ${existing}`);
+    return { exe: existing, installedNow: false };
   }
   if (!setupExe || !fs.existsSync(setupExe)) {
     throw new AiSetupError(
@@ -93,23 +93,26 @@ function ensureInstalled(log, setupExe) {
       `Ollama is not installed and the bundled setup was not found at ${setupExe || "(unset)"}`,
     );
   }
-  log(`installing Ollama from ${setupExe}`);
+  log(`ollama runtime not found; installing from ${setupExe}`);
+  const startedAt = Date.now();
   const r = spawnSync(setupExe, ["/allusers", "/silent"], {
     encoding: "utf8",
     windowsHide: true,
     timeout: 15 * 60_000,
   });
+  const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
   if (r.status !== 0) {
     throw new AiSetupError(
       "OPSQAI-E1501",
-      `Ollama setup exited with ${r.status}: ${(r.stderr || r.stdout || "").slice(0, 300)}`,
+      `Ollama setup exited with ${r.status} after ${elapsed}s: ${(r.stderr || r.stdout || "").slice(0, 300)}`,
     );
   }
   const found = ollamaExe();
   if (!found) {
     throw new AiSetupError("OPSQAI-E1501", "Ollama setup completed but ollama.exe was not found");
   }
-  return found;
+  log(`ollama runtime installed at ${found} in ${elapsed}s`);
+  return { exe: found, installedNow: true };
 }
 
 /** 2. Start the runtime and wait for the local API to answer. */
