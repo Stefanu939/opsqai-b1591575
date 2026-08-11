@@ -15,6 +15,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { getDashboardOverview } from "@/lib/dashboard-overview.functions";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   head: () => ({
@@ -137,42 +140,48 @@ function Dashboard() {
   return (
     <div className="min-h-full bg-background text-foreground">
       {/* Hero */}
-      <div className="border-b border-border/60">
-        <div className="max-w-6xl mx-auto px-6 py-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-gold-line bg-gold-soft px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold">
-            <Sparkles className="h-3 w-3" />
-            Get started
-          </div>
-          <h1 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight">
-            Welcome to OPSQAI, {name}
-          </h1>
-          <p className="mt-2 text-[15px] text-muted-foreground max-w-2xl leading-relaxed">
-            {company
-              ? `Your ${company} workspace is ready.`
-              : "Your workspace is ready."}{" "}
-            Complete the steps below to get the most out of your platform.
-          </p>
+      <div className="max-w-6xl mx-auto px-6 pt-10">
+        <div className="inline-flex items-center gap-2 rounded-full border border-gold-line bg-gold-soft px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold">
+          <Sparkles className="h-3 w-3" />
+          Get started
         </div>
+        <PageHeader
+          title={`Welcome to OPSQAI, ${name}`}
+          description={
+            (company ? `Your ${company} workspace is ready. ` : "Your workspace is ready. ") +
+            "Complete the steps below to get the most out of your platform."
+          }
+          className="mt-4"
+        />
       </div>
 
       {/* Onboarding cards */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {visible.length === 0 ? (
-          <Card className="p-10 border-border/60 text-center">
-            <div className="mx-auto h-10 w-10 rounded-full bg-gold-soft border border-gold-line flex items-center justify-center">
-              <MessageSquare className="h-5 w-5 text-gold" />
-            </div>
-            <h2 className="mt-4 text-lg font-semibold">You're all set</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Nothing left to do here — head over to chat to start working.
-            </p>
-            <Button asChild className="mt-5">
-              <Link to="/app/chat">
-                Open chat
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </Card>
+        {!data ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="p-5 border-border/60 space-y-3">
+                <Skeleton className="h-9 w-9 rounded-md" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-8 w-24" />
+              </Card>
+            ))}
+          </div>
+        ) : visible.length === 0 ? (
+          <EmptyState
+            icon={MessageSquare}
+            title="You're all set"
+            description="Nothing left to do here — head over to chat to start working."
+            action={
+              <Button asChild>
+                <Link to="/app/chat">
+                  Open chat
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            }
+          />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((c) => (

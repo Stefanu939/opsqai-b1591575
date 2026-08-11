@@ -83,7 +83,7 @@ function confLabel(b: ConfBucket): string {
 }
 function confClasses(b: ConfBucket): string {
   if (b === "high")
-    return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+    return "bg-success/15 text-success border-success/30";
   if (b === "medium")
     return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
   return "bg-muted text-muted-foreground border-border";
@@ -605,7 +605,7 @@ function FeedbackBar({ messageId }: { messageId: string }) {
       <button
         onClick={() => vote(1)}
         aria-label="Helpful"
-        className={`p-1.5 rounded-md transition-colors ${voted === 1 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+        className={`p-1.5 rounded-md transition-colors ${voted === 1 ? "text-success bg-success/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
       >
         <ThumbsUp className="h-3.5 w-3.5" />
       </button>
@@ -719,7 +719,7 @@ function CreateRequestCTA({
           <div className="text-sm font-medium text-foreground">{T("kbGapTitle")}</div>
           <p className="text-xs text-muted-foreground mt-0.5">{T("kbGapBody")}</p>
           {state === "sent" ? (
-            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-success">
               <Check className="h-3.5 w-3.5" /> {T("requestSent")}
             </div>
           ) : (

@@ -3,6 +3,7 @@ import { useLicense } from "@/lib/license";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Check, Lock } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const Route = createFileRoute("/_authenticated/app/subscription")({
   head: () => ({ meta: [{ title: "Subscription — OPSQAI" }] }),
@@ -23,16 +24,16 @@ function SubscriptionPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-6 space-y-8">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {selfhost ? "Licensed modules" : "Your subscription"}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {selfhost
+      <PageHeader
+        eyebrow="Self-hosted"
+        title={selfhost ? "Licensed modules" : "Your subscription"}
+        description={
+          selfhost
             ? "Basic bundle is always included. Extra modules unlock from the activation bundle installed on this server — no internet connection required."
-            : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."}
-        </p>
-      </header>
+            : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."
+        }
+        className="mb-0"
+      />
 
 
       <section>
@@ -42,7 +43,7 @@ function SubscriptionPage() {
         <ul className="divide-y divide-border rounded-lg border border-border">
           {basic.map((m) => (
             <li key={m.key} className="flex items-center gap-3 p-4">
-              <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+              <Check className="h-4 w-4 text-success shrink-0" />
               <div className="min-w-0">
                 <div className="text-sm font-medium">{m.label}</div>
                 <div className="text-xs text-muted-foreground">{m.description}</div>
@@ -62,7 +63,7 @@ function SubscriptionPage() {
             return (
               <li key={m.key} className="flex items-center gap-3 p-4">
                 {on ? (
-                  <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <Check className="h-4 w-4 text-success shrink-0" />
                 ) : (
                   <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
                 )}

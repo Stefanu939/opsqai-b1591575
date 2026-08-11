@@ -128,7 +128,7 @@ function PathPage() {
                     className="flex items-center gap-3 p-2 rounded hover:bg-accent text-sm"
                   >
                     {isDone ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                     ) : (
                       <Circle className="h-4 w-4 text-muted-foreground" />
                     )}

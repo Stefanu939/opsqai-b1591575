@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
+import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import {
   listSupportConversations,
   getSupportConversation,
@@ -103,10 +103,12 @@ export function SupportWidget() {
   const routeState = useRouterState({ select: (s) => s.location.pathname });
   const canUse = auth.hasPermission("support.use") || auth.hasPermission("support.manage");
   const isPlatform = auth.isPlatformAdmin;
+  // Support ticketing is a Cloud-only surface: it lives in the vendor portal.
+  const cloudEnabled = cloudFeaturesEnabled();
 
   // Hide bubble when on the platform inbox itself, or when the user lacks permission.
   const onInbox = routeState.startsWith("/management/support");
-  const hidden = !canUse || onInbox || !auth.user;
+  const hidden = !cloudEnabled || !canUse || onInbox || !auth.user;
 
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"list" | "new" | "thread">("list");
@@ -183,28 +185,38 @@ export function SupportWidget() {
 
   // Poll + realtime unread badge.
   useEffect(() => {
-    if (!canUse || !auth.user) return;
+    if (!cloudEnabled || !canUse || !auth.user) return;
     refreshUnread();
     const t = setInterval(refreshUnread, 30000);
-    const ch = supabase
-      .channel(`support-unread-${auth.user.id}-${Math.random().toString(36).slice(2, 8)}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "support_messages" },
-        refreshUnread,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "support_conversations" },
-        refreshUnread,
-      )
-      .subscribe();
+    let cleanupRealtime: (() => void) | undefined;
+    void (async () => {
+      const db = await getCloudBrowserDb();
+      if (!db || !auth.user) return;
+      const ch = db
+        .channel(`support-unread-${auth.user.id}-${Math.random().toString(36).slice(2, 8)}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "support_messages" },
+          refreshUnread,
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "support_conversations" },
+          refreshUnread,
+        )
+        .subscribe();
+      cleanupRealtime = () => {
+        void db.removeChannel(ch);
+      };
+    })();
     return () => {
       clearInterval(t);
-      supabase.removeChannel(ch);
+      cleanupRealtime?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canUse, auth.user?.id]);
+  }, [cloudEnabled, canUse, auth.user?.id]);
+
+
 
   const loadList = async () => {
     setLoading(true);
@@ -244,24 +256,34 @@ export function SupportWidget() {
 
   // Realtime updates for the active thread.
   useEffect(() => {
-    if (!activeId) return;
-    const ch = supabase
-      .channel(`support-thread-${activeId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "support_messages",
-          filter: `conversation_id=eq.${activeId}`,
-        },
-        (payload) => setMessages((prev) => [...prev, payload.new as unknown as Message]),
-      )
-      .subscribe();
+    if (!cloudEnabled || !activeId) return;
+    let cleanupRealtime: (() => void) | undefined;
+    void (async () => {
+      const db = await getCloudBrowserDb();
+      if (!db) return;
+      const ch = db
+        .channel(`support-thread-${activeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "support_messages",
+            filter: `conversation_id=eq.${activeId}`,
+          },
+          (payload: { new: unknown }) =>
+            setMessages((prev) => [...prev, payload.new as Message]),
+        )
+        .subscribe();
+      cleanupRealtime = () => {
+        void db.removeChannel(ch);
+      };
+    })();
     return () => {
-      supabase.removeChannel(ch);
+      cleanupRealtime?.();
     };
-  }, [activeId]);
+  }, [cloudEnabled, activeId]);
+
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -284,7 +306,9 @@ export function SupportWidget() {
             mime: file.type || "application/octet-stream",
           },
         });
-        const { error: upErr } = await supabase.storage
+        const db = await getCloudBrowserDb();
+        if (!db) return;
+        const { error: upErr } = await db.storage
           .from("support-attachments")
           .uploadToSignedUrl(signed.path, signed.token, file, { contentType: file.type });
         if (upErr) {

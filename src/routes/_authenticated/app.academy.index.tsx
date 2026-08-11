@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   GraduationCap,
   Sparkles,
@@ -235,7 +236,7 @@ function MyTrainingHome() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <EmptyState hasAny={rows.length > 0} filter={filter} />
+          <TrainingEmptyState hasAny={rows.length > 0} filter={filter} />
         ) : (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((e) => (
@@ -326,7 +327,7 @@ function TrainingCard({ enrollment: e }: { enrollment: Enrollment }) {
             {done && (
               <Badge
                 variant="secondary"
-                className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 h-5 text-[10.5px]"
+                className="bg-success/10 text-success border-success/30 h-5 text-[10.5px]"
               >
                 <CheckCircle2 className="h-3 w-3 mr-1" /> Completed
               </Badge>
@@ -342,7 +343,7 @@ function TrainingCard({ enrollment: e }: { enrollment: Enrollment }) {
             {e.priority === "high" && !done && (
               <Badge
                 variant="outline"
-                className="h-5 text-[10.5px] border-red-500/40 text-red-600 dark:text-red-400"
+                className="h-5 text-[10.5px] border-destructive/40 text-destructive"
               >
                 High priority
               </Badge>
@@ -411,29 +412,28 @@ function TrainingCard({ enrollment: e }: { enrollment: Enrollment }) {
   );
 }
 
-function EmptyState({ hasAny, filter }: { hasAny: boolean; filter: Filter }) {
+function TrainingEmptyState({ hasAny, filter }: { hasAny: boolean; filter: Filter }) {
   if (!hasAny) {
     return (
-      <Card className="mt-8 p-10 text-center">
-        <GraduationCap className="h-8 w-8 text-muted-foreground mx-auto" />
-        <h3 className="mt-3 font-semibold">No training assigned yet</h3>
-        <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
-          Your manager hasn't assigned any training yet. Browse the course catalog to enrol in
-          optional learning paths.
-        </p>
-        <Button asChild size="sm" className="mt-4">
-          <Link to="/app/academy/courses">Browse Course Catalog</Link>
-        </Button>
-      </Card>
+      <EmptyState
+        icon={GraduationCap}
+        title="No training assigned yet"
+        description="Your manager hasn't assigned any training yet. Browse the course catalog to enrol in optional learning paths."
+        className="mt-8"
+        action={
+          <Button asChild size="sm">
+            <Link to="/app/academy/courses">Browse Course Catalog</Link>
+          </Button>
+        }
+      />
     );
   }
   return (
-    <Card className="mt-8 p-10 text-center">
-      <ListChecks className="h-8 w-8 text-muted-foreground mx-auto" />
-      <h3 className="mt-3 font-semibold">Nothing here for “{filter}”</h3>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Try a different filter or clear your search.
-      </p>
-    </Card>
+    <EmptyState
+      icon={ListChecks}
+      title={`Nothing here for "${filter}"`}
+      description="Try a different filter or clear your search."
+      className="mt-8"
+    />
   );
 }

@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ConfirmHost } from "@/components/ui/confirm";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { ChatGlider } from "@/components/support/chat-glider";
+import { SupportWidget } from "@/components/support/support-widget";
 import { LicenseProvider } from "@/lib/license";
 
 function NotFoundComponent() {
@@ -175,6 +176,8 @@ function RootComponent() {
           <LicenseProvider>
             <Outlet />
             <ChatGlider />
+            {/* Cloud-only ticketing bubble; self-gated via cloudFeaturesEnabled(). */}
+            <SupportWidget />
             <Toaster />
             <ConfirmHost />
           </LicenseProvider>

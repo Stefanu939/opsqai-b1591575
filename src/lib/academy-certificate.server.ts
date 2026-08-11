@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// Server-only: build a branded certificate PDF and store it in academy-certificates.
-// Uses the service-role admin client so every successful learner can be certified,
-// regardless of whether they hold the manager-only `academy.certify` permission.
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+// Server-only: build a branded certificate PDF and store it via the storage provider.
+import { getAcademyRepository, getCompanyRepository, getProfileRepository, getStorageProvider } from "@/lib/providers/registry";
 
 const BUCKET = "academy-certificates";
 
@@ -14,60 +12,31 @@ interface IssueOpts {
   finalScore: number;
 }
 
-export async function issueAcademyCertificate(_userSupabase: any, opts: IssueOpts) {
-  const admin = supabaseAdmin;
+export async function issueAcademyCertificate(context: { supabase: any; userId: string }, opts: IssueOpts) {
+  const academyRepo = getAcademyRepository(context);
 
-  // 1) Idempotent insert: one certificate per enrollment.
-  let certId: string;
-  let code: string;
-  let existingPath: string | null = null;
-
-  const { data: existing } = await admin
-    .from("academy_certificates")
-    .select("id, certificate_code, pdf_path")
-    .eq("enrollment_id", opts.enrollmentId)
-    .maybeSingle();
-
-  if (existing) {
-    certId = existing.id as string;
-    code = existing.certificate_code as string;
-    existingPath = (existing as any).pdf_path ?? null;
-    // Refresh final_score if higher; keep certificate row otherwise.
-    await admin
-      .from("academy_certificates")
-      .update({ final_score: opts.finalScore })
-      .eq("id", certId);
-  } else {
-    const { data: insert, error } = await admin
-      .from("academy_certificates")
-      .insert({
-        company_id: opts.companyId,
-        enrollment_id: opts.enrollmentId,
-        path_id: opts.pathId,
-        user_id: opts.userId,
-        final_score: opts.finalScore,
-      })
-      .select("id, certificate_code")
-      .single();
-    if (error) throw new Error(error.message);
-    certId = insert.id as string;
-    code = insert.certificate_code as string;
-  }
+  // 1) Idempotent upsert: one certificate per enrollment.
+  const cert = await academyRepo.upsertCertificate({
+    companyId: opts.companyId,
+    enrollmentId: opts.enrollmentId,
+    pathId: opts.pathId,
+    userId: opts.userId,
+    finalScore: opts.finalScore,
+  });
+  const certId = cert.id;
+  const code = cert.certificate_code;
+  const existingPath = cert.pdf_path ?? null;
 
   // 2) Read details for the certificate body.
-  const [{ data: pathRow }, { data: company }, { data: profile }] = await Promise.all([
-    admin
-      .from("academy_learning_paths")
-      .select("title, academy_departments(name)")
-      .eq("id", opts.pathId)
-      .maybeSingle(),
-    admin.from("companies").select("name").eq("id", opts.companyId).maybeSingle(),
-    admin.from("profiles").select("full_name").eq("id", opts.userId).maybeSingle(),
+  const [pathResult, company, profile] = await Promise.all([
+    academyRepo.getLearningPath(opts.pathId),
+    getCompanyRepository(context).findById(opts.companyId),
+    getProfileRepository(context).findByUserId(opts.userId),
   ]);
 
-  const recipient = profile?.full_name ?? "Learner";
-  const courseName = pathRow?.title ?? "Course";
-  const department = (pathRow as any)?.academy_departments?.name ?? "";
+  const recipient = profile?.fullName ?? "Learner";
+  const courseName = pathResult?.path.title ?? "Course";
+  const department = pathResult?.path.department_name ?? "";
   const companyName = company?.name ?? "OPSQAI";
 
   // 3) Build PDF (A4 landscape).
@@ -218,17 +187,16 @@ export async function issueAcademyCertificate(_userSupabase: any, opts: IssueOpt
 
   const pdfBytes = await pdf.save();
 
-  // 4) Upload to storage using admin client (RLS write policy is locked down).
+  // 4) Upload via the storage provider.
   const pdfPath = existingPath ?? `${opts.companyId}/${certId}.pdf`;
-  const { error: upErr } = await admin.storage
-    .from(BUCKET)
-    .upload(pdfPath, pdfBytes, { contentType: "application/pdf", upsert: true });
-  if (upErr) throw new Error(upErr.message);
+  await getStorageProvider().put({
+    bucket: BUCKET,
+    key: pdfPath,
+    body: pdfBytes,
+    contentType: "application/pdf",
+  });
 
-  await admin
-    .from("academy_certificates")
-    .update({ pdf_path: pdfPath, qr_payload: verifyUrl })
-    .eq("id", certId);
+  await academyRepo.markCertificatePdf(certId, pdfPath, verifyUrl);
 
   return { id: certId, code, path: pdfPath };
 }

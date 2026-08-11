@@ -37,7 +37,6 @@ const ALLOWED_PREFIXES = [
 // execute in Self-Hosted (Wave D aliases their imports to the throwing stub).
 // This list is the shrinking backlog for future waves — do NOT grow it.
 const LEGACY_ALLOWED = new Set([
-  "src/lib/academy-certificate.server.ts",
   "src/lib/email/dispatch.server.ts",
   "src/lib/mcp/tools/list-faqs.ts",
   "src/lib/mcp/tools/list-knowledge.ts",
@@ -55,7 +54,6 @@ const LEGACY_ALLOWED = new Set([
   "src/routes/api/customer-writer.ts",
   "src/routes/api/academy-chat.ts",
   "src/routes/lovable/email/queue/process.ts",
-  "src/components/support/support-widget.tsx",
 ]);
 
 // Core layers that EVERY request touches in both platforms. A Cloud import

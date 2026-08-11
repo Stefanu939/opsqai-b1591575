@@ -1406,6 +1406,22 @@ export interface AcademyEnrollmentPairRow {
   user_id: string;
 }
 
+export interface AcademyAssignTargets {
+  users: { id: string; name: string; department_id: string | null }[];
+  departments: { id: string; name: string }[];
+  roles: string[];
+}
+
+export interface AcademyNotificationInput {
+  companyId: string;
+  userId: string;
+  kind: string;
+  title: string;
+  body: string;
+  link: string;
+  payload: Record<string, unknown>;
+}
+
 export interface AcademyProfileRef {
   id: string;
   full_name: string | null;
@@ -1556,6 +1572,11 @@ export interface IAcademyRepository {
   // Bulk-assignment support (multi-target assign flow)
   listLearningPathsByIds(ids: string[]): Promise<AcademyPathRefRow[]>;
   listExistingEnrollmentPairs(pathIds: string[], userIds: string[]): Promise<AcademyEnrollmentPairRow[]>;
+
+  /** Assignable targets for the manager's company (users, departments, roles). */
+  getAssignTargets(companyId: string): Promise<AcademyAssignTargets>;
+  /** Fire-and-forget in-app notifications for newly assigned training. */
+  createNotifications(rows: AcademyNotificationInput[]): Promise<void>;
 }
 
 export type AcademyRepositoryFactory = (dataCtx: unknown) => IAcademyRepository;
