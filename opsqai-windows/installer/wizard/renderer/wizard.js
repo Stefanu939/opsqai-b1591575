@@ -490,11 +490,16 @@ async function runSystemChecks() {
     li.setAttribute("data-state", r.ok ? "ok" : "err");
     li.querySelector("em").textContent = r.detail;
   }
+  // Mirror the real free-space probe onto the options pane instead of leaving
+  // a decorative placeholder there.
+  const diskEl = document.getElementById("opt-disk-free");
+  if (diskEl) diskEl.textContent = results.disk?.detail || "unknown";
   state.data.systemChecksPassed = !!payload?.ok;
   $("#checks-summary").textContent = payload?.ok
     ? "All checks passed."
     : "Fix the highlighted items before continuing.";
   updateNextButton();
+
 }
 $("#btn-rerun-checks").addEventListener("click", runSystemChecks);
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
