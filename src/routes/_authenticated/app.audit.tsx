@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listAiAudits, runWorkspaceAudit } from "@/lib/ai-features.functions";
+import {
+  getAuditRecommendations,
+  listAiAudits,
+  runWorkspaceAudit,
+} from "@/lib/ai-features.functions";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
@@ -10,9 +14,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LineChart, Play, ShieldCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
+import {
+  LineChart,
+  Play,
+  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  HelpCircle,
+  GraduationCap,
+  UserCheck,
+  ClipboardCheck,
+  Gauge,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import type {
+  AuditIntelligence,
+  AuditRecommendation,
+  RecommendationKind,
+} from "@/lib/audit-recommendations";
+
 
 export const Route = createFileRoute("/_authenticated/app/audit")({
   head: () => ({ meta: [{ title: "AI Audit — OPSQAI" }] }),
