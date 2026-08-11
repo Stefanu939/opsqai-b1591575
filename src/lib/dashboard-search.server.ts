@@ -17,12 +17,12 @@ import {
 
 type Ctx = { supabase: unknown; userId: string };
 
+/** Shape consumed by `global-search.tsx` (kind / label / sub). */
 export type GlobalSearchHit = {
-  kind: "document" | "faq";
+  kind: "sop" | "faq";
   id: string;
-  title: string;
-  subtitle: string | null;
-  category: string | null;
+  label: string;
+  sub: string | null;
 };
 
 /**
@@ -77,11 +77,10 @@ export async function searchEverywhere(
     if (hits.length >= limit) break;
     if (!matches([d.title, d.doc_code, d.category], q)) continue;
     hits.push({
-      kind: "document",
+      kind: "sop",
       id: d.id,
-      title: d.title ?? d.doc_code ?? "Document",
-      subtitle: d.doc_code ?? null,
-      category: d.category ?? null,
+      label: d.title ?? d.doc_code ?? "Document",
+      sub: [d.doc_code, d.category].filter(Boolean).join(" · ") || null,
     });
   }
   for (const f of faqs) {
@@ -90,9 +89,8 @@ export async function searchEverywhere(
     hits.push({
       kind: "faq",
       id: f.id,
-      title: f.question_en || f.question_de || "FAQ",
-      subtitle: f.category ?? null,
-      category: f.category ?? null,
+      label: f.question_en || f.question_de || "FAQ",
+      sub: f.category ?? null,
     });
   }
   return hits.slice(0, limit);
