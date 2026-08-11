@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listAiAudits, runWorkspaceAudit } from "@/lib/ai-features.functions";
+import {
+  getAuditRecommendations,
+  listAiAudits,
+  runWorkspaceAudit,
+} from "@/lib/ai-features.functions";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
@@ -10,9 +14,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LineChart, Play, ShieldCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
+import {
+  LineChart,
+  Play,
+  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  HelpCircle,
+  GraduationCap,
+  UserCheck,
+  ClipboardCheck,
+  Gauge,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import type {
+  AuditIntelligence,
+  AuditRecommendation,
+  RecommendationKind,
+} from "@/lib/audit-recommendations";
+
 
 export const Route = createFileRoute("/_authenticated/app/audit")({
   head: () => ({ meta: [{ title: "AI Audit — OPSQAI" }] }),
@@ -109,6 +131,10 @@ function AiAuditPage() {
           className={latest && latest.critical > 0 ? "border-destructive/30 bg-destructive/5" : undefined}
         />
       </div>
+
+      <RecommendationsSection companyId={activeCompanyId ?? null} />
+
+
 
       {list.isLoading ? (
         <div className="grid md:grid-cols-[1fr_1.5fr] gap-4">
@@ -320,5 +346,176 @@ function MiniStat({
         {value}
       </div>
     </div>
+  );
+}
+
+const KIND_META: Record<
+  RecommendationKind,
+  { label: string; icon: typeof FileText }
+> = {
+  sop: { label: "New SOP", icon: FileText },
+  faq: { label: "New FAQ", icon: HelpCircle },
+  course: { label: "Build course", icon: GraduationCap },
+  course_assignment: { label: "Assign course", icon: UserCheck },
+  quiz: { label: "Add quiz", icon: ClipboardCheck },
+  policy_review: { label: "Policy review", icon: ShieldCheck },
+};
+
+const PRIORITY_CLASS: Record<string, string> = {
+  critical: "border-destructive/40 bg-destructive/10 text-destructive",
+  high: "border-amber-500/40 bg-amber-500/10 text-amber-600",
+  medium: "border-border bg-accent/40",
+  low: "border-border bg-muted/40 text-muted-foreground",
+};
+
+function RecommendationsSection({ companyId }: { companyId: string | null }) {
+  const recsFn = useServerFn(getAuditRecommendations);
+  const q = useQuery({
+    queryKey: ["audit-recommendations", companyId],
+    queryFn: () => recsFn({ data: { company_id: companyId } } as never),
+  });
+  const [showAll, setShowAll] = useState(false);
+
+  if (q.isLoading) {
+    return (
+      <Card className="p-4 mb-6 space-y-3">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
+      </Card>
+    );
+  }
+  if (q.isError || !q.data) return null;
+
+  const intel = q.data as AuditIntelligence;
+  const recs = intel.recommendations ?? [];
+  const visible = showAll ? recs : recs.slice(0, 6);
+
+  return (
+    <Card className="card-enterprise p-4 md:p-5 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+            Recommended actions
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Derived from recurring unanswered questions, learning friction and knowledge coverage.
+          </p>
+        </div>
+        <div className="flex gap-4 text-right">
+          <div>
+            <div className="text-lg font-semibold tabular-nums flex items-center gap-1">
+              <Gauge className="h-4 w-4 text-muted-foreground" />
+              {intel.frictionIndex}
+            </div>
+            <div className="text-[11px] text-muted-foreground">Friction index</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold tabular-nums">{intel.selfServiceRate}%</div>
+            <div className="text-[11px] text-muted-foreground">Self-service rate</div>
+          </div>
+        </div>
+      </div>
+
+      {recs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No gaps detected — knowledge coverage and learning signals look healthy.
+        </p>
+      ) : (
+        <>
+          <ul className="grid gap-3 md:grid-cols-2">
+            {visible.map((r: AuditRecommendation) => {
+              const meta = KIND_META[r.kind];
+              const Icon = meta.icon;
+              return (
+                <li
+                  key={r.id}
+                  className="rounded-lg border border-border p-3 hover-lift bg-card/60"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {meta.label}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className={PRIORITY_CLASS[r.priority]}>
+                      {r.priority}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 text-sm font-medium leading-snug">{r.title}</div>
+                  <p className="text-xs text-muted-foreground mt-1">{r.rationale}</p>
+                  {r.evidence.length > 0 && (
+                    <ul className="mt-2 space-y-0.5">
+                      {r.evidence.map((e, i) => (
+                        <li key={i} className="text-[11px] text-muted-foreground">
+                          • {e}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {r.suggestedCourse && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      <Badge variant="secondary">{r.suggestedCourse.format}</Badge>
+                      <Badge variant="secondary">{r.suggestedCourse.difficulty}</Badge>
+                      <Badge variant="secondary">
+                        {r.suggestedCourse.estimatedMinutes} min
+                      </Badge>
+                      <Badge variant="secondary">
+                        pass ≥ {r.suggestedCourse.passingScore}%
+                      </Badge>
+                      <Badge variant="secondary">due in {r.suggestedCourse.dueInDays}d</Badge>
+                      {r.suggestedCourse.mandatory && <Badge>mandatory</Badge>}
+                    </div>
+                  )}
+                  <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>{r.department ?? "Company-wide"}</span>
+                    <span>
+                      +{r.expectedScoreImprovement} pts · {r.effort} effort
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {recs.length > 6 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-3"
+              onClick={() => setShowAll((v) => !v)}
+            >
+              {showAll ? "Show less" : `Show all ${recs.length} recommendations`}
+            </Button>
+          )}
+        </>
+      )}
+
+      {intel.learnerCoaching.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-border">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-2">
+            People who need support
+          </div>
+          <ul className="divide-y divide-border">
+            {intel.learnerCoaching.slice(0, 6).map((l) => (
+              <li key={l.userId} className="py-2 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{l.name}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {l.department ?? "No department"} · {l.reason}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-sm tabular-nums font-semibold">{l.frictionScore}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {l.questionsPerLearningHour} q/h
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Card>
   );
 }

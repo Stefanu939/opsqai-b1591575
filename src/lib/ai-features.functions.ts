@@ -527,12 +527,71 @@ Return STRICT JSON only, matching this schema (keep all keys):
         (Array.isArray(rpt.critical) ? rpt.critical.length : heuristic.criticalCount),
     );
 
+    // --- Recommendation & learning-intelligence layer -------------------
+    // Real signals from the workspace (recurring open questions, per-person
+    // learning friction, structural KB counters) turned into concrete actions:
+    // missing SOP, missing FAQ, a course to build, a course to assign with
+    // per-person settings. Deterministic — no AI call, works fully offline.
+    let intelligence: unknown = null;
+    try {
+      const { buildAuditRecommendations } = await import("@/lib/audit-recommendations");
+      const auditRepo = getAiAuditRepository(context.supabase);
+      const [gapRows, learnerRows, knowledgeRow] = await Promise.all([
+        auditRepo.gapClusters(companyId, 40),
+        auditRepo.learnerSignals(companyId, 50),
+        auditRepo.knowledgeSignal(companyId),
+      ]);
+      intelligence = buildAuditRecommendations({
+        gaps: gapRows,
+        learners: learnerRows,
+        knowledge: knowledgeRow,
+      });
+      const intel = intelligence as {
+        recommendations: unknown[];
+        frictionIndex: number;
+        selfServiceRate: number;
+        topFrictionDepartments: unknown[];
+        learnerCoaching: unknown[];
+      };
+      report.recommendations = intel.recommendations;
+      report.learningIntelligence = {
+        frictionIndex: intel.frictionIndex,
+        selfServiceRate: intel.selfServiceRate,
+        topFrictionDepartments: intel.topFrictionDepartments,
+        learnerCoaching: intel.learnerCoaching,
+      };
+    } catch {
+      report.recommendations = [];
+    }
+
     const row = await getAiAuditRepository(context.supabase).create({ companyId, requestedBy: context.userId,
       score, maturity:String(rpt.maturityName||ml.name).toLowerCase().replace(" ","_"),summary:JSON.parse(JSON.stringify(report)) as JsonLike,
       passed:passedN,warnings:warnN,critical:critN });
 
     return { id: row.id, score, report };
   });
+
+/**
+ * Recommendations + learning intelligence without writing a new audit row.
+ * Used by the AI Audit page to refresh advice between full runs.
+ */
+export const getAuditRecommendations = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const companyId = await resolveCompany(context, data.company_id);
+    const { buildAuditRecommendations } = await import("@/lib/audit-recommendations");
+    const auditRepo = getAiAuditRepository(context.supabase);
+    const [gaps, learners, knowledge] = await Promise.all([
+      auditRepo.gapClusters(companyId, 40),
+      auditRepo.learnerSignals(companyId, 50),
+      auditRepo.knowledgeSignal(companyId),
+    ]);
+    return buildAuditRecommendations({ gaps, learners, knowledge });
+  });
+
 
 export const listAiAudits = createServerFn({ method: "POST" })
   .middleware([requireAuth])
