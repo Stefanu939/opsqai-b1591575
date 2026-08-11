@@ -89,23 +89,14 @@ function rowToSnapshot(r: Record<string, unknown>): BackupSnapshot {
 export function createWindowsBackupService(deps: WindowsBackupDeps): IBackupService {
   const tar = deps.tarPath ?? "tar.exe";
 
+  // NOTE: `public.platform_snapshots` is owned by migrations 0003 + 0005.
+  // Runtime DDL was removed on purpose (P1 audit item): the schema must have a
+  // single, versioned source of truth so an older binary can never quietly
+  // create a divergent table shape.
   async function ensureTables(): Promise<void> {
-    // Idempotent — mirrors migration 0005 for dev/test environments that
-    // haven't run migrations yet.
-    await deps.pool.query(`
-      CREATE TABLE IF NOT EXISTS public.platform_snapshots (
-        id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-        path         TEXT NOT NULL,
-        size_bytes   BIGINT NOT NULL,
-        detail       JSONB NOT NULL DEFAULT '{}'::JSONB,
-        sha256       TEXT,
-        verified_at  TIMESTAMPTZ,
-        tag          TEXT,
-        kind         TEXT NOT NULL DEFAULT 'manual'
-      )
-    `);
+    /* schema managed by migrations/selfhost/0003_snapshots.sql + 0005 */
   }
+
 
   return {
     async snapshot(options?: SnapshotOptions): Promise<BackupSnapshot> {

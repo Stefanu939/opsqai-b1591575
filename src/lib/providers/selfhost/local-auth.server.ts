@@ -28,6 +28,32 @@ const PASSWORD_RESET_TTL_SEC = 30 * 60;
 const JWT_ISSUER = "opsqai-selfhost";
 const JWT_AUDIENCE = "opsqai-app";
 
+// --- Sign-in throttling ----------------------------------------------------
+// Exponential backoff after 3 failures, hard lockout after 10. Buckets are
+// per-email AND per-IP so neither "one account, many hosts" nor "one host,
+// many accounts" slips through. Windows are deliberately short enough that a
+// legitimate operator who mistyped is never locked out for long.
+const THROTTLE_FREE_ATTEMPTS = 3;
+const THROTTLE_MAX_ATTEMPTS = 10;
+const THROTTLE_BASE_DELAY_SEC = 2;
+const THROTTLE_MAX_DELAY_SEC = 300; // 5 min
+const THROTTLE_LOCKOUT_SEC = 900; // 15 min after MAX failures
+
+/** Seconds a bucket must wait after `failures` consecutive failures. */
+export function throttleDelaySeconds(failures: number): number {
+  if (failures <= THROTTLE_FREE_ATTEMPTS) return 0;
+  if (failures >= THROTTLE_MAX_ATTEMPTS) return THROTTLE_LOCKOUT_SEC;
+  const delay = THROTTLE_BASE_DELAY_SEC * 2 ** (failures - THROTTLE_FREE_ATTEMPTS - 1);
+  return Math.min(delay, THROTTLE_MAX_DELAY_SEC);
+}
+
+export class SignInThrottledError extends Error {
+  constructor(readonly retryAfterSeconds: number) {
+    super("too_many_attempts");
+    this.name = "SignInThrottledError";
+  }
+}
+
 export interface LocalAuthDeps {
   pool: Pool;
   privateKey: KeyObject;
@@ -36,6 +62,7 @@ export interface LocalAuthDeps {
   now?: () => Date; // injectable for tests
 }
 
+
 function sha256Hex(input: string): string {
   return createHash("sha256").update(input, "utf8").digest("hex");
 }
@@ -43,6 +70,7 @@ function sha256Hex(input: string): string {
 function newOpaqueToken(): string {
   return randomBytes(32).toString("base64url");
 }
+
 
 export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
   const { pool, privateKey, publicKey, keyId } = deps;
