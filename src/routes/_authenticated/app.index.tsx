@@ -336,6 +336,37 @@ function DashboardWidgets() {
         )
       )}
 
+      {!overviewQ.isLoading && show("kpis") && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatCard
+            label="Active users (30d)"
+            value={kpis?.activeUsers ?? "—"}
+            icon={Users}
+          />
+          <StatCard
+            label="AI confidence (30d)"
+            value={
+              kpis?.avgConfidence != null && kpis.avgConfidence > 0
+                ? `${Math.round(kpis.avgConfidence * 100)}%`
+                : "—"
+            }
+            icon={ShieldCheck}
+          />
+          <StatCard label="AI audits" value={kpis?.aiAudits ?? "—"} icon={Activity} />
+          <StatCard
+            label="Last audit score"
+            value={overviewQ.data?.lastAudit?.score ?? "—"}
+            icon={ShieldCheck}
+            hint={
+              overviewQ.data?.lastAudit?.created_at
+                ? new Date(overviewQ.data.lastAudit.created_at).toLocaleDateString()
+                : "no audit yet"
+            }
+          />
+        </div>
+      )}
+
+
       {show("health") && (
         <Card className="p-5 border-border/60">
           <div className="flex items-center justify-between">
