@@ -380,6 +380,45 @@ try {
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────
+
+/**
+ * Persist the generated first-sign-in credentials exactly once, to a file only
+ * SYSTEM + Administrators can read. The password is NEVER written to the
+ * bootstrap log — the operator reads it here, signs in, and is forced to
+ * change it (must_change_password = true), after which the file can be
+ * deleted.
+ */
+function writeInitialCredentials() {
+  const target = path.join(programData("config"), "initial-admin-credentials.txt");
+  const body = [
+    "OPSQAI — initial administrator credentials",
+    "",
+    "This password was generated randomly during installation and must be",
+    "changed at first sign-in. Delete this file once you have signed in.",
+    "",
+    `email:    ${adminEmail}`,
+    `password: ${adminPassword}`,
+    "",
+    `generated: ${new Date().toISOString()}`,
+    "",
+  ].join("\r\n");
+  try {
+    fs.writeFileSync(target, body, { encoding: "utf8", mode: 0o600 });
+    try {
+      execFileSync(
+        "icacls.exe",
+        [target, "/inheritance:r", "/grant:r", "SYSTEM:F", "/grant:r", "BUILTIN\\Administrators:F"],
+        { stdio: "ignore" },
+      );
+    } catch {}
+    // Path only — never the value.
+    log(`generated a one-time admin password; credentials written to ${target}`);
+  } catch (e) {
+    console.warn(`[bootstrap] cannot write initial credentials file: ${e.message}`);
+  }
+}
+
+
 function svcCmd(name, action) {
   const svc = programFiles("winsw", `${name}.exe`);
   if (!fs.existsSync(svc)) {
