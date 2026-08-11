@@ -186,7 +186,10 @@ function Dashboard() {
         </div>
         <PageHeader
           title={
-            isEmptyWorkspace ? `Welcome to OPSQAI, ${name}` : `${company || "Workspace"} dashboard`
+            isEmptyWorkspace
+              ? `Welcome to OPSQAI, ${name}`
+              : `Hello, ${name}${company ? ` — ${company}` : ""}`
+
           }
           description={
             isEmptyWorkspace
