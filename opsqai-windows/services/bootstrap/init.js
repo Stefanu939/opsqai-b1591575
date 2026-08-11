@@ -554,7 +554,13 @@ function pgArgs() {
  * instead of letting psql emit the opaque `fe_sendauth: no password supplied`.
  */
 function describePgTarget(label) {
-  const { host, port, user, db, pw } = pgArgs();
+  let target = pgArgs();
+  if (!target.pw && config.database.mode === "embedded") {
+    // Last chance: the database service may have persisted the generated
+    // password to disk after our most recent read.
+    if (refreshEmbeddedCredentialsFromDisk()) target = pgArgs();
+  }
+  const { host, port, user, db, pw } = target;
   const state = pw ? "set" : process.env.PGPASSWORD ? "inherited" : "MISSING";
   log(`${label}: psql host=${host} port=${port} user=${user} db=${db} pgpassword=${state}`);
   if (state === "MISSING" && config.database.mode === "embedded") {
@@ -565,6 +571,7 @@ function describePgTarget(label) {
     );
   }
 }
+
 
 /** Removes any occurrence of the DB password from text before it is logged. */
 function scrubSecrets(text) {
