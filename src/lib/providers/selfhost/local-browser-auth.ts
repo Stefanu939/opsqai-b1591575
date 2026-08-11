@@ -267,9 +267,25 @@ export function createLocalBrowserAuthProvider(): IBrowserAuthProvider {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(err.error || res.statusText);
       }
-      emit("USER_UPDATED", toOpsqaiSession(stored));
+      // The old access token still carries `must_change_password: true`.
+      // Force a token rotation so the forced-change route guard stops
+      // bouncing the user back to /reset-password after a successful change.
+      let next: StoredSession = stored;
+      try {
+        const refreshed = await postJson<AuthResponse>("/api/auth/refresh", {
+          refreshToken: stored.refreshToken,
+        });
+        next = { ...refreshed };
+        writeStored(next);
+        emit("TOKEN_REFRESHED", toOpsqaiSession(next));
+        broadcast("TOKEN_REFRESHED");
+      } catch {
+        /* keep the current session; the next refresh clears the claim */
+      }
+      emit("USER_UPDATED", toOpsqaiSession(next));
       broadcast("USER_UPDATED");
     },
+
 
     async setSessionFromUrl(): Promise<SetSessionFromUrlResult> {
       // Self-Hosted reset flow uses ?reset_token=<token> query param
