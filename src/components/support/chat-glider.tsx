@@ -299,15 +299,9 @@ function ConversationsListView({
     refetchOnWindowFocus: true,
   });
 
-  // Polling works in both products; Cloud realtime is intentionally not
-  // imported here because this component also ships in Self-Hosted.
-  useEffect(() => {
-    const timer = window.setInterval(
-      () => qc.invalidateQueries({ queryKey: ["chat-conversations"] }),
-      4_000,
-    );
-    return () => window.clearInterval(timer);
-  }, [qc]);
+  // The launcher-level `useUnreadTotal` hook owns the single 4s poller for
+  // the shared ["chat-conversations"] cache; no second interval here.
+
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
