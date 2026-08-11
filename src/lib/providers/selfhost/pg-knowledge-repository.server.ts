@@ -9,6 +9,8 @@ import type {
   KnowledgeDocumentInsert,
   KnowledgeDocumentRow,
   KnowledgeMatch,
+  KnowledgeVersionAnchor,
+  KnowledgeVersionInsert,
 } from "@/lib/providers/interfaces";
 
 export interface PgKnowledgeRepositoryDeps {
@@ -209,6 +211,74 @@ export function createPgKnowledgeRepository(
         [documentIds, limit],
       );
       return rows;
+    },
+
+    async getVersionAnchor(id) {
+      const { rows } = await pool.query<KnowledgeVersionAnchor>(
+        `SELECT id, company_id, doc_code, version, parent_document_id
+           FROM public.knowledge_documents WHERE id = $1`,
+        [id],
+      );
+      return rows[0] ?? null;
+    },
+
+    async markReplaced(id) {
+      await pool.query(
+        `UPDATE public.knowledge_documents
+            SET is_active = false, replaced_at = now()
+          WHERE id = $1`,
+        [id],
+      );
+    },
+
+    async insertVersion(input: KnowledgeVersionInsert) {
+      const { rows } = await pool.query<{ id: string; company_id: string }>(
+        `INSERT INTO public.knowledge_documents
+           (company_id, title, category, doc_code, file_path, file_type,
+            content_text, status, uploaded_by, version, is_active,
+            parent_document_id, change_notes)
+         VALUES ($1,$2,$3,$4,$5,$6,'','processing',$7,$8,true,$9,$10)
+         RETURNING id, company_id`,
+        [
+          input.company_id,
+          input.title,
+          input.category,
+          input.doc_code ?? null,
+          input.file_path,
+          input.file_type,
+          input.uploaded_by ?? null,
+          input.version,
+          input.parent_document_id,
+          input.change_notes ?? null,
+        ],
+      );
+      return rows[0];
+    },
+
+    async deactivateLineage(company_id, doc_code) {
+      await pool.query(
+        `UPDATE public.knowledge_documents
+            SET is_active = false
+          WHERE company_id = $1
+            AND doc_code IS NOT DISTINCT FROM $2`,
+        [company_id, doc_code],
+      );
+    },
+
+    async activateDocument(id) {
+      await pool.query(
+        `UPDATE public.knowledge_documents
+            SET is_active = true, replaced_at = NULL
+          WHERE id = $1`,
+        [id],
+      );
+    },
+
+    async setCritical(id, is_critical) {
+      await pool.query(
+        `UPDATE public.knowledge_documents SET is_critical = $2 WHERE id = $1`,
+        [id, is_critical],
+      );
     },
   };
 }
