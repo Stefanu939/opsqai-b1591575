@@ -116,7 +116,11 @@ function Dashboard() {
     }
   };
 
-  const name = (data?.displayName || "").trim().split(/\s+/)[0] || "there";
+  const name =
+    (data?.firstName || "").trim().split(/\s+/)[0] ||
+    (data?.displayName || "").trim().split(/\s+/)[0] ||
+    "there";
+
   const company = (data?.companyName || "").trim();
 
   const cards: {
