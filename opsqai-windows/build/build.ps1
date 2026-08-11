@@ -86,8 +86,27 @@ function assertContains(parent, child, label) {
       }
     }
 
+    # --- Frontend/server provenance: stamp identity INTO the bundle ---------
+    # VITE_OPSQAI_BUILD_* are statically replaced by Vite, so the built client
+    # and server both carry the exact version + commit. The content hash is
+    # recorded after staging (frontend-provenance.mjs) because it hashes the
+    # build output itself.
+    $buildCommit = 'unknown'
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+      $sha = (& git rev-parse HEAD 2>$null)
+      if ($LASTEXITCODE -eq 0 -and $sha) { $buildCommit = $sha.Trim() }
+    }
+    if ($env:GITHUB_SHA) { $buildCommit = $env:GITHUB_SHA }
+    # $Version may later gain a '-dev' suffix; provenance must use the value
+    # that was actually stamped into the bundle.
+    $script:FrontendVersion = $Version
+    $script:FrontendCommit  = $buildCommit
+    $env:VITE_OPSQAI_BUILD_VERSION = $Version
+    $env:VITE_OPSQAI_BUILD_COMMIT  = $buildCommit
+    Write-Host "Stamping frontend provenance: version=$Version commit=$buildCommit"
 
     & bun run build:selfhosted
+
     if ($LASTEXITCODE -ne 0) { throw "bun run build:selfhosted failed" }
 
 
