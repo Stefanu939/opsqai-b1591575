@@ -358,8 +358,8 @@ function DashboardWidgets() {
             value={overviewQ.data?.lastAudit?.score ?? "—"}
             icon={ShieldCheck}
             hint={
-              overviewQ.data?.lastAudit?.created_at
-                ? new Date(overviewQ.data.lastAudit.created_at).toLocaleDateString()
+              overviewQ.data?.lastAudit?.createdAt
+                ? new Date(overviewQ.data.lastAudit.createdAt).toLocaleDateString()
                 : "no audit yet"
             }
           />
