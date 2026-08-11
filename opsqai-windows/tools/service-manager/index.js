@@ -254,7 +254,11 @@ const cmds = {
     const s = fs.existsSync(staged) ? staged : bootstrap;
     if (!fs.existsSync(s)) die("bootstrap init.js not found");
     const email = cfg.company?.contactEmail || "admin@localhost";
-    const args = [s, "--reset-embedded-db", "--admin-email", email, "--admin-password", "ChangeMe-Reset-1234", "--company", cfg.company?.name || "OPSQAI"];
+    // No hardcoded password: init.js mints a random one-time password and
+    // writes it to ProgramData\OPSQAI\config\initial-admin-credentials.txt
+    // (Administrators-only), forcing a change at first sign-in.
+    const args = [s, "--reset-embedded-db", "--admin-email", email, "--generate-admin-password", "--company", cfg.company?.name || "OPSQAI"];
+
     const r = spawnSync(process.execPath, args, { stdio: "inherit" });
     process.exit(r.status ?? 1);
   },
