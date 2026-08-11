@@ -92,7 +92,7 @@ export const listUsers = createServerFn({ method: "POST" })
       phone: p.phone,
       department_id: p.departmentId,
       department_name: p.departmentId ? (deptById.get(p.departmentId) ?? null) : null,
-      company_id: p.companyId,
+      company_id: p.companyId as string | null,
       company_name: p.companyId ? (compById.get(p.companyId) ?? null) : null,
       language_pref: p.languagePref,
       is_active: p.isActive,
