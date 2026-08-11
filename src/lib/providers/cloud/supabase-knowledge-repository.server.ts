@@ -11,7 +11,6 @@ import type {
   KnowledgeDocumentInsert,
   KnowledgeDocumentRow,
   KnowledgeMatch,
-  KnowledgeVersionAnchor,
   KnowledgeVersionInsert,
 } from "@/lib/providers/interfaces";
 
