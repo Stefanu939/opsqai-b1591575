@@ -118,10 +118,13 @@ export function createPgUserRepository(deps: PgUserRepositoryDeps): IUserReposit
 
     async setPassword(userId, newPassword) {
       const passwordHash = await hashPassword(newPassword);
-      await pool.query("UPDATE public.users SET password_hash = $1 WHERE id = $2", [
-        passwordHash,
-        userId,
-      ]);
+      // Setting a password by the user themselves always satisfies a pending
+      // forced change (installer-generated or admin-issued temporary password).
+      await pool.query(
+        "UPDATE public.users SET password_hash = $1, must_change_password = FALSE WHERE id = $2",
+        [passwordHash, userId],
+      );
     },
+
   };
 }
