@@ -67,24 +67,10 @@ const SECTIONS: Section[] = [
       { to: "/management/settings", label: "Settings", icon: Settings },
     ],
   },
-  // DEMO — Self-Hosted product surfaced inside the Management Center for
-  // OPSQAI staff. Pinned to the seeded demo tenant via StaffPreviewBanner;
-  // all premium modules are unlocked because cloud mode is unlimited.
-  {
-    title: "Demo (Self-Hosted preview)",
-    items: [
-      { to: "/app", label: "AI Chat", icon: MessageSquare, exact: true },
-      { to: "/app/knowledge", label: "Knowledge", icon: BookOpen },
-      { to: "/app/faq", label: "FAQ", icon: HelpCircle },
-      { to: "/app/academy", label: "Academy", icon: GraduationCap },
-      { to: "/app/audit", label: "AI Audit", icon: LineChart },
-      { to: "/app/users", label: "Users", icon: Users },
-      { to: "/app/organization", label: "Organization", icon: Building2 },
-      { to: "/app/subscription", label: "Subscription", icon: Package },
-      { to: "/app/updates", label: "Updates", icon: Download },
-      { to: "/app/modules", label: "Modules", icon: ClipboardCheck },
-    ],
-  },
+  // NOTE: the Management Center intentionally exposes NO Self-Hosted product
+  // surface. `/app/*` is the customer's Windows installation only; it is not
+  // demoed, previewed or QA'd from here.
+
 ];
 
 
