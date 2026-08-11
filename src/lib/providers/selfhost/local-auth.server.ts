@@ -21,6 +21,8 @@ import { Capability } from "@/lib/platform";
 
 import { signJwtEd25519, verifyJwtEd25519 } from "./jwt-ed25519.server";
 import { createPgUserRepository } from "./pg-user-repository.server";
+import { createSelfHostedDataContext } from "./no-supabase-context";
+
 
 const ACCESS_TOKEN_TTL_SEC = 15 * 60;
 const REFRESH_TOKEN_TTL_SEC = 30 * 24 * 60 * 60; // 30 days
