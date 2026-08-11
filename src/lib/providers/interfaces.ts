@@ -485,7 +485,56 @@ export interface IAiAuditRepository {
     status?: string;
     errorCode?: string | null;
   }): Promise<{ id: string }>;
+
+  /**
+   * Recurring open questions (knowledge gaps) used by the audit
+   * recommendation engine to propose missing SOPs / FAQs.
+   */
+  gapClusters(companyId: string, limit: number): Promise<AuditGapClusterRow[]>;
+
+  /**
+   * Per-user learning friction signals: how often / how fast someone had to
+   * ask the assistant while an enrollment was in progress, plus quiz results.
+   */
+  learnerSignals(companyId: string, limit: number): Promise<AuditLearnerSignalRow[]>;
+
+  /** Structural knowledge-base counters (documents, FAQ, courses). */
+  knowledgeSignal(companyId: string): Promise<AuditKnowledgeSignalRow>;
 }
+
+export interface AuditGapClusterRow {
+  question: string;
+  occurrences: number;
+  status: string;
+  departmentName: string | null;
+  lastSeen: string;
+  confidence: number | null;
+}
+
+export interface AuditLearnerSignalRow {
+  userId: string;
+  name: string;
+  department: string | null;
+  questionsWhileLearning: number;
+  learningSeconds: number;
+  lowConfidenceQuestions: number;
+  avgConfidence: number;
+  activeEnrollments: number;
+  overdueEnrollments: number;
+  completedEnrollments: number;
+  avgQuizScore: number | null;
+  failedQuizAttempts: number;
+}
+
+export interface AuditKnowledgeSignalRow {
+  documents: number;
+  readyDocuments: number;
+  staleDocuments: number;
+  faqs: number;
+  courses: number;
+  categories: Record<string, number>;
+}
+
 
 export interface FeedbackUpsertInput {
   messageId: string;
