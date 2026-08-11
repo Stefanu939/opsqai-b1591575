@@ -761,3 +761,22 @@ body {
   font-size: 12.5px;
 }
 .info-block .hint { margin: 10px 0 0; }
+
+/* ── Enterprise depth pass (aligned with the product shell) ─────── */
+.content {
+  background:
+    radial-gradient(900px 420px at 92% -8%, rgba(201, 168, 76, 0.08), transparent 70%),
+    radial-gradient(700px 500px at 0% 100%, rgba(10, 58, 45, 0.55), transparent 72%),
+    var(--bg);
+}
+.checks,
+.stages,
+.log,
+.card {
+  box-shadow: 0 1px 0 rgba(201, 168, 76, 0.06) inset, 0 12px 32px -22px rgba(0, 0, 0, 0.9);
+}
+.progress { box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.14) inset; }
+.btn-primary {
+  box-shadow: 0 8px 22px -14px rgba(201, 168, 76, 0.9);
+}
+.sidebar { box-shadow: 1px 0 0 rgba(201, 168, 76, 0.12); }
