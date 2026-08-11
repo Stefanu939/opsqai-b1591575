@@ -16,7 +16,18 @@ import { RouteErrorState } from "@/components/app/route-error-state";
 // Regular customers/members continue to be redirected to `/windows-only`.
 export const Route = createFileRoute("/_authenticated/app")({
   beforeLoad: async () => {
-    if (getClientDeploymentMode() !== "mc") return;
+    if (getClientDeploymentMode() !== "mc") {
+      // Self-Hosted: a one-time / temporary password must be replaced before
+      // the operator can use the platform. The claim comes from the signed
+      // access token, so this cannot be bypassed by editing local storage —
+      // the server also rejects the stale password on the next refresh.
+      const { mustChangePassword } = await import("@/lib/must-change-password");
+      if (await mustChangePassword()) {
+        throw redirect({ to: "/reset-password", search: { forced: true } });
+      }
+      return;
+    }
+
 
     // Cloud mode — only OPSQAI staff may enter the Self-Hosted preview.
     const user = await getBrowserAuthProvider().getUser();
