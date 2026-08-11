@@ -84,11 +84,8 @@ const providerBootstrapRequestMiddleware = createMiddleware().server(
 );
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [
-    attachSupabaseAuth,
-    providerBootstrapFunctionMiddleware,
-    attachPlatformAuth,
-  ],
+  functionMiddleware: [providerBootstrapFunctionMiddleware, attachPlatformAuth],
+
   requestMiddleware: [errorMiddleware, providerBootstrapRequestMiddleware],
 }));
 
