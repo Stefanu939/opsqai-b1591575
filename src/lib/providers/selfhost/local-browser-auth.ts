@@ -89,13 +89,24 @@ async function postJson<T>(path: string, body?: unknown): Promise<T> {
   if (!res.ok) {
     let msg = res.statusText;
     try {
-      const err = (await res.json()) as { error?: string };
+      const err = (await res.json()) as { error?: string; retryAfterSeconds?: number };
+      if (err?.error === "too_many_attempts") {
+        const wait = err.retryAfterSeconds ?? 60;
+        const human =
+          wait >= 60 ? `${Math.ceil(wait / 60)} minute(s)` : `${wait} second(s)`;
+        throw new Error(`Too many failed sign-in attempts. Try again in ${human}.`);
+      }
+      if (err?.error === "invalid_credentials") {
+        throw new Error("Incorrect email or password.");
+      }
       if (err?.error) msg = err.error;
-    } catch {
-      /* ignore */
+    } catch (e) {
+      if (e instanceof Error && /sign-in attempts|email or password/.test(e.message)) throw e;
+      /* otherwise fall through to the generic message */
     }
     throw new Error(msg || "request_failed");
   }
+
   return (await res.json()) as T;
 }
 
