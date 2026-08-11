@@ -142,7 +142,7 @@ export function ChatGlider() {
           "fixed z-50 bg-background border border-border shadow-2xl overflow-hidden",
           "transition-transform duration-300 ease-out",
           "right-0 bottom-0 md:bottom-6 md:right-6",
-          "w-full h-[100dvh] md:w-[400px] md:h-[640px] md:rounded-2xl",
+          "w-full h-[100dvh] md:w-[400px] md:h-[min(640px,80vh)] md:rounded-2xl",
           "flex flex-col",
           open ? "translate-x-0" : "translate-x-[110%]",
         )}
