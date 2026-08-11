@@ -62,7 +62,9 @@ interface Faq {
 
 function FaqPage() {
   const { t, lang } = useT();
-  const { isAdmin, scopeCompanyId } = useAuth();
+  const { isAdmin, scopeCompanyId, hasAnyPermission } = useAuth();
+  const canEditFaq =
+    isAdmin || hasAnyPermission("faq.edit", "faq.create", "knowledge.manage");
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faq | null>(null);
@@ -133,17 +135,17 @@ function FaqPage() {
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <h1 className="text-2xl font-semibold tracking-tight">{t("faq")}</h1>
         <div className="flex items-center gap-2">
-          {isAdmin && (
+          {canEditFaq && (
             <Button variant="outline" onClick={() => setExportOpen(true)}>
               <Download className="h-4 w-4 mr-2" /> Export
             </Button>
           )}
-          {isAdmin && (
+          {canEditFaq && (
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <Upload className="h-4 w-4 mr-2" /> Import
             </Button>
           )}
-          {isAdmin && (
+          {canEditFaq && (
             <Dialog
               open={open}
               onOpenChange={(o) => {
@@ -220,7 +222,7 @@ function FaqPage() {
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">
                     {lang === "de" ? f.answer_de : f.answer_en}
                   </p>
-                  {isAdmin && (
+                  {canEditFaq && (
                     <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"
