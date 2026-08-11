@@ -50,9 +50,28 @@ export const requireAuth = createMiddleware({ type: "function" }).server(
       throw new Error(`Unauthorized: ${msg}`);
     }
 
-    const dataClient = (await provider.getDataContext(
-      token,
-    )) as SupabaseClient<Database>;
+    // NOTE: `await` on the returned value reads `.then` off it. The
+    // Self-Hosted guard proxy MUST stay reflection-safe (see
+    // selfhost/no-supabase-context.ts) or every authenticated server fn
+    // fails here instead of at the actual data-access site.
+    let dataClient: SupabaseClient<Database>;
+    try {
+      dataClient = (await provider.getDataContext(
+        token,
+      )) as SupabaseClient<Database>;
+    } catch (e) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      console.error(
+        JSON.stringify({
+          event: "data_context_resolution_failed",
+          errorName: err.name,
+          errorMessage: err.message,
+        }),
+        err.stack,
+      );
+      throw err;
+    }
+
 
     return next({
       context: {
