@@ -729,3 +729,35 @@ body {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
+
+/* ── Informational blocks (truthful, non-editable facts) ─────────── */
+.info-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-elev);
+  padding: 14px 16px;
+}
+.info-block .label-row {
+  display: block;
+  font-family: var(--font-head);
+  font-size: 11.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.info-block .row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.info-block .row:last-of-type { border-bottom: 0; }
+.info-block .row span { color: var(--text-muted); font-size: 12.5px; }
+.info-block .row strong { font-weight: 500; color: var(--text); }
+.info-block strong[data-path] {
+  font-family: var(--font-mono, ui-monospace, "Cascadia Code", Consolas, monospace);
+  font-size: 12.5px;
+}
+.info-block .hint { margin: 10px 0 0; }
