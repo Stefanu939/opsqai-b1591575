@@ -274,7 +274,7 @@ function ChatInner({
             const answerBucket = bucketConfidence(meta?.confidence);
             const showMeta = text && sources.length > 0 && meta?.mode !== "gap";
             return (
-              <div key={m.id} className="flex gap-3 group">
+              <div key={m.id} className="oq-enter flex gap-3 group">
                 <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
                   <LogoMark size={18} className="text-gold" />
                 </div>
