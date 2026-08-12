@@ -28,7 +28,8 @@ import {
   Gauge,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useCountUp } from "@/lib/use-count-up";
 import type {
   AuditIntelligence,
   AuditRecommendation,
@@ -58,6 +59,7 @@ function AiAuditPage() {
   const listFn = useServerFn(listAiAudits);
   const runFn = useServerFn(runWorkspaceAudit);
   const [running, setRunning] = useState(false);
+  const [justRan, setJustRan] = useState(false);
   const [selected, setSelected] = useState<AuditRow | null>(null);
 
   const list = useQuery({
@@ -73,8 +75,10 @@ function AiAuditPage() {
     try {
       await runFn({ data: { company_id: activeCompanyId ?? null } } as never);
 
+      setJustRan(true);
+      window.setTimeout(() => setJustRan(false), 1800);
       toast.success("Audit completed");
-      list.refetch();
+      await list.refetch();
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -93,9 +97,9 @@ function AiAuditPage() {
         description="Grounded audit of your workspace knowledge, sources, coverage, and confidence. Every run is signed and stored for compliance."
         actions={
           canRun ? (
-            <Button onClick={run} disabled={running}>
-              <Play className="h-4 w-4 mr-1" />
-              {running ? "Running…" : "Run new audit"}
+            <Button onClick={run} loading={running} success={justRan}>
+              {!running && !justRan && <Play className="h-4 w-4 mr-1" />}
+              {running ? "Running audit…" : justRan ? "Audit complete" : "Run new audit"}
             </Button>
           ) : null
         }
@@ -104,7 +108,7 @@ function AiAuditPage() {
       <div className="grid gap-4 md:grid-cols-4 mb-6">
         <StatCard
           label="Latest score"
-          value={latest ? `${latest.score}/100` : "—"}
+          value={latest ? <CountValue value={latest.score} suffix="/100" /> : "—"}
           hint={latest?.maturity ?? "Not measured"}
           icon={LineChart}
           className={
@@ -115,17 +119,22 @@ function AiAuditPage() {
                 : undefined
           }
         />
-        <StatCard label="Passed" value={latest?.passed ?? 0} hint="Checks OK" icon={CheckCircle2} />
+        <StatCard
+          label="Passed"
+          value={<CountValue value={latest?.passed ?? 0} />}
+          hint="Checks OK"
+          icon={CheckCircle2}
+        />
         <StatCard
           label="Warnings"
-          value={latest?.warnings ?? 0}
+          value={<CountValue value={latest?.warnings ?? 0} />}
           hint="Attention needed"
           icon={AlertTriangle}
           className={latest && latest.warnings > 0 ? "border-amber-500/30 bg-amber-500/5" : undefined}
         />
         <StatCard
           label="Critical"
-          value={latest?.critical ?? 0}
+          value={<CountValue value={latest?.critical ?? 0} />}
           hint="Immediate action"
           icon={ShieldCheck}
           className={latest && latest.critical > 0 ? "border-destructive/30 bg-destructive/5" : undefined}
@@ -243,9 +252,11 @@ function AiAuditPage() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
-                    {exec || "—"}
-                  </p>
+                  <SettleIn delay={520}>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
+                      {exec || "—"}
+                    </p>
+                  </SettleIn>
                   <div className="grid grid-cols-3 gap-3 border-t border-border pt-4">
                     <MiniStat
                       label="Passed"
@@ -276,8 +287,20 @@ function AiAuditPage() {
   );
 }
 
+/** Small animated counter — a KPI change should read as movement, not a swap. */
+function CountValue({ value, suffix }: { value: number; suffix?: string }) {
+  const shown = useCountUp(value);
+  return (
+    <span className="tabular-nums">
+      {shown}
+      {suffix && <span className="text-xs text-muted-foreground font-normal">{suffix}</span>}
+    </span>
+  );
+}
+
 function ScoreRing({ score }: { score: number }) {
   const clamped = Math.max(0, Math.min(100, score));
+  const shown = useCountUp(clamped);
   const stroke =
     clamped >= 80
       ? "var(--gold)"
@@ -312,7 +335,7 @@ function ScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 grid place-items-center">
         <span className="font-display text-xl font-semibold tabular-nums text-foreground">
-          {clamped}
+          {shown}
         </span>
       </div>
     </div>
@@ -343,8 +366,25 @@ function MiniStat({
         {label}
       </div>
       <div className="font-display text-xl font-semibold tabular-nums mt-1 text-foreground">
-        {value}
+        <CountValue value={value} />
       </div>
+    </div>
+  );
+}
+
+/**
+ * SettleIn — reveals content only after the numbers above have finished
+ * animating, so a run reads as a process with a conclusion.
+ */
+function SettleIn({ delay, children }: { delay: number; children: React.ReactNode }) {
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setShown(true), delay);
+    return () => window.clearTimeout(t);
+  }, [delay]);
+  return (
+    <div className={shown ? "oq-enter" : "opacity-0"} aria-busy={!shown}>
+      {children}
     </div>
   );
 }
@@ -424,13 +464,14 @@ function RecommendationsSection({ companyId }: { companyId: string | null }) {
       ) : (
         <>
           <ul className="grid gap-3 md:grid-cols-2">
-            {visible.map((r: AuditRecommendation) => {
+            {visible.map((r: AuditRecommendation, idx: number) => {
               const meta = KIND_META[r.kind];
               const Icon = meta.icon;
               return (
                 <li
                   key={r.id}
-                  className="rounded-lg border border-border p-3 hover-lift bg-card/60"
+                  style={{ animationDelay: `${idx * 45}ms` }}
+                  className="oq-enter rounded-lg border border-border p-3 oq-lift bg-card/60"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
