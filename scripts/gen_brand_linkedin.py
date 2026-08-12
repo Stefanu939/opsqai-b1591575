@@ -202,7 +202,8 @@ def build_mark_plate(path: Path, kind: str, size=760, ss=3):
     d = ImageDraw.Draw(img)
     cx = cy = W / 2
     if kind == "new":
-        engraved_field(d, cx, cy, W * 0.30, W * 0.46, 18, (28, 70, 58), step=ss)
+        for k in range(3):
+            d.polygon(octagon(cx, cy, W * (0.365 + k * 0.028)), outline=(18, 54, 45), width=ss)
         draw_sovereign_mark(d, cx, cy, W * 0.27)
     else:
         hairline_grid(d, 0, 0, W, W, int(W * 0.045), (10, 41, 33))
@@ -296,8 +297,8 @@ def build_pdf(path: Path, plate_old: Path, plate_new: Path):
     )
 
     # plates
-    ph = 214
-    px1, px2 = M, M + ph + 26
+    ph = 176
+    px1, px2 = M, M + ph + 18
     py = 132
     c.drawImage(str(plate_old), px1, py, ph, ph, mask=None)
     c.drawImage(str(plate_new), px2, py, ph, ph, mask=None)
@@ -315,7 +316,7 @@ def build_pdf(path: Path, plate_old: Path, plate_new: Path):
         c.drawString(x, py - 32, name)
 
     # right column: the four reasons
-    rx = W * 0.52
+    rx = W * 0.505
     c.setFillColor(cGOLD)
     c.setFont("Mono", 7.6)
     c.drawString(rx, H - 120, "FOUR REASONS")
@@ -368,7 +369,7 @@ def build_pdf(path: Path, plate_old: Path, plate_new: Path):
         ("Octagonal cartouche", "A closed perimeter. Eight sides for the eight modules that make up the workspace."),
         ("Inner gravure line", "A second, thinner frame - the engraving convention of certificates and banknotes."),
         ("Eight coronet nodes", "The only survivor of the old mark: the network is kept, but contained."),
-        ("OQ monogram", "Garamond-class serif, optically centred, with a single engraved flick on the Q."),
+        ("OQ monogram", "Garamond-class serif, optically centred; the Q tail is the only curve allowed to break the grid."),
         ("Gold on deep emerald", "#C9A24C on #04211A. One accent, one ground, no gradients in application."),
     ]
     nx = bx + big + 40
