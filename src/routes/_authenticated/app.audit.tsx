@@ -28,7 +28,7 @@ import {
   Gauge,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useCountUp } from "@/lib/use-count-up";
 import type {
   AuditIntelligence,
@@ -165,8 +165,8 @@ function AiAuditPage() {
           description="Run your first AI audit to score workspace maturity and identify knowledge gaps."
           action={
             canRun ? (
-              <Button onClick={run} disabled={running}>
-                <Play className="h-4 w-4 mr-1" /> Run audit
+              <Button onClick={run} loading={running} success={justRan}>
+                {!running && !justRan && <Play className="h-4 w-4 mr-1" />} Run audit
               </Button>
             ) : undefined
           }
@@ -376,7 +376,7 @@ function MiniStat({
  * SettleIn — reveals content only after the numbers above have finished
  * animating, so a run reads as a process with a conclusion.
  */
-function SettleIn({ delay, children }: { delay: number; children: React.ReactNode }) {
+function SettleIn({ delay, children }: { delay: number; children: ReactNode }) {
   const [shown, setShown] = useState(false);
   useEffect(() => {
     const t = window.setTimeout(() => setShown(true), delay);
