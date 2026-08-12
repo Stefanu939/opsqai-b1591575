@@ -364,8 +364,8 @@ y = body(
 half3 = (W - 2 * M - 24) / 2
 shot_fit("ew.png", M, y - 30, half3, 420, "Step 1 — Welcome")
 shot_fit("sdasd.png", M + half3 + 24, y - 30, half3, 420, "Step 2 — Licence activation")
-chip_row(["Welcome", "Licence", "System check", "Options"], 190)
-chip_row(["Database", "Administrator", "Review", "Install", "Finish"], 130)
+chip_row(["Welcome", "Licence", "System check", "Options"], 205)
+chip_row(["Database", "Administrator", "Review", "Install", "Finish"], 148)
 footer("Roughly five minutes from download to a running platform.")
 c.showPage()
 
@@ -420,8 +420,8 @@ y = body(
 half = (W - 2 * M - 24) / 2
 shot_fit("cchgfds.png", M, y - 40, half, 460, "Light theme")
 shot_fit("slkjvccxn.png", M + half + 24, y - 40, half, 460, "Dark theme (Noir & Gold)")
-chip_row(["Dashboard", "AI Chat", "Knowledge", "FAQ", "Academy"], 190)
-chip_row(["AI Audit", "Users", "Organisation", "Updates", "Modules"], 130)
+chip_row(["Dashboard", "AI Chat", "Knowledge", "FAQ", "Academy"], 205)
+chip_row(["AI Audit", "Users", "Organisation", "Updates", "Modules"], 148)
 footer("Deployment mode and build hash are always visible in the sidebar.")
 c.showPage()
 
@@ -469,8 +469,8 @@ c.setFillColor(MUTED)
 c.setFont("Body", 14)
 c.drawCentredString(M + half / 2, lbl, "FAQ import — files parsed and reviewed")
 c.drawCentredString(M + half + 24 + half / 2, lbl, "Users — roles, editing, deactivation")
-chip_row(["CSV", "XLSX", "PDF", "DOCX", "AI-proposed Q&A"], 190)
-chip_row(["Role-based access", "Temporary passwords", "Full audit trail"], 130)
+chip_row(["CSV", "XLSX", "PDF", "DOCX", "AI-proposed Q&A"], 205)
+chip_row(["Role-based access", "Temporary passwords", "Full audit trail"], 148)
 footer("No cloud round-trip for any of it.")
 c.showPage()
 
