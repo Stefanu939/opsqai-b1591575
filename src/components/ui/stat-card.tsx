@@ -26,7 +26,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-card p-4 shadow-xs transition-colors",
+        "group rounded-lg border border-border bg-card p-4 shadow-xs oq-lift",
         className,
       )}
     >
@@ -34,8 +34,14 @@ export function StatCard({
         <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
           {label}
         </span>
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />}
+        {Icon && (
+          <Icon
+            className="h-4 w-4 text-muted-foreground transition-colors duration-150 group-hover:text-gold"
+            strokeWidth={1.75}
+          />
+        )}
       </div>
+
       <div className="font-display text-2xl font-semibold tabular-nums text-foreground">
         {value}
       </div>

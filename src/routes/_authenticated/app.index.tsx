@@ -33,6 +33,7 @@ import {
   getDashboardActivity,
   getExecutiveInsights,
 } from "@/lib/dashboard.functions";
+import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -102,6 +103,7 @@ function Dashboard() {
     queryFn: () => probe(),
   });
 
+  const auth = useAuth();
   const [dismissed, setDismissed] = useState<Set<CardId>>(new Set());
   useEffect(() => setDismissed(readDismissed()), []);
 
@@ -116,10 +118,19 @@ function Dashboard() {
     }
   };
 
+  // Greet the real person. "there" is a last resort only when we genuinely
+  // have no identity yet (first paint before the profile resolves).
+  const emailName = (() => {
+    const local = (auth.user?.email ?? "").split("@")[0] ?? "";
+    const first = local.split(/[._\-+\d]+/).filter(Boolean)[0] ?? "";
+    return first ? first.charAt(0).toUpperCase() + first.slice(1) : "";
+  })();
   const name =
     (data?.firstName || "").trim().split(/\s+/)[0] ||
     (data?.displayName || "").trim().split(/\s+/)[0] ||
+    emailName ||
     "there";
+
 
   const company = (data?.companyName || "").trim();
 
@@ -231,10 +242,12 @@ function Dashboard() {
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {visible.map((c) => (
+              {visible.map((c, i) => (
                 <Card
                   key={c.id}
-                  className="relative p-5 border-border/60 flex flex-col group hover:border-gold-line/60 transition-colors"
+                  interactive
+                  style={{ animationDelay: `${i * 45}ms` }}
+                  className="oq-enter relative p-5 border-border/60 flex flex-col group"
                 >
                   <button
                     type="button"
@@ -244,7 +257,7 @@ function Dashboard() {
                   >
                     <X className="h-4 w-4" />
                   </button>
-                  <div className="h-9 w-9 rounded-md bg-gold-soft border border-gold-line flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-md bg-gold-soft border border-gold-line flex items-center justify-center transition-[background-color,border-color,transform] duration-150 group-hover:scale-105 group-hover:bg-gold-soft/80">
                     <c.icon className="h-4 w-4 text-gold" />
                   </div>
                   <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{c.title}</h3>

@@ -846,3 +846,76 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
     transform: scale(1.03);
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   OPSQAI motion layer
+   Rule: motion explains state changes, it never decorates the interface.
+   Everything here is short (120–260ms), subtle, and reduced-motion aware.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@keyframes oq-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes oq-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Element entrance — pair with `style={{ animationDelay }}` for a stagger. */
+@utility oq-enter {
+  animation: oq-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility oq-slide-in {
+  animation: oq-slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Page/route transition wrapper. */
+@utility oq-page {
+  animation: oq-enter 180ms ease-out both;
+}
+
+/* Interactive surface — precise lift, not playful. */
+@utility oq-lift {
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--gold) 40%, var(--border));
+    box-shadow: 0 10px 24px -18px color-mix(in oklab, var(--foreground) 45%, transparent);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oq-enter,
+  .oq-slide-in,
+  .oq-page {
+    animation: none !important;
+  }
+
+  .oq-lift:hover {
+    transform: none;
+  }
+}
