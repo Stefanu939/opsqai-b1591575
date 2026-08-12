@@ -462,8 +462,8 @@ y = body(
     size=21,
 )
 half = (W - 2 * M - 24) / 2
-b1 = shot_fit("nvcchggfh.png", M, y - 40, half, 430)
-b2 = shot_fit("dvbrer.png", M + half + 24, y - 40, half, 430)
+b1 = shot_fit("nvcchggfh.png", M, y - 40, half, 330)
+b2 = shot_fit("dvbrer.png", M + half + 24, y - 40, half, 330)
 lbl = min(b1, b2) - 12
 c.setFillColor(MUTED)
 c.setFont("Body", 14)
