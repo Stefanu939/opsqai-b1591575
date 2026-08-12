@@ -357,7 +357,7 @@ y = body(
     y - 30,
     size=21,
 )
-shot_fit("dsw3.png", M, y - 34, W - 2 * M, 520, "System check — all checks passed")
+shot_fit("dsw3.png", M, y - 30, W - 2 * M, 450, "System check — all checks passed")
 footer("Failed installs are the most expensive support tickets. So we removed them.")
 c.showPage()
 
@@ -370,7 +370,7 @@ y = body(
     y - 34,
     size=21,
 )
-shot_fit("ffdsw.png", M, y - 34, W - 2 * M, 520, "Install — stage-by-stage with detailed log")
+shot_fit("ffdsw.png", M, y - 30, W - 2 * M, 450, "Install — stage-by-stage with detailed log")
 footer("Snapshots are taken before migrations, so every step is reversible.")
 c.showPage()
 
@@ -383,7 +383,7 @@ y = body(
     y - 34,
     size=21,
 )
-shot_fit("sdfghh.png", M, y - 34, W - 2 * M, 500, "Finish — verified health, not optimism")
+shot_fit("sdfghh.png", M, y - 30, W - 2 * M, 450, "Finish — verified health, not optimism")
 footer("A desktop shell then launches the app, health-gated on startup.")
 c.showPage()
 
@@ -411,7 +411,7 @@ y = body(
     y - 30,
     size=21,
 )
-shot_fit("dsggcbd.png", M, y - 34, W - 2 * M, 500, "AI Chat — cited source, confidence badge, multilingual")
+shot_fit("dsggcbd.png", M, y - 30, W - 2 * M, 450, "AI Chat — cited source, confidence badge, multilingual")
 footer("English in, German out — the same grounded document behind both.")
 c.showPage()
 
@@ -425,7 +425,7 @@ y = body(
     y - 30,
     size=20,
 )
-shot_fit("nvcbvc.png", M, y - 30, W - 2 * M, 470, "AI Audit — score, friction index, recommended actions")
+shot_fit("nvcbvc.png", M, y - 30, W - 2 * M, 450, "AI Audit — score, friction index, recommended actions")
 footer("Compliance evidence and a roadmap, from the same run.")
 c.showPage()
 
