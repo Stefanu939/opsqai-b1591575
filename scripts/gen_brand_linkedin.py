@@ -80,9 +80,6 @@ def draw_sovereign_mark(d: ImageDraw.ImageDraw, cx: float, cy: float, r: float,
         for ch, w in zip(letters, widths):
             d.text((x, y), ch, font=fnt, fill=lit)
             x += w + track
-        # engraved descender flick of the Q
-        d.line([(cx + r * 0.10, cy + r * 0.30), (cx + r * 0.30, cy + r * 0.50)],
-               fill=lit, width=max(1, int(r * 0.028)))
 
 
 # ---------------- the legacy mark ----------------
@@ -128,38 +125,23 @@ def build_profile(path: Path, size=1000, ss=4):
     img = Image.new("RGB", (W, W), NOIR)
     d = ImageDraw.Draw(img)
 
-    cx = cy = W / 2
-    # deep vignette
-    for i in range(28):
-        t = i / 27
-        r = W * (0.72 - 0.012 * i)
-        shade = (int(NOIR[0] + 6 * (1 - t)), int(NOIR[1] + 10 * (1 - t)), int(NOIR[2] + 8 * (1 - t)))
-        d.polygon(octagon(cx, cy, r), outline=shade, width=ss)
+    cx = W / 2
+    cy = W * 0.455
 
-    # gravure field behind the mark
-    engraved_field(d, cx, cy, W * 0.30, W * 0.475, 26, (30, 74, 62), step=ss)
+    # quiet gravure halo, three rings only — stops well clear of the type
+    for rr, col in ((0.318, (22, 62, 51)), (0.336, (18, 54, 45)), (0.356, (14, 46, 38))):
+        d.polygon(octagon(cx, cy, W * rr), outline=col, width=ss)
 
-    # tick marks on the diagonals — systematic observation
-    for i in range(8):
-        a = math.radians(22.5 + i * 45)
-        for k in range(5):
-            rr = W * (0.335 + k * 0.028)
-            x, y = cx + rr * math.cos(a), cy + rr * math.sin(a)
-            s = ss * 3
-            d.line([(x - s, y), (x + s, y)], fill=(38, 92, 76), width=ss)
+    draw_sovereign_mark(d, cx, cy, W * 0.245)
 
-    draw_sovereign_mark(d, cx, cy, W * 0.255)
-
-    # micro-legend
-    fnt = font("Jura-Medium", int(W * 0.0165))
+    # micro-legend, tracked out
+    fnt = font("Jura-Medium", int(W * 0.021))
     label = "O P S Q A I"
     w = d.textlength(label, font=fnt)
-    d.text((cx - w / 2, cy + W * 0.325), label, font=fnt, fill=(163, 145, 106))
-
-    fnt2 = font("GeistMono-Regular", int(W * 0.0115))
-    sub = "SOVEREIGN  MARK  ·  MMXXVI"
-    w2 = d.textlength(sub, font=fnt2)
-    d.text((cx - w2 / 2, cy + W * 0.365), sub, font=fnt2, fill=(92, 116, 106))
+    ty = cy + W * 0.315
+    d.text((cx - w / 2, ty), label, font=fnt, fill=(186, 165, 120))
+    d.line([(cx - W * 0.052, ty + W * 0.040), (cx + W * 0.052, ty + W * 0.040)],
+           fill=(46, 96, 80), width=ss)
 
     img = img.resize((size, size), Image.LANCZOS)
     img.save(path, "PNG")
@@ -173,24 +155,25 @@ def build_banner(path: Path, W=1584, H=396, ss=3):
     w, h = W * ss, H * ss
 
     # left plate: slightly deeper, holds the mark
-    d.rectangle([0, 0, w * 0.34, h], fill=NOIR_DEEP)
-    d.line([(w * 0.34, 0), (w * 0.34, h)], fill=(28, 70, 58), width=ss)
+    d.rectangle([0, 0, w * 0.40, h], fill=NOIR_DEEP)
+    d.line([(w * 0.40, 0), (w * 0.40, h)], fill=(28, 70, 58), width=ss)
 
     # hairline field on the right, whisper quiet
-    hairline_grid(d, w * 0.34, 0, w, h, int(h * 0.055), (10, 41, 33))
+    hairline_grid(d, w * 0.40, 0, w, h, int(h * 0.055), (10, 41, 33))
 
     # gravure halo on the left plate
-    engraved_field(d, w * 0.17, h / 2, h * 0.34, h * 0.68, 16, (28, 70, 58), step=ss)
+    for rr, col in ((0.40, (26, 66, 55)), (0.435, (20, 56, 47)), (0.47, (15, 47, 39))):
+        d.polygon(octagon(w * 0.235, h * 0.44, h * rr), outline=col, width=ss)
 
-    draw_sovereign_mark(d, w * 0.17, h * 0.44, h * 0.235)
+    draw_sovereign_mark(d, w * 0.235, h * 0.44, h * 0.235)
 
     fl = font("Jura-Medium", int(h * 0.052))
     lbl = "O P S Q A I"
     lw = d.textlength(lbl, font=fl)
-    d.text((w * 0.17 - lw / 2, h * 0.755), lbl, font=fl, fill=(196, 176, 132))
+    d.text((w * 0.235 - lw / 2, h * 0.775), lbl, font=fl, fill=(196, 176, 132))
 
     # ---- right side type ----
-    x = w * 0.40
+    x = w * 0.455
     fk = font("GeistMono-Regular", int(h * 0.040))
     d.text((x, h * 0.175), "SELF-HOSTED  ·  WINDOWS  ·  LOCAL AI", font=fk, fill=GOLD)
     d.line([(x, h * 0.265), (x + h * 0.30, h * 0.265)], fill=GOLD, width=int(ss * 2.2))
