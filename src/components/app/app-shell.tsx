@@ -194,7 +194,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   className={linkCls}
                 >
                   <ActiveIndicator />
-                  <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 group-data-[status=active]:text-gold transition-colors" />
+                  <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 transition-[color,transform] duration-150 ease-out group-hover:translate-x-0.5 group-data-[status=active]:text-gold group-data-[status=active]:translate-x-0.5" />
+
                   <span className="truncate">{item.label}</span>
                 </Link>
               ))}
