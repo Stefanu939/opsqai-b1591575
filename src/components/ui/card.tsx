@@ -2,15 +2,25 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Clickable/navigational card — adds a precise hover lift + press feedback. */
+  interactive?: boolean;
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, interactive, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("rounded-xl border bg-card text-card-foreground shadow", className)}
+      className={cn(
+        "rounded-xl border bg-card text-card-foreground shadow",
+        interactive && "oq-lift active:scale-[0.995] motion-reduce:active:scale-100",
+        className,
+      )}
       {...props}
     />
   ),
 );
+
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
