@@ -212,7 +212,7 @@ def shot(name: str, x: float, y: float, w: float, crop_top: float = 0.0, label: 
     return y - h - 16
 
 
-def shot_fit(name: str, x: float, y_top: float, box_w: float, box_h: float, label=None):
+def shot_fit(name: str, x: float, y_top: float, box_w: float, box_h: float, label=None, label_y=None):
     """Fit a screenshot inside a box (contain), centered."""
     img = load_shot(name)
     ratio = img.height / img.width
@@ -231,7 +231,7 @@ def shot_fit(name: str, x: float, y_top: float, box_w: float, box_h: float, labe
     if label:
         c.setFillColor(MUTED)
         c.setFont("Body", 14)
-        c.drawCentredString(x + box_w / 2, y_top - h - 32, label)
+        c.drawCentredString(x + box_w / 2, label_y if label_y is not None else y_top - h - 32, label)
     return y_top - h - 20
 
 
@@ -322,6 +322,14 @@ y = bullet_list(
     ],
     y - 30,
 )
+stat_row(
+    [
+        ("Windows", "native install target"),
+        ("0", "outbound AI calls"),
+        ("PG 16", "bundled + pgvector"),
+    ],
+    y - 40,
+)
 footer("The same product language. Two very different deployments.")
 c.showPage()
 
@@ -334,8 +342,9 @@ y = body(
     y - 34,
     size=21,
 )
-shot_fit("ew.png", M, y - 20, (W - 2 * M - 24) / 2, 330, "Step 1 — Welcome")
-shot_fit("sdasd.png", M + (W - 2 * M - 24) / 2 + 24, y - 20, (W - 2 * M - 24) / 2, 330, "Step 2 — Licence activation")
+half3 = (W - 2 * M - 24) / 2
+shot_fit("ew.png", M, y - 30, half3, 420, "Step 1 — Welcome", label_y=170)
+shot_fit("sdasd.png", M + half3 + 24, y - 30, half3, 420, "Step 2 — Licence activation", label_y=170)
 footer("Roughly five minutes from download to a running platform.")
 c.showPage()
 
@@ -348,7 +357,7 @@ y = body(
     y - 30,
     size=21,
 )
-shot_fit("dsw3.png", M, y - 24, W - 2 * M, 430, "System check — all checks passed")
+shot_fit("dsw3.png", M, y - 34, W - 2 * M, 520, "System check — all checks passed")
 footer("Failed installs are the most expensive support tickets. So we removed them.")
 c.showPage()
 
@@ -361,7 +370,7 @@ y = body(
     y - 34,
     size=21,
 )
-shot_fit("ffdsw.png", M, y - 24, W - 2 * M, 420, "Install — stage-by-stage with detailed log")
+shot_fit("ffdsw.png", M, y - 34, W - 2 * M, 520, "Install — stage-by-stage with detailed log")
 footer("Snapshots are taken before migrations, so every step is reversible.")
 c.showPage()
 
@@ -374,7 +383,7 @@ y = body(
     y - 34,
     size=21,
 )
-shot_fit("sdfghh.png", M, y - 24, W - 2 * M, 400, "Finish — verified health, not optimism")
+shot_fit("sdfghh.png", M, y - 34, W - 2 * M, 500, "Finish — verified health, not optimism")
 footer("A desktop shell then launches the app, health-gated on startup.")
 c.showPage()
 
@@ -388,8 +397,8 @@ y = body(
     size=21,
 )
 half = (W - 2 * M - 24) / 2
-shot_fit("cchgfds.png", M, y - 24, half, 400, "Light theme")
-shot_fit("slkjvccxn.png", M + half + 24, y - 24, half, 400, "Dark theme (Noir & Gold)")
+shot_fit("cchgfds.png", M, y - 40, half, 460, "Light theme", label_y=160)
+shot_fit("slkjvccxn.png", M + half + 24, y - 40, half, 460, "Dark theme (Noir & Gold)", label_y=160)
 footer("Deployment mode and build hash are always visible in the sidebar.")
 c.showPage()
 
@@ -402,7 +411,7 @@ y = body(
     y - 30,
     size=21,
 )
-shot_fit("dsggcbd.png", M, y - 24, W - 2 * M, 400, "AI Chat — cited source, confidence badge, multilingual")
+shot_fit("dsggcbd.png", M, y - 34, W - 2 * M, 500, "AI Chat — cited source, confidence badge, multilingual")
 footer("English in, German out — the same grounded document behind both.")
 c.showPage()
 
@@ -416,7 +425,7 @@ y = body(
     y - 30,
     size=20,
 )
-shot_fit("nvcbvc.png", M, y - 20, W - 2 * M, 400, "AI Audit — score, friction index, recommended actions")
+shot_fit("nvcbvc.png", M, y - 30, W - 2 * M, 470, "AI Audit — score, friction index, recommended actions")
 footer("Compliance evidence and a roadmap, from the same run.")
 c.showPage()
 
@@ -430,8 +439,8 @@ y = body(
     size=21,
 )
 half = (W - 2 * M - 24) / 2
-shot_fit("nvcchggfh.png", M, y - 24, half, 340, "FAQ import — files parsed and reviewed")
-shot_fit("dvbrer.png", M + half + 24, y - 24, half, 340, "Users — roles, editing, deactivation")
+shot_fit("nvcchggfh.png", M, y - 40, half, 430, "FAQ import — files parsed and reviewed", label_y=160)
+shot_fit("dvbrer.png", M + half + 24, y - 40, half, 430, "Users — roles, editing, deactivation", label_y=160)
 footer("No cloud round-trip for any of it.")
 c.showPage()
 
@@ -439,11 +448,6 @@ c.showPage()
 PAGE += 1
 c.setFillColor(NOIR_DEEP)
 c.rect(0, 0, W, H, stroke=0, fill=1)
-c.setFillColor(NOIR)
-c.rect(0, H - 470, W, 470, stroke=0, fill=1)
-c.setStrokeColor(GOLD)
-c.setLineWidth(3)
-c.line(0, H - 470, W, H - 470)
 header("Where it stands", PAGE, TOTAL)
 y = title("Installed, activated, running — on the customer's own machine.", H - 230, size=44)
 rule(y + 6, 110)
