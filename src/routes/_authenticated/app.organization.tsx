@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
-import { getMyProfile, updateMyProfile, listDepartments } from "@/lib/users.functions";
+import { getMyProfile, updateMyProfile, listDepartments, createDepartment } from "@/lib/users.functions";
 import { getPlatformConfig, savePlatformAiConfig } from "@/lib/mc-admin.functions";
 import { getCompanyLogo, saveCompanyLogo } from "@/lib/company-logo.functions";
 import { PageHeader } from "@/components/ui/page-header";
@@ -51,6 +51,7 @@ function OrganizationPage() {
   const update = useServerFn(updateMyProfile);
   const fetchProfile = useServerFn(getMyProfile);
   const fetchDepts = useServerFn(listDepartments);
+  const addDept = useServerFn(createDepartment);
   const getCfg = useServerFn(getPlatformConfig);
   const saveAi = useServerFn(savePlatformAiConfig);
   const fetchLogo = useServerFn(getCompanyLogo);
@@ -66,6 +67,28 @@ function OrganizationPage() {
     language_pref: "en" as "de" | "en",
   });
   const [busy, setBusy] = useState(false);
+  const [newDept, setNewDept] = useState("");
+  const [deptBusy, setDeptBusy] = useState(false);
+  const canManageDepts = isPlatformAdmin || isAdmin;
+
+  const submitDept = async () => {
+    const name = newDept.trim();
+    if (!name) return;
+    setDeptBusy(true);
+    try {
+      const created = await addDept({ data: { name } });
+      setDepts((prev) =>
+        prev.some((d) => d.id === created.id) ? prev : [...prev, { id: created.id, name: created.name }],
+      );
+      setForm((f) => ({ ...f, department_id: created.id }));
+      setNewDept("");
+      toast.success(`Department "${created.name}" is ready`);
+    } catch (err) {
+      toast.error("Could not create the department");
+    } finally {
+      setDeptBusy(false);
+    }
+  };
 
   const [ai, setAi] = useState<AiConfig>({
     provider: "gateway",
@@ -257,6 +280,30 @@ function OrganizationPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {canManageDepts && (
+                    <div className="flex gap-2 pt-1">
+                      <Input
+                        value={newDept}
+                        placeholder="New department name"
+                        onChange={(e) => setNewDept(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void submitDept();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        loading={deptBusy}
+                        disabled={!newDept.trim()}
+                        onClick={() => void submitDept()}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Language</Label>
