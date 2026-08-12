@@ -33,6 +33,7 @@ import {
   getDashboardActivity,
   getExecutiveInsights,
 } from "@/lib/dashboard.functions";
+import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -102,6 +103,7 @@ function Dashboard() {
     queryFn: () => probe(),
   });
 
+  const auth = useAuth();
   const [dismissed, setDismissed] = useState<Set<CardId>>(new Set());
   useEffect(() => setDismissed(readDismissed()), []);
 
