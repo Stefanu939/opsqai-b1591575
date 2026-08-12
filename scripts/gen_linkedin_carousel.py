@@ -16,6 +16,28 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 SHOTS = Path("/tmp/shots/opsqai foto")
+
+# Crop boxes that trim the desktop/wallpaper bleed around each captured window.
+CROPS = {
+    "ew.png": (5, 0, 886, 628),
+    "dsw3.png": (0, 0, 885, 630),
+    "ffdsw.png": (5, 3, 887, 632),
+    "sdasd.png": (0, 0, 883, 627),
+    "sdfghh.png": (2, 0, 879, 633),
+    "cchgfds.png": (0, 0, 1258, 810),
+    "slkjvccxn.png": (0, 0, 1258, 810),
+    "dsggcbd.png": (0, 0, 1260, 810),
+    "nvcbvc.png": (0, 0, 1258, 1027),
+    "poiuztr.png": (0, 0, 1258, 1027),
+    "nvcchggfh.png": (18, 0, 1265, 1028),
+    "dvbrer.png": (0, 0, 1258, 818),
+}
+
+
+def load_shot(name: str) -> "Image.Image":
+    img = Image.open(SHOTS / name).convert("RGB")
+    box = CROPS.get(name)
+    return img.crop(box) if box else img
 OUT = Path("/mnt/documents/OPSQAI-LinkedIn-Carousel.pdf")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
@@ -172,8 +194,7 @@ def bullet_list(items, y: float, size=20, gap=16, max_w=None):
 
 def shot(name: str, x: float, y: float, w: float, crop_top: float = 0.0, label: str | None = None):
     """Draw a screenshot scaled to width w, top-aligned at y (top edge)."""
-    path = SHOTS / name
-    img = Image.open(path).convert("RGB")
+    img = load_shot(name)
     if crop_top:
         img = img.crop((0, int(img.height * crop_top), img.width, img.height))
     ratio = img.height / img.width
@@ -193,7 +214,7 @@ def shot(name: str, x: float, y: float, w: float, crop_top: float = 0.0, label: 
 
 def shot_fit(name: str, x: float, y_top: float, box_w: float, box_h: float, label=None):
     """Fit a screenshot inside a box (contain), centered."""
-    img = Image.open(SHOTS / name).convert("RGB")
+    img = load_shot(name)
     ratio = img.height / img.width
     w = box_w
     h = w * ratio
@@ -251,10 +272,10 @@ PAGE += 1
 c.setFillColor(NOIR_DEEP)
 c.rect(0, 0, W, H, stroke=0, fill=1)
 c.setFillColor(NOIR)
-c.rect(0, 0, W, 620, stroke=0, fill=1)
+c.rect(0, 0, W, 540, stroke=0, fill=1)
 c.setStrokeColor(GOLD)
 c.setLineWidth(3)
-c.line(0, 620, W, 620)
+c.line(0, 540, W, 540)
 mark(M + 26, H - 120, 30)
 c.setFillColor(BONE)
 c.setFont("Body-Bold", 30)
@@ -277,7 +298,7 @@ y = body(
     color=GOLD_SOFT,
     max_w=W - 2 * M - 40,
 )
-shot_fit("sdfghh.png", M, 430, W - 2 * M, 300)
+shot_fit("sdfghh.png", M, 470, W - 2 * M, 340)
 c.setFillColor(MUTED)
 c.setFont("Body", 15)
 c.drawString(M, 66, "opsqai.de  ·  AI knowledge & operations platform")
