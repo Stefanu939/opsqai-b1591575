@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { createClient } from "@supabase/supabase-js";
 import { resolveChatModel } from "@/lib/ai-provider.server";
-import type { Database } from "@/integrations/supabase/types";
+import { getAcademyRepository, getAuthProvider, getProfileRepository } from "@/lib/providers/registry";
 
 
 const LANG_LABEL: Record<string, string> = {
@@ -77,29 +76,17 @@ export const Route = createFileRoute("/api/academy-chat")({
         try {
           const token = request.headers.get("authorization")?.replace("Bearer ", "");
           if (!token) return new Response("Unauthorized", { status: 401 });
-          const supaUrl = process.env.SUPABASE_URL;
-          const supaKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-          if (!supaUrl || !supaKey)
-            return new Response("Server misconfigured", { status: 500 });
 
-          const supabase = createClient<Database>(supaUrl, supaKey, {
-            global: { headers: { Authorization: `Bearer ${token}` } },
-            auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
-          });
-
-          const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
-          if (claimsErr || !claims?.claims?.sub)
+          let identity;
+          try {
+            identity = await getAuthProvider().verifyAccessToken(token);
+          } catch {
             return new Response("Unauthorized", { status: 401 });
+          }
+          const dataCtx = await getAuthProvider().getDataContext(token);
 
-          // License enforcement — academy module must be unlocked for caller's company.
-          const userId = claims.claims.sub as string;
-          const { data: profileRow } = await (supabase as any)
-            .from("profiles")
-            .select("company_id")
-            .eq("id", userId)
-            .maybeSingle();
-          const companyIdForLicense = (profileRow as { company_id?: string | null } | null)
-            ?.company_id ?? null;
+          const profile = await getProfileRepository(dataCtx).findByUserId(identity.userId);
+          const companyIdForLicense = profile?.companyId ?? null;
           try {
             const { assertModuleForCompany } = await import("@/lib/license-enforcement.server");
             await assertModuleForCompany(
@@ -119,11 +106,7 @@ export const Route = createFileRoute("/api/academy-chat")({
           if (!body.lessonId) return new Response("lessonId required", { status: 400 });
           const chosen = body.language && body.language !== "ask" ? body.language : null;
 
-          const { data: lesson } = await (supabase as any)
-            .from("academy_lessons")
-            .select("title, objectives, explanation, examples, best_practices, summary")
-            .eq("id", body.lessonId)
-            .maybeSingle();
+          const lesson = await getAcademyRepository(dataCtx).getLesson(body.lessonId);
           if (!lesson) return new Response("Lesson not found", { status: 404 });
 
           const block = [

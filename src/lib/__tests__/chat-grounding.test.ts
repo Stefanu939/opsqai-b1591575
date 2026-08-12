@@ -12,11 +12,11 @@ describe("chat grounding gate", () => {
   });
 
   it("blocks weak document-only evidence", () => {
-    expect(passesGrounding([{ type: "document", similarity: 0.12 }], 0.12)).toBe(false);
+    expect(passesGrounding([{ type: "document", similarity: 0.31 }], 0.31)).toBe(false);
   });
 
   it("allows document evidence above the similarity threshold", () => {
-    expect(passesGrounding([{ type: "document", similarity: 0.41 }], 0.41)).toBe(true);
+    expect(passesGrounding([{ type: "document", similarity: 0.55 }], 0.55)).toBe(true);
   });
 
   it("allows a confident FAQ match even with weak vectors", () => {

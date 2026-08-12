@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse, streamText, type UIMessage } from "ai";
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
 import { resolveChatModel, resolveEmbedOne } from "@/lib/ai-provider.server";
-import { detectLanguage, groundedSystemPrompt, passesGrounding, refusalText } from "@/lib/chat-grounding";
+import { detectLanguage, groundedSystemPrompt, passesGrounding, refusalText, relevantSources } from "@/lib/chat-grounding";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
 type Body={messages?:UIMessage[];threadId?:string;language?:string};
@@ -56,7 +56,8 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       const words=query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w)=>w.length>3);
       faqs.map((faq)=>({faq,score:words.reduce((n,w)=>n+(faq.question_en.toLowerCase().includes(w)||faq.question_de.toLowerCase().includes(w)?2:0)+(faq.answer_en.toLowerCase().includes(w)||faq.answer_de.toLowerCase().includes(w)?1:0),0)})).filter((x)=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5).forEach(({faq,score})=>sources.push({type:"faq",id:faq.id,title:`${faq.question_en} / ${faq.question_de}`,excerpt:`EN: ${faq.answer_en}\nDE: ${faq.answer_de}`,confidence:score>=4?"high":score>=2?"medium":"low"}));
       confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?0.5:0;
-      context=sources.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
+      const strong=relevantSources(sources);
+      context=strong.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
     }catch(error){console.error("[chat:retrieval]",error);}
   }
   const answerLanguage=detectLanguage(query,body.language);

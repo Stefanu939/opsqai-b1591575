@@ -12,11 +12,23 @@ export type GroundingSource = {
   confidence?: "high" | "medium" | "low";
 };
 
-/** Minimum mean cosine similarity for document evidence to count. */
-export const MIN_DOC_SIMILARITY = 0.3;
+/** Minimum cosine similarity for document evidence to count as an answer. */
+export const MIN_DOC_SIMILARITY = 0.42;
+
+/** Chunks below this similarity are noise and never enter the prompt context. */
+export const RELEVANT_CHUNK_SIMILARITY = 0.34;
+
+/** Keeps only evidence strong enough to be quoted in the grounded prompt. */
+export function relevantSources<T extends GroundingSource>(sources: T[]): T[] {
+  return sources.filter((s) =>
+    s.type === "document"
+      ? (s.similarity ?? 0) >= RELEVANT_CHUNK_SIMILARITY
+      : s.confidence === "high" || s.confidence === "medium",
+  );
+}
 
 /**
- * Evidence is sufficient when either the retrieved document chunks clear the
+ * Evidence is sufficient when either a retrieved document chunk clears the
  * similarity threshold or at least one FAQ matched with medium/high score.
  */
 export function passesGrounding(sources: GroundingSource[], confidence: number): boolean {
@@ -65,9 +77,11 @@ export function refusalText(query: string, hint?: string | null): string {
  */
 export function groundedSystemPrompt(context: string, answerLanguage: string): string {
   return [
-    `You are OPSQAI, an enterprise company knowledge assistant.`,
+    `You are OPSQAI, an enterprise company knowledge assistant. Be warm, concise and helpful in tone — but never in content beyond the evidence.`,
     `Answer in this language: ${answerLanguage}. The evidence below may be written in another language — translate it, never switch the answer language.`,
-    `COMPANY KNOWLEDGE below is your ONLY source of truth. Never use outside or general knowledge, never guess, never describe your own capabilities.`,
+    `COMPANY KNOWLEDGE below is your ONLY source of truth. Never use outside, general or world knowledge (no definitions of products, companies, acronyms, laws or tools that are not documented below), never guess, never describe your own capabilities.`,
+    `If the COMPANY KNOWLEDGE does not actually answer the question — even if it looks topically related — reply ONLY with a friendly statement that this information is not in the company knowledge base and invite the user to upload the relevant SOP, document or FAQ. Do not add any explanation of the topic itself.`,
+    `Never start an answer with "I assume", "probably", "the term X may mean" or similar speculation. If you would need to assume, refuse instead.`,
     `Quote the concrete steps/rules, then finish with a translated "Sources" label listing the citations you used ([Document N] / [FAQ N]).`,
     `If only part of the question is covered, answer that part and say plainly which part is not documented.`,
     `Earlier conversation turns must not reintroduce world knowledge.`,
