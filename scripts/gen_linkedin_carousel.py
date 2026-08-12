@@ -19,11 +19,11 @@ SHOTS = Path("/tmp/shots/opsqai foto")
 
 # Crop boxes that trim the desktop/wallpaper bleed around each captured window.
 CROPS = {
-    "ew.png": (5, 0, 886, 628),
-    "dsw3.png": (0, 0, 885, 630),
-    "ffdsw.png": (5, 3, 887, 632),
-    "sdasd.png": (0, 0, 883, 627),
-    "sdfghh.png": (2, 0, 879, 633),
+    "ew.png": (5, 0, 886, 612),
+    "dsw3.png": (0, 0, 885, 618),
+    "ffdsw.png": (5, 3, 887, 618),
+    "sdasd.png": (0, 0, 883, 614),
+    "sdfghh.png": (2, 0, 879, 612),
     "cchgfds.png": (0, 0, 1258, 810),
     "slkjvccxn.png": (0, 0, 1258, 810),
     "dsggcbd.png": (0, 0, 1260, 810),
@@ -271,11 +271,6 @@ def page_start(kicker: str, dark=True):
 PAGE += 1
 c.setFillColor(NOIR_DEEP)
 c.rect(0, 0, W, H, stroke=0, fill=1)
-c.setFillColor(NOIR)
-c.rect(0, 0, W, 540, stroke=0, fill=1)
-c.setStrokeColor(GOLD)
-c.setLineWidth(3)
-c.line(0, 540, W, 540)
 mark(M + 26, H - 120, 30)
 c.setFillColor(BONE)
 c.setFont("Body-Bold", 30)
