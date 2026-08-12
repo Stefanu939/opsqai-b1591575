@@ -327,7 +327,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           
           
         </div>
-        {children}
+        {/* Route change gets a short fade/rise so navigation reads as a state
+            change rather than a hard swap. */}
+        <div key={pathname} className="oq-page flex-1 min-w-0 flex flex-col">
+          {children}
+        </div>
+
       </main>
 
       {/* Mobile bottom tab bar — app-like primary navigation */}
