@@ -260,7 +260,7 @@ function ChatInner({
             const sources = meta?.sources ?? [];
             if (m.role === "user") {
               return (
-                <div key={m.id} className="flex justify-end">
+                <div key={m.id} className="oq-enter flex justify-end">
                   <div className="max-w-[85%] rounded-2xl bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap shadow-sm">
                     {rawText}
                   </div>
@@ -290,7 +290,10 @@ function ChatInner({
                   {showMeta && (
                     <div className="mt-3 flex flex-col gap-1.5 text-xs">
                       {primary && (
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <div
+                          style={{ animationDelay: "60ms" }}
+                          className="oq-enter flex items-center gap-1.5 text-muted-foreground"
+                        >
                           <FileText className="h-3.5 w-3.5 shrink-0" />
                           <span className="opacity-70">Source:</span>
                           <span className="font-medium text-foreground truncate">
@@ -298,10 +301,13 @@ function ChatInner({
                           </span>
                         </div>
                       )}
-                      <div className="flex items-center gap-1.5">
+                      <div
+                        style={{ animationDelay: "140ms" }}
+                        className="oq-enter flex items-center gap-1.5"
+                      >
                         <span className="opacity-70 text-muted-foreground">Confidence:</span>
                         <span
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${confClasses(answerBucket)}`}
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium transition-colors duration-200 ${confClasses(answerBucket)}`}
                         >
                           {confLabel(answerBucket)}
                         </span>
@@ -439,12 +445,21 @@ function SourcesPanel({
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
-  const DocCard = ({ s, isPrimary }: { s: SourceItem; isPrimary?: boolean }) => {
+  const DocCard = ({
+    s,
+    isPrimary,
+    index = 0,
+  }: {
+    s: SourceItem;
+    isPrimary?: boolean;
+    index?: number;
+  }) => {
     const bucket: ConfBucket = isPrimary ? answerBucket : bucketConfidence(s.similarity);
     const rel = displayRelevance(s.similarity, !!isPrimary);
     return (
       <div
-        className={`rounded-xl border p-3 transition-colors ${isPrimary ? "border-[var(--gold-line)] bg-[var(--gold-soft)]" : "border-border bg-muted/30"}`}
+        style={{ animationDelay: `${index * 60}ms` }}
+        className={`oq-enter rounded-xl border p-3 transition-colors ${isPrimary ? "border-[var(--gold-line)] bg-[var(--gold-soft)]" : "border-border bg-muted/30"}`}
       >
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           {isPrimary && <Badge className="text-[10px]">Primary</Badge>}
@@ -535,8 +550,8 @@ function SourcesPanel({
     <div className="mt-3">
       <Sheet>
         <SheetTrigger asChild>
-          <button className="inline-flex items-center gap-2 text-xs font-medium text-primary hover:underline">
-            <ScrollText className="h-3.5 w-3.5" />
+          <button className="group inline-flex items-center gap-2 text-xs font-medium text-primary transition-colors hover:underline">
+            <ScrollText className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
             {T("viewSources")} ({sources.length})
           </button>
         </SheetTrigger>
@@ -560,7 +575,7 @@ function SourcesPanel({
                 </h3>
                 <div className="space-y-3">
                   {supporting.map((s, i) => (
-                    <DocCard key={i} s={s} />
+                    <DocCard key={i} s={s} index={i + 1} />
                   ))}
                 </div>
               </div>
@@ -572,7 +587,11 @@ function SourcesPanel({
                 </h3>
                 <div className="space-y-3">
                   {faqs.map((s, i) => (
-                    <div key={i} className="rounded-md border border-border p-3 bg-muted/30">
+                    <div
+                      key={i}
+                      style={{ animationDelay: `${i * 60}ms` }}
+                      className="oq-enter rounded-md border border-border p-3 bg-muted/30"
+                    >
                       <div className="text-sm font-medium mb-1">{s.title}</div>
                       <p className="text-xs text-muted-foreground whitespace-pre-wrap">
                         {s.excerpt}
