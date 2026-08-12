@@ -128,9 +128,9 @@ def build_profile(path: Path, size=1000, ss=4):
     cx = W / 2
     cy = W * 0.455
 
-    # quiet gravure halo, three rings only — stops well clear of the type
-    for rr, col in ((0.318, (22, 62, 51)), (0.336, (18, 54, 45)), (0.356, (14, 46, 38))):
-        d.polygon(octagon(cx, cy, W * rr), outline=col, width=ss)
+    # one faint containment frame, far outside the seal
+    d.polygon(octagon(cx, cy, W * 0.425), outline=(16, 50, 41), width=ss)
+    d.polygon(octagon(cx, cy, W * 0.441), outline=(11, 41, 34), width=ss)
 
     draw_sovereign_mark(d, cx, cy, W * 0.245)
 
@@ -140,8 +140,6 @@ def build_profile(path: Path, size=1000, ss=4):
     w = d.textlength(label, font=fnt)
     ty = cy + W * 0.315
     d.text((cx - w / 2, ty), label, font=fnt, fill=(186, 165, 120))
-    d.line([(cx - W * 0.052, ty + W * 0.040), (cx + W * 0.052, ty + W * 0.040)],
-           fill=(46, 96, 80), width=ss)
 
     img = img.resize((size, size), Image.LANCZOS)
     img.save(path, "PNG")
