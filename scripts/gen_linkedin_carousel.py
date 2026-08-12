@@ -256,6 +256,25 @@ def stat_row(items, y_top: float, h=118.0):
     return y_top - h - 24
 
 
+def chip_row(items, y_base: float):
+    """Small pill chips laid out on one line, left-aligned."""
+    x = M
+    for label in items:
+        w = c.stringWidth(label, "Body-Bold", 15) + 34
+        if x + w > W - M:
+            break
+        c.setFillColor(PANEL)
+        c.roundRect(x, y_base - 20, w, 40, 20, stroke=0, fill=1)
+        c.setStrokeColor(LINE)
+        c.setLineWidth(1)
+        c.roundRect(x, y_base - 20, w, 40, 20, stroke=1, fill=0)
+        c.setFillColor(GOLD)
+        c.setFont("Body-Bold", 15)
+        c.drawString(x + 17, y_base - 6, label)
+        x += w + 12
+    return y_base - 24
+
+
 TOTAL = 11
 PAGE = 0
 
@@ -345,6 +364,8 @@ y = body(
 half3 = (W - 2 * M - 24) / 2
 shot_fit("ew.png", M, y - 30, half3, 420, "Step 1 — Welcome")
 shot_fit("sdasd.png", M + half3 + 24, y - 30, half3, 420, "Step 2 — Licence activation")
+chip_row(["Welcome", "Licence", "System check", "Options"], 190)
+chip_row(["Database", "Administrator", "Review", "Install", "Finish"], 130)
 footer("Roughly five minutes from download to a running platform.")
 c.showPage()
 
@@ -399,6 +420,8 @@ y = body(
 half = (W - 2 * M - 24) / 2
 shot_fit("cchgfds.png", M, y - 40, half, 460, "Light theme")
 shot_fit("slkjvccxn.png", M + half + 24, y - 40, half, 460, "Dark theme (Noir & Gold)")
+chip_row(["Dashboard", "AI Chat", "Knowledge", "FAQ", "Academy"], 190)
+chip_row(["AI Audit", "Users", "Organisation", "Updates", "Modules"], 130)
 footer("Deployment mode and build hash are always visible in the sidebar.")
 c.showPage()
 
@@ -446,6 +469,8 @@ c.setFillColor(MUTED)
 c.setFont("Body", 14)
 c.drawCentredString(M + half / 2, lbl, "FAQ import — files parsed and reviewed")
 c.drawCentredString(M + half + 24 + half / 2, lbl, "Users — roles, editing, deactivation")
+chip_row(["CSV", "XLSX", "PDF", "DOCX", "AI-proposed Q&A"], 190)
+chip_row(["Role-based access", "Temporary passwords", "Full audit trail"], 130)
 footer("No cloud round-trip for any of it.")
 c.showPage()
 
