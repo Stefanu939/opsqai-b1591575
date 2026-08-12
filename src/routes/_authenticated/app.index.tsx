@@ -116,10 +116,19 @@ function Dashboard() {
     }
   };
 
+  // Greet the real person. "there" is a last resort only when we genuinely
+  // have no identity yet (first paint before the profile resolves).
+  const emailName = (() => {
+    const local = (auth.user?.email ?? "").split("@")[0] ?? "";
+    const first = local.split(/[._\-+\d]+/).filter(Boolean)[0] ?? "";
+    return first ? first.charAt(0).toUpperCase() + first.slice(1) : "";
+  })();
   const name =
     (data?.firstName || "").trim().split(/\s+/)[0] ||
     (data?.displayName || "").trim().split(/\s+/)[0] ||
+    emailName ||
     "there";
+
 
   const company = (data?.companyName || "").trim();
 
