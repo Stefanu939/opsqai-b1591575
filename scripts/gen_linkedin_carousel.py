@@ -343,8 +343,8 @@ y = body(
     size=21,
 )
 half3 = (W - 2 * M - 24) / 2
-shot_fit("ew.png", M, y - 30, half3, 420, "Step 1 — Welcome", label_y=170)
-shot_fit("sdasd.png", M + half3 + 24, y - 30, half3, 420, "Step 2 — Licence activation", label_y=170)
+shot_fit("ew.png", M, y - 30, half3, 420, "Step 1 — Welcome")
+shot_fit("sdasd.png", M + half3 + 24, y - 30, half3, 420, "Step 2 — Licence activation")
 footer("Roughly five minutes from download to a running platform.")
 c.showPage()
 
@@ -397,8 +397,8 @@ y = body(
     size=21,
 )
 half = (W - 2 * M - 24) / 2
-shot_fit("cchgfds.png", M, y - 40, half, 460, "Light theme", label_y=160)
-shot_fit("slkjvccxn.png", M + half + 24, y - 40, half, 460, "Dark theme (Noir & Gold)", label_y=160)
+shot_fit("cchgfds.png", M, y - 40, half, 460, "Light theme")
+shot_fit("slkjvccxn.png", M + half + 24, y - 40, half, 460, "Dark theme (Noir & Gold)")
 footer("Deployment mode and build hash are always visible in the sidebar.")
 c.showPage()
 
@@ -439,8 +439,13 @@ y = body(
     size=21,
 )
 half = (W - 2 * M - 24) / 2
-shot_fit("nvcchggfh.png", M, y - 40, half, 430, "FAQ import — files parsed and reviewed", label_y=160)
-shot_fit("dvbrer.png", M + half + 24, y - 40, half, 430, "Users — roles, editing, deactivation", label_y=160)
+b1 = shot_fit("nvcchggfh.png", M, y - 40, half, 430)
+b2 = shot_fit("dvbrer.png", M + half + 24, y - 40, half, 430)
+lbl = min(b1, b2) - 12
+c.setFillColor(MUTED)
+c.setFont("Body", 14)
+c.drawCentredString(M + half / 2, lbl, "FAQ import — files parsed and reviewed")
+c.drawCentredString(M + half + 24 + half / 2, lbl, "Users — roles, editing, deactivation")
 footer("No cloud round-trip for any of it.")
 c.showPage()
 
