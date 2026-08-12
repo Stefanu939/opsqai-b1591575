@@ -146,14 +146,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 
   const linkCls =
-    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
+    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 transition-[background-color,color,transform] duration-150 ease-out hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground active:scale-[0.99] motion-reduce:active:scale-100 data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
 
+  // Active marker glides in from the rail instead of blinking on.
   const ActiveIndicator = () => (
     <span
       aria-hidden
-      className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gold opacity-0 group-data-[status=active]:opacity-100 transition-opacity"
+      className="absolute left-0 top-1.5 bottom-1.5 w-[3px] origin-left scale-y-50 rounded-r-full bg-gold opacity-0 transition-[opacity,transform] duration-200 ease-out group-data-[status=active]:scale-y-100 group-data-[status=active]:opacity-100"
     />
   );
+
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div
