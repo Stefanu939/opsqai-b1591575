@@ -12,11 +12,23 @@ export type GroundingSource = {
   confidence?: "high" | "medium" | "low";
 };
 
-/** Minimum mean cosine similarity for document evidence to count. */
-export const MIN_DOC_SIMILARITY = 0.3;
+/** Minimum cosine similarity for document evidence to count as an answer. */
+export const MIN_DOC_SIMILARITY = 0.42;
+
+/** Chunks below this similarity are noise and never enter the prompt context. */
+export const RELEVANT_CHUNK_SIMILARITY = 0.34;
+
+/** Keeps only evidence strong enough to be quoted in the grounded prompt. */
+export function relevantSources<T extends GroundingSource>(sources: T[]): T[] {
+  return sources.filter((s) =>
+    s.type === "document"
+      ? (s.similarity ?? 0) >= RELEVANT_CHUNK_SIMILARITY
+      : s.confidence === "high" || s.confidence === "medium",
+  );
+}
 
 /**
- * Evidence is sufficient when either the retrieved document chunks clear the
+ * Evidence is sufficient when either a retrieved document chunk clears the
  * similarity threshold or at least one FAQ matched with medium/high score.
  */
 export function passesGrounding(sources: GroundingSource[], confidence: number): boolean {
