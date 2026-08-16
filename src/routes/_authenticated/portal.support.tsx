@@ -260,6 +260,6 @@ function PortalSupport() {
           )}
         </Card>
       </div>
-    </div>
+    </ModulePage>
   );
 }
