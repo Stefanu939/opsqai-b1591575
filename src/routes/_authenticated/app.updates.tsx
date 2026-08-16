@@ -4,7 +4,6 @@ import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { ModulePage } from "@/components/app/module-page";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
-import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
