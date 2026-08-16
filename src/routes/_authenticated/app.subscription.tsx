@@ -4,6 +4,7 @@ import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Check, Lock } from "lucide-react";
 import { ModulePage } from "@/components/app/module-page";
+import { LicenseActivationPanel } from "@/components/app/license-activation-panel";
 
 export const Route = createFileRoute("/_authenticated/app/subscription")({
   head: () => ({ meta: [{ title: "Subscription — OPSQAI" }] }),
@@ -32,6 +33,8 @@ function SubscriptionPage() {
           : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."
       }
     >
+      {selfhost && <LicenseActivationPanel />}
+
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
           Basic bundle (included)
