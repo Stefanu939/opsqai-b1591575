@@ -21,6 +21,27 @@ import { bootstrapBrowserProviders } from "@/lib/providers/browser-bootstrap";
  * registered; in that case we attach nothing and let the server-side auth
  * middleware read the request headers it already has.
  */
+/**
+ * Resolve the access token, tolerating a session that is still being
+ * restored from storage right after a cold load / hydration. Without this
+ * wait, the first server-fn RPC of a page load can go out with no
+ * Authorization header and the server auth middleware rejects it with
+ * "Unauthorized: No authorization header provided".
+ */
+async function resolveAccessToken(timeoutMs = 2000): Promise<string | null> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      const session = await getBrowserAuthProvider().getSession();
+      if (session?.accessToken) return session.accessToken;
+    } catch {
+      return null;
+    }
+    if (Date.now() >= deadline) return null;
+    await new Promise((r) => setTimeout(r, 120));
+  }
+}
+
 export const attachPlatformAuth = createMiddleware({ type: "function" }).client(
   async ({ next }) => {
     if (typeof window === "undefined") return next({ headers: {} });
@@ -33,15 +54,18 @@ export const attachPlatformAuth = createMiddleware({ type: "function" }).client(
         return next({ headers: {} });
       }
     }
-    try {
-      const session = await getBrowserAuthProvider().getSession();
-      return next({
-        headers: session?.accessToken
-          ? { Authorization: `Bearer ${session.accessToken}` }
-          : {},
-      });
-    } catch {
+    const token = await resolveAccessToken();
+    if (!token) {
+      // No session at all: send the visitor to sign-in instead of letting
+      // the RPC fail with a 401 that surfaces as a blank error screen.
+      const path = window.location.pathname;
+      if (path !== "/auth" && !path.startsWith("/auth/")) {
+        window.location.assign(
+          `/auth?next=${encodeURIComponent(path + window.location.search)}`,
+        );
+      }
       return next({ headers: {} });
     }
+    return next({ headers: { Authorization: `Bearer ${token}` } });
   },
 );
