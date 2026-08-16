@@ -88,6 +88,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       module: "faq",
     },
     {
+      to: "/app/gaps",
+      label: "Knowledge Gaps",
+      icon: BrainCircuit,
+      // Part of the Basic bundle — always available.
+      show:
+        mode === "selfhost" ||
+        hasAnyPermission("knowledge.manage", "analytics.view", "knowledge.read"),
+      module: "knowledge_gaps",
+    },
+    {
       to: "/app/academy",
       label: "Academy",
       icon: GraduationCap,
