@@ -3,7 +3,7 @@ import { useLicense } from "@/lib/license";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Check, Lock } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 
 export const Route = createFileRoute("/_authenticated/app/subscription")({
   head: () => ({ meta: [{ title: "Subscription — OPSQAI" }] }),
@@ -23,19 +23,15 @@ function SubscriptionPage() {
   const addons = LICENSE_MODULE_CATALOG.filter((m) => !m.inBasic);
 
   return (
-    <div className="mx-auto max-w-4xl p-6 space-y-8">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title={selfhost ? "Licensed modules" : "Your subscription"}
-        description={
-          selfhost
-            ? "Basic bundle is always included. Extra modules unlock from the activation bundle installed on this server — no internet connection required."
-            : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."
-        }
-        className="mb-0"
-      />
-
-
+    <ModulePage
+      eyebrow="Entitlements"
+      title={selfhost ? "Licensed modules" : "Your subscription"}
+      description={
+        selfhost
+          ? "Basic bundle is always included. Extra modules unlock from the activation bundle installed on this server — no internet connection required."
+          : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."
+      }
+    >
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
           Basic bundle (included)
@@ -82,6 +78,6 @@ function SubscriptionPage() {
           To request an add-on, contact your OPSQAI representative or open a support ticket.
         </p>
       </section>
-    </div>
+    </ModulePage>
   );
 }

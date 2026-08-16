@@ -782,3 +782,129 @@ body {
   box-shadow: 0 8px 22px -14px rgba(201, 168, 76, 0.9);
 }
 .sidebar { box-shadow: 1px 0 0 rgba(201, 168, 76, 0.12); }
+
+/* ── Command Deck polish pass (matches the redesigned product shell) ─────
+   Glass surfaces, gliding step rail, animated progress and staggered rows.
+   Purely visual: no markup or flow assumptions beyond existing classes. */
+
+/* Glass panels */
+.card,
+.checks,
+.stages,
+.info-block {
+  background:
+    linear-gradient(180deg, rgba(245, 240, 224, 0.045), rgba(245, 240, 224, 0.012)),
+    var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  backdrop-filter: blur(6px);
+  transition:
+    transform var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.card:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: 0 18px 40px -26px rgba(0, 0, 0, 0.95);
+}
+
+/* Gold edge light on the active step rail */
+.steps li {
+  position: relative;
+}
+.steps li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2px;
+  height: 0;
+  border-radius: 2px;
+  background: var(--gold);
+  transform: translateY(-50%);
+  transition: height var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  opacity: 0;
+}
+.steps li.active::before {
+  height: 70%;
+  opacity: 1;
+}
+.steps li.active .idx {
+  background: var(--gold);
+  color: var(--bg);
+  box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.14);
+}
+
+/* Progress: thicker with a moving sheen while running */
+.progress {
+  height: 8px;
+  border-radius: 4px;
+}
+.progress-bar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.progress-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.32),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: sheen 1.8s var(--ease) infinite;
+}
+@keyframes sheen {
+  to { transform: translateX(100%); }
+}
+
+/* Staggered entrance for check / stage rows */
+.checks li,
+.stages li {
+  animation: rowIn 260ms var(--ease) both;
+}
+.checks li:nth-child(2), .stages li:nth-child(2) { animation-delay: 40ms; }
+.checks li:nth-child(3), .stages li:nth-child(3) { animation-delay: 80ms; }
+.checks li:nth-child(4), .stages li:nth-child(4) { animation-delay: 120ms; }
+.checks li:nth-child(5), .stages li:nth-child(5) { animation-delay: 160ms; }
+.checks li:nth-child(n + 6), .stages li:nth-child(n + 6) { animation-delay: 200ms; }
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+.checks li[data-state="ok"] i,
+.stages li[data-state="ok"] .stage-dot {
+  animation: pop 220ms var(--ease);
+}
+@keyframes pop {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* Buttons: pressed + hover feedback consistent with the product shell */
+.btn { transition: transform 120ms var(--ease), background var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.btn:active:not(:disabled) { transform: translateY(1px) scale(0.995); }
+.btn-primary:hover:not(:disabled) { box-shadow: 0 12px 28px -14px rgba(201, 168, 76, 0.95); }
+
+/* Hero glow breathes very slowly so the welcome screen feels alive */
+.pane-hero { animation: heroFade 420ms var(--ease) both; }
+@keyframes heroFade {
+  from { opacity: 0; transform: scale(0.995); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
