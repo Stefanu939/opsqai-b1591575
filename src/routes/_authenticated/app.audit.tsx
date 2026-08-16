@@ -40,7 +40,6 @@ import type {
   RecommendationKind,
 } from "@/lib/audit-recommendations";
 
-
 export const Route = createFileRoute("/_authenticated/app/audit")({
   head: () => ({ meta: [{ title: "AI Audit — OPSQAI" }] }),
   component: AiAuditPage,
@@ -91,7 +90,13 @@ function AiAuditPage() {
   }
 
   const scoreTone =
-    latest && latest.score >= 80 ? "gold" : latest && latest.score >= 60 ? "default" : latest ? "danger" : "muted";
+    latest && latest.score >= 80
+      ? "gold"
+      : latest && latest.score >= 60
+        ? "default"
+        : latest
+          ? "danger"
+          : "muted";
 
   const trend = [...audits]
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
@@ -312,7 +317,6 @@ function AiAuditPage() {
   );
 }
 
-
 /** Small animated counter — a KPI change should read as movement, not a swap. */
 function CountValue({ value, suffix }: { value: number; suffix?: string }) {
   const shown = useCountUp(value);
@@ -328,24 +332,13 @@ function ScoreRing({ score }: { score: number }) {
   const clamped = Math.max(0, Math.min(100, score));
   const shown = useCountUp(clamped);
   const stroke =
-    clamped >= 80
-      ? "var(--gold)"
-      : clamped >= 60
-        ? "var(--primary)"
-        : "var(--destructive)";
+    clamped >= 80 ? "var(--gold)" : clamped >= 60 ? "var(--primary)" : "var(--destructive)";
   const circumference = 2 * Math.PI * 32;
   const offset = circumference - (clamped / 100) * circumference;
   return (
     <div className="relative h-20 w-20 shrink-0">
       <svg viewBox="0 0 80 80" className="h-20 w-20 -rotate-90">
-        <circle
-          cx="40"
-          cy="40"
-          r="32"
-          fill="none"
-          stroke="var(--border)"
-          strokeWidth="6"
-        />
+        <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" strokeWidth="6" />
         <circle
           cx="40"
           cy="40"
@@ -415,10 +408,7 @@ function SettleIn({ delay, children }: { delay: number; children: ReactNode }) {
   );
 }
 
-const KIND_META: Record<
-  RecommendationKind,
-  { label: string; icon: typeof FileText }
-> = {
+const KIND_META: Record<RecommendationKind, { label: string; icon: typeof FileText }> = {
   sop: { label: "New SOP", icon: FileText },
   faq: { label: "New FAQ", icon: HelpCircle },
   course: { label: "Build course", icon: GraduationCap },
@@ -525,12 +515,8 @@ function RecommendationsSection({ companyId }: { companyId: string | null }) {
                     <div className="mt-2 flex flex-wrap gap-1">
                       <Badge variant="secondary">{r.suggestedCourse.format}</Badge>
                       <Badge variant="secondary">{r.suggestedCourse.difficulty}</Badge>
-                      <Badge variant="secondary">
-                        {r.suggestedCourse.estimatedMinutes} min
-                      </Badge>
-                      <Badge variant="secondary">
-                        pass ≥ {r.suggestedCourse.passingScore}%
-                      </Badge>
+                      <Badge variant="secondary">{r.suggestedCourse.estimatedMinutes} min</Badge>
+                      <Badge variant="secondary">pass ≥ {r.suggestedCourse.passingScore}%</Badge>
                       <Badge variant="secondary">due in {r.suggestedCourse.dueInDays}d</Badge>
                       {r.suggestedCourse.mandatory && <Badge>mandatory</Badge>}
                     </div>

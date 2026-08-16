@@ -11,7 +11,7 @@ import {
 import { getPortalSnapshot } from "@/lib/mc-admin.functions";
 import { StatCard } from "@/components/ui/stat-card";
 import { Package, Inbox } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,9 +138,7 @@ function ReleasesPage() {
     {
       key: "min",
       header: "Min supported",
-      render: (r) => (
-        <span className="font-mono text-xs">{r.min_supported ?? "—"}</span>
-      ),
+      render: (r) => <span className="font-mono text-xs">{r.min_supported ?? "—"}</span>,
     },
     {
       key: "published",
@@ -208,19 +206,14 @@ function ReleasesPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
-        eyebrow="Management Center"
-        title="Releases"
-        description="Published OPSQAI self-hosted releases. Installations pull updates from the current release per channel."
-        actions={
-          <NewReleaseDialog
-            onCreate={(v) => createMut.mutate(v)}
-            pending={createMut.isPending}
-          />
-        }
-      />
-
+    <ModulePage
+      eyebrow="Management Center"
+      title="Releases"
+      description="Published OPSQAI self-hosted releases. Installations pull updates from the current release per channel."
+      actions={
+        <NewReleaseDialog onCreate={(v) => createMut.mutate(v)} pending={createMut.isPending} />
+      }
+    >
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <StatCard
           label="Active installs with portal access"
@@ -234,13 +227,8 @@ function ReleasesPage() {
           hint="Visible to customers"
           icon={Rocket}
         />
-        <StatCard
-          label="Open tickets"
-          value={portal?.openTickets ?? 0}
-          icon={Inbox}
-        />
+        <StatCard label="Open tickets" value={portal?.openTickets ?? 0} icon={Inbox} />
       </div>
-
 
       <DataTable<Release>
         columns={columns}
@@ -253,7 +241,7 @@ function ReleasesPage() {
           description: "Publish your first release to make it available to installations.",
         }}
       />
-    </div>
+    </ModulePage>
   );
 }
 
@@ -379,10 +367,7 @@ function NewReleaseDialog({
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={current}
-              onCheckedChange={(v) => setCurrent(v === true)}
-            />
+            <Checkbox checked={current} onCheckedChange={(v) => setCurrent(v === true)} />
             Mark as current for {channel}
           </label>
         </div>

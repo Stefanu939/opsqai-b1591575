@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { listPortalDocs, getPortalDoc } from "@/lib/portal.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,8 +35,7 @@ function PortalDocumentation() {
     const term = q.trim().toLowerCase();
     const filtered = term
       ? rows.filter(
-          (r) =>
-            r.title.toLowerCase().includes(term) || r.category.toLowerCase().includes(term),
+          (r) => r.title.toLowerCase().includes(term) || r.category.toLowerCase().includes(term),
         )
       : rows;
     const byCat = new Map<string, typeof filtered>();
@@ -48,13 +47,11 @@ function PortalDocumentation() {
   }, [list.data, q]);
 
   return (
-    <div className="p-6 md:p-10 max-w-6xl">
-      <PageHeader
-        eyebrow="Customer portal"
-        title="Documentation"
-        description="Product documentation for OPSQAI features, modules and operations."
-      />
-
+    <ModulePage
+      eyebrow="Customer portal"
+      title="Documentation"
+      description="Product documentation for OPSQAI features, modules and operations."
+    >
       <div className="grid md:grid-cols-[320px_1fr] gap-4">
         <Card className="p-0 overflow-hidden">
           <div className="p-3 border-b border-border">
@@ -124,6 +121,6 @@ function PortalDocumentation() {
           )}
         </Card>
       </div>
-    </div>
+    </ModulePage>
   );
 }

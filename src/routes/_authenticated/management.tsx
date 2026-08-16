@@ -14,10 +14,7 @@ export const Route = createFileRoute("/_authenticated/management")({
     }
     const user = await getBrowserAuthProvider().getUser();
     if (!user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
     const ok = (roles ?? []).some(
       (r) => r.role === "platform_admin" || r.role === "platform_owner",
     );

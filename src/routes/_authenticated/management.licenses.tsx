@@ -9,7 +9,7 @@ import {
   revokeLicense,
   deleteLicense,
 } from "@/lib/licenses.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,7 +80,6 @@ function LicensesPage() {
   const revoke = useServerFn(revokeLicense);
   const remove = useServerFn(deleteLicense);
 
-
   const [q, setQ] = useState(installFilter ?? "");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -138,8 +137,6 @@ function LicensesPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-
 
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -277,19 +274,14 @@ function LicensesPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
-        eyebrow="Management Center"
-        title="Licenses"
-        description="Installation licenses and per-install module activations. Modules are activated exclusively here."
-        actions={
-          <IssueLicenseDialog
-            onIssue={(v) => issueMut.mutate(v)}
-            pending={issueMut.isPending}
-          />
-        }
-      />
-
+    <ModulePage
+      eyebrow="Management Center"
+      title="Licenses"
+      description="Installation licenses and per-install module activations. Modules are activated exclusively here."
+      actions={
+        <IssueLicenseDialog onIssue={(v) => issueMut.mutate(v)} pending={issueMut.isPending} />
+      }
+    >
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -341,7 +333,7 @@ function LicensesPage() {
             : "Issue an installation license to onboard a customer.",
         }}
       />
-    </div>
+    </ModulePage>
   );
 }
 
@@ -467,11 +459,7 @@ function IssueLicenseDialog({
                     </CommandEmpty>
                     <CommandGroup heading="Existing companies">
                       {companies.map((c) => (
-                        <CommandItem
-                          key={c.id}
-                          value={c.name}
-                          onSelect={() => pickCompany(c)}
-                        >
+                        <CommandItem key={c.id} value={c.name} onSelect={() => pickCompany(c)}>
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
@@ -594,9 +582,7 @@ function ActivateModuleDialog({
   const availableModules = useMemo(
     () =>
       LICENSE_MODULE_CATALOG.filter(
-        (m) =>
-          !(BASIC_MODULES as readonly string[]).includes(m.key) &&
-          !existing.includes(m.key),
+        (m) => !(BASIC_MODULES as readonly string[]).includes(m.key) && !existing.includes(m.key),
       ),
     [existing],
   );
@@ -650,8 +636,7 @@ function ActivateModuleDialog({
                 ) : (
                   availableModules.map((m) => (
                     <SelectItem key={m.key} value={m.key}>
-                      {m.label}{" "}
-                      <span className="text-muted-foreground">({m.key})</span>
+                      {m.label} <span className="text-muted-foreground">({m.key})</span>
                     </SelectItem>
                   ))
                 )}

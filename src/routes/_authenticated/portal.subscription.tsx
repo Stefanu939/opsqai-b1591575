@@ -1,3 +1,4 @@
+import { ModulePage } from "@/components/app/module-page";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,24 +22,14 @@ function daysUntil(d: string | null | undefined): number | null {
   return Math.round((new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
-function MaintenanceRing({
-  daysLeft,
-  totalDays = 365,
-}: {
-  daysLeft: number;
-  totalDays?: number;
-}) {
+function MaintenanceRing({ daysLeft, totalDays = 365 }: { daysLeft: number; totalDays?: number }) {
   const clamped = Math.max(0, Math.min(daysLeft, totalDays));
   const pct = clamped / totalDays;
   const r = 42;
   const c = 2 * Math.PI * r;
   const offset = c * (1 - pct);
   const stroke =
-    daysLeft <= 0
-      ? "hsl(var(--destructive))"
-      : daysLeft < 30
-        ? "#e0a800"
-        : "var(--gold)";
+    daysLeft <= 0 ? "hsl(var(--destructive))" : daysLeft < 30 ? "#e0a800" : "var(--gold)";
   return (
     <div className="relative shrink-0" style={{ width: 104, height: 104 }}>
       <svg width="104" height="104" viewBox="0 0 104 104" className="-rotate-90">
@@ -78,25 +69,16 @@ function PortalSubscription() {
   const installs = data?.installs ?? [];
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl space-y-6">
-      <div className="flex items-start justify-between gap-4 mb-2">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
-            Customer portal
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight">
-            Subscription
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-            Read-only view of the licenses tied to your account. Contact OPSQAI to change seats,
-            activate modules, or renew maintenance.
-          </p>
-        </div>
+    <ModulePage
+      eyebrow="Customer portal"
+      title="Subscription"
+      description="Read-only view of the licenses tied to your account. Contact OPSQAI to change seats, activate modules, or renew maintenance."
+      actions={
         <Button asChild size="sm" variant="outline">
           <Link to="/portal/support">Contact OPSQAI</Link>
         </Button>
-      </div>
-
+      }
+    >
       {installs.length === 0 ? (
         <EmptyState
           icon={Inbox}
@@ -135,11 +117,15 @@ function PortalSubscription() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm rounded-lg border border-border bg-muted/20 p-4">
                     <div>
                       <div className="text-muted-foreground text-xs">Seats</div>
-                      <div className="font-medium tabular-nums">{inst.install_license.seats ?? "—"}</div>
+                      <div className="font-medium tabular-nums">
+                        {inst.install_license.seats ?? "—"}
+                      </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground text-xs">Maintenance until</div>
-                      <div className="font-medium">{fmt(inst.install_license.maintenance_expires_at)}</div>
+                      <div className="font-medium">
+                        {fmt(inst.install_license.maintenance_expires_at)}
+                      </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground text-xs">Expires</div>
@@ -201,7 +187,6 @@ function PortalSubscription() {
           );
         })
       )}
-    </div>
+    </ModulePage>
   );
 }
-

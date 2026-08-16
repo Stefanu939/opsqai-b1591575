@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { listAnnouncementsPublic, signPortalStoragePath } from "@/lib/portal-admin.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,12 +48,11 @@ function PortalNews() {
   }, [data, sign]);
 
   return (
-    <div className="p-6 md:p-10 max-w-4xl">
-      <PageHeader
-        eyebrow="Customer portal"
-        title="News"
-        description="Latest announcements and updates from OPSQAI."
-      />
+    <ModulePage
+      eyebrow="Customer portal"
+      title="News"
+      description="Latest announcements and updates from OPSQAI."
+    >
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : data.length === 0 ? (
@@ -61,12 +60,7 @@ function PortalNews() {
       ) : (
         <div className="grid gap-4">
           {data.map((r) => (
-            <Link
-              key={r.id}
-              to="/portal/news/$slug"
-              params={{ slug: r.slug }}
-              className="block"
-            >
+            <Link key={r.id} to="/portal/news/$slug" params={{ slug: r.slug }} className="block">
               <Card className="p-4 flex gap-4 hover:bg-accent/40 transition-colors">
                 {covers[r.id] ? (
                   <img
@@ -101,6 +95,6 @@ function PortalNews() {
           ))}
         </div>
       )}
-    </div>
+    </ModulePage>
   );
 }

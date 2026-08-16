@@ -3,12 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.functions";
-import {
-  createCompany,
-  updateCompany,
-  deleteCompany,
-} from "@/lib/companies.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { createCompany, updateCompany, deleteCompany } from "@/lib/companies.functions";
+import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,8 +95,7 @@ function CustomersPage() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["mc-customers"] });
 
   const saveMut = useMutation({
-    mutationFn: (v: { company_id: string; contract_status?: ContractStatus }) =>
-      save({ data: v }),
+    mutationFn: (v: { company_id: string; contract_status?: ContractStatus }) => save({ data: v }),
     onSuccess: () => {
       toast.success("Saved");
       invalidate();
@@ -181,9 +176,7 @@ function CustomersPage() {
     {
       key: "since",
       header: "Customer since",
-      render: (r) => (
-        <span className="text-xs text-muted-foreground">{fmtDate(r.created_at)}</span>
-      ),
+      render: (r) => <span className="text-xs text-muted-foreground">{fmtDate(r.created_at)}</span>,
     },
     {
       key: "expires",
@@ -313,19 +306,14 @@ function CustomersPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
-        eyebrow="Management Center"
-        title="Customers"
-        description="Every OPSQAI customer — subscription, license expiry, contract lifecycle."
-        actions={
-          <NewCustomerDialog
-            onCreate={(v) => createMut.mutate(v)}
-            pending={createMut.isPending}
-          />
-        }
-      />
-
+    <ModulePage
+      eyebrow="Management Center"
+      title="Customers"
+      description="Every OPSQAI customer — subscription, license expiry, contract lifecycle."
+      actions={
+        <NewCustomerDialog onCreate={(v) => createMut.mutate(v)} pending={createMut.isPending} />
+      }
+    >
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -380,7 +368,7 @@ function CustomersPage() {
             : "Create your first customer to get started.",
         }}
       />
-    </div>
+    </ModulePage>
   );
 }
 

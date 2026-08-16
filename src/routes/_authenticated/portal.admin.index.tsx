@@ -12,7 +12,7 @@ import {
   type PortalAnnouncement,
 } from "@/lib/portal-admin.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -166,22 +166,24 @@ function AdminNews() {
   };
 
   return (
-    <div>
-      <PageHeader
-        eyebrow="Portal admin"
-        title="News"
-        description="Publish news posts and announcements to every customer signed into the portal."
-        actions={
-          <Button onClick={openNew}>
-            <Plus className="h-4 w-4 mr-1" /> New post
-          </Button>
-        }
-      />
-
+    <ModulePage
+      eyebrow="Portal admin"
+      title="News"
+      description="Publish news posts and announcements to every customer signed into the portal."
+      actions={
+        <Button onClick={openNew}>
+          <Plus className="h-4 w-4 mr-1" /> New post
+        </Button>
+      }
+    >
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : data.length === 0 ? (
-        <EmptyState icon={Newspaper} title="No posts yet" description="Click ‘New post’ to publish your first announcement." />
+        <EmptyState
+          icon={Newspaper}
+          title="No posts yet"
+          description="Click ‘New post’ to publish your first announcement."
+        />
       ) : (
         <div className="grid gap-3">
           {data.map((row) => (
@@ -343,9 +345,7 @@ function AdminNews() {
                 <Switch
                   id="published"
                   checked={form.status === "published"}
-                  onCheckedChange={(v) =>
-                    setForm({ ...form, status: v ? "published" : "draft" })
-                  }
+                  onCheckedChange={(v) => setForm({ ...form, status: v ? "published" : "draft" })}
                 />
                 <Label htmlFor="published">
                   {form.status === "published" ? "Published" : "Draft"}
@@ -366,6 +366,6 @@ function AdminNews() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ModulePage>
   );
 }

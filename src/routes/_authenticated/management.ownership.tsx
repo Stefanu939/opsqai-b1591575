@@ -8,7 +8,7 @@ import {
   demotePlatformAdmin,
 } from "@/lib/companies.functions";
 import { listLicenses, transferOwnership } from "@/lib/licenses.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { SectionCard } from "@/components/ui/section-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -154,9 +154,7 @@ function OwnershipPage() {
       header: "User",
       render: (a) => (
         <div className="flex flex-col">
-          <span className="font-medium text-foreground">
-            {a.full_name || a.email}
-          </span>
+          <span className="font-medium text-foreground">{a.full_name || a.email}</span>
           <span className="text-xs text-muted-foreground">{a.email}</span>
         </div>
       ),
@@ -207,13 +205,11 @@ function OwnershipPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
-        eyebrow="Management Center"
-        title="Ownership"
-        description="Installation handovers and platform administrator roles."
-      />
-
+    <ModulePage
+      eyebrow="Management Center"
+      title="Ownership"
+      description="Installation handovers and platform administrator roles."
+    >
       <SectionCard
         title="Installation ownership"
         description="Track which installs are still operated by OPSQAI and which have been handed over to the customer."
@@ -234,7 +230,9 @@ function OwnershipPage() {
       <SectionCard
         title="Platform administrators"
         description="Users with global access to the Management Center."
-        actions={<PromoteDialog onPromote={(v) => promoteMut.mutate(v)} pending={promoteMut.isPending} />}
+        actions={
+          <PromoteDialog onPromote={(v) => promoteMut.mutate(v)} pending={promoteMut.isPending} />
+        }
       >
         <DataTable<Admin>
           columns={adminColumns}
@@ -248,7 +246,7 @@ function OwnershipPage() {
           }}
         />
       </SectionCard>
-    </div>
+    </ModulePage>
   );
 }
 
