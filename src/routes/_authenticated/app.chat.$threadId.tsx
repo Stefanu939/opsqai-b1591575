@@ -28,8 +28,11 @@ import {
   Phone,
   Mail,
   UserCheck,
+  CheckCheck,
 } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
+import { EmojiPicker } from "@/components/app/chat/emoji-picker";
+import { MessageReactions } from "@/components/app/chat/message-reactions";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
 import { useServerFn } from "@tanstack/react-start";
@@ -396,8 +399,8 @@ function ChatInner({
           )}
           <div className="flex gap-1.5 items-end rounded-3xl border border-border bg-card p-1.5 pl-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
             <EmojiPicker
-              onPick={(e) => {
-                setInput((v) => v + e);
+              onPick={(emoji: string) => {
+                setInput((v) => v + emoji);
                 taRef.current?.focus();
               }}
             />
