@@ -90,7 +90,7 @@ function PortalHome() {
     <ModulePage
       eyebrow="Customer portal"
       title="Overview"
-      description="{data?.email ? `Signed in as ${data.email}. ` : ""} Your installations, licenses and announcements at a glance."
+      description={`${data?.email ? `Signed in as ${data.email}. ` : ""}Your installations, licenses and announcements at a glance.`}
     >
 
       <div className="mb-8">
