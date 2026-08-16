@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
 import { Paperclip, Mic, ArrowUp, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { EmojiPicker } from "@/components/app/chat/emoji-picker";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({ component: ChatWelcome });
 
@@ -77,7 +78,7 @@ function ChatWelcome() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 min-h-[calc(100vh-3.5rem)] md:min-h-dvh bg-gradient-to-b from-background to-muted/20">
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 min-h-[calc(100vh-3.5rem)] md:min-h-dvh oq-chat-canvas">
       <div className="w-full max-w-2xl text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--gold-line)] bg-card/60 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
           <Sparkles className="h-3 w-3 text-gold" />
@@ -108,6 +109,7 @@ function ChatWelcome() {
               <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title="Voice" disabled>
                 <Mic className="h-4 w-4" />
               </Button>
+              <EmojiPicker onPick={(emoji: string) => setText((v) => v + emoji)} className="h-8 w-8" />
             </div>
             <Button
               onClick={submit}
