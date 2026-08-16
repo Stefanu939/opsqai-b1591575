@@ -619,8 +619,27 @@ export function SupportWidget() {
               <>
                 <div
                   ref={scrollRef}
-                  className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-muted/20"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                  }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragging(false);
+                    void handleAttach(e.dataTransfer.files);
+                  }}
+                  className={[
+                    "relative flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-muted/30",
+                    "bg-[radial-gradient(circle_at_18%_12%,color-mix(in_oklab,var(--color-primary)_10%,transparent),transparent_55%),radial-gradient(circle_at_82%_78%,color-mix(in_oklab,var(--color-primary)_7%,transparent),transparent_60%)]",
+                    dragging ? "ring-2 ring-inset ring-primary/60" : "",
+                  ].join(" ")}
                 >
+                  {dragging && (
+                    <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-background/70 text-sm font-medium">
+                      Drop photos or files to attach
+                    </div>
+                  )}
                   {messages.map((m) => {
                     const mine = m.sender_id === auth.user?.id;
                     const isInternal = m.internal_note;
