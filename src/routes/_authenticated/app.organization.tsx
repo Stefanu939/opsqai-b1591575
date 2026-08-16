@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getMyProfile, updateMyProfile, listDepartments, createDepartment } from "@/lib/users.functions";
 import { getPlatformConfig, savePlatformAiConfig } from "@/lib/mc-admin.functions";
 import { getCompanyLogo, saveCompanyLogo } from "@/lib/company-logo.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -191,12 +191,11 @@ function OrganizationPage() {
   };
 
   return (
-    <div className="p-6 md:p-10 max-w-4xl w-full mx-auto">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title="Organization"
-        description="Company profile, your personal settings, and the AI provider powering this installation."
-      />
+    <ModulePage
+      eyebrow="Workspace"
+      title="Organization"
+      description="Company profile, your personal settings, and the AI provider powering this installation."
+    >
 
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
@@ -485,6 +484,6 @@ function OrganizationPage() {
           </TabsContent>
         )}
       </Tabs>
-    </div>
+    </ModulePage>
   );
 }

@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getCloudBrowserDb } from "@/lib/cloud-client";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
 import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
@@ -59,18 +61,22 @@ function UpdatesPage() {
   const available = current?.version ?? "—";
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl w-full mx-auto">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title="Updates"
-        description="Installer releases published for your OPSQAI installation. Signed ZIP + SHA-256 for every version."
-      />
-
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        <StatCard label="Installed version" value={installed} icon={Package} />
-        <StatCard label="Latest available" value={available} icon={Download} />
-        <StatCard label="Releases published" value={rows.length} icon={History} />
-      </div>
+    <ModulePage
+      eyebrow="Lifecycle"
+      title="Updates"
+      description="Installer releases published for your OPSQAI installation. Signed ZIP + SHA-256 for every version."
+    >
+      <BentoGrid>
+        <BentoItem span={4} index={0}>
+          <MetricTile label="Installed version" value={installed} icon={Package} />
+        </BentoItem>
+        <BentoItem span={4} index={1}>
+          <MetricTile label="Latest available" value={available} icon={Download} tone="gold" />
+        </BentoItem>
+        <BentoItem span={4} index={2}>
+          <MetricTile label="Releases published" value={rows.length} icon={History} />
+        </BentoItem>
+      </BentoGrid>
 
       {releases.isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -113,6 +119,6 @@ function UpdatesPage() {
         Updates are applied by the on-premise installer. Rollback is handled locally through the
         installer's built-in version manager. Contact OPSQAI support if you need help.
       </p>
-    </div>
+    </ModulePage>
   );
 }
