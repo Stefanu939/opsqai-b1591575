@@ -18,6 +18,7 @@ import {
   Package,
   Download,
   ClipboardCheck,
+  BrainCircuit,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { BuildProvenanceLine } from "@/components/app/build-provenance-line";
