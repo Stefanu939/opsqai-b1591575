@@ -96,7 +96,8 @@ function UpdatesPage() {
                     </Badge>
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Published {new Date(r.published_at).toLocaleString()} · ZIP {fmtBytes(r.zip_size_bytes)} · EXE {fmtBytes(r.exe_size_bytes)}
+                    Published {new Date(r.published_at).toLocaleString()} · ZIP{" "}
+                    {fmtBytes(r.zip_size_bytes)} · EXE {fmtBytes(r.exe_size_bytes)}
                   </div>
                   {r.exe_sha256 && (
                     <div className="text-[11px] font-mono text-muted-foreground mt-1 break-all">

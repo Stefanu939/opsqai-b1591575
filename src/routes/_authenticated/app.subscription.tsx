@@ -32,8 +32,6 @@ function SubscriptionPage() {
           : "Basic bundle is always included. Extra modules unlock when you purchase a license from OPSQAI."
       }
     >
-
-
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
           Basic bundle (included)

@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
-import { getMyProfile, updateMyProfile, listDepartments, createDepartment } from "@/lib/users.functions";
+import {
+  getMyProfile,
+  updateMyProfile,
+  listDepartments,
+  createDepartment,
+} from "@/lib/users.functions";
 import { getPlatformConfig, savePlatformAiConfig } from "@/lib/mc-admin.functions";
 import { getCompanyLogo, saveCompanyLogo } from "@/lib/company-logo.functions";
 import { ModulePage } from "@/components/app/module-page";
@@ -78,7 +83,9 @@ function OrganizationPage() {
     try {
       const created = await addDept({ data: { name } });
       setDepts((prev) =>
-        prev.some((d) => d.id === created.id) ? prev : [...prev, { id: created.id, name: created.name }],
+        prev.some((d) => d.id === created.id)
+          ? prev
+          : [...prev, { id: created.id, name: created.name }],
       );
       setForm((f) => ({ ...f, department_id: created.id }));
       setNewDept("");
@@ -110,17 +117,19 @@ function OrganizationPage() {
       .then((d) => setDepts(d as Dept[]))
       .catch(() => {});
     if (!user) return;
-    void fetchProfile().then((data) => {
-      if (!data) return;
-      setForm({
-        first_name: data.first_name ?? "",
-        last_name: data.last_name ?? "",
-        position: data.position ?? "",
-        phone: data.phone ?? "",
-        department_id: data.department_id ?? "",
-        language_pref: data.language_pref === "de" ? "de" : "en",
-      });
-    }).catch(() => {});
+    void fetchProfile()
+      .then((data) => {
+        if (!data) return;
+        setForm({
+          first_name: data.first_name ?? "",
+          last_name: data.last_name ?? "",
+          position: data.position ?? "",
+          phone: data.phone ?? "",
+          department_id: data.department_id ?? "",
+          language_pref: data.language_pref === "de" ? "de" : "en",
+        });
+      })
+      .catch(() => {});
   }, [user, fetchDepts, fetchProfile]);
 
   useEffect(() => {
@@ -136,14 +145,22 @@ function OrganizationPage() {
   }, [canConfigureAi, getCfg]);
 
   useEffect(() => {
-    fetchLogo({ data: {} } as never).then((r) => setLogoUrl(r.logo_url)).catch(() => {});
+    fetchLogo({ data: {} } as never)
+      .then((r) => setLogoUrl(r.logo_url))
+      .catch(() => {});
   }, [fetchLogo]);
 
   async function handleLogoPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("Only image files are allowed"); return; }
-    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2 MB"); return; }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files are allowed");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo must be under 2 MB");
+      return;
+    }
     setLogoBusy(true);
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
@@ -152,7 +169,9 @@ function OrganizationPage() {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const { logo_url } = await saveLogo({ data: { data_base64: base64, content_type: file.type } });
+      const { logo_url } = await saveLogo({
+        data: { data_base64: base64, content_type: file.type },
+      });
       setLogoUrl(logo_url);
       toast.success("Company logo saved");
     } catch (err) {
@@ -196,7 +215,6 @@ function OrganizationPage() {
       title="Organization"
       description="Company profile, your personal settings, and the AI provider powering this installation."
     >
-
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">
@@ -308,9 +326,7 @@ function OrganizationPage() {
                   <Label className="text-xs">Language</Label>
                   <Select
                     value={form.language_pref}
-                    onValueChange={(v) =>
-                      setForm({ ...form, language_pref: v as "en" | "de" })
-                    }
+                    onValueChange={(v) => setForm({ ...form, language_pref: v as "en" | "de" })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -376,7 +392,6 @@ function OrganizationPage() {
           </Card>
         </TabsContent>
 
-
         {canConfigureAi && (
           <TabsContent value="ai">
             {isSelfHosted ? (
@@ -386,8 +401,8 @@ function OrganizationPage() {
                   <p className="text-sm text-muted-foreground">
                     This installation runs every AI feature — chat, document understanding,
                     embeddings and audits — on the local engine bundled with OPSQAI. No prompt,
-                    document or answer ever leaves this machine, and there is no cloud fallback:
-                    if the local engine is unavailable, the affected feature reports it instead of
+                    document or answer ever leaves this machine, and there is no cloud fallback: if
+                    the local engine is unavailable, the affected feature reports it instead of
                     routing your data outside.
                   </p>
                   {aiInstallId && (
@@ -399,87 +414,84 @@ function OrganizationPage() {
                 <LocalAiEngineCard />
               </div>
             ) : (
-            <Card className="p-6">
-
-              <form onSubmit={submitAi} className="space-y-4">
-                {aiInstallId && (
-                  <div className="text-xs text-muted-foreground font-mono">
-                    Install: {aiInstallId}
+              <Card className="p-6">
+                <form onSubmit={submitAi} className="space-y-4">
+                  {aiInstallId && (
+                    <div className="text-xs text-muted-foreground font-mono">
+                      Install: {aiInstallId}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Provider</Label>
+                      <Select
+                        value={ai.provider}
+                        onValueChange={(v) => setAi({ ...ai, provider: v as AiConfig["provider"] })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gateway">Lovable AI Gateway</SelectItem>
+                          <SelectItem value="openai">OpenAI</SelectItem>
+                          <SelectItem value="azure">Azure OpenAI</SelectItem>
+                          <SelectItem value="anthropic">Anthropic</SelectItem>
+                          <SelectItem value="ollama">Ollama (self-hosted)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Model</Label>
+                      <Input
+                        value={ai.model}
+                        onChange={(e) => setAi({ ...ai, model: e.target.value })}
+                        placeholder="openai/gpt-5.5"
+                      />
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <Label className="text-xs">Base URL (optional)</Label>
+                      <Input
+                        value={ai.base_url ?? ""}
+                        onChange={(e) => setAi({ ...ai, base_url: e.target.value || null })}
+                        placeholder="https://…"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Temperature</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="2"
+                        value={ai.temperature}
+                        onChange={(e) => setAi({ ...ai, temperature: Number(e.target.value) || 0 })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Max tokens (optional)</Label>
+                      <Input
+                        type="number"
+                        value={ai.max_tokens ?? ""}
+                        onChange={(e) =>
+                          setAi({
+                            ...ai,
+                            max_tokens: e.target.value ? Number(e.target.value) : null,
+                          })
+                        }
+                      />
+                    </div>
                   </div>
-                )}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Provider</Label>
-                    <Select
-                      value={ai.provider}
-                      onValueChange={(v) => setAi({ ...ai, provider: v as AiConfig["provider"] })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gateway">Lovable AI Gateway</SelectItem>
-                        <SelectItem value="openai">OpenAI</SelectItem>
-                        <SelectItem value="azure">Azure OpenAI</SelectItem>
-                        <SelectItem value="anthropic">Anthropic</SelectItem>
-                        <SelectItem value="ollama">Ollama (self-hosted)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="pt-2">
+                    <Button type="submit" disabled={aiBusy}>
+                      {aiBusy ? "Saving…" : "Save AI provider"}
+                    </Button>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Model</Label>
-                    <Input
-                      value={ai.model}
-                      onChange={(e) => setAi({ ...ai, model: e.target.value })}
-                      placeholder="openai/gpt-5.5"
-                    />
-                  </div>
-                  <div className="space-y-1 col-span-2">
-                    <Label className="text-xs">Base URL (optional)</Label>
-                    <Input
-                      value={ai.base_url ?? ""}
-                      onChange={(e) => setAi({ ...ai, base_url: e.target.value || null })}
-                      placeholder="https://…"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Temperature</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="2"
-                      value={ai.temperature}
-                      onChange={(e) =>
-                        setAi({ ...ai, temperature: Number(e.target.value) || 0 })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Max tokens (optional)</Label>
-                    <Input
-                      type="number"
-                      value={ai.max_tokens ?? ""}
-                      onChange={(e) =>
-                        setAi({
-                          ...ai,
-                          max_tokens: e.target.value ? Number(e.target.value) : null,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="pt-2">
-                  <Button type="submit" disabled={aiBusy}>
-                    {aiBusy ? "Saving…" : "Save AI provider"}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  API keys are configured through server environment variables and never stored in
-                  the database. Ollama runs entirely on-premise.
-                </p>
-              </form>
-            </Card>
+                  <p className="text-xs text-muted-foreground">
+                    API keys are configured through server environment variables and never stored in
+                    the database. Ollama runs entirely on-premise.
+                  </p>
+                </form>
+              </Card>
             )}
           </TabsContent>
         )}
