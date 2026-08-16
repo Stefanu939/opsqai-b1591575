@@ -147,11 +147,14 @@ Write the SOP that answers the question above end to end.`,
 
   // Index it so the assistant can ground answers on it immediately.
   try {
-    const { processDocument } = await import("@/lib/doc-processing.server");
-    await processDocument(doc.id, ctx.supabase as never);
+    const { reprocessDocument } = await import("@/lib/kb.functions");
+    await (reprocessDocument as unknown as {
+      handler?: (a: { data: { id: string }; context: unknown }) => Promise<unknown>;
+    }).handler?.({ data: { id: doc.id }, context: ctx });
   } catch {
     /* indexing retried by the KB pipeline */
   }
+
 
   const gapResolved = await closeGap(ctx, companyId, input.gapId, {
     resolution: "sop",
