@@ -216,9 +216,9 @@ function ReleasesPage() {
           <NewReleaseDialog
             onCreate={(v) => createMut.mutate(v)}
             pending={createMut.isPending}
-    >
+          />
         }
-      />
+    >
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <StatCard

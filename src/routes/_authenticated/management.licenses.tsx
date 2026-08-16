@@ -285,9 +285,9 @@ function LicensesPage() {
           <IssueLicenseDialog
             onIssue={(v) => issueMut.mutate(v)}
             pending={issueMut.isPending}
-    >
+          />
         }
-      />
+    >
 
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
