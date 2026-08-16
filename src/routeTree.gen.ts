@@ -101,6 +101,7 @@ import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_auth
 import { Route as AuthenticatedAppOrganizationRouteImport } from './routes/_authenticated/app.organization'
 import { Route as AuthenticatedAppModulesRouteImport } from './routes/_authenticated/app.modules'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
+import { Route as AuthenticatedAppGapsRouteImport } from './routes/_authenticated/app.gaps'
 import { Route as AuthenticatedAppFaqRouteImport } from './routes/_authenticated/app.faq'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticated/app.audit'
@@ -619,6 +620,11 @@ const AuthenticatedAppKnowledgeRoute =
     path: '/knowledge',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppGapsRoute = AuthenticatedAppGapsRouteImport.update({
+  id: '/gaps',
+  path: '/gaps',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppFaqRoute = AuthenticatedAppFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -843,6 +849,7 @@ export interface FileRoutesByFullPath {
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/faq': typeof AuthenticatedAppFaqRoute
+  '/app/gaps': typeof AuthenticatedAppGapsRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
@@ -959,6 +966,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
   '/app/faq': typeof AuthenticatedAppFaqRoute
+  '/app/gaps': typeof AuthenticatedAppGapsRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
@@ -1082,6 +1090,7 @@ export interface FileRoutesById {
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/faq': typeof AuthenticatedAppFaqRoute
+  '/_authenticated/app/gaps': typeof AuthenticatedAppGapsRoute
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/modules': typeof AuthenticatedAppModulesRoute
   '/_authenticated/app/organization': typeof AuthenticatedAppOrganizationRoute
@@ -1206,6 +1215,7 @@ export interface FileRouteTypes {
     | '/app/audit'
     | '/app/chat'
     | '/app/faq'
+    | '/app/gaps'
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
@@ -1322,6 +1332,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
     | '/app/faq'
+    | '/app/gaps'
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
@@ -1444,6 +1455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/audit'
     | '/_authenticated/app/chat'
     | '/_authenticated/app/faq'
+    | '/_authenticated/app/gaps'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/modules'
     | '/_authenticated/app/organization'
@@ -2217,6 +2229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/gaps': {
+      id: '/_authenticated/app/gaps'
+      path: '/gaps'
+      fullPath: '/app/gaps'
+      preLoaderRoute: typeof AuthenticatedAppGapsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/faq': {
       id: '/_authenticated/app/faq'
       path: '/faq'
@@ -2440,6 +2459,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAuditRoute: typeof AuthenticatedAppAuditRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
   AuthenticatedAppFaqRoute: typeof AuthenticatedAppFaqRoute
+  AuthenticatedAppGapsRoute: typeof AuthenticatedAppGapsRoute
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppModulesRoute: typeof AuthenticatedAppModulesRoute
   AuthenticatedAppOrganizationRoute: typeof AuthenticatedAppOrganizationRoute
@@ -2462,6 +2482,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAuditRoute: AuthenticatedAppAuditRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
   AuthenticatedAppFaqRoute: AuthenticatedAppFaqRoute,
+  AuthenticatedAppGapsRoute: AuthenticatedAppGapsRoute,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppModulesRoute: AuthenticatedAppModulesRoute,
   AuthenticatedAppOrganizationRoute: AuthenticatedAppOrganizationRoute,
