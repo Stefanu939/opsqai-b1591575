@@ -45,7 +45,7 @@ export function AreaTrend({
   height = 220,
   className,
 }: {
-  data: Array<Record<string, unknown>>;
+  data: readonly Record<string, unknown>[] | readonly object[];
   xKey: string;
   yKey: string;
   height?: number;
@@ -54,7 +54,7 @@ export function AreaTrend({
   return (
     <div className={cn("w-full", className)} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+        <AreaChart data={data as Record<string, unknown>[]} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
           <defs>
             <linearGradient id="oq-area" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
@@ -86,7 +86,7 @@ export function LineTrend({
   height = 200,
   className,
 }: {
-  data: Array<Record<string, unknown>>;
+  data: readonly Record<string, unknown>[] | readonly object[];
   xKey: string;
   yKey: string;
   height?: number;
@@ -95,7 +95,7 @@ export function LineTrend({
   return (
     <div className={cn("w-full", className)} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+        <LineChart data={data as Record<string, unknown>[]} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis dataKey={xKey} {...axis} tickLine={false} />
           <YAxis {...axis} tickLine={false} width={38} />
@@ -121,7 +121,7 @@ export function CategoryBars({
   height = 200,
   className,
 }: {
-  data: Array<Record<string, unknown>>;
+  data: readonly Record<string, unknown>[] | readonly object[];
   xKey: string;
   yKey: string;
   height?: number;
@@ -130,13 +130,13 @@ export function CategoryBars({
   return (
     <div className={cn("w-full", className)} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+        <BarChart data={data as Record<string, unknown>[]} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis dataKey={xKey} {...axis} tickLine={false} interval={0} />
           <YAxis {...axis} tickLine={false} allowDecimals={false} width={38} />
           <Tooltip contentStyle={tooltipStyle} />
           <Bar dataKey={yKey} radius={[6, 6, 0, 0]}>
-            {data.map((_, i) => (
+            {(data as unknown[]).map((_, i) => (
               <Cell key={i} fill={CHART_TONES[i % CHART_TONES.length]} />
             ))}
           </Bar>
@@ -154,7 +154,7 @@ export function DonutBreakdown({
   height = 200,
   className,
 }: {
-  data: Array<Record<string, unknown>>;
+  data: readonly Record<string, unknown>[] | readonly object[];
   nameKey: string;
   valueKey: string;
   height?: number;
@@ -166,7 +166,7 @@ export function DonutBreakdown({
         <PieChart>
           <Tooltip contentStyle={tooltipStyle} />
           <Pie
-            data={data}
+            data={data as Record<string, unknown>[]}
             dataKey={valueKey}
             nameKey={nameKey}
             innerRadius="58%"
@@ -174,7 +174,7 @@ export function DonutBreakdown({
             paddingAngle={2}
             stroke="var(--card)"
           >
-            {data.map((_, i) => (
+            {(data as unknown[]).map((_, i) => (
               <Cell key={i} fill={CHART_TONES[i % CHART_TONES.length]} />
             ))}
           </Pie>
