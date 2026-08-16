@@ -688,6 +688,9 @@ export function SupportWidget() {
                           {m.attachments.length > 0 && (
                             <div className="mt-2 space-y-1">
                               {m.attachments.map((a, i) => (
+                                a.mime?.startsWith("image/") ? (
+                                  <SupportImage key={i} path={a.path} name={a.name} />
+                                ) : (
                                 <a
                                   key={i}
                                   href="#"
@@ -704,6 +707,7 @@ export function SupportWidget() {
                                 >
                                   📎 {a.name}
                                 </a>
+                                )
                               ))}
                             </div>
                           )}
@@ -814,5 +818,30 @@ export function SupportWidget() {
         </>
       )}
     </>
+  );
+}
+
+function SupportImage({ path, name }: { path: string; name: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const { getSupportAttachmentUrl } = await import("@/lib/support.functions");
+        const r = await getSupportAttachmentUrl({ data: { path } });
+        if (alive) setUrl(r.url);
+      } catch {
+        /* noop */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [path]);
+  if (!url) return <div className="h-32 w-40 animate-pulse rounded-lg bg-muted" />;
+  return (
+    <a href={url} target="_blank" rel="noopener" className="block">
+      <img src={url} alt={name} className="max-h-56 rounded-lg object-cover" />
+    </a>
   );
 }
