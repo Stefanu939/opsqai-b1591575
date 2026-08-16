@@ -103,7 +103,9 @@ function dayLabel(iso: string) {
   const d = new Date(iso);
   const now = new Date();
   const same = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
   if (same(d, now)) return "Today";
   const y = new Date(now);
   y.setDate(now.getDate() - 1);
@@ -231,8 +233,6 @@ export function SupportWidget() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cloudEnabled, canUse, auth.user?.id]);
 
-
-
   const loadList = async () => {
     setLoading(true);
     try {
@@ -286,8 +286,7 @@ export function SupportWidget() {
             table: "support_messages",
             filter: `conversation_id=eq.${activeId}`,
           },
-          (payload: { new: unknown }) =>
-            setMessages((prev) => [...prev, payload.new as Message]),
+          (payload: { new: unknown }) => setMessages((prev) => [...prev, payload.new as Message]),
         )
         .subscribe();
       cleanupRealtime = () => {
@@ -298,7 +297,6 @@ export function SupportWidget() {
       cleanupRealtime?.();
     };
   }, [cloudEnabled, activeId]);
-
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -670,51 +668,54 @@ export function SupportWidget() {
                           </div>
                         )}
                         <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                        <div
-                          className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                            isInternal
-                              ? "bg-amber-500/15 border border-amber-500/30"
-                              : mine
-                                ? "bg-primary text-primary-foreground rounded-br-sm"
-                                : "bg-card text-card-foreground border border-border rounded-bl-sm"
-                          }`}
-                        >
-                          {isInternal && (
-                            <div className="text-[10px] uppercase tracking-wider mb-1 opacity-70">
-                              Internal note
+                          <div
+                            className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
+                              isInternal
+                                ? "bg-amber-500/15 border border-amber-500/30"
+                                : mine
+                                  ? "bg-primary text-primary-foreground rounded-br-sm"
+                                  : "bg-card text-card-foreground border border-border rounded-bl-sm"
+                            }`}
+                          >
+                            {isInternal && (
+                              <div className="text-[10px] uppercase tracking-wider mb-1 opacity-70">
+                                Internal note
+                              </div>
+                            )}
+                            <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                            {m.attachments.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {m.attachments.map((a, i) =>
+                                  a.mime?.startsWith("image/") ? (
+                                    <SupportImage key={i} path={a.path} name={a.name} />
+                                  ) : (
+                                    <a
+                                      key={i}
+                                      href="#"
+                                      onClick={async (e) => {
+                                        e.preventDefault();
+                                        const { getSupportAttachmentUrl } =
+                                          await import("@/lib/support.functions");
+                                        const { url } = await getSupportAttachmentUrl({
+                                          data: { path: a.path },
+                                        });
+                                        window.open(url, "_blank");
+                                      }}
+                                      className="block text-[11px] underline opacity-90"
+                                    >
+                                      📎 {a.name}
+                                    </a>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                            <div className="text-[10px] opacity-60 mt-1 text-right">
+                              {new Date(m.created_at).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </div>
-                          )}
-                          <div className="whitespace-pre-wrap break-words">{m.body}</div>
-                          {m.attachments.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              {m.attachments.map((a, i) => (
-                                a.mime?.startsWith("image/") ? (
-                                  <SupportImage key={i} path={a.path} name={a.name} />
-                                ) : (
-                                <a
-                                  key={i}
-                                  href="#"
-                                  onClick={async (e) => {
-                                    e.preventDefault();
-                                    const { getSupportAttachmentUrl } =
-                                      await import("@/lib/support.functions");
-                                    const { url } = await getSupportAttachmentUrl({
-                                      data: { path: a.path },
-                                    });
-                                    window.open(url, "_blank");
-                                  }}
-                                  className="block text-[11px] underline opacity-90"
-                                >
-                                  📎 {a.name}
-                                </a>
-                                )
-                              ))}
-                            </div>
-                          )}
-                          <div className="text-[10px] opacity-60 mt-1 text-right">
-                            {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </div>
-                        </div>
                         </div>
                       </div>
                     );
