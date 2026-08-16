@@ -242,8 +242,8 @@ function ChatInner({
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-6">
+      <div ref={scrollRef} className="oq-chat-canvas flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-3 md:px-8 py-6 space-y-2">
           {messages.length === 0 && (
             <div className="text-center py-16">
               <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-[var(--gold-soft)] grid place-items-center border border-[var(--gold-line)]">
@@ -254,16 +254,28 @@ function ChatInner({
             </div>
           )}
 
-          {messages.map((m) => {
+          {messages.length > 0 && (
+            <div className="flex justify-center pb-2">
+              <span className="rounded-full border border-border/70 bg-card/70 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground backdrop-blur">
+                {T("today") || "Today"}
+              </span>
+            </div>
+          )}
+
+          {messages.map((m, mi) => {
             const rawText = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
             const meta = m.metadata as MessageMeta | undefined;
             const sources = meta?.sources ?? [];
             if (m.role === "user") {
               return (
-                <div key={m.id} className="oq-enter flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl bg-primary text-primary-foreground px-4 py-2.5 text-sm whitespace-pre-wrap shadow-sm">
+                <div key={m.id} className="oq-enter group flex flex-col items-end">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground whitespace-pre-wrap shadow-sm">
                     {rawText}
+                    <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] opacity-70">
+                      <CheckCheck className="h-3 w-3" />
+                    </span>
                   </div>
+                  <MessageReactions messageId={m.id} align="end" />
                 </div>
               );
             }
@@ -273,55 +285,53 @@ function ChatInner({
             const primary = docs.find((d) => d.primary) ?? docs[0];
             const answerBucket = bucketConfidence(meta?.confidence);
             const showMeta = text && sources.length > 0 && meta?.mode !== "gap";
+            const prev = messages[mi - 1];
+            const grouped = prev?.role === "assistant";
             return (
-              <div key={m.id} className="oq-enter flex gap-3 group">
-                <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
-                  <LogoMark size={18} className="text-gold" />
+              <div key={m.id} className="oq-enter group flex gap-2.5">
+                <div className="w-8 shrink-0">
+                  {!grouped && (
+                    <div className="h-8 w-8 rounded-full bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center">
+                      <LogoMark size={18} className="text-gold" />
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0 pt-1">
-                  <div className="text-[15px] leading-relaxed prose prose-sm max-w-none prose-headings:font-display prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
-
-                    {text ? (
-                      <ReactMarkdown>{text}</ReactMarkdown>
-                    ) : (
-                      <ThinkingDots label={T("thinking")} />
-                    )}
-                  </div>
-                  {showMeta && (
-                    <div className="mt-3 flex flex-col gap-1.5 text-xs">
-                      {primary && (
-                        <div
-                          style={{ animationDelay: "60ms" }}
-                          className="oq-enter flex items-center gap-1.5 text-muted-foreground"
-                        >
-                          <FileText className="h-3.5 w-3.5 shrink-0" />
-                          <span className="opacity-70">Source:</span>
-                          <span className="font-medium text-foreground truncate">
-                            {primary.code ? `${primary.code} — ${primary.title}` : primary.title}
-                          </span>
-                        </div>
+                <div className="min-w-0 max-w-[88%]">
+                  <div
+                    className={`rounded-2xl border border-border/70 bg-card px-3.5 py-2.5 shadow-sm ${grouped ? "rounded-tl-md" : "rounded-bl-md"}`}
+                  >
+                    <div className="text-[15px] leading-relaxed prose prose-sm max-w-none prose-headings:font-display prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
+                      {text ? (
+                        <ReactMarkdown>{text}</ReactMarkdown>
+                      ) : (
+                        <ThinkingDots label={T("thinking")} />
                       )}
-                      <div
-                        style={{ animationDelay: "140ms" }}
-                        className="oq-enter flex items-center gap-1.5"
-                      >
-                        <span className="opacity-70 text-muted-foreground">Confidence:</span>
+                    </div>
+                    {showMeta && (
+                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
+                        {primary && (
+                          <div
+                            style={{ animationDelay: "60ms" }}
+                            className="oq-enter flex min-w-0 items-center gap-1.5 text-muted-foreground"
+                          >
+                            <FileText className="h-3.5 w-3.5 shrink-0" />
+                            <span className="font-medium text-foreground truncate">
+                              {primary.code ? `${primary.code} — ${primary.title}` : primary.title}
+                            </span>
+                          </div>
+                        )}
                         <span
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium transition-colors duration-200 ${confClasses(answerBucket)}`}
+                          style={{ animationDelay: "140ms" }}
+                          className={`oq-enter inline-flex items-center px-1.5 py-0.5 rounded-full border text-[10px] font-medium transition-colors duration-200 ${confClasses(answerBucket)}`}
                         >
                           {confLabel(answerBucket)}
                         </span>
                       </div>
-                    </div>
-                  )}
-                  {text && (
-                    <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <CopyButton text={text} label={T("copy") || "Copy"} />
-                    </div>
-                  )}
-                  {sources.length > 0 && (
-                    <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />
-                  )}
+                    )}
+                    {sources.length > 0 && (
+                      <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />
+                    )}
+                  </div>
                   {meta?.escalation && meta.escalation.department && (
                     <EscalationCard escalation={meta.escalation} />
                   )}
@@ -337,17 +347,25 @@ function ChatInner({
                       </span>
                     </div>
                   )}
-                  {text && isPersisted && <FeedbackBar messageId={m.id} />}
+                  <div className="flex items-center gap-3">
+                    <MessageReactions messageId={m.id} />
+                    {text && (
+                      <div className="opacity-0 transition-opacity group-hover:opacity-100">
+                        <CopyButton text={text} label={T("copy") || "Copy"} />
+                      </div>
+                    )}
+                    {text && isPersisted && <FeedbackBar messageId={m.id} />}
+                  </div>
                 </div>
               </div>
             );
           })}
           {loading && messages[messages.length - 1]?.role === "user" && (
-            <div className="flex gap-3">
-              <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
+            <div className="flex gap-2.5">
+              <div className="h-8 w-8 rounded-full bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
                 <LogoMark size={18} className="text-gold" />
               </div>
-              <div className="flex-1 pt-2">
+              <div className="rounded-2xl rounded-bl-md border border-border/70 bg-card px-3.5 py-2.5 shadow-sm">
                 <ThinkingDots label={T("searching")} />
               </div>
             </div>
@@ -376,7 +394,13 @@ function ChatInner({
               )}
             </div>
           )}
-          <div className="flex gap-2 items-end rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
+          <div className="flex gap-1.5 items-end rounded-3xl border border-border bg-card p-1.5 pl-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
+            <EmojiPicker
+              onPick={(e) => {
+                setInput((v) => v + e);
+                taRef.current?.focus();
+              }}
+            />
             <Textarea
               ref={taRef}
               value={input}
@@ -389,14 +413,14 @@ function ChatInner({
                   onSubmit(e as unknown as React.FormEvent);
                 }
               }}
-              className="resize-none min-h-[44px] max-h-40 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px]"
+              className="resize-none min-h-[40px] max-h-40 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px]"
             />
             <Button
               type="submit"
               size="icon"
               aria-label="Send message"
               disabled={loading || !input.trim()}
-              className="h-10 w-10 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+              className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </Button>
@@ -406,6 +430,7 @@ function ChatInner({
     </div>
   );
 }
+
 
 
 function SourcesPanel({
