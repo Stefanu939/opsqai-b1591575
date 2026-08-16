@@ -22,24 +22,14 @@ function daysUntil(d: string | null | undefined): number | null {
   return Math.round((new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
-function MaintenanceRing({
-  daysLeft,
-  totalDays = 365,
-}: {
-  daysLeft: number;
-  totalDays?: number;
-}) {
+function MaintenanceRing({ daysLeft, totalDays = 365 }: { daysLeft: number; totalDays?: number }) {
   const clamped = Math.max(0, Math.min(daysLeft, totalDays));
   const pct = clamped / totalDays;
   const r = 42;
   const c = 2 * Math.PI * r;
   const offset = c * (1 - pct);
   const stroke =
-    daysLeft <= 0
-      ? "hsl(var(--destructive))"
-      : daysLeft < 30
-        ? "#e0a800"
-        : "var(--gold)";
+    daysLeft <= 0 ? "hsl(var(--destructive))" : daysLeft < 30 ? "#e0a800" : "var(--gold)";
   return (
     <div className="relative shrink-0" style={{ width: 104, height: 104 }}>
       <svg width="104" height="104" viewBox="0 0 104 104" className="-rotate-90">
@@ -89,7 +79,6 @@ function PortalSubscription() {
         </Button>
       }
     >
-
       {installs.length === 0 ? (
         <EmptyState
           icon={Inbox}
@@ -128,11 +117,15 @@ function PortalSubscription() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm rounded-lg border border-border bg-muted/20 p-4">
                     <div>
                       <div className="text-muted-foreground text-xs">Seats</div>
-                      <div className="font-medium tabular-nums">{inst.install_license.seats ?? "—"}</div>
+                      <div className="font-medium tabular-nums">
+                        {inst.install_license.seats ?? "—"}
+                      </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground text-xs">Maintenance until</div>
-                      <div className="font-medium">{fmt(inst.install_license.maintenance_expires_at)}</div>
+                      <div className="font-medium">
+                        {fmt(inst.install_license.maintenance_expires_at)}
+                      </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground text-xs">Expires</div>
@@ -197,4 +190,3 @@ function PortalSubscription() {
     </ModulePage>
   );
 }
-

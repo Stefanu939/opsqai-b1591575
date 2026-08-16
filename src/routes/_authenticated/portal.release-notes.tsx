@@ -27,15 +27,11 @@ function PortalReleaseNotes() {
       title="Release notes"
       description="Signed release manifest for OPSQAI installer versions available to your installations."
     >
-
       {rows.length === 0 ? (
         <EmptyState icon={Package} title="No releases published yet" />
       ) : (
         <div className="relative pl-6">
-          <span
-            aria-hidden
-            className="absolute left-2 top-2 bottom-2 w-px bg-border"
-          />
+          <span aria-hidden className="absolute left-2 top-2 bottom-2 w-px bg-border" />
           <div className="space-y-4">
             {rows.map((r) => (
               <div key={`${r.channel}-${r.version}`} className="relative">
@@ -43,7 +39,9 @@ function PortalReleaseNotes() {
                   aria-hidden
                   className={`absolute -left-[18px] top-5 h-3 w-3 rounded-full border-2 ${r.is_current ? "bg-[color:var(--gold)] border-[color:var(--gold)]" : "bg-background border-border"}`}
                 />
-                <Card className={`p-4 ${r.is_current ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/20" : ""}`}>
+                <Card
+                  className={`p-4 ${r.is_current ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/20" : ""}`}
+                >
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <div className="flex items-center gap-2">
@@ -56,7 +54,8 @@ function PortalReleaseNotes() {
                         ) : null}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        Published {r.published_at ? new Date(r.published_at).toLocaleDateString() : "—"}
+                        Published{" "}
+                        {r.published_at ? new Date(r.published_at).toLocaleDateString() : "—"}
                         {r.min_supported ? ` · min supported: v${r.min_supported}` : ""}
                       </div>
                     </div>

@@ -2,12 +2,13 @@ import { ModulePage } from "@/components/app/module-page";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyPortalOverview, downloadMyActivationBundle, downloadMyModuleLicense } from "@/lib/portal.functions";
-import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
 import {
-  listDownloadModulesPublic,
-  signPortalStoragePath,
-} from "@/lib/portal-admin.functions";
+  getMyPortalOverview,
+  downloadMyActivationBundle,
+  downloadMyModuleLicense,
+} from "@/lib/portal.functions";
+import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
+import { listDownloadModulesPublic, signPortalStoragePath } from "@/lib/portal-admin.functions";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
@@ -90,7 +91,6 @@ function PortalDownloads() {
       title="Downloads"
       description="Installation packages and offline activation bundles for the installations tied to your account. Package downloads issue a signed URL valid for 24 hours; every download is logged."
     >
-
       {installs.length === 0 ? (
         <EmptyState
           icon={Inbox}
@@ -102,10 +102,7 @@ function PortalDownloads() {
           {installs.map((inst) => {
             const disabled = !inst.install_license || inst.install_license.revoked;
             return (
-              <Card
-                key={inst.install_id}
-                className="p-4 hover:shadow-md transition-shadow"
-              >
+              <Card key={inst.install_id} className="p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-10 w-10 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center shrink-0">
@@ -117,7 +114,11 @@ function PortalDownloads() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => downloadPackage(inst.install_id)} disabled={disabled}>
+                    <Button
+                      size="sm"
+                      onClick={() => downloadPackage(inst.install_id)}
+                      disabled={disabled}
+                    >
                       <FileArchive className="h-4 w-4 mr-1" /> Installation package
                     </Button>
                     <Button
@@ -155,12 +156,18 @@ function PortalDownloads() {
                                 </span>
                               )}
                               {ml.suspended && (
-                                <Badge variant="outline" className="text-amber-600 border-amber-500/40">
+                                <Badge
+                                  variant="outline"
+                                  className="text-amber-600 border-amber-500/40"
+                                >
                                   suspended
                                 </Badge>
                               )}
                               {expired && !ml.suspended && (
-                                <Badge variant="outline" className="text-destructive border-destructive/40">
+                                <Badge
+                                  variant="outline"
+                                  className="text-destructive border-destructive/40"
+                                >
                                   expired
                                 </Badge>
                               )}
@@ -238,4 +245,3 @@ function PortalDownloads() {
     </ModulePage>
   );
 }
-

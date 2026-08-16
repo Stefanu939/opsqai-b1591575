@@ -1,7 +1,27 @@
-import { createFileRoute, Outlet, Link, useRouterState, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  Link,
+  useRouterState,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LifeBuoy, Download, FileText, MessagesSquare, Package, Home, BookOpen, Shield, Newspaper, LogOut, Menu, X } from "lucide-react";
+import {
+  LifeBuoy,
+  Download,
+  FileText,
+  MessagesSquare,
+  Package,
+  Home,
+  BookOpen,
+  Shield,
+  Newspaper,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";

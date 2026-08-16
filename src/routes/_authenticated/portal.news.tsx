@@ -49,9 +49,9 @@ function PortalNews() {
 
   return (
     <ModulePage
-        eyebrow="Customer portal"
-        title="News"
-        description="Latest announcements and updates from OPSQAI."
+      eyebrow="Customer portal"
+      title="News"
+      description="Latest announcements and updates from OPSQAI."
     >
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -60,12 +60,7 @@ function PortalNews() {
       ) : (
         <div className="grid gap-4">
           {data.map((r) => (
-            <Link
-              key={r.id}
-              to="/portal/news/$slug"
-              params={{ slug: r.slug }}
-              className="block"
-            >
+            <Link key={r.id} to="/portal/news/$slug" params={{ slug: r.slug }} className="block">
               <Card className="p-4 flex gap-4 hover:bg-accent/40 transition-colors">
                 {covers[r.id] ? (
                   <img

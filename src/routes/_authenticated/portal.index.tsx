@@ -92,7 +92,6 @@ function PortalHome() {
       title="Overview"
       description={`${data?.email ? `Signed in as ${data.email}. ` : ""}Your installations, licenses and announcements at a glance.`}
     >
-
       <div className="mb-8">
         <BentoGrid>
           <BentoItem span={4} index={0}>

@@ -154,9 +154,7 @@ function OwnershipPage() {
       header: "User",
       render: (a) => (
         <div className="flex flex-col">
-          <span className="font-medium text-foreground">
-            {a.full_name || a.email}
-          </span>
+          <span className="font-medium text-foreground">{a.full_name || a.email}</span>
           <span className="text-xs text-muted-foreground">{a.email}</span>
         </div>
       ),
@@ -208,11 +206,10 @@ function OwnershipPage() {
 
   return (
     <ModulePage
-        eyebrow="Management Center"
-        title="Ownership"
-        description="Installation handovers and platform administrator roles."
+      eyebrow="Management Center"
+      title="Ownership"
+      description="Installation handovers and platform administrator roles."
     >
-
       <SectionCard
         title="Installation ownership"
         description="Track which installs are still operated by OPSQAI and which have been handed over to the customer."
@@ -233,7 +230,9 @@ function OwnershipPage() {
       <SectionCard
         title="Platform administrators"
         description="Users with global access to the Management Center."
-        actions={<PromoteDialog onPromote={(v) => promoteMut.mutate(v)} pending={promoteMut.isPending} />}
+        actions={
+          <PromoteDialog onPromote={(v) => promoteMut.mutate(v)} pending={promoteMut.isPending} />
+        }
       >
         <DataTable<Admin>
           columns={adminColumns}

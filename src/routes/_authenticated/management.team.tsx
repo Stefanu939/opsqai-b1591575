@@ -95,10 +95,7 @@ const INTERNAL_ROLES = ["admin", "manager", "team_leader", "employee"] as const;
 type InternalRole = (typeof INTERNAL_ROLES)[number];
 
 function initials(m: Member): string {
-  const s =
-    m.full_name ||
-    [m.first_name, m.last_name].filter(Boolean).join(" ") ||
-    m.email;
+  const s = m.full_name || [m.first_name, m.last_name].filter(Boolean).join(" ") || m.email;
   return s
     .split(/\s+|@/)
     .filter(Boolean)
@@ -184,29 +181,27 @@ function TeamPage() {
     onError: (e: Error) => toast.error(e.message),
   });
   const toggleActive = useMutation({
-    mutationFn: (m: Member) =>
-      updateFn({ data: { user_id: m.id, is_active: !m.is_active } }),
+    mutationFn: (m: Member) => updateFn({ data: { user_id: m.id, is_active: !m.is_active } }),
     onSuccess: () => invalidate(),
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <ModulePage
-        eyebrow="OPSQAI"
-        title="Team"
-        description="Manage OPSQAI employees, departments, and Super Admin permissions."
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setOpenDept(true)}>
-              <Building2 className="h-4 w-4 mr-1.5" /> Departments
-            </Button>
-            <Button size="sm" onClick={() => setOpenCreate(true)}>
-              <UserPlus className="h-4 w-4 mr-1.5" /> Add member
-            </Button>
-          </div>
-        }
+      eyebrow="OPSQAI"
+      title="Team"
+      description="Manage OPSQAI employees, departments, and Super Admin permissions."
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setOpenDept(true)}>
+            <Building2 className="h-4 w-4 mr-1.5" /> Departments
+          </Button>
+          <Button size="sm" onClick={() => setOpenCreate(true)}>
+            <UserPlus className="h-4 w-4 mr-1.5" /> Add member
+          </Button>
+        </div>
+      }
     >
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Stat icon={Users} label="Employees" value={members.length} />
         <Stat
@@ -272,9 +267,7 @@ function TeamPage() {
                                 `${m.first_name ?? ""} ${m.last_name ?? ""}`.trim() ||
                                 m.email}
                             </div>
-                            <div className="text-xs text-muted-foreground truncate">
-                              {m.email}
-                            </div>
+                            <div className="text-xs text-muted-foreground truncate">{m.email}</div>
                           </div>
                         </div>
                       </td>
@@ -298,9 +291,7 @@ function TeamPage() {
                       <td className="px-4 py-3 text-muted-foreground">
                         {m.department_name ?? "—"}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {m.position ?? "—"}
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{m.position ?? "—"}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Switch
@@ -331,11 +322,9 @@ function TeamPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-52">
-                            <DropdownMenuItem onClick={() => setOpenEdit(m)}>
-                              Edit
-                            </DropdownMenuItem>
-                            {!m.is_platform_owner && (
-                              m.is_platform_admin ? (
+                            <DropdownMenuItem onClick={() => setOpenEdit(m)}>Edit</DropdownMenuItem>
+                            {!m.is_platform_owner &&
+                              (m.is_platform_admin ? (
                                 <DropdownMenuItem
                                   onClick={() => demote.mutate(m.id)}
                                   disabled={isSelf}
@@ -346,8 +335,7 @@ function TeamPage() {
                                 <DropdownMenuItem onClick={() => promote.mutate(m.id)}>
                                   <ShieldCheck className="h-4 w-4 mr-2" /> Promote to Super Admin
                                 </DropdownMenuItem>
-                              )
-                            )}
+                              ))}
                             <DropdownMenuItem onClick={() => setOpenReset(m)}>
                               <KeyRound className="h-4 w-4 mr-2" /> Reset password
                             </DropdownMenuItem>
@@ -442,16 +430,13 @@ function TeamPage() {
         }}
       />
 
-      <AlertDialog
-        open={!!confirmDelete}
-        onOpenChange={(o) => !o && setConfirmDelete(null)}
-      >
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete team member?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently deletes <b>{confirmDelete?.email}</b> and removes their access
-              to OPSQAI. This cannot be undone.
+              This permanently deletes <b>{confirmDelete?.email}</b> and removes their access to
+              OPSQAI. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -469,24 +454,14 @@ function TeamPage() {
   );
 }
 
-function Stat({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Users;
-  label: string;
-  value: number;
-}) {
+function Stat({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: number }) {
   return (
     <Card className="p-4 flex items-center gap-3">
       <div className="h-10 w-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-          {label}
-        </div>
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className="text-2xl font-semibold tabular-nums">{value}</div>
       </div>
     </Card>
@@ -699,9 +674,9 @@ function EditMemberDialog({
       setPhone(member.phone ?? "");
       setDeptId(member.department_id ?? "");
       const r =
-        (member.roles.find(
-          (x) => x !== "platform_admin" && x !== "platform_owner",
-        ) as InternalRole | undefined) ?? "employee";
+        (member.roles.find((x) => x !== "platform_admin" && x !== "platform_owner") as
+          | InternalRole
+          | undefined) ?? "employee";
       setRole(INTERNAL_ROLES.includes(r as InternalRole) ? r : "employee");
     }
   }, [member?.id]);
@@ -896,9 +871,7 @@ function DepartmentsDialog({
         </div>
         <div className="max-h-72 overflow-y-auto rounded-md border border-border divide-y divide-border">
           {depts.length === 0 ? (
-            <div className="p-4 text-sm text-muted-foreground text-center">
-              No departments yet.
-            </div>
+            <div className="p-4 text-sm text-muted-foreground text-center">No departments yet.</div>
           ) : (
             depts.map((d) => (
               <div key={d.id} className="flex items-center justify-between px-3 py-2">

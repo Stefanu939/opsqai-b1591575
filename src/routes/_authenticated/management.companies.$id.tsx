@@ -12,14 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import {
-  Building2,
-  Download,
-  FileText,
-  KeyRound,
-  Package,
-  Users,
-} from "lucide-react";
+import { Building2, Download, FileText, KeyRound, Package, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -49,7 +42,12 @@ type License = {
     installer_version: string | null;
     user_count: number | null;
   } | null;
-  modules: Array<{ id: string; module_key: string | null; expires_at: string | null; revoked: boolean }>;
+  modules: Array<{
+    id: string;
+    module_key: string | null;
+    expires_at: string | null;
+    revoked: boolean;
+  }>;
 };
 
 function CompanyDetailPage() {
@@ -129,19 +127,15 @@ function CompanyDetailPage() {
 
   return (
     <ModulePage
-        eyebrow="Company"
-        title={company.name}
-        breadcrumbs={[
-          { label: "Companies", to: "/management/companies" },
-          { label: company.name },
-        ]}
-        actions={
-          <Badge variant={company.active ? "default" : "outline"}>
-            {company.active ? company.subscription_status : "suspended"}
-          </Badge>
-        }
+      eyebrow="Company"
+      title={company.name}
+      breadcrumbs={[{ label: "Companies", to: "/management/companies" }, { label: company.name }]}
+      actions={
+        <Badge variant={company.active ? "default" : "outline"}>
+          {company.active ? company.subscription_status : "suspended"}
+        </Badge>
+      }
     >
-
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Plan" value={company.subscription_plan} icon={Package} />
         <StatCard
@@ -214,10 +208,7 @@ function CompanyDetailPage() {
           ) : (
             <div className="rounded-lg border border-border bg-card divide-y divide-border">
               {installs.map((l) => (
-                <div
-                  key={l.install_id}
-                  className="flex items-center justify-between gap-3 p-4"
-                >
+                <div key={l.install_id} className="flex items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
                     <div className="font-medium text-foreground">
                       {l.tier ?? "install"} · {l.seats ?? 0} seats
@@ -259,9 +250,7 @@ function CompanyDetailPage() {
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 text-foreground">{value}</dd>
     </div>
   );
@@ -342,13 +331,7 @@ function InstallationsTable({
   );
 }
 
-function LicensesTable({
-  installs,
-  loading,
-}: {
-  installs: License[];
-  loading: boolean;
-}) {
+function LicensesTable({ installs, loading }: { installs: License[]; loading: boolean }) {
   const flat = installs.flatMap((l) => [
     {
       id: l.id,

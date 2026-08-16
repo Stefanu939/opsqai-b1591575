@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import {
-  getPlatformConfig,
-  savePlatformAiConfig,
-} from "@/lib/mc-admin.functions";
+import { getPlatformConfig, savePlatformAiConfig } from "@/lib/mc-admin.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { SectionCard } from "@/components/ui/section-card";
 import { Button } from "@/components/ui/button";
@@ -102,103 +99,99 @@ function SettingsPage() {
 
   return (
     <ModulePage
-        eyebrow="Management Center"
-        title="Settings"
-        description="Global platform configuration."
+      eyebrow="Management Center"
+      title="Settings"
+      description="Global platform configuration."
     >
-
       {getPlatformMode() === PlatformMode.SelfHosted ? (
         <LocalAiEngineCard />
       ) : (
-      <SectionCard
-        title="AI Provider"
-        description="Default AI provider used across the platform when no per-install override is set."
-      >
-        {isLoading ? (
-          <div className="text-sm text-muted-foreground">Loading…</div>
-        ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div>
-                <Label>Provider</Label>
-                <Select
-                  value={provider}
-                  onValueChange={(v) => setProvider(v as Provider)}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gateway">Lovable AI Gateway</SelectItem>
-                    <SelectItem value="openai">OpenAI</SelectItem>
-                    <SelectItem value="azure">Azure OpenAI</SelectItem>
-                    <SelectItem value="anthropic">Anthropic</SelectItem>
-                    <SelectItem value="ollama">Ollama (self-hosted)</SelectItem>
-                  </SelectContent>
-                </Select>
+        <SectionCard
+          title="AI Provider"
+          description="Default AI provider used across the platform when no per-install override is set."
+        >
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground">Loading…</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div>
+                  <Label>Provider</Label>
+                  <Select value={provider} onValueChange={(v) => setProvider(v as Provider)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gateway">Lovable AI Gateway</SelectItem>
+                      <SelectItem value="openai">OpenAI</SelectItem>
+                      <SelectItem value="azure">Azure OpenAI</SelectItem>
+                      <SelectItem value="anthropic">Anthropic</SelectItem>
+                      <SelectItem value="ollama">Ollama (self-hosted)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Model</Label>
+                  <Input
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder="e.g. gpt-4o-mini, google/gemini-2.5-flash"
+                    className="mt-1 font-mono"
+                  />
+                </div>
               </div>
-              <div>
-                <Label>Model</Label>
-                <Input
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder="e.g. gpt-4o-mini, google/gemini-2.5-flash"
-                  className="mt-1 font-mono"
-                />
+
+              {(provider === "azure" || provider === "ollama") && (
+                <div>
+                  <Label>Base URL</Label>
+                  <Input
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder={
+                      provider === "azure"
+                        ? "https://<resource>.openai.azure.com"
+                        : "http://localhost:11434"
+                    }
+                    className="mt-1 font-mono"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Temperature</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={2}
+                    step="0.1"
+                    value={temperature}
+                    onChange={(e) => setTemperature(parseFloat(e.target.value) || 0)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Max tokens (optional)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={maxTokens}
+                    onChange={(e) =>
+                      setMaxTokens(e.target.value === "" ? "" : parseInt(e.target.value))
+                    }
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={submit} disabled={saveMut.isPending}>
+                  {saveMut.isPending ? "Saving…" : "Save AI configuration"}
+                </Button>
               </div>
             </div>
-
-            {(provider === "azure" || provider === "ollama") && (
-              <div>
-                <Label>Base URL</Label>
-                <Input
-                  value={baseUrl}
-                  onChange={(e) => setBaseUrl(e.target.value)}
-                  placeholder={
-                    provider === "azure"
-                      ? "https://<resource>.openai.azure.com"
-                      : "http://localhost:11434"
-                  }
-                  className="mt-1 font-mono"
-                />
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Temperature</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={2}
-                  step="0.1"
-                  value={temperature}
-                  onChange={(e) => setTemperature(parseFloat(e.target.value) || 0)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Max tokens (optional)</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={maxTokens}
-                  onChange={(e) =>
-                    setMaxTokens(e.target.value === "" ? "" : parseInt(e.target.value))
-                  }
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button onClick={submit} disabled={saveMut.isPending}>
-                {saveMut.isPending ? "Saving…" : "Save AI configuration"}
-              </Button>
-            </div>
-          </div>
-        )}
-      </SectionCard>
+          )}
+        </SectionCard>
       )}
 
       <SectionCard title="Runtime" description="Read-only platform state.">
@@ -223,9 +216,7 @@ function SettingsPage() {
                 EULA accepted
               </dt>
               <dd className="mt-1">
-                {data?.eula_accepted_at
-                  ? new Date(data.eula_accepted_at).toLocaleString()
-                  : "—"}
+                {data?.eula_accepted_at ? new Date(data.eula_accepted_at).toLocaleString() : "—"}
               </dd>
             </div>
             <div>

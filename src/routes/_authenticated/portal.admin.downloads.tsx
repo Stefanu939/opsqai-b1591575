@@ -156,20 +156,23 @@ function AdminDownloads() {
 
   return (
     <ModulePage
-        eyebrow="Portal admin"
-        title="Download modules"
-        description="Publish extra downloadable modules (plugins, templates, PDFs, tools) to the customer portal."
-        actions={
-          <Button onClick={openNew}>
-            <Plus className="h-4 w-4 mr-1" /> New module
-          </Button>
-        }
+      eyebrow="Portal admin"
+      title="Download modules"
+      description="Publish extra downloadable modules (plugins, templates, PDFs, tools) to the customer portal."
+      actions={
+        <Button onClick={openNew}>
+          <Plus className="h-4 w-4 mr-1" /> New module
+        </Button>
+      }
     >
-
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : data.length === 0 ? (
-        <EmptyState icon={Package} title="No modules yet" description="Click ‘New module’ to publish your first download." />
+        <EmptyState
+          icon={Package}
+          title="No modules yet"
+          description="Click ‘New module’ to publish your first download."
+        />
       ) : (
         <div className="grid gap-3">
           {data.map((r) => (
@@ -187,9 +190,7 @@ function AdminDownloads() {
                   </Badge>
                 </div>
                 {r.description && (
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                    {r.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{r.description}</p>
                 )}
                 <div className="text-xs text-muted-foreground mt-1 font-mono break-all">
                   {r.file_url}
@@ -300,9 +301,7 @@ function AdminDownloads() {
               <Switch
                 id="published"
                 checked={form.status === "published"}
-                onCheckedChange={(v) =>
-                  setForm({ ...form, status: v ? "published" : "draft" })
-                }
+                onCheckedChange={(v) => setForm({ ...form, status: v ? "published" : "draft" })}
               />
               <Label htmlFor="published">
                 {form.status === "published" ? "Published" : "Draft"}

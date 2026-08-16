@@ -138,9 +138,7 @@ function ReleasesPage() {
     {
       key: "min",
       header: "Min supported",
-      render: (r) => (
-        <span className="font-mono text-xs">{r.min_supported ?? "—"}</span>
-      ),
+      render: (r) => <span className="font-mono text-xs">{r.min_supported ?? "—"}</span>,
     },
     {
       key: "published",
@@ -209,17 +207,13 @@ function ReleasesPage() {
 
   return (
     <ModulePage
-        eyebrow="Management Center"
-        title="Releases"
-        description="Published OPSQAI self-hosted releases. Installations pull updates from the current release per channel."
-        actions={
-          <NewReleaseDialog
-            onCreate={(v) => createMut.mutate(v)}
-            pending={createMut.isPending}
-          />
-        }
+      eyebrow="Management Center"
+      title="Releases"
+      description="Published OPSQAI self-hosted releases. Installations pull updates from the current release per channel."
+      actions={
+        <NewReleaseDialog onCreate={(v) => createMut.mutate(v)} pending={createMut.isPending} />
+      }
     >
-
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <StatCard
           label="Active installs with portal access"
@@ -233,13 +227,8 @@ function ReleasesPage() {
           hint="Visible to customers"
           icon={Rocket}
         />
-        <StatCard
-          label="Open tickets"
-          value={portal?.openTickets ?? 0}
-          icon={Inbox}
-        />
+        <StatCard label="Open tickets" value={portal?.openTickets ?? 0} icon={Inbox} />
       </div>
-
 
       <DataTable<Release>
         columns={columns}
@@ -378,10 +367,7 @@ function NewReleaseDialog({
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={current}
-              onCheckedChange={(v) => setCurrent(v === true)}
-            />
+            <Checkbox checked={current} onCheckedChange={(v) => setCurrent(v === true)} />
             Mark as current for {channel}
           </label>
         </div>

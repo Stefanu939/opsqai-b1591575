@@ -112,11 +112,10 @@ function OverviewPage() {
 
   return (
     <ModulePage
-        eyebrow="Management Center"
-        title="Control Center"
-        description="Live state of every installation, license and customer across the OPSQAI fleet."
+      eyebrow="Management Center"
+      title="Control Center"
+      description="Live state of every installation, license and customer across the OPSQAI fleet."
     >
-
       {/* Commercial KPIs — what the business earns and owes */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">

@@ -20,7 +20,12 @@ export const Route = createFileRoute("/_authenticated/portal/admin")({
   component: AdminLayout,
 });
 
-const SUB_NAV: ReadonlyArray<{ to: string; label: string; icon: typeof Newspaper; exact?: boolean }> = [
+const SUB_NAV: ReadonlyArray<{
+  to: string;
+  label: string;
+  icon: typeof Newspaper;
+  exact?: boolean;
+}> = [
   { to: "/portal/admin", label: "News", icon: Newspaper, exact: true },
   { to: "/portal/admin/downloads", label: "Downloads", icon: Package },
 ];

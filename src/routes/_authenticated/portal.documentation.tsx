@@ -35,8 +35,7 @@ function PortalDocumentation() {
     const term = q.trim().toLowerCase();
     const filtered = term
       ? rows.filter(
-          (r) =>
-            r.title.toLowerCase().includes(term) || r.category.toLowerCase().includes(term),
+          (r) => r.title.toLowerCase().includes(term) || r.category.toLowerCase().includes(term),
         )
       : rows;
     const byCat = new Map<string, typeof filtered>();
@@ -49,11 +48,10 @@ function PortalDocumentation() {
 
   return (
     <ModulePage
-        eyebrow="Customer portal"
-        title="Documentation"
-        description="Product documentation for OPSQAI features, modules and operations."
+      eyebrow="Customer portal"
+      title="Documentation"
+      description="Product documentation for OPSQAI features, modules and operations."
     >
-
       <div className="grid md:grid-cols-[320px_1fr] gap-4">
         <Card className="p-0 overflow-hidden">
           <div className="p-3 border-b border-border">

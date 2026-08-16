@@ -91,9 +91,7 @@ function AuditLogsPage() {
       render: (r) => (
         <div className="flex flex-col">
           <span className="font-mono text-xs">{r.action}</span>
-          {r.resource && (
-            <span className="text-[11px] text-muted-foreground">{r.resource}</span>
-          )}
+          {r.resource && <span className="text-[11px] text-muted-foreground">{r.resource}</span>}
         </div>
       ),
     },
@@ -105,9 +103,7 @@ function AuditLogsPage() {
     {
       key: "company",
       header: "Company",
-      render: (r) => (
-        <span className="text-xs">{r.companies?.name ?? "—"}</span>
-      ),
+      render: (r) => <span className="text-xs">{r.companies?.name ?? "—"}</span>,
     },
     {
       key: "success",
@@ -122,19 +118,16 @@ function AuditLogsPage() {
     {
       key: "ip",
       header: "IP",
-      render: (r) => (
-        <span className="font-mono text-xs text-muted-foreground">{r.ip ?? "—"}</span>
-      ),
+      render: (r) => <span className="font-mono text-xs text-muted-foreground">{r.ip ?? "—"}</span>,
     },
   ];
 
   return (
     <ModulePage
-        eyebrow="Management Center"
-        title="Audit Logs"
-        description="Every write across every customer, with severity and result."
+      eyebrow="Management Center"
+      title="Audit Logs"
+      description="Every write across every customer, with severity and result."
     >
-
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -145,10 +138,7 @@ function AuditLogsPage() {
             className="h-9 pl-8"
           />
         </div>
-        <Select
-          value={severity}
-          onValueChange={(v) => setSeverity(v as typeof severity)}
-        >
+        <Select value={severity} onValueChange={(v) => setSeverity(v as typeof severity)}>
           <SelectTrigger className="h-9 w-[140px]">
             <SelectValue />
           </SelectTrigger>
