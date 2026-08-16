@@ -111,7 +111,7 @@ function GapsPage() {
       eyebrow="Knowledge"
       title="Knowledge Gaps"
       description="Questions the AI could not answer from your SOPs and FAQs. Included in the Basic bundle."
-      tabs={<SegmentedTabs value={filter} onValueChange={setFilter} options={FILTERS} />}
+      tabs={<SegmentedTabs value={filter} onChange={setFilter} options={FILTERS} />}
       toolbar={
         <Input
           value={search}
