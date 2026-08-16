@@ -372,36 +372,6 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-function MiniStat({
-  label,
-  value,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: number;
-  icon: React.ComponentType<{ className?: string }>;
-  tone: "success" | "warning" | "danger";
-}) {
-  const toneClass =
-    tone === "success"
-      ? "text-[color:var(--success)]"
-      : tone === "warning"
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-destructive";
-  return (
-    <div className="rounded-lg border border-border bg-muted/20 p-3">
-      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-        <Icon className={`h-3.5 w-3.5 ${toneClass}`} />
-        {label}
-      </div>
-      <div className="font-display text-xl font-semibold tabular-nums mt-1 text-foreground">
-        <CountValue value={value} />
-      </div>
-    </div>
-  );
-}
-
 /**
  * SettleIn — reveals content only after the numbers above have finished
  * animating, so a run reads as a process with a conclusion.
