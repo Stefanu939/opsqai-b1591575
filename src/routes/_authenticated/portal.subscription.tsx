@@ -78,24 +78,16 @@ function PortalSubscription() {
   const installs = data?.installs ?? [];
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl space-y-6">
-      <div className="flex items-start justify-between gap-4 mb-2">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
-            Customer portal
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight">
-            Subscription
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-            Read-only view of the licenses tied to your account. Contact OPSQAI to change seats,
-            activate modules, or renew maintenance.
-          </p>
-        </div>
+    <ModulePage
+      eyebrow="Customer portal"
+      title="Subscription"
+      description="Read-only view of the licenses tied to your account. Contact OPSQAI to change seats, activate modules, or renew maintenance."
+      actions={
         <Button asChild size="sm" variant="outline">
           <Link to="/portal/support">Contact OPSQAI</Link>
         </Button>
-      </div>
+      }
+    >
 
       {installs.length === 0 ? (
         <EmptyState
