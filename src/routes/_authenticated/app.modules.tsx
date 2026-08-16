@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { useLicense } from "@/lib/license";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
+import { LicenseActivationPanel } from "@/components/app/license-activation-panel";
 import { createInternalRequest } from "@/lib/internal-requests.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { Panel } from "@/components/ui/panel";
@@ -28,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/app/modules")({
 
 function ModulesPage() {
   const license = useLicense();
+  const selfhost = getClientDeploymentMode() === "selfhost";
   const active = new Set<string>([...BASIC_MODULES, ...(license.modules ?? [])]);
   const createReq = useServerFn(createInternalRequest);
 
@@ -74,6 +77,13 @@ function ModulesPage() {
           module license for your installation.
         </div>
       </Panel>
+
+      {/* Self-Hosted activates licenses locally — paste the JWT / bundle here. */}
+      {selfhost && (
+        <div className="my-6">
+          <LicenseActivationPanel onActivated={() => window.location.reload()} />
+        </div>
+      )}
 
       {categories.map((cat) => {
         const items = LICENSE_MODULE_CATALOG.filter((m) => m.category === cat);

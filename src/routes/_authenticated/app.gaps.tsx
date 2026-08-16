@@ -1,0 +1,225 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  listKnowledgeGaps,
+  getKnowledgeGapStats,
+  updateKnowledgeGap,
+  deleteKnowledgeGap,
+} from "@/lib/knowledge-gaps.functions";
+import { ModulePage } from "@/components/app/module-page";
+import { MetricTile } from "@/components/ui/metric-tile";
+import { Panel } from "@/components/ui/panel";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import {
+  BrainCircuit,
+  CheckCircle2,
+  Clock,
+  Gauge,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/app/gaps")({
+  head: () => ({
+    meta: [
+      { title: "Knowledge Gaps — OPSQAI" },
+      {
+        name: "description",
+        content:
+          "Questions your team asked that the knowledge base could not answer — triage, assign and close them with a SOP or FAQ.",
+      },
+      { property: "og:title", content: "Knowledge Gaps — OPSQAI" },
+      {
+        property: "og:description",
+        content: "Triage unanswered questions and close them with a SOP or FAQ.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: GapsPage,
+});
+
+const FILTERS = [
+  { value: "open", label: "Open" },
+  { value: "in_progress", label: "In progress" },
+  { value: "resolved", label: "Resolved" },
+  { value: "all", label: "All" },
+];
+
+function GapsPage() {
+  const fetchGaps = useServerFn(listKnowledgeGaps);
+  const fetchStats = useServerFn(getKnowledgeGapStats);
+  const patchGap = useServerFn(updateKnowledgeGap);
+  const removeGap = useServerFn(deleteKnowledgeGap);
+  const qc = useQueryClient();
+
+  const [filter, setFilter] = useState("open");
+  const [search, setSearch] = useState("");
+
+  const gapsQuery = useQuery({ queryKey: ["knowledge-gaps"], queryFn: () => fetchGaps() });
+  const statsQuery = useQuery({
+    queryKey: ["knowledge-gap-stats"],
+    queryFn: () => fetchStats(),
+  });
+
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["knowledge-gaps"] });
+    void qc.invalidateQueries({ queryKey: ["knowledge-gap-stats"] });
+  };
+
+  const update = useMutation({
+    mutationFn: (vars: { id: string; status: "in_progress" | "resolved" | "ignored" }) =>
+      patchGap({ data: vars }),
+    onSuccess: () => {
+      toast.success("Gap updated");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const destroy = useMutation({
+    mutationFn: (id: string) => removeGap({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Gap removed");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const gaps = gapsQuery.data?.gaps ?? [];
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return gaps
+      .filter((g) => (filter === "all" ? true : g.status === filter))
+      .filter((g) => (q ? g.question_sample.toLowerCase().includes(q) : true))
+      .sort((a, b) => b.occurrences - a.occurrences);
+  }, [gaps, filter, search]);
+
+  const stats = statsQuery.data;
+
+  return (
+    <ModulePage
+      eyebrow="Knowledge"
+      title="Knowledge Gaps"
+      description="Questions the AI could not answer from your SOPs and FAQs. Included in the Basic bundle."
+      tabs={<SegmentedTabs value={filter} onChange={setFilter} options={FILTERS} />}
+      toolbar={
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search gaps…"
+          className="max-w-sm"
+        />
+      }
+    >
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+        <MetricTile
+          label="Open gaps"
+          value={stats?.open ?? 0}
+          icon={BrainCircuit}
+          hint="Awaiting a SOP or FAQ"
+          tone={stats && stats.open > 0 ? "warning" : "default"}
+        />
+        <MetricTile
+          label="Resolved (30d)"
+          value={stats?.resolvedThisMonth ?? 0}
+          icon={CheckCircle2}
+          tone="success"
+          series={stats?.trend?.map((t) => t.count)}
+        />
+        <MetricTile
+          label="Avg. confidence"
+          value={`${Math.round((stats?.avgConfidence ?? 0) * 100)}%`}
+          icon={Gauge}
+          hint="AI confidence when the gap was logged"
+        />
+        <MetricTile
+          label="Avg. time to close"
+          value={`${Math.round(stats?.avgResolutionHours ?? 0)}h`}
+          icon={Clock}
+        />
+      </div>
+
+      {stats?.topDepartments?.length ? (
+        <Panel title="Most affected departments" className="mb-6">
+          <ul className="divide-y divide-border">
+            {stats.topDepartments.map((d) => (
+              <li key={d.name} className="flex items-center justify-between px-4 py-3 text-sm">
+                <span>{d.name}</span>
+                <span className="tabular-nums text-muted-foreground">{d.count} asks</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      ) : null}
+
+      {gapsQuery.isLoading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+      ) : visible.length === 0 ? (
+        <EmptyState
+          icon={TrendingUp}
+          title="No knowledge gaps"
+          description="When someone asks the AI something your SOPs and FAQs cannot answer, it shows up here."
+        />
+      ) : (
+        <Panel glass>
+          <ul className="divide-y divide-border">
+            {visible.map((g) => (
+              <li key={g.id} className="flex flex-col gap-2 p-4 md:flex-row md:items-center">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">{g.question_sample}</div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline">{g.status.replace("_", " ")}</Badge>
+                    <span className="tabular-nums">{g.occurrences}× asked</span>
+                    {g.department_name ? <span>· {g.department_name}</span> : null}
+                    <span>· last {new Date(g.last_seen).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {g.status !== "in_progress" && g.status !== "resolved" ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => update.mutate({ id: g.id, status: "in_progress" })}
+                    >
+                      Take it
+                    </Button>
+                  ) : null}
+                  {g.status !== "resolved" ? (
+                    <Button
+                      size="sm"
+                      onClick={() => update.mutate({ id: g.id, status: "resolved" })}
+                    >
+                      Mark resolved
+                    </Button>
+                  ) : null}
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    aria-label="Delete gap"
+                    onClick={() => destroy.mutate(g.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+    </ModulePage>
+  );
+}

@@ -18,6 +18,7 @@ import {
   Package,
   Download,
   ClipboardCheck,
+  BrainCircuit,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { BuildProvenanceLine } from "@/components/app/build-provenance-line";
@@ -86,6 +87,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       icon: HelpCircle,
       show: mode === "selfhost" || hasAnyPermission("faq.read", "faq.edit"),
       module: "faq",
+    },
+    {
+      to: "/app/gaps",
+      label: "Knowledge Gaps",
+      icon: BrainCircuit,
+      // Part of the Basic bundle — always available.
+      show:
+        mode === "selfhost" ||
+        hasAnyPermission("knowledge.manage", "analytics.view", "knowledge.read"),
+      module: "knowledge_gaps",
     },
     {
       to: "/app/academy",
