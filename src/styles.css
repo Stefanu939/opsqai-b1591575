@@ -919,3 +919,58 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
     transform: none;
   }
 }
+
+/* ── Command Deck surfaces (Self-Hosted redesign) ───────────────────────── */
+
+/* Layered glass surface — same tokens, more depth. */
+@utility oq-glass {
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--card) 92%, var(--primary)) 0%,
+      var(--card) 55%,
+      color-mix(in oklab, var(--card) 94%, var(--gold)) 100%
+    );
+  backdrop-filter: blur(6px);
+}
+
+/* Hairline gold edge-light along the top of a panel. */
+@utility oq-edge-gold {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--gold) 70%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+}
+
+/* Soft gold aura for the active/critical element. */
+@utility oq-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--gold) 35%, transparent),
+    0 14px 40px -26px color-mix(in oklab, var(--gold) 60%, transparent);
+}
+
+/* Chat wallpaper — faint emerald/gold weave behind the transcript. */
+@utility oq-chat-canvas {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(
+      circle at 18% 12%,
+      color-mix(in oklab, var(--primary) 12%, transparent) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 84% 82%,
+      color-mix(in oklab, var(--gold) 10%, transparent) 0%,
+      transparent 42%
+    );
+}
