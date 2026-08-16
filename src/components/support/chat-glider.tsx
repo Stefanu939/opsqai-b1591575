@@ -37,6 +37,19 @@ import {
   type ChatContact,
   type ChatAttachment,
 } from "@/lib/chat.functions";
+import { EmojiPicker } from "@/components/app/chat/emoji-picker";
+
+function dayLabel(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const same = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (same(d, now)) return "Today";
+  const y = new Date(now);
+  y.setDate(now.getDate() - 1);
+  if (same(d, y)) return "Yesterday";
+  return d.toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" });
+}
 
 const OPEN_KEY = "opsqai.chat.open";
 const ACTIVE_KEY = "opsqai.chat.active";
