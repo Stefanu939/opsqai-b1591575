@@ -9,7 +9,10 @@ import {
 } from "@/lib/companies.functions";
 import { listLicenses, transferOwnership } from "@/lib/licenses.functions";
 import { ModulePage } from "@/components/app/module-page";
-import { SectionCard } from "@/components/ui/section-card";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
+import { Panel } from "@/components/ui/panel";
+
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
