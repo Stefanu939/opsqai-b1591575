@@ -122,62 +122,104 @@ function AuditLogsPage() {
     },
   ];
 
+  const rows = data as Row[];
+  const critical = rows.filter((r) => r.severity === "critical").length;
+  const warnings = rows.filter((r) => r.severity === "warning").length;
+  const failures = rows.filter((r) => r.success === false).length;
+
   return (
     <ModulePage
       eyebrow="Management Center"
       title="Audit Logs"
       description="Every write across every customer, with severity and result."
+      toolbar={
+        <>
+          <div className="relative min-w-[220px] flex-1">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search action or resource…"
+              className="h-9 pl-8"
+            />
+          </div>
+          <Select value={severity} onValueChange={(v) => setSeverity(v as typeof severity)}>
+            <SelectTrigger className="h-9 w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All severities</SelectItem>
+              <SelectItem value="info">Info</SelectItem>
+              <SelectItem value="warning">Warning</SelectItem>
+              <SelectItem value="critical">Critical</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={module} onValueChange={setModule}>
+            <SelectTrigger className="h-9 w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All modules</SelectItem>
+              {modules.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      }
     >
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
-        <div className="relative min-w-[220px] flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search action or resource…"
-            className="h-9 pl-8"
+      <BentoGrid>
+        <BentoItem span={3} index={0}>
+          <MetricTile label="Events" value={rows.length} icon={ScrollText} hint="latest 200" />
+        </BentoItem>
+        <BentoItem span={3} index={1}>
+          <MetricTile
+            label="Critical"
+            value={critical}
+            tone={critical ? "danger" : "default"}
+            icon={ScrollText}
           />
-        </div>
-        <Select value={severity} onValueChange={(v) => setSeverity(v as typeof severity)}>
-          <SelectTrigger className="h-9 w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All severities</SelectItem>
-            <SelectItem value="info">Info</SelectItem>
-            <SelectItem value="warning">Warning</SelectItem>
-            <SelectItem value="critical">Critical</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={module} onValueChange={setModule}>
-          <SelectTrigger className="h-9 w-[160px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All modules</SelectItem>
-            {modules.map((m) => (
-              <SelectItem key={m} value={m}>
-                {m}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="ml-auto text-xs text-muted-foreground">
-          <span className="tabular-nums">{(data as Row[]).length}</span> events
-        </div>
-      </div>
+        </BentoItem>
+        <BentoItem span={3} index={2}>
+          <MetricTile
+            label="Warnings"
+            value={warnings}
+            tone={warnings ? "warning" : "default"}
+            icon={ScrollText}
+          />
+        </BentoItem>
+        <BentoItem span={3} index={3}>
+          <MetricTile
+            label="Failed writes"
+            value={failures}
+            tone={failures ? "danger" : "success"}
+            icon={ScrollText}
+          />
+        </BentoItem>
+      </BentoGrid>
 
-      <DataTable<Row>
-        columns={columns}
-        rows={data as Row[]}
-        rowKey={(r) => r.id}
-        loading={isLoading}
-        empty={{
-          icon: ScrollText,
-          title: "No audit events",
-          description: "Actions across the platform will appear here.",
-        }}
-      />
+      <Panel
+        glass
+        icon={ScrollText}
+        title="Platform activity"
+        description={`${rows.length} events`}
+        flush
+      >
+        <DataTable<Row>
+          columns={columns}
+          rows={rows}
+          rowKey={(r) => r.id}
+          loading={isLoading}
+          empty={{
+            icon: ScrollText,
+            title: "No audit events",
+            description: "Actions across the platform will appear here.",
+          }}
+        />
+      </Panel>
+
     </ModulePage>
   );
 }
