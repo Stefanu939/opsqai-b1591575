@@ -12,6 +12,7 @@ import {
   X,
   Send,
   Paperclip,
+  ImagePlus,
   Plus,
   ArrowLeft,
   AlertTriangle,
@@ -29,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmojiPicker } from "@/components/app/chat/emoji-picker";
 import { useAuth } from "@/lib/auth-context";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import {
@@ -97,6 +99,18 @@ function gatherContext(
   };
 }
 
+function dayLabel(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const same = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (same(d, now)) return "Today";
+  const y = new Date(now);
+  y.setDate(now.getDate() - 1);
+  if (same(d, y)) return "Yesterday";
+  return d.toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" });
+}
+
 export function SupportWidget() {
   const auth = useAuth();
   const navigate = useNavigate();
@@ -123,6 +137,7 @@ export function SupportWidget() {
     Array<{ path: string; name: string; size: number; mime: string }>
   >([]);
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [newPriority, setNewPriority] = useState<Priority>("normal");
   const [error, setError] = useState<string | null>(null);
@@ -640,18 +655,28 @@ export function SupportWidget() {
                       Drop photos or files to attach
                     </div>
                   )}
-                  {messages.map((m) => {
+                  {messages.map((m, mi) => {
                     const mine = m.sender_id === auth.user?.id;
                     const isInternal = m.internal_note;
+                    const prev = messages[mi - 1];
+                    const newDay = !prev || dayLabel(prev.created_at) !== dayLabel(m.created_at);
                     return (
-                      <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                      <div key={m.id}>
+                        {newDay && (
+                          <div className="my-3 flex justify-center">
+                            <span className="rounded-full bg-background/80 px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground shadow-sm">
+                              {dayLabel(m.created_at)}
+                            </span>
+                          </div>
+                        )}
+                        <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                         <div
-                          className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                          className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
                             isInternal
                               ? "bg-amber-500/15 border border-amber-500/30"
                               : mine
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-background border border-border"
+                                ? "bg-primary text-primary-foreground rounded-br-sm"
+                                : "bg-card text-card-foreground border border-border rounded-bl-sm"
                           }`}
                         >
                           {isInternal && (
@@ -682,9 +707,10 @@ export function SupportWidget() {
                               ))}
                             </div>
                           )}
-                          <div className="text-[10px] opacity-60 mt-1">
-                            {new Date(m.created_at).toLocaleTimeString()}
+                          <div className="text-[10px] opacity-60 mt-1 text-right">
+                            {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </div>
+                        </div>
                         </div>
                       </div>
                     );
@@ -717,18 +743,36 @@ export function SupportWidget() {
                     onChange={(e) => setDraft(e.target.value)}
                     onPaste={onPaste}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendReply();
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendReply();
+                      }
                     }}
                     placeholder={
                       isPlatform && internalNote
                         ? "Internal note (not visible to customer)"
-                        : "Type a message… (⌘↵ to send)"
+                        : "Type a message… (Enter to send)"
                     }
                     rows={3}
                     className="resize-none text-sm"
                   />
                   <div className="flex items-center gap-1">
-                    <label className="cursor-pointer">
+                    <EmojiPicker onPick={(emoji) => setDraft((d) => d + emoji)} align="start" />
+                    <label className="cursor-pointer" title="Send a photo">
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleAttach(e.target.files)}
+                      />
+                      <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                        <span>
+                          <ImagePlus className="h-4 w-4" />
+                        </span>
+                      </Button>
+                    </label>
+                    <label className="cursor-pointer" title="Attach a file">
                       <input
                         type="file"
                         multiple
