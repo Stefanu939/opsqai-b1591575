@@ -75,6 +75,13 @@ function ModulesPage() {
         </div>
       </Panel>
 
+      {/* Self-Hosted activates licenses locally — paste the JWT / bundle here. */}
+      {selfhost && (
+        <div className="my-6">
+          <LicenseActivationPanel onActivated={() => window.location.reload()} />
+        </div>
+      )}
+
       {categories.map((cat) => {
         const items = LICENSE_MODULE_CATALOG.filter((m) => m.category === cat);
         return (
