@@ -559,8 +559,28 @@ function ConversationView({
 
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-1 bg-muted/30"
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          void handleFilePick(e.dataTransfer.files);
+        }}
+        className={cn(
+          "relative flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-1",
+          "bg-[radial-gradient(circle_at_18%_12%,color-mix(in_oklab,var(--color-primary)_10%,transparent),transparent_55%),radial-gradient(circle_at_82%_78%,color-mix(in_oklab,var(--color-primary)_7%,transparent),transparent_60%)]",
+          "bg-muted/40",
+          dragging && "ring-2 ring-inset ring-primary/60",
+        )}
       >
+        {dragging && (
+          <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-background/70 text-sm font-medium">
+            Drop files or photos to attach
+          </div>
+        )}
         {msgs.length === 0 && (
           <div className="text-center text-xs text-muted-foreground py-10">
             No messages yet — say hi 👋
@@ -570,13 +590,18 @@ function ConversationView({
           const mine = m.sender_id === userId;
           const prev = msgs[i - 1];
           const grouped = prev && prev.sender_id === m.sender_id;
+          const newDay = !prev || dayLabel(prev.created_at) !== dayLabel(m.created_at);
           return (
-            <MessageBubble
-              key={m.id}
-              message={m}
-              mine={mine}
-              grouped={grouped ?? false}
-            />
+            <div key={m.id}>
+              {newDay && (
+                <div className="my-3 flex justify-center">
+                  <span className="rounded-full bg-background/80 px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground shadow-sm">
+                    {dayLabel(m.created_at)}
+                  </span>
+                </div>
+              )}
+              <MessageBubble message={m} mine={mine} grouped={(grouped && !newDay) ?? false} />
+            </div>
           );
         })}
       </div>
@@ -605,8 +630,19 @@ function ConversationView({
         </div>
       )}
 
-      <div className="flex items-end gap-2 p-2 border-t border-border shrink-0 bg-background">
-        <label className="cursor-pointer p-2 rounded-full hover:bg-accent">
+      <div className="flex items-end gap-1.5 p-2 border-t border-border shrink-0 bg-background">
+        <EmojiPicker onPick={(emoji) => setText((t) => t + emoji)} align="start" />
+        <label className="cursor-pointer p-2 rounded-full hover:bg-accent" title="Send a photo">
+          <ImagePlus className="h-5 w-5 text-muted-foreground" />
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            multiple
+            onChange={(e) => handleFilePick(e.target.files)}
+          />
+        </label>
+        <label className="cursor-pointer p-2 rounded-full hover:bg-accent" title="Attach a file">
           <Paperclip className="h-5 w-5 text-muted-foreground" />
           <input
             type="file"
@@ -618,6 +654,14 @@ function ConversationView({
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onPaste={(e) => {
+            const files = Array.from(e.clipboardData.files);
+            if (files.length === 0) return;
+            e.preventDefault();
+            const dt = new DataTransfer();
+            files.forEach((f) => dt.items.add(f));
+            void handleFilePick(dt.files);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
