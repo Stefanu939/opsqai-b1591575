@@ -157,17 +157,42 @@ function TeacherChat({
   // Starts as null → AI Teacher greets in a trilingual prompt and asks the
   // learner to pick one. The learner can change it any time.
   const [learnLang, setLearnLang] = useState<string | null>(null);
+  // The transport must NOT be recreated when the language changes — swapping
+  // transports mid-stream leaves useChat stuck in "streaming" and the composer
+  // permanently disabled. Keep it stable and read the language from a ref.
+  const learnLangRef = useRef<string | null>(null);
+  learnLangRef.current = learnLang;
 
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: "/api/academy-chat",
         headers: { Authorization: `Bearer ${token}` },
-        body: { lessonId, language: learnLang ?? "ask" },
+        prepareSendMessagesRequest: ({ id, messages, trigger, messageId }) => ({
+          body: {
+            id,
+            messages,
+            trigger,
+            messageId,
+            lessonId,
+            language: learnLangRef.current ?? "ask",
+          },
+        }),
       }),
-    [token, lessonId, learnLang],
+    [token, lessonId],
   );
-  const { messages, sendMessage, status, error: chatError } = useChat({ transport });
+  const { messages, sendMessage, status, error: chatError, stop } = useChat({ transport });
+
+  // Watchdog: if a stream stalls (no completion event), unlock the composer so
+  // the learner is never trapped in a disabled input.
+  useEffect(() => {
+    if (status !== "streaming" && status !== "submitted") return;
+    const t = setTimeout(() => {
+      void stop();
+    }, 90_000);
+    return () => clearTimeout(t);
+  }, [status, stop]);
+
 
   // Auto-greet
   useEffect(() => {
