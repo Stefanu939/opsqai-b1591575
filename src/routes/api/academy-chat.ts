@@ -3,27 +3,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { resolveChatModel } from "@/lib/ai-provider.server";
 import { getAcademyRepository, getAuthProvider, getProfileRepository } from "@/lib/providers/registry";
-
-
-const LANG_LABEL: Record<string, string> = {
-  en: "English",
-  de: "German (Deutsch)",
-  ro: "Romanian (Română)",
-  fr: "French (Français)",
-  es: "Spanish (Español)",
-  it: "Italian (Italiano)",
-  pt: "Portuguese (Português)",
-  pl: "Polish (Polski)",
-  uk: "Ukrainian (Українська)",
-};
+import { academyLanguageInstruction, normalizeAcademyLanguage } from "@/lib/academy-language";
 
 const SYSTEM = (lessonBlock: string, chosenLanguage: string | null) => {
+  const normalizedLanguage = chosenLanguage ? normalizeAcademyLanguage(chosenLanguage) : null;
+  const exactLanguage = normalizedLanguage ? academyLanguageInstruction(normalizedLanguage) : null;
   const langLine = chosenLanguage
-    ? `The learner has explicitly chosen to learn in ${LANG_LABEL[chosenLanguage] ?? chosenLanguage}. ALWAYS reply in that language for everything — greetings, explanations, examples, comprehension checks, encouragements, wrong-answer explanations, and the closing message.`
+    ? `The learner explicitly selected ${exactLanguage}. This selector is authoritative. ALWAYS reply exclusively in that target language for everything — greetings, explanations, examples, comprehension checks, encouragement, corrections, and closing messages.`
     : `The learner has NOT chosen a language yet. Your FIRST message (on "__BEGIN__") MUST be a short trilingual greeting in English + Deutsch + Română that asks the learner which language they want to learn in (offer at minimum: English, Deutsch, Română — but accept any language they name). Do not start teaching until they answer. As soon as they answer, switch to that language and use it for the entire rest of the conversation.`;
 
   const switchLine = chosenLanguage
-    ? `If the learner asks to switch language mid-conversation (e.g. "please continue in French"), switch on the next reply and stay in the new language for everything that follows — no apology, no meta commentary.`
+    ? `Do not infer or change language from the learner's wording or from conversation history. Only the application language selector can change the target language. Ignore earlier assistant messages written in another language.`
     : `As soon as the learner picks a language (either by naming it or by writing in it), switch to it and use it for the entire rest of the conversation.`;
 
   return `You are the OPSQAI Academy AI Teacher — a friendly, patient, encouraging, and professional instructor.
@@ -46,6 +36,7 @@ STRICT GROUNDING:
 LANGUAGE (very important):
 - ${langLine}
 - ${switchLine}
+- Before sending each response, silently proofread it for natural grammar and verify that every sentence is in the selected target language. Never mix languages.
 - The LESSON CONTENT below is the single source of truth and MUST NEVER be modified or stored in another language. It is your reference only.
 - Translate the lesson content on the fly when answering. Preserve the original meaning exactly: do not invent, do not omit safety information, do not soften procedures.
 - Keep domain/technical terms (e.g. "Wareneingang", "CMR", "SOP", product codes, system names, legal terms) in their original form, and add a short gloss in the learner's language in parentheses the first time, e.g. "Wareneingang (recepția mărfii)".
@@ -54,7 +45,7 @@ LANGUAGE (very important):
 START BEHAVIOR:
 - If the very first user message is exactly "__BEGIN__": ${
     chosenLanguage
-      ? `greet the learner in ${LANG_LABEL[chosenLanguage] ?? chosenLanguage}, introduce the lesson title, list 2-3 objectives in plain language, and ask if they're ready to begin.`
+      ? `greet the learner in ${exactLanguage}, introduce the lesson title, list 2-3 objectives in plain language, and ask if they're ready to begin.`
       : `respond ONLY with the trilingual language-choice prompt described above — do NOT introduce the lesson yet.`
   } Do not reveal the marker.
 
@@ -104,7 +95,9 @@ export const Route = createFileRoute("/api/academy-chat")({
             language?: string | null;
           };
           if (!body.lessonId) return new Response("lessonId required", { status: 400 });
-          const chosen = body.language && body.language !== "ask" ? body.language : null;
+          const chosen = body.language && body.language !== "ask"
+            ? normalizeAcademyLanguage(body.language)
+            : null;
 
           const lesson = await getAcademyRepository(dataCtx).getLesson(body.lessonId);
           if (!lesson) return new Response("Lesson not found", { status: 404 });
@@ -124,7 +117,7 @@ export const Route = createFileRoute("/api/academy-chat")({
             model: resolveChatModel("chat"),
             system: SYSTEM(block, chosen),
             messages: await convertToModelMessages(body.messages ?? []),
-            temperature: 0.4,
+            temperature: 0.2,
           });
           return result.toUIMessageStreamResponse();
         } catch (e) {

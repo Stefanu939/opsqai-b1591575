@@ -146,6 +146,7 @@ function TeacherChat({
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
   const [result, setResult] = useState<any>(null);
+  const [quizLoading, setQuizLoading] = useState(false);
   const [contextOpen, setContextOpen] = useState(true);
   const [input, setInput] = useState("");
   const start = useRef(Date.now());
@@ -245,7 +246,7 @@ function TeacherChat({
   );
 
   const startQuiz = async () => {
-    if (!lessonComplete) return;
+    if (!lessonComplete || quizLoading) return;
     if (!learnLang) {
       alert(
         "Please pick a language first (top-right selector) so the quiz can be generated in that language.",
@@ -253,6 +254,7 @@ function TeacherChat({
       return;
     }
     setResult(null);
+    setQuizLoading(true);
     try {
       const q = (await genQuiz({ data: { lesson_id: lessonId, language: learnLang } })) as {
         attempt_id: string;
@@ -264,6 +266,8 @@ function TeacherChat({
     } catch (e: any) {
       // surface generation error so users aren't stuck
       alert(e?.message ?? "Could not generate the quiz. Please try again.");
+    } finally {
+      setQuizLoading(false);
     }
   };
 
@@ -272,6 +276,7 @@ function TeacherChat({
   // it in the new language.
   const handleLangChange = (next: string) => {
     if (next === learnLang) return;
+    learnLangRef.current = next;
     setLearnLang(next);
     const label = LANG_LABEL[next] ?? next;
     if (begunRef.current) {
@@ -290,6 +295,8 @@ function TeacherChat({
   };
 
   const startQuizWithLang = async (lg: string) => {
+    if (quizLoading) return;
+    setQuizLoading(true);
     try {
       const q = (await genQuiz({ data: { lesson_id: lessonId, language: lg } })) as {
         attempt_id: string;
@@ -300,6 +307,8 @@ function TeacherChat({
       setAnswers(Array(q.questions.length).fill(""));
     } catch (e: any) {
       alert(e?.message ?? "Could not regenerate the quiz.");
+    } finally {
+      setQuizLoading(false);
     }
   };
 
@@ -464,8 +473,9 @@ function TeacherChat({
                     <p className="text-xs text-muted-foreground">
                       Take a short knowledge check to confirm what you've learned.
                     </p>
-                    <Button size="sm" onClick={startQuiz}>
-                      <BookOpenCheck className="h-3.5 w-3.5 mr-1" /> Start quiz
+                    <Button size="sm" onClick={startQuiz} disabled={quizLoading}>
+                      {quizLoading ? <RotateCw className="h-3.5 w-3.5 mr-1 animate-spin" /> : <BookOpenCheck className="h-3.5 w-3.5 mr-1" />}
+                      {quizLoading ? "Preparing quiz…" : "Start quiz"}
                     </Button>
                   </Card>
                 </div>
@@ -508,7 +518,7 @@ function TeacherChat({
                         )}
                         {q.type === "true_false" && (
                           <div className="flex gap-3">
-                            {["True", "False"].map((opt) => (
+                            {(q.options?.length ? q.options : ["True", "False"]).map((opt) => (
                               <label
                                 key={opt}
                                 className="flex items-center gap-2 text-sm cursor-pointer rounded-md px-2 py-1 hover:bg-accent/60"
@@ -580,7 +590,7 @@ function TeacherChat({
                           {result.score}% / {result.passingScore ?? passing}% needed
                         </Badge>
                         {!result.passed && (
-                          <Button variant="outline" size="sm" onClick={startQuiz}>
+                          <Button variant="outline" size="sm" onClick={startQuiz} disabled={quizLoading}>
                             <RotateCw className="h-4 w-4 mr-1" /> New questions
                           </Button>
                         )}
@@ -639,9 +649,11 @@ function TeacherChat({
                   (lessonComplete ? (
                     <button
                       onClick={startQuiz}
+                      disabled={quizLoading}
                       className="text-[11.5px] font-medium text-primary hover:underline inline-flex items-center gap-1"
                     >
-                      <BookOpenCheck className="h-3.5 w-3.5" /> I'm ready for the quiz
+                      {quizLoading ? <RotateCw className="h-3.5 w-3.5 animate-spin" /> : <BookOpenCheck className="h-3.5 w-3.5" />}
+                      {quizLoading ? "Preparing quiz…" : "I'm ready for the quiz"}
                     </button>
                   ) : (
                     <span className="text-[11.5px] text-muted-foreground inline-flex items-center gap-1">
