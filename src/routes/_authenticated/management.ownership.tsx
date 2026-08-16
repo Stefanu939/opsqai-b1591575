@@ -204,15 +204,60 @@ function OwnershipPage() {
     },
   ];
 
+  const total = (licenses as License[]).length;
+  const customerOwned = (licenses as License[]).filter((l) => l.owner_type === "customer").length;
+  const opsqaiOperated = total - customerOwned;
+  const handedOverRate = total ? Math.round((customerOwned / total) * 100) : 0;
+
   return (
     <ModulePage
       eyebrow="Management Center"
       title="Ownership"
       description="Installation handovers and platform administrator roles."
     >
-      <SectionCard
+      <BentoGrid>
+        <BentoItem span={3} index={0}>
+          <MetricTile
+            label="Installations"
+            value={total}
+            icon={ArrowRightLeft}
+            hint="licensed installs"
+          />
+        </BentoItem>
+        <BentoItem span={3} index={1}>
+          <MetricTile
+            label="Customer-owned"
+            value={customerOwned}
+            icon={Crown}
+            tone="success"
+            hint={`${handedOverRate}% handed over`}
+          />
+        </BentoItem>
+        <BentoItem span={3} index={2}>
+          <MetricTile
+            label="OPSQAI-operated"
+            value={opsqaiOperated}
+            icon={ArrowRightLeft}
+            tone="gold"
+            hint="still managed by us"
+          />
+        </BentoItem>
+        <BentoItem span={3} index={3}>
+          <MetricTile
+            label="Platform admins"
+            value={(admins as Admin[]).length}
+            icon={Shield}
+            hint="global MC access"
+          />
+        </BentoItem>
+      </BentoGrid>
+
+      <Panel
+        glass
+        icon={ArrowRightLeft}
         title="Installation ownership"
         description="Track which installs are still operated by OPSQAI and which have been handed over to the customer."
+        flush
       >
         <DataTable<License>
           columns={licenseColumns}
@@ -225,14 +270,16 @@ function OwnershipPage() {
             description: "Issue an installation license first.",
           }}
         />
-      </SectionCard>
+      </Panel>
 
-      <SectionCard
+      <Panel
+        icon={Shield}
         title="Platform administrators"
         description="Users with global access to the Management Center."
         actions={
           <PromoteDialog onPromote={(v) => promoteMut.mutate(v)} pending={promoteMut.isPending} />
         }
+        flush
       >
         <DataTable<Admin>
           columns={adminColumns}
@@ -245,7 +292,8 @@ function OwnershipPage() {
             description: "Promote a user to grant Management Center access.",
           }}
         />
-      </SectionCard>
+      </Panel>
+
     </ModulePage>
   );
 }
