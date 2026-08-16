@@ -1,3 +1,4 @@
+import { ModulePage } from "@/components/app/module-page";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -84,19 +85,11 @@ function PortalDownloads() {
   const installs = data?.installs ?? [];
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl">
-      <div className="mb-8">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
-          Customer portal
-        </div>
-        <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight">
-          Downloads
-        </h1>
-        <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-          Installation packages and offline activation bundles for the installations tied to your
-          account. Package downloads issue a signed URL valid for 24 hours; every download is logged.
-        </p>
-      </div>
+    <ModulePage
+      eyebrow="Customer portal"
+      title="Downloads"
+      description="Installation packages and offline activation bundles for the installations tied to your account. Package downloads issue a signed URL valid for 24 hours; every download is logged."
+    >
 
       {installs.length === 0 ? (
         <EmptyState
@@ -242,7 +235,7 @@ function PortalDownloads() {
           </div>
         </section>
       )}
-    </div>
+    </ModulePage>
   );
 }
 

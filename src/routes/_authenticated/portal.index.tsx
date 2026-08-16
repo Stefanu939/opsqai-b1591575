@@ -1,3 +1,4 @@
+import { ModulePage } from "@/components/app/module-page";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -86,19 +87,11 @@ function PortalHome() {
     : false;
 
   return (
-    <div className="p-6 md:p-10 max-w-6xl">
-      <div className="mb-8">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
-          Customer portal
-        </div>
-        <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
-          Overview
-        </h1>
-        <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-          {data?.email ? `Signed in as ${data.email}. ` : ""}
-          Your installations, licenses and announcements at a glance.
-        </p>
-      </div>
+    <ModulePage
+      eyebrow="Customer portal"
+      title="Overview"
+      description="{data?.email ? `Signed in as ${data.email}. ` : ""} Your installations, licenses and announcements at a glance."
+    >
 
       <div className="mb-8">
         <BentoGrid>
@@ -267,6 +260,6 @@ function PortalHome() {
           })}
         </div>
       )}
-    </div>
+    </ModulePage>
   );
 }

@@ -1,3 +1,4 @@
+import { ModulePage } from "@/components/app/module-page";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,18 +22,11 @@ function PortalReleaseNotes() {
   const rows = data ?? [];
 
   return (
-    <div className="p-6 md:p-10 max-w-4xl">
-      <div className="mb-8">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
-          Customer portal
-        </div>
-        <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight">
-          Release notes
-        </h1>
-        <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-          Signed release manifest for OPSQAI installer versions available to your installations.
-        </p>
-      </div>
+    <ModulePage
+      eyebrow="Customer portal"
+      title="Release notes"
+      description="Signed release manifest for OPSQAI installer versions available to your installations."
+    >
 
       {rows.length === 0 ? (
         <EmptyState icon={Package} title="No releases published yet" />
@@ -87,6 +81,6 @@ function PortalReleaseNotes() {
           </div>
         </div>
       )}
-    </div>
+    </ModulePage>
   );
 }
