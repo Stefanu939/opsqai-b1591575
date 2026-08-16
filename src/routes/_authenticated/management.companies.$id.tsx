@@ -252,7 +252,7 @@ function CompanyDetailPage() {
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </ModulePage>
   );
 }
 
@@ -263,7 +263,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
         {label}
       </dt>
       <dd className="mt-0.5 text-foreground">{value}</dd>
-    </ModulePage>
+    </div>
   );
 }
 
