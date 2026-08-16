@@ -437,11 +437,54 @@ const PRIORITY_CLASS: Record<string, string> = {
 
 function RecommendationsSection({ companyId }: { companyId: string | null }) {
   const recsFn = useServerFn(getAuditRecommendations);
+  const generateOne = useServerFn(autoRemediateRecommendation);
+  const generateAll = useServerFn(autoRemediateBatch);
+  const queryClient = useQueryClient();
   const q = useQuery({
     queryKey: ["audit-recommendations", companyId],
     queryFn: () => recsFn({ data: { company_id: companyId } } as never),
   });
   const [showAll, setShowAll] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [batching, setBatching] = useState(false);
+  const [done, setDone] = useState<Record<string, string>>({});
+
+  async function invalidate() {
+    await Promise.all([
+      q.refetch(),
+      queryClient.invalidateQueries({ queryKey: ["knowledge-gaps"] }),
+      queryClient.invalidateQueries({ queryKey: ["faqs"] }),
+      queryClient.invalidateQueries({ queryKey: ["kb-documents"] }),
+    ]);
+  }
+
+  async function runAuto(r: AuditRecommendation) {
+    const action = r.autoAction;
+    if (!action) return;
+    setBusy(r.id);
+    try {
+      const res = await generateOne({
+        data: {
+          kind: action.type === "generate_sop" ? "sop" : "faq",
+          question: action.question,
+          department: action.department,
+          gap_id: action.gapId,
+        },
+      } as never);
+      const title = (res as { title?: string }).title ?? r.title;
+      setDone((d) => ({ ...d, [r.id]: title }));
+      toast.success(
+        action.type === "generate_sop"
+          ? `SOP published to the knowledge base: ${title}`
+          : `FAQ added: ${title}`,
+      );
+      await invalidate();
+    } catch (e) {
+      toast.error((e as Error).message || "Generation failed");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   if (q.isLoading) {
     return (
@@ -457,6 +500,8 @@ function RecommendationsSection({ companyId }: { companyId: string | null }) {
   const intel = q.data as AuditIntelligence;
   const recs = intel.recommendations ?? [];
   const visible = showAll ? recs : recs.slice(0, 6);
+  const autoRecs = recs.filter((r) => r.autoAction && !done[r.id]);
+  const autoCount = autoRecs.length;
 
   return (
     <Card className="card-enterprise p-4 md:p-5 mb-6">
@@ -481,6 +526,38 @@ function RecommendationsSection({ companyId }: { companyId: string | null }) {
             <div className="text-lg font-semibold tabular-nums">{intel.selfServiceRate}%</div>
             <div className="text-[11px] text-muted-foreground">Self-service rate</div>
           </div>
+          {autoCount > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              loading={batching}
+              onClick={async () => {
+                setBatching(true);
+                try {
+                  const items = autoRecs.slice(0, 10).map((r) => ({
+                    kind: r.autoAction!.type === "generate_sop" ? "sop" : "faq",
+                    question: r.autoAction!.question,
+                    department: r.autoAction!.department,
+                    gap_id: r.autoAction!.gapId,
+                  }));
+                  const res = (await generateAll({ data: { items } } as never)) as {
+                    generated: number;
+                  };
+                  toast.success(
+                    `${res.generated} document${res.generated === 1 ? "" : "s"} generated and published`,
+                  );
+                  await invalidate();
+                } catch (e) {
+                  toast.error((e as Error).message || "Batch generation failed");
+                } finally {
+                  setBatching(false);
+                }
+              }}
+            >
+              <Sparkles className="mr-1 h-4 w-4" />
+              Generate all ({Math.min(autoCount, 10)})
+            </Button>
+          )}
         </div>
       </div>
 
@@ -538,6 +615,29 @@ function RecommendationsSection({ companyId }: { companyId: string | null }) {
                       +{r.expectedScoreImprovement} pts · {r.effort} effort
                     </span>
                   </div>
+                  {r.autoAction && (
+                    <div className="mt-2.5 border-t border-border/70 pt-2.5">
+                      {done[r.id] ? (
+                        <p className="inline-flex items-center gap-1.5 text-[11px] text-[color:var(--success)]">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Generated · {done[r.id]}
+                        </p>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          loading={busy === r.id}
+                          onClick={() => void runAuto(r)}
+                        >
+                          <Wand2 className="mr-1 h-3.5 w-3.5" />
+                          {r.autoAction.type === "generate_sop"
+                            ? "Generate SOP automatically"
+                            : "Generate FAQ automatically"}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </li>
               );
             })}
