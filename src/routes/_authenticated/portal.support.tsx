@@ -154,7 +154,8 @@ function PortalSupport() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      }
+    >
 
       <div className="grid md:grid-cols-[320px_1fr] gap-4">
         <Card className="p-0 overflow-hidden">
