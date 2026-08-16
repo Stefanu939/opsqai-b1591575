@@ -16,6 +16,12 @@ import {
   getProfileRepository,
   getStorageProvider,
 } from "@/lib/providers/registry";
+import {
+  academyLanguageInstruction,
+  hasWrongAcademyScript,
+  localizedAcademyQuizFallback,
+  normalizeAcademyLanguage,
+} from "@/lib/academy-language";
 
 const ACADEMY_MODULE = "academy" as const;
 
@@ -676,6 +682,8 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     const repo = getAcademyRepository(context);
     const lesson = await repo.getLesson(data.lesson_id);
     if (!lesson) throw new Error("Lesson not found");
+    const language = normalizeAcademyLanguage(data.language);
+    const languageInstruction = academyLanguageInstruction(language);
     const body = [
       `TITLE: ${lesson.title}`,
       `OBJECTIVES: ${(lesson.objectives ?? []).join(" | ")}`,
@@ -685,14 +693,23 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
       `SUMMARY:\n${lesson.summary ?? ""}`,
     ]
       .join("\n\n")
-      .slice(0, 12000);
+      .slice(0, 8000);
 
-    const text = await generateAiText({
-      role: "chat",
+    const generate = (correction?: string) => generateAiText({
+      role: "chat-fast",
       messages: [
         {
           role: "system",
-          content: `You generate concise enterprise training quizzes. Write the question text, options, correct_answer, and explanation in ${data.language}. Each question must be answerable from the lesson content only — translate the lesson on the fly without changing its meaning, never invent facts, never omit safety information. Keep domain/technical terms (e.g. "Wareneingang", "CMR", product codes, system names) in their original language; you may add a short gloss in parentheses. Numbers, units, codes, and quoted policy text stay verbatim. Mix multiple_choice (4 options), true_false, and short_answer. Provide a short explanation referencing the lesson. Return only valid JSON, without markdown fences or commentary.`,
+          content: `You generate concise enterprise training quizzes.
+TARGET LANGUAGE: ${languageInstruction}
+LANGUAGE CONTRACT:
+- Every natural-language word in question, options, correct_answer, and explanation MUST be idiomatic, grammatically correct TARGET LANGUAGE.
+- The target language overrides the source lesson language and all languages visible in the source.
+- Never infer the output language from the lesson. Never mix languages.
+- Keep only immutable codes, product names, system names, abbreviations, numbers, units, and legal quotations verbatim.
+- Mentally proofread grammar and language consistency before returning.
+CONTENT CONTRACT: Every answer must come only from the lesson. Translate faithfully; never invent facts or omit safety information.
+Mix multiple_choice (4 options), true_false, and short_answer. Return only valid JSON without markdown fences.${correction ? `\nCORRECTION REQUIRED: ${correction}` : ""}`,
         },
         {
           role: "user",
@@ -700,6 +717,11 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
         },
       ],
     });
+
+    let text = await generate();
+    if (hasWrongAcademyScript(text, language)) {
+      text = await generate("The previous result used the wrong script/language. Regenerate from scratch exclusively in the TARGET LANGUAGE.");
+    }
 
     const startAttempt = async (questions: z.infer<typeof QuestionSchema>[]) => {
       const attempt = await repo.createQuizAttempt({
@@ -731,6 +753,12 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
         }))
         .slice(0, data.count);
       const questions = QuizSchema.parse({ questions: mapped }).questions;
+      const combinedText = questions
+        .flatMap((question) => [question.question, ...(question.options ?? []), question.correct_answer, question.explanation])
+        .join(" ");
+      if (hasWrongAcademyScript(combinedText, language)) {
+        throw new Error("Generated quiz did not satisfy the selected language");
+      }
 
       // SECURITY: persist the graded questions (including correct_answer)
       // server-side so submission can be graded against a trusted source
@@ -739,21 +767,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     } catch (error) {
       console.warn("Academy quiz JSON parse failed; using source-based fallback", error);
       const fallback = QuizSchema.parse({
-        questions: [
-          {
-            type: "short_answer" as const,
-            question: `What is the main operational purpose of ${lesson.title}?`,
-            correct_answer: "The answer should reflect the documented lesson purpose.",
-            explanation: "This fallback question is grounded in the lesson title and body.",
-          },
-          {
-            type: "true_false" as const,
-            question: "Learners should follow the approved procedure described in the lesson.",
-            options: ["True", "False"],
-            correct_answer: "True",
-            explanation: "The lesson content is based on approved operational knowledge.",
-          },
-        ].slice(0, Math.max(2, data.count)),
+        questions: localizedAcademyQuizFallback(language, lesson.title),
       });
       return await startAttempt(fallback.questions);
     }
