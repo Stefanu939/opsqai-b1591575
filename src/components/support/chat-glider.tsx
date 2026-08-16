@@ -44,7 +44,9 @@ function dayLabel(iso: string) {
   const d = new Date(iso);
   const now = new Date();
   const same = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
   if (same(d, now)) return "Today";
   const y = new Date(now);
   y.setDate(now.getDate() - 1);
@@ -140,10 +142,7 @@ function useUnreadTotal(opts: { open: boolean; activeConv: string | null; enable
   }, [enabled, qc]);
 
   const suppressed = open && activeConv ? activeConv : null;
-  const total = convs.reduce(
-    (n, c) => n + (c.id === suppressed ? 0 : (c.unread_count ?? 0)),
-    0,
-  );
+  const total = convs.reduce((n, c) => n + (c.id === suppressed ? 0 : (c.unread_count ?? 0)), 0);
 
   useEffect(() => {
     const prev = prevTotal.current;
@@ -158,10 +157,9 @@ function useUnreadTotal(opts: { open: boolean; activeConv: string | null; enable
     if ((!open || hidden) && now - lastToast.current > 8_000) {
       lastToast.current = now;
       const delta = total - prev;
-      toast.message(
-        delta === 1 ? "New message" : `${delta} new messages`,
-        { description: total === 1 ? "1 unread conversation message" : `${total} unread in total` },
-      );
+      toast.message(delta === 1 ? "New message" : `${delta} new messages`, {
+        description: total === 1 ? "1 unread conversation message" : `${total} unread in total`,
+      });
     }
     return () => window.clearTimeout(t);
   }, [total, open]);
@@ -242,8 +240,6 @@ export function ChatGlider() {
         )}
       </button>
 
-
-
       {/* Panel */}
       <div
         className={cn(
@@ -316,13 +312,13 @@ function ConversationsListView({
   // The launcher-level `useUnreadTotal` hook owns the single 4s poller for
   // the shared ["chat-conversations"] cache; no second interval here.
 
-
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return convs;
-    return convs.filter((c) =>
-      (c.peer?.full_name || "").toLowerCase().includes(q) ||
-      (c.peer?.email || "").toLowerCase().includes(q),
+    return convs.filter(
+      (c) =>
+        (c.peer?.full_name || "").toLowerCase().includes(q) ||
+        (c.peer?.email || "").toLowerCase().includes(q),
     );
   }, [convs, filter]);
 
@@ -372,7 +368,8 @@ function ConversationsListView({
       <div className="flex-1 min-h-0 overflow-y-auto">
         {filtered.length === 0 ? (
           <div className="p-8 text-center text-sm text-muted-foreground">
-            No conversations yet. Tap <Pencil className="inline h-3 w-3 mx-1" /> to start one with a colleague or OPSQAI Support.
+            No conversations yet. Tap <Pencil className="inline h-3 w-3 mx-1" /> to start one with a
+            colleague or OPSQAI Support.
           </div>
         ) : (
           filtered.map((c) => (
@@ -381,10 +378,7 @@ function ConversationsListView({
               onClick={() => onSelect(c.id)}
               className="w-full text-left flex items-center gap-3 px-3 py-2.5 hover:bg-accent/50 border-b border-border/50"
             >
-              <ContactAvatar
-                name={c.peer?.full_name || "?"}
-                staff={c.peer?.is_staff ?? false}
-              />
+              <ContactAvatar name={c.peer?.full_name || "?"} staff={c.peer?.is_staff ?? false} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium truncate">
@@ -494,7 +488,10 @@ function ConversationView({
             data_base64: data,
           },
         });
-        setPending((p) => [...p, { path, name: f.name, mime: f.type || "application/octet-stream", size: f.size }]);
+        setPending((p) => [
+          ...p,
+          { path, name: f.name, mime: f.type || "application/octet-stream", size: f.size },
+        ]);
       } catch (e) {
         toast.error(`Upload failed: ${(e as Error).message}`);
       }
@@ -507,7 +504,9 @@ function ConversationView({
     if (!body && pending.length === 0) return;
     setSending(true);
     try {
-      await sendFn({ data: { conversation_id: conversationId, body: body || undefined, attachments: pending } });
+      await sendFn({
+        data: { conversation_id: conversationId, body: body || undefined, attachments: pending },
+      });
       setText("");
       setPending([]);
       await refetch();
@@ -521,7 +520,6 @@ function ConversationView({
       setSending(false);
     }
   }
-
 
   return (
     <>
@@ -611,10 +609,7 @@ function ConversationView({
       {pending.length > 0 && (
         <div className="px-3 py-2 border-t border-border shrink-0 flex flex-wrap gap-2">
           {pending.map((a, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 bg-muted rounded px-2 py-1 text-xs"
-            >
+            <div key={i} className="flex items-center gap-2 bg-muted rounded px-2 py-1 text-xs">
               {a.mime.startsWith("image/") ? (
                 <ImageIcon className="h-3 w-3" />
               ) : (
@@ -727,11 +722,7 @@ function MessageBubble({
 
   return (
     <div
-      className={cn(
-        "flex",
-        mine ? "justify-end" : "justify-start",
-        grouped ? "mt-0.5" : "mt-2",
-      )}
+      className={cn("flex", mine ? "justify-end" : "justify-start", grouped ? "mt-0.5" : "mt-2")}
     >
       <div
         className={cn(
@@ -745,18 +736,8 @@ function MessageBubble({
           const url = urls[a.path];
           if (a.mime.startsWith("image/") && url) {
             return (
-              <a
-                key={a.path}
-                href={url}
-                target="_blank"
-                rel="noopener"
-                className="block mb-1"
-              >
-                <img
-                  src={url}
-                  alt={a.name}
-                  className="max-h-56 rounded-lg object-cover"
-                />
+              <a key={a.path} href={url} target="_blank" rel="noopener" className="block mb-1">
+                <img src={url} alt={a.name} className="max-h-56 rounded-lg object-cover" />
               </a>
             );
           }

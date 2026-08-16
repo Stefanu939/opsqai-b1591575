@@ -12,6 +12,7 @@ import {
   X,
   Send,
   Paperclip,
+  ImagePlus,
   Plus,
   ArrowLeft,
   AlertTriangle,
@@ -29,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmojiPicker } from "@/components/app/chat/emoji-picker";
 import { useAuth } from "@/lib/auth-context";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import {
@@ -97,6 +99,20 @@ function gatherContext(
   };
 }
 
+function dayLabel(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const same = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+  if (same(d, now)) return "Today";
+  const y = new Date(now);
+  y.setDate(now.getDate() - 1);
+  if (same(d, y)) return "Yesterday";
+  return d.toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" });
+}
+
 export function SupportWidget() {
   const auth = useAuth();
   const navigate = useNavigate();
@@ -123,6 +139,7 @@ export function SupportWidget() {
     Array<{ path: string; name: string; size: number; mime: string }>
   >([]);
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [newPriority, setNewPriority] = useState<Priority>("normal");
   const [error, setError] = useState<string | null>(null);
@@ -216,8 +233,6 @@ export function SupportWidget() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cloudEnabled, canUse, auth.user?.id]);
 
-
-
   const loadList = async () => {
     setLoading(true);
     try {
@@ -271,8 +286,7 @@ export function SupportWidget() {
             table: "support_messages",
             filter: `conversation_id=eq.${activeId}`,
           },
-          (payload: { new: unknown }) =>
-            setMessages((prev) => [...prev, payload.new as Message]),
+          (payload: { new: unknown }) => setMessages((prev) => [...prev, payload.new as Message]),
         )
         .subscribe();
       cleanupRealtime = () => {
@@ -283,7 +297,6 @@ export function SupportWidget() {
       cleanupRealtime?.();
     };
   }, [cloudEnabled, activeId]);
-
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -619,52 +632,89 @@ export function SupportWidget() {
               <>
                 <div
                   ref={scrollRef}
-                  className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-muted/20"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                  }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragging(false);
+                    void handleAttach(e.dataTransfer.files);
+                  }}
+                  className={[
+                    "relative flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-muted/30",
+                    "bg-[radial-gradient(circle_at_18%_12%,color-mix(in_oklab,var(--color-primary)_10%,transparent),transparent_55%),radial-gradient(circle_at_82%_78%,color-mix(in_oklab,var(--color-primary)_7%,transparent),transparent_60%)]",
+                    dragging ? "ring-2 ring-inset ring-primary/60" : "",
+                  ].join(" ")}
                 >
-                  {messages.map((m) => {
+                  {dragging && (
+                    <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-background/70 text-sm font-medium">
+                      Drop photos or files to attach
+                    </div>
+                  )}
+                  {messages.map((m, mi) => {
                     const mine = m.sender_id === auth.user?.id;
                     const isInternal = m.internal_note;
+                    const prev = messages[mi - 1];
+                    const newDay = !prev || dayLabel(prev.created_at) !== dayLabel(m.created_at);
                     return (
-                      <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                        <div
-                          className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                            isInternal
-                              ? "bg-amber-500/15 border border-amber-500/30"
-                              : mine
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-background border border-border"
-                          }`}
-                        >
-                          {isInternal && (
-                            <div className="text-[10px] uppercase tracking-wider mb-1 opacity-70">
-                              Internal note
+                      <div key={m.id}>
+                        {newDay && (
+                          <div className="my-3 flex justify-center">
+                            <span className="rounded-full bg-background/80 px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground shadow-sm">
+                              {dayLabel(m.created_at)}
+                            </span>
+                          </div>
+                        )}
+                        <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                          <div
+                            className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
+                              isInternal
+                                ? "bg-amber-500/15 border border-amber-500/30"
+                                : mine
+                                  ? "bg-primary text-primary-foreground rounded-br-sm"
+                                  : "bg-card text-card-foreground border border-border rounded-bl-sm"
+                            }`}
+                          >
+                            {isInternal && (
+                              <div className="text-[10px] uppercase tracking-wider mb-1 opacity-70">
+                                Internal note
+                              </div>
+                            )}
+                            <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                            {m.attachments.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {m.attachments.map((a, i) =>
+                                  a.mime?.startsWith("image/") ? (
+                                    <SupportImage key={i} path={a.path} name={a.name} />
+                                  ) : (
+                                    <a
+                                      key={i}
+                                      href="#"
+                                      onClick={async (e) => {
+                                        e.preventDefault();
+                                        const { getSupportAttachmentUrl } =
+                                          await import("@/lib/support.functions");
+                                        const { url } = await getSupportAttachmentUrl({
+                                          data: { path: a.path },
+                                        });
+                                        window.open(url, "_blank");
+                                      }}
+                                      className="block text-[11px] underline opacity-90"
+                                    >
+                                      📎 {a.name}
+                                    </a>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                            <div className="text-[10px] opacity-60 mt-1 text-right">
+                              {new Date(m.created_at).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </div>
-                          )}
-                          <div className="whitespace-pre-wrap break-words">{m.body}</div>
-                          {m.attachments.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              {m.attachments.map((a, i) => (
-                                <a
-                                  key={i}
-                                  href="#"
-                                  onClick={async (e) => {
-                                    e.preventDefault();
-                                    const { getSupportAttachmentUrl } =
-                                      await import("@/lib/support.functions");
-                                    const { url } = await getSupportAttachmentUrl({
-                                      data: { path: a.path },
-                                    });
-                                    window.open(url, "_blank");
-                                  }}
-                                  className="block text-[11px] underline opacity-90"
-                                >
-                                  📎 {a.name}
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                          <div className="text-[10px] opacity-60 mt-1">
-                            {new Date(m.created_at).toLocaleTimeString()}
                           </div>
                         </div>
                       </div>
@@ -698,18 +748,36 @@ export function SupportWidget() {
                     onChange={(e) => setDraft(e.target.value)}
                     onPaste={onPaste}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendReply();
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendReply();
+                      }
                     }}
                     placeholder={
                       isPlatform && internalNote
                         ? "Internal note (not visible to customer)"
-                        : "Type a message… (⌘↵ to send)"
+                        : "Type a message… (Enter to send)"
                     }
                     rows={3}
                     className="resize-none text-sm"
                   />
                   <div className="flex items-center gap-1">
-                    <label className="cursor-pointer">
+                    <EmojiPicker onPick={(emoji) => setDraft((d) => d + emoji)} align="start" />
+                    <label className="cursor-pointer" title="Send a photo">
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleAttach(e.target.files)}
+                      />
+                      <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                        <span>
+                          <ImagePlus className="h-4 w-4" />
+                        </span>
+                      </Button>
+                    </label>
+                    <label className="cursor-pointer" title="Attach a file">
                       <input
                         type="file"
                         multiple
@@ -751,5 +819,30 @@ export function SupportWidget() {
         </>
       )}
     </>
+  );
+}
+
+function SupportImage({ path, name }: { path: string; name: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const { getSupportAttachmentUrl } = await import("@/lib/support.functions");
+        const r = await getSupportAttachmentUrl({ data: { path } });
+        if (alive) setUrl(r.url);
+      } catch {
+        /* noop */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [path]);
+  if (!url) return <div className="h-32 w-40 animate-pulse rounded-lg bg-muted" />;
+  return (
+    <a href={url} target="_blank" rel="noopener" className="block">
+      <img src={url} alt={name} className="max-h-56 rounded-lg object-cover" />
+    </a>
   );
 }
