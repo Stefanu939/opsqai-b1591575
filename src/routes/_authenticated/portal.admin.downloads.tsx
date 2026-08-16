@@ -9,7 +9,7 @@ import {
   type PortalDownloadModule,
 } from "@/lib/portal-admin.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -155,8 +155,7 @@ function AdminDownloads() {
   };
 
   return (
-    <div>
-      <PageHeader
+    <ModulePage
         eyebrow="Portal admin"
         title="Download modules"
         description="Publish extra downloadable modules (plugins, templates, PDFs, tools) to the customer portal."
@@ -165,7 +164,7 @@ function AdminDownloads() {
             <Plus className="h-4 w-4 mr-1" /> New module
           </Button>
         }
-      />
+    >
 
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -323,6 +322,6 @@ function AdminDownloads() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ModulePage>
   );
 }

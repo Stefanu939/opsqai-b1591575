@@ -12,7 +12,7 @@ import {
   type PortalAnnouncement,
 } from "@/lib/portal-admin.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -166,8 +166,7 @@ function AdminNews() {
   };
 
   return (
-    <div>
-      <PageHeader
+    <ModulePage
         eyebrow="Portal admin"
         title="News"
         description="Publish news posts and announcements to every customer signed into the portal."
@@ -176,7 +175,7 @@ function AdminNews() {
             <Plus className="h-4 w-4 mr-1" /> New post
           </Button>
         }
-      />
+    >
 
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -366,6 +365,6 @@ function AdminNews() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ModulePage>
   );
 }
