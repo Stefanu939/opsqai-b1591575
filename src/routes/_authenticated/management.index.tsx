@@ -3,17 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 
-import {
-  Building2,
-  KeyRound,
-  Package,
-  Rocket,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { Building2, KeyRound, Package, Rocket, TrendingUp, Users } from "lucide-react";
 import { getPlatformOverviewStats } from "@/lib/platform-overview.functions";
 import { platformStats } from "@/lib/companies.functions";
 import { PageHeader } from "@/components/ui/page-header";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +30,6 @@ export const Route = createFileRoute("/_authenticated/management/")({
     </div>
   ),
 });
-
 
 type Onboarding = {
   install_id: string;
@@ -62,7 +56,6 @@ function OverviewPage() {
     queryFn: () => stats({ data: {} } as never),
     enabled: !!session,
   });
-
 
   const kpis = overviewQ.data?.kpis;
   const platform = statsQ.data;
@@ -101,9 +94,7 @@ function OverviewPage() {
           r.last_heartbeat_at &&
           Date.now() - new Date(r.last_heartbeat_at).getTime() < 15 * 60 * 1000;
         return (
-          <Badge variant={online ? "default" : "outline"}>
-            {online ? "Online" : "Offline"}
-          </Badge>
+          <Badge variant={online ? "default" : "outline"}>{online ? "Online" : "Offline"}</Badge>
         );
       },
     },
@@ -135,65 +126,66 @@ function OverviewPage() {
             Commercial
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <StatCard
-            label="Active licenses"
-            value={kpis?.activeLicenses ?? "—"}
-            icon={KeyRound}
-            trend={
-              kpis && kpis.activeLicensesTrend !== 0
-                ? {
-                    value: `${Math.abs(kpis.activeLicensesTrend)}%`,
-                    direction: kpis.activeLicensesTrend > 0 ? "up" : "down",
-                  }
-                : undefined
-            }
-            hint="vs previous 30d"
-          />
-          <StatCard
-            label="Revenue (30d)"
-            value={
-              kpis
-                ? new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "EUR",
-                    maximumFractionDigits: 0,
-                  }).format(kpis.revenueMonthCents / 100)
-                : "—"
-            }
-            icon={TrendingUp}
-            trend={
-              kpis && kpis.revenueTrend !== 0
-                ? {
-                    value: `${Math.abs(kpis.revenueTrend)}%`,
-                    direction: kpis.revenueTrend > 0 ? "up" : "down",
-                  }
-                : undefined
-            }
-            hint="Rolling window"
-          />
-          <StatCard
-            label="Expiring soon"
-            value={kpis?.expiringSoon ?? "—"}
-            icon={TrendingUp}
-            hint="Within 30 days"
-            className={
-              kpis && kpis.expiringSoon > 0
-                ? "border-amber-500/30 bg-amber-500/5"
-                : undefined
-            }
-          />
-          <StatCard
-            label="Companies"
-            value={platform?.total_companies ?? "—"}
-            icon={Building2}
-            hint={
-              platform
-                ? `${platform.active_companies} active`
-                : "Total on the platform"
-            }
-          />
-        </div>
+        <BentoGrid>
+          <BentoItem span={3} index={0}>
+            <MetricTile
+              label="Active licenses"
+              value={kpis?.activeLicenses ?? "—"}
+              icon={KeyRound}
+              hint="vs previous 30d"
+              delta={
+                kpis && kpis.activeLicensesTrend !== 0
+                  ? {
+                      value: `${Math.abs(kpis.activeLicensesTrend)}%`,
+                      direction: kpis.activeLicensesTrend > 0 ? "up" : "down",
+                    }
+                  : undefined
+              }
+            />
+          </BentoItem>
+          <BentoItem span={3} index={1}>
+            <MetricTile
+              label="Revenue (30d)"
+              value={
+                kpis
+                  ? new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "EUR",
+                      maximumFractionDigits: 0,
+                    }).format(kpis.revenueMonthCents / 100)
+                  : "—"
+              }
+              icon={TrendingUp}
+              tone="gold"
+              hint="Rolling window"
+              delta={
+                kpis && kpis.revenueTrend !== 0
+                  ? {
+                      value: `${Math.abs(kpis.revenueTrend)}%`,
+                      direction: kpis.revenueTrend > 0 ? "up" : "down",
+                    }
+                  : undefined
+              }
+            />
+          </BentoItem>
+          <BentoItem span={3} index={2}>
+            <MetricTile
+              label="Expiring soon"
+              value={kpis?.expiringSoon ?? "—"}
+              icon={TrendingUp}
+              hint="Within 30 days"
+              tone={kpis && kpis.expiringSoon > 0 ? "warning" : "default"}
+            />
+          </BentoItem>
+          <BentoItem span={3} index={3}>
+            <MetricTile
+              label="Companies"
+              value={platform?.total_companies ?? "—"}
+              icon={Building2}
+              hint={platform ? `${platform.active_companies} active` : "Total on the platform"}
+            />
+          </BentoItem>
+        </BentoGrid>
       </section>
 
       {/* Fleet health — what's running right now */}
@@ -204,33 +196,41 @@ function OverviewPage() {
             Fleet health
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <StatCard
-            label="Online installs"
-            value={kpis?.onlineInstalls ?? "—"}
-            icon={Package}
-            hint="Heartbeat < 15 min"
-          />
-          <StatCard
-            label="Users total"
-            value={platform?.total_users ?? "—"}
-            icon={Users}
-            hint="Across all tenants"
-          />
-          <StatCard
-            label="Active companies"
-            value={platform?.active_companies ?? "—"}
-            icon={Building2}
-            hint="Have run in last 30d"
-          />
-          <StatCard
-            label="Current release"
-            value={releasesLatest?.version ?? "—"}
-            icon={Rocket}
-            hint={releasesLatest?.channel ?? "No release published"}
-            className="border-[color:var(--mc-gold-line,var(--gold-line))] bg-[color:var(--mc-gold-soft,var(--gold-soft))]/30"
-          />
-        </div>
+        <BentoGrid>
+          <BentoItem span={3} index={0}>
+            <MetricTile
+              label="Online installs"
+              value={kpis?.onlineInstalls ?? "—"}
+              icon={Package}
+              hint="Heartbeat < 15 min"
+            />
+          </BentoItem>
+          <BentoItem span={3} index={1}>
+            <MetricTile
+              label="Users total"
+              value={platform?.total_users ?? "—"}
+              icon={Users}
+              hint="Across all tenants"
+            />
+          </BentoItem>
+          <BentoItem span={3} index={2}>
+            <MetricTile
+              label="Active companies"
+              value={platform?.active_companies ?? "—"}
+              icon={Building2}
+              hint="Have run in last 30d"
+            />
+          </BentoItem>
+          <BentoItem span={3} index={3}>
+            <MetricTile
+              label="Current release"
+              value={releasesLatest?.version ?? "—"}
+              icon={Rocket}
+              tone="gold"
+              hint={releasesLatest?.channel ?? "No release published"}
+            />
+          </BentoItem>
+        </BentoGrid>
       </section>
 
       <section className="space-y-3">

@@ -9,7 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
+import { Panel } from "@/components/ui/panel";
+import { ProgressRing } from "@/components/ui/progress-ring";
 import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -126,13 +130,7 @@ function KnowledgePage() {
   const canEdit =
     isAdmin ||
     isManager ||
-    hasAnyPermission(
-      "knowledge.manage",
-      "sop.create",
-      "sop.edit",
-      "sop.publish",
-      "sop.delete",
-    );
+    hasAnyPermission("knowledge.manage", "sop.create", "sop.edit", "sop.publish", "sop.delete");
 
   const [docs, setDocs] = useState<Doc[]>([]);
   const [showInactive, setShowInactive] = useState(false);
@@ -151,7 +149,6 @@ function KnowledgePage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-
 
   const process = useServerFn(processDocument);
   const del = useServerFn(deleteKnowledgeDocument);
@@ -362,24 +359,47 @@ function KnowledgePage() {
   });
 
   return (
-    <div className="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title={t("knowledge")}
-        description={t("documentsDesc")}
-        actions={
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Switch checked={showInactive} onCheckedChange={setShowInactive} />
-              Show archived versions
-            </label>
-            {canEdit && (
-              <Button variant="outline" onClick={() => setExportOpen(true)}>
-                <Download className="h-4 w-4 mr-2" /> Export
-              </Button>
-            )}
-            {canEdit && (
-              <Dialog open={open} onOpenChange={setOpen}>
+    <ModulePage
+      eyebrow="Knowledge"
+      title={t("knowledge")}
+      description={t("documentsDesc")}
+      toolbar={
+        <>
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search documents, codes, content…"
+            className="h-9 max-w-xs bg-card"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            <FilterChip active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")}>
+              All
+            </FilterChip>
+            {CATEGORIES.map((c) => (
+              <FilterChip
+                key={c}
+                active={categoryFilter === c}
+                onClick={() => setCategoryFilter(c)}
+              >
+                {c}
+              </FilterChip>
+            ))}
+          </div>
+        </>
+      }
+      actions={
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Switch checked={showInactive} onCheckedChange={setShowInactive} />
+            Show archived versions
+          </label>
+          {canEdit && (
+            <Button variant="outline" onClick={() => setExportOpen(true)}>
+              <Download className="h-4 w-4 mr-2" /> Export
+            </Button>
+          )}
+          {canEdit && (
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Upload className="h-4 w-4 mr-2" />
@@ -458,75 +478,71 @@ function KnowledgePage() {
                   </DialogFooter>
                 </form>
               </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        }
-      />
-
-      {/* Metrics rail — each stat answers a concrete business question */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <StatTile
-          icon={BookOpen}
-          label="Active documents"
-          value={totalActive}
-          hint="Currently indexed"
-          tone="default"
-        />
-        <StatTile
-          icon={Sparkles}
-          label="Indexed chunks"
-          value={totalChunks.toLocaleString()}
-          hint="AI-searchable knowledge units"
-          tone="gold"
-        />
-        <StatTile
-          icon={ShieldAlert}
-          label="Critical SOPs"
-          value={criticalCount}
-          hint="Require acknowledgement"
-          tone={criticalCount > 0 ? "warning" : "default"}
-        />
-        <StatTile
-          icon={processingCount > 0 ? Loader2 : AlertTriangle}
-          label={processingCount > 0 ? "Processing" : "Failed"}
-          value={processingCount > 0 ? processingCount : failedCount}
-          hint={processingCount > 0 ? "Indexing in progress" : failedCount > 0 ? "Need re-indexing" : "All healthy"}
-          tone={failedCount > 0 ? "danger" : processingCount > 0 ? "info" : "default"}
-          spin={processingCount > 0}
-        />
-      </div>
-
-      {/* Filter bar */}
-      <div className="mb-5 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[220px] max-w-md">
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search documents, codes, content…"
-            className="h-9 bg-card"
+            </Dialog>
+          )}
+        </div>
+      }
+    >
+      <BentoGrid>
+        <BentoItem span={3} index={0}>
+          <MetricTile
+            icon={BookOpen}
+            label="Active documents"
+            value={totalActive}
+            hint="Currently indexed"
           />
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          <FilterChip active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")}>
-            All
-          </FilterChip>
-          {CATEGORIES.map((c) => (
-            <FilterChip
-              key={c}
-              active={categoryFilter === c}
-              onClick={() => setCategoryFilter(c)}
-            >
-              {c}
-            </FilterChip>
-          ))}
-        </div>
-      </div>
+        </BentoItem>
+        <BentoItem span={3} index={1}>
+          <MetricTile
+            icon={Sparkles}
+            label="Indexed chunks"
+            value={totalChunks.toLocaleString()}
+            hint="AI-searchable knowledge units"
+            tone="gold"
+          />
+        </BentoItem>
+        <BentoItem span={3} index={2}>
+          <MetricTile
+            icon={ShieldAlert}
+            label="Critical SOPs"
+            value={criticalCount}
+            hint="Require acknowledgement"
+            tone={criticalCount > 0 ? "warning" : "default"}
+          />
+        </BentoItem>
+        <BentoItem span={3} index={3}>
+          <Panel glass bodyClassName="flex items-center gap-4 p-4">
+            <ProgressRing
+              value={
+                totalActive + failedCount === 0
+                  ? 0
+                  : Math.round((totalActive / (totalActive + failedCount + processingCount)) * 100)
+              }
+              size={64}
+            />
+            <div className="min-w-0">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Index health
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {processingCount > 0
+                  ? `${processingCount} indexing…`
+                  : failedCount > 0
+                    ? `${failedCount} need re-indexing`
+                    : "All documents indexed"}
+              </p>
+            </div>
+          </Panel>
+        </BentoItem>
+      </BentoGrid>
 
       {loading ? (
         <div className="grid gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-lg border border-border bg-card p-4 flex items-start gap-3">
+            <div
+              key={i}
+              className="rounded-lg border border-border bg-card p-4 flex items-start gap-3"
+            >
               <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
               <div className="flex-1 min-w-0 space-y-2">
                 <Skeleton className="h-4 w-1/3" />
@@ -555,7 +571,6 @@ function KnowledgePage() {
             ) : undefined
           }
         />
-
       ) : (
         <div className="grid gap-3">
           {visibleDocs.map((d) => (
@@ -787,7 +802,7 @@ function KnowledgePage() {
       </Dialog>
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} kind="kb" onDeleted={load} />
-    </div>
+    </ModulePage>
   );
 }
 
@@ -881,4 +896,3 @@ function FilterChip({
     </button>
   );
 }
-

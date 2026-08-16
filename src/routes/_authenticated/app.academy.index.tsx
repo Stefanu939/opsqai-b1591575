@@ -29,6 +29,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AcademySubnav } from "@/components/app/academy-subnav";
+import { ModulePage } from "@/components/app/module-page";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
+import { Panel } from "@/components/ui/panel";
+import { ProgressRing } from "@/components/ui/progress-ring";
 import { AssignTrainingDialog } from "@/components/academy/assign-training-dialog";
 import { CreateCourseDialog } from "@/components/academy/create-course-dialog";
 
@@ -137,21 +142,11 @@ function MyTrainingHome() {
     <div className="flex flex-col min-h-[calc(100vh-3.5rem)] md:min-h-dvh">
       <AcademySubnav />
 
-      <div className="px-4 md:px-6 py-6 md:py-8 max-w-7xl mx-auto w-full">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-[11px] text-muted-foreground">
-              <GraduationCap className="h-3 w-3 text-primary" /> My Training
-            </div>
-            <h1 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">
-              {greet(name, lang)}
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground max-w-xl">
-              Your assigned learning, in one place. Continue where you left off, complete mandatory
-              training and earn certificates.
-            </p>
-          </div>
+      <ModulePage
+        eyebrow="My Training"
+        title={greet(name, lang)}
+        description="Your assigned learning, in one place. Continue where you left off, complete mandatory training and earn certificates."
+        actions={
           <div className="flex items-center gap-2">
             {hasPermission("academy.manage") && (
               <Button onClick={() => setCreateOpen(true)} className="gap-2">
@@ -169,40 +164,50 @@ function MyTrainingHome() {
               </Link>
             </Button>
           </div>
-        </div>
-
-        {/* Summary widget */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
-          <SummaryStat
-            icon={AlertTriangle}
-            label="Mandatory active"
-            value={stats?.mandatory_active ?? 0}
-            tone="warning"
-            onClick={() => setFilter("mandatory")}
-          />
-          <SummaryStat
-            icon={Award}
-            label="Certificates"
-            value={stats?.certificates ?? 0}
-            onClick={() => navigate({ to: "/app/academy/certificates" })}
-          />
-          <SummaryStat
-            icon={ListChecks}
-            label="Avg. quiz score"
-            value={stats?.average_quiz_score != null ? `${stats.average_quiz_score}%` : "—"}
-          />
-          <SummaryStat
-            icon={GraduationCap}
-            label="Learning progress"
-            value={`${stats?.learning_progress_percent ?? 0}%`}
-          />
-          <SummaryStat
-            icon={Timer}
-            label="Upcoming deadlines"
-            value={stats?.upcoming_deadlines ?? 0}
-            tone={stats && stats.upcoming_deadlines > 0 ? "warning" : "default"}
-          />
-        </div>
+        }
+      >
+        <BentoGrid>
+          <BentoItem span={3} index={0}>
+            <MetricTile
+              icon={AlertTriangle}
+              label="Mandatory active"
+              value={stats?.mandatory_active ?? 0}
+              tone={stats && stats.mandatory_active > 0 ? "warning" : "default"}
+              onClick={() => setFilter("mandatory")}
+            />
+          </BentoItem>
+          <BentoItem span={3} index={1}>
+            <MetricTile
+              icon={Award}
+              label="Certificates"
+              value={stats?.certificates ?? 0}
+              tone="gold"
+              onClick={() => navigate({ to: "/app/academy/certificates" })}
+            />
+          </BentoItem>
+          <BentoItem span={3} index={2}>
+            <MetricTile
+              icon={ListChecks}
+              label="Avg. quiz score"
+              value={stats?.average_quiz_score != null ? `${stats.average_quiz_score}%` : "—"}
+            />
+          </BentoItem>
+          <BentoItem span={3} index={3}>
+            <Panel glass bodyClassName="flex items-center gap-4 p-4">
+              <ProgressRing value={stats?.learning_progress_percent ?? 0} size={64} />
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Learning progress
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {(stats?.upcoming_deadlines ?? 0) > 0
+                    ? `${stats?.upcoming_deadlines} upcoming deadline(s)`
+                    : "No deadlines ahead"}
+                </p>
+              </div>
+            </Panel>
+          </BentoItem>
+        </BentoGrid>
 
         {/* Filters + search */}
         <div className="mt-8 flex flex-wrap items-center gap-2">
@@ -251,7 +256,7 @@ function MyTrainingHome() {
             ))}
           </div>
         )}
-      </div>
+      </ModulePage>
       <AssignTrainingDialog
         open={assignOpen}
         onOpenChange={setAssignOpen}
@@ -268,7 +273,6 @@ function MyTrainingHome() {
         onOpenChange={setCreateOpen}
         onCreated={(pathId) => navigate({ to: "/app/academy/path/$pathId", params: { pathId } })}
       />
-
     </div>
   );
 }

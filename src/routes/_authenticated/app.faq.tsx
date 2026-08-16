@@ -8,7 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
+import { Panel } from "@/components/ui/panel";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -24,7 +28,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2, Download, Upload, HelpCircle, SearchX } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Upload, HelpCircle, SearchX, Layers } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertFaq, deleteFaq, listFaqs } from "@/lib/faqs.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
@@ -127,23 +131,72 @@ function FaqPage() {
     }
   };
 
+  const [category, setCategory] = useState<string>("all");
+
+  const categories = Array.from(new Set(faqs.map((f) => f.category || "general"))).sort();
+
   const filtered = faqs.filter((f) => {
     const q = search.toLowerCase();
+    const inCat = category === "all" || (f.category || "general") === category;
     return (
-      !q ||
-      f.question_de.toLowerCase().includes(q) ||
-      f.question_en.toLowerCase().includes(q) ||
-      f.answer_de.toLowerCase().includes(q) ||
-      f.answer_en.toLowerCase().includes(q)
+      inCat &&
+      (!q ||
+        f.question_de.toLowerCase().includes(q) ||
+        f.question_en.toLowerCase().includes(q) ||
+        f.answer_de.toLowerCase().includes(q) ||
+        f.answer_en.toLowerCase().includes(q))
     );
   });
 
+  const avgAnswerLength = faqs.length
+    ? Math.round(
+        faqs.reduce((sum, f) => sum + (lang === "de" ? f.answer_de : f.answer_en).length, 0) /
+          faqs.length,
+      )
+    : 0;
+
+  const bilingual = faqs.filter(
+    (f) => f.question_de.trim() && f.question_en.trim() && f.answer_de.trim() && f.answer_en.trim(),
+  ).length;
+  const coverage = faqs.length ? Math.round((bilingual / faqs.length) * 100) : 0;
+
   return (
-    <div className="flex-1 p-4 md:p-8 max-w-4xl w-full mx-auto">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title={t("faq")}
-        actions={
+    <ModulePage
+      eyebrow="Knowledge"
+      title={t("faq")}
+      description="Curated answers your assistant can quote verbatim. Keep both languages complete so every user gets a grounded reply."
+      tabs={
+        categories.length > 0 ? (
+          <SegmentedTabs
+            size="sm"
+            ariaLabel="FAQ category"
+            value={category}
+            onChange={setCategory}
+            options={[
+              { value: "all", label: "All", count: faqs.length },
+              ...categories.map((c) => ({
+                value: c,
+                label: c,
+                count: faqs.filter((f) => (f.category || "general") === c).length,
+              })),
+            ]}
+          />
+        ) : undefined
+      }
+      toolbar={
+        <>
+          <Input
+            placeholder={t("search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 max-w-xs"
+          />
+          <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+            {filtered.length} / {faqs.length}
+          </span>
+        </>
+      }
+      actions={
         <div className="flex items-center gap-2">
           {canEditFaq && (
             <Button variant="outline" onClick={() => setExportOpen(true)}>
@@ -204,79 +257,105 @@ function FaqPage() {
             </Dialog>
           )}
         </div>
-        }
-      />
+      }
+    >
+      <BentoGrid>
+        <BentoItem span={3} index={0}>
+          <MetricTile label="Total FAQs" value={faqs.length} icon={HelpCircle} tone="gold" />
+        </BentoItem>
+        <BentoItem span={3} index={1}>
+          <MetricTile label="Categories" value={categories.length} icon={Layers} />
+        </BentoItem>
+        <BentoItem span={3} index={2}>
+          <MetricTile
+            label="Bilingual coverage"
+            value={`${coverage}%`}
+            hint={`${bilingual} of ${faqs.length} complete in DE + EN`}
+            tone={coverage >= 90 ? "success" : coverage >= 60 ? "warning" : "danger"}
+          />
+        </BentoItem>
+        <BentoItem span={3} index={3}>
+          <MetricTile
+            label="Avg. answer length"
+            value={`${avgAnswerLength}`}
+            hint="characters — keep answers concise and quotable"
+          />
+        </BentoItem>
 
-      <Input
-        placeholder={t("search")}
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-4"
-      />
-
-      {loading ? (
-        <Card className="p-2">
-          <div className="divide-y divide-border">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="px-3 py-3 space-y-2">
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-3 w-1/3" />
-              </div>
-            ))}
-          </div>
-        </Card>
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          icon={faqs.length === 0 ? HelpCircle : SearchX}
-          title={faqs.length === 0 ? t("noFaqs") : "No FAQs match your search"}
-          description={
-            faqs.length === 0
-              ? undefined
-              : "Try a different search term or clear the search to see all FAQs."
-          }
-        />
-      ) : (
-        <Card className="p-2">
-          <Accordion type="single" collapsible>
-            {filtered.map((f) => (
-              <AccordionItem key={f.id} value={f.id}>
-                <AccordionTrigger className="px-3 text-left">
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground mr-2">
-                      {f.category}
-                    </span>
-                    {lang === "de" ? f.question_de : f.question_en}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-3">
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {lang === "de" ? f.answer_de : f.answer_en}
-                  </p>
-                  {canEditFaq && (
-                    <div className="flex gap-2 mt-3">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditing(f);
-                          setOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-3 w-3 mr-1" />
-                        {t("edit")}
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => onDelete(f.id)}>
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        {t("delete")}
-                      </Button>
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </Card>
-      )}
+        <BentoItem span={12} index={4}>
+          {loading ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-2 rounded-xl border border-border bg-card p-4">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-1/3" />
+                  <Skeleton className="h-3 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <Panel>
+              <EmptyState
+                icon={faqs.length === 0 ? HelpCircle : SearchX}
+                title={faqs.length === 0 ? t("noFaqs") : "No FAQs match your search"}
+                description={
+                  faqs.length === 0
+                    ? undefined
+                    : "Try a different search term or clear the search to see all FAQs."
+                }
+              />
+            </Panel>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {filtered.map((f, i) => (
+                <div
+                  key={f.id}
+                  className="oq-enter min-w-0"
+                  style={{ animationDelay: `${Math.min(i, 10) * 35}ms` }}
+                >
+                  <Panel
+                    className="oq-lift"
+                    title={lang === "de" ? f.question_de : f.question_en}
+                    description={f.category || "general"}
+                    icon={HelpCircle}
+                    actions={
+                      canEditFaq ? (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            aria-label={t("edit")}
+                            className="h-7 w-7"
+                            onClick={() => {
+                              setEditing(f);
+                              setOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            aria-label={t("delete")}
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => onDelete(f.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : undefined
+                    }
+                  >
+                    <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                      {lang === "de" ? f.answer_de : f.answer_en}
+                    </p>
+                  </Panel>
+                </div>
+              ))}
+            </div>
+          )}
+        </BentoItem>
+      </BentoGrid>
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} kind="faq" onDeleted={load} />
       <FaqImportDialog
@@ -285,6 +364,7 @@ function FaqPage() {
         companyId={scopeCompanyId ?? null}
         onImported={load}
       />
-    </div>
+    </ModulePage>
   );
 }
+

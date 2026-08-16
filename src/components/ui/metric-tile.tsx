@@ -12,6 +12,8 @@ export interface MetricTileProps {
   /** Inline sparkline series — plain numbers, newest last. */
   series?: number[];
   tone?: "default" | "gold" | "warning" | "danger" | "success";
+  /** Makes the tile an interactive drill-down button. */
+  onClick?: () => void;
   className?: string;
 }
 
@@ -35,15 +37,21 @@ export function MetricTile({
   delta,
   series,
   tone = "default",
+  onClick,
   className,
 }: MetricTileProps) {
   const data = (series ?? []).map((v, i) => ({ i, v }));
   const id = `spark-${label.replace(/\W+/g, "-").toLowerCase()}`;
 
+  const Root = (onClick ? "button" : "div") as "button";
+
   return (
-    <div
+    <Root
+      {...(onClick ? { type: "button" as const, onClick } : {})}
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card p-4 shadow-xs oq-lift",
+        "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card p-4 text-left shadow-xs oq-lift",
+        onClick &&
+          "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         toneRing[tone],
         className,
       )}
@@ -108,6 +116,6 @@ export function MetricTile({
           </ResponsiveContainer>
         </div>
       )}
-    </div>
+    </Root>
   );
 }
