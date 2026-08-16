@@ -160,10 +160,19 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
-    const unsubscribe = getBrowserAuthProvider().onSessionChange((event) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-        router.invalidate();
-        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+    const unsubscribe = getBrowserAuthProvider().onSessionChange(async (event) => {
+      if (event === "SIGNED_OUT") {
+        // Stop protected server-function calls before the session disappears
+        // from their Authorization header, then remove all private cache.
+        await queryClient.cancelQueries();
+        queryClient.clear();
+        await router.navigate({ to: "/auth", replace: true });
+        await router.invalidate();
+        return;
+      }
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        await router.invalidate();
+        await queryClient.invalidateQueries();
       }
     });
     import("@/lib/register-sw").then((m) => m.registerServiceWorker()).catch(() => {});
