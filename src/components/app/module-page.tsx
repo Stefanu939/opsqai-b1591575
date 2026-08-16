@@ -37,22 +37,33 @@ export function ModulePage({
   width?: "wide" | "full";
 }) {
   return (
-    <div className="oq-page min-h-full bg-background text-foreground">
+    <div className="oq-page relative min-h-full bg-background text-foreground">
+      {/* Ambient command-deck backdrop — gold/primary aura behind the header. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        style={{
+          background:
+            "radial-gradient(70% 100% at 12% 0%, color-mix(in oklab, var(--gold) 12%, transparent) 0%, transparent 70%), radial-gradient(60% 100% at 90% 0%, color-mix(in oklab, var(--primary) 12%, transparent) 0%, transparent 72%)",
+        }}
+      />
       <div
         className={cn(
-          "mx-auto px-4 py-6 md:px-6 md:py-8",
+          "relative mx-auto px-4 py-6 md:px-6 md:py-8",
           width === "wide" ? "max-w-7xl" : "max-w-none",
           className,
         )}
       >
-        <PageHeader
-          eyebrow={eyebrow}
-          title={title}
-          description={description}
-          breadcrumbs={breadcrumbs}
-          actions={actions}
-          className="mb-5 pb-5"
-        />
+        <div className="relative mb-5 overflow-hidden rounded-xl border border-border bg-card/70 px-4 py-4 shadow-xs oq-edge-gold backdrop-blur md:px-5 md:py-5">
+          <PageHeader
+            eyebrow={eyebrow}
+            title={title}
+            description={description}
+            breadcrumbs={breadcrumbs}
+            actions={actions}
+            className="mb-0 border-b-0 pb-0"
+          />
+        </div>
 
         {tabs && <div className="mb-4 flex flex-wrap items-center gap-2">{tabs}</div>}
 
@@ -67,3 +78,4 @@ export function ModulePage({
     </div>
   );
 }
+
