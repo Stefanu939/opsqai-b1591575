@@ -17,16 +17,9 @@ import {
   AlertTriangle,
   HelpCircle,
   ShieldCheck,
+  GraduationCap,
+  LineChart,
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as ReTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { getDashboardOverview as getOnboardingOverview } from "@/lib/dashboard-overview.functions";
 import {
   getDashboardOverview as getDashboardData,
@@ -37,8 +30,12 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatCard } from "@/components/ui/stat-card";
 import { Badge } from "@/components/ui/badge";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
+import { Panel } from "@/components/ui/panel";
+import { ProgressRing } from "@/components/ui/progress-ring";
+import { AreaTrend, DonutBreakdown, ChartLegend } from "@/components/ui/mini-chart";
 import {
   DashboardFilters,
   DEFAULT_FILTERS,
@@ -188,9 +185,9 @@ function Dashboard() {
   const isEmptyWorkspace = data?.isEmpty !== false;
 
   return (
-    <div className="min-h-full bg-background text-foreground">
+    <div className="oq-page min-h-full bg-background text-foreground">
       {/* Hero */}
-      <div className="max-w-6xl mx-auto px-6 pt-10">
+      <div className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-gold-line bg-gold-soft px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold">
           <Sparkles className="h-3 w-3" />
           {isEmptyWorkspace ? "Get started" : "Operational overview"}
@@ -214,7 +211,7 @@ function Dashboard() {
 
       {isEmptyWorkspace ? (
         /* Onboarding cards */
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
           {!data ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -279,6 +276,15 @@ function Dashboard() {
   );
 }
 
+const QUICK_ACTIONS = [
+  { to: "/app/chat", label: "Ask the assistant", icon: MessageSquare },
+  { to: "/app/knowledge", label: "Add knowledge", icon: BookOpen },
+  { to: "/app/faq", label: "Curate FAQ", icon: HelpCircle },
+  { to: "/app/academy", label: "Academy", icon: GraduationCap },
+  { to: "/app/audit", label: "Run AI audit", icon: LineChart },
+  { to: "/app/users", label: "Manage users", icon: Users },
+];
+
 function DashboardWidgets() {
   const [filters, setFilters] = useState<DashboardFilterState>(DEFAULT_FILTERS);
   useEffect(() => setFilters(readFilters()), []);
@@ -318,205 +324,273 @@ function DashboardWidgets() {
   const health = overviewQ.data?.health;
   const status = overviewQ.data?.knowledgeStatus;
 
+  const activityRows = activityQ.data?.rows ?? [];
+  const questionSeries = activityRows.map((r) => Number(r.questions ?? 0));
+
+  const knowledgeSplit = status
+    ? [
+        { name: "Complete", value: status.complete },
+        { name: "In progress", value: status.inProgress },
+        { name: "Missing", value: status.missing },
+      ].filter((s) => Number(s.value) > 0)
+    : [];
+
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 py-6 md:px-6 md:py-8">
       <DashboardFilters value={filters} onChange={update} />
 
-      {overviewQ.isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-lg" />
+      <BentoGrid>
+        {/* KPI row */}
+        {show("kpis") &&
+          (overviewQ.isLoading ? (
+            <>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <BentoItem key={i} span={3} index={i}>
+                  <Skeleton className="h-[136px] w-full rounded-xl" />
+                </BentoItem>
+              ))}
+            </>
+          ) : (
+            <>
+              <BentoItem span={3} index={0}>
+                <MetricTile
+                  label="Questions (30d)"
+                  value={kpis?.questions30d ?? "—"}
+                  icon={MessageSquare}
+                  hint={`${kpis?.questionsToday ?? 0} today`}
+                  series={questionSeries}
+                />
+              </BentoItem>
+              <BentoItem span={3} index={1}>
+                <MetricTile
+                  label="Documents"
+                  value={kpis?.documents ?? "—"}
+                  icon={FileText}
+                  hint={status ? `${status.complete} complete` : undefined}
+                />
+              </BentoItem>
+              <BentoItem span={3} index={2}>
+                <MetricTile label="FAQ entries" value={kpis?.faqs ?? "—"} icon={HelpCircle} />
+              </BentoItem>
+              <BentoItem span={3} index={3}>
+                <MetricTile
+                  label="Open gaps"
+                  value={kpis?.openGaps ?? "—"}
+                  icon={AlertTriangle}
+                  tone={kpis && kpis.openGaps > 0 ? "warning" : "default"}
+                  hint={kpis && kpis.openGaps > 0 ? "needs attention" : "all clear"}
+                />
+              </BentoItem>
+
+              <BentoItem span={3} index={4}>
+                <MetricTile label="Active users (30d)" value={kpis?.activeUsers ?? "—"} icon={Users} />
+              </BentoItem>
+              <BentoItem span={3} index={5}>
+                <MetricTile
+                  label="AI confidence (30d)"
+                  value={
+                    kpis?.avgConfidence != null && kpis.avgConfidence > 0
+                      ? `${Math.round(kpis.avgConfidence * 100)}%`
+                      : "—"
+                  }
+                  icon={ShieldCheck}
+                  tone={
+                    kpis?.avgConfidence != null && kpis.avgConfidence >= 0.7 ? "success" : "default"
+                  }
+                />
+              </BentoItem>
+              <BentoItem span={3} index={6}>
+                <MetricTile label="AI audits" value={kpis?.aiAudits ?? "—"} icon={Activity} />
+              </BentoItem>
+              <BentoItem span={3} index={7}>
+                <MetricTile
+                  label="Last audit score"
+                  value={overviewQ.data?.lastAudit?.score ?? "—"}
+                  icon={ShieldCheck}
+                  hint={
+                    overviewQ.data?.lastAudit?.createdAt
+                      ? new Date(overviewQ.data.lastAudit.createdAt).toLocaleDateString()
+                      : "no audit yet"
+                  }
+                />
+              </BentoItem>
+            </>
           ))}
-        </div>
-      ) : (
-        show("kpis") && (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard
-              label="Questions (30d)"
-              value={kpis?.questions30d ?? "—"}
-              icon={MessageSquare}
-              hint={`${kpis?.questionsToday ?? 0} today`}
-            />
-            <StatCard label="Documents" value={kpis?.documents ?? "—"} icon={FileText} />
-            <StatCard label="FAQ entries" value={kpis?.faqs ?? "—"} icon={HelpCircle} />
-            <StatCard
-              label="Open gaps"
-              value={kpis?.openGaps ?? "—"}
-              icon={AlertTriangle}
-              className={kpis && kpis.openGaps > 0 ? "border-amber-500/30 bg-amber-500/5" : undefined}
-            />
-          </div>
-        )
-      )}
 
-      {!overviewQ.isLoading && show("kpis") && (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard
-            label="Active users (30d)"
-            value={kpis?.activeUsers ?? "—"}
-            icon={Users}
-          />
-          <StatCard
-            label="AI confidence (30d)"
-            value={
-              kpis?.avgConfidence != null && kpis.avgConfidence > 0
-                ? `${Math.round(kpis.avgConfidence * 100)}%`
-                : "—"
-            }
-            icon={ShieldCheck}
-          />
-          <StatCard label="AI audits" value={kpis?.aiAudits ?? "—"} icon={Activity} />
-          <StatCard
-            label="Last audit score"
-            value={overviewQ.data?.lastAudit?.score ?? "—"}
-            icon={ShieldCheck}
-            hint={
-              overviewQ.data?.lastAudit?.createdAt
-                ? new Date(overviewQ.data.lastAudit.createdAt).toLocaleDateString()
-                : "no audit yet"
-            }
-          />
-        </div>
-      )}
-
-
-      {show("health") && (
-        <Card className="p-5 border-border/60">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold tracking-tight flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-gold" />
-              Workspace health
-            </h2>
-            <Badge variant="outline">{health?.label ?? "—"}</Badge>
-          </div>
-          <div className="mt-4 flex items-end gap-3">
-            <span className="font-display text-4xl font-semibold tabular-nums">
-              {health?.score ?? "—"}
-            </span>
-            <span className="text-sm text-muted-foreground">/ 100</span>
-          </div>
-          {status && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              Knowledge: {status.complete} complete · {status.inProgress} in progress ·{" "}
-              {status.missing} missing
-            </p>
-          )}
-        </Card>
-      )}
-
-      {show("activity") && (
-        <Card className="p-5 border-border/60">
-          <h2 className="text-sm font-semibold tracking-tight flex items-center gap-2">
-            <Activity className="h-4 w-4 text-gold" />
-            Activity — last {filters.range}
-          </h2>
-          <div className="mt-4 h-56">
-            {activityQ.isLoading ? (
-              <Skeleton className="h-full w-full rounded-md" />
-            ) : (activityQ.data?.rows?.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground">No activity in this window.</p>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activityQ.data?.rows ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis
-                    dataKey="bucket"
-                    tick={{ fontSize: 11 }}
-                    stroke="var(--muted-foreground)"
-                    tickFormatter={(v: string) => String(v).slice(5, 10)}
+        {/* Activity chart */}
+        {show("activity") && (
+          <BentoItem span={8} index={8}>
+            <Panel
+              title={`Activity — last ${filters.range}`}
+              description="Questions asked versus assistant responses."
+              icon={Activity}
+              className="h-full"
+            >
+              {activityQ.isLoading ? (
+                <Skeleton className="h-56 w-full rounded-md" />
+              ) : activityRows.length === 0 ? (
+                <p className="py-16 text-center text-sm text-muted-foreground">
+                  No activity in this window.
+                </p>
+              ) : (
+                <>
+                  <AreaTrend data={activityRows} xKey="bucket" yKey="questions" height={224} />
+                  <ChartLegend
+                    className="mt-2"
+                    items={[
+                      { label: "Questions" },
+                      { label: "AI responses" },
+                    ]}
                   />
-                  <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" allowDecimals={false} />
-                  <ReTooltip
-                    contentStyle={{
-                      background: "var(--card)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="questions"
-                    stroke="var(--gold)"
-                    fill="var(--gold)"
-                    fillOpacity={0.15}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="aiResponses"
-                    stroke="var(--primary)"
-                    fill="var(--primary)"
-                    fillOpacity={0.1}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </Card>
-      )}
+                </>
+              )}
+            </Panel>
+          </BentoItem>
+        )}
 
-      {show("insights") && (
-        <Card className="p-5 border-border/60">
-          <h2 className="text-sm font-semibold tracking-tight flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-gold" />
-            Executive insights
-          </h2>
-          {insightsQ.isLoading ? (
-            <div className="mt-4 space-y-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-3 w-4/5" />
+        {/* Health ring */}
+        {show("health") && (
+          <BentoItem span={4} index={9}>
+            <Panel
+              glass
+              title="Workspace health"
+              icon={ShieldCheck}
+              className="h-full"
+              actions={<Badge variant="outline">{health?.label ?? "—"}</Badge>}
+            >
+              <div className="flex flex-col items-center gap-3 py-2">
+                <ProgressRing
+                  value={Number(health?.score ?? 0)}
+                  size={132}
+                  thickness={10}
+                  label={health?.score ?? "—"}
+                  sublabel="of 100"
+                />
+                {status && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    {status.complete} complete · {status.inProgress} in progress · {status.missing}{" "}
+                    missing
+                  </p>
+                )}
+              </div>
+            </Panel>
+          </BentoItem>
+        )}
+
+        {/* Knowledge donut */}
+        {show("health") && (
+          <BentoItem span={4} index={10}>
+            <Panel title="Knowledge coverage" icon={BookOpen} className="h-full">
+              {knowledgeSplit.length === 0 ? (
+                <p className="py-14 text-center text-sm text-muted-foreground">
+                  No knowledge status recorded yet.
+                </p>
+              ) : (
+                <>
+                  <DonutBreakdown data={knowledgeSplit} nameKey="name" valueKey="value" />
+                  <ChartLegend
+                    className="mt-2 justify-center"
+                    items={knowledgeSplit.map((s) => ({ label: s.name, value: s.value }))}
+                  />
+                </>
+              )}
+            </Panel>
+          </BentoItem>
+        )}
+
+        {/* Insights */}
+        {show("insights") && (
+          <BentoItem span={8} index={11}>
+            <Panel title="Executive insights" icon={Sparkles} className="h-full">
+              {insightsQ.isLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-3 w-4/5" />
+                  ))}
+                </div>
+              ) : (insightsQ.data?.insights ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Not enough signal yet — insights appear once the workspace is in daily use.
+                </p>
+              ) : (
+                <ul className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                  {(insightsQ.data?.insights ?? []).map((line, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-2 rounded-lg border border-border/60 bg-muted/25 p-3"
+                    >
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+          </BentoItem>
+        )}
+
+        {/* Quick actions */}
+        <BentoItem span={4} index={12}>
+          <Panel title="Quick actions" icon={ArrowRight} className="h-full">
+            <div className="grid grid-cols-2 gap-2">
+              {QUICK_ACTIONS.map((a) => (
+                <Link
+                  key={a.to}
+                  to={a.to}
+                  className="oq-lift flex flex-col gap-2 rounded-lg border border-border bg-muted/25 p-3 text-xs font-medium text-foreground"
+                >
+                  <a.icon className="h-4 w-4 text-gold" strokeWidth={1.75} />
+                  {a.label}
+                </Link>
               ))}
             </div>
-          ) : (
-            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              {(insightsQ.data?.insights ?? []).map((line, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      )}
+          </Panel>
+        </BentoItem>
 
-      <div className="grid gap-4 lg:grid-cols-2">
         {show("topSops") && (
-          <Card className="p-5 border-border/60">
-            <h2 className="text-sm font-semibold tracking-tight">Top SOPs</h2>
-            <ul className="mt-4 space-y-3">
-              {(overviewQ.data?.topSops ?? []).map((s, i) => (
-                <li key={i} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="truncate">{s.title ?? s.code ?? "Untitled"}</span>
-                  <span className="tabular-nums text-muted-foreground">{s.usage}</span>
-                </li>
-              ))}
-              {(overviewQ.data?.topSops ?? []).length === 0 && (
-                <li className="text-sm text-muted-foreground">No usage recorded yet.</li>
-              )}
-            </ul>
-          </Card>
+          <BentoItem span={6} index={13}>
+            <Panel title="Top SOPs" icon={BookOpen} className="h-full">
+              <ul className="space-y-2">
+                {(overviewQ.data?.topSops ?? []).map((s, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-2 text-sm"
+                  >
+                    <span className="truncate">{s.title ?? s.code ?? "Untitled"}</span>
+                    <span className="tabular-nums text-muted-foreground">{s.usage}</span>
+                  </li>
+                ))}
+                {(overviewQ.data?.topSops ?? []).length === 0 && (
+                  <li className="text-sm text-muted-foreground">No usage recorded yet.</li>
+                )}
+              </ul>
+            </Panel>
+          </BentoItem>
         )}
 
         {show("criticalSops") && (
-          <Card className="p-5 border-border/60">
-            <h2 className="text-sm font-semibold tracking-tight">Critical SOPs</h2>
-            <ul className="mt-4 space-y-3">
-              {(overviewQ.data?.criticalSops ?? []).map((s) => (
-                <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="truncate">{s.title}</span>
-                  <Badge variant="outline" className="shrink-0">
-                    {s.reason}
-                  </Badge>
-                </li>
-              ))}
-              {(overviewQ.data?.criticalSops ?? []).length === 0 && (
-                <li className="text-sm text-muted-foreground">Nothing flagged as critical.</li>
-              )}
-            </ul>
-          </Card>
+          <BentoItem span={6} index={14}>
+            <Panel title="Critical SOPs" icon={AlertTriangle} className="h-full">
+              <ul className="space-y-2">
+                {(overviewQ.data?.criticalSops ?? []).map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-2 text-sm"
+                  >
+                    <span className="truncate">{s.title}</span>
+                    <Badge variant="outline" className="shrink-0">
+                      {s.reason}
+                    </Badge>
+                  </li>
+                ))}
+                {(overviewQ.data?.criticalSops ?? []).length === 0 && (
+                  <li className="text-sm text-muted-foreground">Nothing flagged as critical.</li>
+                )}
+              </ul>
+            </Panel>
+          </BentoItem>
         )}
-      </div>
+      </BentoGrid>
     </div>
   );
 }
