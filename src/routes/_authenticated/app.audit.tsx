@@ -7,7 +7,11 @@ import {
   runWorkspaceAudit,
 } from "@/lib/ai-features.functions";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
+import { Panel } from "@/components/ui/panel";
+import { AreaTrend } from "@/components/ui/mini-chart";
 import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,94 +93,115 @@ function AiAuditPage() {
   const scoreTone =
     latest && latest.score >= 80 ? "gold" : latest && latest.score >= 60 ? "default" : latest ? "danger" : "muted";
 
-  return (
-    <div className="p-6 md:p-10 max-w-6xl w-full mx-auto">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title="AI Audit"
-        description="Grounded audit of your workspace knowledge, sources, coverage, and confidence. Every run is signed and stored for compliance."
-        actions={
-          canRun ? (
-            <Button onClick={run} loading={running} success={justRan}>
-              {!running && !justRan && <Play className="h-4 w-4 mr-1" />}
-              {running ? "Running audit…" : justRan ? "Audit complete" : "Run new audit"}
-            </Button>
-          ) : null
-        }
-      />
+  const trend = [...audits]
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .slice(-12)
+    .map((a) => ({ label: new Date(a.created_at).toLocaleDateString(), score: a.score }));
 
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
-        <StatCard
-          label="Latest score"
-          value={latest ? <CountValue value={latest.score} suffix="/100" /> : "—"}
-          hint={latest?.maturity ?? "Not measured"}
-          icon={LineChart}
-          className={
-            scoreTone === "gold"
-              ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/40"
-              : scoreTone === "danger"
-                ? "border-destructive/30 bg-destructive/5"
-                : undefined
-          }
-        />
-        <StatCard
-          label="Passed"
-          value={<CountValue value={latest?.passed ?? 0} />}
-          hint="Checks OK"
-          icon={CheckCircle2}
-        />
-        <StatCard
-          label="Warnings"
-          value={<CountValue value={latest?.warnings ?? 0} />}
-          hint="Attention needed"
-          icon={AlertTriangle}
-          className={latest && latest.warnings > 0 ? "border-amber-500/30 bg-amber-500/5" : undefined}
-        />
-        <StatCard
-          label="Critical"
-          value={<CountValue value={latest?.critical ?? 0} />}
-          hint="Immediate action"
-          icon={ShieldCheck}
-          className={latest && latest.critical > 0 ? "border-destructive/30 bg-destructive/5" : undefined}
-        />
-      </div>
+  return (
+    <ModulePage
+      eyebrow="Assurance"
+      title="AI Audit"
+      description="Grounded audit of your workspace knowledge, sources, coverage, and confidence. Every run is signed and stored for compliance."
+      actions={
+        canRun ? (
+          <Button onClick={run} loading={running} success={justRan}>
+            {!running && !justRan && <Play className="h-4 w-4 mr-1" />}
+            {running ? "Running audit…" : justRan ? "Audit complete" : "Run new audit"}
+          </Button>
+        ) : null
+      }
+    >
+      <BentoGrid>
+        <BentoItem span={3} index={0}>
+          <MetricTile
+            label="Latest score"
+            value={latest ? <CountValue value={latest.score} suffix="/100" /> : "—"}
+            hint={latest?.maturity ?? "Not measured"}
+            icon={LineChart}
+            series={trend.map((t) => t.score)}
+            tone={scoreTone === "gold" ? "gold" : scoreTone === "danger" ? "danger" : "default"}
+          />
+        </BentoItem>
+        <BentoItem span={3} index={1}>
+          <MetricTile
+            label="Passed"
+            value={<CountValue value={latest?.passed ?? 0} />}
+            hint="Checks OK"
+            icon={CheckCircle2}
+            tone="success"
+          />
+        </BentoItem>
+        <BentoItem span={3} index={2}>
+          <MetricTile
+            label="Warnings"
+            value={<CountValue value={latest?.warnings ?? 0} />}
+            hint="Attention needed"
+            icon={AlertTriangle}
+            tone={latest && latest.warnings > 0 ? "warning" : "default"}
+          />
+        </BentoItem>
+        <BentoItem span={3} index={3}>
+          <MetricTile
+            label="Critical"
+            value={<CountValue value={latest?.critical ?? 0} />}
+            hint="Immediate action"
+            icon={ShieldCheck}
+            tone={latest && latest.critical > 0 ? "danger" : "default"}
+          />
+        </BentoItem>
+
+        {trend.length > 1 && (
+          <BentoItem span={12} index={4}>
+            <Panel
+              title="Maturity trend"
+              description="Audit score across the last runs"
+              icon={LineChart}
+              glass
+            >
+              <AreaTrend data={trend} xKey="label" yKey="score" height={140} />
+            </Panel>
+          </BentoItem>
+        )}
+      </BentoGrid>
 
       <RecommendationsSection companyId={activeCompanyId ?? null} />
 
-
-
       {list.isLoading ? (
-        <div className="grid md:grid-cols-[1fr_1.5fr] gap-4">
-          <Card className="p-4 space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </Card>
-          <Card className="p-4 space-y-3">
-            <Skeleton className="h-6 w-1/3" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </Card>
+        <div className="grid gap-4 md:grid-cols-[1fr_1.5fr]">
+          <Panel>
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </Panel>
+          <Panel>
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </Panel>
         </div>
       ) : audits.length === 0 ? (
-        <EmptyState
-          icon={LineChart}
-          title="No audits yet"
-          description="Run your first AI audit to score workspace maturity and identify knowledge gaps."
-          action={
-            canRun ? (
-              <Button onClick={run} loading={running} success={justRan}>
-                {!running && !justRan && <Play className="h-4 w-4 mr-1" />} Run audit
-              </Button>
-            ) : undefined
-          }
-        />
+        <Panel>
+          <EmptyState
+            icon={LineChart}
+            title="No audits yet"
+            description="Run your first AI audit to score workspace maturity and identify knowledge gaps."
+            action={
+              canRun ? (
+                <Button onClick={run} loading={running} success={justRan}>
+                  {!running && !justRan && <Play className="h-4 w-4 mr-1" />} Run audit
+                </Button>
+              ) : undefined
+            }
+          />
+        </Panel>
       ) : (
-        <div className="grid md:grid-cols-[1fr_1.5fr] gap-4">
-          <Card className="p-0 overflow-hidden">
-            <div className="px-3 py-2 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-              Audit history
-            </div>
+        <div className="grid gap-4 md:grid-cols-[1fr_1.5fr]">
+          <Panel title="Audit history" icon={LineChart} flush>
             <ul className="divide-y divide-border">
               {audits.map((a) => {
                 const isActive = (selected?.id ?? latest?.id) === a.id;
@@ -223,8 +248,8 @@ function AiAuditPage() {
                 );
               })}
             </ul>
-          </Card>
-          <Card className="p-6">
+          </Panel>
+          <Panel glass bodyClassName="p-6">
             {(() => {
               const row = selected ?? latest;
               if (!row) return null;
@@ -280,12 +305,13 @@ function AiAuditPage() {
                 </div>
               );
             })()}
-          </Card>
+          </Panel>
         </div>
       )}
-    </div>
+    </ModulePage>
   );
 }
+
 
 /** Small animated counter — a KPI change should read as movement, not a swap. */
 function CountValue({ value, suffix }: { value: number; suffix?: string }) {

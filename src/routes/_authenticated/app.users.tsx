@@ -2,16 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import {
-  listUsers,
-  inviteUser,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "@/lib/users.functions";
+import { listUsers, inviteUser, createUser, updateUser, deleteUser } from "@/lib/users.functions";
 import { listAssignableRoles } from "@/lib/rbac.functions";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { EmptyState } from "@/components/ui/empty-state";
 import emptyTeamIllustration from "@/assets/empty-team.png";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -108,11 +102,19 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-
   const invite = useMutation({
     mutationFn: () =>
       selfHosted
-        ? createFn({ data: { email, password: temporaryPassword, first_name: firstName, last_name: lastName, role, must_change_password: true } })
+        ? createFn({
+            data: {
+              email,
+              password: temporaryPassword,
+              first_name: firstName,
+              last_name: lastName,
+              role,
+              must_change_password: true,
+            },
+          })
         : inviteFn({ data: { email, first_name: firstName, last_name: lastName, role } }),
     onSuccess: () => {
       toast.success(selfHosted ? "User created with a temporary password" : "Invitation sent");
@@ -193,8 +195,7 @@ function UsersPage() {
     {
       key: "last_sign_in_at",
       header: "Last sign-in",
-      render: (r) =>
-        r.last_sign_in_at ? new Date(r.last_sign_in_at).toLocaleDateString() : "—",
+      render: (r) => (r.last_sign_in_at ? new Date(r.last_sign_in_at).toLocaleDateString() : "—"),
     },
     {
       key: "is_active",
@@ -215,11 +216,7 @@ function UsersPage() {
             <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
           </Button>
 
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onToggleActive(r.id, r.is_active)}
-          >
+          <Button size="sm" variant="ghost" onClick={() => onToggleActive(r.id, r.is_active)}>
             {r.is_active ? "Deactivate" : "Activate"}
           </Button>
           <Button
@@ -236,67 +233,85 @@ function UsersPage() {
   ];
 
   return (
-    <div className="p-6 md:p-10 max-w-6xl w-full mx-auto">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title="Users"
-        description={selfHosted ? "Create local users, assign roles, and control access to this installation." : "Directory of workspace members. Invite new users, assign roles, or deactivate access."}
-        actions={
-          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="h-4 w-4 mr-1" /> {selfHosted ? "Create user" : "Invite user"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{selfHosted ? "Create local user" : "Invite user"}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
+    <ModulePage
+      eyebrow="Access"
+      title="Users"
+      description={
+        selfHosted
+          ? "Create local users, assign roles, and control access to this installation."
+          : "Directory of workspace members. Invite new users, assign roles, or deactivate access."
+      }
+      actions={
+        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <UserPlus className="h-4 w-4 mr-1" /> {selfHosted ? "Create user" : "Invite user"}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{selfHosted ? "Create local user" : "Invite user"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label>Email</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              {selfHosted ? (
                 <div>
-                  <Label>Email</Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Label>Temporary password</Label>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    value={temporaryPassword}
+                    onChange={(e) => setTemporaryPassword(e.target.value)}
+                    placeholder="Minimum 8 characters"
+                  />
                 </div>
-                {selfHosted ? <div><Label>Temporary password</Label><Input type="password" autoComplete="new-password" value={temporaryPassword} onChange={(e)=>setTemporaryPassword(e.target.value)} placeholder="Minimum 8 characters" /></div> : null}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label>First name</Label>
-                    <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>Last name</Label>
-                    <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                  </div>
+              ) : null}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>First name</Label>
+                  <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                 </div>
                 <div>
-                  <Label>Role</Label>
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(roleList.data ?? []).map((r) => (
-                        <SelectItem key={r.key} value={r.key}>
-                          {r.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Last name</Label>
+                  <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setInviteOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => invite.mutate()} disabled={!email || (selfHosted && temporaryPassword.length < 8) || invite.isPending}>
-                  {selfHosted ? "Create user" : "Send invite"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        }
-      />
-
+              <div>
+                <Label>Role</Label>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(roleList.data ?? []).map((r) => (
+                      <SelectItem key={r.key} value={r.key}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setInviteOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => invite.mutate()}
+                disabled={
+                  !email || (selfHosted && temporaryPassword.length < 8) || invite.isPending
+                }
+              >
+                {selfHosted ? "Create user" : "Send invite"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      }
+    >
       {rows.length === 0 && !list.isLoading ? (
         <EmptyState
           illustration={emptyTeamIllustration}
@@ -345,8 +360,8 @@ function UsersPage() {
                 </SelectContent>
               </Select>
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Changing the role takes effect immediately. The user keeps their current
-                password — no reset required.
+                Changing the role takes effect immediately. The user keeps their current password —
+                no reset required.
               </p>
             </div>
           </div>
@@ -360,7 +375,6 @@ function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-
+    </ModulePage>
   );
 }

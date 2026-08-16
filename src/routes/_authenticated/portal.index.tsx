@@ -5,13 +5,23 @@ import { useEffect, useState } from "react";
 import { getMyPortalOverview } from "@/lib/portal.functions";
 import { listAnnouncementsPublic, signPortalStoragePath } from "@/lib/portal-admin.functions";
 
-import { StatCard } from "@/components/ui/stat-card";
+import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
+import { MetricTile } from "@/components/ui/metric-tile";
 import { EmptyState } from "@/components/ui/empty-state";
 import emptyInstallationsIllustration from "@/assets/empty-installations.png";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, Download, FileText, MessagesSquare, Inbox, Newspaper, Pin, ArrowRight } from "lucide-react";
+import {
+  Package,
+  Download,
+  FileText,
+  MessagesSquare,
+  Inbox,
+  Newspaper,
+  Pin,
+  ArrowRight,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/portal/")({
   component: PortalHome,
@@ -90,14 +100,35 @@ function PortalHome() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
-        <StatCard label="Active installations" value={active} icon={Package} />
-        <StatCard label="Module licenses" value={modules} icon={FileText} />
-        <StatCard
-          label={expiringSoon ? "Renewal due soon" : "Next maintenance renewal"}
-          value={fmt(nextMaint)}
-          icon={Download}
-        />
+      <div className="mb-8">
+        <BentoGrid>
+          <BentoItem span={4} index={0}>
+            <MetricTile
+              label="Active installations"
+              value={active}
+              icon={Package}
+              hint={`${installs.length} registered`}
+            />
+          </BentoItem>
+          <BentoItem span={4} index={1}>
+            <MetricTile
+              label="Module licenses"
+              value={modules}
+              icon={FileText}
+              tone="gold"
+              hint="Issued by OPSQAI"
+            />
+          </BentoItem>
+          <BentoItem span={4} index={2}>
+            <MetricTile
+              label={expiringSoon ? "Renewal due soon" : "Next maintenance renewal"}
+              value={fmt(nextMaint)}
+              icon={Download}
+              tone={expiringSoon ? "warning" : "default"}
+              hint={expiringSoon ? "Within 60 days" : "Maintenance window"}
+            />
+          </BentoItem>
+        </BentoGrid>
       </div>
 
       {topNews.length > 0 && (
@@ -119,12 +150,7 @@ function PortalHome() {
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             {topNews.map((n) => (
-              <Link
-                key={n.id}
-                to="/portal/news/$slug"
-                params={{ slug: n.slug }}
-                className="block"
-              >
+              <Link key={n.id} to="/portal/news/$slug" params={{ slug: n.slug }} className="block">
                 <Card className="overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all h-full">
                   {covers[n.id] ? (
                     <img src={covers[n.id]} alt="" className="w-full h-32 object-cover bg-muted" />
@@ -159,9 +185,6 @@ function PortalHome() {
         <h2 className="text-lg font-display font-semibold">Your installations</h2>
       </div>
 
-
-
-
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : installs.length === 0 ? (
@@ -191,7 +214,9 @@ function PortalHome() {
               <Card key={inst.install_id} className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Install</div>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                      Install
+                    </div>
                     <div className="font-mono text-sm truncate">{inst.install_id}</div>
                     <div className="text-sm mt-1 font-medium">{inst.company_name}</div>
                   </div>

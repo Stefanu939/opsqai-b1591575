@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { useLicense } from "@/lib/license";
 import { createInternalRequest } from "@/lib/internal-requests.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
+import { Panel } from "@/components/ui/panel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -61,20 +62,18 @@ function ModulesPage() {
   const categories = Array.from(new Set(LICENSE_MODULE_CATALOG.map((m) => m.category)));
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl w-full mx-auto">
-      <PageHeader
-        eyebrow="Self-hosted"
-        title="Modules"
-        description="Every module available for OPSQAI. Modules are activated exclusively by OPSQAI — request activation and we will issue the license."
-      />
-
-      <Card className="p-4 mb-6 flex items-start gap-3 bg-surface-1">
+    <ModulePage
+      eyebrow="Entitlements"
+      title="Modules"
+      description="Every module available for OPSQAI. Modules are activated exclusively by OPSQAI — request activation and we will issue the license."
+    >
+      <Panel glass bodyClassName="flex items-start gap-3 p-4">
         <Info className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
         <div className="text-sm text-muted-foreground">
           The Basic bundle is always included. Premium modules unlock when OPSQAI issues a signed
           module license for your installation.
         </div>
-      </Card>
+      </Panel>
 
       {categories.map((cat) => {
         const items = LICENSE_MODULE_CATALOG.filter((m) => m.category === cat);
@@ -98,7 +97,9 @@ function ModulesPage() {
                               Active
                             </Badge>
                           ) : m.inBasic ? (
-                            <Badge variant="outline" className="text-[10px]">Basic</Badge>
+                            <Badge variant="outline" className="text-[10px]">
+                              Basic
+                            </Badge>
                           ) : (
                             <Badge variant="outline" className="text-[10px]">
                               <Lock className="h-3 w-3 mr-1" />
@@ -136,8 +137,8 @@ function ModulesPage() {
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              We will forward this to your OPSQAI account manager and issue the module license
-              once approved.
+              We will forward this to your OPSQAI account manager and issue the module license once
+              approved.
             </p>
             <div>
               <Label>Additional context (optional)</Label>
@@ -159,6 +160,6 @@ function ModulesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ModulePage>
   );
 }
