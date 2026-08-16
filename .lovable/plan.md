@@ -23,7 +23,16 @@ A blend, applied per surface:
 - **FAQ**: card grid with category chips, usage bar chart, AI-import panel.
 - **AI Audit**: score radial + trend line, recommendation cards grouped (SOP / FAQ / Course) with severity accents, friction-index table.
 - **Academy**: course tiles, lesson schedule column, progress column with bars, certificate strip.
-- **Users / Organization / Modules / Updates**: panel-based layout, role chips, license/module status tiles, department manager panel.
+- **Users / Organization / Modules / Updates / Subscription**: panel-based layout, role chips, license/module status tiles, department manager panel.
+- **Every remaining `/app/*` surface** gets the same treatment in this pass — nothing is left on the old layout. Academy sub-pages (courses, paths, lessons, teacher, analytics, certificates, KB link, settings), chat index, and any other authenticated Self-Hosted page are included.
+
+### Applies to future modules too
+
+The redesign is codified as a reusable module layout contract, not per-page styling:
+- A `ModulePage` shell (page header + optional segmented tabs + toolbar slot + bento/panel content area) that every module surface composes. New modules get the look by using the shell, without redesign work.
+- Standard building blocks every module reuses: `metric-tile` row, chart panel, list/detail split panel, empty state, skeletons, sticky action toolbar.
+- Documented in `docs/engineering/03-add-a-module.md` as the required pattern for new modules, plus a short conventions section in `docs/engineering/01-conventions.md`.
+
 
 ## 3. AI Chat — full messenger
 
