@@ -13,6 +13,14 @@ import { MetricTile } from "@/components/ui/metric-tile";
 import { Panel } from "@/components/ui/panel";
 import { AreaTrend } from "@/components/ui/mini-chart";
 import { StatCard } from "@/components/ui/stat-card";
+import {
+  AuditHealthCheck,
+  AuditSeverityCards,
+  type AuditReportShape,
+} from "@/components/app/audit-health-check";
+import { autoRemediateBatch, autoRemediateRecommendation } from "@/lib/audit-remediation.functions";
+import { useQueryClient } from "@tanstack/react-query";
+import { Wand2, Sparkles } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
@@ -287,24 +295,12 @@ function AiAuditPage() {
                       {exec || "—"}
                     </p>
                   </SettleIn>
-                  <div className="grid grid-cols-3 gap-3 border-t border-border pt-4">
-                    <MiniStat
-                      label="Passed"
-                      value={row.passed}
-                      icon={CheckCircle2}
-                      tone="success"
-                    />
-                    <MiniStat
-                      label="Warnings"
-                      value={row.warnings}
-                      icon={AlertTriangle}
-                      tone="warning"
-                    />
-                    <MiniStat
-                      label="Critical"
-                      value={row.critical}
-                      icon={ShieldCheck}
-                      tone="danger"
+                  <div className="border-t border-border pt-4">
+                    <AuditSeverityCards
+                      report={(s ?? {}) as AuditReportShape}
+                      passed={row.passed}
+                      warnings={row.warnings}
+                      critical={row.critical}
                     />
                   </div>
                 </div>
@@ -313,6 +309,21 @@ function AiAuditPage() {
           </Panel>
         </div>
       )}
+
+      {(() => {
+        const row = selected ?? latest;
+        if (!row) return null;
+        return (
+          <div className="mt-4">
+            <AuditHealthCheck
+              report={(row.summary ?? {}) as AuditReportShape}
+              passed={row.passed}
+              warnings={row.warnings}
+              critical={row.critical}
+            />
+          </div>
+        );
+      })()}
     </ModulePage>
   );
 }
