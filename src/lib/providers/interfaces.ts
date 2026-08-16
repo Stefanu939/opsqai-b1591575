@@ -503,6 +503,7 @@ export interface IAiAuditRepository {
 }
 
 export interface AuditGapClusterRow {
+  id?: string | null;
   question: string;
   occurrences: number;
   status: string;

@@ -11,6 +11,8 @@
  */
 
 export interface AuditGapCluster {
+  /** Knowledge-gap row id, when the signal came from a tracked gap. */
+  id?: string | null;
   question: string;
   occurrences: number;
   status: string;
@@ -85,6 +87,17 @@ export interface AuditRecommendation {
   evidence: string[];
   targetUser?: { id: string; name: string };
   suggestedCourse?: SuggestedCourseSettings;
+  /**
+   * When present, this recommendation can be executed automatically: the
+   * platform generates the artefact (SOP or FAQ), publishes it into the
+   * knowledge base and closes the originating knowledge gap.
+   */
+  autoAction?: {
+    type: "generate_sop" | "generate_faq";
+    question: string;
+    department: string | null;
+    gapId: string | null;
+  };
 }
 
 export interface AuditIntelligence {
@@ -188,6 +201,12 @@ export function buildAuditRecommendations(input: {
         `last asked ${g.lastSeen.slice(0, 10)}`,
         g.confidence != null ? `answer confidence ${Math.round(g.confidence * 100)}%` : "no grounded answer",
       ],
+      autoAction: {
+        type: "generate_sop",
+        question: g.question,
+        department: g.departmentName,
+        gapId: g.id ?? null,
+      },
     });
   }
 
@@ -204,6 +223,12 @@ export function buildAuditRecommendations(input: {
       effort: "low",
       department: g.departmentName,
       evidence: [`${g.occurrences} occurrence(s)`, `last asked ${g.lastSeen.slice(0, 10)}`],
+      autoAction: {
+        type: "generate_faq",
+        question: g.question,
+        department: g.departmentName,
+        gapId: g.id ?? null,
+      },
     });
   }
 
