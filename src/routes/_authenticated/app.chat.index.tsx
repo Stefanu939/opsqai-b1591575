@@ -103,13 +103,28 @@ function ChatWelcome() {
           />
           <div className="flex items-center justify-between px-2 py-1">
             <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title="Attach" disabled>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-muted-foreground"
+                title="Attach"
+                disabled
+              >
                 <Paperclip className="h-4 w-4" />
               </Button>
-              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title="Voice" disabled>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-muted-foreground"
+                title="Voice"
+                disabled
+              >
                 <Mic className="h-4 w-4" />
               </Button>
-              <EmojiPicker onPick={(emoji: string) => setText((v) => v + emoji)} className="h-8 w-8" />
+              <EmojiPicker
+                onPick={(emoji: string) => setText((v) => v + emoji)}
+                className="h-8 w-8"
+              />
             </div>
             <Button
               onClick={submit}

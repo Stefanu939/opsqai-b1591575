@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  classifyChatError,
-  chatErrorMessage,
-  isChatStalled,
-} from "@/lib/chat-reliability";
+import { classifyChatError, chatErrorMessage, isChatStalled } from "@/lib/chat-reliability";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -85,8 +81,7 @@ function confLabel(b: ConfBucket): string {
   return b === "high" ? "High" : b === "medium" ? "Medium" : "Low";
 }
 function confClasses(b: ConfBucket): string {
-  if (b === "high")
-    return "bg-success/15 text-success border-success/30";
+  if (b === "high") return "bg-success/15 text-success border-success/30";
   if (b === "medium")
     return "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
   return "bg-muted text-muted-foreground border-border";
@@ -241,7 +236,6 @@ function ChatInner({
     sendMessage({ text });
     setInput("");
   };
-
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -433,8 +427,6 @@ function ChatInner({
     </div>
   );
 }
-
-
 
 function SourcesPanel({
   sources,

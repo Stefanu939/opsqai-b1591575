@@ -45,16 +45,14 @@ import {
 
 export const Route = createFileRoute("/_authenticated/app/")({
   head: () => ({
-    meta: [
-      { title: "Dashboard — OPSQAI" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Dashboard — OPSQAI" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   loader: async ({ context }) => {
     try {
       const overview = await getOnboardingOverview();
-      (context as { queryClient?: { setQueryData: (k: unknown, v: unknown) => void } })
-        .queryClient?.setQueryData(["dashboard-overview"], overview);
+      (
+        context as { queryClient?: { setQueryData: (k: unknown, v: unknown) => void } }
+      ).queryClient?.setQueryData(["dashboard-overview"], overview);
       return overview;
     } catch {
       return null;
@@ -128,7 +126,6 @@ function Dashboard() {
     emailName ||
     "there";
 
-
   const company = (data?.companyName || "").trim();
 
   const cards: {
@@ -197,7 +194,6 @@ function Dashboard() {
             isEmptyWorkspace
               ? `Welcome to OPSQAI, ${name}`
               : `Hello, ${name}${company ? ` — ${company}` : ""}`
-
           }
           description={
             isEmptyWorkspace
@@ -383,7 +379,11 @@ function DashboardWidgets() {
               </BentoItem>
 
               <BentoItem span={3} index={4}>
-                <MetricTile label="Active users (30d)" value={kpis?.activeUsers ?? "—"} icon={Users} />
+                <MetricTile
+                  label="Active users (30d)"
+                  value={kpis?.activeUsers ?? "—"}
+                  icon={Users}
+                />
               </BentoItem>
               <BentoItem span={3} index={5}>
                 <MetricTile
@@ -437,10 +437,7 @@ function DashboardWidgets() {
                   <AreaTrend data={activityRows} xKey="bucket" yKey="questions" height={224} />
                   <ChartLegend
                     className="mt-2"
-                    items={[
-                      { label: "Questions" },
-                      { label: "AI responses" },
-                    ]}
+                    items={[{ label: "Questions" }, { label: "AI responses" }]}
                   />
                 </>
               )}

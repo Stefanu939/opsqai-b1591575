@@ -433,8 +433,8 @@ function TeacherChat({
                 <div className="flex justify-start">
                   <Card className="w-full max-w-[92%] p-4 space-y-2 border-primary/30">
                     <div className="text-sm font-medium flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-success" /> Lesson complete — your
-                      quiz is unlocked
+                      <CheckCircle2 className="h-4 w-4 text-success" /> Lesson complete — your quiz
+                      is unlocked
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Take a short knowledge check to confirm what you've learned.
