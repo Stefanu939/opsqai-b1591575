@@ -8,7 +8,7 @@
 // installer manifests + `opsqai doctor` output so a Self-Hosted install
 // and the Management Center that issued its licenses can prove they agree
 // on the module vocabulary.
-export const MODULE_CATALOG_VERSION = "2026.07.1" as const;
+export const MODULE_CATALOG_VERSION = "2026.08.1" as const;
 
 export type ModuleKey =
   | "chat"
@@ -53,6 +53,9 @@ export const BASIC_MODULES: ModuleKey[] = [
   "notifications",
   "bilingual_ui",
   "pwa",
+  // Knowledge Gap detection is part of the Basic platform: without it the
+  // AI Audit cannot see what the workspace does not know.
+  "knowledge_gaps",
 ];
 
 export const LICENSE_MODULE_CATALOG: LicenseModule[] = [
@@ -196,9 +199,9 @@ export const LICENSE_MODULE_CATALOG: LicenseModule[] = [
   {
     key: "knowledge_gaps",
     label: "Knowledge Gaps",
-    category: "Knowledge",
-    defaultPriceCents: 80000,
-    inBasic: false,
+    category: "Basic",
+    defaultPriceCents: 0,
+    inBasic: true,
     description: "Detect gaps, assign owners, promote to SOP.",
   },
   {
@@ -289,7 +292,7 @@ export const TIER_PRESETS: TierPreset[] = [
     tagline: "Adds Analytics and AI SOP tools on top of the Basic Platform.",
     seats: 25,
     monthsValid: 12,
-    extraModules: ["analytics", "ai_sop_generator", "knowledge_gaps"],
+    extraModules: ["analytics", "ai_sop_generator"],
     monthlyPriceCents: 19900,
     highlight: true,
   },

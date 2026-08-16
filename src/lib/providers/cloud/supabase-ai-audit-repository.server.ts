@@ -59,13 +59,14 @@ export function createSupabaseAiAuditRepository(
     async gapClusters(companyId, limit): Promise<AuditGapClusterRow[]> {
       const { data, error } = await sb
         .from("knowledge_gaps")
-        .select("question_sample,occurrences,status,last_seen,confidence,departments(name)")
+        .select("id,question_sample,occurrences,status,last_seen,confidence,departments(name)")
         .eq("company_id", companyId)
         .order("occurrences", { ascending: false })
         .limit(limit);
       if (error) throw new Error(error.message);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (data ?? []).map((r: any) => ({
+        id: r.id ?? null,
         question: r.question_sample ?? "",
         occurrences: Number(r.occurrences ?? 0),
         status: r.status ?? "open",

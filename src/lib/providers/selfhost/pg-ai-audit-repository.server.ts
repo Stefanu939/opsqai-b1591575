@@ -37,10 +37,10 @@ export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRep
 
     async gapClusters(companyId, limit): Promise<AuditGapClusterRow[]> {
       const { rows } = await pool.query<{
-        question: string; occurrences: number; status: string;
+        id: string; question: string; occurrences: number; status: string;
         department_name: string | null; last_seen: Date; confidence: number | null;
       }>(
-        `SELECT g.question_sample AS question, g.occurrences, g.status,
+        `SELECT g.id, g.question_sample AS question, g.occurrences, g.status,
                 d.name AS department_name, g.last_seen, g.confidence
            FROM public.knowledge_gaps g
            LEFT JOIN public.departments d ON d.id = g.department_id
@@ -50,6 +50,7 @@ export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRep
         [companyId, limit],
       );
       return rows.map((r) => ({
+        id: r.id,
         question: r.question,
         occurrences: Number(r.occurrences ?? 0),
         status: r.status,
