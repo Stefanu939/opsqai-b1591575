@@ -14,6 +14,7 @@ import {
   Loader2,
   ShieldCheck,
   Image as ImageIcon,
+  ImagePlus,
   FileText,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -441,6 +442,7 @@ function ConversationView({
   const [text, setText] = useState("");
   const [pending, setPending] = useState<ChatAttachment[]>([]);
   const [sending, setSending] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   const { data: convs = [] } = useQuery({
     queryKey: ["chat-conversations"],
