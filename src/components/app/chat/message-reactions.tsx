@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { SmilePlus } from "lucide-react";
 import { EmojiPicker } from "./emoji-picker";
 import { cn } from "@/lib/utils";
 
@@ -97,7 +96,6 @@ export function MessageReactions({
           align={align === "end" ? "end" : "start"}
           className="h-6 w-6"
         />
-        <SmilePlus className="hidden" />
       </div>
     </div>
   );
