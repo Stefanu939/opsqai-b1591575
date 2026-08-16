@@ -8,7 +8,7 @@ import {
   updateCompany,
   deleteCompany,
 } from "@/lib/companies.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -313,8 +313,7 @@ function CustomersPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Customers"
         description="Every OPSQAI customer — subscription, license expiry, contract lifecycle."
@@ -322,7 +321,7 @@ function CustomersPage() {
           <NewCustomerDialog
             onCreate={(v) => createMut.mutate(v)}
             pending={createMut.isPending}
-          />
+    >
         }
       />
 
@@ -380,7 +379,7 @@ function CustomersPage() {
             : "Create your first customer to get started.",
         }}
       />
-    </div>
+    </ModulePage>
   );
 }
 

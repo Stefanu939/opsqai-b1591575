@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { listCompanies } from "@/lib/companies.functions";
 import { listLicenses } from "@/lib/licenses.functions";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -128,8 +128,7 @@ function CompanyDetailPage() {
   ).length;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Company"
         title={company.name}
         breadcrumbs={[
@@ -141,7 +140,7 @@ function CompanyDetailPage() {
             {company.active ? company.subscription_status : "suspended"}
           </Badge>
         }
-      />
+    >
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Plan" value={company.subscription_plan} icon={Package} />
@@ -264,7 +263,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
         {label}
       </dt>
       <dd className="mt-0.5 text-foreground">{value}</dd>
-    </div>
+    </ModulePage>
   );
 }
 

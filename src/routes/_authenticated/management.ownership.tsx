@@ -8,7 +8,7 @@ import {
   demotePlatformAdmin,
 } from "@/lib/companies.functions";
 import { listLicenses, transferOwnership } from "@/lib/licenses.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { SectionCard } from "@/components/ui/section-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -207,12 +207,11 @@ function OwnershipPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Ownership"
         description="Installation handovers and platform administrator roles."
-      />
+    >
 
       <SectionCard
         title="Installation ownership"
@@ -248,7 +247,7 @@ function OwnershipPage() {
           }}
         />
       </SectionCard>
-    </div>
+    </ModulePage>
   );
 }
 

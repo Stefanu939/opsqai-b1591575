@@ -9,7 +9,7 @@ import {
   revokeLicense,
   deleteLicense,
 } from "@/lib/licenses.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -277,8 +277,7 @@ function LicensesPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Licenses"
         description="Installation licenses and per-install module activations. Modules are activated exclusively here."
@@ -286,7 +285,7 @@ function LicensesPage() {
           <IssueLicenseDialog
             onIssue={(v) => issueMut.mutate(v)}
             pending={issueMut.isPending}
-          />
+    >
         }
       />
 
@@ -341,7 +340,7 @@ function LicensesPage() {
             : "Issue an installation license to onboard a customer.",
         }}
       />
-    </div>
+    </ModulePage>
   );
 }
 

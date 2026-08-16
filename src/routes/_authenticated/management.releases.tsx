@@ -11,7 +11,7 @@ import {
 import { getPortalSnapshot } from "@/lib/mc-admin.functions";
 import { StatCard } from "@/components/ui/stat-card";
 import { Package, Inbox } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -208,8 +208,7 @@ function ReleasesPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Releases"
         description="Published OPSQAI self-hosted releases. Installations pull updates from the current release per channel."
@@ -217,7 +216,7 @@ function ReleasesPage() {
           <NewReleaseDialog
             onCreate={(v) => createMut.mutate(v)}
             pending={createMut.isPending}
-          />
+    >
         }
       />
 
@@ -253,7 +252,7 @@ function ReleasesPage() {
           description: "Publish your first release to make it available to installations.",
         }}
       />
-    </div>
+    </ModulePage>
   );
 }
 

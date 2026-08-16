@@ -14,7 +14,7 @@ import {
   demoteFromPlatformAdmin,
   resetTeamMemberPassword,
 } from "@/lib/team.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -191,8 +191,7 @@ function TeamPage() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="OPSQAI"
         title="Team"
         description="Manage OPSQAI employees, departments, and Super Admin permissions."
@@ -206,7 +205,7 @@ function TeamPage() {
             </Button>
           </div>
         }
-      />
+    >
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Stat icon={Users} label="Employees" value={members.length} />
@@ -466,7 +465,7 @@ function TeamPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </ModulePage>
   );
 }
 

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { listInstallations } from "@/lib/releases.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -176,12 +176,11 @@ function InstallationsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Installations"
         description="Registered self-hosted OPSQAI installs with live heartbeat telemetry."
-      />
+    >
 
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
@@ -224,6 +223,6 @@ function InstallationsPage() {
             : "Installations appear here after an installer has phoned home.",
         }}
       />
-    </div>
+    </ModulePage>
   );
 }

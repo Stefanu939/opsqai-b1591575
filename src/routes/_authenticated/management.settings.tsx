@@ -6,7 +6,7 @@ import {
   getPlatformConfig,
   savePlatformAiConfig,
 } from "@/lib/mc-admin.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { SectionCard } from "@/components/ui/section-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,12 +101,11 @@ function SettingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Settings"
         description="Global platform configuration."
-      />
+    >
 
       {getPlatformMode() === PlatformMode.SelfHosted ? (
         <LocalAiEngineCard />
@@ -244,6 +243,6 @@ function SettingsPage() {
           </dl>
         )}
       </SectionCard>
-    </div>
+    </ModulePage>
   );
 }

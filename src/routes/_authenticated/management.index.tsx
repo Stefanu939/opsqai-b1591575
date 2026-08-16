@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Building2, KeyRound, Package, Rocket, TrendingUp, Users } from "lucide-react";
 import { getPlatformOverviewStats } from "@/lib/platform-overview.functions";
 import { platformStats } from "@/lib/companies.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
 import { StatCard } from "@/components/ui/stat-card";
@@ -111,12 +111,11 @@ function OverviewPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Control Center"
         description="Live state of every installation, license and customer across the OPSQAI fleet."
-      />
+    >
 
       {/* Commercial KPIs — what the business earns and owes */}
       <section className="space-y-3">
@@ -260,6 +259,6 @@ function OverviewPage() {
           }}
         />
       </section>
-    </div>
+    </ModulePage>
   );
 }

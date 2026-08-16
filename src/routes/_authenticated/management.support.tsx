@@ -9,7 +9,7 @@ import {
   markSupportRead,
   updateSupportConversation,
 } from "@/lib/support.functions";
-import { PageHeader } from "@/components/ui/page-header";
+import { ModulePage } from "@/components/app/module-page";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -411,12 +411,11 @@ function SupportPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 p-4 md:p-6">
-      <PageHeader
+    <ModulePage
         eyebrow="Management Center"
         title="Support"
         description="Every support conversation across all customers."
-      />
+    >
 
       {/* Mobile: show list OR conversation. Desktop: split. */}
       <div className="grid md:grid-cols-[340px_1fr] gap-4 h-[calc(100vh-16rem)] min-h-[520px]">
@@ -427,6 +426,6 @@ function SupportPage() {
           {conversationPane}
         </div>
       </div>
-    </div>
+    </ModulePage>
   );
 }
