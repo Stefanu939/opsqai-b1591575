@@ -94,6 +94,7 @@ import { Route as AuthenticatedManagementLicensesRouteImport } from './routes/_a
 import { Route as AuthenticatedManagementInstallationsRouteImport } from './routes/_authenticated/management.installations'
 import { Route as AuthenticatedManagementCustomersRouteImport } from './routes/_authenticated/management.customers'
 import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_authenticated/management.companies'
+import { Route as AuthenticatedManagementCalendarRouteImport } from './routes/_authenticated/management.calendar'
 import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_authenticated/management.audit-logs'
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
@@ -582,6 +583,12 @@ const AuthenticatedManagementCompaniesRoute =
     path: '/companies',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
+const AuthenticatedManagementCalendarRoute =
+  AuthenticatedManagementCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedManagementAuditLogsRoute =
   AuthenticatedManagementAuditLogsRouteImport.update({
     id: '/audit-logs',
@@ -863,6 +870,7 @@ export interface FileRoutesByFullPath {
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
+  '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
@@ -981,6 +989,7 @@ export interface FileRoutesByTo {
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
+  '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
@@ -1106,6 +1115,7 @@ export interface FileRoutesById {
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
   '/_authenticated/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
+  '/_authenticated/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/_authenticated/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/_authenticated/management/installations': typeof AuthenticatedManagementInstallationsRoute
@@ -1232,6 +1242,7 @@ export interface FileRouteTypes {
     | '/app/updates'
     | '/app/users'
     | '/management/audit-logs'
+    | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
     | '/management/installations'
@@ -1350,6 +1361,7 @@ export interface FileRouteTypes {
     | '/app/updates'
     | '/app/users'
     | '/management/audit-logs'
+    | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
     | '/management/installations'
@@ -1474,6 +1486,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
     | '/_authenticated/management/audit-logs'
+    | '/_authenticated/management/calendar'
     | '/_authenticated/management/companies'
     | '/_authenticated/management/customers'
     | '/_authenticated/management/installations'
@@ -2193,6 +2206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementCompaniesRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
+    '/_authenticated/management/calendar': {
+      id: '/_authenticated/management/calendar'
+      path: '/calendar'
+      fullPath: '/management/calendar'
+      preLoaderRoute: typeof AuthenticatedManagementCalendarRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/audit-logs': {
       id: '/_authenticated/management/audit-logs'
       path: '/audit-logs'
@@ -2544,6 +2564,7 @@ const AuthenticatedManagementCompaniesRouteWithChildren =
 
 interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementAuditLogsRoute: typeof AuthenticatedManagementAuditLogsRoute
+  AuthenticatedManagementCalendarRoute: typeof AuthenticatedManagementCalendarRoute
   AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRouteWithChildren
   AuthenticatedManagementCustomersRoute: typeof AuthenticatedManagementCustomersRoute
   AuthenticatedManagementInstallationsRoute: typeof AuthenticatedManagementInstallationsRoute
@@ -2561,6 +2582,7 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
   {
     AuthenticatedManagementAuditLogsRoute:
       AuthenticatedManagementAuditLogsRoute,
+    AuthenticatedManagementCalendarRoute: AuthenticatedManagementCalendarRoute,
     AuthenticatedManagementCompaniesRoute:
       AuthenticatedManagementCompaniesRouteWithChildren,
     AuthenticatedManagementCustomersRoute:
