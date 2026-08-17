@@ -199,7 +199,7 @@ export function CalendarPanel({ scope }: { scope: "platform" | "portal" }) {
                     )}
                     {e.ref && (
                       <Link
-                        to={e.ref}
+                        to={e.ref as never}
                         className="mt-1 inline-flex text-xs font-medium text-[color:var(--gold)] hover:underline"
                       >
                         Open record →
