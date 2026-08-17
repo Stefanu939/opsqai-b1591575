@@ -83,6 +83,7 @@ import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_a
 import { Route as AuthenticatedPortalNewsRouteImport } from './routes/_authenticated/portal.news'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
 import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
+import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedManagementTeamRouteImport } from './routes/_authenticated/management.team'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
@@ -94,6 +95,7 @@ import { Route as AuthenticatedManagementLicensesRouteImport } from './routes/_a
 import { Route as AuthenticatedManagementInstallationsRouteImport } from './routes/_authenticated/management.installations'
 import { Route as AuthenticatedManagementCustomersRouteImport } from './routes/_authenticated/management.customers'
 import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_authenticated/management.companies'
+import { Route as AuthenticatedManagementCalendarRouteImport } from './routes/_authenticated/management.calendar'
 import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_authenticated/management.audit-logs'
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
@@ -117,6 +119,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicV1KnowledgeRouteImport } from './routes/api/public/v1/knowledge'
 import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs'
+import { Route as ApiPublicCalendarTokenRouteImport } from './routes/api/public/calendar.$token'
 import { Route as AuthenticatedPortalNewsSlugRouteImport } from './routes/_authenticated/portal.news.$slug'
 import { Route as AuthenticatedPortalAdminDownloadsRouteImport } from './routes/_authenticated/portal.admin.downloads'
 import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
@@ -515,6 +518,12 @@ const AuthenticatedPortalDocumentationRoute =
     path: '/documentation',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalCalendarRoute =
+  AuthenticatedPortalCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalAdminRoute =
   AuthenticatedPortalAdminRouteImport.update({
     id: '/admin',
@@ -579,6 +588,12 @@ const AuthenticatedManagementCompaniesRoute =
   AuthenticatedManagementCompaniesRouteImport.update({
     id: '/companies',
     path: '/companies',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
+const AuthenticatedManagementCalendarRoute =
+  AuthenticatedManagementCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementAuditLogsRoute =
@@ -705,6 +720,11 @@ const ApiPublicV1KnowledgeRoute = ApiPublicV1KnowledgeRouteImport.update({
 const ApiPublicV1FaqsRoute = ApiPublicV1FaqsRouteImport.update({
   id: '/api/public/v1/faqs',
   path: '/api/public/v1/faqs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCalendarTokenRoute = ApiPublicCalendarTokenRouteImport.update({
+  id: '/api/public/calendar/$token',
+  path: '/api/public/calendar/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPortalNewsSlugRoute =
@@ -857,6 +877,7 @@ export interface FileRoutesByFullPath {
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
+  '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
@@ -868,6 +889,7 @@ export interface FileRoutesByFullPath {
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
+  '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
@@ -900,6 +922,7 @@ export interface FileRoutesByFullPath {
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
+  '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -974,6 +997,7 @@ export interface FileRoutesByTo {
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
   '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
+  '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
@@ -984,6 +1008,7 @@ export interface FileRoutesByTo {
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
+  '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
@@ -1016,6 +1041,7 @@ export interface FileRoutesByTo {
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
+  '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1098,6 +1124,7 @@ export interface FileRoutesById {
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
   '/_authenticated/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
+  '/_authenticated/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/_authenticated/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/_authenticated/management/installations': typeof AuthenticatedManagementInstallationsRoute
@@ -1109,6 +1136,7 @@ export interface FileRoutesById {
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
   '/_authenticated/management/team': typeof AuthenticatedManagementTeamRoute
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
+  '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
@@ -1141,6 +1169,7 @@ export interface FileRoutesById {
   '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
   '/_authenticated/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/_authenticated/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
+  '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
   '/api/public/v1/faqs': typeof ApiPublicV1FaqsRoute
   '/api/public/v1/knowledge': typeof ApiPublicV1KnowledgeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1223,6 +1252,7 @@ export interface FileRouteTypes {
     | '/app/updates'
     | '/app/users'
     | '/management/audit-logs'
+    | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
     | '/management/installations'
@@ -1234,6 +1264,7 @@ export interface FileRouteTypes {
     | '/management/support'
     | '/management/team'
     | '/portal/admin'
+    | '/portal/calendar'
     | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
@@ -1266,6 +1297,7 @@ export interface FileRouteTypes {
     | '/management/companies/$id'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
+    | '/api/public/calendar/$token'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1340,6 +1372,7 @@ export interface FileRouteTypes {
     | '/app/updates'
     | '/app/users'
     | '/management/audit-logs'
+    | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
     | '/management/installations'
@@ -1350,6 +1383,7 @@ export interface FileRouteTypes {
     | '/management/settings'
     | '/management/support'
     | '/management/team'
+    | '/portal/calendar'
     | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
@@ -1382,6 +1416,7 @@ export interface FileRouteTypes {
     | '/management/companies/$id'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
+    | '/api/public/calendar/$token'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1463,6 +1498,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
     | '/_authenticated/management/audit-logs'
+    | '/_authenticated/management/calendar'
     | '/_authenticated/management/companies'
     | '/_authenticated/management/customers'
     | '/_authenticated/management/installations'
@@ -1474,6 +1510,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/support'
     | '/_authenticated/management/team'
     | '/_authenticated/portal/admin'
+    | '/_authenticated/portal/calendar'
     | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
     | '/_authenticated/portal/news'
@@ -1506,6 +1543,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/companies/$id'
     | '/_authenticated/portal/admin/downloads'
     | '/_authenticated/portal/news/$slug'
+    | '/api/public/calendar/$token'
     | '/api/public/v1/faqs'
     | '/api/public/v1/knowledge'
     | '/lovable/email/auth/preview'
@@ -1572,6 +1610,7 @@ export interface RootRouteChildren {
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicCalendarTokenRoute: typeof ApiPublicCalendarTokenRoute
   ApiPublicV1FaqsRoute: typeof ApiPublicV1FaqsRoute
   ApiPublicV1KnowledgeRoute: typeof ApiPublicV1KnowledgeRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -2103,6 +2142,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalDocumentationRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/calendar': {
+      id: '/_authenticated/portal/calendar'
+      path: '/calendar'
+      fullPath: '/portal/calendar'
+      preLoaderRoute: typeof AuthenticatedPortalCalendarRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/admin': {
       id: '/_authenticated/portal/admin'
       path: '/admin'
@@ -2178,6 +2224,13 @@ declare module '@tanstack/react-router' {
       path: '/companies'
       fullPath: '/management/companies'
       preLoaderRoute: typeof AuthenticatedManagementCompaniesRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
+    '/_authenticated/management/calendar': {
+      id: '/_authenticated/management/calendar'
+      path: '/calendar'
+      fullPath: '/management/calendar'
+      preLoaderRoute: typeof AuthenticatedManagementCalendarRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/management/audit-logs': {
@@ -2339,6 +2392,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/v1/faqs'
       fullPath: '/api/public/v1/faqs'
       preLoaderRoute: typeof ApiPublicV1FaqsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/calendar/$token': {
+      id: '/api/public/calendar/$token'
+      path: '/api/public/calendar/$token'
+      fullPath: '/api/public/calendar/$token'
+      preLoaderRoute: typeof ApiPublicCalendarTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/portal/news/$slug': {
@@ -2524,6 +2584,7 @@ const AuthenticatedManagementCompaniesRouteWithChildren =
 
 interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementAuditLogsRoute: typeof AuthenticatedManagementAuditLogsRoute
+  AuthenticatedManagementCalendarRoute: typeof AuthenticatedManagementCalendarRoute
   AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRouteWithChildren
   AuthenticatedManagementCustomersRoute: typeof AuthenticatedManagementCustomersRoute
   AuthenticatedManagementInstallationsRoute: typeof AuthenticatedManagementInstallationsRoute
@@ -2541,6 +2602,7 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
   {
     AuthenticatedManagementAuditLogsRoute:
       AuthenticatedManagementAuditLogsRoute,
+    AuthenticatedManagementCalendarRoute: AuthenticatedManagementCalendarRoute,
     AuthenticatedManagementCompaniesRoute:
       AuthenticatedManagementCompaniesRouteWithChildren,
     AuthenticatedManagementCustomersRoute:
@@ -2596,6 +2658,7 @@ const AuthenticatedPortalNewsRouteWithChildren =
 
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRouteWithChildren
+  AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
   AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
   AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRouteWithChildren
@@ -2607,6 +2670,7 @@ interface AuthenticatedPortalRouteChildren {
 
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRouteWithChildren,
+  AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
   AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
   AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRouteWithChildren,
@@ -2743,6 +2807,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicCalendarTokenRoute: ApiPublicCalendarTokenRoute,
   ApiPublicV1FaqsRoute: ApiPublicV1FaqsRoute,
   ApiPublicV1KnowledgeRoute: ApiPublicV1KnowledgeRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
