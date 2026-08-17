@@ -343,3 +343,20 @@ export async function renderFeed(rawToken: string): Promise<string | null> {
     row.scope === "platform" ? "OPSQAI Management Center" : "OPSQAI Customer Portal",
   );
 }
+
+/* ------------------------------ scope helper ----------------------------- */
+
+/**
+ * A platform admin gets the fleet-wide staff calendar; everyone else gets
+ * their personal Customer Portal calendar.
+ */
+export async function resolveScope(context: {
+  supabase: unknown;
+  userId: string;
+  claims?: { email?: string } | undefined;
+}): Promise<{ scope: CalendarScope; email: string | null }> {
+  const { getActorRoles } = await import("@/lib/authorization");
+  const email = context.claims?.email ?? null;
+  const actor = await getActorRoles(context.supabase, context.userId);
+  return { scope: actor.isPlatformAdmin ? "platform" : "portal", email };
+}
