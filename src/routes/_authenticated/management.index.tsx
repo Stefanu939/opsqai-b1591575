@@ -3,13 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 
-import { Building2, KeyRound, Package, Rocket, TrendingUp, Users } from "lucide-react";
+import { Building2, KeyRound, Package, Rocket, TrendingUp } from "lucide-react";
 import { getPlatformOverviewStats } from "@/lib/platform-overview.functions";
 import { platformStats } from "@/lib/companies.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
-import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { AreaTrend } from "@/components/ui/mini-chart";
