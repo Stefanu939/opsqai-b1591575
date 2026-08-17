@@ -868,6 +868,98 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          all_day: boolean
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          id: string
+          kind: string
+          location: string | null
+          owner_email: string | null
+          scope: string
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          owner_email?: string | null
+          scope?: string
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          owner_email?: string | null
+          scope?: string
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_feed_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          last_accessed_at: string | null
+          owner_email: string | null
+          revoked_at: string | null
+          scope: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          owner_email?: string | null
+          revoked_at?: string | null
+          scope: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          owner_email?: string | null
+          revoked_at?: string | null
+          scope?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           active: boolean
