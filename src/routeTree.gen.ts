@@ -83,6 +83,7 @@ import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_a
 import { Route as AuthenticatedPortalNewsRouteImport } from './routes/_authenticated/portal.news'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
 import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
+import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedManagementTeamRouteImport } from './routes/_authenticated/management.team'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
@@ -517,6 +518,12 @@ const AuthenticatedPortalDocumentationRoute =
     path: '/documentation',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalCalendarRoute =
+  AuthenticatedPortalCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalAdminRoute =
   AuthenticatedPortalAdminRouteImport.update({
     id: '/admin',
@@ -882,6 +889,7 @@ export interface FileRoutesByFullPath {
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
+  '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
@@ -1000,6 +1008,7 @@ export interface FileRoutesByTo {
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
+  '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
@@ -1127,6 +1136,7 @@ export interface FileRoutesById {
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
   '/_authenticated/management/team': typeof AuthenticatedManagementTeamRoute
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
+  '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
@@ -1254,6 +1264,7 @@ export interface FileRouteTypes {
     | '/management/support'
     | '/management/team'
     | '/portal/admin'
+    | '/portal/calendar'
     | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
@@ -1372,6 +1383,7 @@ export interface FileRouteTypes {
     | '/management/settings'
     | '/management/support'
     | '/management/team'
+    | '/portal/calendar'
     | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
@@ -1498,6 +1510,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/support'
     | '/_authenticated/management/team'
     | '/_authenticated/portal/admin'
+    | '/_authenticated/portal/calendar'
     | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
     | '/_authenticated/portal/news'
@@ -2129,6 +2142,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalDocumentationRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/calendar': {
+      id: '/_authenticated/portal/calendar'
+      path: '/calendar'
+      fullPath: '/portal/calendar'
+      preLoaderRoute: typeof AuthenticatedPortalCalendarRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/admin': {
       id: '/_authenticated/portal/admin'
       path: '/admin'
@@ -2638,6 +2658,7 @@ const AuthenticatedPortalNewsRouteWithChildren =
 
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRouteWithChildren
+  AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
   AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
   AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRouteWithChildren
@@ -2649,6 +2670,7 @@ interface AuthenticatedPortalRouteChildren {
 
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRouteWithChildren,
+  AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
   AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
   AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRouteWithChildren,
