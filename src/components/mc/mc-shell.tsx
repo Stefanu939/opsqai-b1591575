@@ -179,7 +179,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
             <ThemeToggle />
           </div>
         </header>
-        <main className="oq-soft-card min-w-0 flex-1 overflow-x-hidden">{children}</main>
+        <main className="oq-soft-card min-w-0 flex-1 overflow-hidden">{children}</main>
       </div>
     </div>
   );

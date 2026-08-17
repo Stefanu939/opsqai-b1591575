@@ -183,7 +183,7 @@ function PortalLayout() {
             <span className="text-sm font-medium">Customer Portal</span>
           </div>
         </div>
-        <div className="oq-soft-card min-w-0 flex-1 overflow-x-hidden">
+        <div className="oq-soft-card min-w-0 flex-1 overflow-hidden">
           <Outlet />
         </div>
       </main>
