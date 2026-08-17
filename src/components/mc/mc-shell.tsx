@@ -2,12 +2,10 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
-  Building2,
   Users,
   Package,
   KeyRound,
   Rocket,
-  LifeBuoy,
   Inbox,
   Crown,
   ScrollText,
@@ -15,6 +13,8 @@ import {
   Menu,
   X,
   LogOut,
+  Search,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -41,15 +41,11 @@ const SECTIONS: Section[] = [
   },
   {
     title: "Product",
-    items: [
-      { to: "/management/releases", label: "Releases", icon: Rocket },
-    ],
+    items: [{ to: "/management/releases", label: "Releases", icon: Rocket }],
   },
   {
     title: "OPSQAI",
-    items: [
-      { to: "/management/team", label: "Team", icon: Users },
-    ],
+    items: [{ to: "/management/team", label: "Team", icon: Users }],
   },
   {
     title: "Operations",
@@ -63,9 +59,7 @@ const SECTIONS: Section[] = [
   // NOTE: the Management Center intentionally exposes NO Self-Hosted product
   // surface. `/app/*` is the customer's Windows installation only; it is not
   // demoed, previewed or QA'd from here.
-
 ];
-
 
 export function ManagementShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -77,66 +71,65 @@ export function ManagementShell({ children }: { children: ReactNode }) {
     item.exact ? currentPath === item.to : currentPath.startsWith(item.to);
 
   const Sidebar = (
-    <aside className="flex h-full w-60 flex-col border-r border-border bg-card">
-      <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-        <LogoMark className="h-6 w-6" />
-        <div className="flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-foreground">OPSQAI</span>
-          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            Management
+    <aside className="oq-soft-card flex h-full w-[248px] flex-col overflow-hidden p-3">
+      <div className="flex items-center gap-2.5 px-2 py-3">
+        <LogoMark className="h-7 w-7" />
+        <div className="flex min-w-0 flex-col leading-tight">
+          <span className="font-display text-base font-semibold tracking-tight text-foreground">
+            OPSQAI
+          </span>
+          <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            Management Center
           </span>
         </div>
       </div>
-      <nav className="flex-1 overflow-y-auto py-3">
-        {SECTIONS.map((section, idx) => (
-          <div key={section.title} className={idx === 0 ? "" : "mt-4"}>
-            <div className="mx-2 mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+
+      <nav className="mt-1 flex-1 space-y-4 overflow-y-auto pb-2">
+        {SECTIONS.map((section) => (
+          <div key={section.title}>
+            <div className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
               {section.title}
             </div>
-            {section.items.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "relative mx-2 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
-                    active
-                      ? "font-medium text-foreground"
-                      : "text-muted-foreground hover:bg-surface-1 hover:text-foreground",
-                  )}
-                  style={active ? { backgroundColor: "var(--surface-2)" } : undefined}
-                >
-                  {active && (
-                    <span
-                      aria-hidden
-                      className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
-                      style={{ background: "var(--mc-gold, var(--gold))" }}
-                    />
-                  )}
-                  <Icon
-                    className={cn("h-4 w-4", active && "text-[color:var(--mc-gold,var(--gold))]")}
-                    strokeWidth={1.75}
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "oq-pill flex items-center gap-3 px-3 py-2.5 text-sm",
+                      active
+                        ? "bg-[color:var(--gold)] font-semibold text-[color:var(--gold-foreground)] shadow-[0_10px_24px_-14px_color-mix(in_oklab,var(--gold)_80%,transparent)]"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" strokeWidth={1.9} />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         ))}
       </nav>
 
-      <div className="border-t border-border p-3">
-        <div className="mb-2 truncate px-1 text-xs text-muted-foreground">
-          {user?.email}
+      <div className="rounded-2xl border border-border bg-secondary/60 p-3">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--gold-soft)] text-[color:var(--gold)]">
+            <ShieldCheck className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="truncate text-xs font-semibold text-foreground">Platform staff</div>
+            <div className="truncate text-[11px] text-muted-foreground">{user?.email}</div>
+          </div>
         </div>
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start"
+          className="mt-2 w-full justify-start rounded-xl text-muted-foreground hover:text-foreground"
           onClick={async () => {
             await signOut();
             navigate({ to: "/auth" });
@@ -150,36 +143,43 @@ export function ManagementShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-dvh w-full bg-background text-foreground">
+    <div className="oq-soft flex min-h-dvh w-full gap-4 p-0 md:p-4">
       <div className="hidden md:block">{Sidebar}</div>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div
-            className="absolute inset-0 bg-foreground/40"
+            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative z-50">{Sidebar}</div>
+          <div className="relative z-50 p-3">{Sidebar}</div>
         </div>
       )}
 
-      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:px-6">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col gap-4 md:min-h-0">
+        <header className="oq-soft-card flex h-14 items-center gap-3 px-3 md:h-16 md:px-4">
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="rounded-xl md:hidden"
             onClick={() => setMobileOpen((v) => !v)}
           >
             {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
-          <div className="text-sm font-medium text-foreground">Management Center</div>
+          <label className="hidden min-w-0 flex-1 items-center gap-2 rounded-2xl border border-border bg-secondary/60 px-3 py-2 sm:flex">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              type="search"
+              placeholder="Search companies, licenses, installations…"
+              className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+          </label>
           <div className="ml-auto flex items-center gap-1">
             <NotificationsBell />
             <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 overflow-x-hidden">{children}</main>
+        <main className="oq-soft-card min-w-0 flex-1 overflow-hidden">{children}</main>
       </div>
     </div>
   );

@@ -89,24 +89,24 @@ function PortalLayout() {
   };
   const SidebarInner = (
     <>
-      <div className="flex items-center gap-2 px-5 h-16 border-b border-border">
-        <div className="h-8 w-8 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center">
+      <div className="flex items-center gap-2.5 px-2 py-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[var(--gold-soft)] border border-[var(--gold-line)]">
           <LifeBuoy className="h-4 w-4 text-[color:var(--gold)]" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-display font-semibold text-sm leading-tight">Customer Portal</div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">OPSQAI</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">OPSQAI</div>
         </div>
         <button
           type="button"
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
-          className="md:hidden h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+          className="md:hidden h-8 w-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
-      <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">
+      <nav className="mt-1 flex-1 space-y-1 overflow-y-auto pb-2">
         {visible.map((item) => {
           const active = item.exact ? path === item.to : path.startsWith(item.to);
           const Icon = item.icon;
@@ -115,23 +115,25 @@ function PortalLayout() {
               key={item.to}
               to={item.to}
               onClick={() => setMobileOpen(false)}
-              className={`relative flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${active ? "text-foreground font-medium" : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"}`}
+              className={`oq-pill flex items-center gap-3 px-3 py-2.5 text-sm ${
+                active
+                  ? "bg-[color:var(--gold)] font-semibold text-[color:var(--gold-foreground)] shadow-[0_10px_24px_-14px_color-mix(in_oklab,var(--gold)_80%,transparent)]"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
             >
-              {active && (
-                <span
-                  aria-hidden
-                  className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-[color:var(--gold)]"
-                />
-              )}
-              <Icon className={`h-4 w-4 ${active ? "text-[color:var(--gold)]" : ""}`} />
-              {item.label}
+              <Icon className="h-4 w-4 shrink-0" strokeWidth={1.9} />
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
-      <div className="p-3 border-t border-border space-y-2">
+      <div className="rounded-2xl border border-border bg-secondary/60 p-3">
+        <div className="text-xs font-semibold text-foreground">Need help?</div>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+          Our support team is here for you.
+        </p>
         {user?.email && (
-          <div className="px-2 text-xs text-muted-foreground truncate" title={user.email}>
+          <div className="mt-2 truncate text-[11px] text-muted-foreground" title={user.email}>
             {user.email}
           </div>
         )}
@@ -139,7 +141,7 @@ function PortalLayout() {
           variant="ghost"
           size="sm"
           onClick={handleSignOut}
-          className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+          className="mt-1 w-full justify-start gap-2 rounded-xl text-muted-foreground hover:text-foreground"
         >
           <LogOut className="h-4 w-4" />
           Sign out
@@ -148,41 +150,44 @@ function PortalLayout() {
     </>
   );
   return (
-    <div className="flex-1 flex bg-background">
-      <aside className="hidden md:flex w-60 border-r border-border bg-surface-1 flex-col shrink-0">
+    <div className="oq-soft flex flex-1 gap-4 p-0 md:p-4">
+      <aside className="oq-soft-card hidden md:flex w-[248px] flex-col shrink-0 p-3">
         {SidebarInner}
       </aside>
       {mobileOpen && (
         <>
           <div
-            className="md:hidden fixed inset-0 z-40 bg-black/60"
+            className="md:hidden fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
             aria-hidden
           />
-          <aside className="md:hidden fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-surface-1 flex flex-col">
+          <aside className="oq-soft-card md:hidden fixed inset-y-3 left-3 z-50 w-64 flex flex-col p-3">
             {SidebarInner}
           </aside>
         </>
       )}
-      <main className="flex-1 min-w-0">
-        <div className="md:hidden sticky top-0 z-30 flex items-center gap-2 h-12 px-3 border-b border-border bg-surface-1/95 backdrop-blur">
+      <main className="flex min-w-0 flex-1 flex-col gap-4">
+        <div className="md:hidden oq-soft-card sticky top-0 z-30 flex items-center gap-2 h-14 px-3">
           <button
             type="button"
             aria-label="Open menu"
             onClick={() => setMobileOpen(true)}
-            className="h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary"
           >
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center">
+            <div className="h-6 w-6 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center">
               <LifeBuoy className="h-3.5 w-3.5 text-[color:var(--gold)]" />
             </div>
             <span className="text-sm font-medium">Customer Portal</span>
           </div>
         </div>
-        <Outlet />
+        <div className="oq-soft-card min-w-0 flex-1 overflow-hidden">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
 }
+
