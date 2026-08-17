@@ -12,6 +12,8 @@ import { MetricTile } from "@/components/ui/metric-tile";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
+import { AreaTrend } from "@/components/ui/mini-chart";
+import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/management/")({
