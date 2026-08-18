@@ -269,6 +269,8 @@ export const createUser = createServerFn({ method: "POST" })
          * Cloud: recorded in user_metadata so the app can prompt.
          */
         must_change_password: z.boolean().optional(),
+        /** Explicit module access for non-superadmin users; omitted = role preset. */
+        modules: z.array(z.string()).optional(),
       })
       .parse(d),
   )
