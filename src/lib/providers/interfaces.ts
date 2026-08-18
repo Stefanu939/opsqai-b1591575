@@ -574,6 +574,32 @@ export interface KnowledgeGapCreateInput {
   sourceMessageId: string;
 }
 
+export interface ComplianceSettingsRecord {
+  companyId: string;
+  countryCode: string;
+  primaryLanguage: string;
+  frameworkKeys: string[];
+  reviewIntervalDays: Record<string, number>;
+  updatedBy: string | null;
+  updatedAt: string;
+}
+
+export interface ComplianceSettingsPatch {
+  countryCode?: string;
+  primaryLanguage?: string;
+  frameworkKeys?: string[];
+  reviewIntervalDays?: Record<string, number>;
+}
+
+export interface IComplianceRepository {
+  get(companyId: string): Promise<ComplianceSettingsRecord | null>;
+  upsert(
+    companyId: string,
+    patch: ComplianceSettingsPatch,
+    actorId: string | null,
+  ): Promise<ComplianceSettingsRecord>;
+}
+
 export interface IKnowledgeGapRepository {
   /**
    * Semantic-or-text match. Cloud: `match_knowledge_gap` RPC (pgvector).
@@ -654,6 +680,7 @@ export interface IIntegrationRepository {
 
 export type ThreadRepositoryFactory = (dataCtx: unknown) => IThreadRepository;
 export type MessageRepositoryFactory = (dataCtx: unknown) => IMessageRepository;
+export type ComplianceRepositoryFactory = (dataCtx: unknown) => IComplianceRepository;
 export type FeedbackRepositoryFactory = (dataCtx: unknown) => IFeedbackRepository;
 export type KnowledgeGapRepositoryFactory = (dataCtx: unknown) => IKnowledgeGapRepository;
 export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRepository;

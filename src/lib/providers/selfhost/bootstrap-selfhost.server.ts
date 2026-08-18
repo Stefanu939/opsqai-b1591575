@@ -69,6 +69,7 @@ import { createLocalAuthProvider } from "./local-auth.server";
 import { createNtfsStorageProvider } from "./ntfs-storage.server";
 import { createSmtpNotificationProvider } from "./smtp-notification.server";
 import { createLocalLicensingProvider } from "./local-licensing.server";
+import { startHeartbeatSender } from "./heartbeat-sender.server";
 import { createWindowsBackupService } from "./windows-backup.server";
 import { createLocalTelemetrySink } from "./local-telemetry.server";
 import {
@@ -93,6 +94,10 @@ interface EnvSnapshot {
   OPSQAI_MASTER_KEY_B64?: string; // fallback cipher key
   OPSQAI_CIPHER_MODE: "dpapi" | "aes-gcm";
   OPSQAI_HEARTBEAT_URL?: string;
+  OPSQAI_MC_URL?: string;
+  OPSQAI_HEARTBEAT_ENABLED?: string;
+  OPSQAI_HEARTBEAT_INTERVAL_MS?: string;
+  OPSQAI_APP_VERSION?: string;
   OPSQAI_TELEMETRY_LEVEL: "disabled" | "anonymous" | "full";
   OPSQAI_EDITION: string;
   OPSQAI_SMTP_HOST?: string;
@@ -127,6 +132,10 @@ function readEnv(): EnvSnapshot {
     OPSQAI_MASTER_KEY_B64: opt("OPSQAI_MASTER_KEY_B64"),
     OPSQAI_CIPHER_MODE: (opt("OPSQAI_CIPHER_MODE") as "dpapi" | "aes-gcm") ?? "dpapi",
     OPSQAI_HEARTBEAT_URL: opt("OPSQAI_HEARTBEAT_URL"),
+    OPSQAI_MC_URL: opt("OPSQAI_MC_URL"),
+    OPSQAI_HEARTBEAT_ENABLED: opt("OPSQAI_HEARTBEAT_ENABLED"),
+    OPSQAI_HEARTBEAT_INTERVAL_MS: opt("OPSQAI_HEARTBEAT_INTERVAL_MS"),
+    OPSQAI_APP_VERSION: opt("OPSQAI_APP_VERSION"),
     OPSQAI_TELEMETRY_LEVEL:
       (opt("OPSQAI_TELEMETRY_LEVEL") as "disabled" | "anonymous" | "full") ?? "anonymous",
     OPSQAI_EDITION: opt("OPSQAI_EDITION") ?? "community",
@@ -216,6 +225,20 @@ export async function bootstrapSelfHosted(): Promise<void> {
     licenseFilePath: env.OPSQAI_LICENSE_FILE_PATH,
     heartbeatUrl: env.OPSQAI_HEARTBEAT_URL,
   });
+  // Phase 4: fleet visibility heartbeat. Fail-open by design — disabled by
+  // default absence of OPSQAI_MC_URL, and never blocks bootstrap or app use.
+  startHeartbeatSender({
+    installId: env.OPSQAI_INSTALL_ID,
+    licenseFilePath: env.OPSQAI_LICENSE_FILE_PATH,
+    licensePublicKey: licensePublic,
+    mcBaseUrl: env.OPSQAI_MC_URL,
+    enabled: env.OPSQAI_HEARTBEAT_ENABLED !== "false",
+    intervalMs: env.OPSQAI_HEARTBEAT_INTERVAL_MS
+      ? Number(env.OPSQAI_HEARTBEAT_INTERVAL_MS)
+      : undefined,
+    appVersion: env.OPSQAI_APP_VERSION,
+  });
+
   const backup = env.OPSQAI_PG_DUMP_PATH
     ? createWindowsBackupService({
         pool,
