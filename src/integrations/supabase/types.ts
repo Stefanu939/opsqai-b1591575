@@ -1100,6 +1100,47 @@ export type Database = {
           },
         ]
       }
+      compliance_settings: {
+        Row: {
+          company_id: string
+          country_code: string
+          created_at: string
+          framework_keys: string[]
+          primary_language: string
+          review_interval_days: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          company_id: string
+          country_code?: string
+          created_at?: string
+          framework_keys?: string[]
+          primary_language?: string
+          review_interval_days?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          country_code?: string
+          created_at?: string
+          framework_keys?: string[]
+          primary_language?: string
+          review_interval_days?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           company: string | null
