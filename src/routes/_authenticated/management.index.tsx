@@ -268,6 +268,8 @@ function OverviewPage() {
 
         {/* Right rail */}
         <div className="min-w-0 space-y-4">
+          <UpcomingCard scope="platform" to="/management/calendar" />
+
           <div className="oq-soft-card p-4 md:p-5">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="font-display text-sm font-semibold text-foreground">Release</h2>
