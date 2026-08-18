@@ -426,6 +426,8 @@ export const updateUser = createServerFn({ method: "POST" })
         department_id: uuidString().optional().nullable(),
         is_active: z.boolean().optional(),
         roles: z.array(RoleKey).optional(),
+        /** Explicit module access for non-superadmin users. */
+        modules: z.array(z.string()).optional(),
       })
       .parse(d),
   )
@@ -446,6 +448,15 @@ export const updateUser = createServerFn({ method: "POST" })
       throw new Error("Forbidden: cross-company edit");
     }
     const targetCompany = target?.companyId;
+
+    // Safety rules: the last active superadmin cannot be disabled or downgraded.
+    if (data.is_active === false) {
+      await assertNotLastActiveSuperadmin(roleRepo, profileRepo, data.user_id);
+    }
+    if (data.roles && !data.roles.some(isSuperadminRole)) {
+      await assertNotLastActiveSuperadmin(roleRepo, profileRepo, data.user_id);
+    }
+    if (data.roles) await assertCanGrantSuperadmin(context, data.roles);
 
     const patch: Parameters<typeof profileRepo.updateByUserId>[1] = {};
     if (data.first_name !== undefined) patch.firstName = data.first_name;
@@ -472,6 +483,26 @@ export const updateUser = createServerFn({ method: "POST" })
       for (const r of data.roles) {
         await roleRepo.addRole(data.user_id, r, targetCompany);
       }
+      await auditRoleChange(context, {
+        userId: data.user_id,
+        companyId: targetCompany,
+        roles: data.roles,
+        action: "user.roles.update",
+      });
+    }
+
+    if (targetCompany) {
+      const effectiveRoles =
+        data.roles ??
+        (await roleRepo.listAssignmentsDetailed())
+          .filter((a) => a.userId === data.user_id)
+          .map((a) => a.role);
+      await persistModuleAccess(context, {
+        userId: data.user_id,
+        companyId: targetCompany,
+        roles: effectiveRoles,
+        modules: data.modules,
+      });
     }
     return { ok: true };
   });
@@ -491,6 +522,11 @@ export const deleteUser = createServerFn({ method: "POST" })
       const target = await getAdminProfileRepository().findByUserId(data.user_id);
       if (target?.companyId !== actorCompany) throw new Error("Forbidden");
     }
+    await assertNotLastActiveSuperadmin(
+      getAdminRoleRepository(),
+      getAdminProfileRepository(),
+      data.user_id,
+    );
     await getAuthAdminProvider().deleteUser(data.user_id);
     return { ok: true };
   });
