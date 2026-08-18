@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireModuleAccess } from "@/lib/module-access.server";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import {
@@ -114,6 +115,7 @@ export const processDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => DocInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     await requireAnyPermission(context, ["knowledge.manage", "sop.create"]);
     const companyId = await resolveCompanyForWrite(
       context,
@@ -164,6 +166,7 @@ export const reprocessDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
 
     const repo = getKnowledgeRepository(context.supabase);
@@ -195,6 +198,7 @@ export const deleteKnowledgeDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     await requireAnyPermission(context, ["knowledge.manage", "sop.delete"]);
     const repo = getKnowledgeRepository(context.supabase);
     const filePath = await repo.getFilePath(data.id);
@@ -225,6 +229,7 @@ export const listKnowledgeDocuments = createServerFn({ method: "GET" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     const repo = getKnowledgeRepository(context.supabase);
     return repo.listDocuments(data.company_id ?? null, data.include_inactive ?? false);
   });
@@ -234,6 +239,7 @@ export const listDocumentVersions = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ root_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     const repo = getKnowledgeRepository(context.supabase);
     return repo.listVersions(data.root_id);
   });
@@ -255,6 +261,7 @@ export const uploadKnowledgeFile = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     await requireAnyPermission(context, ["knowledge.manage", "sop.create"]);
     const companyId = await resolveCompanyForWrite(context, data.company_id ?? null);
     const safe = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -280,6 +287,7 @@ export const getKnowledgeDocumentBlob = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ document_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     const repo = getKnowledgeRepository(context.supabase);
     const filePath = await repo.getFilePath(data.document_id);
     if (!filePath) return null;
@@ -315,6 +323,7 @@ export const updateKnowledgeMetadata = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
     const { id, ...patch } = data;
     await getKnowledgeRepository(context.supabase).updateMetadata(id, patch);
@@ -326,6 +335,7 @@ export const markDocumentReviewed = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "kb");
     await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
     await getKnowledgeRepository(context.supabase).updateMetadata(data.id, {
       last_reviewed_at: new Date().toISOString(),

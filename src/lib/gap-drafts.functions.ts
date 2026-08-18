@@ -39,6 +39,7 @@ export const draftGapDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => DraftRequest.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "knowledge_gaps");
     const [{ requireAnyPermission }, { resolveDashboardCompany }, { draftFromGap }] =
       await Promise.all([
         import("@/lib/authorization"),
@@ -60,6 +61,7 @@ export const publishGapDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => PublishRequest.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "knowledge_gaps");
     const [{ requireAnyPermission }, { resolveDashboardCompany }, { publishGapDraft }] =
       await Promise.all([
         import("@/lib/authorization"),

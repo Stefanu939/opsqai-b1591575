@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireModuleAccess } from "@/lib/module-access.server";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission } from "@/lib/authorization";
@@ -21,6 +22,7 @@ async function gapContext(context: unknown) {
 export const listKnowledgeGaps = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requireModuleAccess(context, "knowledge_gaps");
     const { companyId, repo } = await gapContext(context);
     return { gaps: await repo.list(companyId, 500) };
   });
@@ -40,6 +42,7 @@ export const updateKnowledgeGap = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "knowledge_gaps");
     await requireAnyPermission(context, ["knowledge.manage", "analytics.view"]);
     const { companyId, repo } = await gapContext(context);
     const { id, ...patch } = data;
@@ -54,6 +57,7 @@ export const deleteKnowledgeGap = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "knowledge_gaps");
     await requireAnyPermission(context, ["knowledge.manage", "analytics.view"]);
     const { companyId, repo } = await gapContext(context);
     await repo.remove(companyId, data.id);
@@ -63,6 +67,7 @@ export const deleteKnowledgeGap = createServerFn({ method: "POST" })
 export const getKnowledgeGapStats = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requireModuleAccess(context, "knowledge_gaps");
     const { companyId, repo } = await gapContext(context);
     const { buildKnowledgeGapStats } = await import("@/lib/knowledge-gap-stats");
     return buildKnowledgeGapStats(await repo.list(companyId, 2000));
