@@ -624,6 +624,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
         gaps: gapRows,
         learners: learnerRows,
         knowledge: knowledgeRow,
+        frameworkKeys: compliance?.frameworks,
       });
       const intel = intelligence as {
         recommendations: unknown[];
@@ -668,7 +669,13 @@ export const getAuditRecommendations = createServerFn({ method: "POST" })
       auditRepo.learnerSignals(companyId, 50),
       auditRepo.knowledgeSignal(companyId),
     ]);
-    return buildAuditRecommendations({ gaps, learners, knowledge });
+    const complianceCtx = await loadComplianceContext(context, companyId);
+    return buildAuditRecommendations({
+      gaps,
+      learners,
+      knowledge,
+      frameworkKeys: complianceCtx?.frameworks,
+    });
   });
 
 
