@@ -31,6 +31,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ManagementOverview } from "@/components/dashboard/management-overview";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
 import { Panel } from "@/components/ui/panel";
@@ -334,6 +335,8 @@ function DashboardWidgets() {
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-4 py-6 md:px-6 md:py-8">
       <DashboardFilters value={filters} onChange={update} />
+
+      <ManagementOverview />
 
       <BentoGrid>
         {/* KPI row */}

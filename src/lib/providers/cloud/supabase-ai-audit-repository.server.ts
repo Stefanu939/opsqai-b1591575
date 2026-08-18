@@ -1,3 +1,4 @@
+import { summarizeLifecycle } from "@/lib/document-lifecycle";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type {
@@ -156,7 +157,13 @@ export function createSupabaseAiAuditRepository(
 
     async knowledgeSignal(companyId): Promise<AuditKnowledgeSignalRow> {
       const [docs, faqs, courses] = await Promise.all([
-        sb.from("knowledge_documents").select("status,category").eq("company_id", companyId).eq("is_active", true),
+        sb
+          .from("knowledge_documents")
+          .select(
+            "status,category,created_at,updated_at,information_updated_at,last_reviewed_at,review_interval_days",
+          )
+          .eq("company_id", companyId)
+          .eq("is_active", true),
         sb.from("faqs").select("id", { count: "exact", head: true }).eq("company_id", companyId),
         sb.from("academy_learning_paths").select("id", { count: "exact", head: true }).eq("company_id", companyId),
       ]);
@@ -174,6 +181,14 @@ export function createSupabaseAiAuditRepository(
         faqs: faqs.count ?? 0,
         courses: courses.count ?? 0,
         categories,
+        ...(() => {
+          const lc = summarizeLifecycle(rows);
+          return {
+            outdatedDocuments: lc.outdated,
+            reviewDueSoonDocuments: lc.reviewSoon,
+            medianDocumentAgeDays: lc.medianAgeDays,
+          };
+        })(),
       };
     },
   };

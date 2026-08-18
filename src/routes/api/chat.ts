@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse, streamText, type UIMessage } from "ai";
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
 import { resolveChatModel, resolveEmbedOne } from "@/lib/ai-provider.server";
-import { detectLanguage, groundedSystemPrompt, passesGrounding, refusalText, relevantSources } from "@/lib/chat-grounding";
+import { detectLanguage, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources } from "@/lib/chat-grounding";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
 type Body={messages?:UIMessage[];threadId?:string;language?:string};
@@ -31,6 +31,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   const profile=await getProfileRepository(dataCtx).findByUserId(identity.userId);
   const companyId=thread.companyId||profile?.companyId;
   if(!companyId)return new Response("Company not found",{status:400});
+  const firstName=firstNameFrom(profile?.fullName,identity.email);
 
   const query=textOf([...messages].reverse().find((m)=>m.role==="user"));
   const isGreeting=greeting.test(query);
@@ -81,11 +82,12 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
     return createUIMessageStreamResponse({stream});
   }
 
+  const nameHint=firstName!=="there"?` Address them as ${firstName} where it feels natural (e.g. in your greeting), but do not overdo it.`:``;
   const system=isGreeting
-    ?`You are OPSQAI. Reply warmly in ${answerLanguage} in 1-2 sentences and mention you answer from company knowledge.`
+    ?`You are OPSQAI, a warm, professional and human-sounding assistant — never robotic. Greet the user genuinely in ${answerLanguage} in 1-2 sentences and mention you answer from company knowledge.${nameHint}`
     :isCapability
-      ?`You are OPSQAI, the company knowledge assistant. The user asks what you can tell them. Reply in ${answerLanguage}. Do NOT describe yourself, your AI features or how you work. Instead summarise the actual documented content available below: group the SOPs/documents into 3-5 topic areas using their real titles, then suggest 3 concrete questions the user can ask about them. Use only the inventory below; invent nothing.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
-      :groundedSystemPrompt(context,answerLanguage);
+      ?`You are OPSQAI, the company knowledge assistant. Sound warm, professional and human — never robotic. The user asks what you can tell them. Reply in ${answerLanguage}.${nameHint} Do NOT describe yourself, your AI features or how you work. Instead summarise the actual documented content available below: group the SOPs/documents into 3-5 topic areas using their real titles, then suggest 3 concrete questions the user can ask about them. Use only the inventory below; invent nothing.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
+      :groundedSystemPrompt(context,answerLanguage,firstName);
 
   const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(messages)});
   return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?metadata(isGreeting?"greeting":isCapability?"capability":"kb"):undefined,onFinish:async({messages:finished})=>{await persist(finished);}});

@@ -36,6 +36,8 @@ interface AdminClient {
             email: string | null;
             last_sign_in_at: string | null;
             created_at: string;
+            email_confirmed_at?: string | null;
+            banned_until?: string | null;
           }>;
         };
         error: { message: string } | null;
@@ -47,6 +49,8 @@ interface AdminClient {
             email: string | null;
             last_sign_in_at: string | null;
             created_at: string;
+            email_confirmed_at?: string | null;
+            banned_until?: string | null;
           } | null;
         };
         error: { message: string } | null;
@@ -197,6 +201,9 @@ export function createSupabaseAuthAdminProvider(
         email: u.email ?? "",
         lastSignInAt: u.last_sign_in_at,
         createdAt: u.created_at,
+        emailConfirmed: !!u.email_confirmed_at,
+        disabled: !!u.banned_until && u.banned_until !== "none",
+        invited: !u.last_sign_in_at,
       }));
     },
 
@@ -211,7 +218,19 @@ export function createSupabaseAuthAdminProvider(
         email: u.email ?? "",
         lastSignInAt: u.last_sign_in_at,
         createdAt: u.created_at,
+        emailConfirmed: !!u.email_confirmed_at,
+        disabled: !!u.banned_until && u.banned_until !== "none",
+        invited: !u.last_sign_in_at,
       };
+    },
+
+    async updateEmail(userId, newEmail) {
+      const admin = await getAdmin();
+      const { error } = await admin.auth.admin.updateUserById(userId, {
+        email: newEmail,
+        email_confirm: true,
+      });
+      if (error) throw new Error(error.message);
     },
   };
 }

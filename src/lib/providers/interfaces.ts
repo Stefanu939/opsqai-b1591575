@@ -284,6 +284,12 @@ export interface AdminUserRecord {
   email: string;
   lastSignInAt: string | null;
   createdAt: string;
+  /** True once the address has been confirmed (Cloud email link / Self-Hosted has no verification step and is always true). */
+  emailConfirmed: boolean;
+  /** True when the account is currently disabled/banned. */
+  disabled: boolean;
+  /** True when the account has never signed in yet (invited/created but pending first sign-in). */
+  invited: boolean;
 }
 
 export interface AdminCreateUserInput {
@@ -329,6 +335,8 @@ export interface IAuthAdminProvider extends Provider {
   setDisabled(userId: UserId, disabled: boolean): Promise<void>;
   listUsers(): Promise<AdminUserRecord[]>;
   findUserAuthMeta(userId: UserId): Promise<AdminUserRecord | null>;
+  /** Change a user's sign-in email address. */
+  updateEmail(userId: UserId, newEmail: string): Promise<void>;
 }
 
 /**
@@ -534,6 +542,12 @@ export interface AuditKnowledgeSignalRow {
   faqs: number;
   courses: number;
   categories: Record<string, number>;
+  /** Active documents past their review cadence (0021_knowledge_lifecycle). */
+  outdatedDocuments?: number;
+  /** Active documents due for review within 30 days. */
+  reviewDueSoonDocuments?: number;
+  /** Median information age in days across active documents. */
+  medianDocumentAgeDays?: number | null;
 }
 
 
@@ -784,6 +798,28 @@ export interface KnowledgeDocumentRow {
   file_type: string | null;
   status: string;
   chunk_count: number;
+  /** Lifecycle metadata (0021_knowledge_lifecycle). Nullable on legacy rows. */
+  information_updated_at?: string | null;
+  last_reviewed_at?: string | null;
+  review_interval_days?: number | null;
+  owner_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  version?: number;
+  is_critical?: boolean;
+  department_id?: string | null;
+}
+
+/** Editable lifecycle/ownership metadata for a knowledge document. */
+export interface KnowledgeMetadataPatch {
+  title?: string;
+  category?: string;
+  doc_code?: string | null;
+  department_id?: string | null;
+  owner_id?: string | null;
+  information_updated_at?: string | null;
+  last_reviewed_at?: string | null;
+  review_interval_days?: number | null;
 }
 
 export interface KnowledgeChunkInsert {
@@ -879,6 +915,8 @@ export interface IKnowledgeRepository {
   activateDocument(id: string): Promise<void>;
   /** Toggle the "critical SOP" acknowledgement flag. */
   setCritical(id: string, is_critical: boolean): Promise<void>;
+  /** Update editable lifecycle/ownership metadata for one document. */
+  updateMetadata(id: string, patch: KnowledgeMetadataPatch): Promise<void>;
 }
 
 export type KnowledgeRepositoryFactory = (dataCtx: unknown) => IKnowledgeRepository;

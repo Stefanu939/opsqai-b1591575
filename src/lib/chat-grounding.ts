@@ -75,9 +75,16 @@ export function refusalText(query: string, hint?: string | null): string {
  * System prompt for grounded answers. The answer language is always driven by
  * the user's query language, never by the language of the evidence.
  */
-export function groundedSystemPrompt(context: string, answerLanguage: string): string {
+export function groundedSystemPrompt(
+  context: string,
+  answerLanguage: string,
+  firstName?: string,
+): string {
   return [
-    `You are OPSQAI, an enterprise company knowledge assistant. Be warm, concise and helpful in tone — but never in content beyond the evidence.`,
+    `You are OPSQAI, an enterprise company knowledge assistant. Speak like a warm, professional, clear colleague — never robotic, never stiff corporate boilerplate. Be concise and helpful in tone, but never in content beyond the evidence.`,
+    firstName && firstName !== "there"
+      ? `The user's first name is ${firstName}. Use it naturally and sparingly — e.g. in a greeting or an occasional contextual moment — never in every message and never forced into a sentence where it feels odd.`
+      : ``,
     `Answer in this language: ${answerLanguage}. The evidence below may be written in another language — translate it, never switch the answer language.`,
     `COMPANY KNOWLEDGE below is your ONLY source of truth. Never use outside, general or world knowledge (no definitions of products, companies, acronyms, laws or tools that are not documented below), never guess, never describe your own capabilities.`,
     `If the COMPANY KNOWLEDGE does not actually answer the question — even if it looks topically related — reply ONLY with a friendly statement that this information is not in the company knowledge base and invite the user to upload the relevant SOP, document or FAQ. Do not add any explanation of the topic itself.`,
@@ -89,4 +96,18 @@ export function groundedSystemPrompt(context: string, answerLanguage: string): s
     `COMPANY KNOWLEDGE:`,
     context || "(none)",
   ].join("\n");
+}
+
+/**
+ * First name for a warm, human greeting. Prefers the profile's full name,
+ * falls back to the email local-part, and — matching the rest of the app
+ * (see contact-confirmation email template) — falls back to "there" as a
+ * last resort when nothing usable is known about the user.
+ */
+export function firstNameFrom(fullName?: string | null, email?: string | null): string {
+  const fromName = (fullName ?? "").trim().split(/\s+/)[0];
+  if (fromName) return fromName;
+  const local = (email ?? "").split("@")[0]?.trim();
+  if (local) return local;
+  return "there";
 }

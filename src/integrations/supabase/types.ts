@@ -2121,12 +2121,16 @@ export type Database = {
           file_path: string | null
           file_type: string | null
           id: string
+          information_updated_at: string | null
           is_active: boolean
           is_critical: boolean
           knowledge_type: string
+          last_reviewed_at: string | null
+          owner_id: string | null
           page: number | null
           parent_document_id: string | null
           replaced_at: string | null
+          review_interval_days: number | null
           section: string | null
           status: string
           system_slug: string | null
@@ -2148,12 +2152,16 @@ export type Database = {
           file_path?: string | null
           file_type?: string | null
           id?: string
+          information_updated_at?: string | null
           is_active?: boolean
           is_critical?: boolean
           knowledge_type?: string
+          last_reviewed_at?: string | null
+          owner_id?: string | null
           page?: number | null
           parent_document_id?: string | null
           replaced_at?: string | null
+          review_interval_days?: number | null
           section?: string | null
           status?: string
           system_slug?: string | null
@@ -2175,12 +2183,16 @@ export type Database = {
           file_path?: string | null
           file_type?: string | null
           id?: string
+          information_updated_at?: string | null
           is_active?: boolean
           is_critical?: boolean
           knowledge_type?: string
+          last_reviewed_at?: string | null
+          owner_id?: string | null
           page?: number | null
           parent_document_id?: string | null
           replaced_at?: string | null
+          review_interval_days?: number | null
           section?: string | null
           status?: string
           system_slug?: string | null

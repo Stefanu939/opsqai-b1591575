@@ -48,6 +48,9 @@ export interface AuditKnowledgeSignal {
   courses: number;
   /** Document count per category, used to spot uncovered areas. */
   categories: Record<string, number>;
+  outdatedDocuments?: number;
+  reviewDueSoonDocuments?: number;
+  medianDocumentAgeDays?: number | null;
 }
 
 export type RecommendationKind =
@@ -329,6 +332,26 @@ export function buildAuditRecommendations(input: {
       effort: "low",
       department: null,
       evidence: [`${knowledge.staleDocuments} of ${knowledge.documents} documents not ready`],
+    });
+  }
+  const outdated = knowledge.outdatedDocuments ?? 0;
+  if (outdated > 0) {
+    recs.push({
+      id: "policy-review-outdated",
+      kind: "policy_review",
+      title: `Refresh ${outdated} document(s) past their review date`,
+      rationale:
+        "Documents older than their review cadence still ground AI answers, so outdated instructions keep circulating as if they were current policy.",
+      priority: outdated >= 5 ? "high" : "medium",
+      expectedScoreImprovement: Math.min(8, outdated * 2),
+      effort: "medium",
+      department: null,
+      evidence: [
+        `${outdated} active document(s) past their review cadence`,
+        knowledge.medianDocumentAgeDays != null
+          ? `Median document age: ${knowledge.medianDocumentAgeDays} days`
+          : "Median document age unavailable",
+      ],
     });
   }
   if (knowledge.readyDocuments > 0 && knowledge.faqs < Math.ceil(knowledge.readyDocuments / 4)) {

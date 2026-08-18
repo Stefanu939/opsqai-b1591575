@@ -123,8 +123,9 @@ export function createPgAuthAdminProvider(deps: PgAuthAdminDeps): IAuthAdminProv
         email: string | null;
         last_sign_in_at: Date | null;
         created_at: Date;
+        disabled: boolean | null;
       }>(
-        `SELECT id, email, last_sign_in_at, created_at
+        `SELECT id, email, last_sign_in_at, created_at, disabled
            FROM public.users
           ORDER BY created_at DESC`,
       );
@@ -133,6 +134,9 @@ export function createPgAuthAdminProvider(deps: PgAuthAdminDeps): IAuthAdminProv
         email: r.email ?? "",
         lastSignInAt: r.last_sign_in_at ? r.last_sign_in_at.toISOString() : null,
         createdAt: r.created_at.toISOString(),
+        emailConfirmed: true,
+        disabled: !!r.disabled,
+        invited: !r.last_sign_in_at,
       }));
     },
 
@@ -142,8 +146,9 @@ export function createPgAuthAdminProvider(deps: PgAuthAdminDeps): IAuthAdminProv
         email: string | null;
         last_sign_in_at: Date | null;
         created_at: Date;
+        disabled: boolean | null;
       }>(
-        `SELECT id, email, last_sign_in_at, created_at
+        `SELECT id, email, last_sign_in_at, created_at, disabled
            FROM public.users WHERE id = $1`,
         [userId],
       );
@@ -154,7 +159,17 @@ export function createPgAuthAdminProvider(deps: PgAuthAdminDeps): IAuthAdminProv
         email: r.email ?? "",
         lastSignInAt: r.last_sign_in_at ? r.last_sign_in_at.toISOString() : null,
         createdAt: r.created_at.toISOString(),
+        emailConfirmed: true,
+        disabled: !!r.disabled,
+        invited: !r.last_sign_in_at,
       };
+    },
+
+    async updateEmail(userId, newEmail) {
+      await pool.query(
+        "UPDATE public.users SET email = $1 WHERE id = $2",
+        [newEmail.toLowerCase(), userId],
+      );
     },
   };
 }

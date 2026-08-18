@@ -10,6 +10,7 @@ import {
   getAdminRoleRepository,
   getAuthAdminProvider,
   getProfileRepository,
+  getStorageProvider,
 } from "@/lib/providers/registry";
 import { uuidString } from "@/lib/zod-uuid";
 
@@ -73,6 +74,7 @@ export const listUsers = createServerFn({ method: "POST" })
     const emailById = new Map(users.map((u) => [u.id, u.email]));
     const lastSignInById = new Map(users.map((u) => [u.id, u.lastSignInAt]));
     const createdById = new Map(users.map((u) => [u.id, u.createdAt]));
+    const authMetaById = new Map(users.map((u) => [u.id, u]));
     const rolesByUser = new Map<string, string[]>();
     for (const r of roles) {
       const list = rolesByUser.get(r.userId) ?? [];
@@ -88,6 +90,7 @@ export const listUsers = createServerFn({ method: "POST" })
       full_name: p.fullName,
       first_name: p.firstName,
       last_name: p.lastName,
+      avatar_url: p.avatarUrl,
       position: p.position,
       phone: p.phone,
       department_id: p.departmentId,
@@ -99,6 +102,9 @@ export const listUsers = createServerFn({ method: "POST" })
       last_sign_in_at: lastSignInById.get(p.userId) ?? null,
       created_at: p.createdAt,
       roles: rolesByUser.get(p.userId) ?? [],
+      email_confirmed: authMetaById.get(p.userId)?.emailConfirmed ?? true,
+      account_disabled: authMetaById.get(p.userId)?.disabled ?? false,
+      invited: authMetaById.get(p.userId)?.invited ?? false,
     }));
 
     if (!scope) {
@@ -114,6 +120,7 @@ export const listUsers = createServerFn({ method: "POST" })
           full_name: null,
           first_name: null,
           last_name: null,
+          avatar_url: null,
           position: null,
           phone: null,
           department_id: null,
@@ -125,6 +132,9 @@ export const listUsers = createServerFn({ method: "POST" })
           last_sign_in_at: u.lastSignInAt ?? null,
           created_at: u.createdAt,
           roles: rolesByUser.get(u.id) ?? [],
+          email_confirmed: u.emailConfirmed,
+          account_disabled: u.disabled,
+          invited: u.invited,
         });
       }
     }
@@ -365,6 +375,85 @@ export const deleteUser = createServerFn({ method: "POST" })
       if (target?.companyId !== actorCompany) throw new Error("Forbidden");
     }
     await getAuthAdminProvider().deleteUser(data.user_id);
+    return { ok: true };
+  });
+
+export const updateUserEmail = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        user_id: uuidString(),
+        new_email: z.string().trim().toLowerCase().email(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.update", "platform.manage"]);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
+    if (await getAdminRoleRepository().isPlatformOwner(data.user_id)) {
+      throw new Error("The installation owner's email cannot be changed here");
+    }
+    if (!isPlatformAdmin) {
+      const actorCompany = await getActorCompany(context.supabase, context.userId);
+      const target = await getAdminProfileRepository().findByUserId(data.user_id);
+      if (target?.companyId !== actorCompany) throw new Error("Forbidden");
+    }
+    await getAuthAdminProvider().updateEmail(data.user_id, data.new_email);
+    return { ok: true };
+  });
+
+const AVATAR_BUCKET = "avatars";
+const AVATAR_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
+export const updateUserAvatar = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        user_id: uuidString(),
+        filename: z.string().min(1),
+        content_type: z.enum(AVATAR_CONTENT_TYPES),
+        data_base64: z.string().min(1),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.update", "platform.manage"]);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
+    if (!isPlatformAdmin) {
+      const actorCompany = await getActorCompany(context.supabase, context.userId);
+      const target = await getAdminProfileRepository().findByUserId(data.user_id);
+      if (target?.companyId !== actorCompany) throw new Error("Forbidden");
+    }
+    const ext =
+      data.content_type === "image/png" ? "png" : data.content_type === "image/webp" ? "webp" : "jpg";
+    const key = `${data.user_id}/avatar-${Date.now()}.${ext}`;
+    const binary = atob(data.data_base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    await getStorageProvider().put({
+      bucket: AVATAR_BUCKET,
+      key,
+      body: bytes,
+      contentType: data.content_type,
+    });
+    await getAdminProfileRepository().updateByUserId(data.user_id, { avatarUrl: key });
+    return { path: key };
+  });
+
+export const clearUserAvatar = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: { user_id: string }) => z.object({ user_id: uuidString() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["user.update", "platform.manage"]);
+    const { isPlatformAdmin } = await requireAdminOrPlatform(context.supabase, context.userId);
+    if (!isPlatformAdmin) {
+      const actorCompany = await getActorCompany(context.supabase, context.userId);
+      const target = await getAdminProfileRepository().findByUserId(data.user_id);
+      if (target?.companyId !== actorCompany) throw new Error("Forbidden");
+    }
+    await getAdminProfileRepository().updateByUserId(data.user_id, { avatarUrl: null });
     return { ok: true };
   });
 

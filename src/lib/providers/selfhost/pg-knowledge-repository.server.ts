@@ -280,6 +280,23 @@ export function createPgKnowledgeRepository(
         [id, is_critical],
       );
     },
+
+    async updateMetadata(id, patch) {
+      const sets: string[] = [];
+      const params: unknown[] = [id];
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === undefined) continue;
+        params.push(value);
+        sets.push(`${key} = $${params.length}`);
+      }
+      if (sets.length === 0) return;
+      await pool.query(
+        `UPDATE public.knowledge_documents
+            SET ${sets.join(", ")}, updated_at = now()
+          WHERE id = $1`,
+        params,
+      );
+    },
   };
 }
 

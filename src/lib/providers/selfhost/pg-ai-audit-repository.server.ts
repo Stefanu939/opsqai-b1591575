@@ -162,6 +162,19 @@ export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRep
              (SELECT count(*) FROM public.knowledge_documents WHERE company_id=$1 AND is_active) AS documents,
              (SELECT count(*) FROM public.knowledge_documents WHERE company_id=$1 AND is_active AND status='ready') AS ready,
              (SELECT count(*) FROM public.knowledge_documents WHERE company_id=$1 AND is_active AND status<>'ready') AS stale,
+             (SELECT count(*) FROM public.knowledge_documents
+               WHERE company_id=$1 AND is_active
+                 AND COALESCE(last_reviewed_at, information_updated_at, updated_at, created_at)
+                     < now() - (COALESCE(review_interval_days, 365) || ' days')::interval) AS outdated,
+             (SELECT count(*) FROM public.knowledge_documents
+               WHERE company_id=$1 AND is_active
+                 AND COALESCE(last_reviewed_at, information_updated_at, updated_at, created_at)
+                     BETWEEN now() - (COALESCE(review_interval_days, 365) || ' days')::interval
+                         AND now() - (GREATEST(COALESCE(review_interval_days, 365) - 30, 0) || ' days')::interval) AS due_soon,
+             (SELECT COALESCE(round(percentile_cont(0.5) WITHIN GROUP (
+                 ORDER BY EXTRACT(EPOCH FROM (now() - COALESCE(information_updated_at, updated_at, created_at))) / 86400
+               ))::int, 0)
+                FROM public.knowledge_documents WHERE company_id=$1 AND is_active) AS median_age,
              (SELECT count(*) FROM public.faqs WHERE company_id=$1) AS faqs,
              (SELECT count(*) FROM public.academy_learning_paths WHERE company_id=$1) AS courses`,
           [companyId],
@@ -182,6 +195,9 @@ export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRep
         faqs: Number(t["faqs"] ?? 0),
         courses: Number(t["courses"] ?? 0),
         categories,
+        outdatedDocuments: Number(t["outdated"] ?? 0),
+        reviewDueSoonDocuments: Number(t["due_soon"] ?? 0),
+        medianDocumentAgeDays: Number(t["median_age"] ?? 0),
       };
     },
   };

@@ -50,6 +50,8 @@ import {
   BookOpen,
   Archive,
   Sparkles,
+  CalendarClock,
+  CheckCheck,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -59,7 +61,16 @@ import {
   listKnowledgeDocuments,
   listDocumentVersions,
   uploadKnowledgeFile,
+  updateKnowledgeMetadata,
+  markDocumentReviewed,
 } from "@/lib/kb.functions";
+import {
+  documentLifecycle,
+  lifecycleBadgeClass,
+  summarizeLifecycle,
+  DEFAULT_REVIEW_INTERVAL_DAYS,
+  type LifecycleState,
+} from "@/lib/document-lifecycle";
 import {
   replaceDocumentVersion,
   rollbackToVersion,
@@ -109,6 +120,10 @@ interface Doc {
   parent_document_id: string | null;
   change_notes: string | null;
   updated_at: string;
+  information_updated_at?: string | null;
+  last_reviewed_at?: string | null;
+  review_interval_days?: number | null;
+  owner_id?: string | null;
 }
 
 const CATEGORIES = ["SOP", "Manual", "Procedure", "Safety", "Transport", "Warehouse", "General"];
@@ -149,6 +164,11 @@ function KnowledgePage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [freshness, setFreshness] = useState<"all" | LifecycleState>("all");
+  const [metaTarget, setMetaTarget] = useState<Doc | null>(null);
+  const [metaInfoDate, setMetaInfoDate] = useState("");
+  const [metaInterval, setMetaInterval] = useState<string>("");
+  const [metaSaving, setMetaSaving] = useState(false);
 
   const process = useServerFn(processDocument);
   const del = useServerFn(deleteKnowledgeDocument);
@@ -159,6 +179,48 @@ function KnowledgePage() {
   const fetchDocs = useServerFn(listKnowledgeDocuments);
   const fetchVersions = useServerFn(listDocumentVersions);
   const uploadFile = useServerFn(uploadKnowledgeFile);
+  const saveMetadata = useServerFn(updateKnowledgeMetadata);
+  const markReviewed = useServerFn(markDocumentReviewed);
+
+  const openMetadata = (d: Doc) => {
+    setMetaTarget(d);
+    const basis = d.information_updated_at ?? d.updated_at ?? d.created_at;
+    setMetaInfoDate(basis ? new Date(basis).toISOString().slice(0, 10) : "");
+    setMetaInterval(String(d.review_interval_days ?? DEFAULT_REVIEW_INTERVAL_DAYS));
+  };
+
+  const onSaveMetadata = async () => {
+    if (!metaTarget) return;
+    setMetaSaving(true);
+    try {
+      await saveMetadata({
+        data: {
+          id: metaTarget.id,
+          information_updated_at: metaInfoDate
+            ? new Date(`${metaInfoDate}T12:00:00Z`).toISOString()
+            : null,
+          review_interval_days: metaInterval ? Number(metaInterval) : null,
+        },
+      });
+      toast.success("Document lifecycle updated");
+      setMetaTarget(null);
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save");
+    } finally {
+      setMetaSaving(false);
+    }
+  };
+
+  const onMarkReviewed = async (d: Doc) => {
+    try {
+      await markReviewed({ data: { id: d.id } });
+      toast.success("Review recorded — freshness clock reset");
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not record review");
+    }
+  };
 
   /** Read a File as base64 so it can travel through a server fn payload. */
   const toBase64 = (f: File) =>
@@ -345,8 +407,11 @@ function KnowledgePage() {
   const failedCount = docs.filter((d) => d.status === "failed").length;
   const totalChunks = docs.reduce((a, d) => a + (d.chunk_count || 0), 0);
 
+  const lifecycleSummary = summarizeLifecycle(docs.filter((d) => d.is_active));
+
   const visibleDocs = docs.filter((d) => {
     if (categoryFilter !== "all" && d.category !== categoryFilter) return false;
+    if (freshness !== "all" && documentLifecycle(d).state !== freshness) return false;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       return (
@@ -384,6 +449,23 @@ function KnowledgePage() {
                 {c}
               </FilterChip>
             ))}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterChip active={freshness === "all"} onClick={() => setFreshness("all")}>
+              Any age
+            </FilterChip>
+            <FilterChip active={freshness === "outdated"} onClick={() => setFreshness("outdated")}>
+              Review overdue ({lifecycleSummary.outdated})
+            </FilterChip>
+            <FilterChip
+              active={freshness === "review_soon"}
+              onClick={() => setFreshness("review_soon")}
+            >
+              Due soon ({lifecycleSummary.reviewSoon})
+            </FilterChip>
+            <FilterChip active={freshness === "fresh"} onClick={() => setFreshness("fresh")}>
+              Up to date ({lifecycleSummary.fresh})
+            </FilterChip>
           </div>
         </>
       }
@@ -617,6 +699,21 @@ function KnowledgePage() {
                   <span>{d.chunk_count} chunks</span>
                   <span>·</span>
                   <span>Updated {new Date(d.updated_at || d.created_at).toLocaleDateString()}</span>
+                  <span>·</span>
+                  {(() => {
+                    const lc = documentLifecycle(d);
+                    return (
+                      <>
+                        <span>{lc.ageLabel}</span>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${lifecycleBadgeClass(lc.state)}`}
+                        >
+                          {lc.label}
+                        </Badge>
+                      </>
+                    );
+                  })()}
                 </div>
                 {d.change_notes && (
                   <div className="text-xs text-muted-foreground mt-1 italic">
@@ -637,6 +734,22 @@ function KnowledgePage() {
               </div>
               {canEdit && (
                 <div className="flex gap-1 shrink-0">
+                  <button
+                    onClick={() => openMetadata(d)}
+                    aria-label="Edit lifecycle metadata"
+                    title="Lifecycle & review cadence"
+                    className="p-2 text-muted-foreground hover:text-primary"
+                  >
+                    <CalendarClock className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => onMarkReviewed(d)}
+                    aria-label="Mark reviewed"
+                    title="Mark as reviewed today"
+                    className="p-2 text-muted-foreground hover:text-primary"
+                  >
+                    <CheckCheck className="h-4 w-4" />
+                  </button>
                   <button
                     onClick={() => openVersions(d)}
                     aria-label="Version history"
@@ -688,6 +801,57 @@ function KnowledgePage() {
           ))}
         </div>
       )}
+
+      {/* Lifecycle metadata dialog */}
+      <Dialog open={!!metaTarget} onOpenChange={(o) => !o && setMetaTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Document lifecycle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              {metaTarget?.title} — the information date drives the age shown in the library and the
+              AI Audit freshness score.
+            </p>
+            <div className="space-y-2">
+              <Label>Information last updated</Label>
+              <Input
+                type="date"
+                value={metaInfoDate}
+                onChange={(e) => setMetaInfoDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Review cadence (days)</Label>
+              <Input
+                type="number"
+                min={7}
+                max={3650}
+                value={metaInterval}
+                onChange={(e) => setMetaInterval(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Default {DEFAULT_REVIEW_INTERVAL_DAYS} days. Documents past their cadence are
+                flagged as review overdue.
+              </p>
+            </div>
+            {metaTarget?.last_reviewed_at && (
+              <p className="text-xs text-muted-foreground">
+                Last reviewed {new Date(metaTarget.last_reviewed_at).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMetaTarget(null)}>
+              Cancel
+            </Button>
+            <Button onClick={onSaveMetadata} disabled={metaSaving}>
+              {metaSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Replace dialog */}
       <Dialog
