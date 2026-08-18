@@ -77,6 +77,62 @@ async function assertCanGrantSuperadmin(context: { supabase: unknown; userId: st
   }
 }
 
+/**
+ * Persists explicit module grants for a non-superadmin user and records the
+ * change in the audit log. Superadmins are never restricted, so any incoming
+ * selection is ignored for them.
+ */
+async function persistModuleAccess(
+  context: { supabase: unknown; userId: string },
+  args: { userId: string; companyId: string; roles: string[]; modules?: string[] | null },
+) {
+  if (!args.modules) return;
+  if (args.roles.some(isSuperadminRole)) return;
+  const { getLicensedModules } = await import("@/lib/module-access.server");
+  const licensed = new Set(await getLicensedModules());
+  const moduleKeys = Array.from(new Set(args.modules)).filter(
+    (m) => isValidModuleKey(m) && licensed.has(m),
+  );
+  await getModuleAccessRepository(context.supabase).replaceForUser(
+    args.companyId,
+    args.userId,
+    moduleKeys,
+    context.userId,
+  );
+  await getExportRepository(context.supabase)
+    .writeAudit({
+      companyId: args.companyId,
+      userId: context.userId,
+      module: "audit_log",
+      action: "module_access.update",
+      resource: args.userId,
+      payload: { modules: moduleKeys },
+      severity: "info",
+      success: true,
+    })
+    .catch(() => {});
+}
+
+/** Records role / superadmin changes in the audit log (best-effort). */
+async function auditRoleChange(
+  context: { supabase: unknown; userId: string },
+  args: { userId: string; companyId: string | null | undefined; roles: string[]; action: string },
+) {
+  if (!args.companyId) return;
+  await getExportRepository(context.supabase)
+    .writeAudit({
+      companyId: args.companyId,
+      userId: context.userId,
+      module: "audit_log",
+      action: args.action,
+      resource: args.userId,
+      payload: { roles: args.roles, superadmin: args.roles.some(isSuperadminRole) },
+      severity: args.roles.some(isSuperadminRole) ? "warning" : "info",
+      success: true,
+    })
+    .catch(() => {});
+}
+
 export const listUsers = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => {
