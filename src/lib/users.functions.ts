@@ -323,6 +323,19 @@ export const createUser = createServerFn({ method: "POST" })
     await roleRepo.removeAllRoles(newUserId);
     await roleRepo.addRole(newUserId, data.role, targetCompany);
 
+    await persistModuleAccess(context, {
+      userId: newUserId,
+      companyId: targetCompany,
+      roles: [data.role],
+      modules: data.modules,
+    });
+    await auditRoleChange(context, {
+      userId: newUserId,
+      companyId: targetCompany,
+      roles: [data.role],
+      action: "user.create",
+    });
+
     return { ok: true, id: newUserId };
   });
 
