@@ -314,10 +314,20 @@ export function CalendarPanel({ scope }: { scope: "platform" | "portal" }) {
           </div>
           <div className="mt-3 grid gap-2">
             <a
-              href={webcalUrl || "#"}
+              href={outlookWebUrl || "#"}
+              target="_blank"
+              rel="noreferrer"
               className="oq-pill flex items-center justify-center border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"
             >
-              Add to Outlook / Apple Calendar
+              Add to Outlook (Microsoft 365)
+            </a>
+            <a
+              href={outlookLiveUrl || "#"}
+              target="_blank"
+              rel="noreferrer"
+              className="oq-pill flex items-center justify-center border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"
+            >
+              Add to Outlook.com
             </a>
             <a
               href={googleUrl || "#"}
@@ -327,6 +337,17 @@ export function CalendarPanel({ scope }: { scope: "platform" | "portal" }) {
             >
               Add to Google Calendar
             </a>
+            <a
+              href={webcalUrl || "#"}
+              className="oq-pill flex items-center justify-center border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary"
+            >
+              Outlook desktop / Apple Calendar (webcal)
+            </a>
+            <p className="text-[11px] text-muted-foreground">
+              Google and Outlook fetch this link from their own servers, so it always points at the
+              public OPSQAI domain — paste it manually if a provider blocks the popup.
+            </p>
+
             <Button
               variant="ghost"
               size="sm"
