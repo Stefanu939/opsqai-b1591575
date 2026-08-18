@@ -691,6 +691,34 @@ function UsersPage() {
                   </div>
                 </div>
 
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>Accessible modules</Label>
+                    {detailAccess.data?.superadmin ? null : (
+                      <Button
+                        size="sm"
+                        onClick={() => saveModules.mutate()}
+                        disabled={saveModules.isPending || detailAccess.isLoading}
+                      >
+                        {saveModules.isPending ? "Saving…" : "Save modules"}
+                      </Button>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    {detailAccess.isLoading ? (
+                      <div className="text-sm text-muted-foreground">Loading module access…</div>
+                    ) : (
+                      <ModuleAccessPicker
+                        role={detailAccess.data?.role ?? editRole}
+                        licensed={licensed}
+                        value={editModules}
+                        onChange={setEditModules}
+                        disabled={saveModules.isPending}
+                      />
+                    )}
+                  </div>
+                </div>
+
                 <div className="border-t pt-4 flex flex-wrap gap-2">
                   <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
                     <DialogTrigger asChild>
