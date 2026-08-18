@@ -105,6 +105,7 @@ const dbMode = arg("db-mode", "embedded");
 const storageMode = arg("storage-mode", "local");
 const licenseContents = arg("license", "");
 const smtpJson = arg("smtp", "");
+const complianceJson = arg("compliance", "");
 const startServices = arg("start-services", "true") !== "false";
 const doResetEmbeddedDb = hasFlag("reset-embedded-db");
 
@@ -192,6 +193,10 @@ if (licenseContents) {
 }
 
 const smtpCfg = smtpJson ? JSON.parse(smtpJson) : null;
+// Advisory compliance context chosen in the installer (country, language,
+// reference frameworks). Never a legal assertion — it only seeds review
+// cadences and AI audit prompt context.
+const complianceCfg = complianceJson ? JSON.parse(complianceJson) : null;
 
 // Preserve any existing embedded-postgres password that was written into
 // config.json by a previous run of this installer (or by the OpsqaiDatabase
@@ -270,6 +275,7 @@ const config = {
     ),
   ),
   smtp: smtpCfg,
+  compliance: complianceCfg,
   license: licenseClaims
     ? {
         edition: licenseClaims.edition ?? "professional",
