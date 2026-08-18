@@ -25,12 +25,19 @@ import {
   firstRunImportLicense,
   firstRunTestStorage,
   firstRunSetAiProvider,
+  firstRunSetCompliance,
   firstRunTestSmtp,
   firstRunConfigureSso,
   firstRunSetBackupTarget,
   firstRunRunDoctor,
   firstRunCreateAdmin,
 } from "@/lib/first-run.functions";
+import {
+  listCountries,
+  resolveCountryConfig,
+  FRAMEWORKS,
+  type FrameworkKey,
+} from "@/lib/compliance-registry";
 
 export const Route = createFileRoute("/first-run")({
   head: () => ({
@@ -48,6 +55,7 @@ export const Route = createFileRoute("/first-run")({
 type StepId =
   | "eula"
   | "license"
+  | "compliance"
   | "storage"
   | "ai"
   | "smtp"
@@ -60,6 +68,7 @@ type StepId =
 const STEPS: { id: StepId; label: string }[] = [
   { id: "eula", label: "Accept license" },
   { id: "license", label: "Import license" },
+  { id: "compliance", label: "Country & compliance" },
   { id: "storage", label: "Configure storage" },
   { id: "ai", label: "Configure AI provider" },
   { id: "smtp", label: "Configure SMTP" },
@@ -171,6 +180,7 @@ function FirstRunWizard() {
           <Card className="p-6 md:p-8 border-border/60 shadow-sm">
             {current.id === "eula" && <EulaStep onDone={advance} />}
             {current.id === "license" && <LicenseStep onDone={advance} />}
+            {current.id === "compliance" && <ComplianceStep onDone={advance} />}
             {current.id === "storage" && <StorageStep onDone={advance} />}
             {current.id === "ai" && <AiStep onDone={advance} />}
             {current.id === "smtp" && <SmtpStep onDone={advance} />}
@@ -207,6 +217,7 @@ function isStepDone(step: StepId, done: Set<string>): boolean {
   const map: Record<StepId, string | null> = {
     eula: "eula_accepted",
     license: "license_imported",
+    compliance: "compliance_configured",
     storage: "storage_ok",
     ai: "ai_configured",
     smtp: "smtp_configured",
@@ -218,6 +229,139 @@ function isStepDone(step: StepId, done: Set<string>): boolean {
   };
   const id = map[step];
   return id ? done.has(id) : false;
+}
+
+function ComplianceStep({ onDone }: { onDone: () => void }) {
+  const call = useServerFn(firstRunSetCompliance);
+  const [country, setCountry] = useState("OTHER_EU");
+  const [language, setLanguage] = useState("en");
+  const [frameworks, setFrameworks] = useState<string[]>([
+    ...resolveCountryConfig("OTHER_EU").applicableFrameworks,
+  ]);
+  const [interval, setInterval] = useState(365);
+
+  const cfg = resolveCountryConfig(country);
+
+  const pickCountry = (code: string) => {
+    const next = resolveCountryConfig(code);
+    setCountry(next.code);
+    setLanguage(next.defaultLanguage);
+    setFrameworks([...next.applicableFrameworks]);
+    setInterval(next.defaultReviewIntervalDays);
+  };
+
+  const mut = useMutation({
+    mutationFn: () =>
+      call({
+        data: {
+          country_code: country,
+          primary_language: language,
+          framework_keys: frameworks,
+          review_interval_days: interval,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Compliance context saved");
+      onDone();
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
+  return (
+    <div>
+      <StepHeader
+        title="Country & compliance context"
+        description="Advisory only — this tells OPSQAI which jurisdiction, language and reference frameworks to consider when reviewing your documentation. It never certifies legal compliance and can be changed later under Organization › Compliance."
+      />
+      <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Country / jurisdiction</Label>
+            <Select value={country} onValueChange={pickCountry}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {listCountries().map((c) => (
+                  <SelectItem key={c.code} value={c.code}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Primary language</Label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="de">Deutsch</SelectItem>
+                <SelectItem value="ro">Română</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <p className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+          {cfg.dataProtectionContext}
+        </p>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Label className="text-xs">Reference frameworks</Label>
+            <Badge variant="secondary" className="text-[10px]">
+              {frameworks.length} selected
+            </Badge>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(Object.keys(FRAMEWORKS) as FrameworkKey[]).map((key) => (
+              <label
+                key={key}
+                className="flex items-start gap-2 rounded-lg border border-border/70 p-3 cursor-pointer hover:bg-muted/30"
+              >
+                <Checkbox
+                  checked={frameworks.includes(key)}
+                  onCheckedChange={(v) =>
+                    setFrameworks((prev) =>
+                      v === true
+                        ? [...new Set([...prev, key])]
+                        : prev.filter((k) => k !== key),
+                    )
+                  }
+                />
+                <span className="space-y-1">
+                  <span className="block text-xs font-semibold">{FRAMEWORKS[key].name}</span>
+                  <span className="block text-[11px] leading-snug text-muted-foreground">
+                    {FRAMEWORKS[key].description}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-end gap-3">
+          <div className="space-y-1">
+            <Label className="text-xs">Default review interval (days)</Label>
+            <Input
+              type="number"
+              min={30}
+              max={1825}
+              className="w-32"
+              value={interval}
+              onChange={(e) => setInterval(Number(e.target.value))}
+            />
+          </div>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+            {mut.isPending ? "Saving…" : "Save & continue"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function StepHeader({ title, description }: { title: string; description: string }) {

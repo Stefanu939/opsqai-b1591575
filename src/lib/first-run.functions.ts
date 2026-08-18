@@ -148,6 +148,41 @@ export const firstRunSetAiProvider = createServerFn({ method: "POST" })
     return { ok: true, requires_restart: !!data.api_key };
   });
 
+const ComplianceInput = z.object({
+  country_code: z.string().min(2).max(16),
+  primary_language: z.string().min(2).max(8),
+  framework_keys: z.array(z.string().min(2).max(40)).max(24),
+  review_interval_days: z.number().int().min(30).max(1825).optional(),
+});
+
+/**
+ * Stores the advisory compliance context chosen during first-run. Written to
+ * `platform_config` (non-secret) so the very first AI audit already uses the
+ * right jurisdiction; the Organization > Compliance tab remains the source of
+ * truth afterwards.
+ */
+export const firstRunSetCompliance = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => ComplianceInput.parse(d))
+  .handler(async ({ data }) => {
+    await assertFirstRunOpen();
+    const { resolveCountryConfig, isKnownFrameworkKey } = await import("@/lib/compliance-registry");
+    const cfg = resolveCountryConfig(data.country_code);
+    const payload = {
+      country_code: cfg.code,
+      primary_language: data.primary_language,
+      framework_keys: data.framework_keys.filter(isKnownFrameworkKey),
+      review_interval_days: data.review_interval_days ?? cfg.defaultReviewIntervalDays,
+      configured_at: new Date().toISOString(),
+    };
+    const supabaseAdmin = await getCloudSupabaseAdmin("first-run");
+    await supabaseAdmin
+      .from("platform_config")
+      .update({ compliance_config: payload as never })
+      .eq("id", true);
+    await markStep("compliance_configured");
+    return { ok: true, ...payload };
+  });
+
 const SmtpInput = z.object({
   host: z.string().min(1).max(255),
   port: z.number().int().min(1).max(65535),

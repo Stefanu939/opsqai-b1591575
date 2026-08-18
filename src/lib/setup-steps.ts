@@ -14,6 +14,7 @@ export type SetupStepId =
   | "sso_configured"
   | "backup_configured"
   | "license_imported"
+  | "compliance_configured"
   | "admin_created";
 
 export interface SetupStep {
@@ -50,6 +51,13 @@ export const SETUP_STEPS: readonly SetupStep[] = [
     label: "AI provider configured",
     description:
       "At least one AI adapter is registered. Default is Lovable Gateway; Self-Hosted may pick Azure OpenAI or a compatible endpoint.",
+  },
+  {
+    id: "compliance_configured",
+    label: "Compliance context configured",
+    description:
+      "Country, primary language and advisory reference frameworks were selected so reviews and AI audits use the right jurisdiction context.",
+    soft: true,
   },
   {
     id: "storage_ok",

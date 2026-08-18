@@ -73,20 +73,29 @@ CREATE POLICY "admins write kb images"
   USING (bucket_id = 'knowledge-images' AND public.has_role(auth.uid(), 'admin'))
   WITH CHECK (bucket_id = 'knowledge-images' AND public.has_role(auth.uid(), 'admin'));
 
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('knowledge-images', 'knowledge-images', false)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('chat-images', 'chat-images', false)
-ON CONFLICT (id) DO NOTHING;
+-- Buckets `knowledge-images` and `chat-images` are created via the Storage API
+-- (SQL writes to storage.buckets are not permitted).
 
 DROP POLICY IF EXISTS "users read own chat images" ON storage.objects;
 CREATE POLICY "users read own chat images"
   ON storage.objects FOR SELECT TO authenticated
-  USING (bucket_id = 'chat-images');
+  USING (
+    bucket_id = 'chat-images'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 DROP POLICY IF EXISTS "users write own chat images" ON storage.objects;
 CREATE POLICY "users write own chat images"
   ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'chat-images');
+  WITH CHECK (
+    bucket_id = 'chat-images'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+DROP POLICY IF EXISTS "users delete own chat images" ON storage.objects;
+CREATE POLICY "users delete own chat images"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'chat-images'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );

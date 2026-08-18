@@ -2880,6 +2880,7 @@ export type Database = {
           break_glass_created_at: string | null
           break_glass_hash: string | null
           break_glass_used_at: string | null
+          compliance_config: Json | null
           created_at: string
           eula_accepted_at: string | null
           id: boolean
@@ -2898,6 +2899,7 @@ export type Database = {
           break_glass_created_at?: string | null
           break_glass_hash?: string | null
           break_glass_used_at?: string | null
+          compliance_config?: Json | null
           created_at?: string
           eula_accepted_at?: string | null
           id?: boolean
@@ -2916,6 +2918,7 @@ export type Database = {
           break_glass_created_at?: string | null
           break_glass_hash?: string | null
           break_glass_used_at?: string | null
+          compliance_config?: Json | null
           created_at?: string
           eula_accepted_at?: string | null
           id?: boolean

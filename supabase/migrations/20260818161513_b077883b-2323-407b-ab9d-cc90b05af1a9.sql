@@ -1,0 +1,1 @@
+ALTER TABLE public.platform_config ADD COLUMN IF NOT EXISTS compliance_config jsonb;

@@ -101,6 +101,10 @@ export interface AuditRecommendation {
     department: string | null;
     gapId: string | null;
   };
+  /** Compliance framework(s) that motivate this recommendation, when applicable. */
+  frameworks?: import("@/lib/compliance-registry").FrameworkKey[];
+  /** Human-readable, strictly advisory basis for the recommendation (e.g. "Based on GDPR data-retention guidance"). */
+  basis?: string;
 }
 
 export interface AuditIntelligence {
@@ -204,6 +208,8 @@ export function buildAuditRecommendations(input: {
         `last asked ${g.lastSeen.slice(0, 10)}`,
         g.confidence != null ? `answer confidence ${Math.round(g.confidence * 100)}%` : "no grounded answer",
       ],
+      frameworks: ["iso_9001"],
+      basis: "Compliance recommendation based on ISO 9001 documented-procedure requirements — recommended action.",
       autoAction: {
         type: "generate_sop",
         question: g.question,
@@ -332,6 +338,8 @@ export function buildAuditRecommendations(input: {
       effort: "low",
       department: null,
       evidence: [`${knowledge.staleDocuments} of ${knowledge.documents} documents not ready`],
+      frameworks: ["iso_9001"],
+      basis: "Compliance recommendation based on ISO 9001 document-control practices — requires review.",
     });
   }
   const outdated = knowledge.outdatedDocuments ?? 0;
@@ -352,6 +360,8 @@ export function buildAuditRecommendations(input: {
           ? `Median document age: ${knowledge.medianDocumentAgeDays} days`
           : "Median document age unavailable",
       ],
+      frameworks: ["gdpr", "iso_9001"],
+      basis: "Compliance recommendation based on GDPR record-accuracy and ISO 9001 document-review requirements — potential gap, requires review.",
     });
   }
   if (knowledge.readyDocuments > 0 && knowledge.faqs < Math.ceil(knowledge.readyDocuments / 4)) {
