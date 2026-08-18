@@ -107,6 +107,9 @@ function UsersPage() {
   const updateEmailFn = useServerFn(updateUserEmail);
   const updateAvatarFn = useServerFn(updateUserAvatar);
   const clearAvatarFn = useServerFn(clearUserAvatar);
+  const licensedFn = useServerFn(listLicensedModules);
+  const setModulesFn = useServerFn(setUserModuleAccess);
+  const getModulesFn = useServerFn(getUserModuleAccess);
   const qc = useQueryClient();
   const selfHosted = getClientDeploymentMode() === "selfhost";
 
