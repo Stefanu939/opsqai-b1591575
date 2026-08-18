@@ -266,6 +266,18 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
         .eq("id", id);
       if (error) throw new Error(error.message);
     },
+
+    async updateMetadata(id, patch) {
+      const clean = Object.fromEntries(
+        Object.entries(patch).filter(([, v]) => v !== undefined),
+      );
+      if (Object.keys(clean).length === 0) return;
+      const { error } = await client
+        .from("knowledge_documents")
+        .update({ ...clean, updated_at: new Date().toISOString() } as never)
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    },
   };
 }
 
