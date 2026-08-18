@@ -177,6 +177,48 @@ function KnowledgePage() {
   const fetchDocs = useServerFn(listKnowledgeDocuments);
   const fetchVersions = useServerFn(listDocumentVersions);
   const uploadFile = useServerFn(uploadKnowledgeFile);
+  const saveMetadata = useServerFn(updateKnowledgeMetadata);
+  const markReviewed = useServerFn(markDocumentReviewed);
+
+  const openMetadata = (d: Doc) => {
+    setMetaTarget(d);
+    const basis = d.information_updated_at ?? d.updated_at ?? d.created_at;
+    setMetaInfoDate(basis ? new Date(basis).toISOString().slice(0, 10) : "");
+    setMetaInterval(String(d.review_interval_days ?? DEFAULT_REVIEW_INTERVAL_DAYS));
+  };
+
+  const onSaveMetadata = async () => {
+    if (!metaTarget) return;
+    setMetaSaving(true);
+    try {
+      await saveMetadata({
+        data: {
+          id: metaTarget.id,
+          information_updated_at: metaInfoDate
+            ? new Date(`${metaInfoDate}T12:00:00Z`).toISOString()
+            : null,
+          review_interval_days: metaInterval ? Number(metaInterval) : null,
+        },
+      });
+      toast.success("Document lifecycle updated");
+      setMetaTarget(null);
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save");
+    } finally {
+      setMetaSaving(false);
+    }
+  };
+
+  const onMarkReviewed = async (d: Doc) => {
+    try {
+      await markReviewed({ data: { id: d.id } });
+      toast.success("Review recorded — freshness clock reset");
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not record review");
+    }
+  };
 
   /** Read a File as base64 so it can travel through a server fn payload. */
   const toBase64 = (f: File) =>
