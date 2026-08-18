@@ -131,3 +131,63 @@ export function chunkText(text: string, targetSize = 1000, overlap = 200): strin
   }
   return chunks;
 }
+
+// ---------------------------------------------------------------------------
+// Visual understanding (Phase 5) — embedded image extraction.
+//
+// DOCX embeds images as plain files under `word/media/`; we already unzip
+// DOCX with fflate for text extraction, so image extraction reuses that.
+// PDF/TXT extraction does not yield embedded images today (no bundled PDF
+// image decoder) — callers receive an empty array and processing continues
+// with text-only chunks.
+// ---------------------------------------------------------------------------
+
+export interface ExtractedImage {
+  bytes: Uint8Array;
+  mime: string;
+  name: string;
+  /** 0..1 position within the document, used to approximate chunk context. */
+  position: number;
+}
+
+function mimeFromExt(name: string): string | null {
+  const ext = name.toLowerCase().split(".").pop() ?? "";
+  const map: Record<string, string> = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    bmp: "image/bmp",
+    webp: "image/webp",
+  };
+  return map[ext] ?? null;
+}
+
+export async function extractImages(
+  buffer: ArrayBuffer,
+  filename: string,
+  mime: string,
+): Promise<ExtractedImage[]> {
+  const name = filename.toLowerCase();
+  const isDocx =
+    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    name.endsWith(".docx");
+  if (!isDocx) return [];
+
+  const files = unzipSync(new Uint8Array(buffer));
+  const media = Object.keys(files)
+    .filter((k) => k.startsWith("word/media/"))
+    .sort();
+  return media.flatMap((key, idx) => {
+    const detected = mimeFromExt(key);
+    if (!detected) return [];
+    return [
+      {
+        bytes: files[key],
+        mime: detected,
+        name: key.split("/").pop() ?? key,
+        position: media.length > 1 ? idx / (media.length - 1) : 0,
+      },
+    ];
+  });
+}
