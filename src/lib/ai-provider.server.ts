@@ -27,7 +27,7 @@ import {
   type AICapabilityName,
 } from "./ai-capabilities";
 
-export type { AIChatRole, AIModelRole, ResolvedTTS } from "./ai-adapters/types";
+export type { AIChatRole, AIModelRole, ResolvedTTS, ResolvedSTT } from "./ai-adapters/types";
 export {
   AiCapabilityError,
   AI_CAPABILITY_LABELS,
@@ -135,6 +135,72 @@ export function resolveTTSOrNull(): ResolvedTTS | null {
   } catch {
     return null;
   }
+}
+
+/** Resolved speech-to-text endpoint descriptor. Throws `AiCapabilityError` when unsupported. */
+export function resolveSTT() {
+  assertAiCapability("audioInput");
+  const adapter = getActiveAdapter();
+  if (!adapter.resolveSTT) {
+    throw new AiCapabilityError({ capability: "audioInput", providerId: adapter.id });
+  }
+  return adapter.resolveSTT();
+}
+
+/** Non-throwing variant so voice UI can degrade with a clear message instead of a crash. */
+export function resolveSTTOrNull() {
+  try {
+    return resolveSTT();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Transcribe an audio clip through the active engine's speech-to-text
+ * endpoint (multipart `/audio/transcriptions`). Throws `AiCapabilityError`
+ * when the deployment has no STT engine configured — callers surface that
+ * as a clear, non-crashing message instead of silently failing.
+ */
+export async function transcribeAudio(
+  bytes: Uint8Array,
+  mimeType: string,
+  filename = "voice-note.webm",
+): Promise<string> {
+  const { url, headers, model } = resolveSTT();
+  const form = new FormData();
+  form.append("file", new Blob([new Uint8Array(bytes)], { type: mimeType }), filename);
+  form.append("model", model);
+  const res = await fetch(url, { method: "POST", headers, body: form });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Transcription ${res.status}: ${t.slice(0, 300)}`);
+  }
+  const json = (await res.json()) as { text?: string };
+  return (json.text ?? "").trim();
+}
+
+/**
+ * Synthesize a spoken reply through the active engine's TTS endpoint.
+ * Throws `AiCapabilityError` when text-to-speech is unsupported.
+ */
+export async function synthesizeSpeech(
+  text: string,
+): Promise<{ bytes: Uint8Array; contentType: string }> {
+  const { url, headers, model, modelInPath } = resolveTTS();
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify(
+      modelInPath ? { input: text, voice: "alloy" } : { model, input: text, voice: "alloy" },
+    ),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Speech synthesis ${res.status}: ${t.slice(0, 300)}`);
+  }
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  return { bytes, contentType: res.headers.get("content-type") ?? "audio/mpeg" };
 }
 
 /**

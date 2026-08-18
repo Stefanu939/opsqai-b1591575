@@ -25,6 +25,14 @@ export interface ResolvedTTS {
   modelInPath: boolean;
 }
 
+/** Resolved speech-to-text endpoint descriptor. `/v1/audio/transcriptions`-shaped (multipart). */
+export interface ResolvedSTT {
+  url: string;
+  /** Auth headers only — never Content-Type (multipart boundary is set by fetch/FormData). */
+  headers: Record<string, string>;
+  model: string;
+}
+
 /** Resolved embeddings endpoint descriptor (adapter builds the request). */
 export interface ResolvedEmbeddings {
   url: string;
@@ -68,6 +76,11 @@ export interface AIProviderAdapter {
   resolveChat(role: AIChatRole): LanguageModel;
   /** Return a TTS endpoint descriptor. */
   resolveTTS(): ResolvedTTS;
+  /**
+   * Return a speech-to-text endpoint descriptor. Optional: adapters with no
+   * transcription surface omit it and `audioInput` stays `false`.
+   */
+  resolveSTT?(): ResolvedSTT;
   /** Return an embeddings endpoint descriptor. */
   resolveEmbeddings(): ResolvedEmbeddings;
   /**
