@@ -185,6 +185,34 @@ export function verifyCompactToken(token: string, publicKey: KeyObject): unknown
   throw new Error("Malformed OPSQAI license: expected JWT compact format");
 }
 
+/**
+ * Extra module licenses activated *after* install live next to the main
+ * license file. Each entry is an individually signed module JWT, so trust
+ * still rests entirely on the pinned public key — no local signing.
+ */
+export function moduleSidecarPath(licenseFilePath: string): string {
+  return `${licenseFilePath}.modules.json`;
+}
+
+export async function readModuleSidecar(
+  licenseFilePath: string,
+): Promise<Array<{ module_key: string; signed_token: string }>> {
+  try {
+    const raw = await readFile(moduleSidecarPath(licenseFilePath), "utf8");
+    const parsed = JSON.parse(raw) as Array<{ module_key?: string; signed_token?: string }>;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((e) => typeof e?.signed_token === "string")
+      .map((e) => ({ module_key: String(e.module_key ?? ""), signed_token: String(e.signed_token) }));
+  } catch {
+    return [];
+  }
+}
+
+export function isActivationBundlePayload(payload: unknown): boolean {
+  return isActivationBundle(payload);
+}
+
 function isActivationBundle(payload: unknown): payload is ActivationBundleJwt {
   const p = payload as Partial<ActivationBundleJwt>;
   return p?.bundle_version === 1 && typeof p.install_token === "string";
