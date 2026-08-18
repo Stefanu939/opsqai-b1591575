@@ -408,16 +408,6 @@ Fetch 'https://www.7-zip.org/a/7zr.exe' $sevenZip @(
   'http://www.7-zip.org/a/7zr.exe',
   'https://sourceforge.net/projects/sevenzip/files/7-Zip/24.09/7zr.exe/download'
 )
-if (-not (Test-Path $sevenZip)) {
-  $localSeven = @(
-    "$env:ProgramFiles\7-Zip\7z.exe",
-    "${env:ProgramFiles(x86)}\7-Zip\7z.exe"
-  ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-  if ($localSeven) {
-    Write-Warning "Falling back to the runner's local 7-Zip for $sevenZip"
-    Copy-Item $localSeven $sevenZip -Force
-  }
-}
 $sevenZipSha = (Get-FileHash -Algorithm SHA256 -Path $sevenZip).Hash.ToLowerInvariant()
 # The pin lives in build\vendor-pins.json so Release builds do not depend on
 # CI environment variables; OPSQAI_7ZR_SHA256 still overrides it when 7-Zip
