@@ -15,6 +15,8 @@ import {
   LogOut,
   Search,
   ShieldCheck,
+  CalendarDays,
+
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -29,8 +31,12 @@ type Section = { title: string; items: Item[] };
 const SECTIONS: Section[] = [
   {
     title: "Overview",
-    items: [{ to: "/management", label: "Overview", icon: LayoutDashboard, exact: true }],
+    items: [
+      { to: "/management", label: "Overview", icon: LayoutDashboard, exact: true },
+      { to: "/management/calendar", label: "Calendar", icon: CalendarDays },
+    ],
   },
+
   {
     title: "Customers",
     items: [

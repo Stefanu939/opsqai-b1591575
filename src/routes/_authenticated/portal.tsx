@@ -21,6 +21,8 @@ import {
   LogOut,
   Menu,
   X,
+  CalendarDays,
+
 } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
@@ -51,7 +53,9 @@ type NavItem = {
 
 const NAV: readonly NavItem[] = [
   { to: "/portal", label: "Overview", icon: Home, exact: true, customerOnly: true },
+  { to: "/portal/calendar", label: "Calendar", icon: CalendarDays, customerOnly: true },
   { to: "/portal/news", label: "News", icon: Newspaper, customerOnly: true },
+
   { to: "/portal/downloads", label: "Downloads", icon: Download, customerOnly: true },
   { to: "/portal/subscription", label: "Subscription", icon: FileText, customerOnly: true },
   { to: "/portal/support", label: "Support", icon: MessagesSquare, customerOnly: true },
