@@ -263,11 +263,29 @@ function assertContains(parent, child, label) {
 
 
 
-function Fetch($url, $dest) {
+function Fetch($url, $dest, $mirrors) {
   if (Test-Path $dest) { return }
-  Write-Host "  -> $url"
   New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
-  Invoke-WebRequest $url -OutFile $dest -UseBasicParsing
+  $candidates = @($url)
+  if ($mirrors) { $candidates += $mirrors }
+  $lastError = $null
+  foreach ($candidate in $candidates) {
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+      Write-Host "  -> $candidate (attempt $attempt)"
+      try {
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest $candidate -OutFile $dest -UseBasicParsing -TimeoutSec 300
+        if ((Test-Path $dest) -and (Get-Item $dest).Length -gt 0) { return }
+        throw "downloaded file is empty"
+      } catch {
+        $lastError = $_
+        Write-Warning "download failed: $($_.Exception.Message)"
+        if (Test-Path $dest) { Remove-Item $dest -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds (5 * $attempt)
+      }
+    }
+  }
+  throw "Could not download $url after retries and mirrors. Last error: $($lastError.Exception.Message)"
 }
 
 # --- 1. Node runtime -------------------------------------------------------
@@ -382,7 +400,14 @@ Copy-Item (Join-Path $toolsDest 'docker-migrator\opsqai-migrate.cmd')  (Join-Pat
 # install time; it is also used to CREATE the parts when the runner has no
 # 7z.exe of its own.
 $sevenZip = Join-Path $toolsDest '7zr.exe'
-Fetch 'https://www.7-zip.org/a/7zr.exe' $sevenZip
+# Mirrors matter: www.7-zip.org intermittently fails DNS resolution on GitHub
+# runners ("No such host is known"). Integrity is guaranteed by the SHA-256 pin
+# checked immediately below, so alternate hosts are safe.
+Fetch 'https://www.7-zip.org/a/7zr.exe' $sevenZip @(
+  'https://7-zip.org/a/7zr.exe',
+  'http://www.7-zip.org/a/7zr.exe',
+  'https://sourceforge.net/projects/sevenzip/files/7-Zip/24.09/7zr.exe/download'
+)
 $sevenZipSha = (Get-FileHash -Algorithm SHA256 -Path $sevenZip).Hash.ToLowerInvariant()
 # The pin lives in build\vendor-pins.json so Release builds do not depend on
 # CI environment variables; OPSQAI_7ZR_SHA256 still overrides it when 7-Zip
