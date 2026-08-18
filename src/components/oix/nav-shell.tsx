@@ -15,6 +15,7 @@ export function NavShell() {
 
   const links = [
     { to: "/product", label: m.nav.product },
+    { to: "/product-overview", label: m.nav.overview },
     { to: "/modules", label: m.nav.modules },
     { to: "/self-hosted", label: m.nav.selfHosted },
     { to: "/security", label: m.nav.security },

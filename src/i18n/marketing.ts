@@ -7,6 +7,7 @@ import { useT } from "@/i18n";
 const en = {
   nav: {
     product: "Product",
+    overview: "Overview",
     modules: "Modules",
     selfHosted: "Self-Hosted",
     security: "Security",
@@ -105,6 +106,7 @@ type MarketingCopy = typeof en;
 const de: MarketingCopy = {
   nav: {
     product: "Produkt",
+    overview: "Überblick",
     modules: "Module",
     selfHosted: "Self-Hosted",
     security: "Sicherheit",
