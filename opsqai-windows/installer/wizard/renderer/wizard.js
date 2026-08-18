@@ -206,6 +206,40 @@ const WIZARD_SHELL_HTML = String.raw`
           <p class="hint">Keep the recommended defaults unless your organisation standardises on other Ollama models.</p>
         </div>
 
+        <div class="ai-engine">
+          <span class="label-row">Country &amp; compliance context</span>
+          <p class="hint">
+            Advisory only. This tells OPSQAI which jurisdiction, language and
+            reference frameworks to consider when reviewing your documentation.
+            It never certifies legal compliance and can be changed later under
+            Organization › Compliance.
+          </p>
+          <div class="grid-2">
+            <label>Country / jurisdiction
+              <select id="cmp-country">
+                <option value="DE">Germany</option>
+                <option value="RO">Romania</option>
+                <option value="OTHER_EU" selected>Other / EU</option>
+              </select>
+            </label>
+            <label>Primary language
+              <select id="cmp-language">
+                <option value="en" selected>English</option>
+                <option value="de">Deutsch</option>
+                <option value="ro">Română</option>
+              </select>
+            </label>
+          </div>
+          <div class="grid-2">
+            <label>Default review interval (days)
+              <input id="cmp-review-days" type="number" min="30" max="1825" value="365" />
+            </label>
+          </div>
+          <p class="hint" id="cmp-frameworks-hint">
+            Reference frameworks: GDPR, ISO 27001, ISO 9001, ISO 45001, EU AI Act.
+          </p>
+        </div>
+
         <div class="info-block">
           <span class="label-row">Windows integration</span>
           <div class="row"><span>Desktop shortcut</span><strong>Created</strong></div>
@@ -722,6 +756,19 @@ function buildConfig() {
     chatFastModel: val("#ai-fast-model", "qwen2.5:3b"),
     embeddingModel: val("#ai-embedding-model", "bge-m3"),
   };
+  const COUNTRY_FRAMEWORKS = {
+    DE: ["gdpr", "bdsg", "iso_27001", "iso_9001", "iso_45001", "eu_ai_act"],
+    RO: ["gdpr", "legea_190_2018", "iso_27001", "iso_9001", "iso_45001", "eu_ai_act"],
+    OTHER_EU: ["gdpr", "iso_27001", "iso_9001", "iso_45001", "eu_ai_act"],
+  };
+  const countryCode = val("#cmp-country", "OTHER_EU");
+  state.data.compliance = {
+    countryCode,
+    primaryLanguage: val("#cmp-language", "en"),
+    frameworkKeys: COUNTRY_FRAMEWORKS[countryCode] || COUNTRY_FRAMEWORKS.OTHER_EU,
+    reviewIntervalDays: Number(val("#cmp-review-days", "365")) || 365,
+  };
+
   state.data.admin = {
     name: $("#admin-name").value.trim(),
     email: $("#admin-email").value.trim(),

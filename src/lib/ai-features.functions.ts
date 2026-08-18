@@ -2,8 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
-import { getAiAuditRepository, getFaqRepository, getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
-import { resolveChatModel } from "@/lib/ai-provider.server";
+import { getAiAuditRepository, getComplianceRepository, getFaqRepository, getKnowledgeRepository, getStorageProvider } from "@/lib/providers/registry";
+import { resolveCountryConfig, resolveFrameworks, FRAMEWORKS, type FrameworkKey } from "@/lib/compliance-registry";
+import {
+  resolveChatModel,
+  hasAiCapability,
+  transcribeAudio,
+  synthesizeSpeech,
+  AiCapabilityError,
+  activeAiProviderLabel,
+} from "@/lib/ai-provider.server";
 import type { JsonLike } from "@/lib/providers/interfaces";
 import { uuidString } from "@/lib/zod-uuid";
 
@@ -216,7 +224,7 @@ function heuristicCategoryScores(input: {
   };
 }
 
-function buildHeuristicReport(input: any) {
+function buildHeuristicReport(input: any, frameworks?: { key: string; name: string }[]) {
   const cats = heuristicCategoryScores(input);
   const catList = CATEGORY_KEYS.map((k) => ({
     key: k,
@@ -342,45 +350,70 @@ function buildHeuristicReport(input: any) {
         mitigation: "Run ISO / GDPR gap remediation.",
       },
     ],
-    compliance: [
-      {
-        framework: "ISO 9001",
-        readiness: Math.round(cats.documentation * 0.5 + cats.sop_coverage * 0.5),
-        missing:
-          cats.sop_coverage < 60
-            ? ["Documented critical SOPs", "Process ownership matrix"]
-            : ["Annual internal audit"],
-        recommendation: "Close SOP coverage gaps.",
-      },
-      {
-        framework: "ISO 27001",
-        readiness: Math.round(cats.governance * 0.4 + cats.compliance * 0.6),
-        missing:
-          cats.compliance < 60
-            ? ["Access control policy", "Incident response plan"]
-            : ["Annual risk review"],
-        recommendation: "Formalize information security policies.",
-      },
-      {
-        framework: "ISO 45001",
-        readiness: Math.round(cats.risk_management * 0.6 + cats.operational_excellence * 0.4),
-        missing: ["OH&S objectives", "Hazard register"],
-        recommendation: "Document OH&S procedures.",
-      },
-      {
-        framework: "GDPR",
-        readiness: Math.round(cats.compliance * 0.7 + cats.data_quality * 0.3),
-        missing:
-          cats.compliance < 70 ? ["DPIA templates", "Data retention policy"] : ["ROPA refresh"],
-        recommendation: "Refresh data protection artefacts.",
-      },
-      {
-        framework: "EU AI Act",
-        readiness: Math.round(cats.ai_readiness * 0.6 + cats.governance * 0.4),
-        missing: ["AI risk classification", "Human-oversight policy"],
-        recommendation: "Establish AI governance controls.",
-      },
-    ],
+    compliance: (frameworks && frameworks.length
+      ? frameworks
+      : [
+          { key: "iso_9001", name: "ISO 9001" },
+          { key: "iso_27001", name: "ISO 27001" },
+          { key: "iso_45001", name: "ISO 45001" },
+          { key: "gdpr", name: "GDPR" },
+          { key: "eu_ai_act", name: "EU AI Act" },
+        ]
+    ).map((f) => {
+      switch (f.key) {
+        case "iso_9001":
+          return {
+            framework: f.name,
+            readiness: Math.round(cats.documentation * 0.5 + cats.sop_coverage * 0.5),
+            missing:
+              cats.sop_coverage < 60
+                ? ["Documented critical SOPs", "Process ownership matrix"]
+                : ["Annual internal audit"],
+            recommendation: "Close SOP coverage gaps.",
+          };
+        case "iso_27001":
+          return {
+            framework: f.name,
+            readiness: Math.round(cats.governance * 0.4 + cats.compliance * 0.6),
+            missing:
+              cats.compliance < 60
+                ? ["Access control policy", "Incident response plan"]
+                : ["Annual risk review"],
+            recommendation: "Formalize information security policies.",
+          };
+        case "iso_45001":
+          return {
+            framework: f.name,
+            readiness: Math.round(cats.risk_management * 0.6 + cats.operational_excellence * 0.4),
+            missing: ["OH&S objectives", "Hazard register"],
+            recommendation: "Document OH&S procedures.",
+          };
+        case "gdpr":
+        case "bdsg":
+        case "legea_190_2018":
+          return {
+            framework: f.name,
+            readiness: Math.round(cats.compliance * 0.7 + cats.data_quality * 0.3),
+            missing:
+              cats.compliance < 70 ? ["DPIA templates", "Data retention policy"] : ["ROPA refresh"],
+            recommendation: "Refresh data protection artefacts.",
+          };
+        case "eu_ai_act":
+          return {
+            framework: f.name,
+            readiness: Math.round(cats.ai_readiness * 0.6 + cats.governance * 0.4),
+            missing: ["AI risk classification", "Human-oversight policy"],
+            recommendation: "Establish AI governance controls.",
+          };
+        default:
+          return {
+            framework: f.name,
+            readiness: Math.round(cats.compliance),
+            missing: ["Framework-specific gap review"],
+            recommendation: "Review this framework's requirements against current documentation.",
+          };
+      }
+    }),
     kpis: {
       knowledge_confidence: Math.round(cats.knowledge_management),
       knowledge_coverage: Math.round(cats.documentation),
@@ -417,6 +450,40 @@ function buildHeuristicReport(input: any) {
   };
 }
 
+
+/** Load the org's compliance context (country, language, terminology, frameworks) for prompt-building. Never throws — falls back to safe defaults. */
+async function loadComplianceContext(dataCtx: unknown, companyId: string) {
+  try {
+    const repo = getComplianceRepository(dataCtx);
+    const settings = await repo.get(companyId);
+    const country = resolveCountryConfig(settings?.countryCode);
+    const frameworkKeys = (settings?.frameworkKeys?.length
+      ? settings.frameworkKeys
+      : country.applicableFrameworks) as FrameworkKey[];
+    const frameworks = resolveFrameworks(frameworkKeys);
+    return {
+      countryCode: country.code,
+      countryName: country.name,
+      primaryLanguage: settings?.primaryLanguage ?? country.defaultLanguage,
+      terminologyNotes: country.terminologyNotes,
+      dataProtectionContext: country.dataProtectionContext,
+      frameworkKeys,
+      frameworks,
+    };
+  } catch {
+    const country = resolveCountryConfig(null);
+    return {
+      countryCode: country.code,
+      countryName: country.name,
+      primaryLanguage: country.defaultLanguage,
+      terminologyNotes: country.terminologyNotes,
+      dataProtectionContext: country.dataProtectionContext,
+      frameworkKeys: country.applicableFrameworks,
+      frameworks: resolveFrameworks(country.applicableFrameworks),
+    };
+  }
+}
+
 /** AI Workspace Audit — Enterprise Operational Maturity Assessment. */
 export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -426,9 +493,10 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensurePerm(context, "ai_audit.run");
     const companyId = await resolveCompany(context, data.company_id);
-    const [documents, faqs] = await Promise.all([
+    const [documents, faqs, compliance] = await Promise.all([
       getKnowledgeRepository(context.supabase).listDocuments(companyId, false),
       getFaqRepository(context.supabase).list(companyId),
+      loadComplianceContext(context.supabase, companyId),
     ]);
     const ready = documents.filter((d) => d.status === "ready");
     const chunkCount = ready.reduce((sum, d) => sum + (d.chunk_count ?? 0), 0);
@@ -439,15 +507,26 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
     const top = { data: ready.slice(0,10).map((d)=>({id:d.id,title:d.title,category:d.category,chunks:d.chunk_count})) };
     const critical = { data: documents.filter((d)=>d.status!=="ready").slice(0,10) };
 
-    const heuristic = buildHeuristicReport({
-      kpi: kpi.data,
-      health: health.data,
-      status: status.data,
-      top: top.data ?? [],
-      critical: critical.data ?? [],
-    });
+    const heuristic = buildHeuristicReport(
+      {
+        kpi: kpi.data,
+        health: health.data,
+        status: status.data,
+        top: top.data ?? [],
+        critical: critical.data ?? [],
+      },
+      compliance.frameworks,
+    );
 
+    const frameworkNames = compliance.frameworks.map((f) => f.name).join(", ") || "GDPR, ISO 9001, ISO 27001, ISO 45001, EU AI Act";
     const sys = `You are a senior operations consultant (Deloitte / PwC style) producing an executive Operational Maturity Assessment.
+Organization context (advisory only — never assert legal compliance, only flag what is "relevant to" or "requires review"):
+- Country: ${compliance.countryName} (${compliance.countryCode})
+- Primary language: ${compliance.primaryLanguage}
+- Local terminology guidance: ${compliance.terminologyNotes}
+- Data-protection context: ${compliance.dataProtectionContext}
+- Selected compliance frameworks: ${frameworkNames}
+Write the ENTIRE response (all narrative text) in the organization's primary language (${compliance.primaryLanguage}), using the local terminology guidance above where applicable. JSON keys stay in English; string values must be in ${compliance.primaryLanguage}.
 Use the provided heuristic scoring as ground truth and enrich the narrative with concrete, business-relevant findings.
 Return STRICT JSON only, matching this schema (keep all keys):
 {
@@ -467,7 +546,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
  "kpis": {"knowledge_confidence":0-100,"knowledge_coverage":0-100,"critical_sop_coverage":0-100,"training_completion":0-100,"compliance_readiness":0-100,"ai_readiness":0-100,"knowledge_gaps":int,"operational_risk":0-100,"document_freshness":0-100,"employee_adoption":0-100},
  "benchmark": {"knowledge_management":string,"compliance":string,"training":string,"ai_readiness":string},
  "passed": int, "warnings": int, "critical_count": int
-}. Frameworks MUST include ISO 9001, ISO 27001, ISO 45001, GDPR and EU AI Act. Provide 3-5 items in each findings list where possible. JSON only, no prose.`;
+}. Frameworks MUST be exactly: ${frameworkNames}. Provide 3-5 items in each findings list where possible. All wording must stay strictly advisory (e.g. "Compliance recommendation", "Potential gap", "Requires review", "Recommended action") — never an absolute legal compliance claim. JSON only, no prose.`;
 
     const payload = JSON.stringify({
       heuristic,
@@ -545,6 +624,7 @@ Return STRICT JSON only, matching this schema (keep all keys):
         gaps: gapRows,
         learners: learnerRows,
         knowledge: knowledgeRow,
+        frameworkKeys: compliance?.frameworkKeys,
       });
       const intel = intelligence as {
         recommendations: unknown[];
@@ -589,7 +669,13 @@ export const getAuditRecommendations = createServerFn({ method: "POST" })
       auditRepo.learnerSignals(companyId, 50),
       auditRepo.knowledgeSignal(companyId),
     ]);
-    return buildAuditRecommendations({ gaps, learners, knowledge });
+    const complianceCtx = await loadComplianceContext(context.supabase, companyId);
+    return buildAuditRecommendations({
+      gaps,
+      learners,
+      knowledge,
+      frameworkKeys: complianceCtx?.frameworkKeys,
+    });
   });
 
 
@@ -602,4 +688,131 @@ export const listAiAudits = createServerFn({ method: "POST" })
     const companyId = await resolveCompany(context, data.company_id);
     const audits = await getAiAuditRepository(context.supabase).list(companyId, 50);
     return { audits: audits.map((a)=>({...a,created_at:a.createdAt})) };
+  });
+
+// ---------------------------------------------------------------------------
+// Phase 5 — Chat voice + vision
+// ---------------------------------------------------------------------------
+
+const CHAT_IMAGES_BUCKET = "chat-images";
+
+function b64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function bytesToB64(bytes: Uint8Array): string {
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+/** Wrap capability/provider failures into one clear, non-leaking message. */
+function actionableAiError(action: string, error: unknown): Error {
+  if (error instanceof AiCapabilityError) {
+    return new Error(error.message);
+  }
+  console.error(`[ai-features:${action}]`, error);
+  return new Error(
+    `${action} failed on the active AI engine (${activeAiProviderLabel()}). Please try again or contact your administrator.`,
+  );
+}
+
+const TranscribeInput = z.object({
+  audio_base64: z.string().min(1),
+  mime_type: z.string().min(1).default("audio/webm"),
+  filename: z.string().optional().default("voice-note.webm"),
+});
+
+/** Speech → text for the chat composer's mic button. Degrades with a clear error when unsupported. */
+export const transcribeVoiceInput = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => TranscribeInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await ensurePerm(context, "chat.use");
+    if (!hasAiCapability("audioInput")) {
+      throw new Error(
+        "Voice input is not available on the active AI engine. Ask your administrator to enable a speech-to-text capable engine.",
+      );
+    }
+    try {
+      const bytes = b64ToBytes(data.audio_base64);
+      const text = await transcribeAudio(bytes, data.mime_type, data.filename);
+      return { text };
+    } catch (error) {
+      throw actionableAiError("Voice transcription", error);
+    }
+  });
+
+const SynthesizeInput = z.object({
+  text: z.string().min(1).max(4000),
+});
+
+/** Text → speech for spoken replies. Degrades with a clear error when unsupported. */
+export const synthesizeVoiceReply = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => SynthesizeInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await ensurePerm(context, "chat.use");
+    if (!hasAiCapability("textToSpeech")) {
+      throw new Error(
+        "Spoken replies are not available on the active AI engine. Ask your administrator to enable a text-to-speech capable engine.",
+      );
+    }
+    try {
+      const { bytes, contentType } = await synthesizeSpeech(data.text);
+      return { audio_base64: bytesToB64(bytes), content_type: contentType };
+    } catch (error) {
+      throw actionableAiError("Voice synthesis", error);
+    }
+  });
+
+const UploadImageInput = z.object({
+  filename: z.string().min(1),
+  content_type: z.string().min(1),
+  data_base64: z.string().min(1),
+});
+
+/** Store a chat-attached image under `<userId>/<uuid>-<name>` in the chat-images bucket. */
+export const uploadChatImage = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => UploadImageInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await ensurePerm(context, "chat.use");
+    const safe = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-120);
+    const key = `${context.userId}/${crypto.randomUUID()}-${safe}`;
+    const bytes = b64ToBytes(data.data_base64);
+    if (bytes.byteLength > 15 * 1024 * 1024) throw new Error("Image is too large (15 MB max).");
+    await getStorageProvider().put({
+      bucket: CHAT_IMAGES_BUCKET,
+      key,
+      body: bytes,
+      contentType: data.content_type,
+    });
+    return { path: key };
+  });
+
+const SignImageInput = z.object({ path: z.string().min(1) });
+
+/**
+ * Materialize a chat image as an inline data URL for display/model input.
+ * "Short-lived" because it is generated fresh per request and never persisted
+ * as a public URL — the storage provider stays private end to end. Only the
+ * owning user (path is scoped `<userId>/...`) may resolve their own images.
+ */
+export const signChatImage = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => SignImageInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await ensurePerm(context, "chat.use");
+    const owner = data.path.split("/")[0];
+    if (owner !== context.userId) throw new Error("Not authorized to access this image");
+    const bytes = await getStorageProvider().get(CHAT_IMAGES_BUCKET, data.path);
+    const head = await getStorageProvider().head(CHAT_IMAGES_BUCKET, data.path);
+    return {
+      data_base64: bytesToB64(bytes),
+      content_type: head?.contentType ?? "image/png",
+    };
   });

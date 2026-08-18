@@ -36,6 +36,7 @@ import { createPgKnowledgeRepository } from "./pg-knowledge-repository.server";
 import { createPgRbacAdminRepository } from "./pg-rbac-admin-repository.server";
 import { createPgDirectMessageRepository } from "./pg-direct-message-repository.server";
 import { createPgAiAuditRepository } from "./pg-ai-audit-repository.server";
+import { pgComplianceRepositoryFactory } from "./pg-compliance-repository.server";
 import { createPgDashboardRepository } from "./pg-dashboard-repository.server";
 import { createPgExportRepository } from "./pg-export-repository.server";
 import { createPgAcademyRepository } from "./pg-academy-repository.server";
@@ -59,6 +60,7 @@ import {
   registerRbacAdminRepositoryFactory,
   registerDirectMessageRepositoryFactory,
   registerAiAuditRepositoryFactory,
+  registerComplianceRepositoryFactory,
   registerDashboardRepositoryFactory,
   registerExportRepositoryFactory,
   registerAcademyRepositoryFactory,
@@ -320,6 +322,7 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerRbacAdminRepositoryFactory(() => createPgRbacAdminRepository({ pool }));
   registerDirectMessageRepositoryFactory(() => createPgDirectMessageRepository({ pool }));
   registerAiAuditRepositoryFactory(() => createPgAiAuditRepository({ pool }));
+  registerComplianceRepositoryFactory(pgComplianceRepositoryFactory({ pool }));
   registerDashboardRepositoryFactory(() => createPgDashboardRepository({ pool }));
   const exportRepo = createPgExportRepository({
     pool,

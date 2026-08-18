@@ -47,6 +47,7 @@ import type {
   AuditRecommendation,
   RecommendationKind,
 } from "@/lib/audit-recommendations";
+import { resolveFrameworks } from "@/lib/compliance-registry";
 
 export const Route = createFileRoute("/_authenticated/app/audit")({
   head: () => ({ meta: [{ title: "AI Audit — OPSQAI" }] }),
@@ -560,6 +561,23 @@ function RecommendationsSection({ companyId }: { companyId: string | null }) {
                   </div>
                   <div className="mt-2 text-sm font-medium leading-snug">{r.title}</div>
                   <p className="text-xs text-muted-foreground mt-1">{r.rationale}</p>
+                  {r.frameworks && r.frameworks.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex flex-wrap gap-1">
+                        {resolveFrameworks(r.frameworks).map((f) => (
+                          <Badge key={f.key} variant="outline" className="text-[10px]">
+                            {f.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-[11px] italic text-muted-foreground">
+                        {r.basis ??
+                          `Recommendation based on ${resolveFrameworks(r.frameworks)
+                            .map((f) => f.name)
+                            .join(", ")} requirements — requires review.`}
+                      </p>
+                    </div>
+                  )}
                   {r.evidence.length > 0 && (
                     <ul className="mt-2 space-y-0.5">
                       {r.evidence.map((e, i) => (

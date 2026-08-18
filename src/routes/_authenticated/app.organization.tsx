@@ -25,7 +25,19 @@ import {
 } from "@/components/ui/select";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
-import { Building2, User, Cpu, Upload, Trash2, Loader2 } from "lucide-react";
+import { Building2, User, Cpu, Upload, Trash2, Loader2, ShieldCheck } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  getComplianceSettings,
+  updateComplianceSettings,
+} from "@/lib/compliance.functions";
+import {
+  listCountries,
+  resolveCountryConfig,
+  FRAMEWORKS,
+  type FrameworkKey,
+} from "@/lib/compliance-registry";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 import { LocalAiEngineCard } from "@/components/admin/local-ai-engine-card";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
@@ -224,6 +236,11 @@ function OrganizationPage() {
             <Building2 className="h-4 w-4 mr-1" /> Company
           </TabsTrigger>
           {canConfigureAi && (
+            <TabsTrigger value="compliance">
+              <ShieldCheck className="h-4 w-4 mr-1" /> Compliance
+            </TabsTrigger>
+          )}
+          {canConfigureAi && (
             <TabsTrigger value="ai">
               <Cpu className="h-4 w-4 mr-1" /> AI provider
             </TabsTrigger>
@@ -393,6 +410,12 @@ function OrganizationPage() {
         </TabsContent>
 
         {canConfigureAi && (
+          <TabsContent value="compliance">
+            <ComplianceSettingsCard />
+          </TabsContent>
+        )}
+
+        {canConfigureAi && (
           <TabsContent value="ai">
             {isSelfHosted ? (
               <div className="space-y-4">
@@ -497,5 +520,218 @@ function OrganizationPage() {
         )}
       </Tabs>
     </ModulePage>
+  );
+}
+
+const LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "de", label: "Deutsch" },
+  { code: "ro", label: "Română" },
+];
+
+function ComplianceSettingsCard() {
+  const load = useServerFn(getComplianceSettings);
+  const save = useServerFn(updateComplianceSettings);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [country, setCountry] = useState("OTHER_EU");
+  const [language, setLanguage] = useState("en");
+  const [frameworks, setFrameworks] = useState<string[]>([]);
+  const [intervals, setIntervals] = useState<Record<string, number>>({});
+  const [defaultInterval, setDefaultInterval] = useState(365);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    load()
+      .then((s) => {
+        if (cancelled) return;
+        setCountry(s.country_code);
+        setLanguage(s.primary_language);
+        setFrameworks(s.framework_keys);
+        setIntervals(s.review_interval_days ?? {});
+        setDefaultInterval(s.default_review_interval_days);
+        setError(null);
+      })
+      .catch((e) => !cancelled && setError((e as Error).message))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [load]);
+
+  const cfg = resolveCountryConfig(country);
+
+  const pickCountry = (code: string) => {
+    const next = resolveCountryConfig(code);
+    setCountry(next.code);
+    setLanguage(next.defaultLanguage);
+    setFrameworks([...next.applicableFrameworks]);
+    setDefaultInterval(next.defaultReviewIntervalDays);
+  };
+
+  const toggleFramework = (key: string, on: boolean) =>
+    setFrameworks((prev) => (on ? [...new Set([...prev, key])] : prev.filter((k) => k !== key)));
+
+  const submit = async () => {
+    setBusy(true);
+    try {
+      const payload = {
+        country_code: country,
+        primary_language: language,
+        framework_keys: frameworks,
+        review_interval_days: {
+          ...intervals,
+          default: defaultInterval,
+        },
+      };
+      const saved = await save({ data: payload });
+      setIntervals(saved.review_interval_days ?? {});
+      toast.success("Compliance context updated");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="p-6 flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading compliance context…
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-6 space-y-6">
+      <div className="space-y-1">
+        <h3 className="font-display text-lg font-semibold">Country &amp; compliance context</h3>
+        <p className="text-xs text-muted-foreground max-w-2xl">
+          Advisory only. These settings tell OPSQAI which jurisdiction, language and reference
+          frameworks to consider when reviewing your documentation. They do not certify or assert
+          legal compliance.
+        </p>
+      </div>
+
+      {error && (
+        <p className="text-xs text-destructive">Could not load current settings: {error}</p>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label className="text-xs">Country / jurisdiction</Label>
+          <Select value={country} onValueChange={pickCountry}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {listCountries().map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Primary language</Label>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGES.map((l) => (
+                <SelectItem key={l.code} value={l.code}>
+                  {l.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <p className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+        {cfg.dataProtectionContext}
+      </p>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Label className="text-xs">Reference frameworks</Label>
+          <Badge variant="secondary" className="text-[10px]">
+            {frameworks.length} selected
+          </Badge>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {(Object.keys(FRAMEWORKS) as FrameworkKey[]).map((key) => {
+            const meta = FRAMEWORKS[key];
+            const checked = frameworks.includes(key);
+            const recommended = cfg.applicableFrameworks.includes(key);
+            return (
+              <div
+                key={key}
+                className="rounded-lg border border-border p-3 space-y-2 bg-card/60"
+              >
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id={`fw-${key}`}
+                    checked={checked}
+                    onCheckedChange={(v) => toggleFramework(key, v === true)}
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor={`fw-${key}`} className="text-xs font-semibold cursor-pointer">
+                      {meta.name}
+                      {recommended && (
+                        <span className="ml-2 text-[10px] font-normal text-primary">
+                          recommended
+                        </span>
+                      )}
+                    </Label>
+                    <p className="text-[11px] leading-snug text-muted-foreground">
+                      {meta.description}
+                    </p>
+                  </div>
+                </div>
+                {checked && (
+                  <div className="flex items-center gap-2 pl-6">
+                    <Label className="text-[11px] text-muted-foreground">Review every</Label>
+                    <Input
+                      type="number"
+                      min={30}
+                      max={1825}
+                      className="h-7 w-20 text-xs"
+                      value={intervals[key] ?? defaultInterval}
+                      onChange={(e) =>
+                        setIntervals((prev) => ({ ...prev, [key]: Number(e.target.value) }))
+                      }
+                    />
+                    <span className="text-[11px] text-muted-foreground">days</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-end gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Default review interval (days)</Label>
+          <Input
+            type="number"
+            min={30}
+            max={1825}
+            className="w-32"
+            value={defaultInterval}
+            onChange={(e) => setDefaultInterval(Number(e.target.value))}
+          />
+        </div>
+        <Button onClick={submit} disabled={busy}>
+          {busy ? "Saving…" : "Save compliance context"}
+        </Button>
+      </div>
+    </Card>
   );
 }

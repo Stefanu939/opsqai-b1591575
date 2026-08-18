@@ -410,6 +410,9 @@ function buildBootstrapArgs(config, extraFlags = []) {
   if (config.license && config.license.contents) {
     args.push("--license", config.license.contents);
   }
+  if (config.compliance && config.compliance.countryCode) {
+    args.push("--compliance", JSON.stringify(config.compliance));
+  }
   if (config.smtp && config.smtp.host) {
     args.push("--smtp", JSON.stringify(config.smtp));
   }

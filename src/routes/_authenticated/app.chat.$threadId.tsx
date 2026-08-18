@@ -36,7 +36,9 @@ import { createInternalRequest } from "@/lib/internal-requests.functions";
 import { rateMessage } from "@/lib/feedback.functions";
 import { firstNameFrom } from "@/lib/chat-grounding";
 import { useAuth } from "@/lib/auth-context";
-import { Square } from "lucide-react";
+import { Square, Mic, ImagePlus, Volume2, VolumeX, X } from "lucide-react";
+import { useServerFn as useServerFn2 } from "@tanstack/react-start";
+import { transcribeVoiceInput, synthesizeVoiceReply, uploadChatImage, signChatImage } from "@/lib/ai-features.functions";
 
 interface SourceItem {
   type: "document" | "faq";
@@ -71,6 +73,7 @@ interface MessageMeta {
   minConfidence?: number;
   escalation?: Escalation | null;
   isKnowledgeGap?: boolean;
+  images?: { id: string; document_id: string; caption: string | null; data_url: string }[];
 }
 
 type ConfBucket = "high" | "medium" | "low";
@@ -357,6 +360,26 @@ function ChatInner({
                     )}
                     {sources.length > 0 && (
                       <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />
+                    )}
+                    {(meta?.images?.length ?? 0) > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {meta!.images!.map((img) => (
+                          <a
+                            key={img.id}
+                            href={img.data_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block h-20 w-20 overflow-hidden rounded-lg border border-border"
+                            title={img.caption ?? "Cited visual"}
+                          >
+                            <img
+                              src={img.data_url}
+                              alt={img.caption ?? "Cited document visual"}
+                              className="h-full w-full object-cover"
+                            />
+                          </a>
+                        ))}
+                      </div>
                     )}
                   </div>
                   {meta?.escalation && meta.escalation.department && (

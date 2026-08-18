@@ -1,11 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse, streamText, type UIMessage } from "ai";
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
-import { resolveChatModel, resolveEmbedOne } from "@/lib/ai-provider.server";
+import { resolveChatModel, resolveEmbedOne, hasAiCapability } from "@/lib/ai-provider.server";
+import { getStorageProvider } from "@/lib/providers/registry";
 import { detectLanguage, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources } from "@/lib/chat-grounding";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
 type Body={messages?:UIMessage[];threadId?:string;language?:string};
+type ImageRef={id:string;document_id:string;caption:string|null;data_url:string};
+const CHAT_IMG_PREFIX="chatimg:";
+const CHAT_IMAGES_BUCKET="chat-images";
+const KNOWLEDGE_IMAGES_BUCKET="knowledge-images";
+
+function bytesToB64(bytes:Uint8Array):string{let binary="";for(const b of bytes)binary+=String.fromCharCode(b);return btoa(binary);}
+
+/** Build the model-facing message list: resolve chatimg refs to data URLs when vision is available, else strip them with a clear note. Never mutates the persisted UIMessage objects. */
+async function prepareMessagesForModel(messages:UIMessage[],userId:string):Promise<UIMessage[]>{
+  const vision=hasAiCapability("vision");
+  const storage=getStorageProvider();
+  const out:UIMessage[]=[];
+  for(const m of messages){
+    const parts:UIMessage["parts"]=[];
+    let hadImage=false;
+    for(const part of m.parts){
+      const p=part as any;
+      if(p.type==="file"&&typeof p.url==="string"&&p.url.startsWith(CHAT_IMG_PREFIX)){
+        hadImage=true;
+        const path=p.url.slice(CHAT_IMG_PREFIX.length);
+        if(vision&&path.split("/")[0]===userId){
+          try{
+            const bytes=await storage.get(CHAT_IMAGES_BUCKET,path);
+            parts.push({...p,url:`data:${p.mediaType||"image/png"};base64,${bytesToB64(bytes)}`});
+            continue;
+          }catch(error){console.error("[chat:image-resolve]",error);}
+        }
+        continue;
+      }
+      parts.push(part);
+    }
+    if(hadImage&&!vision){
+      parts.push({type:"text",text:"\n\n[Note: an image was attached but image analysis is unavailable on the configured AI engine.]"} as any);
+    }
+    out.push({...m,parts});
+  }
+  return out;
+}
 type Source={type:"document"|"faq";id:string;document_id?:string;title:string;code?:string|null;excerpt:string;similarity?:number;version?:number;section?:string|null;page?:number|null;last_updated?:string|null;confidence?:"high"|"medium"|"low";primary?:boolean};
 
 const greeting=/^(hi|hello|hey|hallo|guten\s*(morgen|tag|abend)|salut|bun[ăa]|mul[țt]umesc|danke|thanks)\b/i;
@@ -61,6 +100,30 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       context=strong.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
     }catch(error){console.error("[chat:retrieval]",error);}
   }
+  let images:ImageRef[]=[];
+  try{
+    const docSources=sources.filter((s)=>s.type==="document"&&s.document_id);
+    const byDoc=new Map<string,number[]>();
+    for(const s of docSources.slice(0,4)){
+      const idx=Number(s.id.split(":")[1]);
+      if(!Number.isFinite(idx))continue;
+      const arr=byDoc.get(s.document_id as string)??[];
+      arr.push(idx);
+      byDoc.set(s.document_id as string,arr);
+    }
+    const storage=getStorageProvider();
+    for(const [docId,idxs] of byDoc){
+      if(images.length>=3)break;
+      const rows=await getKnowledgeRepository(dataCtx).getImagesForChunks(docId,idxs);
+      for(const row of rows.filter((r)=>r.approved)){
+        if(images.length>=3)break;
+        try{
+          const bytes=await storage.get(KNOWLEDGE_IMAGES_BUCKET,row.storage_path);
+          images.push({id:row.id,document_id:row.document_id,caption:row.caption,data_url:`data:${row.mime_type};base64,${bytesToB64(bytes)}`});
+        }catch(error){console.error("[chat:image-cite]",error);}
+      }
+    }
+  }catch(error){console.error("[chat:image-gather]",error);}
   const answerLanguage=detectLanguage(query,body.language);
   const grounded=passesGrounding(sources,confidence)||(isFollowup&&Boolean(context));
   const messageRepo=getMessageRepository(dataCtx);
@@ -69,7 +132,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
     const fresh=finished.slice(existing.length);
     await messageRepo.insertMany(fresh.map((m)=>({threadId:body.threadId as string,userId:identity.userId,companyId,role:m.role,content:textOf(m).slice(0,100000),parts:JSON.parse(JSON.stringify(m.parts)) as JsonLike,sources:m.role==="assistant"?JSON.parse(JSON.stringify(sources)) as JsonLike:null,confidence:m.role==="assistant"?confidence:null})));
   };
-  const metadata=(mode:"greeting"|"capability"|"kb"|"gap")=>({sources,mode,question:query,confidence,minConfidence:.3,isKnowledgeGap:mode==="gap"});
+  const metadata=(mode:"greeting"|"capability"|"kb"|"gap")=>({sources,mode,question:query,confidence,minConfidence:.3,isKnowledgeGap:mode==="gap",images:mode==="kb"?images:[]});
 
   // Hard grounding gate: no sufficient company evidence => never call the model.
   if(!isGreeting&&!isCapability&&!grounded){
@@ -89,7 +152,8 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       ?`You are OPSQAI, the company knowledge assistant. Sound warm, professional and human — never robotic. The user asks what you can tell them. Reply in ${answerLanguage}.${nameHint} Do NOT describe yourself, your AI features or how you work. Instead summarise the actual documented content available below: group the SOPs/documents into 3-5 topic areas using their real titles, then suggest 3 concrete questions the user can ask about them. Use only the inventory below; invent nothing.\n\nINVENTORY:\n${overview||"(inventory unavailable)"}`
       :groundedSystemPrompt(context,answerLanguage,firstName);
 
-  const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(messages)});
+  const modelMessages=await prepareMessagesForModel(messages,identity.userId);
+  const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(modelMessages)});
   return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?metadata(isGreeting?"greeting":isCapability?"capability":"kb"):undefined,onFinish:async({messages:finished})=>{await persist(finished);}});
 
 }}}});

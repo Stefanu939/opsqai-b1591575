@@ -30,6 +30,7 @@ import type {
   IRbacAdminRepository,
   IDirectMessageRepository,
   IAiAuditRepository,
+  IComplianceRepository,
   IDashboardRepository,
   IUserRepository,
   CompanyRepositoryFactory,
@@ -46,6 +47,7 @@ import type {
   RbacAdminRepositoryFactory,
   DirectMessageRepositoryFactory,
   AiAuditRepositoryFactory,
+  ComplianceRepositoryFactory,
   DashboardRepositoryFactory,
   ExportRepositoryFactory,
   IExportRepository,
@@ -82,6 +84,7 @@ interface Registry {
   rbacAdminFactory?: RbacAdminRepositoryFactory;
   directMessageFactory?: DirectMessageRepositoryFactory;
   aiAuditFactory?: AiAuditRepositoryFactory;
+  complianceFactory?: ComplianceRepositoryFactory;
   dashboardFactory?: DashboardRepositoryFactory;
   exportFactory?: ExportRepositoryFactory;
   academyFactory?: AcademyRepositoryFactory;
@@ -169,6 +172,7 @@ export function registerKnowledgeRepositoryFactory(f: KnowledgeRepositoryFactory
 export function registerRbacAdminRepositoryFactory(f: RbacAdminRepositoryFactory): void { registry.rbacAdminFactory = f; }
 export function registerDirectMessageRepositoryFactory(f: DirectMessageRepositoryFactory): void { registry.directMessageFactory = f; }
 export function registerAiAuditRepositoryFactory(f: AiAuditRepositoryFactory): void { registry.aiAuditFactory = f; }
+export function registerComplianceRepositoryFactory(f: ComplianceRepositoryFactory): void { registry.complianceFactory = f; }
 export function registerDashboardRepositoryFactory(f: DashboardRepositoryFactory): void { registry.dashboardFactory = f; }
 export function registerExportRepositoryFactory(f: ExportRepositoryFactory): void { registry.exportFactory = f; }
 export function registerAcademyRepositoryFactory(f: AcademyRepositoryFactory): void { registry.academyFactory = f; }
@@ -312,6 +316,10 @@ export function getDirectMessageRepository(dataCtx: unknown): IDirectMessageRepo
 export function getAiAuditRepository(dataCtx: unknown): IAiAuditRepository {
   if (!registry.aiAuditFactory) throw new Error("No AI-audit repository registered");
   return registry.aiAuditFactory(dataCtx);
+}
+export function getComplianceRepository(dataCtx: unknown): IComplianceRepository {
+  if (!registry.complianceFactory) throw new Error("No compliance repository registered");
+  return registry.complianceFactory(dataCtx);
 }
 export function getDashboardRepository(dataCtx: unknown): IDashboardRepository {
   if (!registry.dashboardFactory) throw new Error("No dashboard repository registered");
