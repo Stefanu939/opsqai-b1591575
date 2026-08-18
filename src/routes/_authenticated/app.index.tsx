@@ -32,6 +32,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ManagementOverview } from "@/components/dashboard/management-overview";
+import { UpcomingCard } from "@/components/calendar/upcoming-card";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
 import { Panel } from "@/components/ui/panel";
@@ -206,8 +207,8 @@ function Dashboard() {
         />
       </div>
 
-      {isEmptyWorkspace ? (
-        /* Onboarding cards */
+      {isEmptyWorkspace && (
+        /* Onboarding cards — shown alongside the live widgets, never instead */
         <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
           {!data ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -266,9 +267,9 @@ function Dashboard() {
             </div>
           )}
         </div>
-      ) : (
-        <DashboardWidgets />
       )}
+
+      <DashboardWidgets />
     </div>
   );
 }
@@ -337,6 +338,8 @@ function DashboardWidgets() {
       <DashboardFilters value={filters} onChange={update} />
 
       <ManagementOverview />
+
+      <UpcomingCard scope="platform" to="/app/calendar" />
 
       <BentoGrid>
         {/* KPI row */}
