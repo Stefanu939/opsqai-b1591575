@@ -223,6 +223,11 @@ export const listActivatedLicenses = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<ActivatedLicenseRow[]> => {
     await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (isSelfHosted()) {
+      const { listSelfHostActivations } = await import("@/lib/selfhost-license-activation.server");
+      return listSelfHostActivations();
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("licenses")
