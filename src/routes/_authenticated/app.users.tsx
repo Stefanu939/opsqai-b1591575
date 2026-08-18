@@ -15,6 +15,13 @@ import {
   listDepartments,
 } from "@/lib/users.functions";
 import { listAssignableRoles } from "@/lib/rbac.functions";
+import {
+  listLicensedModules,
+  getUserModuleAccess,
+  setUserModuleAccess,
+} from "@/lib/module-access.functions";
+import { ModuleAccessPicker, presetModulesFor } from "@/components/users/module-access-picker";
+import { normalizeAppRole } from "@/lib/module-access";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAvatarUrl, initialsOf } from "@/lib/avatar";
 import { ModulePage } from "@/components/app/module-page";
@@ -100,6 +107,9 @@ function UsersPage() {
   const updateEmailFn = useServerFn(updateUserEmail);
   const updateAvatarFn = useServerFn(updateUserAvatar);
   const clearAvatarFn = useServerFn(clearUserAvatar);
+  const licensedFn = useServerFn(listLicensedModules);
+  const setModulesFn = useServerFn(setUserModuleAccess);
+  const getModulesFn = useServerFn(getUserModuleAccess);
   const qc = useQueryClient();
   const selfHosted = getClientDeploymentMode() === "selfhost";
 
@@ -109,6 +119,12 @@ function UsersPage() {
   });
   const roleList = useQuery({ queryKey: ["assignable-roles"], queryFn: () => roleFn() });
   const deptList = useQuery({ queryKey: ["app-departments"], queryFn: () => deptFn() });
+  const licensedList = useQuery({
+    queryKey: ["licensed-modules"],
+    queryFn: () => licensedFn() as Promise<string[]>,
+    staleTime: 5 * 60 * 1000,
+  });
+  const licensed = licensedList.data ?? [];
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["app-users"] });
 
@@ -119,21 +135,38 @@ function UsersPage() {
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("employee");
   const [temporaryPassword, setTemporaryPassword] = useState("");
+  const [newModules, setNewModules] = useState<string[] | null>(null);
+  const createModules = newModules ?? presetModulesFor(role, licensed);
+
+  const onRoleChange = (next: string) => {
+    setRole(next);
+    setNewModules(null);
+  };
 
   const invite = useMutation({
-    mutationFn: () =>
-      selfHosted
-        ? createFn({
-            data: {
-              email,
-              password: temporaryPassword,
-              first_name: firstName,
-              last_name: lastName,
-              role,
-              must_change_password: true,
-            },
-          })
-        : inviteFn({ data: { email, first_name: firstName, last_name: lastName, role } }),
+    mutationFn: async () => {
+      if (selfHosted) {
+        return createFn({
+          data: {
+            email,
+            password: temporaryPassword,
+            first_name: firstName,
+            last_name: lastName,
+            role,
+            must_change_password: true,
+            ...(normalizeAppRole(role) === "superadmin" ? {} : { modules: createModules }),
+          },
+        });
+      }
+      const res = await inviteFn({
+        data: { email, first_name: firstName, last_name: lastName, role },
+      });
+      const invitedId = (res as { user_id?: string } | null)?.user_id;
+      if (invitedId && normalizeAppRole(role) !== "superadmin") {
+        await setModulesFn({ data: { user_id: invitedId, modules: createModules } }).catch(() => {});
+      }
+      return res;
+    },
     onSuccess: () => {
       toast.success(selfHosted ? "User created with a temporary password" : "Invitation sent");
       setInviteOpen(false);
@@ -158,6 +191,31 @@ function UsersPage() {
   const [newEmail, setNewEmail] = useState("");
   const [pwOpen, setPwOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [editModules, setEditModules] = useState<string[]>([]);
+
+  const detailAccess = useQuery({
+    queryKey: ["user-module-access", detailUser?.id],
+    enabled: !!detailUser,
+    queryFn: async () => {
+      const res = (await getModulesFn({ data: { user_id: detailUser!.id } })) as {
+        role: string;
+        superadmin: boolean;
+        modules: string[];
+      };
+      setEditModules(res.modules);
+      return res;
+    },
+  });
+
+  const saveModules = useMutation({
+    mutationFn: () => setModulesFn({ data: { user_id: detailUser!.id, modules: editModules } }),
+    onSuccess: () => {
+      toast.success("Module access updated");
+      qc.invalidateQueries({ queryKey: ["user-module-access", detailUser?.id] });
+      qc.invalidateQueries({ queryKey: ["my-module-access"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const openDetail = (r: UserRow) => {
     setDetailUser(r);
@@ -167,6 +225,7 @@ function UsersPage() {
     setEditDepartment(r.department_id ?? "none");
     setEditRole(r.roles?.[0] ?? "employee");
     setNewEmail(r.email);
+    setEditModules([]);
   };
 
   const saveEdit = useMutation({
@@ -451,7 +510,7 @@ function UsersPage() {
               </div>
               <div>
                 <Label>Role</Label>
-                <Select value={role} onValueChange={setRole}>
+                <Select value={role} onValueChange={onRoleChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -463,6 +522,17 @@ function UsersPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Accessible modules</Label>
+                <div className="mt-1">
+                  <ModuleAccessPicker
+                    role={role}
+                    licensed={licensed}
+                    value={createModules}
+                    onChange={setNewModules}
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -618,6 +688,34 @@ function UsersPage() {
                     >
                       {saveRole.isPending ? "Saving…" : "Save"}
                     </Button>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label>Accessible modules</Label>
+                    {detailAccess.data?.superadmin ? null : (
+                      <Button
+                        size="sm"
+                        onClick={() => saveModules.mutate()}
+                        disabled={saveModules.isPending || detailAccess.isLoading}
+                      >
+                        {saveModules.isPending ? "Saving…" : "Save modules"}
+                      </Button>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    {detailAccess.isLoading ? (
+                      <div className="text-sm text-muted-foreground">Loading module access…</div>
+                    ) : (
+                      <ModuleAccessPicker
+                        role={detailAccess.data?.role ?? editRole}
+                        licensed={licensed}
+                        value={editModules}
+                        onChange={setEditModules}
+                        disabled={saveModules.isPending}
+                      />
+                    )}
                   </div>
                 </div>
 

@@ -84,3 +84,11 @@ export const setUserModuleAccess = createServerFn({ method: "POST" })
 
     return { ok: true, superadmin: false, modules: moduleKeys };
   });
+
+/** Modules unlocked by the current license — the pool a SuperAdmin can grant from. */
+export const listLicensedModules = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .handler(async () => {
+    const licensed = await getLicensedModules();
+    return licensed as string[];
+  });

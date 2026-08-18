@@ -410,7 +410,7 @@ export const inviteUser = createServerFn({ method: "POST" })
     await roleRepo.removeAllRoles(invitedId);
     await roleRepo.addRole(invitedId, data.role, targetCompany);
 
-    return { ok: true };
+    return { ok: true, user_id: invitedId };
   });
 
 export const updateUser = createServerFn({ method: "POST" })
