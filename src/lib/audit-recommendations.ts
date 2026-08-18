@@ -184,6 +184,12 @@ export function buildAuditRecommendations(input: {
   gaps: AuditGapCluster[];
   learners: AuditLearnerSignal[];
   knowledge: AuditKnowledgeSignal;
+  /**
+   * Reference frameworks the organisation selected (Organization > Compliance).
+   * When provided, attribution is narrowed to those frameworks; recommendations
+   * themselves are never dropped, only their advisory basis is adjusted.
+   */
+  frameworkKeys?: readonly string[];
 }): AuditIntelligence {
   const { gaps, learners, knowledge } = input;
   const recs: AuditRecommendation[] = [];
