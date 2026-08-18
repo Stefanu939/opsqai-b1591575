@@ -510,7 +510,7 @@ function UsersPage() {
               </div>
               <div>
                 <Label>Role</Label>
-                <Select value={role} onValueChange={setRole}>
+                <Select value={role} onValueChange={onRoleChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -522,6 +522,17 @@ function UsersPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Accessible modules</Label>
+                <div className="mt-1">
+                  <ModuleAccessPicker
+                    role={role}
+                    licensed={licensed}
+                    value={createModules}
+                    onChange={setNewModules}
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>
