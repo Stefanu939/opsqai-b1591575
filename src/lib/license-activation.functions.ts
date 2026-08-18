@@ -121,6 +121,37 @@ export const importActivationBundle = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => BundleInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (isSelfHosted()) {
+      const { activateSelfHostLicense } = await import("@/lib/selfhost-license-activation.server");
+      const body = data.bundle_json.trim();
+      // Self-Hosted accepts either a signed bundle JWT or a JSON bundle whose
+      // install/module tokens are activated individually.
+      if (!body.startsWith("{")) return activateSelfHostLicense(body);
+      let parsedJson: ActivationBundle;
+      try {
+        parsedJson = JSON.parse(body) as ActivationBundle;
+      } catch {
+        throw new Error("import_denied:malformed_bundle");
+      }
+      if (parsedJson.bundle_version !== 1 || !parsedJson.install_token) {
+        throw new Error("import_denied:unknown_bundle_version");
+      }
+      const install = await activateSelfHostLicense(
+        parsedJson.install_token,
+        parsedJson.install_id,
+      );
+      const modules: Array<{ module_key: string; ok: boolean; reason?: string }> = [];
+      for (const m of parsedJson.module_tokens ?? []) {
+        try {
+          await activateSelfHostLicense(m.signed_token, parsedJson.install_id);
+          modules.push({ module_key: m.module_key, ok: true });
+        } catch (e) {
+          modules.push({ module_key: m.module_key, ok: false, reason: (e as Error).message });
+        }
+      }
+      return { ok: true, install, modules, crl: null };
+    }
     let parsed: ActivationBundle;
     try {
       parsed = JSON.parse(data.bundle_json) as ActivationBundle;
