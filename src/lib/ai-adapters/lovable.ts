@@ -8,6 +8,7 @@ const MODELS = {
   chat: "google/gemini-3-flash-preview",
   "chat-fast": "google/gemini-2.5-flash",
   tts: "openai/gpt-4o-mini-tts",
+  stt: "openai/whisper-1",
   embedding: "openai/text-embedding-3-small",
 } as const;
 
@@ -39,6 +40,7 @@ export const lovableAdapter: AIProviderAdapter = {
     toolCalling: true,
     vision: true,
     textToSpeech: true,
+    audioInput: true,
   }),
 
   resolveChat(role: AIChatRole): LanguageModel {
@@ -58,6 +60,15 @@ export const lovableAdapter: AIProviderAdapter = {
       headers: { "Content-Type": "application/json", ...gatewayHeaders(key) },
       model: MODELS.tts,
       modelInPath: false,
+    };
+  },
+
+  resolveSTT() {
+    const key = requireKey();
+    return {
+      url: `${BASE_URL}/audio/transcriptions`,
+      headers: gatewayHeaders(key),
+      model: MODELS.stt,
     };
   },
 

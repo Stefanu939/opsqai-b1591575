@@ -29,6 +29,12 @@ export function ollamaModels() {
   } as const;
 }
 
+/** Ollama has no dedicated STT/vision flag — models declare it by name. */
+function isVisionModel(name: string): boolean {
+  const n = name.toLowerCase();
+  return /(llava|vision|minicpm-v|bakllava|moondream|qwen.?2(\.5)?-vl|llama3\.2-vision)/.test(n);
+}
+
 export const ollamaAdapter: AIProviderAdapter = {
   id: "ollama",
   local: true,
@@ -60,6 +66,10 @@ export const ollamaAdapter: AIProviderAdapter = {
       structuredOutput: chatOk,
       streaming: chatOk,
       toolCalling: chatOk,
+      // Vision is model-dependent, not endpoint-dependent: only report it
+      // when the installed chat model is actually multimodal. No cloud
+      // fallback — a non-vision local model simply reports `false`.
+      vision: chatOk && isVisionModel(ollamaModels().chat),
     });
   },
 

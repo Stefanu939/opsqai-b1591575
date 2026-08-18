@@ -120,6 +120,49 @@ function GapsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // ---- Gap → AI draft → human review → publish -------------------------
+  const makeDraft = useServerFn(draftGapDocument);
+  const publishDraft = useServerFn(publishGapDocument);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draftGapId, setDraftGapId] = useState<string | null>(null);
+
+  const generate = useMutation({
+    mutationFn: (vars: {
+      kind: "sop" | "faq";
+      gapId: string;
+      question: string;
+      department?: string | null;
+    }) =>
+      makeDraft({
+        data: {
+          kind: vars.kind,
+          question: vars.question,
+          department: vars.department ?? null,
+        },
+      }),
+    onSuccess: (d, vars) => {
+      setDraftGapId(vars.gapId);
+      setDraft(d as Draft);
+    },
+    onError: (e: Error) => toast.error(e.message || "Draft generation failed"),
+  });
+
+  const approve = useMutation({
+    mutationFn: () =>
+      publishDraft({ data: { gap_id: draftGapId, draft: draft as NonNullable<Draft> } }),
+    onSuccess: (r) => {
+      toast.success(r.kind === "sop" ? "SOP published to the knowledge base" : "FAQ published");
+      setDraft(null);
+      setDraftGapId(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "Publishing failed"),
+  });
+
+  const patchDraft = (patch: Partial<SopDraft> & Partial<FaqDraft>) =>
+    setDraft((prev) => (prev ? ({ ...prev, ...patch } as Draft) : prev));
+
+
   const gaps = gapsQuery.data?.gaps ?? [];
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();

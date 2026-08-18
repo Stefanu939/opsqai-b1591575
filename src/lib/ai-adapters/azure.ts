@@ -9,6 +9,7 @@ function models() {
     chat: process.env.AZURE_OPENAI_CHAT_DEPLOYMENT ?? "gpt-4o",
     "chat-fast": process.env.AZURE_OPENAI_CHAT_FAST_DEPLOYMENT ?? "gpt-4o-mini",
     tts: process.env.AZURE_OPENAI_TTS_DEPLOYMENT ?? "tts",
+    stt: process.env.AZURE_OPENAI_STT_DEPLOYMENT ?? "whisper",
     embedding: process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT ?? "text-embedding-3-small",
   } as const;
 }
@@ -37,6 +38,7 @@ export const azureAdapter: AIProviderAdapter = {
     toolCalling: true,
     vision: true,
     textToSpeech: true,
+    audioInput: true,
   }),
 
   resolveChat(role: AIChatRole): LanguageModel {
@@ -53,6 +55,16 @@ export const azureAdapter: AIProviderAdapter = {
       headers: { "Content-Type": "application/json", "api-key": apiKey },
       model: deployment,
       modelInPath: true,
+    };
+  },
+
+  resolveSTT() {
+    const { resourceName, apiKey, apiVersion } = requireConfig();
+    const deployment = models().stt;
+    return {
+      url: `https://${resourceName}.openai.azure.com/openai/deployments/${deployment}/audio/transcriptions?api-version=${apiVersion}`,
+      headers: { "api-key": apiKey },
+      model: deployment,
     };
   },
 
