@@ -127,6 +127,7 @@ const banned = [
 
 const knownTables = new Set();
 const knownFunctions = new Set();
+const knownTypes = new Set();
 const violations = [];
 
 for (const file of files) {
@@ -143,6 +144,7 @@ for (const file of files) {
 
   const fileTables = collect(/\bCREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?public\.([a-z_][a-z0-9_]*)\b/gi, sql);
   const fileFunctions = collect(/\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_][a-z0-9_]*)\b/gi, sql);
+  const fileTypes = collect(/\bCREATE\s+TYPE\s+public\.([a-z_][a-z0-9_]*)\b/gi, sql);
 
   const allowedTables = new Set([...knownTables, ...fileTables]);
   const allowedFunctions = new Set([...knownFunctions, ...fileFunctions]);
@@ -196,8 +198,22 @@ for (const file of files) {
     }
   }
 
+  // Types are order-sensitive too. In particular, 0012 deliberately drops
+  // app_role when Self-Hosted moves to its text role catalog; later migrations
+  // must not silently copy Cloud enum SQL back into the installer.
+  for (const m of sql.matchAll(/\bDROP\s+TYPE\s+(?:IF\s+EXISTS\s+)?public\.([a-z_][a-z0-9_]*)\b/gi)) {
+    knownTypes.delete(m[1].toLowerCase());
+  }
+  for (const m of sql.matchAll(/\bALTER\s+TYPE\s+(?:public\.)?([a-z_][a-z0-9_]*)\b/gi)) {
+    const name = m[1].toLowerCase();
+    if (!knownTypes.has(name) && !fileTypes.has(name)) {
+      violations.push({ file, line: lineOf(sql, m.index), kind: "undefined public type", detail: `public.${name}` });
+    }
+  }
+
   for (const name of fileTables) knownTables.add(name);
   for (const name of fileFunctions) knownFunctions.add(name);
+  for (const name of fileTypes) knownTypes.add(name);
 }
 
 if (violations.length) {
