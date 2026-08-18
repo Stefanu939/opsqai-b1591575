@@ -792,6 +792,28 @@ export interface KnowledgeDocumentRow {
   file_type: string | null;
   status: string;
   chunk_count: number;
+  /** Lifecycle metadata (0021_knowledge_lifecycle). Nullable on legacy rows. */
+  information_updated_at?: string | null;
+  last_reviewed_at?: string | null;
+  review_interval_days?: number | null;
+  owner_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  version?: number;
+  is_critical?: boolean;
+  department_id?: string | null;
+}
+
+/** Editable lifecycle/ownership metadata for a knowledge document. */
+export interface KnowledgeMetadataPatch {
+  title?: string;
+  category?: string;
+  doc_code?: string | null;
+  department_id?: string | null;
+  owner_id?: string | null;
+  information_updated_at?: string | null;
+  last_reviewed_at?: string | null;
+  review_interval_days?: number | null;
 }
 
 export interface KnowledgeChunkInsert {
