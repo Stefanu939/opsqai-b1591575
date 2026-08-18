@@ -448,6 +448,23 @@ function KnowledgePage() {
               </FilterChip>
             ))}
           </div>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterChip active={freshness === "all"} onClick={() => setFreshness("all")}>
+              Any age
+            </FilterChip>
+            <FilterChip active={freshness === "outdated"} onClick={() => setFreshness("outdated")}>
+              Review overdue ({lifecycleSummary.outdated})
+            </FilterChip>
+            <FilterChip
+              active={freshness === "review_soon"}
+              onClick={() => setFreshness("review_soon")}
+            >
+              Due soon ({lifecycleSummary.reviewSoon})
+            </FilterChip>
+            <FilterChip active={freshness === "fresh"} onClick={() => setFreshness("fresh")}>
+              Up to date ({lifecycleSummary.fresh})
+            </FilterChip>
+          </div>
         </>
       }
       actions={
