@@ -162,3 +162,34 @@ export const importRevocationListFn = createServerFn({ method: "POST" })
     if (!res.ok) throw new Error(`crl_import_denied:${res.reason}`);
     return res;
   });
+
+// ─── Self-Hosted: activation history (local license mirror) ─────────────
+
+export interface ActivatedLicenseRow {
+  id: string;
+  kind: string;
+  module_key: string | null;
+  install_id: string | null;
+  company_name: string | null;
+  expires_at: string | null;
+  maintenance_expires_at: string | null;
+  revoked: boolean;
+  suspended: boolean;
+  validated_at: string | null;
+}
+
+export const listActivatedLicenses = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .handler(async ({ context }): Promise<ActivatedLicenseRow[]> => {
+    await requirePlatformAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("licenses")
+      .select(
+        "id, kind, module_key, install_id, company_name, expires_at, maintenance_expires_at, revoked, suspended, validated_at",
+      )
+      .order("validated_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ActivatedLicenseRow[];
+  });
