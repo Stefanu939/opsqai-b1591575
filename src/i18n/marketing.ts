@@ -106,6 +106,7 @@ type MarketingCopy = typeof en;
 const de: MarketingCopy = {
   nav: {
     product: "Produkt",
+    overview: "Überblick",
     modules: "Module",
     selfHosted: "Self-Hosted",
     security: "Sicherheit",
