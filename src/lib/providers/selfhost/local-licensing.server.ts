@@ -312,7 +312,12 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
         modules.push({ claims, raw: m.signed_token });
       }
 
-      return { install, installRaw: outer.install_token, modules, crl };
+      return {
+        install,
+        installRaw: outer.install_token,
+        modules: await mergeSidecarModules(modules, install.install_id ?? null, crl),
+        crl,
+      };
     }
 
     let install: InstallLicenseClaims;
