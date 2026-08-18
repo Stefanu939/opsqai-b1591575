@@ -195,6 +195,9 @@ export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRep
         faqs: Number(t["faqs"] ?? 0),
         courses: Number(t["courses"] ?? 0),
         categories,
+        outdatedDocuments: Number(t["outdated"] ?? 0),
+        reviewDueSoonDocuments: Number(t["due_soon"] ?? 0),
+        medianDocumentAgeDays: Number(t["median_age"] ?? 0),
       };
     },
   };
