@@ -39,11 +39,31 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
   const preview = useServerFn(previewActivationToken);
   const importToken = useServerFn(importActivationToken);
   const importBundle = useServerFn(importActivationBundle);
+  const listHistory = useServerFn(listActivatedLicenses);
 
   const [value, setValue] = useState("");
   const [checking, setChecking] = useState(false);
   const [applying, setApplying] = useState(false);
   const [info, setInfo] = useState<Preview | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const history = useQuery({
+    queryKey: ["license-activation-history"],
+    queryFn: () => listHistory({} as never),
+  });
+
+  async function onFile(file: File | undefined) {
+    if (!file) return;
+    if (file.size > 256 * 1024) {
+      toast.error("That file is too large to be a license");
+      return;
+    }
+    const text = (await file.text()).trim();
+    setValue(text);
+    setInfo(null);
+    toast.success(`Loaded ${file.name} — verify before activating`);
+  }
+
 
   async function check() {
     const token = value.trim();
