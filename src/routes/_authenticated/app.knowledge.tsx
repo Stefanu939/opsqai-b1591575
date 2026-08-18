@@ -50,6 +50,8 @@ import {
   BookOpen,
   Archive,
   Sparkles,
+  CalendarClock,
+  CheckCheck,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import {
