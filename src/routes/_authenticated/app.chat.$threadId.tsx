@@ -34,6 +34,9 @@ import ReactMarkdown from "react-markdown";
 import { useServerFn } from "@tanstack/react-start";
 import { createInternalRequest } from "@/lib/internal-requests.functions";
 import { rateMessage } from "@/lib/feedback.functions";
+import { firstNameFrom } from "@/lib/chat-grounding";
+import { useAuth } from "@/lib/auth-context";
+import { Square } from "lucide-react";
 
 interface SourceItem {
   type: "document" | "faq";

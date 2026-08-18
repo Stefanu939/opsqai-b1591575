@@ -73,6 +73,7 @@ export const listUsers = createServerFn({ method: "POST" })
     const emailById = new Map(users.map((u) => [u.id, u.email]));
     const lastSignInById = new Map(users.map((u) => [u.id, u.lastSignInAt]));
     const createdById = new Map(users.map((u) => [u.id, u.createdAt]));
+    const authMetaById = new Map(users.map((u) => [u.id, u]));
     const rolesByUser = new Map<string, string[]>();
     for (const r of roles) {
       const list = rolesByUser.get(r.userId) ?? [];
@@ -99,6 +100,9 @@ export const listUsers = createServerFn({ method: "POST" })
       last_sign_in_at: lastSignInById.get(p.userId) ?? null,
       created_at: p.createdAt,
       roles: rolesByUser.get(p.userId) ?? [],
+      email_confirmed: authMetaById.get(p.userId)?.emailConfirmed ?? true,
+      account_disabled: authMetaById.get(p.userId)?.disabled ?? false,
+      invited: authMetaById.get(p.userId)?.invited ?? false,
     }));
 
     if (!scope) {
@@ -125,6 +129,9 @@ export const listUsers = createServerFn({ method: "POST" })
           last_sign_in_at: u.lastSignInAt ?? null,
           created_at: u.createdAt,
           roles: rolesByUser.get(u.id) ?? [],
+          email_confirmed: u.emailConfirmed,
+          account_disabled: u.disabled,
+          invited: u.invited,
         });
       }
     }

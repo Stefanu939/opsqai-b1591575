@@ -9,10 +9,11 @@ import { useT } from "@/i18n";
 import { Paperclip, Mic, ArrowUp, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { EmojiPicker } from "@/components/app/chat/emoji-picker";
+import { firstNameFrom } from "@/lib/chat-grounding";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({ component: ChatWelcome });
 
-function greet(name?: string | null, lang?: string) {
+function greet(name: string, lang?: string) {
   const hour = new Date().getHours();
   const part =
     lang === "de"
@@ -32,7 +33,7 @@ function greet(name?: string | null, lang?: string) {
           : hour < 18
             ? "Good afternoon"
             : "Good evening";
-  return name ? `${part}, ${name}` : part;
+  return name && name !== "there" ? `${part}, ${name}` : part;
 }
 
 function ChatWelcome() {
@@ -43,9 +44,8 @@ function ChatWelcome() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
-  const name =
-    (user?.metadata as Record<string, string> | undefined)?.full_name?.split(" ")[0] ??
-    user?.email?.split("@")[0];
+  const fullName = (user?.metadata as Record<string, string> | undefined)?.full_name ?? null;
+  const name = firstNameFrom(fullName, user?.email ?? null);
 
   const submit = async () => {
     const q = text.trim();
