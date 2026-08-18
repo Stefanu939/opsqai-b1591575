@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMyModuleAccess } from "@/hooks/use-module-access";
 import { useState, type ReactNode } from "react";
 import {
+  CalendarDays,
   LayoutDashboard,
   MessageSquare,
   BookOpen,
@@ -78,6 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const workspace: NavItem[] = [
     { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: null },
     { to: "/app/chat", label: "AI Chat", icon: MessageSquare, show: true, module: "chat" },
+    { to: "/app/calendar", label: "Calendar", icon: CalendarDays, show: true, module: null },
 
     {
       to: "/app/knowledge",
