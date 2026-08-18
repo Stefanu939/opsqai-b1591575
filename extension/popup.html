@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OPSQAI Inbox Companion</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <div class="mark">OQ</div>
+      <div>
+        <div class="title">OPSQAI Agenda</div>
+        <div class="sub" id="status">Not connected</div>
+      </div>
+      <button id="refresh" class="ghost" title="Refresh">↻</button>
+    </header>
+
+    <section class="setup" id="setup">
+      <label for="feed">Calendar subscription link</label>
+      <input id="feed" type="url" placeholder="https://…/api/public/calendar/&lt;token&gt;" />
+      <button id="save" class="primary">Connect</button>
+      <p class="hint">
+        Copy the link from OPSQAI → Calendar → “Subscribe”. It stays on this device.
+      </p>
+    </section>
+
+    <ul id="list" class="list"></ul>
+    <p id="empty" class="empty" hidden>No upcoming events in the next 30 days.</p>
+    <footer class="foot">
+      <button id="forget" class="ghost small" hidden>Disconnect</button>
+    </footer>
+    <script src="popup.js"></script>
+  </body>
+</html>

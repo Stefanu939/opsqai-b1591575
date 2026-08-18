@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { AreaTrend } from "@/components/ui/mini-chart";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatDistanceToNow } from "date-fns";
+import { UpcomingCard } from "@/components/calendar/upcoming-card";
+
 
 export const Route = createFileRoute("/_authenticated/management/")({
   component: OverviewPage,
@@ -268,6 +270,8 @@ function OverviewPage() {
 
         {/* Right rail */}
         <div className="min-w-0 space-y-4">
+          <UpcomingCard scope="platform" to="/management/calendar" />
+
           <div className="oq-soft-card p-4 md:p-5">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="font-display text-sm font-semibold text-foreground">Release</h2>
