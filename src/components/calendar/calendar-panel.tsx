@@ -141,14 +141,12 @@ export function CalendarPanel({ scope }: { scope: "platform" | "portal" }) {
     return events.filter((e) => new Date(e.starts_at).getTime() >= now - 3600_000).slice(0, 8);
   }, [events]);
 
-  const feedUrl =
-    typeof window !== "undefined" && feedQ.data?.token
-      ? `${window.location.origin}/api/public/calendar/${feedQ.data.token}.ics`
-      : "";
-  const webcalUrl = feedUrl.replace(/^https?:/, "webcal:");
-  const googleUrl = feedUrl
-    ? `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`
-    : "";
+  const feedUrl = calendarFeedUrl(feedQ.data?.token);
+  const webcalUrl = calendarWebcalUrl(feedUrl);
+  const googleUrl = calendarGoogleUrl(feedUrl);
+  const outlookWebUrl = calendarOutlookWebUrl(feedUrl, true);
+  const outlookLiveUrl = calendarOutlookWebUrl(feedUrl, false);
+
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
