@@ -51,6 +51,7 @@ import {
   registerDirectMessageRepositoryFactory,
   registerAiAuditRepositoryFactory,
   registerComplianceRepositoryFactory,
+  registerModuleAccessRepositoryFactory,
   registerDashboardRepositoryFactory,
   registerExportRepositoryFactory,
   registerAcademyRepositoryFactory,
@@ -74,6 +75,7 @@ import { createSupabaseDirectMessageRepository } from "./supabase-direct-message
 import { createSupabaseRbacAdminRepository } from "./supabase-rbac-admin-repository.server";
 import { createSupabaseAiAuditRepository } from "./supabase-ai-audit-repository.server";
 import { createSupabaseComplianceRepository } from "./supabase-compliance-repository.server";
+import { createSupabaseModuleAccessRepository } from "./supabase-module-access-repository.server";
 import { createSupabaseDashboardRepository } from "./supabase-dashboard-repository.server";
 import { createSupabaseExportRepository } from "./supabase-export-repository.server";
 import { createSupabaseAcademyRepository } from "./supabase-academy-repository.server";
@@ -277,6 +279,7 @@ export function bootstrapCloud(): void {
   registerRbacAdminRepositoryFactory((ctx)=>createSupabaseRbacAdminRepository(ctx as SupabaseClient<Database>));
   registerAiAuditRepositoryFactory((ctx)=>createSupabaseAiAuditRepository(ctx as SupabaseClient<Database>));
   registerComplianceRepositoryFactory((ctx) => createSupabaseComplianceRepository(ctx as SupabaseClient<Database>));
+  registerModuleAccessRepositoryFactory((ctx) => createSupabaseModuleAccessRepository(ctx as SupabaseClient<Database>));
   registerDashboardRepositoryFactory((ctx)=>createSupabaseDashboardRepository(ctx as SupabaseClient<Database>));
   registerExportRepositoryFactory((ctx) => createSupabaseExportRepository(ctx as SupabaseClient<Database>));
   registerAcademyRepositoryFactory((ctx) => createSupabaseAcademyRepository(ctx as SupabaseClient<Database>));

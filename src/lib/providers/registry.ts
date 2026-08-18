@@ -48,6 +48,8 @@ import type {
   DirectMessageRepositoryFactory,
   AiAuditRepositoryFactory,
   ComplianceRepositoryFactory,
+  ModuleAccessRepositoryFactory,
+  IModuleAccessRepository,
   DashboardRepositoryFactory,
   ExportRepositoryFactory,
   IExportRepository,
@@ -85,6 +87,7 @@ interface Registry {
   directMessageFactory?: DirectMessageRepositoryFactory;
   aiAuditFactory?: AiAuditRepositoryFactory;
   complianceFactory?: ComplianceRepositoryFactory;
+  moduleAccessFactory?: ModuleAccessRepositoryFactory;
   dashboardFactory?: DashboardRepositoryFactory;
   exportFactory?: ExportRepositoryFactory;
   academyFactory?: AcademyRepositoryFactory;
@@ -173,6 +176,7 @@ export function registerRbacAdminRepositoryFactory(f: RbacAdminRepositoryFactory
 export function registerDirectMessageRepositoryFactory(f: DirectMessageRepositoryFactory): void { registry.directMessageFactory = f; }
 export function registerAiAuditRepositoryFactory(f: AiAuditRepositoryFactory): void { registry.aiAuditFactory = f; }
 export function registerComplianceRepositoryFactory(f: ComplianceRepositoryFactory): void { registry.complianceFactory = f; }
+export function registerModuleAccessRepositoryFactory(f: ModuleAccessRepositoryFactory): void { registry.moduleAccessFactory = f; }
 export function registerDashboardRepositoryFactory(f: DashboardRepositoryFactory): void { registry.dashboardFactory = f; }
 export function registerExportRepositoryFactory(f: ExportRepositoryFactory): void { registry.exportFactory = f; }
 export function registerAcademyRepositoryFactory(f: AcademyRepositoryFactory): void { registry.academyFactory = f; }
@@ -321,6 +325,10 @@ export function getComplianceRepository(dataCtx: unknown): IComplianceRepository
   if (!registry.complianceFactory) throw new Error("No compliance repository registered");
   return registry.complianceFactory(dataCtx);
 }
+export function getModuleAccessRepository(dataCtx: unknown): IModuleAccessRepository {
+  if (!registry.moduleAccessFactory) throw new Error("No module access repository registered");
+  return registry.moduleAccessFactory(dataCtx);
+}
 export function getDashboardRepository(dataCtx: unknown): IDashboardRepository {
   if (!registry.dashboardFactory) throw new Error("No dashboard repository registered");
   return registry.dashboardFactory(dataCtx);
@@ -367,5 +375,6 @@ export function __resetProviderRegistryForTests(): void {
   registry.dashboardFactory = undefined;
   registry.exportFactory = undefined;
   registry.academyFactory = undefined;
+  registry.moduleAccessFactory = undefined;
 }
 

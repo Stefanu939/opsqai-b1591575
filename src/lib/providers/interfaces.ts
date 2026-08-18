@@ -681,6 +681,34 @@ export interface IIntegrationRepository {
 export type ThreadRepositoryFactory = (dataCtx: unknown) => IThreadRepository;
 export type MessageRepositoryFactory = (dataCtx: unknown) => IMessageRepository;
 export type ComplianceRepositoryFactory = (dataCtx: unknown) => IComplianceRepository;
+
+// --------------------------------------------------------------------
+// Module access repository — per-user module grants (SuperAdmin model).
+// Backs `public.user_module_access`. A user with no rows for a given
+// (company, user) falls back to the role preset in `src/lib/module-access.ts`.
+// --------------------------------------------------------------------
+
+export interface ModuleAccessRecord {
+  userId: string;
+  companyId: string;
+  moduleKey: string;
+  grantedBy: string | null;
+  createdAt: string;
+}
+
+export interface IModuleAccessRepository {
+  listForUser(companyId: string, userId: string): Promise<ModuleAccessRecord[]>;
+  listForCompany(companyId: string): Promise<ModuleAccessRecord[]>;
+  /** Replaces the full explicit grant set for one user with `moduleKeys`. */
+  replaceForUser(
+    companyId: string,
+    userId: string,
+    moduleKeys: string[],
+    grantedBy: string | null,
+  ): Promise<void>;
+}
+
+export type ModuleAccessRepositoryFactory = (dataCtx: unknown) => IModuleAccessRepository;
 export type FeedbackRepositoryFactory = (dataCtx: unknown) => IFeedbackRepository;
 export type KnowledgeGapRepositoryFactory = (dataCtx: unknown) => IKnowledgeGapRepository;
 export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRepository;

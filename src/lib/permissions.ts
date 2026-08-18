@@ -64,9 +64,10 @@ export const PERMISSIONS = {
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 export const ROLE_LABELS: Record<string, string> = {
+  superadmin: "SuperAdmin",
   platform_owner: "Platform Owner",
   platform_admin: "Platform Super Admin",
-  admin: "Company Admin",
+  admin: "Admin",
   manager: "Manager",
   // Renamed labels — DB role names are unchanged (supervisor/operator/viewer).
   supervisor: "Team Leader",
@@ -74,5 +75,5 @@ export const ROLE_LABELS: Record<string, string> = {
   viewer: "Operator",
   // legacy aliases still displayed with the new labels
   team_leader: "Team Leader (legacy)",
-  employee: "Employee (legacy)",
+  employee: "Employee",
 };

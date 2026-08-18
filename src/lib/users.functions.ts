@@ -13,6 +13,9 @@ import {
   getStorageProvider,
 } from "@/lib/providers/registry";
 import { uuidString } from "@/lib/zod-uuid";
+import { getModuleAccessRepository, getExportRepository } from "@/lib/providers/registry";
+import { isValidModuleKey } from "@/lib/license-modules";
+import { LEGACY_ROLE_MAP } from "@/lib/module-access";
 
 const RoleKey = z.string().regex(/^[a-z][a-z0-9_]{1,63}$/);
 
@@ -30,6 +33,48 @@ async function requireAdminOrPlatform(supabase: unknown, userId: string) {
   const { isPlatformAdmin, isCompanyAdmin } = await getActorRoles(supabase, userId);
   if (!isPlatformAdmin && !isCompanyAdmin) throw new Error("Forbidden");
   return { isPlatformAdmin, isCompanyAdmin };
+}
+
+
+function isSuperadminRole(role: string): boolean {
+  return LEGACY_ROLE_MAP[role] === "superadmin";
+}
+
+/**
+ * Safety rule: at least one active superadmin must always exist. Throws a
+ * clear error if removing/demoting/disabling `userId` (who currently holds
+ * a superadmin-equivalent role) would leave zero active superadmins.
+ */
+async function assertNotLastActiveSuperadmin(
+  roleRepo: ReturnType<typeof getAdminRoleRepository>,
+  profileRepo: ReturnType<typeof getAdminProfileRepository>,
+  userId: string,
+) {
+  const assignments = await roleRepo.listAssignmentsDetailed();
+  const superadminUserIds = new Set(
+    assignments.filter((a) => isSuperadminRole(a.role)).map((a) => a.userId),
+  );
+  if (!superadminUserIds.has(userId)) return;
+  let activeCount = 0;
+  for (const id of superadminUserIds) {
+    const p = await profileRepo.findByUserId(id);
+    if (p?.isActive !== false) activeCount += 1;
+  }
+  if (activeCount <= 1) {
+    throw new Error(
+      "Forbidden: at least one active superadmin must always exist — cannot remove, disable, or downgrade the last one",
+    );
+  }
+}
+
+async function assertCanGrantSuperadmin(context: { supabase: unknown; userId: string }, roles: string[]) {
+  if (!roles.some(isSuperadminRole)) return;
+  const { getActorRoles } = await import("@/lib/authorization");
+  const actor = await getActorRoles(context.supabase, context.userId);
+  const actorIsSuperadmin = actor.isPlatformAdmin || actor.roles.some(isSuperadminRole);
+  if (!actorIsSuperadmin) {
+    throw new Error("Forbidden: only an existing superadmin may grant the superadmin role");
+  }
 }
 
 export const listUsers = createServerFn({ method: "POST" })
