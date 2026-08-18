@@ -99,7 +99,7 @@ def eyebrow(c, x: float, y: float, text: str) -> float:
     c.setStrokeColor(GOLD_LINE)
     c.setLineWidth(0.6)
     c.line(x, y - 5, W - M, y - 5)
-    return y - 18
+    return y - 26
 
 
 def heading(c, x: float, y: float, text: str, size: float = 21) -> float:
@@ -248,12 +248,25 @@ def page_challenge(c) -> None:
          "Management has little insight into what knowledge is missing, outdated or creating friction."),
     ]
     for title, body in items:
-        card(c, M, y, W - 2 * M, 21 * mm)
+        card(c, M, y, W - 2 * M, 17 * mm)
         c.setFillColor(GOLD)
         c.setFont(BOLD, 9.4)
-        c.drawString(M + 8, y - 13, title)
-        para(c, M + 8, y - 27, body, W - 2 * M - 16, size=9, leading=12.6)
-        y -= 25 * mm
+        c.drawString(M + 10, y - 14, title)
+        para(c, M + 10, y - 28, body, W - 2 * M - 20, size=9, leading=12.6)
+        y -= 21 * mm
+
+    y -= 6 * mm
+    card(c, M, y, W - 2 * M, 30 * mm)
+    c.setFillColor(GOLD)
+    c.setFont(BOLD, 8)
+    c.drawString(M + 10, y - 14, " ".join("THE OPSQAI APPROACH"))
+    para(
+        c, M + 10, y - 30,
+        "OPSQAI brings knowledge, AI, learning, operational intelligence and management into one "
+        "workspace, so approved knowledge is easier to reach, gaps become visible and management "
+        "can see where attention is needed.",
+        W - 2 * M - 20, size=9.4, leading=13, color=CREAM,
+    )
 
     footer(c, 2, TOTAL)
 
@@ -309,6 +322,31 @@ def page_what(c) -> None:
         c.setFont(BOLD, 9.2)
         c.drawString(x + 10, top - 12, name)
         para(c, x + 10, top - 25, body, col_w - 24, size=8.6, leading=11.8)
+
+    yb = y - 3 * row_h - 6 * mm
+    c.setFillColor(GOLD)
+    c.setFont(BOLD, 8)
+    c.drawString(M, yb, " ".join("PLATFORM AT A GLANCE"))
+    c.setStrokeColor(GOLD_LINE)
+    c.line(M, yb - 5, W - M, yb - 5)
+    yb -= 10
+    glance = [
+        ("Knowledge", "Knowledge Base · SOPs · FAQs · Notes · Lifecycle"),
+        ("AI", "AI Chat · Sources · Knowledge Gaps · Recommendations"),
+        ("Learning", "Academy · Courses · Assignments · Progress"),
+        ("Intelligence", "AI Audit · Knowledge health · Friction signals · Insights"),
+        ("Management", "Dashboard · KPIs · Users · Roles · Departments"),
+        ("Deployment", "Cloud · Self-Hosted · Local AI · Offline · Backup & Recovery"),
+    ]
+    gh = 11 * mm
+    for i, (name, body) in enumerate(glance):
+        top = yb - i * gh
+        c.setFillColor(GOLD_SOFT)
+        c.setFont(BOLD, 8.6)
+        c.drawString(M + 2, top - 10, name)
+        para(c, M + 42 * mm, top - 10, body, W - 2 * M - 44 * mm, size=8.6, leading=11)
+        c.setStrokeColor(GOLD_LINE)
+        c.line(M, top - gh + 3, W - M, top - gh + 3)
 
     footer(c, 3, TOTAL)
 
@@ -391,7 +429,7 @@ def page_how(c) -> None:
          "recommended actions can be reviewed"),
     ]
     for i, (label, body) in enumerate(stages):
-        h = 24 * mm
+        h = 19 * mm
         card(c, M, y, W - 2 * M, h)
         c.setFillColor(GOLD)
         c.setFont(BODY, 7)
@@ -400,7 +438,7 @@ def page_how(c) -> None:
         c.setFont(BOLD, 11.5)
         c.drawString(M + 26, y - 13, label)
         para(c, M + 26, y - 28, body, W - 2 * M - 40, size=9, leading=12.4)
-        y -= h
+        y -= h + 2 * mm
         if i < len(stages) - 1:
             c.setStrokeColor(GOLD)
             c.setLineWidth(0.7)
@@ -449,7 +487,7 @@ def page_use_cases(c) -> None:
     y -= 14
 
     for i, (title, body) in enumerate(USE_CASES):
-        h = 30 * mm
+        h = 26 * mm
         card(c, M, y, W - 2 * M, h)
         c.setFillColor(GOLD)
         c.setFont(BODY, 6.8)
@@ -458,7 +496,7 @@ def page_use_cases(c) -> None:
         c.setFont(BOLD, 11)
         c.drawString(M + 10, y - 25, title)
         para(c, M + 10, y - 39, body, W - 2 * M - 20, size=9, leading=12.4)
-        y -= h + 4 * mm
+        y -= h + 3 * mm
 
     c.setFillColor(CREAM_DIM)
     c.setFont(BODY, 8)
@@ -498,7 +536,7 @@ def page_self_hosted(c) -> None:
         ("Role-based access control", "Access to modules and content follows roles defined inside the installation."),
     ]
     col_w = (W - 2 * M) / 2
-    row_h = 26 * mm
+    row_h = 23 * mm
     for i, (title, body) in enumerate(items):
         col, row = i % 2, i // 2
         x = M + col * col_w
@@ -508,6 +546,20 @@ def page_self_hosted(c) -> None:
         c.setFont(BOLD, 9.2)
         c.drawString(x + 10, top - 13, title)
         para(c, x + 10, top - 26, body, col_w - 24, size=8.6, leading=11.6)
+
+    yb = y - 4 * row_h - 4 * mm
+    card(c, M, yb, W - 2 * M, 26 * mm)
+    c.setFillColor(GOLD)
+    c.setFont(BOLD, 8)
+    c.drawString(M + 10, yb - 14, " ".join("DEPLOYMENT CHOICE"))
+    para(
+        c, M + 10, yb - 30,
+        "Cloud and Self-Hosted share the same platform surface. Cloud services are used for "
+        "licensing, releases, installer distribution, the Customer Portal and support; the "
+        "Self-Hosted installation carries the daily operational workflow inside the customer's "
+        "own environment.",
+        W - 2 * M - 20, size=9, leading=12.4, color=CREAM,
+    )
 
     footer(c, 7, TOTAL)
 
