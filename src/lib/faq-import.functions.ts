@@ -1,3 +1,4 @@
+import { requireModuleAccess } from "@/lib/module-access.server";
 // Bulk FAQ import: CSV/XLSX parsed directly; PDF/DOCX extracted then sent to
 // the configured AI chat provider (Lovable Gateway on Cloud, customer's
 // Azure/OpenAI-compatible endpoint on Self-Hosted) to propose Q&A pairs.

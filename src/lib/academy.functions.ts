@@ -1,3 +1,4 @@
+import { requireModuleAccess } from "@/lib/module-access.server";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";

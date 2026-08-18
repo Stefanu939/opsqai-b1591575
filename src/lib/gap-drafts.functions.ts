@@ -1,3 +1,4 @@
+import { requireModuleAccess } from "@/lib/module-access.server";
 // Server functions for the Knowledge Gap → AI draft → human review → publish
 // flow. Generation never publishes; publishing is an explicit approval step.
 

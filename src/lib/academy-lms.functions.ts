@@ -1,3 +1,4 @@
+import { requireModuleAccess } from "@/lib/module-access.server";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Academy LMS — new enterprise-grade server functions
