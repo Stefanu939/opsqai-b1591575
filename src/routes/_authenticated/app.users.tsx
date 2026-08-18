@@ -116,6 +116,12 @@ function UsersPage() {
   });
   const roleList = useQuery({ queryKey: ["assignable-roles"], queryFn: () => roleFn() });
   const deptList = useQuery({ queryKey: ["app-departments"], queryFn: () => deptFn() });
+  const licensedList = useQuery({
+    queryKey: ["licensed-modules"],
+    queryFn: () => licensedFn() as Promise<string[]>,
+    staleTime: 5 * 60 * 1000,
+  });
+  const licensed = licensedList.data ?? [];
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["app-users"] });
 
@@ -126,21 +132,38 @@ function UsersPage() {
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("employee");
   const [temporaryPassword, setTemporaryPassword] = useState("");
+  const [newModules, setNewModules] = useState<string[] | null>(null);
+  const createModules = newModules ?? presetModulesFor(role, licensed);
+
+  const onRoleChange = (next: string) => {
+    setRole(next);
+    setNewModules(null);
+  };
 
   const invite = useMutation({
-    mutationFn: () =>
-      selfHosted
-        ? createFn({
-            data: {
-              email,
-              password: temporaryPassword,
-              first_name: firstName,
-              last_name: lastName,
-              role,
-              must_change_password: true,
-            },
-          })
-        : inviteFn({ data: { email, first_name: firstName, last_name: lastName, role } }),
+    mutationFn: async () => {
+      if (selfHosted) {
+        return createFn({
+          data: {
+            email,
+            password: temporaryPassword,
+            first_name: firstName,
+            last_name: lastName,
+            role,
+            must_change_password: true,
+            ...(normalizeAppRole(role) === "superadmin" ? {} : { modules: createModules }),
+          },
+        });
+      }
+      const res = await inviteFn({
+        data: { email, first_name: firstName, last_name: lastName, role },
+      });
+      const invitedId = (res as { user_id?: string } | null)?.user_id;
+      if (invitedId && normalizeAppRole(role) !== "superadmin") {
+        await setModulesFn({ data: { user_id: invitedId, modules: createModules } }).catch(() => {});
+      }
+      return res;
+    },
     onSuccess: () => {
       toast.success(selfHosted ? "User created with a temporary password" : "Invitation sent");
       setInviteOpen(false);
