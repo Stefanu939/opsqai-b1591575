@@ -158,7 +158,7 @@ function crlBlocksModule(
 }
 
 
-function verifyCompactToken(token: string, publicKey: KeyObject): unknown {
+export function verifyCompactToken(token: string, publicKey: KeyObject): unknown {
   const parts = token.trim().split(".");
   if (parts.length === 3) {
     const [headerB64, payloadB64, signatureB64] = parts;
