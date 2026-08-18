@@ -180,6 +180,14 @@ export function createSupabaseAiAuditRepository(
         faqs: faqs.count ?? 0,
         courses: courses.count ?? 0,
         categories,
+        ...(() => {
+          const lc = summarizeLifecycle(rows);
+          return {
+            outdatedDocuments: lc.outdated,
+            reviewDueSoonDocuments: lc.reviewSoon,
+            medianDocumentAgeDays: lc.medianAgeDays,
+          };
+        })(),
       };
     },
   };
