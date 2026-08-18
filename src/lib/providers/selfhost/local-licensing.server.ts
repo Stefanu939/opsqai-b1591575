@@ -328,7 +328,42 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
       throw new LicenseFailure("invalid", (e as Error).message);
     }
     assertNotExpired(install, now());
-    return { install, installRaw: raw, modules: [], crl: [] };
+    return {
+      install,
+      installRaw: raw,
+      modules: await mergeSidecarModules([], install.install_id ?? null, []),
+      crl: [],
+    };
+  }
+
+  /**
+   * Merge module licenses activated post-install (sidecar file) into the
+   * verified set. Each sidecar token is verified against the pinned key and
+   * dropped when revoked, expired, or bound to another installation.
+   */
+  async function mergeSidecarModules(
+    modules: VerifiedLicenseSet["modules"],
+    installId: string | null,
+    crl: CrlEntry[],
+  ): Promise<VerifiedLicenseSet["modules"]> {
+    const sidecar = await readModuleSidecar(licenseFilePath);
+    if (sidecar.length === 0) return modules;
+    const out = [...modules];
+    for (const entry of sidecar) {
+      try {
+        const claims = verifyCompactToken(entry.signed_token, licensePublicKey) as ModuleLicenseClaims;
+        if (claims.kind !== "module" || !claims.module) continue;
+        if (installId && claims.install_id && claims.install_id !== installId) continue;
+        if (crlBlocksModule(crl, claims.install_id ?? installId, claims.module)) continue;
+        const exp = expirySeconds(claims);
+        if (exp && exp * 1000 < now().getTime()) continue;
+        if (out.some((m) => m.claims.module === claims.module)) continue;
+        out.push({ claims, raw: entry.signed_token });
+      } catch {
+        // A corrupt sidecar entry never blocks the install.
+      }
+    }
+    return out;
   }
 
 
