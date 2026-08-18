@@ -51,7 +51,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const license = useLicense();
-  const gate = (m: ModuleKey | null) => (m === null ? true : hasModule(license, m));
+  const { canSeeModule } = useMyModuleAccess();
+  // A nav item shows only when the install is licensed for the module AND the
+  // signed-in user has access to it (SuperAdmins always pass).
+  const gate = (m: ModuleKey | null) =>
+    m === null ? true : hasModule(license, m) && canSeeModule(m);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const mode = getClientDeploymentMode();
