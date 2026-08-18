@@ -2,9 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { listUsers, inviteUser, createUser, updateUser, deleteUser } from "@/lib/users.functions";
+import {
+  listUsers,
+  inviteUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  resetUserPassword,
+  updateUserEmail,
+  updateUserAvatar,
+  clearUserAvatar,
+  listDepartments,
+} from "@/lib/users.functions";
 import { listAssignableRoles } from "@/lib/rbac.functions";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
+import { useAvatarUrl, initialsOf } from "@/lib/avatar";
 import { ModulePage } from "@/components/app/module-page";
 import { EmptyState } from "@/components/ui/empty-state";
 import emptyTeamIllustration from "@/assets/empty-team.png";
@@ -13,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +34,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -28,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users, UserPlus, Trash2, Pencil } from "lucide-react";
+import { Users, UserPlus, Trash2, KeyRound, Mail, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
@@ -42,10 +56,36 @@ interface UserRow {
   email: string;
   first_name: string | null;
   last_name: string | null;
+  avatar_url: string | null;
+  position: string | null;
+  department_id: string | null;
   department_name: string | null;
   last_sign_in_at: string | null;
   is_active: boolean;
   roles: string[];
+  email_confirmed: boolean;
+  account_disabled: boolean;
+  invited: boolean;
+}
+
+function accountStatus(r: UserRow): { label: string; variant: "default" | "outline" | "secondary" } {
+  if (r.account_disabled || !r.is_active) return { label: "Disabled", variant: "outline" };
+  if (r.invited) return { label: "Invited", variant: "secondary" };
+  return { label: "Active", variant: "default" };
+}
+
+function fullNameOf(r: UserRow) {
+  return r.first_name || r.last_name ? `${r.first_name ?? ""} ${r.last_name ?? ""}`.trim() : r.email;
+}
+
+function UserAvatar({ r, size = "h-10 w-10" }: { r: UserRow; size?: string }) {
+  const url = useAvatarUrl(r.avatar_url);
+  return (
+    <Avatar className={size}>
+      {url ? <AvatarImage src={url} alt={fullNameOf(r)} /> : null}
+      <AvatarFallback>{initialsOf({ fullName: fullNameOf(r), email: r.email })}</AvatarFallback>
+    </Avatar>
+  );
 }
 
 function UsersPage() {
@@ -53,8 +93,13 @@ function UsersPage() {
   const inviteFn = useServerFn(inviteUser);
   const createFn = useServerFn(createUser);
   const roleFn = useServerFn(listAssignableRoles);
+  const deptFn = useServerFn(listDepartments);
   const updateFn = useServerFn(updateUser);
   const deleteFn = useServerFn(deleteUser);
+  const resetPasswordFn = useServerFn(resetUserPassword);
+  const updateEmailFn = useServerFn(updateUserEmail);
+  const updateAvatarFn = useServerFn(updateUserAvatar);
+  const clearAvatarFn = useServerFn(clearUserAvatar);
   const qc = useQueryClient();
   const selfHosted = getClientDeploymentMode() === "selfhost";
 
@@ -63,44 +108,17 @@ function UsersPage() {
     queryFn: () => listFn({ data: {} }),
   });
   const roleList = useQuery({ queryKey: ["assignable-roles"], queryFn: () => roleFn() });
+  const deptList = useQuery({ queryKey: ["app-departments"], queryFn: () => deptFn() });
 
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["app-users"] });
+
+  // ---- Invite / create dialog ----
   const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("employee");
   const [temporaryPassword, setTemporaryPassword] = useState("");
-
-  // Edit dialog — roles and names, no password reset involved.
-  const [editUser, setEditUser] = useState<UserRow | null>(null);
-  const [editFirst, setEditFirst] = useState("");
-  const [editLast, setEditLast] = useState("");
-  const [editRole, setEditRole] = useState("employee");
-
-  const openEdit = (r: UserRow) => {
-    setEditUser(r);
-    setEditFirst(r.first_name ?? "");
-    setEditLast(r.last_name ?? "");
-    setEditRole(r.roles?.[0] ?? "employee");
-  };
-
-  const saveEdit = useMutation({
-    mutationFn: () =>
-      updateFn({
-        data: {
-          user_id: editUser!.id,
-          first_name: editFirst || null,
-          last_name: editLast || null,
-          roles: [editRole],
-        },
-      }),
-    onSuccess: () => {
-      toast.success("User updated");
-      setEditUser(null);
-      qc.invalidateQueries({ queryKey: ["app-users"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const invite = useMutation({
     mutationFn: () =>
@@ -124,7 +142,152 @@ function UsersPage() {
       setLastName("");
       setRole("employee");
       setTemporaryPassword("");
-      qc.invalidateQueries({ queryKey: ["app-users"] });
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // ---- Detail sheet ----
+  const [detailUser, setDetailUser] = useState<UserRow | null>(null);
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [editPosition, setEditPosition] = useState("");
+  const [editDepartment, setEditDepartment] = useState<string>("none");
+  const [editRole, setEditRole] = useState("employee");
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [pwOpen, setPwOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
+  const openDetail = (r: UserRow) => {
+    setDetailUser(r);
+    setEditFirst(r.first_name ?? "");
+    setEditLast(r.last_name ?? "");
+    setEditPosition(r.position ?? "");
+    setEditDepartment(r.department_id ?? "none");
+    setEditRole(r.roles?.[0] ?? "employee");
+    setNewEmail(r.email);
+  };
+
+  const saveEdit = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          user_id: detailUser!.id,
+          first_name: editFirst || null,
+          last_name: editLast || null,
+          position: editPosition || null,
+          department_id: editDepartment === "none" ? null : editDepartment,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("User updated");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveRole = useMutation({
+    mutationFn: async () => {
+      if (
+        !(await confirmAction({
+          title: "Change this user's role?",
+          description: `Their permissions will change immediately to "${editRole}".`,
+          confirmLabel: "Change role",
+        }))
+      )
+        throw new Error("__cancelled");
+      return updateFn({ data: { user_id: detailUser!.id, roles: [editRole] } });
+    },
+    onSuccess: () => {
+      toast.success("Role updated");
+      invalidate();
+    },
+    onError: (e: Error) => {
+      if (e.message !== "__cancelled") toast.error(e.message);
+    },
+  });
+
+  const changeEmail = useMutation({
+    mutationFn: async () => {
+      if (
+        !(await confirmAction({
+          title: "Change this user's email address?",
+          description: `Sign-in email will change to "${newEmail}". They must use the new address next time.`,
+          confirmLabel: "Change email",
+        }))
+      )
+        throw new Error("__cancelled");
+      return updateEmailFn({ data: { user_id: detailUser!.id, new_email: newEmail } });
+    },
+    onSuccess: () => {
+      toast.success("Email updated");
+      setEmailOpen(false);
+      invalidate();
+    },
+    onError: (e: Error) => {
+      if (e.message !== "__cancelled") toast.error(e.message);
+    },
+  });
+
+  const resetPassword = useMutation({
+    mutationFn: async () => {
+      if (
+        !(await confirmAction({
+          title: "Reset this user's password?",
+          description: "This sets a new temporary password and signs the user out everywhere.",
+          confirmLabel: "Reset password",
+        }))
+      )
+        throw new Error("__cancelled");
+      return resetPasswordFn({
+        data: { user_id: detailUser!.id, new_password: newPassword, must_change_password: true },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Password reset. Share the temporary password with the user.");
+      setPwOpen(false);
+      setNewPassword("");
+    },
+    onError: (e: Error) => {
+      if (e.message !== "__cancelled") toast.error(e.message);
+    },
+  });
+
+  const uploadAvatar = useMutation({
+    mutationFn: async (file: File) => {
+      const data_base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1] ?? "");
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      return updateAvatarFn({
+        data: {
+          user_id: detailUser!.id,
+          filename: file.name,
+          content_type: file.type as "image/jpeg" | "image/png" | "image/webp",
+          data_base64,
+        },
+      });
+    },
+    onSuccess: (res) => {
+      toast.success("Profile picture updated");
+      setDetailUser((u) => (u ? { ...u, avatar_url: res.path } : u));
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const clearAvatar = useMutation({
+    mutationFn: () => clearAvatarFn({ data: { user_id: detailUser!.id } }),
+    onSuccess: () => {
+      toast.success("Profile picture removed");
+      setDetailUser((u) => (u ? { ...u, avatar_url: null } : u));
+      invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -133,17 +296,17 @@ function UsersPage() {
     try {
       await updateFn({ data: { user_id: id, is_active: !isActive } });
       toast.success(!isActive ? "User activated" : "User deactivated");
-      qc.invalidateQueries({ queryKey: ["app-users"] });
+      invalidate();
     } catch (e) {
       toast.error((e as Error).message);
     }
   }
 
-  async function onDelete(id: string) {
+  async function onDelete(id: string, close?: boolean) {
     if (
       !(await confirmAction({
-        title: "Permanently delete this user?",
-        description: "This cannot be undone.",
+        title: "Are you sure you want to delete this user?",
+        description: "This permanently removes their account and cannot be undone.",
         confirmLabel: "Delete user",
       }))
     )
@@ -151,7 +314,8 @@ function UsersPage() {
     try {
       await deleteFn({ data: { user_id: id } });
       toast.success("User deleted");
-      qc.invalidateQueries({ queryKey: ["app-users"] });
+      if (close) setDetailUser(null);
+      invalidate();
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -164,13 +328,12 @@ function UsersPage() {
       key: "email",
       header: "User",
       render: (r) => (
-        <div>
-          <div className="font-medium text-sm">
-            {r.first_name || r.last_name
-              ? `${r.first_name ?? ""} ${r.last_name ?? ""}`.trim()
-              : r.email}
+        <div className="flex items-center gap-2">
+          <UserAvatar r={r} size="h-8 w-8" />
+          <div>
+            <div className="font-medium text-sm">{fullNameOf(r)}</div>
+            <div className="text-xs text-muted-foreground">{r.email}</div>
           </div>
-          <div className="text-xs text-muted-foreground">{r.email}</div>
         </div>
       ),
     },
@@ -198,13 +361,21 @@ function UsersPage() {
       render: (r) => (r.last_sign_in_at ? new Date(r.last_sign_in_at).toLocaleDateString() : "—"),
     },
     {
-      key: "is_active",
+      key: "status",
       header: "Status",
-      render: (r) => (
-        <Badge variant={r.is_active ? "default" : "outline"}>
-          {r.is_active ? "Active" : "Inactive"}
-        </Badge>
-      ),
+      render: (r) => {
+        const s = accountStatus(r);
+        return (
+          <div className="flex items-center gap-1">
+            <Badge variant={s.variant}>{s.label}</Badge>
+            {!r.email_confirmed ? (
+              <Badge variant="outline" className="text-[10px]">
+                Email unverified
+              </Badge>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: "actions",
@@ -212,10 +383,9 @@ function UsersPage() {
       align: "right",
       render: (r) => (
         <div className="flex gap-1 justify-end">
-          <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
-            <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
+          <Button size="sm" variant="ghost" onClick={() => openDetail(r)}>
+            Manage
           </Button>
-
           <Button size="sm" variant="ghost" onClick={() => onToggleActive(r.id, r.is_active)}>
             {r.is_active ? "Deactivate" : "Activate"}
           </Button>
@@ -305,7 +475,7 @@ function UsersPage() {
                   !email || (selfHosted && temporaryPassword.length < 8) || invite.isPending
                 }
               >
-                {selfHosted ? "Create user" : "Send invite"}
+                {invite.isPending ? "Working…" : selfHosted ? "Create user" : "Send invite"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -328,53 +498,209 @@ function UsersPage() {
         />
       )}
 
-      <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit user</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">{editUser?.email}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>First name</Label>
-                <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} />
+      <Sheet open={!!detailUser} onOpenChange={(o) => !o && setDetailUser(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {detailUser ? (
+            <>
+              <SheetHeader>
+                <SheetTitle>Manage user</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4 space-y-6">
+                <div className="flex items-center gap-4">
+                  <UserAvatar r={detailUser} size="h-16 w-16" />
+                  <div className="flex-1">
+                    <div className="font-medium">{fullNameOf(detailUser)}</div>
+                    <div className="text-sm text-muted-foreground">{detailUser.email}</div>
+                    <div className="mt-1 flex items-center gap-1">
+                      <Badge variant={accountStatus(detailUser).variant}>
+                        {accountStatus(detailUser).label}
+                      </Badge>
+                      {!detailUser.email_confirmed ? (
+                        <Badge variant="outline" className="text-[10px]">
+                          Email unverified
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Last sign-in:{" "}
+                      {detailUser.last_sign_in_at
+                        ? new Date(detailUser.last_sign_in_at).toLocaleString()
+                        : "Never"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="avatar-upload" className="cursor-pointer">
+                    <Button asChild size="sm" variant="outline" disabled={uploadAvatar.isPending}>
+                      <span>
+                        <Camera className="h-3.5 w-3.5 mr-1" />
+                        {uploadAvatar.isPending ? "Uploading…" : "Change picture"}
+                      </span>
+                    </Button>
+                  </Label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadAvatar.mutate(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  {detailUser.avatar_url ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => clearAvatar.mutate()}
+                      disabled={clearAvatar.isPending}
+                    >
+                      Remove
+                    </Button>
+                  ) : null}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>First name</Label>
+                    <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Last name</Label>
+                    <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <Label>Job title / position</Label>
+                  <Input value={editPosition} onChange={(e) => setEditPosition(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Department</Label>
+                  <Select value={editDepartment} onValueChange={setEditDepartment}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No department</SelectItem>
+                      {(deptList.data ?? []).map((d) => (
+                        <SelectItem key={d.id} value={d.id}>
+                          {d.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button size="sm" onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
+                  {saveEdit.isPending ? "Saving…" : "Save profile"}
+                </Button>
+
+                <div className="border-t pt-4">
+                  <Label>Role</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Select value={editRole} onValueChange={setEditRole}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(roleList.data ?? []).map((r) => (
+                          <SelectItem key={r.key} value={r.key}>
+                            {r.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      onClick={() => saveRole.mutate()}
+                      disabled={saveRole.isPending || editRole === (detailUser.roles?.[0] ?? "employee")}
+                    >
+                      {saveRole.isPending ? "Saving…" : "Save"}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4 flex flex-wrap gap-2">
+                  <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline">
+                        <Mail className="h-3.5 w-3.5 mr-1" /> Change email
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Change email address</DialogTitle>
+                      </DialogHeader>
+                      <div>
+                        <Label>New email</Label>
+                        <Input
+                          type="email"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                        />
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setEmailOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={() => changeEmail.mutate()}
+                          disabled={changeEmail.isPending || !newEmail}
+                        >
+                          {changeEmail.isPending ? "Saving…" : "Change email"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={pwOpen} onOpenChange={setPwOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline">
+                        <KeyRound className="h-3.5 w-3.5 mr-1" /> Reset password
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Reset password</DialogTitle>
+                      </DialogHeader>
+                      <div>
+                        <Label>New temporary password</Label>
+                        <Input
+                          type="password"
+                          autoComplete="new-password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Minimum 8 characters"
+                        />
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setPwOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={() => resetPassword.mutate()}
+                          disabled={resetPassword.isPending || newPassword.length < 8}
+                        >
+                          {resetPassword.isPending ? "Resetting…" : "Reset password"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => onDelete(detailUser.id, true)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete user
+                  </Button>
+                </div>
               </div>
-              <div>
-                <Label>Last name</Label>
-                <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} />
-              </div>
-            </div>
-            <div>
-              <Label>Role</Label>
-              <Select value={editRole} onValueChange={setEditRole}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(roleList.data ?? []).map((r) => (
-                    <SelectItem key={r.key} value={r.key}>
-                      {r.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="mt-1.5 text-xs text-muted-foreground">
-                Changing the role takes effect immediately. The user keeps their current password —
-                no reset required.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditUser(null)}>
-              Cancel
-            </Button>
-            <Button onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
-              Save changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </ModulePage>
   );
 }
