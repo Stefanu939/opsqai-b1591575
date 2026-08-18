@@ -158,7 +158,7 @@ function crlBlocksModule(
 }
 
 
-function verifyCompactToken(token: string, publicKey: KeyObject): unknown {
+export function verifyCompactToken(token: string, publicKey: KeyObject): unknown {
   const parts = token.trim().split(".");
   if (parts.length === 3) {
     const [headerB64, payloadB64, signatureB64] = parts;
@@ -183,6 +183,34 @@ function verifyCompactToken(token: string, publicKey: KeyObject): unknown {
   }
 
   throw new Error("Malformed OPSQAI license: expected JWT compact format");
+}
+
+/**
+ * Extra module licenses activated *after* install live next to the main
+ * license file. Each entry is an individually signed module JWT, so trust
+ * still rests entirely on the pinned public key — no local signing.
+ */
+export function moduleSidecarPath(licenseFilePath: string): string {
+  return `${licenseFilePath}.modules.json`;
+}
+
+export async function readModuleSidecar(
+  licenseFilePath: string,
+): Promise<Array<{ module_key: string; signed_token: string }>> {
+  try {
+    const raw = await readFile(moduleSidecarPath(licenseFilePath), "utf8");
+    const parsed = JSON.parse(raw) as Array<{ module_key?: string; signed_token?: string }>;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((e) => typeof e?.signed_token === "string")
+      .map((e) => ({ module_key: String(e.module_key ?? ""), signed_token: String(e.signed_token) }));
+  } catch {
+    return [];
+  }
+}
+
+export function isActivationBundlePayload(payload: unknown): boolean {
+  return isActivationBundle(payload);
 }
 
 function isActivationBundle(payload: unknown): payload is ActivationBundleJwt {
@@ -284,7 +312,12 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
         modules.push({ claims, raw: m.signed_token });
       }
 
-      return { install, installRaw: outer.install_token, modules, crl };
+      return {
+        install,
+        installRaw: outer.install_token,
+        modules: await mergeSidecarModules(modules, install.install_id ?? null, crl),
+        crl,
+      };
     }
 
     let install: InstallLicenseClaims;
@@ -295,7 +328,42 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
       throw new LicenseFailure("invalid", (e as Error).message);
     }
     assertNotExpired(install, now());
-    return { install, installRaw: raw, modules: [], crl: [] };
+    return {
+      install,
+      installRaw: raw,
+      modules: await mergeSidecarModules([], install.install_id ?? null, []),
+      crl: [],
+    };
+  }
+
+  /**
+   * Merge module licenses activated post-install (sidecar file) into the
+   * verified set. Each sidecar token is verified against the pinned key and
+   * dropped when revoked, expired, or bound to another installation.
+   */
+  async function mergeSidecarModules(
+    modules: VerifiedLicenseSet["modules"],
+    installId: string | null,
+    crl: CrlEntry[],
+  ): Promise<VerifiedLicenseSet["modules"]> {
+    const sidecar = await readModuleSidecar(licenseFilePath);
+    if (sidecar.length === 0) return modules;
+    const out = [...modules];
+    for (const entry of sidecar) {
+      try {
+        const claims = verifyCompactToken(entry.signed_token, licensePublicKey) as ModuleLicenseClaims;
+        if (claims.kind !== "module" || !claims.module) continue;
+        if (installId && claims.install_id && claims.install_id !== installId) continue;
+        if (crlBlocksModule(crl, claims.install_id ?? installId, claims.module)) continue;
+        const exp = expirySeconds(claims);
+        if (exp && exp * 1000 < now().getTime()) continue;
+        if (out.some((m) => m.claims.module === claims.module)) continue;
+        out.push({ claims, raw: entry.signed_token });
+      } catch {
+        // A corrupt sidecar entry never blocks the install.
+      }
+    }
+    return out;
   }
 
 
