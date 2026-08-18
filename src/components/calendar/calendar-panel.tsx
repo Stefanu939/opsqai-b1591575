@@ -19,6 +19,13 @@ import {
   listCalendar,
   upsertCalendarEvent,
 } from "@/lib/calendar.functions";
+import {
+  calendarFeedUrl,
+  calendarGoogleUrl,
+  calendarOutlookWebUrl,
+  calendarWebcalUrl,
+} from "@/lib/calendar-feed-url";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
