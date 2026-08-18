@@ -47,6 +47,7 @@ import type {
   AuditRecommendation,
   RecommendationKind,
 } from "@/lib/audit-recommendations";
+import { resolveFrameworks } from "@/lib/compliance-registry";
 
 export const Route = createFileRoute("/_authenticated/app/audit")({
   head: () => ({ meta: [{ title: "AI Audit — OPSQAI" }] }),
