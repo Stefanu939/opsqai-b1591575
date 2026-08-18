@@ -156,7 +156,13 @@ export function createSupabaseAiAuditRepository(
 
     async knowledgeSignal(companyId): Promise<AuditKnowledgeSignalRow> {
       const [docs, faqs, courses] = await Promise.all([
-        sb.from("knowledge_documents").select("status,category").eq("company_id", companyId).eq("is_active", true),
+        sb
+          .from("knowledge_documents")
+          .select(
+            "status,category,created_at,updated_at,information_updated_at,last_reviewed_at,review_interval_days",
+          )
+          .eq("company_id", companyId)
+          .eq("is_active", true),
         sb.from("faqs").select("id", { count: "exact", head: true }).eq("company_id", companyId),
         sb.from("academy_learning_paths").select("id", { count: "exact", head: true }).eq("company_id", companyId),
       ]);
