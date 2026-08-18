@@ -452,6 +452,21 @@ export function buildAuditRecommendations(input: {
       a.title.localeCompare(b.title),
   );
 
+  // Narrow advisory attribution to the frameworks the organisation selected.
+  if (input.frameworkKeys && input.frameworkKeys.length > 0) {
+    const allowed = new Set(input.frameworkKeys);
+    for (const r of recs) {
+      if (!r.frameworks) continue;
+      const kept = r.frameworks.filter((f) => allowed.has(f));
+      if (kept.length === 0) {
+        delete r.frameworks;
+        delete r.basis;
+      } else if (kept.length !== r.frameworks.length) {
+        r.frameworks = kept;
+      }
+    }
+  }
+
   return {
     recommendations: recs,
     frictionIndex,
