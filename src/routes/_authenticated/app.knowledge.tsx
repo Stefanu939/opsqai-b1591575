@@ -162,6 +162,11 @@ function KnowledgePage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [freshness, setFreshness] = useState<"all" | LifecycleState>("all");
+  const [metaTarget, setMetaTarget] = useState<Doc | null>(null);
+  const [metaInfoDate, setMetaInfoDate] = useState("");
+  const [metaInterval, setMetaInterval] = useState<string>("");
+  const [metaSaving, setMetaSaving] = useState(false);
 
   const process = useServerFn(processDocument);
   const del = useServerFn(deleteKnowledgeDocument);
