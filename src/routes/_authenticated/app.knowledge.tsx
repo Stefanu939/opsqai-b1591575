@@ -405,8 +405,11 @@ function KnowledgePage() {
   const failedCount = docs.filter((d) => d.status === "failed").length;
   const totalChunks = docs.reduce((a, d) => a + (d.chunk_count || 0), 0);
 
+  const lifecycleSummary = summarizeLifecycle(docs.filter((d) => d.is_active));
+
   const visibleDocs = docs.filter((d) => {
     if (categoryFilter !== "all" && d.category !== categoryFilter) return false;
+    if (freshness !== "all" && documentLifecycle(d).state !== freshness) return false;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       return (
