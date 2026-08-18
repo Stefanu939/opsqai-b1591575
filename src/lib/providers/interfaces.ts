@@ -284,6 +284,12 @@ export interface AdminUserRecord {
   email: string;
   lastSignInAt: string | null;
   createdAt: string;
+  /** True once the address has been confirmed (Cloud email link / Self-Hosted has no verification step and is always true). */
+  emailConfirmed: boolean;
+  /** True when the account is currently disabled/banned. */
+  disabled: boolean;
+  /** True when the account has never signed in yet (invited/created but pending first sign-in). */
+  invited: boolean;
 }
 
 export interface AdminCreateUserInput {
@@ -329,6 +335,8 @@ export interface IAuthAdminProvider extends Provider {
   setDisabled(userId: UserId, disabled: boolean): Promise<void>;
   listUsers(): Promise<AdminUserRecord[]>;
   findUserAuthMeta(userId: UserId): Promise<AdminUserRecord | null>;
+  /** Change a user's sign-in email address. */
+  updateEmail(userId: UserId, newEmail: string): Promise<void>;
 }
 
 /**
