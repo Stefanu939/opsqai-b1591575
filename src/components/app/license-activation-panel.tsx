@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { KeyRound, ShieldCheck, Upload } from "lucide-react";
+import { useRef, useState } from "react";
+import { FileUp, History, KeyRound, ShieldCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   importActivationBundle,
   importActivationToken,
+  listActivatedLicenses,
   previewActivationToken,
 } from "@/lib/license-activation.functions";
+
 
 interface Preview {
   ok: boolean;
