@@ -111,6 +111,11 @@ function ChatThread() {
   const { threadId } = Route.useParams();
   const { q } = Route.useSearch();
   const { t, lang } = useT();
+  const { user } = useAuth();
+  const firstName = firstNameFrom(
+    (user?.metadata as Record<string, string> | undefined)?.full_name ?? null,
+    user?.email ?? null,
+  );
   const [initial, setInitial] = useState<UIMessage[] | null>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -158,6 +163,7 @@ function ChatThread() {
       taRef={taRef}
       scrollRef={scrollRef}
       t={t}
+      firstName={firstName}
     />
   );
 }
@@ -171,6 +177,7 @@ function ChatInner({
   taRef,
   scrollRef,
   t,
+  firstName,
 }: {
   threadId: string;
   initial: UIMessage[];
@@ -180,6 +187,7 @@ function ChatInner({
   taRef: React.RefObject<HTMLTextAreaElement | null>;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   t: (k: never) => string;
+  firstName: string;
 }) {
   const { messages, sendMessage, status, error, stop, regenerate } = useChat({
     id: threadId,
@@ -189,6 +197,7 @@ function ChatInner({
   });
   const [input, setInput] = useState("");
   const [timedOut, setTimedOut] = useState(false);
+  const [stoppedIds, setStoppedIds] = useState<Set<string>>(new Set());
   const loading = status === "submitted" || status === "streaming";
   const T = t as (k: string) => string;
   const initialIds = useMemo(() => new Set(initial.map((m) => m.id)), [initial]);
@@ -240,6 +249,17 @@ function ChatInner({
     setInput("");
   };
 
+  // Stop generation immediately: aborts the underlying request via the AI SDK
+  // transport (AbortController under the hood) while keeping whatever partial
+  // text already streamed in, and marks that message as manually stopped.
+  const onStop = () => {
+    const last = messages[messages.length - 1];
+    if (last && last.role === "assistant") {
+      setStoppedIds((prev) => new Set(prev).add(last.id));
+    }
+    stop();
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div ref={scrollRef} className="oq-chat-canvas flex-1 overflow-y-auto">
@@ -249,7 +269,9 @@ function ChatInner({
               <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-[var(--gold-soft)] grid place-items-center border border-[var(--gold-line)]">
                 <LogoMark size={28} className="text-gold" />
               </div>
-              <p className="font-display text-lg font-medium text-foreground">{T("askAnything")}</p>
+              <p className="font-display text-lg font-medium text-foreground">
+                {firstName !== "there" ? `Hi ${firstName} — ${T("askAnything")}` : T("askAnything")}
+              </p>
               <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">{T("ragNote")}</p>
             </div>
           )}
@@ -307,6 +329,11 @@ function ChatInner({
                         <ThinkingDots label={T("thinking")} />
                       )}
                     </div>
+                    {stoppedIds.has(m.id) && (
+                      <div className="mt-2 text-[11px] text-muted-foreground italic">
+                        Stopped
+                      </div>
+                    )}
                     {showMeta && (
                       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
                         {primary && (
@@ -415,15 +442,27 @@ function ChatInner({
               }}
               className="resize-none min-h-[40px] max-h-40 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px]"
             />
-            <Button
-              type="submit"
-              size="icon"
-              aria-label="Send message"
-              disabled={loading || !input.trim()}
-              className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            {loading ? (
+              <Button
+                type="button"
+                size="icon"
+                aria-label="Stop generating"
+                onClick={onStop}
+                className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Square className="h-3.5 w-3.5 fill-current" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                size="icon"
+                aria-label="Send message"
+                disabled={!input.trim()}
+                className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </form>
