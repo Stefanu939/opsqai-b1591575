@@ -39,6 +39,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Square, Mic, ImagePlus, Volume2, VolumeX, X } from "lucide-react";
 import { useServerFn as useServerFn2 } from "@tanstack/react-start";
 import { transcribeVoiceInput, synthesizeVoiceReply, uploadChatImage, signChatImage } from "@/lib/ai-features.functions";
+import { toast } from "sonner";
 
 interface SourceItem {
   type: "document" | "faq";
@@ -55,6 +56,27 @@ interface SourceItem {
   last_updated?: string | null;
   confidence?: "high" | "medium" | "low";
   primary?: boolean;
+}
+
+interface PendingAttachment {
+  id: string;
+  filename: string;
+  mediaType: string;
+  previewUrl: string;
+  status: "uploading" | "ready";
+  path?: string;
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1] ?? "");
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 interface Escalation {
@@ -192,11 +214,48 @@ function ChatInner({
   t: (k: never) => string;
   firstName: string;
 }) {
+  const transcribeVoice = useServerFn2(transcribeVoiceInput);
+  const synthesizeVoice = useServerFn2(synthesizeVoiceReply);
+  const uploadImage = useServerFn2(uploadChatImage);
+
+  const [spokenReplyEnabled, setSpokenReplyEnabled] = useState(false);
+  const spokenReplyEnabledRef = useRef(spokenReplyEnabled);
+  spokenReplyEnabledRef.current = spokenReplyEnabled;
+  const [speaking, setSpeaking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopSpeaking = () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setSpeaking(false);
+  };
+
   const { messages, sendMessage, status, error, stop, regenerate } = useChat({
     id: threadId,
     messages: initial,
     transport,
     onError: (e) => console.error(e),
+    onFinish: ({ message }) => {
+      if (!spokenReplyEnabledRef.current || message.role !== "assistant") return;
+      const text = stripSourcesBlock(
+        message.parts.map((p) => (p.type === "text" ? p.text : "")).join(""),
+      ).trim();
+      if (!text) return;
+      void (async () => {
+        try {
+          const { audio_base64, content_type } = await synthesizeVoice({
+            data: { text: text.slice(0, 4000) },
+          });
+          const audio = new Audio(`data:${content_type};base64,${audio_base64}`);
+          audioRef.current = audio;
+          audio.onended = () => setSpeaking(false);
+          setSpeaking(true);
+          await audio.play();
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Could not play spoken reply.");
+        }
+      })();
+    },
   });
   const [input, setInput] = useState("");
   const [timedOut, setTimedOut] = useState(false);
@@ -204,6 +263,117 @@ function ChatInner({
   const loading = status === "submitted" || status === "streaming";
   const T = t as (k: string) => string;
   const initialIds = useMemo(() => new Set(initial.map((m) => m.id)), [initial]);
+
+  // -------- Voice input (mic) --------
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const micSupported =
+    typeof window !== "undefined" &&
+    typeof navigator !== "undefined" &&
+    !!navigator.mediaDevices?.getUserMedia &&
+    typeof window.MediaRecorder !== "undefined";
+
+  const startRecording = async () => {
+    if (!micSupported) {
+      toast.error("Voice input is not supported in this browser.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        void (async () => {
+          try {
+            setTranscribing(true);
+            const blob = new Blob(audioChunksRef.current, { type: mimeType || "audio/webm" });
+            const base64 = await blobToBase64(blob);
+            const { text } = await transcribeVoice({
+              data: {
+                audio_base64: base64,
+                mime_type: blob.type || "audio/webm",
+                filename: "voice-note.webm",
+              },
+            });
+            if (text?.trim()) {
+              setInput((prev) => (prev ? `${prev} ${text.trim()}` : text.trim()));
+              taRef.current?.focus();
+            } else {
+              toast.message("No speech detected.");
+            }
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Voice transcription failed.");
+          } finally {
+            setTranscribing(false);
+          }
+        })();
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecording(true);
+    } catch {
+      toast.error("Microphone access was denied or is unavailable.");
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+    setRecording(false);
+  };
+
+  // -------- Image attachments --------
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+  const onPickImages = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image.`);
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        toast.error(`${file.name} exceeds the 8 MB limit.`);
+        continue;
+      }
+      const id = crypto.randomUUID();
+      const previewUrl = URL.createObjectURL(file);
+      setAttachments((prev) => [
+        ...prev,
+        { id, filename: file.name, mediaType: file.type, previewUrl, status: "uploading" },
+      ]);
+      try {
+        const base64 = await blobToBase64(file);
+        const { path } = await uploadImage({
+          data: { filename: file.name, content_type: file.type, data_base64: base64 },
+        });
+        setAttachments((prev) =>
+          prev.map((a) => (a.id === id ? { ...a, status: "ready", path } : a)),
+        );
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : `Could not upload ${file.name}.`);
+        setAttachments((prev) => prev.filter((a) => a.id !== id));
+      }
+    }
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => {
+      const found = prev.find((a) => a.id === id);
+      if (found) URL.revokeObjectURL(found.previewUrl);
+      return prev.filter((a) => a.id !== id);
+    });
+  };
 
   const failureKind = timedOut ? "timeout" : error ? classifyChatError(error.message) : null;
 
@@ -246,10 +416,27 @@ function ChatInner({
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text || loading) return;
+    const readyAttachments = attachments.filter((a) => a.status === "ready" && a.path);
+    if ((!text && readyAttachments.length === 0) || loading) return;
+    if (attachments.some((a) => a.status === "uploading")) {
+      toast.message("Please wait for image upload to finish.");
+      return;
+    }
     setTimedOut(false);
-    sendMessage({ text });
+    const files = readyAttachments.map((a) => ({
+      type: "file" as const,
+      mediaType: a.mediaType,
+      url: `chatimg:${a.path}`,
+      filename: a.filename,
+    }));
+    if (text) {
+      sendMessage(files.length > 0 ? { text, files } : { text });
+    } else {
+      sendMessage({ files });
+    }
     setInput("");
+    attachments.forEach((a) => URL.revokeObjectURL(a.previewUrl));
+    setAttachments([]);
   };
 
   // Stop generation immediately: aborts the underlying request via the AI SDK
@@ -292,14 +479,27 @@ function ChatInner({
             const meta = m.metadata as MessageMeta | undefined;
             const sources = meta?.sources ?? [];
             if (m.role === "user") {
+              const imageParts = m.parts.filter(
+                (p): p is Extract<UIMessage["parts"][number], { type: "file" }> =>
+                  p.type === "file" && typeof p.url === "string" && p.url.startsWith("chatimg:"),
+              );
               return (
                 <div key={m.id} className="oq-enter group flex flex-col items-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground whitespace-pre-wrap shadow-sm">
-                    {rawText}
-                    <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] opacity-70">
-                      <CheckCheck className="h-3 w-3" />
-                    </span>
-                  </div>
+                  {imageParts.length > 0 && (
+                    <div className="mb-1.5 flex max-w-[85%] flex-wrap justify-end gap-1.5">
+                      {imageParts.map((p, i) => (
+                        <UserImageAttachment key={i} path={p.url.slice("chatimg:".length)} />
+                      ))}
+                    </div>
+                  )}
+                  {rawText.trim() && (
+                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground whitespace-pre-wrap shadow-sm">
+                      {rawText}
+                      <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] opacity-70">
+                        <CheckCheck className="h-3 w-3" />
+                      </span>
+                    </div>
+                  )}
                   <MessageReactions messageId={m.id} align="end" />
                 </div>
               );
@@ -444,6 +644,26 @@ function ChatInner({
               )}
             </div>
           )}
+          {attachments.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {attachments.map((a) => (
+                <div key={a.id} className="relative h-16 w-16 overflow-hidden rounded-lg border border-border">
+                  <img src={a.previewUrl} alt={a.filename} className="h-full w-full object-cover" />
+                  {a.status === "uploading" && (
+                    <div className="absolute inset-0 grid place-items-center bg-background/60 text-[10px]">…</div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(a.id)}
+                    aria-label="Remove image"
+                    className="absolute right-0.5 top-0.5 rounded-full bg-background/80 p-0.5 text-foreground shadow"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex gap-1.5 items-end rounded-3xl border border-border bg-card p-1.5 pl-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
             <EmojiPicker
               onPick={(emoji: string) => {
@@ -451,6 +671,62 @@ function ChatInner({
                 taRef.current?.focus();
               }}
             />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                void onPickImages(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              aria-label="Attach image"
+              onClick={() => fileInputRef.current?.click()}
+              className="h-9 w-9 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
+            >
+              <ImagePlus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              aria-label={recording ? "Stop recording" : "Record voice message"}
+              onClick={recording ? stopRecording : startRecording}
+              disabled={transcribing}
+              className={`h-9 w-9 shrink-0 rounded-full transition-colors ${recording ? "text-destructive bg-destructive/10" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {recording ? <Square className="h-3.5 w-3.5 fill-current" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              aria-label={spokenReplyEnabled ? "Disable spoken replies" : "Enable spoken replies"}
+              onClick={() => {
+                if (speaking) stopSpeaking();
+                setSpokenReplyEnabled((v) => !v);
+              }}
+              className={`h-9 w-9 shrink-0 rounded-full transition-colors ${spokenReplyEnabled ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {spokenReplyEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            {speaking && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={stopSpeaking}
+                className="h-9 shrink-0 rounded-full text-xs"
+              >
+                Stop audio
+              </Button>
+            )}
             <Textarea
               ref={taRef}
               value={input}
@@ -480,7 +756,7 @@ function ChatInner({
                 type="submit"
                 size="icon"
                 aria-label="Send message"
-                disabled={!input.trim()}
+                disabled={!input.trim() && attachments.filter((a) => a.status === "ready").length === 0}
                 className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
               >
                 <Send className="h-4 w-4" />
@@ -755,6 +1031,38 @@ function EscalationCard({ escalation }: { escalation: Escalation }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function UserImageAttachment({ path }: { path: string }) {
+  const sign = useServerFn2(signChatImage);
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    sign({ data: { path } })
+      .then((res) => {
+        if (!cancelled) setDataUrl(`data:${res.content_type};base64,${res.data_base64}`);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [path, sign]);
+  if (failed) return null;
+  if (!dataUrl)
+    return <div className="h-20 w-20 rounded-lg border border-border/60 bg-muted animate-pulse" />;
+  return (
+    <a
+      href={dataUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="block h-20 w-20 overflow-hidden rounded-lg border border-border"
+    >
+      <img src={dataUrl} alt="Attached" className="h-full w-full object-cover" />
+    </a>
   );
 }
 

@@ -3663,6 +3663,41 @@ export type Database = {
           },
         ]
       }
+      user_module_access: {
+        Row: {
+          company_id: string
+          created_at: string
+          granted_by: string | null
+          id: string
+          module_key: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          module_key: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          module_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_module_access_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           company_id: string | null
@@ -4324,6 +4359,7 @@ export type Database = {
         | "viewer"
         | "workspace_owner"
         | "champion"
+        | "superadmin"
       contact_status: "new" | "in_progress" | "resolved" | "spam"
       contact_subject:
         | "general"
@@ -4501,6 +4537,7 @@ export const Constants = {
         "viewer",
         "workspace_owner",
         "champion",
+        "superadmin",
       ],
       contact_status: ["new", "in_progress", "resolved", "spam"],
       contact_subject: [
