@@ -256,7 +256,51 @@ function GapsPage() {
                     <span>· last {new Date(g.last_seen).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {g.status !== "resolved" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        loading={
+                          generate.isPending &&
+                          generate.variables?.gapId === g.id &&
+                          generate.variables?.kind === "sop"
+                        }
+                        onClick={() =>
+                          generate.mutate({
+                            kind: "sop",
+                            gapId: g.id,
+                            question: g.question_sample,
+                            department: g.department_name ?? null,
+                          })
+                        }
+                      >
+                        <FileText className="mr-1.5 h-4 w-4" />
+                        Draft SOP
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        loading={
+                          generate.isPending &&
+                          generate.variables?.gapId === g.id &&
+                          generate.variables?.kind === "faq"
+                        }
+                        onClick={() =>
+                          generate.mutate({
+                            kind: "faq",
+                            gapId: g.id,
+                            question: g.question_sample,
+                            department: g.department_name ?? null,
+                          })
+                        }
+                      >
+                        <MessageSquareQuote className="mr-1.5 h-4 w-4" />
+                        Draft FAQ
+                      </Button>
+                    </>
+                  ) : null}
                   {g.status !== "in_progress" && g.status !== "resolved" ? (
                     <Button
                       size="sm"
@@ -266,6 +310,7 @@ function GapsPage() {
                       Take it
                     </Button>
                   ) : null}
+
                   {g.status !== "resolved" ? (
                     <Button
                       size="sm"
