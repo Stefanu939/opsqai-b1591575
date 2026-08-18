@@ -7,6 +7,7 @@ import { useT } from "@/i18n";
 const en = {
   nav: {
     product: "Product",
+    overview: "Overview",
     modules: "Modules",
     selfHosted: "Self-Hosted",
     security: "Security",
