@@ -1,0 +1,61 @@
+#opsqai-companion {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483000;
+  font: 13px/1.45 "Segoe UI", system-ui, sans-serif;
+}
+#opsqai-companion .oq-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  color: #1b1a17;
+  background: #c9a24c;
+  box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.45);
+}
+#opsqai-companion .oq-panel {
+  position: absolute;
+  right: 0;
+  bottom: 56px;
+  width: 320px;
+  max-height: 60vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  border: 1px solid #e8e1d5;
+  background: #faf7f2;
+  color: #1b1a17;
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.5);
+}
+#opsqai-companion .oq-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e8e1d5;
+  background: #fff;
+}
+#opsqai-companion .oq-title { font-weight: 600; margin-right: auto; }
+#opsqai-companion .oq-head button {
+  border: none;
+  background: transparent;
+  color: #7a7469;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+#opsqai-companion .oq-body { padding: 10px; overflow: auto; display: grid; gap: 6px; }
+#opsqai-companion .oq-item {
+  background: #fff;
+  border: 1px solid #e8e1d5;
+  border-radius: 14px;
+  padding: 8px 10px;
+}
+#opsqai-companion .oq-when { font-size: 11px; color: #7a7469; }
+#opsqai-companion .oq-what { font-weight: 600; }
+#opsqai-companion .oq-muted { color: #7a7469; margin: 4px 2px; }

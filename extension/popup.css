@@ -1,0 +1,80 @@
+:root {
+  --gold: #c9a24c;
+  --bg: #faf7f2;
+  --card: #ffffff;
+  --fg: #1b1a17;
+  --muted: #7a7469;
+  --line: #e8e1d5;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  width: 340px;
+  font: 13px/1.45 "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+.mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gold);
+  background: rgba(201, 162, 76, 0.14);
+}
+.title { font-weight: 600; }
+.sub { color: var(--muted); font-size: 11px; }
+.head button { margin-left: auto; }
+button {
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  padding: 6px 12px;
+  font: inherit;
+  color: var(--fg);
+}
+button.primary { background: var(--gold); border-color: var(--gold); color: #1b1a17; font-weight: 600; }
+button.ghost { border-color: transparent; color: var(--muted); }
+button.small { font-size: 11px; padding: 4px 8px; }
+.setup { padding: 12px; display: grid; gap: 6px; }
+.setup label { font-size: 11px; color: var(--muted); }
+input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font: inherit;
+}
+.hint { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+.list { list-style: none; margin: 0; padding: 8px; display: grid; gap: 6px; max-height: 320px; overflow: auto; }
+.item {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 9px 11px;
+}
+.item .when { font-size: 11px; color: var(--muted); }
+.item .what { font-weight: 600; margin-top: 1px; }
+.kind {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
+.empty { padding: 0 14px 14px; color: var(--muted); font-size: 12px; }
+.foot { padding: 0 12px 12px; }
