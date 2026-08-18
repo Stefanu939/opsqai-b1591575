@@ -105,9 +105,11 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
       }
       setValue("");
       setInfo(null);
+      void history.refetch();
       onActivated?.();
       // Entitlements are resolved server-side at load; reload to apply them.
       window.setTimeout(() => window.location.reload(), 900);
+
     } catch (e) {
       const msg = (e as Error).message || "Activation failed";
       toast.error(
