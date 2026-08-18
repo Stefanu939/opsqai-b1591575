@@ -59,7 +59,16 @@ import {
   listKnowledgeDocuments,
   listDocumentVersions,
   uploadKnowledgeFile,
+  updateKnowledgeMetadata,
+  markDocumentReviewed,
 } from "@/lib/kb.functions";
+import {
+  documentLifecycle,
+  lifecycleBadgeClass,
+  summarizeLifecycle,
+  DEFAULT_REVIEW_INTERVAL_DAYS,
+  type LifecycleState,
+} from "@/lib/document-lifecycle";
 import {
   replaceDocumentVersion,
   rollbackToVersion,
