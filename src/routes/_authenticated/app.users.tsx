@@ -191,6 +191,31 @@ function UsersPage() {
   const [newEmail, setNewEmail] = useState("");
   const [pwOpen, setPwOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [editModules, setEditModules] = useState<string[]>([]);
+
+  const detailAccess = useQuery({
+    queryKey: ["user-module-access", detailUser?.id],
+    enabled: !!detailUser,
+    queryFn: async () => {
+      const res = (await getModulesFn({ data: { user_id: detailUser!.id } })) as {
+        role: string;
+        superadmin: boolean;
+        modules: string[];
+      };
+      setEditModules(res.modules);
+      return res;
+    },
+  });
+
+  const saveModules = useMutation({
+    mutationFn: () => setModulesFn({ data: { user_id: detailUser!.id, modules: editModules } }),
+    onSuccess: () => {
+      toast.success("Module access updated");
+      qc.invalidateQueries({ queryKey: ["user-module-access", detailUser?.id] });
+      qc.invalidateQueries({ queryKey: ["my-module-access"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const openDetail = (r: UserRow) => {
     setDetailUser(r);
@@ -200,6 +225,7 @@ function UsersPage() {
     setEditDepartment(r.department_id ?? "none");
     setEditRole(r.roles?.[0] ?? "employee");
     setNewEmail(r.email);
+    setEditModules([]);
   };
 
   const saveEdit = useMutation({
