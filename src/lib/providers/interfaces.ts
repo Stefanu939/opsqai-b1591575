@@ -909,6 +909,8 @@ export interface IKnowledgeRepository {
   activateDocument(id: string): Promise<void>;
   /** Toggle the "critical SOP" acknowledgement flag. */
   setCritical(id: string, is_critical: boolean): Promise<void>;
+  /** Update editable lifecycle/ownership metadata for one document. */
+  updateMetadata(id: string, patch: KnowledgeMetadataPatch): Promise<void>;
 }
 
 export type KnowledgeRepositoryFactory = (dataCtx: unknown) => IKnowledgeRepository;
