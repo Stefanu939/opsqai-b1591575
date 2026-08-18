@@ -16,6 +16,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SelfHostedRouteImport } from './routes/self-hosted'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ProductOverviewRouteImport } from './routes/product-overview'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ModulesRouteImport } from './routes/modules'
@@ -171,6 +172,11 @@ const SecurityRoute = SecurityRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductOverviewRoute = ProductOverviewRouteImport.update({
+  id: '/product-overview',
+  path: '/product-overview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductRoute = ProductRouteImport.update({
@@ -850,6 +856,7 @@ export interface FileRoutesByFullPath {
   '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
+  '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
@@ -977,6 +984,7 @@ export interface FileRoutesByTo {
   '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
+  '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
@@ -1103,6 +1111,7 @@ export interface FileRoutesById {
   '/modules': typeof ModulesRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
+  '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
@@ -1234,6 +1243,7 @@ export interface FileRouteTypes {
     | '/modules'
     | '/pricing'
     | '/product'
+    | '/product-overview'
     | '/reset-password'
     | '/security'
     | '/self-hosted'
@@ -1361,6 +1371,7 @@ export interface FileRouteTypes {
     | '/modules'
     | '/pricing'
     | '/product'
+    | '/product-overview'
     | '/reset-password'
     | '/security'
     | '/self-hosted'
@@ -1486,6 +1497,7 @@ export interface FileRouteTypes {
     | '/modules'
     | '/pricing'
     | '/product'
+    | '/product-overview'
     | '/reset-password'
     | '/security'
     | '/self-hosted'
@@ -1617,6 +1629,7 @@ export interface RootRouteChildren {
   ModulesRoute: typeof ModulesRoute
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
+  ProductOverviewRoute: typeof ProductOverviewRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SecurityRoute: typeof SecurityRoute
   SelfHostedRoute: typeof SelfHostedRoute
@@ -1711,6 +1724,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product-overview': {
+      id: '/product-overview'
+      path: '/product-overview'
+      fullPath: '/product-overview'
+      preLoaderRoute: typeof ProductOverviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/product': {
@@ -2840,6 +2860,7 @@ const rootRouteChildren: RootRouteChildren = {
   ModulesRoute: ModulesRoute,
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
+  ProductOverviewRoute: ProductOverviewRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SecurityRoute: SecurityRoute,
   SelfHostedRoute: SelfHostedRoute,
