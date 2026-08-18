@@ -280,6 +280,7 @@ export const createUser = createServerFn({ method: "POST" })
     const actorCompany = await getActorCompany(context.supabase, context.userId);
     const targetCompany = isPlatformAdmin ? (data.company_id ?? actorCompany) : actorCompany;
     if (!targetCompany) throw new Error("Target company required");
+    await assertCanGrantSuperadmin(context, [data.role]);
 
     const authAdmin = getAuthAdminProvider();
     const profileRepo = getAdminProfileRepository();
