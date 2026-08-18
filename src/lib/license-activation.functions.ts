@@ -65,8 +65,8 @@ export const importActivationToken = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ImportTokenInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { getPlatformMode, PlatformMode } = await import("@/lib/platform/mode");
-    if (getPlatformMode() === PlatformMode.SelfHosted) {
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (isSelfHosted()) {
       const { activateSelfHostLicense } = await import("@/lib/selfhost-license-activation.server");
       return activateSelfHostLicense(data.token.trim(), data.expected_install_id);
     }
@@ -86,8 +86,8 @@ export const previewActivationToken = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ImportTokenInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
-    const { getPlatformMode, PlatformMode } = await import("@/lib/platform/mode");
-    if (getPlatformMode() === PlatformMode.SelfHosted) {
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (isSelfHosted()) {
       const { previewSelfHostLicense } = await import("@/lib/selfhost-license-activation.server");
       return previewSelfHostLicense(data.token.trim(), data.expected_install_id);
     }
