@@ -256,3 +256,42 @@ export const getKnowledgeDocumentBlob = createServerFn({ method: "POST" })
       filename: filePath.split("/").pop() ?? "document",
     };
   });
+
+/**
+ * Edit lifecycle + ownership metadata for one document (title, category,
+ * code, department, owner, information date, review cadence).
+ */
+export const updateKnowledgeMetadata = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        title: z.string().min(1).optional(),
+        category: z.string().min(1).optional(),
+        doc_code: z.string().nullable().optional(),
+        department_id: uuidString().nullable().optional(),
+        owner_id: uuidString().nullable().optional(),
+        information_updated_at: z.string().nullable().optional(),
+        review_interval_days: z.number().int().min(7).max(3650).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
+    const { id, ...patch } = data;
+    await getKnowledgeRepository(context.supabase).updateMetadata(id, patch);
+    return { ok: true };
+  });
+
+/** Record a human review sign-off, resetting the freshness clock. */
+export const markDocumentReviewed = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAnyPermission(context, ["knowledge.manage", "sop.edit"]);
+    await getKnowledgeRepository(context.supabase).updateMetadata(data.id, {
+      last_reviewed_at: new Date().toISOString(),
+    });
+    return { ok: true };
+  });
