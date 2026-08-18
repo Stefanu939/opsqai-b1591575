@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireModuleAccess } from "@/lib/module-access.server";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { requireAnyPermission, resolveCompanyForWrite } from "@/lib/authorization";
@@ -21,6 +22,7 @@ export const listFaqs = createServerFn({ method: "GET" })
     z.object({ company_id: uuidString().nullable().optional() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "faq");
     const repo = getFaqRepository(context.supabase);
     return repo.list(data.company_id ?? null);
   });
@@ -29,6 +31,7 @@ export const upsertFaq = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => FaqInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "faq");
     await requireAnyPermission(context, ["faq.edit", "faq.create", "knowledge.manage"]);
 
     const { emitWebhookEvent } = await import("@/lib/webhook-dispatch.server");
@@ -68,6 +71,7 @@ export const deleteFaq = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "faq");
     await requireAnyPermission(context, ["faq.delete", "knowledge.manage"]);
     await getFaqRepository(context.supabase).delete(data.id);
     return { ok: true };

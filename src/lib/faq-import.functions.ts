@@ -1,3 +1,4 @@
+import { requireModuleAccess } from "@/lib/module-access.server";
 // Bulk FAQ import: CSV/XLSX parsed directly; PDF/DOCX extracted then sent to
 // the configured AI chat provider (Lovable Gateway on Cloud, customer's
 // Azure/OpenAI-compatible endpoint on Self-Hosted) to propose Q&A pairs.
@@ -179,6 +180,7 @@ export const parseFaqImport = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => ParseInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "faq");
     await requireAnyPermission(context, ["faq.edit", "faq.create", "knowledge.manage"]);
 
     const name = data.filename.toLowerCase();
@@ -228,6 +230,7 @@ export const importFaqs = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => ImportInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "faq");
     await requireAnyPermission(context, ["faq.edit", "faq.create", "knowledge.manage"]);
 
     const { emitWebhookEvent } = await import("@/lib/webhook-dispatch.server");

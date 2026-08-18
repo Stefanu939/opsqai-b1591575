@@ -1,3 +1,4 @@
+import { requireModuleAccess } from "@/lib/module-access.server";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Academy LMS — new enterprise-grade server functions
@@ -78,6 +79,7 @@ export const listMyTraining = createServerFn({ method: "POST" })
 export const getMyTrainingSummary = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requireModuleAccess(context, "academy");
     const emptySummary = {
       mandatory_active: 0,
       certificates: 0,
@@ -108,6 +110,7 @@ export const saveLessonNotes = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     const repo = getAcademyRepository(context);
     // Verify ownership via enrollment
@@ -147,6 +150,7 @@ export const assignTraining = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.assign");
     const repo = getAcademyRepository(context);
@@ -237,6 +241,7 @@ export const listCourseAnalytics = createServerFn({ method: "POST" })
     z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
@@ -249,6 +254,7 @@ export const listCourseCohort = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademy(context, ((data as any)?.company_id as string | null | undefined) ?? null);
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
@@ -260,6 +266,7 @@ export const listCourseCohort = createServerFn({ method: "POST" })
 export const listAssignTargets = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademy(context, null);
     await requirePermission(context, "academy.assign");
     const repo = getAcademyRepository(context);

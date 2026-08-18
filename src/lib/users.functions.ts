@@ -13,6 +13,9 @@ import {
   getStorageProvider,
 } from "@/lib/providers/registry";
 import { uuidString } from "@/lib/zod-uuid";
+import { getModuleAccessRepository, getExportRepository } from "@/lib/providers/registry";
+import { isValidModuleKey } from "@/lib/license-modules";
+import { LEGACY_ROLE_MAP } from "@/lib/module-access";
 
 const RoleKey = z.string().regex(/^[a-z][a-z0-9_]{1,63}$/);
 
@@ -30,6 +33,104 @@ async function requireAdminOrPlatform(supabase: unknown, userId: string) {
   const { isPlatformAdmin, isCompanyAdmin } = await getActorRoles(supabase, userId);
   if (!isPlatformAdmin && !isCompanyAdmin) throw new Error("Forbidden");
   return { isPlatformAdmin, isCompanyAdmin };
+}
+
+
+function isSuperadminRole(role: string): boolean {
+  return LEGACY_ROLE_MAP[role] === "superadmin";
+}
+
+/**
+ * Safety rule: at least one active superadmin must always exist. Throws a
+ * clear error if removing/demoting/disabling `userId` (who currently holds
+ * a superadmin-equivalent role) would leave zero active superadmins.
+ */
+async function assertNotLastActiveSuperadmin(
+  roleRepo: ReturnType<typeof getAdminRoleRepository>,
+  profileRepo: ReturnType<typeof getAdminProfileRepository>,
+  userId: string,
+) {
+  const assignments = await roleRepo.listAssignmentsDetailed();
+  const superadminUserIds = new Set(
+    assignments.filter((a) => isSuperadminRole(a.role)).map((a) => a.userId),
+  );
+  if (!superadminUserIds.has(userId)) return;
+  let activeCount = 0;
+  for (const id of superadminUserIds) {
+    const p = await profileRepo.findByUserId(id);
+    if (p?.isActive !== false) activeCount += 1;
+  }
+  if (activeCount <= 1) {
+    throw new Error(
+      "Forbidden: at least one active superadmin must always exist — cannot remove, disable, or downgrade the last one",
+    );
+  }
+}
+
+async function assertCanGrantSuperadmin(context: { supabase: unknown; userId: string }, roles: string[]) {
+  if (!roles.some(isSuperadminRole)) return;
+  const { getActorRoles } = await import("@/lib/authorization");
+  const actor = await getActorRoles(context.supabase, context.userId);
+  const actorIsSuperadmin = actor.isPlatformAdmin || actor.roles.some(isSuperadminRole);
+  if (!actorIsSuperadmin) {
+    throw new Error("Forbidden: only an existing superadmin may grant the superadmin role");
+  }
+}
+
+/**
+ * Persists explicit module grants for a non-superadmin user and records the
+ * change in the audit log. Superadmins are never restricted, so any incoming
+ * selection is ignored for them.
+ */
+async function persistModuleAccess(
+  context: { supabase: unknown; userId: string },
+  args: { userId: string; companyId: string; roles: string[]; modules?: string[] | null },
+) {
+  if (!args.modules) return;
+  if (args.roles.some(isSuperadminRole)) return;
+  const { getLicensedModules } = await import("@/lib/module-access.server");
+  const licensed = new Set(await getLicensedModules());
+  const moduleKeys = Array.from(new Set(args.modules)).filter(
+    (m) => isValidModuleKey(m) && licensed.has(m),
+  );
+  await getModuleAccessRepository(context.supabase).replaceForUser(
+    args.companyId,
+    args.userId,
+    moduleKeys,
+    context.userId,
+  );
+  await getExportRepository(context.supabase)
+    .writeAudit({
+      companyId: args.companyId,
+      userId: context.userId,
+      module: "audit_log",
+      action: "module_access.update",
+      resource: args.userId,
+      payload: { modules: moduleKeys },
+      severity: "info",
+      success: true,
+    })
+    .catch(() => {});
+}
+
+/** Records role / superadmin changes in the audit log (best-effort). */
+async function auditRoleChange(
+  context: { supabase: unknown; userId: string },
+  args: { userId: string; companyId: string | null | undefined; roles: string[]; action: string },
+) {
+  if (!args.companyId) return;
+  await getExportRepository(context.supabase)
+    .writeAudit({
+      companyId: args.companyId,
+      userId: context.userId,
+      module: "audit_log",
+      action: args.action,
+      resource: args.userId,
+      payload: { roles: args.roles, superadmin: args.roles.some(isSuperadminRole) },
+      severity: args.roles.some(isSuperadminRole) ? "warning" : "info",
+      success: true,
+    })
+    .catch(() => {});
 }
 
 export const listUsers = createServerFn({ method: "POST" })
@@ -168,6 +269,8 @@ export const createUser = createServerFn({ method: "POST" })
          * Cloud: recorded in user_metadata so the app can prompt.
          */
         must_change_password: z.boolean().optional(),
+        /** Explicit module access for non-superadmin users; omitted = role preset. */
+        modules: z.array(z.string()).optional(),
       })
       .parse(d),
   )
@@ -177,6 +280,7 @@ export const createUser = createServerFn({ method: "POST" })
     const actorCompany = await getActorCompany(context.supabase, context.userId);
     const targetCompany = isPlatformAdmin ? (data.company_id ?? actorCompany) : actorCompany;
     if (!targetCompany) throw new Error("Target company required");
+    await assertCanGrantSuperadmin(context, [data.role]);
 
     const authAdmin = getAuthAdminProvider();
     const profileRepo = getAdminProfileRepository();
@@ -219,6 +323,19 @@ export const createUser = createServerFn({ method: "POST" })
 
     await roleRepo.removeAllRoles(newUserId);
     await roleRepo.addRole(newUserId, data.role, targetCompany);
+
+    await persistModuleAccess(context, {
+      userId: newUserId,
+      companyId: targetCompany,
+      roles: [data.role],
+      modules: data.modules,
+    });
+    await auditRoleChange(context, {
+      userId: newUserId,
+      companyId: targetCompany,
+      roles: [data.role],
+      action: "user.create",
+    });
 
     return { ok: true, id: newUserId };
   });
@@ -309,6 +426,8 @@ export const updateUser = createServerFn({ method: "POST" })
         department_id: uuidString().optional().nullable(),
         is_active: z.boolean().optional(),
         roles: z.array(RoleKey).optional(),
+        /** Explicit module access for non-superadmin users. */
+        modules: z.array(z.string()).optional(),
       })
       .parse(d),
   )
@@ -329,6 +448,15 @@ export const updateUser = createServerFn({ method: "POST" })
       throw new Error("Forbidden: cross-company edit");
     }
     const targetCompany = target?.companyId;
+
+    // Safety rules: the last active superadmin cannot be disabled or downgraded.
+    if (data.is_active === false) {
+      await assertNotLastActiveSuperadmin(roleRepo, profileRepo, data.user_id);
+    }
+    if (data.roles && !data.roles.some(isSuperadminRole)) {
+      await assertNotLastActiveSuperadmin(roleRepo, profileRepo, data.user_id);
+    }
+    if (data.roles) await assertCanGrantSuperadmin(context, data.roles);
 
     const patch: Parameters<typeof profileRepo.updateByUserId>[1] = {};
     if (data.first_name !== undefined) patch.firstName = data.first_name;
@@ -355,6 +483,26 @@ export const updateUser = createServerFn({ method: "POST" })
       for (const r of data.roles) {
         await roleRepo.addRole(data.user_id, r, targetCompany);
       }
+      await auditRoleChange(context, {
+        userId: data.user_id,
+        companyId: targetCompany,
+        roles: data.roles,
+        action: "user.roles.update",
+      });
+    }
+
+    if (targetCompany) {
+      const effectiveRoles =
+        data.roles ??
+        (await roleRepo.listAssignmentsDetailed())
+          .filter((a) => a.userId === data.user_id)
+          .map((a) => a.role);
+      await persistModuleAccess(context, {
+        userId: data.user_id,
+        companyId: targetCompany,
+        roles: effectiveRoles,
+        modules: data.modules,
+      });
     }
     return { ok: true };
   });
@@ -374,6 +522,11 @@ export const deleteUser = createServerFn({ method: "POST" })
       const target = await getAdminProfileRepository().findByUserId(data.user_id);
       if (target?.companyId !== actorCompany) throw new Error("Forbidden");
     }
+    await assertNotLastActiveSuperadmin(
+      getAdminRoleRepository(),
+      getAdminProfileRepository(),
+      data.user_id,
+    );
     await getAuthAdminProvider().deleteUser(data.user_id);
     return { ok: true };
   });

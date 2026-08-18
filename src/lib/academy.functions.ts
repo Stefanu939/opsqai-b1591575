@@ -1,3 +1,4 @@
+import { requireModuleAccess } from "@/lib/module-access.server";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
@@ -62,6 +63,7 @@ export const listAcademyDepartments = createServerFn({ method: "POST" })
     z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     const companyId = await companyForRead(context, data.company_id ?? null);
     const repo = getAcademyRepository(context);
     const rows = await repo.listDepartments(companyId);
@@ -86,6 +88,7 @@ export const upsertAcademyDepartment = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const companyId = await companyForWrite(context, data.company_id);
     const repo = getAcademyRepository(context);
@@ -128,6 +131,7 @@ export const listAcademyPaths = createServerFn({ method: "POST" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     const companyId = await companyForRead(context, data.company_id ?? null);
     const repo = getAcademyRepository(context);
     const rows = await repo.listLearningPaths(companyId, {
@@ -144,6 +148,7 @@ export const upsertAcademyPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => PathInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const companyId = await companyForWrite(context, data.company_id);
     const repo = getAcademyRepository(context);
@@ -170,6 +175,7 @@ export const deleteAcademyPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     await repo.deleteLearningPath(data.id);
@@ -180,6 +186,7 @@ export const getAcademyPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     const repo = getAcademyRepository(context);
     const result = await repo.getLearningPath(data.id);
     if (!result) throw new Error("Path not found");
@@ -208,6 +215,7 @@ export const upsertAcademyChapter = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const companyId = await companyForWrite(context, data.company_id);
     const repo = getAcademyRepository(context);
@@ -225,6 +233,7 @@ export const deleteAcademyChapter = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     await repo.deleteChapter(data.id);
@@ -254,6 +263,7 @@ export const upsertAcademyLesson = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => LessonInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const companyId = await companyForWrite(context, data.company_id);
     const repo = getAcademyRepository(context);
@@ -280,6 +290,7 @@ export const deleteAcademyLesson = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     await repo.deleteLesson(data.id);
@@ -290,6 +301,7 @@ export const getAcademyLesson = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     const repo = getAcademyRepository(context);
     const lesson = await repo.getLesson(data.id);
     if (!lesson) throw new Error("Lesson not found");
@@ -313,6 +325,7 @@ export const listAcademyLessonVersions = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ lesson_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     return repo.listLessonVersions(data.lesson_id);
@@ -324,6 +337,7 @@ export const restoreAcademyLessonVersion = createServerFn({ method: "POST" })
     z.object({ lesson_id: uuidString(), version: z.number().int() }).parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     await repo.restoreLessonVersion(data.lesson_id, data.version);
@@ -453,6 +467,7 @@ export const convertSopToLesson = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const companyId = await companyForWrite(context, data.company_id);
     const knowledgeRepo = getKnowledgeRepository(context);
@@ -533,6 +548,7 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const companyId = await companyForWrite(context, data.company_id);
     const knowledgeRepo = getKnowledgeRepository(context);
@@ -678,6 +694,7 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     const lesson = await repo.getLesson(data.lesson_id);
@@ -787,6 +804,7 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => SubmitSchema.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     // SECURITY: load the stored attempt and grade against the trusted
@@ -870,6 +888,7 @@ export const enrollSelf = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     const pathResult = await repo.getLearningPath(data.path_id);
@@ -897,6 +916,7 @@ export const assignEnrollment = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     const pathResult = await repo.getLearningPath(data.path_id);
@@ -919,6 +939,7 @@ export const listPathAssignments = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     const rows = await repo.listEnrollmentsByPathWithProfile(data.path_id);
@@ -930,6 +951,7 @@ export const listAssignablePathLearners = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ path_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const academyRepo = getAcademyRepository(context);
     const pathResult = await academyRepo.getLearningPath(data.path_id);
@@ -952,6 +974,7 @@ export const removeEnrollment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ enrollment_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const repo = getAcademyRepository(context);
     await repo.removeEnrollment(data.enrollment_id);
@@ -961,6 +984,7 @@ export const removeEnrollment = createServerFn({ method: "POST" })
 export const listMyEnrollments = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requireModuleAccess(context, "academy");
     try {
       await enforceAcademyForCurrentUser(context);
     } catch (e) {
@@ -986,6 +1010,7 @@ export const startEnrollment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     await repo.startEnrollment(data.id, context.userId);
@@ -996,6 +1021,7 @@ export const getEnrollmentProgress = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ enrollment_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     return repo.listLessonProgress(data.enrollment_id);
@@ -1005,6 +1031,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ enrollment_id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     const enroll = await repo.getEnrollment(data.enrollment_id);
@@ -1059,6 +1086,7 @@ export const completeEnrollment = createServerFn({ method: "POST" })
 export const listMyCertificates = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     const rows = await repo.listCertificatesByUser(context.userId);
@@ -1076,6 +1104,7 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await enforceAcademyForCurrentUser(context);
     const repo = getAcademyRepository(context);
     const cert = await repo.getCertificate(data.id);
@@ -1099,6 +1128,7 @@ export const academyDashboard = createServerFn({ method: "POST" })
     z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     const companyId = await companyForRead(context, data.company_id ?? null);
     const repo = getAcademyRepository(context);
     const [kpis, heatmap, depts] = await Promise.all([
@@ -1128,6 +1158,7 @@ export const academySuggestPath = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     const companyId = await companyForRead(context, null);
     const repo = getAcademyRepository(context);
     let paths = await repo.listLearningPaths(companyId, { publishStatus: "published" });
@@ -1162,6 +1193,7 @@ export const getAcademySettings = createServerFn({ method: "POST" })
     z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     const companyId = await companyForRead(context, data.company_id ?? null);
     const repo = getAcademyRepository(context);
     const row = await repo.getSettings(companyId);
@@ -1193,6 +1225,7 @@ export const saveAcademySettings = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
     await requirePermission(context, "academy.manage");
     const companyId = await companyForWrite(context, data.company_id);
     const repo = getAcademyRepository(context);

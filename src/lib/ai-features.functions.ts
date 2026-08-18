@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireModuleAccess } from "@/lib/module-access.server";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { z } from "zod";
 import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
@@ -60,6 +61,7 @@ export const generateSop = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => GenInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "ai_sop_generator");
     await ensurePerm(context, "sop.generate");
     const sys = `You write enterprise Standard Operating Procedures in clean Markdown.
 Sections (in order): Title, Purpose, Scope, Roles & Responsibilities, Inputs, Procedure (numbered steps), Safety & Risks, Outputs, Approvals, Revision History.
@@ -89,6 +91,7 @@ export const validateSop = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => ValInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "ai_sop_generator");
     await ensurePerm(context, "sop.generate");
     const sys = `You are a senior SOP auditor. Given a draft SOP in Markdown, output a strict JSON object: {
  "score": 0-100, "issues":[{"type":"missing_step|duplicate|grammar|formatting|unsafe|missing_responsibility|missing_approval|coverage","severity":"info|warning|critical","message":"..."}],
@@ -130,6 +133,7 @@ export const publishGeneratedSop = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => PublishInput.parse(d))
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "ai_sop_generator");
     await ensurePerm(context, "sop.publish");
     const companyId = await resolveCompany(context, data.company_id);
 
@@ -491,6 +495,7 @@ export const runWorkspaceAudit = createServerFn({ method: "POST" })
     z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "ai_workspace_audit");
     await ensurePerm(context, "ai_audit.run");
     const companyId = await resolveCompany(context, data.company_id);
     const [documents, faqs, compliance] = await Promise.all([
@@ -661,6 +666,7 @@ export const getAuditRecommendations = createServerFn({ method: "POST" })
     z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "ai_workspace_audit");
     const companyId = await resolveCompany(context, data.company_id);
     const { buildAuditRecommendations } = await import("@/lib/audit-recommendations");
     const auditRepo = getAiAuditRepository(context.supabase);
@@ -685,6 +691,7 @@ export const listAiAudits = createServerFn({ method: "POST" })
     z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "ai_workspace_audit");
     const companyId = await resolveCompany(context, data.company_id);
     const audits = await getAiAuditRepository(context.supabase).list(companyId, 50);
     return { audits: audits.map((a)=>({...a,created_at:a.createdAt})) };
