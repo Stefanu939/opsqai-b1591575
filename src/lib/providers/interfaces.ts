@@ -542,6 +542,12 @@ export interface AuditKnowledgeSignalRow {
   faqs: number;
   courses: number;
   categories: Record<string, number>;
+  /** Active documents past their review cadence (0021_knowledge_lifecycle). */
+  outdatedDocuments?: number;
+  /** Active documents due for review within 30 days. */
+  reviewDueSoonDocuments?: number;
+  /** Median information age in days across active documents. */
+  medianDocumentAgeDays?: number | null;
 }
 
 

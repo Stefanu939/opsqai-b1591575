@@ -48,6 +48,9 @@ export interface AuditKnowledgeSignal {
   courses: number;
   /** Document count per category, used to spot uncovered areas. */
   categories: Record<string, number>;
+  outdatedDocuments?: number;
+  reviewDueSoonDocuments?: number;
+  medianDocumentAgeDays?: number | null;
 }
 
 export type RecommendationKind =
