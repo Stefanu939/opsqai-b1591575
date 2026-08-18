@@ -1,4 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useMyModuleAccess } from "@/hooks/use-module-access";
 import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
