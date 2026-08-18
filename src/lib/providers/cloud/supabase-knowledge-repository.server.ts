@@ -8,6 +8,8 @@ import type {
   IKnowledgeRepository,
   KnowledgeChunkContentRow,
   KnowledgeChunkInsert,
+  KnowledgeDocumentImageInsert,
+  KnowledgeDocumentImageRow,
   KnowledgeDocumentInsert,
   KnowledgeDocumentRow,
   KnowledgeMatch,
@@ -277,6 +279,43 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
         .update({ ...clean, updated_at: new Date().toISOString() } as never)
         .eq("id", id);
       if (error) throw new Error(error.message);
+    },
+
+    async insertDocumentImages(rows: KnowledgeDocumentImageInsert[]) {
+      if (rows.length === 0) return;
+      const payload = rows.map((r) => ({
+        document_id: r.document_id,
+        company_id: r.company_id,
+        chunk_index: r.chunk_index,
+        storage_path: r.storage_path,
+        mime_type: r.mime_type,
+        caption: r.caption ?? null,
+      }));
+      const { error } = await (client as any).from("knowledge_document_images").insert(payload);
+      if (error) throw new Error(error.message);
+    },
+
+    async getImagesForChunks(documentId, chunkIndexes) {
+      if (chunkIndexes.length === 0) return [];
+      const { data, error } = await (client as any)
+        .from("knowledge_document_images")
+        .select("id, document_id, company_id, chunk_index, storage_path, mime_type, caption, approved")
+        .eq("document_id", documentId)
+        .eq("approved", true)
+        .in("chunk_index", chunkIndexes)
+        .order("chunk_index", { ascending: true });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as KnowledgeDocumentImageRow[];
+    },
+
+    async getImagesForDocument(documentId) {
+      const { data, error } = await (client as any)
+        .from("knowledge_document_images")
+        .select("id, document_id, company_id, chunk_index, storage_path, mime_type, caption, approved")
+        .eq("document_id", documentId)
+        .order("chunk_index", { ascending: true });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as KnowledgeDocumentImageRow[];
     },
   };
 }

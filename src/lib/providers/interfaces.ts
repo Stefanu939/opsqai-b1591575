@@ -944,6 +944,34 @@ export interface IKnowledgeRepository {
   setCritical(id: string, is_critical: boolean): Promise<void>;
   /** Update editable lifecycle/ownership metadata for one document. */
   updateMetadata(id: string, patch: KnowledgeMetadataPatch): Promise<void>;
+
+  // ---- Visual understanding (Phase 5) ----
+  /** Persist extracted embedded images with their best-effort chunk context. */
+  insertDocumentImages(rows: KnowledgeDocumentImageInsert[]): Promise<void>;
+  /** Approved images for a set of chunk indexes on one document (grounded citation). */
+  getImagesForChunks(documentId: string, chunkIndexes: number[]): Promise<KnowledgeDocumentImageRow[]>;
+  /** All images for a document (library/admin view). */
+  getImagesForDocument(documentId: string): Promise<KnowledgeDocumentImageRow[]>;
+}
+
+
+export interface KnowledgeDocumentImageRow {
+  id: string;
+  document_id: string;
+  company_id: string;
+  chunk_index: number | null;
+  storage_path: string;
+  mime_type: string;
+  caption: string | null;
+  approved: boolean;
+}
+export interface KnowledgeDocumentImageInsert {
+  document_id: string;
+  company_id: string;
+  chunk_index: number | null;
+  storage_path: string;
+  mime_type: string;
+  caption?: string | null;
 }
 
 export type KnowledgeRepositoryFactory = (dataCtx: unknown) => IKnowledgeRepository;

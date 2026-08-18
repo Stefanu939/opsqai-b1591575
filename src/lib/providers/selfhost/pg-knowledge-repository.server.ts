@@ -6,6 +6,8 @@ import type {
   IKnowledgeRepository,
   KnowledgeChunkContentRow,
   KnowledgeChunkInsert,
+  KnowledgeDocumentImageInsert,
+  KnowledgeDocumentImageRow,
   KnowledgeDocumentInsert,
   KnowledgeDocumentRow,
   KnowledgeMatch,
@@ -296,6 +298,53 @@ export function createPgKnowledgeRepository(
           WHERE id = $1`,
         params,
       );
+    },
+
+    async insertDocumentImages(rows: KnowledgeDocumentImageInsert[]) {
+      if (rows.length === 0) return;
+      const values: string[] = [];
+      const params: unknown[] = [];
+      let p = 1;
+      for (const r of rows) {
+        values.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
+        params.push(
+          r.document_id,
+          r.company_id,
+          r.chunk_index,
+          r.storage_path,
+          r.mime_type,
+          r.caption ?? null,
+        );
+      }
+      await pool.query(
+        `INSERT INTO public.knowledge_document_images
+           (document_id, company_id, chunk_index, storage_path, mime_type, caption)
+         VALUES ${values.join(",")}`,
+        params,
+      );
+    },
+
+    async getImagesForChunks(documentId, chunkIndexes) {
+      if (chunkIndexes.length === 0) return [];
+      const { rows } = await pool.query<KnowledgeDocumentImageRow>(
+        `SELECT id, document_id, company_id, chunk_index, storage_path, mime_type, caption, approved
+           FROM public.knowledge_document_images
+          WHERE document_id = $1 AND chunk_index = ANY($2) AND approved = true
+          ORDER BY chunk_index ASC`,
+        [documentId, chunkIndexes],
+      );
+      return rows;
+    },
+
+    async getImagesForDocument(documentId) {
+      const { rows } = await pool.query<KnowledgeDocumentImageRow>(
+        `SELECT id, document_id, company_id, chunk_index, storage_path, mime_type, caption, approved
+           FROM public.knowledge_document_images
+          WHERE document_id = $1
+          ORDER BY chunk_index ASC NULLS LAST`,
+        [documentId],
+      );
+      return rows;
     },
   };
 }
