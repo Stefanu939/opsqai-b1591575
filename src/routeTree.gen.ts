@@ -65,6 +65,7 @@ import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -421,6 +422,12 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSelfhostHeartbeatRoute =
+  ApiPublicSelfhostHeartbeatRouteImport.update({
+    id: '/api/public/selfhost-heartbeat',
+    path: '/api/public/selfhost-heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicReadyRoute = ApiPublicReadyRouteImport.update({
   id: '/api/public/ready',
   path: '/api/public/ready',
@@ -908,6 +915,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/management/': typeof AuthenticatedManagementIndexRoute
@@ -1027,6 +1035,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/management': typeof AuthenticatedManagementIndexRoute
@@ -1155,6 +1164,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/management/': typeof AuthenticatedManagementIndexRoute
@@ -1283,6 +1293,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
+    | '/api/public/selfhost-heartbeat'
     | '/lovable/email/suppression'
     | '/app/'
     | '/management/'
@@ -1402,6 +1413,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
+    | '/api/public/selfhost-heartbeat'
     | '/lovable/email/suppression'
     | '/app'
     | '/management'
@@ -1529,6 +1541,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
+    | '/api/public/selfhost-heartbeat'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
     | '/_authenticated/management/'
@@ -1609,6 +1622,7 @@ export interface RootRouteChildren {
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
+  ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicCalendarTokenRoute: typeof ApiPublicCalendarTokenRoute
   ApiPublicV1FaqsRoute: typeof ApiPublicV1FaqsRoute
@@ -2014,6 +2028,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/suppression'
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/selfhost-heartbeat': {
+      id: '/api/public/selfhost-heartbeat'
+      path: '/api/public/selfhost-heartbeat'
+      fullPath: '/api/public/selfhost-heartbeat'
+      preLoaderRoute: typeof ApiPublicSelfhostHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ready': {
@@ -2806,6 +2827,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
+  ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicCalendarTokenRoute: ApiPublicCalendarTokenRoute,
   ApiPublicV1FaqsRoute: ApiPublicV1FaqsRoute,

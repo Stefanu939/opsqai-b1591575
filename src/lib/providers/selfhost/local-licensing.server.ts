@@ -512,3 +512,36 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
     },
   };
 }
+
+
+// ─── Standalone helper for the Phase 4 heartbeat sender ─────────────────
+//
+// The heartbeat sender needs the raw install-license JWT (to prove
+// ownership to the Management Center) without going through the full
+// `ILicensingProvider` surface. This mirrors `readAndVerify()` above but is
+// intentionally side-effect-free (no DB mirroring) and never throws.
+export async function readInstallLicenseForHeartbeat(
+  licenseFilePath: string,
+  licensePublicKey: KeyObject,
+): Promise<{ installRaw: string; claims: InstallLicenseClaims } | null> {
+  try {
+    const raw = (await readFile(licenseFilePath, "utf8")).trim();
+    const outer = verifyCompactToken(raw, licensePublicKey);
+
+    if (isActivationBundle(outer)) {
+      const install = normalizeInstallClaims(
+        verifyCompactToken(outer.install_token, licensePublicKey) as InstallLicenseClaims,
+      );
+      if (install.kind !== "install") return null;
+      assertNotExpired(install, new Date());
+      return { installRaw: outer.install_token, claims: install };
+    }
+
+    const install = normalizeInstallClaims(outer as InstallLicenseClaims);
+    if (install.kind !== "install") return null;
+    assertNotExpired(install, new Date());
+    return { installRaw: raw, claims: install };
+  } catch {
+    return null;
+  }
+}
