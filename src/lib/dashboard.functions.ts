@@ -121,3 +121,111 @@ export const globalSearch = createServerFn({ method: "POST" })
     return { results: await searchEverywhere(context, companyId, data.q, 8) };
   });
 
+
+// --------------------------------------------------------------------
+// Phase 2 — management overview (seats, get-started, maintenance, KPIs,
+// integrations). Repository-backed; both providers already implement the
+// underlying repos (profiles/departments/academy/knowledge/integrations),
+// so no new provider surface is introduced here.
+// --------------------------------------------------------------------
+
+export const getManagementOverview = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => CompanyArg.parse(d) ?? {})
+  .handler(async ({ data, context }) => {
+    const { companyId, repo } = await dashboardContext(context, data?.companyId ?? null);
+    const [
+      { getProfileRepository, getDepartmentRepository, getAcademyRepository, getKnowledgeRepository, getIntegrationRepository },
+      { getLicensingProvider, getBackupService },
+    ] = await Promise.all([
+      import("@/lib/providers/registry"),
+      import("@/lib/providers"),
+    ]);
+
+    const [profiles, departments, learningPaths, documents, kpis, lastAudit, entitlements] =
+      await Promise.all([
+        getProfileRepository(context.supabase).listByCompany(companyId).catch(() => []),
+        getDepartmentRepository(context.supabase).list(companyId).catch(() => []),
+        getAcademyRepository(context.supabase).listLearningPaths(companyId).catch(() => []),
+        getKnowledgeRepository(context.supabase).listDocuments(companyId, false).catch(() => []),
+        repo.kpis(companyId),
+        repo.lastAiAudit(companyId),
+        getLicensingProvider()
+          .entitlements()
+          .catch(() => null),
+      ]);
+
+    // Seats
+    const totalUsers = profiles.length;
+    const seatLimit = entitlements?.unlimited ? null : (entitlements?.seats ?? null);
+
+    // Get-started tips (real completion signals)
+    const tips = [
+      { id: "departments", label: "Create departments", done: departments.length > 0, to: "/app/organization" },
+      { id: "invite", label: "Invite your team", done: totalUsers > 1, to: "/app/users" },
+      { id: "knowledge", label: "Add notes & knowledge", done: documents.length > 0, to: "/app/knowledge" },
+      { id: "sops", label: "Import SOPs and FAQs", done: kpis.faqs > 0 || documents.length > 0, to: "/app/knowledge" },
+      { id: "academy", label: "Create courses", done: learningPaths.length > 0, to: "/app/academy" },
+    ];
+
+    // Maintenance status — read only what already exists; never invent data.
+    let doctorOverall: string = "n/a";
+    try {
+      const { runDoctor } = await import("@/lib/platform/doctor");
+      doctorOverall = (await runDoctor()).overall;
+    } catch {
+      /* not applicable off self-host, or probe unavailable */
+    }
+    let lastMaintenanceAt: string | null = null;
+    try {
+      const snapshots = await getBackupService().list();
+      lastMaintenanceAt = snapshots[0]?.createdAt ?? null;
+    } catch {
+      lastMaintenanceAt = null;
+    }
+    const nextMaintenanceAt = entitlements?.maintenanceExpiresAt
+      ? new Date(entitlements.maintenanceExpiresAt * 1000).toISOString()
+      : null;
+
+    // Knowledge freshness — reuse document-lifecycle helpers, don't duplicate.
+    const { summarizeLifecycle } = await import("@/lib/document-lifecycle");
+    const freshness = summarizeLifecycle(
+      documents.map((d) => ({
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+        information_updated_at: d.information_updated_at,
+        last_reviewed_at: d.last_reviewed_at,
+        review_interval_days: d.review_interval_days,
+      })),
+    );
+
+    // Integrations — connection state only; no OAuth here.
+    const providers = ["outlook", "gmail", "teams"] as const;
+    const integRepo = getIntegrationRepository(context.supabase);
+    const integrations = Object.fromEntries(
+      await Promise.all(
+        providers.map(async (p) => {
+          const row = await integRepo.find(companyId, p).catch(() => null);
+          return [p, { status: row?.status ?? "disconnected", connectedAt: row?.connectedAt ?? null }];
+        }),
+      ),
+    ) as Record<(typeof providers)[number], { status: string; connectedAt: string | null }>;
+
+    return {
+      seats: { limit: seatLimit, used: totalUsers, unlimited: !!entitlements?.unlimited },
+      tips,
+      maintenance: {
+        overall: doctorOverall,
+        lastMaintenanceAt,
+        nextMaintenanceAt,
+      },
+      kpis: {
+        auditScore: lastAudit?.score ?? null,
+        auditCreatedAt: lastAudit?.createdAt ?? null,
+        knowledgeCoveragePct:
+          kpis.documents > 0 ? Math.round((freshness.fresh / kpis.documents) * 100) : null,
+        freshness,
+      },
+      integrations,
+    };
+  });

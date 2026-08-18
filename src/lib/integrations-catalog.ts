@@ -150,6 +150,18 @@ export const INTEGRATIONS: IntegrationDef[] = [
     hint: "beta",
   },
   {
+    provider: "gmail",
+    name: "Gmail",
+    vendor: "Google Workspace",
+    category: "productivity",
+    summary: "Turn emails into requests, log correspondence.",
+    description:
+      "Forward emails into OPSQAI as tracked requests. Attach threads to incidents and SOPs.",
+    icon: Mail,
+    accent: "text-red-400 bg-red-400/10 border-red-400/20",
+    hint: "roadmap",
+  },
+  {
     provider: "outlook",
     name: "Outlook",
     vendor: "Microsoft 365",
