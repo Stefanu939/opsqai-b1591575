@@ -173,6 +173,17 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
       )}
 
       <div className="mt-3 flex flex-wrap gap-2">
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".jwt,.json,.txt,.lic,application/json,text/plain"
+          className="hidden"
+          onChange={(e) => void onFile(e.target.files?.[0])}
+        />
+        <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+          <FileUp className="mr-1 h-4 w-4" />
+          Import file
+        </Button>
         <Button variant="outline" size="sm" loading={checking} onClick={() => void check()}>
           <ShieldCheck className="mr-1 h-4 w-4" />
           Verify
@@ -187,6 +198,58 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
           Activate on this install
         </Button>
       </div>
+
+      <div className="mt-5 border-t border-border pt-4">
+        <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+          <History className="h-3.5 w-3.5" />
+          Activation history
+        </div>
+        {history.isLoading ? (
+          <p className="text-xs text-muted-foreground">Loading…</p>
+        ) : (history.data ?? []).length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            No license has been activated on this install yet.
+          </p>
+        ) : (
+          <ul className="space-y-1.5">
+            {(history.data ?? []).map((row) => (
+              <li
+                key={row.id}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/10 px-3 py-2 text-[11px]"
+              >
+                <Badge variant="outline" className="text-[10px]">
+                  {row.kind === "module" ? `module · ${row.module_key}` : "installation"}
+                </Badge>
+                {row.revoked ? (
+                  <Badge variant="destructive" className="text-[10px]">
+                    revoked
+                  </Badge>
+                ) : row.suspended ? (
+                  <Badge variant="secondary" className="text-[10px]">
+                    suspended
+                  </Badge>
+                ) : (
+                  <Badge className="text-[10px]">active</Badge>
+                )}
+                {row.company_name && (
+                  <span className="text-muted-foreground">{row.company_name}</span>
+                )}
+                {row.expires_at && (
+                  <span className="text-muted-foreground">
+                    expires {new Date(row.expires_at).toLocaleDateString()}
+                  </span>
+                )}
+                {row.validated_at && (
+                  <span className="ml-auto text-muted-foreground">
+                    activated {new Date(row.validated_at).toLocaleString()}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </Panel>
   );
 }
+
