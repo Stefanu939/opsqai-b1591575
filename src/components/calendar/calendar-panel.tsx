@@ -19,6 +19,13 @@ import {
   listCalendar,
   upsertCalendarEvent,
 } from "@/lib/calendar.functions";
+import {
+  calendarFeedUrl,
+  calendarGoogleUrl,
+  calendarOutlookWebUrl,
+  calendarWebcalUrl,
+} from "@/lib/calendar-feed-url";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -141,14 +148,12 @@ export function CalendarPanel({ scope }: { scope: "platform" | "portal" }) {
     return events.filter((e) => new Date(e.starts_at).getTime() >= now - 3600_000).slice(0, 8);
   }, [events]);
 
-  const feedUrl =
-    typeof window !== "undefined" && feedQ.data?.token
-      ? `${window.location.origin}/api/public/calendar/${feedQ.data.token}.ics`
-      : "";
-  const webcalUrl = feedUrl.replace(/^https?:/, "webcal:");
-  const googleUrl = feedUrl
-    ? `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`
-    : "";
+  const feedUrl = calendarFeedUrl(feedQ.data?.token);
+  const webcalUrl = calendarWebcalUrl(feedUrl);
+  const googleUrl = calendarGoogleUrl(feedUrl);
+  const outlookWebUrl = calendarOutlookWebUrl(feedUrl, true);
+  const outlookLiveUrl = calendarOutlookWebUrl(feedUrl, false);
+
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -309,10 +314,20 @@ export function CalendarPanel({ scope }: { scope: "platform" | "portal" }) {
           </div>
           <div className="mt-3 grid gap-2">
             <a
-              href={webcalUrl || "#"}
+              href={outlookWebUrl || "#"}
+              target="_blank"
+              rel="noreferrer"
               className="oq-pill flex items-center justify-center border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"
             >
-              Add to Outlook / Apple Calendar
+              Add to Outlook (Microsoft 365)
+            </a>
+            <a
+              href={outlookLiveUrl || "#"}
+              target="_blank"
+              rel="noreferrer"
+              className="oq-pill flex items-center justify-center border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"
+            >
+              Add to Outlook.com
             </a>
             <a
               href={googleUrl || "#"}
@@ -322,6 +337,17 @@ export function CalendarPanel({ scope }: { scope: "platform" | "portal" }) {
             >
               Add to Google Calendar
             </a>
+            <a
+              href={webcalUrl || "#"}
+              className="oq-pill flex items-center justify-center border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary"
+            >
+              Outlook desktop / Apple Calendar (webcal)
+            </a>
+            <p className="text-[11px] text-muted-foreground">
+              Google and Outlook fetch this link from their own servers, so it always points at the
+              public OPSQAI domain — paste it manually if a provider blocks the popup.
+            </p>
+
             <Button
               variant="ghost"
               size="sm"
