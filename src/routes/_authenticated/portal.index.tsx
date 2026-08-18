@@ -23,6 +23,8 @@ import {
   Pin,
   ArrowRight,
 } from "lucide-react";
+import { UpcomingCard } from "@/components/calendar/upcoming-card";
+
 
 export const Route = createFileRoute("/_authenticated/portal/")({
   component: PortalHome,
@@ -122,6 +124,27 @@ function PortalHome() {
           </BentoItem>
         </BentoGrid>
       </div>
+
+      <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="oq-soft-card flex flex-col justify-center gap-2 p-5">
+          <h2 className="font-display text-base font-semibold text-foreground">Your agenda</h2>
+          <p className="text-sm text-muted-foreground">
+            Renewals, maintenance windows, releases and meetings for your account — all in one
+            place. Subscribe from the calendar page to sync with Outlook or Google Calendar, or
+            install the Inbox Companion extension to keep it next to your email.
+          </p>
+          <div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/portal/calendar">
+                Open calendar
+                <ArrowRight className="ml-1 h-3 w-3" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+        <UpcomingCard scope="portal" to="/portal/calendar" />
+      </div>
+
 
       {topNews.length > 0 && (
         <section className="mb-10">

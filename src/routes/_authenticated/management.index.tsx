@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { AreaTrend } from "@/components/ui/mini-chart";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatDistanceToNow } from "date-fns";
+import { UpcomingCard } from "@/components/calendar/upcoming-card";
+
 
 export const Route = createFileRoute("/_authenticated/management/")({
   component: OverviewPage,
