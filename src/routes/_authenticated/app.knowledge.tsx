@@ -697,6 +697,21 @@ function KnowledgePage() {
                   <span>{d.chunk_count} chunks</span>
                   <span>·</span>
                   <span>Updated {new Date(d.updated_at || d.created_at).toLocaleDateString()}</span>
+                  <span>·</span>
+                  {(() => {
+                    const lc = documentLifecycle(d);
+                    return (
+                      <>
+                        <span>{lc.ageLabel}</span>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${lifecycleBadgeClass(lc.state)}`}
+                        >
+                          {lc.label}
+                        </Badge>
+                      </>
+                    );
+                  })()}
                 </div>
                 {d.change_notes && (
                   <div className="text-xs text-muted-foreground mt-1 italic">
