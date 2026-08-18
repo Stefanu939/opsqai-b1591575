@@ -2148,6 +2148,56 @@ export type Database = {
           },
         ]
       }
+      knowledge_document_images: {
+        Row: {
+          approved: boolean
+          caption: string | null
+          chunk_index: number | null
+          company_id: string
+          created_at: string
+          document_id: string
+          height: number | null
+          id: string
+          mime_type: string
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          approved?: boolean
+          caption?: string | null
+          chunk_index?: number | null
+          company_id: string
+          created_at?: string
+          document_id: string
+          height?: number | null
+          id?: string
+          mime_type: string
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          approved?: boolean
+          caption?: string | null
+          chunk_index?: number | null
+          company_id?: string
+          created_at?: string
+          document_id?: string
+          height?: number | null
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_document_images_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_documents: {
         Row: {
           category: string
