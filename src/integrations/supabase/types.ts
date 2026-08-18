@@ -1100,6 +1100,47 @@ export type Database = {
           },
         ]
       }
+      compliance_settings: {
+        Row: {
+          company_id: string
+          country_code: string
+          created_at: string
+          framework_keys: string[]
+          primary_language: string
+          review_interval_days: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          company_id: string
+          country_code?: string
+          created_at?: string
+          framework_keys?: string[]
+          primary_language?: string
+          review_interval_days?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          country_code?: string
+          created_at?: string
+          framework_keys?: string[]
+          primary_language?: string
+          review_interval_days?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           company: string | null
@@ -2107,6 +2148,56 @@ export type Database = {
           },
         ]
       }
+      knowledge_document_images: {
+        Row: {
+          approved: boolean
+          caption: string | null
+          chunk_index: number | null
+          company_id: string
+          created_at: string
+          document_id: string
+          height: number | null
+          id: string
+          mime_type: string
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          approved?: boolean
+          caption?: string | null
+          chunk_index?: number | null
+          company_id: string
+          created_at?: string
+          document_id: string
+          height?: number | null
+          id?: string
+          mime_type: string
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          approved?: boolean
+          caption?: string | null
+          chunk_index?: number | null
+          company_id?: string
+          created_at?: string
+          document_id?: string
+          height?: number | null
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_document_images_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_documents: {
         Row: {
           category: string
@@ -3090,6 +3181,118 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
+      }
+      selfhost_heartbeats: {
+        Row: {
+          app_version: string | null
+          client_timestamp: string | null
+          country: string | null
+          enabled_modules: Json
+          id: string
+          install_id: string
+          last_maintenance_at: string | null
+          license_status: string | null
+          next_maintenance_at: string | null
+          organization_name: string | null
+          primary_language: string | null
+          received_at: string
+          reported_status: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          client_timestamp?: string | null
+          country?: string | null
+          enabled_modules?: Json
+          id?: string
+          install_id: string
+          last_maintenance_at?: string | null
+          license_status?: string | null
+          next_maintenance_at?: string | null
+          organization_name?: string | null
+          primary_language?: string | null
+          received_at?: string
+          reported_status?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          client_timestamp?: string | null
+          country?: string | null
+          enabled_modules?: Json
+          id?: string
+          install_id?: string
+          last_maintenance_at?: string | null
+          license_status?: string | null
+          next_maintenance_at?: string | null
+          organization_name?: string | null
+          primary_language?: string | null
+          received_at?: string
+          reported_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "selfhost_heartbeats_install_id_fkey"
+            columns: ["install_id"]
+            isOneToOne: false
+            referencedRelation: "license_installs"
+            referencedColumns: ["install_id"]
+          },
+        ]
+      }
+      selfhost_installations: {
+        Row: {
+          app_version: string | null
+          country: string | null
+          created_at: string
+          enabled_modules: Json
+          install_id: string
+          last_heartbeat_at: string | null
+          last_maintenance_at: string | null
+          license_status: string | null
+          next_maintenance_at: string | null
+          organization_name: string | null
+          primary_language: string | null
+          reported_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          app_version?: string | null
+          country?: string | null
+          created_at?: string
+          enabled_modules?: Json
+          install_id: string
+          last_heartbeat_at?: string | null
+          last_maintenance_at?: string | null
+          license_status?: string | null
+          next_maintenance_at?: string | null
+          organization_name?: string | null
+          primary_language?: string | null
+          reported_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          app_version?: string | null
+          country?: string | null
+          created_at?: string
+          enabled_modules?: Json
+          install_id?: string
+          last_heartbeat_at?: string | null
+          last_maintenance_at?: string | null
+          license_status?: string | null
+          next_maintenance_at?: string | null
+          organization_name?: string | null
+          primary_language?: string | null
+          reported_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "selfhost_installations_install_id_fkey"
+            columns: ["install_id"]
+            isOneToOne: true
+            referencedRelation: "license_installs"
+            referencedColumns: ["install_id"]
+          },
+        ]
       }
       sop_acknowledgements: {
         Row: {

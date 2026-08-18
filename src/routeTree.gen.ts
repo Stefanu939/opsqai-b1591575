@@ -65,6 +65,7 @@ import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -88,6 +89,7 @@ import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenti
 import { Route as AuthenticatedManagementTeamRouteImport } from './routes/_authenticated/management.team'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
 import { Route as AuthenticatedManagementSettingsRouteImport } from './routes/_authenticated/management.settings'
+import { Route as AuthenticatedManagementSelfhostFleetRouteImport } from './routes/_authenticated/management.selfhost-fleet'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
 import { Route as AuthenticatedManagementPortalRouteImport } from './routes/_authenticated/management.portal'
 import { Route as AuthenticatedManagementOwnershipRouteImport } from './routes/_authenticated/management.ownership'
@@ -421,6 +423,12 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSelfhostHeartbeatRoute =
+  ApiPublicSelfhostHeartbeatRouteImport.update({
+    id: '/api/public/selfhost-heartbeat',
+    path: '/api/public/selfhost-heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicReadyRoute = ApiPublicReadyRouteImport.update({
   id: '/api/public/ready',
   path: '/api/public/ready',
@@ -546,6 +554,12 @@ const AuthenticatedManagementSettingsRoute =
   AuthenticatedManagementSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
+const AuthenticatedManagementSelfhostFleetRoute =
+  AuthenticatedManagementSelfhostFleetRouteImport.update({
+    id: '/selfhost-fleet',
+    path: '/selfhost-fleet',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementReleasesRoute =
@@ -885,6 +899,7 @@ export interface FileRoutesByFullPath {
   '/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
+  '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
@@ -908,6 +923,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/management/': typeof AuthenticatedManagementIndexRoute
@@ -1005,6 +1021,7 @@ export interface FileRoutesByTo {
   '/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
+  '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
@@ -1027,6 +1044,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/management': typeof AuthenticatedManagementIndexRoute
@@ -1132,6 +1150,7 @@ export interface FileRoutesById {
   '/_authenticated/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/_authenticated/management/portal': typeof AuthenticatedManagementPortalRoute
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
+  '/_authenticated/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/_authenticated/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
   '/_authenticated/management/team': typeof AuthenticatedManagementTeamRoute
@@ -1155,6 +1174,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/management/': typeof AuthenticatedManagementIndexRoute
@@ -1260,6 +1280,7 @@ export interface FileRouteTypes {
     | '/management/ownership'
     | '/management/portal'
     | '/management/releases'
+    | '/management/selfhost-fleet'
     | '/management/settings'
     | '/management/support'
     | '/management/team'
@@ -1283,6 +1304,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
+    | '/api/public/selfhost-heartbeat'
     | '/lovable/email/suppression'
     | '/app/'
     | '/management/'
@@ -1380,6 +1402,7 @@ export interface FileRouteTypes {
     | '/management/ownership'
     | '/management/portal'
     | '/management/releases'
+    | '/management/selfhost-fleet'
     | '/management/settings'
     | '/management/support'
     | '/management/team'
@@ -1402,6 +1425,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
+    | '/api/public/selfhost-heartbeat'
     | '/lovable/email/suppression'
     | '/app'
     | '/management'
@@ -1506,6 +1530,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/ownership'
     | '/_authenticated/management/portal'
     | '/_authenticated/management/releases'
+    | '/_authenticated/management/selfhost-fleet'
     | '/_authenticated/management/settings'
     | '/_authenticated/management/support'
     | '/_authenticated/management/team'
@@ -1529,6 +1554,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/metrics'
     | '/api/public/ready'
+    | '/api/public/selfhost-heartbeat'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
     | '/_authenticated/management/'
@@ -1609,6 +1635,7 @@ export interface RootRouteChildren {
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
+  ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicCalendarTokenRoute: typeof ApiPublicCalendarTokenRoute
   ApiPublicV1FaqsRoute: typeof ApiPublicV1FaqsRoute
@@ -2016,6 +2043,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/selfhost-heartbeat': {
+      id: '/api/public/selfhost-heartbeat'
+      path: '/api/public/selfhost-heartbeat'
+      fullPath: '/api/public/selfhost-heartbeat'
+      preLoaderRoute: typeof ApiPublicSelfhostHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ready': {
       id: '/api/public/ready'
       path: '/api/public/ready'
@@ -2175,6 +2209,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/management/settings'
       preLoaderRoute: typeof AuthenticatedManagementSettingsRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
+    '/_authenticated/management/selfhost-fleet': {
+      id: '/_authenticated/management/selfhost-fleet'
+      path: '/selfhost-fleet'
+      fullPath: '/management/selfhost-fleet'
+      preLoaderRoute: typeof AuthenticatedManagementSelfhostFleetRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/management/releases': {
@@ -2592,6 +2633,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementOwnershipRoute: typeof AuthenticatedManagementOwnershipRoute
   AuthenticatedManagementPortalRoute: typeof AuthenticatedManagementPortalRoute
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
+  AuthenticatedManagementSelfhostFleetRoute: typeof AuthenticatedManagementSelfhostFleetRoute
   AuthenticatedManagementSettingsRoute: typeof AuthenticatedManagementSettingsRoute
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
   AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRoute
@@ -2614,6 +2656,8 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
       AuthenticatedManagementOwnershipRoute,
     AuthenticatedManagementPortalRoute: AuthenticatedManagementPortalRoute,
     AuthenticatedManagementReleasesRoute: AuthenticatedManagementReleasesRoute,
+    AuthenticatedManagementSelfhostFleetRoute:
+      AuthenticatedManagementSelfhostFleetRoute,
     AuthenticatedManagementSettingsRoute: AuthenticatedManagementSettingsRoute,
     AuthenticatedManagementSupportRoute: AuthenticatedManagementSupportRoute,
     AuthenticatedManagementTeamRoute: AuthenticatedManagementTeamRoute,
@@ -2806,6 +2850,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
+  ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicCalendarTokenRoute: ApiPublicCalendarTokenRoute,
   ApiPublicV1FaqsRoute: ApiPublicV1FaqsRoute,

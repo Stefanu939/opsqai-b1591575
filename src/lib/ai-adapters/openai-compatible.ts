@@ -10,6 +10,7 @@ function models() {
     chat: process.env.GENERIC_AI_CHAT_MODEL ?? "gpt-4o",
     "chat-fast": process.env.GENERIC_AI_CHAT_FAST_MODEL ?? "gpt-4o-mini",
     tts: process.env.GENERIC_AI_TTS_MODEL ?? "tts-1",
+    stt: process.env.GENERIC_AI_STT_MODEL ?? "whisper-1",
     embedding: process.env.GENERIC_AI_EMBEDDING_MODEL ?? "text-embedding-3-small",
   } as const;
 }
@@ -35,6 +36,7 @@ export const openaiCompatibleAdapter: AIProviderAdapter = {
     streaming: true,
     toolCalling: true,
     textToSpeech: true,
+    audioInput: true,
   }),
 
   resolveChat(role: AIChatRole): LanguageModel {
@@ -50,6 +52,15 @@ export const openaiCompatibleAdapter: AIProviderAdapter = {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       model: models().tts,
       modelInPath: false,
+    };
+  },
+
+  resolveSTT() {
+    const { baseURL, apiKey } = requireConfig();
+    return {
+      url: `${baseURL}/audio/transcriptions`,
+      headers: { Authorization: `Bearer ${apiKey}` },
+      model: models().stt,
     };
   },
 

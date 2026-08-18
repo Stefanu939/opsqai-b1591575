@@ -66,6 +66,43 @@ async function runProcessingPipeline(
   );
 
   await repo.markReady(documentId, chunks.length, text.slice(0, 50000));
+
+  // Visual understanding (Phase 5): best-effort embedded image extraction.
+  // Never fails the pipeline — a document with no images (or an unsupported
+  // format) simply has none to cite.
+  try {
+    const { extractImages } = await import("@/lib/doc-processing.server");
+    const images = await extractImages(toArrayBuffer(bytes), filename, fileType);
+    if (images.length > 0) {
+      const rows = [];
+      for (let i = 0; i < images.length; i += 1) {
+        const img = images[i];
+        const ext = img.mime.split("/")[1] ?? "png";
+        const key = `${companyId}/${documentId}/${i}-${img.name.replace(/[^a-zA-Z0-9._-]/g, "_")}.${ext}`;
+        await storage.put({
+          bucket: "knowledge-images",
+          key,
+          body: img.bytes,
+          contentType: img.mime,
+        });
+        const chunkIndex = chunks.length
+          ? Math.min(chunks.length - 1, Math.floor(img.position * chunks.length))
+          : null;
+        rows.push({
+          document_id: documentId,
+          company_id: companyId,
+          chunk_index: chunkIndex,
+          storage_path: key,
+          mime_type: img.mime,
+          caption: null,
+        });
+      }
+      await repo.insertDocumentImages(rows);
+    }
+  } catch (err) {
+    console.error("[kb:image-extraction]", err);
+  }
+
   return chunks.length;
 }
 

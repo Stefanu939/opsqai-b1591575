@@ -52,7 +52,6 @@ const LEGACY_ALLOWED = new Set([
   "src/routes/api/workspace-chat.ts",
   "src/routes/api/internal-chat.ts",
   "src/routes/api/customer-writer.ts",
-  "src/routes/api/academy-chat.ts",
   "src/routes/lovable/email/queue/process.ts",
 ]);
 

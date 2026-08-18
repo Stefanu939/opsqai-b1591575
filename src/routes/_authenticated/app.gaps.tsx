@@ -8,6 +8,7 @@ import {
   updateKnowledgeGap,
   deleteKnowledgeGap,
 } from "@/lib/knowledge-gaps.functions";
+import { draftGapDocument, publishGapDocument } from "@/lib/gap-drafts.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { MetricTile } from "@/components/ui/metric-tile";
 import { Panel } from "@/components/ui/panel";
@@ -15,6 +16,16 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -22,10 +33,24 @@ import {
   BrainCircuit,
   CheckCircle2,
   Clock,
+  FileText,
   Gauge,
+  MessageSquareQuote,
   Trash2,
   TrendingUp,
 } from "lucide-react";
+
+type SopDraft = { kind: "sop"; title: string; category: string; markdown: string };
+type FaqDraft = {
+  kind: "faq";
+  category: string;
+  question_en: string;
+  question_de: string;
+  answer_en: string;
+  answer_de: string;
+};
+type Draft = SopDraft | FaqDraft;
+
 
 export const Route = createFileRoute("/_authenticated/app/gaps")({
   head: () => ({
@@ -94,6 +119,49 @@ function GapsPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // ---- Gap → AI draft → human review → publish -------------------------
+  const makeDraft = useServerFn(draftGapDocument);
+  const publishDraft = useServerFn(publishGapDocument);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draftGapId, setDraftGapId] = useState<string | null>(null);
+
+  const generate = useMutation({
+    mutationFn: (vars: {
+      kind: "sop" | "faq";
+      gapId: string;
+      question: string;
+      department?: string | null;
+    }) =>
+      makeDraft({
+        data: {
+          kind: vars.kind,
+          question: vars.question,
+          department: vars.department ?? null,
+        },
+      }),
+    onSuccess: (d, vars) => {
+      setDraftGapId(vars.gapId);
+      setDraft(d as Draft);
+    },
+    onError: (e: Error) => toast.error(e.message || "Draft generation failed"),
+  });
+
+  const approve = useMutation({
+    mutationFn: () =>
+      publishDraft({ data: { gap_id: draftGapId, draft: draft as NonNullable<Draft> } }),
+    onSuccess: (r) => {
+      toast.success(r.kind === "sop" ? "SOP published to the knowledge base" : "FAQ published");
+      setDraft(null);
+      setDraftGapId(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "Publishing failed"),
+  });
+
+  const patchDraft = (patch: Partial<SopDraft> & Partial<FaqDraft>) =>
+    setDraft((prev) => (prev ? ({ ...prev, ...patch } as Draft) : prev));
+
 
   const gaps = gapsQuery.data?.gaps ?? [];
   const visible = useMemo(() => {
@@ -188,7 +256,51 @@ function GapsPage() {
                     <span>· last {new Date(g.last_seen).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {g.status !== "resolved" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        loading={
+                          generate.isPending &&
+                          generate.variables?.gapId === g.id &&
+                          generate.variables?.kind === "sop"
+                        }
+                        onClick={() =>
+                          generate.mutate({
+                            kind: "sop",
+                            gapId: g.id,
+                            question: g.question_sample,
+                            department: g.department_name ?? null,
+                          })
+                        }
+                      >
+                        <FileText className="mr-1.5 h-4 w-4" />
+                        Draft SOP
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        loading={
+                          generate.isPending &&
+                          generate.variables?.gapId === g.id &&
+                          generate.variables?.kind === "faq"
+                        }
+                        onClick={() =>
+                          generate.mutate({
+                            kind: "faq",
+                            gapId: g.id,
+                            question: g.question_sample,
+                            department: g.department_name ?? null,
+                          })
+                        }
+                      >
+                        <MessageSquareQuote className="mr-1.5 h-4 w-4" />
+                        Draft FAQ
+                      </Button>
+                    </>
+                  ) : null}
                   {g.status !== "in_progress" && g.status !== "resolved" ? (
                     <Button
                       size="sm"
@@ -198,6 +310,7 @@ function GapsPage() {
                       Take it
                     </Button>
                   ) : null}
+
                   {g.status !== "resolved" ? (
                     <Button
                       size="sm"
@@ -220,6 +333,123 @@ function GapsPage() {
           </ul>
         </Panel>
       )}
+
+      <Dialog
+        open={draft !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setDraft(null);
+            setDraftGapId(null);
+          }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {draft?.kind === "faq" ? "Review FAQ draft" : "Review SOP draft"}
+            </DialogTitle>
+            <DialogDescription>
+              AI draft based on your existing knowledge base. Edit it, then approve to publish —
+              nothing is published without your approval.
+            </DialogDescription>
+          </DialogHeader>
+
+          {draft?.kind === "sop" ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="draft-title">Title</Label>
+                  <Input
+                    id="draft-title"
+                    value={draft.title}
+                    onChange={(e) => patchDraft({ title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="draft-category">Category</Label>
+                  <Input
+                    id="draft-category"
+                    value={draft.category}
+                    onChange={(e) => patchDraft({ category: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="draft-markdown">SOP (Markdown)</Label>
+                <Textarea
+                  id="draft-markdown"
+                  className="min-h-[360px] font-mono text-xs"
+                  value={draft.markdown}
+                  onChange={(e) => patchDraft({ markdown: e.target.value })}
+                />
+              </div>
+            </div>
+          ) : draft?.kind === "faq" ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="faq-category">Category</Label>
+                <Input
+                  id="faq-category"
+                  value={draft.category}
+                  onChange={(e) => patchDraft({ category: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-q-en">Question (EN)</Label>
+                  <Input
+                    id="faq-q-en"
+                    value={draft.question_en}
+                    onChange={(e) => patchDraft({ question_en: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-q-de">Question (DE)</Label>
+                  <Input
+                    id="faq-q-de"
+                    value={draft.question_de}
+                    onChange={(e) => patchDraft({ question_de: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-a-en">Answer (EN)</Label>
+                  <Textarea
+                    id="faq-a-en"
+                    className="min-h-[160px]"
+                    value={draft.answer_en}
+                    onChange={(e) => patchDraft({ answer_en: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-a-de">Answer (DE)</Label>
+                  <Textarea
+                    id="faq-a-de"
+                    className="min-h-[160px]"
+                    value={draft.answer_de}
+                    onChange={(e) => patchDraft({ answer_de: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDraft(null);
+                setDraftGapId(null);
+              }}
+            >
+              Discard
+            </Button>
+            <Button loading={approve.isPending} onClick={() => approve.mutate()}>
+              Approve &amp; publish
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ModulePage>
+
   );
 }
