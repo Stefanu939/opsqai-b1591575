@@ -2,11 +2,19 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { listCalendar } from "@/lib/calendar.functions";
-import { CalendarMonth } from "./calendar-month";
-import { KIND_STYLE, formatEventTime, type CalendarEventDTO } from "./types";
+import {
+  KIND_STYLE,
+  formatEventTime,
+  monthLabel,
+  sameDay,
+  startOfMonthGrid,
+  type CalendarEventDTO,
+} from "./types";
 import { cn } from "@/lib/utils";
+
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
 /**
  * Compact dashboard rail widget: mini month grid + the next few events.
@@ -22,8 +30,8 @@ export function UpcomingCard({
   className?: string;
 }) {
   const list = useServerFn(listCalendar);
-  const [cursor, setCursor] = useState(() => new Date());
-  const [selected, setSelected] = useState(() => new Date());
+  const today = new Date();
+  const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
 
   const range = useMemo(() => {
     const now = Date.now();
@@ -39,6 +47,9 @@ export function UpcomingCard({
   });
 
   const events: CalendarEventDTO[] = data?.events ?? [];
+  const days = useMemo(() => startOfMonthGrid(cursor), [cursor]);
+  const hasEvent = (d: Date) => events.some((e) => sameDay(new Date(e.starts_at), d));
+
   const upcoming = useMemo(() => {
     const now = Date.now() - 6 * 3600000;
     return events
@@ -64,16 +75,57 @@ export function UpcomingCard({
         </Link>
       </div>
 
-      <CalendarMonth
-        cursor={cursor}
-        onCursorChange={setCursor}
-        selected={selected}
-        onSelect={setSelected}
-        events={events}
-        compact
-      />
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-foreground">{monthLabel(cursor)}</span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            aria-label="Previous month"
+            onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
+            className="grid h-7 w-7 place-items-center rounded-full border border-border text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            aria-label="Next month"
+            onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
+            className="grid h-7 w-7 place-items-center rounded-full border border-border text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
 
-      <div className="mt-3 space-y-1.5">
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {WEEKDAYS.map((w, i) => (
+          <span key={`${w}-${i}`} className="text-[10px] text-muted-foreground/70">
+            {w}
+          </span>
+        ))}
+        {days.map((d) => {
+          const outside = d.getMonth() !== cursor.getMonth();
+          const isToday = sameDay(d, today);
+          return (
+            <span
+              key={d.toISOString()}
+              className={cn(
+                "relative grid h-7 place-items-center rounded-lg text-[11px] tabular-nums",
+                outside ? "text-muted-foreground/40" : "text-foreground",
+                isToday &&
+                  "bg-[color:var(--gold)] font-semibold text-[color:var(--gold-foreground)]",
+              )}
+            >
+              {d.getDate()}
+              {hasEvent(d) && !isToday && (
+                <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[color:var(--gold)]" />
+              )}
+            </span>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 space-y-1.5 border-t border-border pt-3">
         <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
           Upcoming
         </div>
