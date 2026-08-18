@@ -11,6 +11,7 @@ export function FooterOix() {
       heading: m.footer.platform,
       items: [
         { label: m.nav.product, to: "/product" },
+        { label: m.nav.overview, to: "/product-overview" },
         { label: m.nav.modules, to: "/modules" },
         { label: m.nav.selfHosted, to: "/self-hosted" },
         { label: m.nav.security, to: "/security" },
