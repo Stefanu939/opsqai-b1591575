@@ -8,6 +8,7 @@ import {
   updateKnowledgeGap,
   deleteKnowledgeGap,
 } from "@/lib/knowledge-gaps.functions";
+import { draftGapDocument, publishGapDocument } from "@/lib/gap-drafts.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { MetricTile } from "@/components/ui/metric-tile";
 import { Panel } from "@/components/ui/panel";
@@ -15,6 +16,16 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -22,10 +33,24 @@ import {
   BrainCircuit,
   CheckCircle2,
   Clock,
+  FileText,
   Gauge,
+  MessageSquareQuote,
   Trash2,
   TrendingUp,
 } from "lucide-react";
+
+type SopDraft = { kind: "sop"; title: string; category: string; markdown: string };
+type FaqDraft = {
+  kind: "faq";
+  category: string;
+  question_en: string;
+  question_de: string;
+  answer_en: string;
+  answer_de: string;
+};
+type Draft = SopDraft | FaqDraft;
+
 
 export const Route = createFileRoute("/_authenticated/app/gaps")({
   head: () => ({
