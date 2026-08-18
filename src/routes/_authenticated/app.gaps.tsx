@@ -333,6 +333,123 @@ function GapsPage() {
           </ul>
         </Panel>
       )}
+
+      <Dialog
+        open={draft !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setDraft(null);
+            setDraftGapId(null);
+          }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {draft?.kind === "faq" ? "Review FAQ draft" : "Review SOP draft"}
+            </DialogTitle>
+            <DialogDescription>
+              AI draft based on your existing knowledge base. Edit it, then approve to publish —
+              nothing is published without your approval.
+            </DialogDescription>
+          </DialogHeader>
+
+          {draft?.kind === "sop" ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="draft-title">Title</Label>
+                  <Input
+                    id="draft-title"
+                    value={draft.title}
+                    onChange={(e) => patchDraft({ title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="draft-category">Category</Label>
+                  <Input
+                    id="draft-category"
+                    value={draft.category}
+                    onChange={(e) => patchDraft({ category: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="draft-markdown">SOP (Markdown)</Label>
+                <Textarea
+                  id="draft-markdown"
+                  className="min-h-[360px] font-mono text-xs"
+                  value={draft.markdown}
+                  onChange={(e) => patchDraft({ markdown: e.target.value })}
+                />
+              </div>
+            </div>
+          ) : draft?.kind === "faq" ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="faq-category">Category</Label>
+                <Input
+                  id="faq-category"
+                  value={draft.category}
+                  onChange={(e) => patchDraft({ category: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-q-en">Question (EN)</Label>
+                  <Input
+                    id="faq-q-en"
+                    value={draft.question_en}
+                    onChange={(e) => patchDraft({ question_en: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-q-de">Question (DE)</Label>
+                  <Input
+                    id="faq-q-de"
+                    value={draft.question_de}
+                    onChange={(e) => patchDraft({ question_de: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-a-en">Answer (EN)</Label>
+                  <Textarea
+                    id="faq-a-en"
+                    className="min-h-[160px]"
+                    value={draft.answer_en}
+                    onChange={(e) => patchDraft({ answer_en: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="faq-a-de">Answer (DE)</Label>
+                  <Textarea
+                    id="faq-a-de"
+                    className="min-h-[160px]"
+                    value={draft.answer_de}
+                    onChange={(e) => patchDraft({ answer_de: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDraft(null);
+                setDraftGapId(null);
+              }}
+            >
+              Discard
+            </Button>
+            <Button loading={approve.isPending} onClick={() => approve.mutate()}>
+              Approve &amp; publish
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ModulePage>
+
   );
 }
