@@ -168,6 +168,37 @@
               </p>
             </label>
 
+            <div class="ai-engine">
+              <span class="label-row">Country &amp; compliance context</span>
+              <p class="hint">
+                Advisory only. This tells OPSQAI which jurisdiction, language and
+                reference frameworks to consider when reviewing your documentation.
+                It never certifies legal compliance and can be changed later under
+                Organization &rsaquo; Compliance.
+              </p>
+              <div class="grid-2">
+                <label>Country / jurisdiction
+                  <select id="cmp-country">
+                    <option value="DE">Germany</option>
+                    <option value="RO">Romania</option>
+                    <option value="OTHER_EU" selected>Other / EU</option>
+                  </select>
+                </label>
+                <label>Primary language
+                  <select id="cmp-language">
+                    <option value="en" selected>English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="ro">Rom&acirc;n&#259;</option>
+                  </select>
+                </label>
+              </div>
+              <div class="grid-2">
+                <label>Default review interval (days)
+                  <input id="cmp-review-days" type="number" min="30" max="1825" value="365" />
+                </label>
+              </div>
+            </div>
+
             <div class="opt-toggles">
               <label class="checkbox">
                 <input type="checkbox" id="opt-desktop" checked />
