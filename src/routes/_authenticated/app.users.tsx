@@ -15,6 +15,13 @@ import {
   listDepartments,
 } from "@/lib/users.functions";
 import { listAssignableRoles } from "@/lib/rbac.functions";
+import {
+  listLicensedModules,
+  getUserModuleAccess,
+  setUserModuleAccess,
+} from "@/lib/module-access.functions";
+import { ModuleAccessPicker, presetModulesFor } from "@/components/users/module-access-picker";
+import { normalizeAppRole } from "@/lib/module-access";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAvatarUrl, initialsOf } from "@/lib/avatar";
 import { ModulePage } from "@/components/app/module-page";
