@@ -802,6 +802,57 @@ function KnowledgePage() {
         </div>
       )}
 
+      {/* Lifecycle metadata dialog */}
+      <Dialog open={!!metaTarget} onOpenChange={(o) => !o && setMetaTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Document lifecycle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              {metaTarget?.title} — the information date drives the age shown in the library and the
+              AI Audit freshness score.
+            </p>
+            <div className="space-y-2">
+              <Label>Information last updated</Label>
+              <Input
+                type="date"
+                value={metaInfoDate}
+                onChange={(e) => setMetaInfoDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Review cadence (days)</Label>
+              <Input
+                type="number"
+                min={7}
+                max={3650}
+                value={metaInterval}
+                onChange={(e) => setMetaInterval(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Default {DEFAULT_REVIEW_INTERVAL_DAYS} days. Documents past their cadence are
+                flagged as review overdue.
+              </p>
+            </div>
+            {metaTarget?.last_reviewed_at && (
+              <p className="text-xs text-muted-foreground">
+                Last reviewed {new Date(metaTarget.last_reviewed_at).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMetaTarget(null)}>
+              Cancel
+            </Button>
+            <Button onClick={onSaveMetadata} disabled={metaSaving}>
+              {metaSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Replace dialog */}
       <Dialog
         open={!!replaceTarget}
