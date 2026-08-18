@@ -109,6 +109,10 @@ interface Doc {
   parent_document_id: string | null;
   change_notes: string | null;
   updated_at: string;
+  information_updated_at?: string | null;
+  last_reviewed_at?: string | null;
+  review_interval_days?: number | null;
+  owner_id?: string | null;
 }
 
 const CATEGORIES = ["SOP", "Manual", "Procedure", "Safety", "Transport", "Warehouse", "General"];
