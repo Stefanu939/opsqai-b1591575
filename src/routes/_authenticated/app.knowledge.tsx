@@ -733,6 +733,22 @@ function KnowledgePage() {
               {canEdit && (
                 <div className="flex gap-1 shrink-0">
                   <button
+                    onClick={() => openMetadata(d)}
+                    aria-label="Edit lifecycle metadata"
+                    title="Lifecycle & review cadence"
+                    className="p-2 text-muted-foreground hover:text-primary"
+                  >
+                    <CalendarClock className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => onMarkReviewed(d)}
+                    aria-label="Mark reviewed"
+                    title="Mark as reviewed today"
+                    className="p-2 text-muted-foreground hover:text-primary"
+                  >
+                    <CheckCheck className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={() => openVersions(d)}
                     aria-label="Version history"
                     title="Version history"
