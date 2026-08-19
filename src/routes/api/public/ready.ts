@@ -16,16 +16,14 @@ export const Route = createFileRoute("/api/public/ready")({
         let mode: string;
         try {
           mode = getPlatformMode();
-          const { ensureServerProviders } = await import(
-            "@/lib/providers/server-bootstrap.server"
-          );
+          const { ensureServerProviders } = await import("@/lib/providers/server-bootstrap.server");
           await ensureServerProviders();
         } catch {
           // Platform module loaded but bootstrap not finished yet.
-          return new Response(
-            JSON.stringify({ ready: false, reason: "bootstrap-pending" }),
-            { status: 503, headers: { "Content-Type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ ready: false, reason: "bootstrap-pending" }), {
+            status: 503,
+            headers: { "Content-Type": "application/json" },
+          });
         }
         return new Response(
           JSON.stringify({
