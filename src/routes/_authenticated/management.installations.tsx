@@ -4,8 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { listInstallations } from "@/lib/releases.functions";
 import { listSelfHostFleet, type SelfHostFleetRow } from "@/lib/selfhost-fleet.functions";
-import { statusBadgeVariant, statusLabel, DISPLAY_STATUSES } from "@/lib/selfhost-status";
-import { deriveInstallationStatus } from "@/lib/selfhost-status";
+import {
+  statusBadgeVariant,
+  statusLabel,
+  DISPLAY_STATUSES,
+  deriveInstallationStatus,
+} from "@/lib/selfhost-status";
 import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
