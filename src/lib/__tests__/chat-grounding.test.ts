@@ -42,7 +42,7 @@ describe("answer language", () => {
 describe("grounded prompt", () => {
   it("pins the answer language and forbids outside knowledge", () => {
     const p = groundedSystemPrompt("[Document 1] SOP-1\nsteps", "ro");
-    expect(p).toContain("Answer in this language: ro");
+    expect(p).toContain("Romanian (română) (code: ro)");
     expect(p).toMatch(/ONLY source of truth/);
     expect(p).toContain("SOP-1");
   });

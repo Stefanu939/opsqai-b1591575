@@ -71,6 +71,89 @@ export function refusalText(query: string, hint?: string | null): string {
   return REFUSALS[detectLanguage(query, hint)] ?? REFUSALS.en;
 }
 
+/** Human-readable language names, so the model gets an unambiguous target. */
+export const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  de: "German (Deutsch)",
+  ro: "Romanian (română)",
+  fr: "French (français)",
+  es: "Spanish (español)",
+  it: "Italian (italiano)",
+  nl: "Dutch (Nederlands)",
+};
+
+export function languageName(code: string): string {
+  return LANGUAGE_NAMES[code.slice(0, 2).toLowerCase()] ?? code;
+}
+
+/**
+ * Answer-language resolution order (spec):
+ *   1. explicit language of the current user message
+ *   2. language of the running conversation (most recent user turns)
+ *   3. user/profile or organization hint passed by the client
+ * The language of the retrieved source documents never influences this.
+ */
+export function resolveAnswerLanguage(
+  userTexts: string[],
+  hint?: string | null,
+): string {
+  const texts = userTexts.map((t) => (t ?? "").trim()).filter(Boolean);
+  const current = texts[texts.length - 1];
+  if (current && current.length >= 8) return detectLanguage(current, hint);
+  // Short current turn ("ok", "mai departe"): fall back to the conversation.
+  for (let i = texts.length - 1; i >= 0; i--) {
+    if (texts[i].length >= 8) return detectLanguage(texts[i], hint);
+  }
+  if (current) return detectLanguage(current, hint);
+  const h = (hint ?? "en").slice(0, 2).toLowerCase();
+  return LANGUAGE_NAMES[h] ? h : "en";
+}
+
+/** Phrases an answer uses when the approved sources only partially cover it. */
+const INCOMPLETE_MARKERS =
+  /(not (documented|covered|specified|included)|no (information|details) (about|on)|nu (este|sunt) documentat|nu am g[ăa]sit|nicht dokumentiert|keine (informationen|angaben)|n'est pas document|no est[áa] documentado|non è documentat|niet gedocumenteerd)/i;
+
+export type GapSignal =
+  | { isGap: false }
+  | { isGap: true; reason: "no_source" | "low_confidence" | "partial_answer" | "weak_spread" };
+
+/**
+ * Automatic Knowledge Gap detection — independent of user feedback.
+ * Pure so both products and the tests share one decision.
+ */
+export function detectGapSignal(input: {
+  sources: GroundingSource[];
+  confidence: number;
+  grounded: boolean;
+  answerText?: string;
+}): GapSignal {
+  const { sources, confidence, grounded, answerText } = input;
+  if (!sources.length) return { isGap: true, reason: "no_source" };
+  if (!grounded) return { isGap: true, reason: "low_confidence" };
+  if (answerText && INCOMPLETE_MARKERS.test(answerText))
+    return { isGap: true, reason: "partial_answer" };
+  const strong = sources.filter(
+    (s) => s.type === "document" && (s.similarity ?? 0) >= MIN_DOC_SIMILARITY,
+  );
+  if (!strong.length && confidence < MIN_DOC_SIMILARITY) {
+    const weak = relevantSources(sources);
+    if (weak.length >= 3) return { isGap: true, reason: "weak_spread" };
+  }
+  return { isGap: false };
+}
+
+/** Stable dedup key so repeated/similar questions group into one gap. */
+export function normalizeGapQuestion(question: string): string {
+  return question
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 500);
+}
+
+
 /**
  * System prompt for grounded answers. The answer language is always driven by
  * the user's query language, never by the language of the evidence.
@@ -85,7 +168,9 @@ export function groundedSystemPrompt(
     firstName && firstName !== "there"
       ? `The user's first name is ${firstName}. Use it naturally and sparingly — e.g. in a greeting or an occasional contextual moment — never in every message and never forced into a sentence where it feels odd.`
       : ``,
-    `Answer in this language: ${answerLanguage}. The evidence below may be written in another language — translate it, never switch the answer language.`,
+    `ANSWER LANGUAGE (absolute rule): write the entire answer in ${languageName(answerLanguage)} (code: ${answerLanguage}). The COMPANY KNOWLEDGE below may be written in a different language — translate its content faithfully into ${languageName(answerLanguage)}. Never answer in the language of the sources, never mix languages, and keep the "Sources" label and citation titles as-is (document titles and codes stay in their original wording). Only immutable technical terms, product names and document codes may stay untranslated.`,
+    `Translating never means inventing: do not add steps, thresholds, roles or explanations that the source does not state. If a detail is missing from the source, say plainly in ${languageName(answerLanguage)} that it is not documented.`,
+
     `COMPANY KNOWLEDGE below is your ONLY source of truth. Never use outside, general or world knowledge (no definitions of products, companies, acronyms, laws or tools that are not documented below), never guess, never describe your own capabilities.`,
     `If the COMPANY KNOWLEDGE does not actually answer the question — even if it looks topically related — reply ONLY with a friendly statement that this information is not in the company knowledge base and invite the user to upload the relevant SOP, document or FAQ. Do not add any explanation of the topic itself.`,
     `Never start an answer with "I assume", "probably", "the term X may mean" or similar speculation. If you would need to assume, refuse instead.`,

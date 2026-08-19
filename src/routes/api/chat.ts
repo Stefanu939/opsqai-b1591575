@@ -3,7 +3,8 @@ import { convertToModelMessages, createUIMessageStream, createUIMessageStreamRes
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
 import { resolveChatModel, resolveEmbedOne, hasAiCapability } from "@/lib/ai-provider.server";
 import { getStorageProvider } from "@/lib/providers/registry";
-import { detectLanguage, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources } from "@/lib/chat-grounding";
+import { detectGapSignal, detectLanguage, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources, resolveAnswerLanguage } from "@/lib/chat-grounding";
+import { recordAutoKnowledgeGap } from "@/lib/knowledge-gap-auto.server";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
 type Body={messages?:UIMessage[];threadId?:string;language?:string};
@@ -124,7 +125,8 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       }
     }
   }catch(error){console.error("[chat:image-gather]",error);}
-  const answerLanguage=detectLanguage(query,body.language);
+  const userTexts=messages.filter((m)=>m.role==="user").map((m)=>textOf(m));
+  const answerLanguage=resolveAnswerLanguage(userTexts,body.language);
   const grounded=passesGrounding(sources,confidence)||(isFollowup&&Boolean(context));
   const messageRepo=getMessageRepository(dataCtx);
   const existing=await messageRepo.listByThread(body.threadId);
@@ -136,6 +138,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
 
   // Hard grounding gate: no sufficient company evidence => never call the model.
   if(!isGreeting&&!isCapability&&!grounded){
+    void recordAutoKnowledgeGap(dataCtx,{companyId,question:query,departmentId:profile?.departmentId??null,createdBy:identity.userId,confidence,sourceThreadId:body.threadId,sourceMessageId:null,reason:sources.length?"low_confidence":"no_source"});
     const stream=createUIMessageStream<UIMessage>({originalMessages:messages,onFinish:({messages:finished})=>{void persist(finished);},execute:({writer})=>{
       writer.write({type:"start",messageMetadata:metadata("gap")});
       writer.write({type:"text-start",id:"refusal"});
@@ -154,6 +157,12 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
 
   const modelMessages=await prepareMessagesForModel(messages,identity.userId);
   const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(modelMessages)});
-  return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?metadata(isGreeting?"greeting":isCapability?"capability":"kb"):undefined,onFinish:async({messages:finished})=>{await persist(finished);}});
+  return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?metadata(isGreeting?"greeting":isCapability?"capability":"kb"):undefined,onFinish:async({messages:finished})=>{
+    await persist(finished);
+    if(isGreeting||isCapability)return;
+    const answerText=textOf([...finished].reverse().find((m)=>m.role==="assistant"));
+    const signal=detectGapSignal({sources,confidence,grounded,answerText});
+    if(signal.isGap)await recordAutoKnowledgeGap(dataCtx,{companyId,question:query,departmentId:profile?.departmentId??null,createdBy:identity.userId,confidence,sourceThreadId:body.threadId as string,sourceMessageId:null,reason:signal.reason});
+  }});
 
 }}}});

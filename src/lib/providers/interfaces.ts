@@ -570,8 +570,10 @@ export interface KnowledgeGapCreateInput {
   departmentId: string | null;
   createdBy: string;
   confidence: number | null;
-  sourceThreadId: string;
-  sourceMessageId: string;
+  /** Null when the gap is recorded automatically before the answer is persisted. */
+  sourceThreadId: string | null;
+  sourceMessageId: string | null;
+
 }
 
 export interface ComplianceSettingsRecord {

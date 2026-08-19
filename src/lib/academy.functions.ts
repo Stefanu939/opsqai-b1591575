@@ -544,6 +544,11 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
         language: z.string().default("en"),
         target_role: z.string().optional().nullable(),
         company_id: uuidString().optional().nullable(),
+        // Passing score is configurable per course; when omitted it falls back
+        // to the company's Academy settings, never to a hardcoded value.
+        passing_score: z.number().int().min(0).max(100).optional().nullable(),
+        mandatory: z.boolean().optional().default(false),
+        difficulty: z.string().optional().default("standard"),
       })
       .parse(d),
   )
@@ -630,9 +635,10 @@ export const generateAcademyCourse = createServerFn({ method: "POST" })
       description: course.path_description,
       language: data.language,
       targetRole: data.target_role ?? null,
-      mandatory: false,
-      passingScore: 70,
-      difficulty: "standard",
+      mandatory: data.mandatory ?? false,
+      passingScore:
+        data.passing_score ?? (await academyRepo.getSettings(companyId))?.passing_score ?? 70,
+      difficulty: data.difficulty ?? "standard",
       publishStatus: "draft",
       createdBy: context.userId,
     });
@@ -820,7 +826,13 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
 
     const lesson = await repo.getLesson(attempt.lesson_id);
     if (!lesson) throw new Error("Lesson not found");
-    const passingScore: number = lesson.path_passing_score ?? 70;
+    // Course setting wins; otherwise the company Academy setting; 70 only as
+    // the last resort when neither is configured.
+    const passingScore: number =
+      lesson.path_passing_score ??
+      (lesson.company_id ? (await repo.getSettings(lesson.company_id))?.passing_score : null) ??
+      70;
+
 
     // Grade using stored, trusted correct_answer values.
     const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
