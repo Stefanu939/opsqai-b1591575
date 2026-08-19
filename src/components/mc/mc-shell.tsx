@@ -3,7 +3,6 @@ import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   Users,
-  Package,
   KeyRound,
   Radio,
   Rocket,
@@ -42,8 +41,7 @@ const SECTIONS: Section[] = [
     title: "Customers",
     items: [
       { to: "/management/customers", label: "Customers", icon: Users },
-      { to: "/management/installations", label: "Installations", icon: Package },
-      { to: "/management/selfhost-fleet", label: "Self-Hosted Fleet", icon: Radio },
+      { to: "/management/installations", label: "Installations", icon: Radio },
       { to: "/management/licenses", label: "Licenses", icon: KeyRound },
     ],
   },
