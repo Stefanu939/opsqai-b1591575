@@ -70,7 +70,10 @@ async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayl
   const cfg = readSelfHostConfig();
 
   const candidate = {
-    installation_id: opts.installId,
+    // The install id in the signed license is authoritative: the Management
+    // Center verifies the token against it, so a locally mis-set
+    // OPSQAI_INSTALL_ID must not silently 401 every beat.
+    installation_id: lic.claims.install_id || opts.installId,
     signed_token: lic.installRaw,
     organization_name: cfg.company?.name ?? undefined,
     country: process.env.OPSQAI_COUNTRY ?? undefined,
