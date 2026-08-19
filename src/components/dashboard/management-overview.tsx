@@ -80,7 +80,8 @@ export function ManagementOverview() {
   const integrationProviders = ["outlook", "gmail", "teams"] as const;
 
   return (
-    <BentoGrid>
+    <>
+      <BentoGrid>
       {/* User capacity */}
       <BentoItem span={4} index={0}>
         <Panel title="User capacity" icon={Users} className="h-full">
