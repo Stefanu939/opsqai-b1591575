@@ -58,14 +58,24 @@ export const Route = createFileRoute("/api/public/selfhost-heartbeat")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // The installation must be a known, provisioned install — never
-        // create license rows from a heartbeat.
-        const { data: install } = await supabaseAdmin
+        // The installation must be known to Management Center. Newer package
+        // generations create a `license_installs` row, but valid installations
+        // issued before that registry existed only have a `licenses` row. A
+        // signed, install-bound token plus either record is sufficient; the
+        // heartbeat still never creates or changes a license.
+        const [{ data: install }, { data: licensedRows }] = await Promise.all([
+          supabaseAdmin
           .from("license_installs")
           .select("install_id")
           .eq("install_id", payload.installation_id)
-          .maybeSingle();
-        if (!install) {
+          .maybeSingle(),
+          supabaseAdmin
+            .from("licenses")
+            .select("install_id")
+            .eq("install_id", payload.installation_id)
+            .limit(1),
+        ]);
+        if (!install && !licensedRows?.length) {
           return json(GENERIC_UNAUTHORIZED, 401);
         }
 
