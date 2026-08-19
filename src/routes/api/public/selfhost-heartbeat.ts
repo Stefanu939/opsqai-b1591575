@@ -47,10 +47,11 @@ export const Route = createFileRoute("/api/public/selfhost-heartbeat")({
         const payload = parsed.data;
 
         // Verify the caller actually owns the install-license it claims to.
-        const { verifyLicenseTokenFromDb } = await import("@/lib/license-signing.server");
-        const verification = await verifyLicenseTokenFromDb(payload.signed_token, "install", {
-          expectedInstallId: payload.installation_id,
-        });
+        const { verifyHeartbeatInstallTokenFromDb } = await import("@/lib/license-signing.server");
+        const verification = await verifyHeartbeatInstallTokenFromDb(
+          payload.signed_token,
+          payload.installation_id,
+        );
         if (!verification.ok) {
           return json(GENERIC_UNAUTHORIZED, 401);
         }
