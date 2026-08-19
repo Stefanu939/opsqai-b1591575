@@ -328,3 +328,62 @@ export async function verifyLicenseTokenFromDb<K extends LicenseKind>(
 
   return pure;
 }
+
+/**
+ * Verify an installation token presented by the Self-Hosted fleet heartbeat.
+ *
+ * Older installations legitimately carry the pre-Phase-0 payload
+ * (`company_name`, `modules`, `max_users`) without `license_version` or
+ * `kind`. The local verifier has always supported those signed artifacts, so
+ * the Management Center must accept them too while still enforcing the same
+ * Ed25519 signature, install binding, expiry, known signing key and revocation
+ * checks used for current installation licenses.
+ */
+export async function verifyHeartbeatInstallTokenFromDb(
+  token: string,
+  expectedInstallId: string,
+  now: number = Math.floor(Date.now() / 1000),
+): Promise<{ ok: true } | { ok: false; reason: VerifyReason }> {
+  const keyId = peekTokenKeyId(token);
+  if (!keyId) return { ok: false, reason: "malformed" };
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: keyRow } = await supabaseAdmin
+    .from("license_signing_keys")
+    .select("public_key_pem")
+    .eq("key_id", keyId)
+    .maybeSingle();
+  if (!keyRow?.public_key_pem) return { ok: false, reason: "unknown_key_id" };
+
+  const raw = splitAndVerify(token, keyRow.public_key_pem);
+  if (!raw || typeof raw !== "object") return { ok: false, reason: "bad_signature" };
+
+  const claims = raw as Partial<AnyLicensePayload & LicensePayload>;
+  if (claims.install_id !== expectedInstallId) {
+    return { ok: false, reason: "install_mismatch" };
+  }
+
+  if (claims.license_version != null) {
+    const typed = verifyLicenseTokenTyped(token, keyRow.public_key_pem, "install", now);
+    if (!typed.ok) return { ok: false, reason: typed.reason };
+  } else {
+    // Legacy installation licenses have no `kind`; require their distinctive
+    // installation-only claims so a module token can never use this path.
+    if (typeof claims.company_name !== "string" || typeof claims.max_users !== "number") {
+      return { ok: false, reason: "wrong_kind" };
+    }
+    if (typeof claims.expires_at === "number" && claims.expires_at > 0 && claims.expires_at < now) {
+      return { ok: false, reason: "expired" };
+    }
+  }
+
+  const { data: rows } = await supabaseAdmin
+    .from("licenses")
+    .select("revoked")
+    .eq("install_id", expectedInstallId);
+  if ((rows ?? []).some((row) => row.revoked === true)) {
+    return { ok: false, reason: "revoked" };
+  }
+
+  return { ok: true };
+}

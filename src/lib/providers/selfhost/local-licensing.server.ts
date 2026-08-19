@@ -239,7 +239,10 @@ function assertNotExpired(claims: BaseLicenseClaims, now: Date): void {
 function normalizeInstallClaims(claims: InstallLicenseClaims): InstallLicenseClaims {
   return {
     ...claims,
-    kind: "install",
+    // Pre-Phase-0 installation licenses did not carry `kind`. Default only
+    // that legacy shape; preserve an explicit `module` value so the caller's
+    // wrong-kind guard can reject it rather than silently reclassifying it.
+    kind: claims.kind ?? "install",
     customer: claims.customer ?? claims.company_name ?? "OPSQAI Customer",
     seats: claims.seats ?? claims.max_users ?? 1,
     edition: claims.edition ?? claims.tier ?? "professional",
