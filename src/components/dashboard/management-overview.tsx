@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { getManagementOverview } from "@/lib/dashboard.functions";
 import { findIntegration } from "@/lib/integrations-catalog";
+import {
+  IntegrationConnectDialog,
+  type IntegrationProviderKey,
+} from "@/components/dashboard/integration-connect-dialog";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { Panel } from "@/components/ui/panel";
 import { ProgressRing } from "@/components/ui/progress-ring";
