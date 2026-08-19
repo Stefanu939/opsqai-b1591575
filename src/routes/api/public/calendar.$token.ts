@@ -11,10 +11,16 @@ export const Route = createFileRoute("/api/public/calendar/$token")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const { renderFeed } = await import("@/lib/calendar-core.server");
+        const { isSelfHosted } = await import("@/lib/platform");
         let ics: string | null = null;
         try {
-          ics = await renderFeed(String(params.token ?? ""));
+          if (isSelfHosted()) {
+            const local = await import("@/lib/calendar-selfhost.server");
+            ics = await local.renderLocalFeed(String(params.token ?? ""));
+          } else {
+            const { renderFeed } = await import("@/lib/calendar-core.server");
+            ics = await renderFeed(String(params.token ?? ""));
+          }
         } catch {
           ics = null;
         }
