@@ -6,6 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
+import { isSelfHosted } from "@/lib/platform";
 import { uuidString } from "@/lib/zod-uuid";
 
 const KINDS = ["meeting", "renewal", "maintenance", "release", "deadline", "training", "other"] as const;
@@ -22,11 +23,22 @@ export const listCalendar = createServerFn({ method: "POST" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    const now = Date.now();
+    if (isSelfHosted()) {
+      const local = await import("@/lib/calendar-selfhost.server");
+      const ctx = context as { supabase: unknown; userId: string };
+      const events = await local.buildLocalCalendar({
+        dataCtx: ctx.supabase,
+        userId: ctx.userId,
+        from: data.from ? new Date(data.from) : new Date(now - 90 * 86400000),
+        to: data.to ? new Date(data.to) : new Date(now + 365 * 86400000),
+      });
+      return { scope: "portal" as const, events };
+    }
     const core = await import("@/lib/calendar-core.server");
     const resolved = await core.resolveScope(context as never);
     const scope =
       data.scope === "portal" || resolved.scope === "portal" ? "portal" : resolved.scope;
-    const now = Date.now();
     const events = await core.buildCalendar({
       scope,
       email: resolved.email,
@@ -54,6 +66,25 @@ export const upsertCalendarEvent = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (isSelfHosted()) {
+      const local = await import("@/lib/calendar-selfhost.server");
+      const ctx = context as { supabase: unknown; userId: string };
+      const res = await local.upsertLocalEvent({
+        dataCtx: ctx.supabase,
+        userId: ctx.userId,
+        event: {
+          id: data.id,
+          title: data.title,
+          description: data.description ?? null,
+          kind: data.kind,
+          location: data.location ?? null,
+          starts_at: new Date(data.starts_at).toISOString(),
+          ends_at: data.ends_at ? new Date(data.ends_at).toISOString() : null,
+          all_day: data.all_day,
+        },
+      });
+      return { ok: true, id: res.id };
+    }
     const core = await import("@/lib/calendar-core.server");
     const { getCloudSupabaseAdmin } = await import("@/lib/providers/not-available");
     const resolved = await core.resolveScope(context as never);
@@ -92,6 +123,12 @@ export const deleteCalendarEvent = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
+    if (isSelfHosted()) {
+      const local = await import("@/lib/calendar-selfhost.server");
+      const ctx = context as { supabase: unknown; userId: string };
+      await local.deleteLocalEvent({ dataCtx: ctx.supabase, userId: ctx.userId, id: data.id });
+      return { ok: true };
+    }
     const core = await import("@/lib/calendar-core.server");
     const { getCloudSupabaseAdmin } = await import("@/lib/providers/not-available");
     const resolved = await core.resolveScope(context as never);
@@ -109,6 +146,14 @@ export const getCalendarFeed = createServerFn({ method: "POST" })
     z.object({ rotate: z.boolean().optional() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    if (isSelfHosted()) {
+      const local = await import("@/lib/calendar-selfhost.server");
+      const ctx = context as { supabase: unknown; userId: string };
+      const token = data.rotate
+        ? await local.rotateLocalFeedToken({ dataCtx: ctx.supabase, userId: ctx.userId })
+        : await local.getOrCreateLocalFeedToken({ dataCtx: ctx.supabase, userId: ctx.userId });
+      return { token, scope: "portal" as const };
+    }
     const core = await import("@/lib/calendar-core.server");
     const resolved = await core.resolveScope(context as never);
     const ctx = context as { userId: string };

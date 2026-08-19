@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,6 +16,10 @@ import {
 } from "lucide-react";
 import { getManagementOverview } from "@/lib/dashboard.functions";
 import { findIntegration } from "@/lib/integrations-catalog";
+import {
+  IntegrationConnectDialog,
+  type IntegrationProviderKey,
+} from "@/components/dashboard/integration-connect-dialog";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { Panel } from "@/components/ui/panel";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -54,6 +59,7 @@ export function ManagementOverview() {
     queryKey: ["dash", "management"],
     queryFn: () => fn({ data: {} }),
   });
+  const [dialogProvider, setDialogProvider] = useState<IntegrationProviderKey | null>(null);
 
   if (isLoading || !data) {
     return (
@@ -74,7 +80,8 @@ export function ManagementOverview() {
   const integrationProviders = ["outlook", "gmail", "teams"] as const;
 
   return (
-    <BentoGrid>
+    <>
+      <BentoGrid>
       {/* User capacity */}
       <BentoItem span={4} index={0}>
         <Panel title="User capacity" icon={Users} className="h-full">
@@ -248,13 +255,26 @@ export function ManagementOverview() {
                         : "Recent emails and upcoming meetings will appear here."}
                   </p>
                   <p className="text-xs">Connected {fmtDate(state?.connectedAt ?? null)}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() => setDialogProvider(p as IntegrationProviderKey)}
+                  >
+                    Manage
+                  </Button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
                   <p className="text-sm text-muted-foreground">
                     {def?.summary ?? "Connect to bring in recent activity."}
                   </p>
-                  <Button variant="outline" size="sm" className="self-start" disabled>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() => setDialogProvider(p as IntegrationProviderKey)}
+                  >
                     Connect {def?.name ?? p}
                   </Button>
                 </div>
@@ -263,6 +283,15 @@ export function ManagementOverview() {
           </BentoItem>
         );
       })}
-    </BentoGrid>
+      </BentoGrid>
+
+      <IntegrationConnectDialog
+        provider={dialogProvider}
+        connected={
+          dialogProvider ? data.integrations[dialogProvider]?.status === "connected" : false
+        }
+        onClose={() => setDialogProvider(null)}
+      />
+    </>
   );
 }
