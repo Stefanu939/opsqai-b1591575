@@ -70,21 +70,14 @@ import {
   registerCalendarRepositoryFactory,
 } from "@/lib/providers/registry";
 
-
 import { createLocalAuthProvider } from "./local-auth.server";
 import { createNtfsStorageProvider } from "./ntfs-storage.server";
 import { createSmtpNotificationProvider } from "./smtp-notification.server";
 import { createLocalLicensingProvider } from "./local-licensing.server";
-import {
-  startHeartbeatSender,
-  DEFAULT_MC_BASE_URL,
-} from "./heartbeat-sender.server";
+import { startHeartbeatSender, DEFAULT_MC_BASE_URL } from "./heartbeat-sender.server";
 import { createWindowsBackupService } from "./windows-backup.server";
 import { createLocalTelemetrySink } from "./local-telemetry.server";
-import {
-  createAesGcmCipher,
-  createDpapiCipher,
-} from "./dpapi-cipher.server";
+import { createAesGcmCipher, createDpapiCipher } from "./dpapi-cipher.server";
 import { NoopBackupService, NoopTelemetrySink } from "@/lib/providers/null-providers";
 import type { INotificationProvider } from "@/lib/providers/interfaces";
 
@@ -124,8 +117,7 @@ function readEnv(): EnvSnapshot {
     if (!v) throw new Error(`Missing environment variable: ${k as string}`);
     return v;
   };
-  const opt = (k: keyof EnvSnapshot): string | undefined =>
-    process.env[k as string] || undefined;
+  const opt = (k: keyof EnvSnapshot): string | undefined => process.env[k as string] || undefined;
   return {
     DATABASE_URL: req("DATABASE_URL"),
     OPSQAI_INSTALL_ID: req("OPSQAI_INSTALL_ID"),
@@ -197,11 +189,12 @@ export async function bootstrapSelfHosted(): Promise<void> {
     env.OPSQAI_CIPHER_MODE === "aes-gcm"
       ? createAesGcmCipher({
           key: Buffer.from(
-            env.OPSQAI_MASTER_KEY_B64 ?? (() => {
-              throw new Error(
-                "OPSQAI_MASTER_KEY_B64 is required when OPSQAI_CIPHER_MODE=aes-gcm",
-              );
-            })(),
+            env.OPSQAI_MASTER_KEY_B64 ??
+              (() => {
+                throw new Error(
+                  "OPSQAI_MASTER_KEY_B64 is required when OPSQAI_CIPHER_MODE=aes-gcm",
+                );
+              })(),
             "base64",
           ),
         })
@@ -249,6 +242,10 @@ export async function bootstrapSelfHosted(): Promise<void> {
       ? Number(env.OPSQAI_HEARTBEAT_INTERVAL_MS)
       : undefined,
     appVersion: env.OPSQAI_APP_VERSION,
+    logger: {
+      info: (message) => console.info(message),
+      warn: (message, error) => console.warn(message, error),
+    },
   });
 
   const backup = env.OPSQAI_PG_DUMP_PATH
@@ -346,5 +343,3 @@ export async function bootstrapSelfHosted(): Promise<void> {
   const calendarRepo = createPgCalendarRepository({ pool, tenantCompanyId });
   registerCalendarRepositoryFactory(() => calendarRepo);
 }
-
-

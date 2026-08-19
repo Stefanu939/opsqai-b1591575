@@ -1,4 +1,4 @@
-import { getCloudSupabase , getCloudSupabaseAdmin} from "@/lib/providers/not-available";
+import { getCloudSupabase, getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
@@ -144,6 +144,18 @@ export const issueLicense = createServerFn({ method: "POST" })
       ? await supabaseAdmin.from("licenses").update(row).eq("id", existingInstall.id)
       : await supabaseAdmin.from("licenses").insert(row);
     if (error) throw new Error(mapLicenseDbError(error.message, data.install_id));
+
+    // Provision fleet bookkeeping when the installation license is issued,
+    // not only when an installation package is generated. This keeps manual
+    // and legacy installation flows eligible for heartbeat reporting.
+    const { error: installError } = await supabaseAdmin
+      .from("license_installs")
+      .upsert(
+        { install_id: data.install_id },
+        { onConflict: "install_id", ignoreDuplicates: true },
+      );
+    if (installError) throw new Error(mapLicenseDbError(installError.message, data.install_id));
+
     return {
       ok: true,
       token,
@@ -272,9 +284,7 @@ export const revokeLicense = createServerFn({ method: "POST" })
 
 export const deleteLicense = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ install_id: InstallIdSchema }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
     const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
@@ -285,8 +295,6 @@ export const deleteLicense = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
-
-
 
 // ─── Signing public key (for installer bundling) ────────────────────────
 
