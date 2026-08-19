@@ -13,6 +13,9 @@ const NON_PUBLIC_HOST = /(^localhost$|^127\.|^0\.0\.0\.0$|\.local$|id-preview--|
 
 export function calendarPublicOrigin(): string {
   if (typeof window === "undefined") return PUBLIC_FALLBACK;
+  // Self-Hosted serves its own feed from the local install — the Cloud domain
+  // knows nothing about it, so never rewrite the host there.
+  if (import.meta.env['VITE_OPSQAI_MODE'] === "selfhost") return window.location.origin;
   const { hostname, origin, protocol } = window.location;
   if (protocol !== "https:" || NON_PUBLIC_HOST.test(hostname)) return PUBLIC_FALLBACK;
   return origin;
