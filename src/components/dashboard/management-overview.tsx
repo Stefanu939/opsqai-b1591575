@@ -59,6 +59,7 @@ export function ManagementOverview() {
     queryKey: ["dash", "management"],
     queryFn: () => fn({ data: {} }),
   });
+  const [dialogProvider, setDialogProvider] = useState<IntegrationProviderKey | null>(null);
 
   if (isLoading || !data) {
     return (
