@@ -254,13 +254,26 @@ export function ManagementOverview() {
                         : "Recent emails and upcoming meetings will appear here."}
                   </p>
                   <p className="text-xs">Connected {fmtDate(state?.connectedAt ?? null)}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() => setDialogProvider(p as IntegrationProviderKey)}
+                  >
+                    Manage
+                  </Button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
                   <p className="text-sm text-muted-foreground">
                     {def?.summary ?? "Connect to bring in recent activity."}
                   </p>
-                  <Button variant="outline" size="sm" className="self-start" disabled>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() => setDialogProvider(p as IntegrationProviderKey)}
+                  >
                     Connect {def?.name ?? p}
                   </Button>
                 </div>
@@ -269,6 +282,15 @@ export function ManagementOverview() {
           </BentoItem>
         );
       })}
-    </BentoGrid>
+      </BentoGrid>
+
+      <IntegrationConnectDialog
+        provider={dialogProvider}
+        connected={
+          dialogProvider ? data.integrations[dialogProvider]?.status === "connected" : false
+        }
+        onClose={() => setDialogProvider(null)}
+      />
+    </>
   );
 }
