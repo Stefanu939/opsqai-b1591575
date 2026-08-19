@@ -1918,3 +1918,46 @@ export interface IAcademyRepository {
 }
 
 export type AcademyRepositoryFactory = (dataCtx: unknown) => IAcademyRepository;
+
+// --------------------------------------------------------------------
+// Calendar repository — local calendar store (Self-Hosted).
+// Backs public.calendar_events + public.calendar_feed_tokens. Cloud keeps
+// its own implementation inside calendar-core.server.ts, so this surface is
+// only registered by the Self-Hosted bootstrap.
+// --------------------------------------------------------------------
+
+export interface LocalCalendarEventRow {
+  id: string;
+  title: string;
+  description: string | null;
+  kind: string;
+  location: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  all_day: boolean;
+}
+
+export interface LocalCalendarEventInput {
+  id?: string | undefined;
+  ownerUserId: string;
+  title: string;
+  description: string | null;
+  kind: string;
+  location: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  all_day: boolean;
+}
+
+export interface ICalendarRepository {
+  listEvents(ownerUserId: string, from: string, to: string): Promise<LocalCalendarEventRow[]>;
+  upsertEvent(input: LocalCalendarEventInput): Promise<{ id: string }>;
+  deleteEvent(ownerUserId: string, id: string): Promise<void>;
+  getActiveToken(userId: string): Promise<string | null>;
+  createToken(userId: string, token: string): Promise<void>;
+  revokeTokens(userId: string): Promise<void>;
+  resolveToken(token: string): Promise<{ id: string; userId: string } | null>;
+  touchToken(id: string): Promise<void>;
+}
+
+export type CalendarRepositoryFactory = (dataCtx: unknown) => ICalendarRepository;

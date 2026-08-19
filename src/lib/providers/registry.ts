@@ -91,6 +91,7 @@ interface Registry {
   dashboardFactory?: DashboardRepositoryFactory;
   exportFactory?: ExportRepositoryFactory;
   academyFactory?: AcademyRepositoryFactory;
+  calendarFactory?: CalendarRepositoryFactory;
 }
 
 
@@ -180,6 +181,12 @@ export function registerModuleAccessRepositoryFactory(f: ModuleAccessRepositoryF
 export function registerDashboardRepositoryFactory(f: DashboardRepositoryFactory): void { registry.dashboardFactory = f; }
 export function registerExportRepositoryFactory(f: ExportRepositoryFactory): void { registry.exportFactory = f; }
 export function registerAcademyRepositoryFactory(f: AcademyRepositoryFactory): void { registry.academyFactory = f; }
+export function registerCalendarRepositoryFactory(f: CalendarRepositoryFactory): void { registry.calendarFactory = f; }
+export function hasCalendarRepository(): boolean { return !!registry.calendarFactory; }
+export function getCalendarRepository(dataCtx: unknown): ICalendarRepository {
+  if (!registry.calendarFactory) throw new Error("No calendar repository factory registered");
+  return registry.calendarFactory(dataCtx);
+}
 
 
 
@@ -375,6 +382,7 @@ export function __resetProviderRegistryForTests(): void {
   registry.dashboardFactory = undefined;
   registry.exportFactory = undefined;
   registry.academyFactory = undefined;
+  registry.calendarFactory = undefined;
   registry.moduleAccessFactory = undefined;
 }
 
