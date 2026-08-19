@@ -75,8 +75,7 @@ export function IntegrationConnectDialog({
       } as never),
     onSuccess: () => {
       toast.success("Integration connected");
-      qc.invalidateQueries({ queryKey: ["management-overview"] });
-      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["dash"] });
       onClose();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -86,8 +85,7 @@ export function IntegrationConnectDialog({
     mutationFn: () => disconnect({ data: { provider: provider as IntegrationProviderKey } } as never),
     onSuccess: () => {
       toast.success("Integration disconnected");
-      qc.invalidateQueries({ queryKey: ["management-overview"] });
-      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["dash"] });
       onClose();
     },
     onError: (e: Error) => toast.error(e.message),
