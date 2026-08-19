@@ -159,6 +159,16 @@ const env = {
   // --- Optional integrations ------------------------------------------
   OPSQAI_PG_DUMP_PATH: process.env.OPSQAI_PG_DUMP_PATH || "",
   OPSQAI_HEARTBEAT_URL: cfg.licensing?.heartbeatUrl || "",
+  // Fleet visibility heartbeat is part of the Basic platform, so it is on by
+  // default and points at the public Management Center unless the customer
+  // overrode it (air-gapped installs set heartbeat.enabled = false).
+  OPSQAI_MC_URL:
+    cfg.licensing?.mcUrl ||
+    cfg.licensing?.heartbeatUrl ||
+    process.env.OPSQAI_MC_URL ||
+    "https://opsqai.de",
+  OPSQAI_HEARTBEAT_ENABLED:
+    cfg.licensing?.heartbeatEnabled === false ? "false" : "true",
   OPSQAI_TELEMETRY_LEVEL: cfg.telemetry?.level || "anonymous",
 
   // --- SMTP (only set when configured in the installer) ---------------

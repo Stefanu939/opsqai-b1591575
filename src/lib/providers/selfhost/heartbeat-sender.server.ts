@@ -30,9 +30,12 @@ export interface HeartbeatSenderOptions {
   logger?: HeartbeatLogger;
 }
 
+/** Public Management Center that ingests fleet heartbeats. */
+export const DEFAULT_MC_BASE_URL = "https://opsqai.de";
+
 export const DEFAULT_HEARTBEAT_INTERVAL_MS = 5 * 60 * 1000;
 const MAX_BACKOFF_MS = 30 * 60 * 1000;
-const FIRST_BEAT_DELAY_CAP_MS = 30_000;
+const FIRST_BEAT_DELAY_MS = 5_000;
 
 function jitter(ms: number): number {
   const spread = ms * 0.2;
@@ -67,7 +70,10 @@ async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayl
   const cfg = readSelfHostConfig();
 
   const candidate = {
-    installation_id: opts.installId,
+    // The install id in the signed license is authoritative: the Management
+    // Center verifies the token against it, so a locally mis-set
+    // OPSQAI_INSTALL_ID must not silently 401 every beat.
+    installation_id: lic.claims.install_id || opts.installId,
     signed_token: lic.installRaw,
     organization_name: cfg.company?.name ?? undefined,
     country: process.env.OPSQAI_COUNTRY ?? undefined,
@@ -115,6 +121,20 @@ async function sendOnce(opts: HeartbeatSenderOptions, logger: HeartbeatLogger): 
   }
 }
 
+/**
+ * Send a single heartbeat immediately (first-run visibility + `opsqai doctor`).
+ * Never throws; returns whether the Management Center accepted the beat.
+ */
+export async function sendHeartbeatNow(opts: HeartbeatSenderOptions): Promise<boolean> {
+  const logger = opts.logger ?? {
+    info: () => {},
+    warn: (msg, err) => console.warn(msg, err),
+  };
+  return sendOnce({ ...opts, mcBaseUrl: opts.mcBaseUrl || DEFAULT_MC_BASE_URL }, logger).catch(
+    () => false,
+  );
+}
+
 interface RunningSender {
   stop: () => void;
 }
@@ -145,9 +165,10 @@ export function startHeartbeatSender(opts: HeartbeatSenderOptions): void {
     timer = setTimeout(tick, jitter(backoff));
   };
 
-  // Stagger the first beat so a fleet of simultaneous restarts doesn't
-  // thunder onto the Management Center at once.
-  timer = setTimeout(tick, jitter(Math.min(baseInterval, FIRST_BEAT_DELAY_CAP_MS)));
+  // Announce this install as soon as it boots so it shows up in the fleet
+  // immediately, then fall into the staggered periodic schedule so a fleet of
+  // simultaneous restarts doesn't thunder onto the Management Center at once.
+  timer = setTimeout(tick, jitter(Math.min(baseInterval, FIRST_BEAT_DELAY_MS)));
 
   running = {
     stop: () => {

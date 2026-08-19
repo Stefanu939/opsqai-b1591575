@@ -75,7 +75,10 @@ import { createLocalAuthProvider } from "./local-auth.server";
 import { createNtfsStorageProvider } from "./ntfs-storage.server";
 import { createSmtpNotificationProvider } from "./smtp-notification.server";
 import { createLocalLicensingProvider } from "./local-licensing.server";
-import { startHeartbeatSender } from "./heartbeat-sender.server";
+import {
+  startHeartbeatSender,
+  DEFAULT_MC_BASE_URL,
+} from "./heartbeat-sender.server";
 import { createWindowsBackupService } from "./windows-backup.server";
 import { createLocalTelemetrySink } from "./local-telemetry.server";
 import {
@@ -237,7 +240,10 @@ export async function bootstrapSelfHosted(): Promise<void> {
     installId: env.OPSQAI_INSTALL_ID,
     licenseFilePath: env.OPSQAI_LICENSE_FILE_PATH,
     licensePublicKey: licensePublic,
-    mcBaseUrl: env.OPSQAI_MC_URL,
+    // Basic-standard behaviour: when no explicit Management Center URL was
+    // configured we still report to the public MC. Only an explicit
+    // OPSQAI_HEARTBEAT_ENABLED=false (air-gapped) disables it.
+    mcBaseUrl: env.OPSQAI_MC_URL || env.OPSQAI_HEARTBEAT_URL || DEFAULT_MC_BASE_URL,
     enabled: env.OPSQAI_HEARTBEAT_ENABLED !== "false",
     intervalMs: env.OPSQAI_HEARTBEAT_INTERVAL_MS
       ? Number(env.OPSQAI_HEARTBEAT_INTERVAL_MS)
