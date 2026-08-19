@@ -55,6 +55,8 @@ import type {
   IExportRepository,
   AcademyRepositoryFactory,
   IAcademyRepository,
+  CalendarRepositoryFactory,
+  ICalendarRepository,
 } from "./interfaces";
 
 interface Registry {
