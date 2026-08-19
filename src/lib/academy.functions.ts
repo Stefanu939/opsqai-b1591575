@@ -826,7 +826,13 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
 
     const lesson = await repo.getLesson(attempt.lesson_id);
     if (!lesson) throw new Error("Lesson not found");
-    const passingScore: number = lesson.path_passing_score ?? 70;
+    // Course setting wins; otherwise the company Academy setting; 70 only as
+    // the last resort when neither is configured.
+    const passingScore: number =
+      lesson.path_passing_score ??
+      (lesson.company_id ? (await repo.getSettings(lesson.company_id))?.passing_score : null) ??
+      70;
+
 
     // Grade using stored, trusted correct_answer values.
     const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
