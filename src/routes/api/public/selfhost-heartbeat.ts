@@ -65,10 +65,10 @@ export const Route = createFileRoute("/api/public/selfhost-heartbeat")({
         // heartbeat still never creates or changes a license.
         const [{ data: install }, { data: licensedRows }] = await Promise.all([
           supabaseAdmin
-          .from("license_installs")
-          .select("install_id")
-          .eq("install_id", payload.installation_id)
-          .maybeSingle(),
+            .from("license_installs")
+            .select("install_id")
+            .eq("install_id", payload.installation_id)
+            .maybeSingle(),
           supabaseAdmin
             .from("licenses")
             .select("install_id")
