@@ -113,6 +113,7 @@ async function sendOnce(opts: HeartbeatSenderOptions, logger: HeartbeatLogger): 
       logger.warn(`[selfhost-heartbeat] Management Center responded with ${res.status}`);
       return false;
     }
+    logger.info("[selfhost-heartbeat] Management Center accepted heartbeat");
     return true;
   } catch (e) {
     // Air-gapped / offline installs must keep working — this is best-effort only.
@@ -168,6 +169,7 @@ export function startHeartbeatSender(opts: HeartbeatSenderOptions): void {
   // Announce this install as soon as it boots so it shows up in the fleet
   // immediately, then fall into the staggered periodic schedule so a fleet of
   // simultaneous restarts doesn't thunder onto the Management Center at once.
+  logger.info(`[selfhost-heartbeat] sender started; destination=${opts.mcBaseUrl}`);
   timer = setTimeout(tick, jitter(Math.min(baseInterval, FIRST_BEAT_DELAY_MS)));
 
   running = {

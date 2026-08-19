@@ -144,6 +144,15 @@ export const issueLicense = createServerFn({ method: "POST" })
       ? await supabaseAdmin.from("licenses").update(row).eq("id", existingInstall.id)
       : await supabaseAdmin.from("licenses").insert(row);
     if (error) throw new Error(mapLicenseDbError(error.message, data.install_id));
+
+    // Provision fleet bookkeeping when the installation license is issued,
+    // not only when an installation package is generated. This keeps manual
+    // and legacy installation flows eligible for heartbeat reporting.
+    const { error: installError } = await supabaseAdmin
+      .from("license_installs")
+      .upsert({ install_id: data.install_id }, { onConflict: "install_id", ignoreDuplicates: true });
+    if (installError) throw new Error(mapLicenseDbError(installError.message, data.install_id));
+
     return {
       ok: true,
       token,

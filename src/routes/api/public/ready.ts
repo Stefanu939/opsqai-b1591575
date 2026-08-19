@@ -2,8 +2,9 @@
 //
 // Phase 5. Cheap check meant for load balancers and process managers
 // (WinSW, Caddy upstream health) that just need to know "can this
-// process accept traffic right now?". Does NOT touch the database or
-// call providers — those live under /health.
+// process accept traffic right now?". On Self-Hosted this is also the
+// process-start hook that boots providers and arms the fleet heartbeat,
+// so an unattended installation reports without waiting for a UI visit.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getPlatformMode } from "@/lib/platform";
@@ -15,6 +16,10 @@ export const Route = createFileRoute("/api/public/ready")({
         let mode: string;
         try {
           mode = getPlatformMode();
+          const { ensureServerProviders } = await import(
+            "@/lib/providers/server-bootstrap.server"
+          );
+          await ensureServerProviders();
         } catch {
           // Platform module loaded but bootstrap not finished yet.
           return new Response(

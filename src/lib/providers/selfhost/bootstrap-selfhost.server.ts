@@ -249,6 +249,10 @@ export async function bootstrapSelfHosted(): Promise<void> {
       ? Number(env.OPSQAI_HEARTBEAT_INTERVAL_MS)
       : undefined,
     appVersion: env.OPSQAI_APP_VERSION,
+    logger: {
+      info: (message) => console.info(message),
+      warn: (message, error) => console.warn(message, error),
+    },
   });
 
   const backup = env.OPSQAI_PG_DUMP_PATH
