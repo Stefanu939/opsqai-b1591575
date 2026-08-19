@@ -3,7 +3,6 @@ import { useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   Users,
-  Package,
   KeyRound,
   Radio,
   Rocket,
