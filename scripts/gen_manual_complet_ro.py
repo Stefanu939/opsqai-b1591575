@@ -1042,7 +1042,7 @@ def cover_page(canv, doc):
     canv.setFillColor(NOIR)
     canv.rect(0, 0, PAGE_W, PAGE_H, stroke=0, fill=1)
     canv.setFillColor(GREEN)
-    canv.rect(0, PAGE_H * 0.68, PAGE_W, PAGE_H * 0.32, stroke=0, fill=1)
+    canv.rect(0, PAGE_H * 0.80, PAGE_W, PAGE_H * 0.20, stroke=0, fill=1)
     canv.setStrokeColor(GOLD)
     canv.setLineWidth(2)
     canv.line(25 * mm, PAGE_H - 48 * mm, 25 * mm + 40 * mm, PAGE_H - 48 * mm)
