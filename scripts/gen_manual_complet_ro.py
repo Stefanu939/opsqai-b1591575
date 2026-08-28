@@ -72,7 +72,8 @@ QUOTE = ParagraphStyle(
     leftIndent=10, rightIndent=10, spaceBefore=5, spaceAfter=9, backColor=CREAM, borderPadding=10,
 )
 CODE = ParagraphStyle("Code", fontName="Mono", fontSize=8.6, leading=12.4, textColor=NOIR,
-                      backColor=SOFT, borderPadding=8, spaceAfter=8)
+                      backColor=SOFT, borderPadding=8, spaceBefore=10, spaceAfter=14)
+TIP_TEXT = ParagraphStyle("TipText", fontName="Body-Italic", fontSize=10.6, leading=16, textColor=NOIR)
 SMALL = ParagraphStyle("Small", fontName="Body", fontSize=8.6, leading=12, textColor=MUTED)
 TBL_H = ParagraphStyle("TblH", fontName="Body-Bold", fontSize=9, leading=12, textColor=colors.white)
 TBL_C = ParagraphStyle("TblC", fontName="Body", fontSize=9, leading=12.5, textColor=INK)
