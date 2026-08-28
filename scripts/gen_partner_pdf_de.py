@@ -690,13 +690,13 @@ def p12_cta(c) -> None:
             y -= 14
         y -= 8
 
-    box_w, box_h = 110 * mm, 20 * mm
+    box_w, box_h = 130 * mm, 20 * mm
     c.setStrokeColor(GOLD)
     c.setLineWidth(0.9)
     c.rect(W / 2 - box_w / 2, y - box_h, box_w, box_h, stroke=1, fill=0)
     c.setFillColor(GOLD)
-    c.setFont(BOLD, 12.4)
-    c.drawCentredString(W / 2, y - 12 * mm, "20–30 Minuten Kennenlernen & Produktdemo")
+    c.setFont(BOLD, 11.6)
+    c.drawCentredString(W / 2, y - 12.5 * mm, "20–30 Minuten Kennenlernen & Produktdemo")
     y -= box_h + 14 * mm
 
     c.setFillColor(CREAM)
