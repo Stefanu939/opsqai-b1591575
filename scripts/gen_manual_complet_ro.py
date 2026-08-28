@@ -131,7 +131,20 @@ def table(headers, rows, widths=None):
 
 
 def tip(text):
-    return Paragraph(f"<b>Sfat:</b> {text}", QUOTE)
+    p = Paragraph(f"<b>Sfat:</b> {text}", TIP_TEXT)
+    t = Table([[p]], colWidths=[PAGE_W - 2 * MARGIN])
+    t.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), CREAM),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ]
+        )
+    )
+    return KeepTogether([Spacer(1, 4), t, Spacer(1, 8)])
 
 
 # ---------------------------------------------------------------- content
