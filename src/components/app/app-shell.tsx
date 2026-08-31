@@ -45,6 +45,7 @@ import { SubscriptionStatusBanner } from "@/components/app/subscription-status-b
 import { useLicense, hasModule } from "@/lib/license";
 import type { ModuleKey } from "@/lib/license-modules";
 import { buildAppNavigation, type NavEntry } from "@/lib/app-navigation";
+import { resolveWorkspaceIcon } from "@/lib/workspace-icons";
 // SupportWidget is mounted globally in __root.tsx so it appears on marketing
 // pages too. Do not remount here or the bubble/badge will duplicate.
 
@@ -158,6 +159,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     enabledProducts: license.products,
     entitlements: license.modules,
     gate: (i) => gate((i.module ?? null) as ModuleKey | null),
+    // Canonical workspace metadata carries icon *names*; the shell resolves
+    // them to real Lucide components.
+    resolveIcon: (name) => resolveWorkspaceIcon(name),
   }) as unknown as Array<{ label: string; items: NavItem[] }>;
 
   // Legacy flat `nav` kept for the mobile bottom-tab bar — primary items only.

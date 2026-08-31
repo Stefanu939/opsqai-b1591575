@@ -96,9 +96,25 @@ UI as a dead link.
 4. Empty groups are dropped, so a licensed product whose workspaces are still in
    preparation adds nothing to the sidebar.
 
-Today every product workspace is `planned`, so the sidebar shows the Core group
-only. Shipping a real product route means flipping one workspace to
-`implemented` with its route — no navigation code changes.
+### Real workspace routes
+
+Every workspace is served by one real route family:
+
+```text
+/app/products/<product-slug>/<workspace-slug>
+```
+
+implemented by `src/routes/_authenticated/app.products.$product.$workspace.tsx`.
+The page resolves the workspace from the canonical catalogue, verifies the
+product is explicitly enabled by the installation license, then renders the
+workspace context plus the Core capabilities relevant to that domain. Core
+capabilities are only *presented* in context — they are never re-classified,
+never become product features, and stay RBAC-gated.
+
+Six products exist: Operations (cross-industry) and Logistics are `available`;
+Transport, HR, Finance and Inventory are `planned` at product level but already
+declare their workspace structure. A workspace never renders unless its
+product is enabled — a company profile alone only recommends.
 
 ### Terminology and compatibility
 

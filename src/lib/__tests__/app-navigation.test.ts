@@ -3,6 +3,9 @@ import { buildAppNavigation, productsWithNavigation, type NavEntry } from "@/lib
 import {
   PRODUCT_WORKSPACES,
   PRODUCT_KEYS,
+  CORE_CAPABILITY_KEYS,
+  findWorkspace,
+  getProduct,
   implementedWorkspacesForProduct,
   resolveProductWorkspaces,
   workspacesForProduct,
@@ -88,5 +91,51 @@ describe("buildAppNavigation", () => {
     expect(enabled.filter((g) => g.id !== "core").length).toBe(
       productsWithNavigation({ enabledProducts: [...PRODUCT_KEYS] }).length,
     );
+  });
+});
+
+describe("real product workspaces", () => {
+  it("gives every product at least one implemented workspace with a routed URL", () => {
+    for (const key of PRODUCT_KEYS) {
+      const impl = implementedWorkspacesForProduct(key);
+      expect(impl.length, key).toBeGreaterThan(0);
+      for (const w of impl) {
+        expect(w.route, w.key).toMatch(/^\/app\/products\/[a-z]+\/[a-z-]+$/);
+      }
+    }
+  });
+
+  it("resolves a workspace from its route params and rejects unknown ones", () => {
+    const found = findWorkspace("logistics", "overview");
+    expect(found?.product.key).toBe("opsqai_logistics");
+    expect(found?.workspace.status).toBe("implemented");
+    expect(findWorkspace("logistics", "nope")).toBeNull();
+    expect(findWorkspace("nope", "overview")).toBeNull();
+  });
+
+  it("includes the cross-industry Operations product", () => {
+    expect(PRODUCT_KEYS).toContain("opsqai_operations");
+    expect(getProduct("opsqai_operations")?.status).toBe("available");
+    expect(implementedWorkspacesForProduct("opsqai_operations").length).toBeGreaterThan(0);
+  });
+
+  it("builds one navigation group per enabled product, never for a profile alone", () => {
+    const profileOnly = buildAppNavigation({ coreItems, profile: "enterprise_operations" });
+    expect(profileOnly.filter((g) => g.id !== "core")).toEqual([]);
+
+    const groups = buildAppNavigation({
+      coreItems,
+      profile: "enterprise_operations",
+      enabledProducts: ["opsqai_operations", "opsqai_hr"],
+    });
+    expect(groups.map((g) => g.id)).toEqual(["core", "opsqai_operations", "opsqai_hr"]);
+  });
+
+  it("only surfaces Core capabilities as domain context, never re-classified", () => {
+    for (const w of PRODUCT_WORKSPACES) {
+      for (const c of w.coreCapabilities ?? []) {
+        expect(CORE_CAPABILITY_KEYS as readonly string[], `${w.key}/${c}`).toContain(c);
+      }
+    }
   });
 });
