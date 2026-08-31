@@ -71,8 +71,9 @@ export const RULES = [
   {
     id: "hardcoded-model",
     label: "hard-codes a model id",
+    // Model ids only — never hostnames (e.g. "gpt-eng.com") or prose.
     pattern:
-      /["'`](?:google\/gemini[\w.\-]*|openai\/[\w.\-]+|anthropic\/[\w.\-]+|gpt-[\w.\-]+|claude-[\w.\-]+|qwen[\w.:\-]*|bge-m3)["'`]/,
+      /["'`](?:google\/gemini[\w.\-]*|openai\/[\w.\-]+|anthropic\/[\w.\-]+|gpt-\d[\w.\-]*|claude-\d[\w.\-]*|claude-(?:opus|sonnet|haiku)[\w.\-]*|qwen[\d][\w.:\-]*|bge-m3)["'`]/,
   },
 ];
 
