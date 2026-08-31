@@ -413,7 +413,212 @@ const de: HomeCopy = {
   },
 };
 
+const ro: HomeCopy = {
+  hero: {
+    eyebrow: "Inteligență operațională pentru companii",
+    serifAccent: "pentru oameni.",
+    h1a: "Sistemul de operare",
+    h1b: "pentru cunoștințe operaționale —",
+    intro:
+      "OPSQAI este o platformă Windows Self-Hosted care aduce AI guvernat în operațiunile industriale. Suverană prin design. Clienții dețin datele, documentele, embeddings-urile și furnizorul de AI. Noi nu vedem niciodată cunoștințele operaționale — și am construit-o intenționat așa, pentru că",
+    introEm: "nu se poate fără ei",
+    scrollHint: "Derulați — filmul începe",
+    acts: ["Haos", "Documente", "SOP-uri", "Rețea", "OPSQAI"],
+  },
+  cta: {
+    howItWorks: "Cum funcționează",
+    requestDemo: "Solicită demo",
+  },
+  whoFor: {
+    eyebrow: "Pentru cine este OPSQAI",
+    title: "Construit pentru operațiuni industriale.",
+    intro:
+      "OPSQAI este conceput pentru echipe ale căror cunoștințe sunt operaționale, reglementate și nu au voie să părăsească niciodată granița companiei.",
+    audiences: [
+      "Depozitare",
+      "Logistică",
+      "Producție",
+      "Fabricație",
+      "Distribuție",
+      "Operațiuni la nivel de companie",
+    ],
+  },
+  whyNow: {
+    eyebrow: "De ce acum",
+    title: "Companiile industriale nu pot preda cunoștințele către LLM-uri publice.",
+    intro:
+      "Documentele operaționale, SOP-urile, procedurile și auditurile descriu modul real de funcționare a unei afaceri. Ele necesită proprietate, guvernanță și suveranitate completă a datelor — nu o fereastră de chat susținută de un tenant cloud pe care nimeni nu îl controlează.",
+    reasons: [
+      { title: "Datele nu pot părăsi compania", body: "Cunoștințele operaționale sunt proprietate exclusivă. Autoritățile de reglementare și clienții cer ca acestea să rămână în interiorul granițelor companiei." },
+      { title: "AI trebuie să fie guvernat", body: "Fiecare răspuns are nevoie de trasabilitate: ce document, ce versiune, ce utilizator. Chatboturile publice nu pot oferi acest lucru." },
+      { title: "Infrastructura este Windows", body: "Operațiunile reale rulează pe Windows Server, Active Directory și PostgreSQL on-premise. OPSQAI vine exact acolo unde sunt clienții." },
+    ],
+  },
+  surfaces: {
+    eyebrow: "Arhitectura produsului",
+    title: "O platformă. Trei interfețe. Un singur produs.",
+    intro:
+      "OPSQAI Cloud nu este produsul. Instalarea Windows Self-Hosted este produsul. Cele două interfețe cloud există doar pentru a-l susține.",
+    items: [
+      {
+        tag: "Cloud · Doar OPSQAI",
+        name: "Management Center",
+        body: "Plan de control intern, folosit exclusiv de OPSQAI pentru administrarea clienților: companii, instalări, licențe, versiuni, chei de semnare, pachete de activare, proprietate, suport și audit. Nu se vinde niciodată, nu se instalează niciodată, nu este accesibil clienților.",
+      },
+      {
+        tag: "Cloud · Contacte client",
+        name: "Portal Client",
+        body: "Interfață de servicii la opsqai.de pentru contactele desemnate ale clienților. Descarcă instalatorul și actualizările, preia pachetele de activare, citește note de lansare și documentație, gestionează abonamentul și suportul. Nu este produsul — este un strat de servicii în jurul lui.",
+      },
+      {
+        tag: "Windows · Produsul",
+        name: "Self-Hosted",
+        body: "Instalarea Windows Self-Hosted este produsul. AI Chat, Bază de Cunoștințe, FAQ, Academy, Audit AI, Utilizatori, Organizație, Abonament, Actualizări și Module — toate rulează în interiorul mediului clientului. Angajații lucrează aici în fiecare zi.",
+      },
+    ],
+    noteStrong: "Important:",
+    note:
+      "OPSQAI Cloud nu este produsul. Există doar pentru licențiere, versiuni, distribuirea instalatorului, suport pentru clienți, Portalul Client și Management Center. Produsul propriu-zis este instalarea Windows din interiorul mediului clientului.",
+  },
+  basic: {
+    eyebrow: "Platforma de Bază",
+    title: "Tot ce ai nevoie pentru a opera din prima zi.",
+    intro:
+      "Platforma de Bază este inclusă în fiecare instalare OPSQAI. Este ceea ce angajații folosesc zilnic.",
+    items: [
+      { name: "AI Chat", body: "Conversații fundamentate, cu citarea surselor, bazate pe propriile cunoștințe ale clientului." },
+      { name: "Bază de Cunoștințe", body: "SOP-uri, manuale și proceduri — segmentate, transformate în embeddings și recuperabile local." },
+      { name: "FAQ", body: "Răspunsuri operaționale curate, clasificate și reutilizate în cadrul forței de muncă." },
+      { name: "Academy", body: "Trasee de instruire structurate și lecții construite din baza de cunoștințe." },
+      { name: "Audit AI", body: "Fiecare interacțiune AI este înregistrată cu intrări, ieșiri, surse și utilizatori." },
+      { name: "Utilizatori", body: "Acces bazat pe roluri: owner, admin, manager, supervizor, lucrător, vizualizator." },
+      { name: "Organizație", body: "Configurează furnizorul de AI, departamentele, brandingul și politica la nivel de workspace." },
+      { name: "Abonament", body: "Vezi exact ce platformă și module sunt licențiate pentru această instalare." },
+    ],
+  },
+  premium: {
+    eyebrow: "Module Premium",
+    title: "Extinde capabilitățile fără reinstalare.",
+    intro:
+      "Modulele premium deblochează capabilități mai avansate peste Platforma de Bază. Fiecare este licențiat separat și activat de OPSQAI printr-o licență semnată — fără reinstalare, fără timp de nefuncționare.",
+    reasons: [
+      { title: "Activare prin licență semnată", body: "OPSQAI emite un pachet de licență semnat Ed25519. Instalarea îl verifică local și deblochează modulul." },
+      { title: "Fără dependențe între module", body: "Modulele sunt independente. Cumperi doar ce are nevoie operațiunea ta, atunci când are nevoie." },
+      { title: "Activare pe loc", body: "Fără reinstalare, fără migrare, fără mutare de date. Activarea este silențioasă și instantanee." },
+    ],
+    browseModules: "Vezi toate modulele",
+  },
+  compare: {
+    eyebrow: "Model de livrare",
+    title: "OPSQAI vs. chatboturi cloud, RAG artizanal și enterprise search.",
+    intro:
+      "OPSQAI nu este un chatbot găzduit, nu este un stack construit intern, nu este un alt instrument de enterprise search. Este o platformă de AI operațional self-hosted.",
+    colHeaders: ["OPSQAI", "Chatbot cloud", "RAG artizanal", "Enterprise search"],
+    rows: [
+      { label: "Implementare", opsqai: "Windows Self-Hosted", chatbot: "SaaS public", diy: "Stack on-premise artizanal", search: "SaaS enterprise" },
+      { label: "Proprietatea datelor", opsqai: "Client", chatbot: "Tenant furnizor", diy: "Client", search: "Tenant furnizor" },
+      { label: "Furnizor AI", opsqai: "Alegerea clientului", chatbot: "Legat de furnizor", diy: "Alegerea clientului", search: "Legat de furnizor" },
+      { label: "Auditabilitate", opsqai: "Audit hash-chained", chatbot: "Definit de furnizor", diy: "Se construiește intern", search: "Parțială" },
+      { label: "Guvernanță", opsqai: "Bazată pe roluri, la nivel de fragment", chatbot: "De bază", diy: "Artizanală", search: "La nivel de document" },
+      { label: "Răspunsuri fundamentate", opsqai: "Întotdeauna citate", chatbot: "Adesea halucinează", diy: "Depinde de implementare", search: "Limitat la cuvinte-cheie" },
+      { label: "Timp până la valoare", opsqai: "Săptămâni", chatbot: "Zile", diy: "Trimestre", search: "Trimestre" },
+    ],
+  },
+  diff: {
+    eyebrow: "Diferențiere",
+    title: "Douăsprezece motive pentru care echipele operaționale aleg OPSQAI.",
+    items: [
+      { title: "Self-Hosted", body: "Rulează în întregime în mediul tău Windows." },
+      { title: "Nativ Windows", body: "Windows Server, servicii WinSW, Caddy — fără Docker, fără Linux." },
+      { title: "Capabil offline", body: "Operarea zilnică este complet locală. Cloud doar pentru licențiere și actualizări." },
+      { title: "AI guvernat", body: "Fiecare răspuns este fundamentat și citat din cunoștințe locale." },
+      { title: "Jurnal de audit", body: "Audit hash-chained, append-only al fiecărei acțiuni privilegiate sau AI." },
+      { title: "Licențiere pe module", body: "Module premium semnate, activate fără reinstalare." },
+      { title: "Citarea surselor", body: "Răspunsurile trimit înapoi la documentul și secțiunea exactă." },
+      { title: "Acces bazat pe roluri", body: "ACL-uri la nivel de fragment; owners, admini, manageri, lucrători, vizualizatori." },
+      { title: "Embeddings locale", body: "pgvector în interiorul propriului PostgreSQL. Vectorii nu părăsesc niciodată mediul." },
+      { title: "Clientul deține datele", body: "Documente, embeddings, conversații, utilizatori — toate deținute de client." },
+      { title: "Alegerea modelului AI", body: "OpenAI, Azure OpenAI, Ollama, OpenRouter sau endpointuri compatibile." },
+      { title: "Fără dependență de furnizor", body: "Artefacte semnate, date portabile, DR documentat. Poți pleca oricând." },
+    ],
+  },
+  landExpand: {
+    eyebrow: "Land & Expand",
+    title: "O călătorie a clientului în cinci pași.",
+    intro: "OPSQAI este conceput să înceapă concentrat și să crească odată cu operațiunea.",
+    steps: [
+      { title: "Land", body: "Începe cu Platforma de Bază pe un singur Windows Server. Un departament, un domeniu operațional." },
+      { title: "Ground", body: "Se încarcă SOP-uri, manuale și proceduri. Embeddings locale; furnizor AI deținut de client." },
+      { title: "Adopt", body: "Angajații folosesc zilnic AI Chat, FAQ și Academy. Audit AI înregistrează fiecare interacțiune." },
+      { title: "Expand", body: "Activează module premium prin licențe semnate — fără reinstalare, fără timp de nefuncționare." },
+      { title: "Scale", body: "Extindere la sedii și departamente adiacente. Mentenanța anuală menține totul actualizat." },
+    ],
+  },
+  maturity: {
+    eyebrow: "Maturitate în producție",
+    title: "Nu un prototip. O platformă de producție.",
+    intro: "Tot ce urmează este livrat astăzi în produsul Windows Self-Hosted.",
+    items: [
+      "Instalator Windows Server cu servicii WinSW",
+      "PostgreSQL local cu pgvector",
+      "Embeddings locale, fără roundtrip în cloud pentru conținut",
+      "Licențe semnate Ed25519, verificate offline",
+      "Pachete de activare semnate, cu valabilitate de 90 de zile",
+      "Jurnal de audit hash-chained cu CRL",
+      "Aplicarea ACL-urilor la nivel de fragment",
+      "Furnizor AI configurabil (OpenAI, Azure, Ollama, compatibil)",
+      "Manifeste de lansare și actualizări semnate",
+      "Disaster recovery documentat cu token-uri bootstrap",
+      "Control al accesului bazat pe roluri în tot workspace-ul",
+      "Interfață bilingvă (EN/DE) și suport PWA",
+    ],
+  },
+  faq: {
+    eyebrow: "FAQ",
+    title: "Răspunsuri la ce contează cu adevărat.",
+    items: [
+      {
+        q: "OPSQAI este un produs SaaS?",
+        a: "Nu. OPSQAI este un produs Windows Self-Hosted. Angajații nu lucrează niciodată în cloud — ei lucrează în instalarea care rulează pe propriul Windows Server al clientului. OPSQAI Cloud există doar pentru licențiere, versiuni, distribuirea instalatorului, suport pentru clienți, Portalul Client și Management Center.",
+      },
+      {
+        q: "OPSQAI vede cunoștințele noastre operaționale?",
+        a: "Nu. Documentele, embeddings-urile, conținutul conversațiilor și utilizatorii se află exclusiv în instalarea clientului. OPSQAI nu stochează niciodată cunoștințe operaționale ale clientului. Doar metadatele de licență și instalare ajung la OPSQAI Cloud.",
+      },
+      {
+        q: "Ce furnizori de AI sunt acceptați?",
+        a: "OpenAI, Azure OpenAI, Ollama, OpenRouter și orice endpoint personalizat compatibil OpenAI. Clientul deține furnizorul de AI și cheile acestuia. OPSQAI nu are un furnizor implicit.",
+      },
+      {
+        q: "Cum obținem module noi?",
+        a: "Modulele premium se achiziționează separat și sunt activate de OPSQAI printr-un pachet de licență semnat. Activarea este silențioasă — fără reinstalare, fără mutare de date.",
+      },
+      {
+        q: "Ce se întâmplă dacă rămânem offline?",
+        a: "Operarea zilnică continuă. Instalarea trebuie să contacteze OPSQAI Cloud doar pentru activarea licenței, verificarea actualizărilor și suport. Tot restul — chat, recuperare, audit — este complet local.",
+      },
+      {
+        q: "Rulați pe Docker sau Linux?",
+        a: "Nu. OPSQAI este un produs Windows Self-Hosted. Rulează direct pe Windows Server, gestionat de WinSW, cu PostgreSQL local și Caddy. Nu există nicio cerință pentru Docker, Kubernetes sau Linux.",
+      },
+    ],
+  },
+  finalCta: {
+    title: "Adu AI la lucru pentru operațiunea ta.",
+    body:
+      "Discută cu OPSQAI despre o instalare de referință a produsului Windows Self-Hosted. Vezi exact cum rulează AI-ul operațional guvernat în mediul tău.",
+    requestDemo: "Solicită demo",
+    seeHowItWorks: "Vezi cum funcționează",
+    aboutOpsqai: "Despre OPSQAI",
+  },
+  mottoBand: {
+    lineOne: "Pentru oameni.",
+    lineTwo: "Nu fără ei.",
+    ariaLabel: "Pentru oameni. Nu fără ei.",
+  },
+};
+
 export function useHomeCopy(): HomeCopy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }

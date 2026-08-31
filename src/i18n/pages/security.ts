@@ -134,7 +134,74 @@ const de: Copy = {
   },
 };
 
+
+const ro: Copy = {
+  hero: {
+    eyebrow: "Securitate · Verificabilă",
+    headline: "Demonstrată",
+    serifAccent: "nu doar de încredere.",
+    body: "OPSQAI este suveran prin design. Cunoștințele operaționale rămân pe Windows Server-ul clientului. Artefactele semnate dovedesc proveniența. Fiecare acțiune privilegiată este înregistrată într-un jurnal de audit înlănțuit prin hash.",
+    ctaPrimary: "Solicitați DPA / evaluare de securitate",
+    ctaSecondary: "Arhitectură suverană",
+  },
+  guarantee: {
+    eyebrow: "Garanția",
+    lead: "OPSQAI nu vede niciodată cunoștințele operaționale ale clientului.",
+    accent: "Documentele, conversațiile, embeddings și utilizatorii rămân în cadrul instalării clientului.",
+  },
+  pillars: {
+    eyebrow: "Douăsprezece piloni",
+    headline: "Securitate",
+    serifAccent: "prin construcție.",
+    items: [
+      { title: "Licențe semnate Ed25519", body: "Fiecare licență este un pachet semnat Ed25519. Instalarea o verifică local, offline. Revocarea este permanentă și legată criptografic de identitatea instalării." },
+      { title: "Pachete de activare semnate", body: "Pachetele de activare sunt semnate de OPSQAI cu o valabilitate de 90 de zile. Pachetele expirate sunt refuzate; reînnoirea se emite prin Portalul Clienților." },
+      { title: "Jurnal de audit înlănțuit prin hash", body: "Acțiunile privilegiate și cele ale AI sunt adăugate la un jurnal de audit înlănțuit prin hash. Orice modificare rupe lanțul și este detectată la verificare." },
+      { title: "Listă de revocare a certificatelor", body: "OPSQAI menține un CRL semnat pentru licențe și pachete de activare. Instalarea îl verifică la fiecare heartbeat și refuză artefactele revocate." },
+      { title: "ACL la nivel de fragment", body: "Recuperarea este aplicată la nivel de fragment (chunk). Utilizatorii văd doar citate fundamentate din documentele permise de rolul și departamentul lor." },
+      { title: "Clientul deține datele", body: "Documentele, embeddings, conversațiile, utilizatorii și configurația sunt stocate în cadrul instalării clientului. OPSQAI nu vede niciodată cunoștințele operaționale ale clientului." },
+      { title: "Versiuni semnate", body: "Pachetele de instalare și manifestele de actualizare sunt semnate. Actualizatorul refuză orice artefact care eșuează verificarea." },
+      { title: "Criptare în tranzit și în repaus", body: "TLS peste tot, prin Caddy. Stocarea PostgreSQL respectă politica Windows Server. Backupurile pot fi criptate integral." },
+      { title: "Jurnal de audit doar-adăugare", body: "Emiterea licenței, transferul de proprietate, promovarea la admin, activarea modulelor — fiecare acțiune privilegiată este înregistrată cu actor, țintă și marcaj temporal." },
+      { title: "Acces bazat pe roluri", body: "Proprietar de workspace, admin, manager, supervizor, lucrător, vizualizator. Platform Super Admin este un rol OPSQAI separat, strict delimitat." },
+      { title: "Graniță single-tenant", body: "Fiecare instalare corespunde unui singur client. Fără baze de date, magazii vectoriale sau chei AI partajate — nimic nu traversează granițele dintre clienți." },
+      { title: "Aliniat GDPR", body: "Componente cloud găzduite în UE, DPA disponibil la cerere, proceduri de ștergere documentate atât pentru metadatele din cloud, cât și pentru conținutul on-premise." },
+    ],
+  },
+  boundary: {
+    eyebrow: "Granița",
+    headline: "Ce traversează. Ce",
+    serifAccent: "rămâne.",
+    cloud: {
+      title: "Cloud · gestionat de OPSQAI",
+      items: [
+        "· Metadatele clientului și ale instalării",
+        "· Înregistrări de licențe și chei de semnare",
+        "· Manifeste de versiuni și CRL",
+        "· Conversații de suport",
+      ],
+    },
+    onprem: {
+      title: "On-premise · deținut de client",
+      items: [
+        "· Documente, SOP-uri și embeddings",
+        "· Mesaje de chat și înregistrări de audit AI",
+        "· Conturi și roluri ale utilizatorilor finali",
+        "· Configurația workspace-ului și cheile AI",
+      ],
+    },
+  },
+  finalCta: {
+    eyebrow: "Achiziții, InfoSec, conformitate",
+    headline: "Aduceți chestionarul dumneavoastră",
+    serifAccent: "aici.",
+    body: "Răspundem la evaluări de securitate din partea echipelor de achiziții, InfoSec și conformitate.",
+    ctaPrimary: "Contactați echipa de securitate",
+    ctaSecondary: "Arhitectură Self-Hosted",
+  },
+};
+
 export function useSecurityCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }
