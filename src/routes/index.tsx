@@ -190,13 +190,30 @@ function Hero() {
           <ParticleGenesis progress={progress} autoPlay={false} />
           <GoldBloom />
         </Scene3D>
+        {/* Readability scrims — theme-aware so the editorial copy stays legible
+            over the 3D stage in both light and dark. */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(80% 60% at 50% 20%, rgba(91,61,245,0.22) 0%, transparent 60%), linear-gradient(180deg, rgba(10,11,20,0.55) 0%, rgba(10,11,20,0.85) 100%)",
+              "radial-gradient(70% 55% at 50% 18%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, transparent 62%)",
           }}
         />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, color-mix(in oklab, var(--oix-bg-deep) 78%, transparent) 0%, color-mix(in oklab, var(--oix-bg-deep) 62%, transparent) 55%, color-mix(in oklab, var(--oix-bg-deep) 92%, transparent) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(100deg, color-mix(in oklab, var(--oix-bg-deep) 88%, transparent) 0%, color-mix(in oklab, var(--oix-bg-deep) 55%, transparent) 48%, transparent 78%)",
+          }}
+        />
+
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-40 md:pt-40 md:pb-48">
