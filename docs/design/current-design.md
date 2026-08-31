@@ -49,9 +49,9 @@ Global `:root` / `.dark` tokens; module shell `src/components/app/module-page.ts
 ## Management Center — `/management/*` and Customer Portal — `/portal/*`
 
 Shell `src/components/mc/mc-shell.tsx` and `src/routes/_authenticated/portal.tsx` use the
-`.n` shell with `n-card` floating regions (sidebar, header, main) separated by `gap-4`,
-248px sidebar, 14/16px header bar. `.oq-soft` remains only as a compatibility scope that
-inherits the Aurora Noir tokens.
+`.oq-soft` scope, which now inherits the Aurora Noir tokens: floating `oq-soft-card`
+regions (sidebar, header, main) separated by `gap-4`, 248px sidebar, 14/16px header bar,
+soft shadow + hover lift.
 
 ## Public website — marketing routes
 
