@@ -1,5 +1,10 @@
-// Catalog of every OPSQAI platform feature exposed in the Customer Manager.
-// Edit per customer in the Feature Matrix tab.
+// LEGACY feature vocabulary exposed in the Customer Manager Feature Matrix.
+//
+// Compatibility layer over the canonical model in
+// `@/lib/product-architecture.ts`. Keys here are legacy ids; use
+// `featureClassification()` / `canonicalKey()` to reason about what a key
+// actually is (Core / Product / Add-on) rather than the `category` label.
+import { canonicalKey, classifyLegacy, type Classification } from "@/lib/product-architecture";
 
 export type FeatureState = "enabled" | "disabled" | "beta" | "enterprise" | "coming_soon";
 
@@ -9,6 +14,17 @@ export interface FeatureDef {
   category: "AI" | "Knowledge" | "Governance" | "Administration" | "Experience";
   defaultState: FeatureState;
 }
+
+/** Canonical classification of a legacy Feature Matrix key. */
+export function featureClassification(key: string): Classification | "unknown" {
+  return classifyLegacy(key);
+}
+
+/** Canonical capability/product key for a legacy Feature Matrix key. */
+export function featureCanonicalKey(key: string): string {
+  return canonicalKey(key);
+}
+
 
 export const FEATURE_CATALOG: FeatureDef[] = [
   // AI
