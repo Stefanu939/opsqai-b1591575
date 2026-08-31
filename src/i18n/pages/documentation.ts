@@ -88,7 +88,51 @@ const de: Copy = {
   },
 };
 
+
+const ro: Copy = {
+  hero: {
+    eyebrow: "Documentație",
+    headline: "Totul, documentat.",
+    body: "OPSQAI este livrat ca platformă Self-Hosted nativă pentru Windows. Aceste manuale acoperă instalarea, arhitectura, securitatea, produsul, referința tehnică și ingineria. Pentru note despre produs și anunțuri de versiuni, consultați",
+    blogLink: "blogul",
+    bodyEnd: ". Ghidurile specifice fiecărui client se află în Portalul Clienților.",
+  },
+  books: [
+    {
+      title: "Ghidul Administratorului",
+      body: "Instalați, configurați și operați OPSQAI Self-Hosted pe un Windows Server dedicat. Instalator semnat, servicii Windows native, PostgreSQL Portable, stocare de obiecte, SMTP, SSO, furnizor AI, licență, backupuri, actualizări, depanare.",
+    },
+    {
+      title: "Manualul de Arhitectură",
+      body: "Cum este construit OPSQAI, de la un capăt la altul: containere, flux de date, sistem de licențe, pipeline RAG, model de securitate, adaptoare de stocare, topologie de implementare.",
+    },
+    {
+      title: "Documentația Produsului",
+      body: "Ce este OPSQAI, de ce există, ce face fiecare modul, cum funcționează licențierea, cum rămân răspunsurile AI fundamentate pe baza dumneavoastră de cunoștințe.",
+    },
+    {
+      title: "Documentația de Securitate",
+      body: "Criptare în repaus și în tranzit, RLS, securitatea licenței, semnarea actualizărilor, criptarea backupurilor, jurnalizarea auditului, DR/BC, răspuns la incidente.",
+    },
+    {
+      title: "Referință Tehnică",
+      body: "Referință servicii Windows (Caddy, Platform, Worker, PostgreSQL, Updater), variabile de mediu, porturi, structura pe disc, contractul adaptorului AI, internele pipeline-ului RAG, embeddings, adaptoare de stocare, API public, joburi, schema bazei de date.",
+    },
+    {
+      title: "Manualul de Inginerie",
+      body: "Convenții, proces de lansare, adăugarea de module, emiterea licențelor, adăugarea adaptoarelor AI, publicarea imaginilor de containere, migrări, lista de verificare pre-lansare.",
+    },
+  ],
+  openBook: "Deschideți →",
+  installSpecific: {
+    headline: "Căutați documentație specifică instalării?",
+    body: "Contactele clientului pot răsfoi documentația specifică instalării și notele de versiune în Portalul Clienților.",
+    ctaPrimary: "Deschideți Portalul Clienților",
+    ctaSecondary: "Contactați-ne",
+  },
+};
+
 export function useDocumentationCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }
