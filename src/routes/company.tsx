@@ -32,7 +32,7 @@ export const Route = createFileRoute("/company")({
         "OPSQAI is building the operational AI layer for industrial companies. Windows self-hosted, sovereign by design. Mission, team and go-to-market.",
       path: "/company",
       keywords:
-        "OPSQAI company, mission, team, go-to-market, DACH logistics, industrial AI, sovereign AI",
+        "OPSQAI company, mission, team, go-to-market, DACH industry, operational AI, sovereign AI",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Company", path: "/company" },

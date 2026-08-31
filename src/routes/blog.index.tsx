@@ -10,7 +10,7 @@ export const Route = createFileRoute("/blog/")({
       description:
         "Engineering, product and security notes from the OPSQAI team — how the self-hosted Windows platform is built and operated.",
       path: "/blog",
-      keywords: "OPSQAI blog, self-hosted, RAG, Windows Server, on-prem AI, logistics",
+      keywords: "OPSQAI blog, self-hosted, RAG, Windows Server, on-prem AI, Ollama, operational AI",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Blog", path: "/blog" },
