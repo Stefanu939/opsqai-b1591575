@@ -1269,6 +1269,12 @@ export interface IBrowserAuthProvider {
 
   /** Current session, or null if signed out. */
   getSession(): Promise<OpsqaiSession | null>;
+  /**
+   * Force a token refresh. Optional: implementations without refresh
+   * tokens may omit it. Returns null when the stored session can no
+   * longer be refreshed (revoked / expired refresh token).
+   */
+  refreshSession?(): Promise<OpsqaiSession | null>;
   /** Current user (revalidated against the auth server). */
   getUser(): Promise<OpsqaiUser | null>;
   /** Claims for the current access token (roles, sub, etc.). */
