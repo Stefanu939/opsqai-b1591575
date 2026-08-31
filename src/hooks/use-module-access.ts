@@ -4,6 +4,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { getMyModuleAccess } from "@/lib/module-access.functions";
+import { useAuth } from "@/lib/auth-context";
 import type { ModuleKey } from "@/lib/license-modules";
 
 export interface MyModuleAccess {
@@ -13,11 +14,17 @@ export interface MyModuleAccess {
 }
 
 export function useMyModuleAccess() {
+  // Only ask the server once a session exists — on public pages like /auth the
+  // bearer token is absent and the protected fn would 401 (blank screen).
+  const { session, loading } = useAuth();
   const query = useQuery<MyModuleAccess>({
-    queryKey: ["my-module-access"],
+    queryKey: ["my-module-access", session?.user?.id ?? null],
     queryFn: async () => (await getMyModuleAccess()) as MyModuleAccess,
+    enabled: !loading && Boolean(session?.user?.id),
+    retry: false,
     staleTime: 5 * 60 * 1000,
   });
+
 
   const data = query.data;
   /** While loading (or on error) we do not restrict — the server still does. */
