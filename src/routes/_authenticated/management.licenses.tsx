@@ -42,10 +42,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown, KeyRound, Plus, Search, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { listCompanies } from "@/lib/companies.functions";
+import { setCompanyProduct } from "@/lib/company-products.functions";
+import {
+  getCompanyProfile,
+  getProduct,
+  productsAvailableFor,
+  productsRecommendedFor,
+} from "@/lib/product-architecture";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { z } from "zod";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { confirmAction } from "@/components/ui/confirm";
+
 
 const searchSchema = z.object({ install: z.string().optional() });
 
