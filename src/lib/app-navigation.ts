@@ -5,18 +5,17 @@
 //   CORE PLATFORM      always present (RBAC / license gated per item)
 //   PRODUCT WORKSPACES one group per enabled OPSQAI Product
 //
-// Product workspaces come from `PRODUCT_WORKSPACE_NAV` below, which is keyed
-// by the canonical product keys in `product-architecture.ts`. Only workspaces
-// whose route actually exists may be listed here — an entry without a route
-// would render a dead link. Products that are still `planned` therefore
-// contribute no navigation yet; adding their routes later is the only change
-// required for them to appear.
+// Product groups are derived from `PRODUCT_WORKSPACES` in
+// `product-architecture.ts`. Only workspaces marked `implemented` — which by
+// definition carry a real route — become navigation entries, so a declared
+// but unbuilt workspace can never render as a dead link. Products whose
+// workspaces are all still planned contribute no group at all.
 
 import {
-  getProduct,
-  resolveEffectiveConfig,
+  resolveProductWorkspaces,
   type EffectiveConfigInput,
   type ProductKey,
+  type ProductWorkspace,
 } from "@/lib/product-architecture";
 
 export interface NavEntry {
@@ -40,18 +39,6 @@ export interface NavGroup {
   items: NavEntry[];
 }
 
-/**
- * Workspaces contributed by each product. Empty arrays are intentional: the
- * product exists in the catalogue but ships no dedicated route yet.
- */
-export const PRODUCT_WORKSPACE_NAV: Record<ProductKey, NavEntry[]> = {
-  opsqai_logistics: [],
-  opsqai_transport: [],
-  opsqai_hr: [],
-  opsqai_finance: [],
-  opsqai_inventory: [],
-};
-
 export interface BuildNavigationInput extends EffectiveConfigInput {
   /** Core platform items, in display order. */
   coreItems: NavEntry[];
@@ -59,6 +46,21 @@ export interface BuildNavigationInput extends EffectiveConfigInput {
   gate?: (item: NavEntry) => boolean;
   /** Label for the Core group (already localised by the caller). */
   coreLabel?: string;
+  /** Resolves a workspace icon name to the caller's icon component. */
+  resolveIcon?: (iconName: string) => unknown;
+}
+
+function workspaceToEntry(
+  w: ProductWorkspace,
+  resolveIcon?: (n: string) => unknown,
+): NavEntry {
+  return {
+    to: w.route!,
+    label: w.label,
+    icon: resolveIcon ? resolveIcon(w.icon) : w.icon,
+    module: null,
+    capability: w.capabilities[0] ?? null,
+  };
 }
 
 /**
@@ -66,7 +68,6 @@ export interface BuildNavigationInput extends EffectiveConfigInput {
  * removed by product configuration — only by the caller's `gate`.
  */
 export function buildAppNavigation(input: BuildNavigationInput): NavGroup[] {
-  const cfg = resolveEffectiveConfig(input);
   const gate = input.gate ?? (() => true);
   const visible = (items: NavEntry[]) =>
     items.filter((i) => (i.show ?? true) && gate(i));
@@ -75,12 +76,23 @@ export function buildAppNavigation(input: BuildNavigationInput): NavGroup[] {
     { id: "core", label: input.coreLabel ?? "Workspace", items: visible(input.coreItems) },
   ];
 
-  for (const key of cfg.products) {
-    const product = getProduct(key);
-    const items = visible(PRODUCT_WORKSPACE_NAV[key] ?? []);
-    if (!product || items.length === 0) continue;
-    groups.push({ id: key, label: product.label, items });
+  for (const resolved of resolveProductWorkspaces(input)) {
+    const items = visible(
+      resolved.implemented.map((w) => workspaceToEntry(w, input.resolveIcon)),
+    );
+    if (items.length === 0) continue;
+    groups.push({ id: resolved.product.key, label: resolved.product.label, items });
   }
 
   return groups.filter((g) => g.items.length > 0);
+}
+
+/**
+ * Product keys that currently contribute navigation. Useful for tests and for
+ * surfaces that want to explain "licensed but not yet shipped".
+ */
+export function productsWithNavigation(input: EffectiveConfigInput = {}): ProductKey[] {
+  return resolveProductWorkspaces(input)
+    .filter((r) => r.implemented.length > 0)
+    .map((r) => r.product.key);
 }

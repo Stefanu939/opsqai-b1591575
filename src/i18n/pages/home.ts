@@ -94,7 +94,7 @@ const en = {
       { title: "No hidden dependencies", body: "Products and add-ons are independent. License only what your operation needs, when it needs it." },
       { title: "Activated in place", body: "No reinstall, no migration, no data movement. Activation is silent and instant." },
     ],
-    browseModules: "Browse all modules",
+    browseModules: "Explore the platform",
   },
   compare: {
     eyebrow: "Delivery model",
@@ -301,7 +301,7 @@ const de: HomeCopy = {
       { title: "Keine modulübergreifenden Abhängigkeiten", body: "Module sind unabhängig. Kaufen Sie nur, was Ihr Betrieb braucht, wann er es braucht." },
       { title: "Aktivierung ohne Unterbrechung", body: "Keine Neuinstallation, keine Migration, keine Datenbewegung. Aktivierung erfolgt still und sofort." },
     ],
-    browseModules: "Alle Module ansehen",
+    browseModules: "Plattform ansehen",
   },
   compare: {
     eyebrow: "Bereitstellungsmodell",

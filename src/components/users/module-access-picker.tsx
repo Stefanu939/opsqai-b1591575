@@ -5,7 +5,11 @@ import { Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { LICENSE_MODULE_CATALOG, type ModuleKey } from "@/lib/license-modules";
+import {
+  LICENSE_MODULE_CATALOG,
+  moduleClassification,
+  type ModuleKey,
+} from "@/lib/license-modules";
 import { ROLE_MODULE_PRESETS, normalizeAppRole } from "@/lib/module-access";
 import { ShieldCheck } from "lucide-react";
 
@@ -108,9 +112,9 @@ export function ModuleAccessPicker({ role, licensed, value, onChange, disabled }
                     <span className="min-w-0">
                       <span className="flex items-center gap-1 text-sm">
                         <span className="truncate">{m.label}</span>
-                        {m.inBasic ? (
+                        {moduleClassification(m.key) === "core" ? (
                           <Badge variant="outline" className="text-[9px]">
-                            Basic
+                            Core
                           </Badge>
                         ) : null}
                       </span>
@@ -121,7 +125,7 @@ export function ModuleAccessPicker({ role, licensed, value, onChange, disabled }
           </Fragment>
         ))}
         {allowed.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No licensed modules available.</div>
+          <div className="text-sm text-muted-foreground">No entitlements available.</div>
         ) : null}
       </div>
     </div>
