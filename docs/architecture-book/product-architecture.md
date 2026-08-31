@@ -52,3 +52,16 @@ non-revoked, non-suspended, unexpired entitlement row.
   (`licenses.product_key`, `licenses.profile`, `licenses.products`).
 
 Both are additive; older signed tokens and older installations keep working.
+
+## User-facing terminology (final)
+
+| Surface | Wording |
+| --- | --- |
+| Website `/modules` | **Platform** — Core platform / OPSQAI Products / Optional add-ons. No prices, no "Basic vs Premium". |
+| Website `/pricing` | Core platform (one-time) · Products (per domain) · Optional add-ons · Annual Maintenance. |
+| Self-Hosted | **License & Entitlements** (`/app/modules`). |
+| Customer Portal | Subscription page: license status, read-only Core list, enabled Products, active add-ons. Localised EN/DE/RO. |
+
+Legacy "module" vocabulary survives only in wire formats (`licenses.module_key`,
+signed `kind: "module"` tokens) and in `license-modules.ts`, which is a derived
+compatibility layer.
