@@ -473,7 +473,7 @@ const ro: HomeCopy = {
       {
         tag: "Windows · Produsul",
         name: "Self-Hosted",
-        body: "Instalarea Windows Self-Hosted este produsul. AI Chat, Bază de Cunoștințe, FAQ, Academy, Audit AI, Utilizatori, Organizație, Abonament, Actualizări și Module — toate rulează în interiorul mediului clientului. Angajații lucrează aici în fiecare zi.",
+        body: "Instalarea Windows Self-Hosted este produsul. AI Chat, Bază de Cunoștințe, FAQ, Academy, Audit AI, Utilizatori, Organizație, Abonament, Actualizări și Licență & Drepturi — toate rulează în interiorul mediului clientului. Angajații lucrează aici în fiecare zi.",
       },
     ],
     noteStrong: "Important:",
@@ -481,10 +481,10 @@ const ro: HomeCopy = {
       "OPSQAI Cloud nu este produsul. Există doar pentru licențiere, versiuni, distribuirea instalatorului, suport pentru clienți, Portalul Client și Management Center. Produsul propriu-zis este instalarea Windows din interiorul mediului clientului.",
   },
   basic: {
-    eyebrow: "Platforma de Bază",
+    eyebrow: "Platforma Core",
     title: "Tot ce ai nevoie pentru a opera din prima zi.",
     intro:
-      "Platforma de Bază este inclusă în fiecare instalare OPSQAI. Este ceea ce angajații folosesc zilnic.",
+      "Platforma Core este inclusă în fiecare instalare OPSQAI. Este ceea ce angajații folosesc zilnic.",
     items: [
       { name: "AI Chat", body: "Conversații fundamentate, cu citarea surselor, bazate pe propriile cunoștințe ale clientului." },
       { name: "Bază de Cunoștințe", body: "SOP-uri, manuale și proceduri — segmentate, transformate în embeddings și recuperabile local." },
@@ -547,7 +547,7 @@ const ro: HomeCopy = {
     title: "O călătorie a clientului în cinci pași.",
     intro: "OPSQAI este conceput să înceapă concentrat și să crească odată cu operațiunea.",
     steps: [
-      { title: "Land", body: "Începe cu Platforma de Bază pe un singur Windows Server. Un departament, un domeniu operațional." },
+      { title: "Land", body: "Începe cu platforma Core pe un singur Windows Server. Un departament, un domeniu operațional." },
       { title: "Ground", body: "Se încarcă SOP-uri, manuale și proceduri. Embeddings locale; furnizor AI deținut de client." },
       { title: "Adopt", body: "Angajații folosesc zilnic AI Chat, FAQ și Academy. Audit AI înregistrează fiecare interacțiune." },
       { title: "Expand", body: "Activează produse OPSQAI prin licențe semnate — fără reinstalare, fără timp de nefuncționare." },
