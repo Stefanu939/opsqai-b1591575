@@ -17,6 +17,8 @@ import {
 } from "@/lib/product-architecture";
 import { Check, Package } from "lucide-react";
 import { useModulesCopy } from "@/i18n/pages/modules";
+import { useT } from "@/i18n";
+import { localizeWorkspaceLabel } from "@/i18n/pages/product-workspaces";
 
 export const Route = createFileRoute("/modules")({
   head: () =>
@@ -36,6 +38,7 @@ export const Route = createFileRoute("/modules")({
 
 function ModulesPage() {
   const t = useModulesCopy();
+  const { lang } = useT();
 
   return (
     <OixLayout>
