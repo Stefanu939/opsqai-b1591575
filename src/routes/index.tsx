@@ -55,6 +55,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
 import { OixButton } from "@/components/oix/buttons";
+import { Founders } from "@/components/oix/founders";
 import { useHomeCopy } from "@/i18n/pages/home";
 
 export const Route = createFileRoute("/")({
@@ -125,6 +126,7 @@ function Home() {
       <LandExpand />
       <Maturity />
       <FAQSection />
+      <Founders />
       <FinalCTA />
     </OixLayout>
   );
