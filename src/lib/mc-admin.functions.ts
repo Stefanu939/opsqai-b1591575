@@ -120,7 +120,7 @@ export const listCustomerProfiles = createServerFn({ method: "POST" })
     const { data: companies, error } = await supabaseAdmin
       .from("companies")
       .select(
-        "id, name, subscription_plan, subscription_status, active, max_users, install_id, created_at",
+        "id, name, subscription_plan, subscription_status, active, max_users, install_id, created_at, business_type, enabled_products",
       )
       .order("name");
     if (error) throw new Error(error.message);
