@@ -82,7 +82,48 @@ const de: Copy = {
   },
 };
 
+
+const ro: Copy = {
+  hero: {
+    eyebrow: "Suport",
+    headline: "Ingineri adevărați. Răspunsuri reale.",
+    body: "Suportul OPSQAI este asigurat de echipa care dezvoltă produsul. Clienții deschid solicitări din Portalul Clienților și primesc răspunsuri conform SLA de mai jos.",
+    ctaPrimary: "Deschideți Portalul Clienților",
+    ctaSecondary: "Contactați vânzările",
+  },
+  cards: {
+    tickets: {
+      title: "Tichete în Portal",
+      body: "Orice contact al clientului poate deschide, urmări și răspunde la conversații din",
+      bodyEnd: ". Istoricul complet este păstrat.",
+    },
+    targets: {
+      title: "Obiective de răspuns pe prioritate",
+      body: "Prioritățile se stabilesc pe tichet. Incidentele critice sunt preluate în timpul programului de lucru, ora Europei Centrale.",
+    },
+    docs: {
+      title: "Documentația mai întâi",
+      body: "Majoritatea întrebărilor operaționale își găsesc răspuns în ghidul administratorului și în manualul tehnic.",
+      link: "Vedeți documentația →",
+    },
+  },
+  tiers: [
+    { label: "Critic", target: "1 oră lucrătoare", body: "Instalarea este nefuncțională, activarea licenței este blocată, incident de securitate." },
+    { label: "Ridicat", target: "1 zi lucrătoare", body: "Funcție nefuncțională pentru majoritatea utilizatorilor, problemă la activarea modulului, eșec de actualizare." },
+    { label: "Normal", target: "3 zile lucrătoare", body: "Întrebări de utilizare, îndrumări de configurare, erori care nu blochează activitatea." },
+  ],
+  slaSection: {
+    headline: "Obiective de răspuns",
+    footnote: "Obiectivele se aplică clienților cu un contract activ de Mentenanță Anuală. Condițiile exacte de SLA sunt specificate în fiecare contract cu clientul.",
+  },
+  notCustomer: {
+    headline: "Încă nu sunteți client?",
+    body: "Contactați-ne și vom direcționa întrebarea dumneavoastră către persoana potrivită.",
+    cta: "Contactați OPSQAI",
+  },
+};
+
 export function useSupportCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }

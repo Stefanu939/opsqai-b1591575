@@ -94,7 +94,52 @@ const de: Copy = {
   errorNetwork: "Netzwerkfehler. Bitte versuchen Sie es erneut.",
 };
 
+const ro: Copy = {
+  heroEyebrow: "Contact · Direcționat către echipa potrivită",
+  heroSerifAccent: "operațiunile tale.",
+  heroHeadline: "Hai să vorbim",
+  heroBody:
+    "Alege subiectul care se potrivește cel mai bine — mesajul tău este direcționat direct către echipa potrivită, iar tu vei primi o confirmare pe e-mail.",
+  subjectOptions: {
+    general: "Întrebare generală",
+    demo: "Programează un demo",
+    sales: "Solicitare comercială",
+    pricing: "Solicitare ofertă de preț",
+    support: "Suport tehnic",
+    bug: "Raportare eroare",
+    security: "Raportare de securitate",
+    privacy: "Confidențialitate / GDPR",
+    partnership: "Parteneriat de afaceri",
+    other: "Altele",
+  } satisfies Record<ContactSubject, string>,
+  successTitle: "Mulțumim — am primit solicitarea ta.",
+  successBody: "Ți-am trimis o confirmare prin e-mail. Referință",
+  successFooter: "Echipa noastră răspunde de obicei în cel mult 1 zi lucrătoare (CET).",
+  sendAnother: "Trimite alt mesaj",
+  subjectLabel: "Cu ce te putem ajuta?",
+  nameLabel: "Nume",
+  emailLabel: "E-mail de serviciu",
+  companyLabel: "Companie",
+  phoneLabel: "Telefon (opțional)",
+  countryLabel: "Țară",
+  messageLabel: "Mesaj",
+  honeypotLabel: "Website",
+  sending: "Se trimite…",
+  sendMessage: "Trimite mesajul",
+  consentPrefix: "Prin trimitere ești de acord cu",
+  privacyNotice: "politica de confidențialitate",
+  channelLabels: {
+    general: "General",
+    support: "Suport",
+    security: "Securitate",
+    privacy: "Confidențialitate & GDPR",
+  },
+  errorGeneric: "Nu am putut trimite mesajul tău. Te rugăm să încerci din nou.",
+  successToast: "Mesaj trimis — verifică-ți inboxul pentru confirmare.",
+  errorNetwork: "Eroare de rețea. Te rugăm să încerci din nou.",
+};
+
 export function useContactCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }

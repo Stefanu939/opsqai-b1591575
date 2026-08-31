@@ -487,7 +487,250 @@ const de: Copy = {
   },
 };
 
-export const productOverviewCopy: Record<string, Copy> = { en, de };
+const ro: Copy = {
+  hero: {
+    eyebrow: "Prezentare produs · Platformă de Operational Intelligence",
+    headline: "Un singur spațiu de lucru pentru cunoștințe operaționale, AI",
+    serifAccent: "și inteligență.",
+    body: "OPSQAI reunește cunoștințele companiei, fluxurile de lucru asistate de AI, învățarea și informațiile operaționale într-o singură platformă conectată.",
+    body2:
+      "Obiectivul este de a ajuta organizațiile să facă cunoștințele aprobate mai ușor accesibile, să identifice lacunele, să sprijine angajații și să ofere managementului o vizibilitate mai bună asupra stării cunoștințelor operaționale.",
+    ctaPrimary: "Explorează platforma",
+    ctaPdf: "Descarcă prezentarea produsului",
+  },
+  what: {
+    eyebrow: "Ce este OPSQAI",
+    headline: "Nu încă un",
+    serifAccent: "chatbot AI generic.",
+    body: "OPSQAI conectează cunoștințele pe care o organizație le are deja cu oamenii care au nevoie de ele, ajutând totodată echipele să identifice informațiile lipsă, învechite sau greu accesibile.",
+    body2:
+      "În loc să trateze cunoștințele, învățarea, AI-ul și managementul ca sisteme izolate, OPSQAI le reunește într-un singur spațiu de lucru operațional.",
+    center: "OPSQAI",
+    nodes: [
+      { label: "Cunoștințe", hint: "Bază de cunoștințe, SOP-uri, FAQ-uri, notițe" },
+      { label: "AI", hint: "Răspunsuri din surse aprobate" },
+      { label: "Învățare", hint: "Academy, cursuri, progres" },
+      { label: "Inteligență", hint: "AI Audit, lacune, semnale" },
+      { label: "Management", hint: "Dashboard-uri, roluri, KPI-uri" },
+      { label: "Implementare", hint: "Cloud sau Self-Hosted" },
+    ],
+  },
+  capabilities: {
+    eyebrow: "Șase capabilități esențiale",
+    headline: "Ce face platforma",
+    serifAccent: "cu adevărat.",
+    items: [
+      {
+        title: "Cunoștințe",
+        intro: "Reunește cunoștințele operaționale într-un spațiu de lucru structurat.",
+        items: [
+          "Bază de cunoștințe",
+          "SOP-uri și documente operaționale",
+          "FAQ-uri",
+          "Notițe",
+          "Ciclul de viață al documentelor",
+          "Vizibilitatea vechimii și actualizării documentelor",
+          "Conștientizarea versiunilor",
+          "Semnale de revizuire a cunoștințelor",
+        ],
+        key: "Face cunoștințele aprobate ale companiei mai ușor de găsit, gestionat și menținut.",
+      },
+      {
+        title: "AI",
+        intro: "Oferă angajaților un mod natural de a interacționa cu cunoștințele aprobate ale companiei.",
+        items: [
+          "AI Chat",
+          "Răspunsuri bazate pe cunoștințe aprobate",
+          "Răspunsuri susținute de surse",
+          "Conversații contextuale",
+          "Detectarea lacunelor de cunoștințe",
+          "Interacțiune dinamică și profesionistă",
+        ],
+        key: "Transformă cunoștințele aprobate în ceva ce angajații pot folosi efectiv atunci când au nevoie.",
+      },
+      {
+        title: "Învățare",
+        intro: "Conectează cunoștințele companiei cu integrarea și dezvoltarea angajaților.",
+        items: [
+          "Academy",
+          "Cursuri",
+          "Fluxuri de învățare",
+          "Sarcini alocate",
+          "Urmărirea progresului",
+          "Semnale de cunoștințe și învățare",
+        ],
+        key: "Ajută angajații să învețe procesele companiei într-un mod structurat.",
+      },
+      {
+        title: "Operational Intelligence",
+        intro:
+          "Înțelege starea cunoștințelor organizației și identifică unde este nevoie de atenție.",
+        items: [
+          "AI Audit",
+          "Semnale privind sănătatea cunoștințelor",
+          "Lacune de cunoștințe",
+          "Semnale de fricțiune",
+          "Semnale de învățare",
+          "Recomandări",
+          "Acțiuni sugerate",
+          "Persoane și zone care necesită sprijin",
+        ],
+        key: "Trece de la simpla stocare a cunoștințelor la înțelegerea locurilor unde acestea lipsesc, sunt învechite sau creează fricțiune.",
+      },
+      {
+        title: "Management",
+        intro: "Oferă managementului o imagine mai clară a spațiului de lucru operațional.",
+        items: [
+          "Dashboard de management",
+          "KPI-uri",
+          "Capacitate de utilizatori",
+          "Departamente",
+          "Utilizatori",
+          "Roluri",
+          "Acces la module",
+          "Notificări",
+          "Vizibilitate asupra mentenanței",
+        ],
+        key: "Face semnalele operaționale importante mai ușor de observat și de acționat.",
+      },
+      {
+        title: "Cloud sau Self-Hosted",
+        intro: "OPSQAI susține diferite modele de implementare.",
+        items: [
+          "Rulează în mediul propriu al clientului",
+          "Motor AI local",
+          "Bază de date locală",
+          "Căutare semantică locală",
+          "Funcționare cu capacitate offline",
+          "Fără dependență obligatorie de Cloud pentru operarea zilnică",
+          "Backup & Recovery",
+          "Licențiere offline semnată",
+          "Control al accesului bazat pe roluri",
+        ],
+        key: "Cunoștințele tale. Infrastructura ta. AI-ul tău.",
+      },
+    ],
+  },
+  how: {
+    eyebrow: "Cum funcționează OPSQAI",
+    headline: "De la cunoștințele companiei la",
+    serifAccent: "claritate operațională.",
+    stages: [
+      {
+        label: "Cunoștințele companiei",
+        items: ["SOP-uri", "FAQ-uri", "Documente operaționale", "Informații aprobate"],
+      },
+      {
+        label: "Stratul de cunoștințe OPSQAI",
+        items: ["Structurat", "Versionat", "Conștient de ciclul de viață", "Control al accesului"],
+      },
+      {
+        label: "AI + Învățare + Analiză",
+        items: ["Răspunsuri fundamentate", "Cursuri și sarcini alocate", "AI Audit", "Detectarea lacunelor"],
+      },
+      {
+        label: "Angajați și management",
+        items: [
+          "Angajații primesc răspunsuri",
+          "Managerii văd informațiile relevante",
+          "Lacunele de cunoștințe devin vizibile",
+          "Acțiunile recomandate pot fi analizate",
+        ],
+      },
+    ],
+    outcome: "Un sistem de cunoștințe operaționale mai puternic.",
+  },
+  useCases: {
+    eyebrow: "Cazuri de utilizare reale",
+    headline: "Cum arată acest lucru",
+    serifAccent: "în activitatea zilnică.",
+    items: [
+      {
+        title: "Găsește procedura corectă",
+        body: "Un angajat trebuie să știe cum să gestioneze o anumită situație operațională. Întreabă OPSQAI și primește îndrumare pe baza cunoștințelor aprobate ale companiei și a surselor relevante.",
+      },
+      {
+        title: "Integrare mai rapidă",
+        body: "Angajații noi pot accesa cunoștințe structurate, conținut de învățare și proceduri ale companiei fără a depinde în întregime de colegi pentru fiecare întrebare.",
+      },
+      {
+        title: "Găsește ce lipsește",
+        body: "Întrebările repetate și solicitările slab susținute pot evidenția lacune de cunoștințe. Managementul poate analiza aceste lacune și poate crea sau îmbunătăți cunoștințele aprobate.",
+      },
+      {
+        title: "Menține cunoștințele actualizate",
+        body: "Ciclul de viață al documentelor și semnalele AI Audit ajută la identificarea informațiilor care ar putea necesita revizuire: cunoștințe care nu au fost revizuite recent, documente neschimbate de la încărcarea inițială și zone unde informațiile ar putea lipsi.",
+      },
+      {
+        title: "Oferă managementului o vizibilitate mai bună",
+        body: "Dashboard-urile, KPI-urile, AI Audit și recomandările ajută managementul să înțeleagă acoperirea cunoștințelor, lacunele de cunoștințe, zonele care necesită sprijin, semnalele de învățare, fricțiunea operațională și acțiunile recomandate.",
+      },
+    ],
+    note: "Toate recomandările rămân consultative și necesită analiză umană.",
+  },
+  selfHosted: {
+    eyebrow: "OPSQAI Self-Hosted",
+    headline: "Cunoștințele tale. Infrastructura ta.",
+    serifAccent: "AI-ul tău.",
+    body: "OPSQAI Self-Hosted este conceput pentru organizațiile care doresc ca platforma să ruleze în propriul mediu.",
+    items: [
+      {
+        title: "Implementare locală",
+        body: "Aplicația rulează pe mașina Windows sau infrastructura proprie a clientului.",
+      },
+      { title: "AI local", body: "Mediul Self-Hosted utilizează un motor AI local." },
+      {
+        title: "Date locale",
+        body: "Cunoștințele operaționale și datele aplicației rămân în mediul clientului.",
+      },
+      {
+        title: "Capacitate offline",
+        body: "Fluxul zilnic al platformei poate continua fără o dependență obligatorie de Cloud.",
+      },
+      {
+        title: "Căutare locală a cunoștințelor",
+        body: "Regăsirea cunoștințelor și căutarea semantică funcționează în cadrul mediului Self-Hosted.",
+      },
+      {
+        title: "Backup & Recovery",
+        body: "Funcționalitatea locală de backup și recuperare susține instalarea Self-Hosted.",
+      },
+      {
+        title: "Licențiere offline",
+        body: "Licența poate fi verificată criptografic local.",
+      },
+    ],
+    cta: "Detalii Self-Hosted",
+  },
+  glance: {
+    eyebrow: "Platforma dintr-o privire",
+    headline: "Întreaga platformă",
+    serifAccent: "pe un singur ecran.",
+    groups: [
+      { name: "Cunoștințe", items: ["Bază de cunoștințe", "SOP-uri", "FAQ-uri", "Notițe", "Ciclu de viață"] },
+      { name: "AI", items: ["AI Chat", "Surse", "Lacune de cunoștințe", "Recomandări"] },
+      { name: "Învățare", items: ["Academy", "Cursuri", "Sarcini alocate", "Progres"] },
+      {
+        name: "Inteligență",
+        items: ["AI Audit", "Sănătatea cunoștințelor", "Semnale de fricțiune", "Informații relevante"],
+      },
+      { name: "Management", items: ["Dashboard", "KPI-uri", "Utilizatori", "Roluri", "Departamente"] },
+      {
+        name: "Implementare",
+        items: ["Cloud", "Self-Hosted", "AI local", "Funcționare offline", "Backup & Recovery"],
+      },
+    ],
+  },
+  finalCta: {
+    headline: "Vezi OPSQAI",
+    serifAccent: "în acțiune.",
+    body: "Descoperă cum OPSQAI poate conecta cunoștințele operaționale, AI-ul, învățarea și inteligența de management într-un singur spațiu de lucru.",
+    ctaPrimary: "Solicită o demonstrație",
+    ctaPdf: "Descarcă PDF-ul prezentării produsului",
+  },
+};
+
+export const productOverviewCopy: Record<string, Copy> = { en, de, ro };
 
 export function useProductOverviewCopy(): Copy {
   const { lang } = useT();

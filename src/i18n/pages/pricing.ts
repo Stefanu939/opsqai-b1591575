@@ -170,7 +170,92 @@ const de: Copy = {
   },
 };
 
+
+const ro: Copy = {
+  hero: {
+    eyebrow: "Prețuri · Fără SaaS",
+    headline: "Dețineți platforma.",
+    serifAccent: "plătiți doar ce folosiți.",
+    body: "OPSQAI nu este un SaaS. Achiziționați Platforma Basic o singură dată, activați module Premium pe măsură ce aveți nevoie și mențineți instalarea sănătoasă printr-un contract de Mentenanță Anuală.",
+  },
+  tiers: {
+    eyebrow: "Trei componente",
+    headline: "Un model care",
+    serifAccent: "o singură achiziție.",
+    items: [
+      {
+        name: "Platforma Basic",
+        tag: "Plată unică · Perpetuă",
+        body: "AI Chat, Bază de Cunoștințe, FAQ, Academy, Audit AI, Utilizatori, Organizație și Abonament. Include instalator Windows, licență semnată și configurarea inițială.",
+        bullets: [
+          "Licență perpetuă, per instalare",
+          "Windows Self-Hosted",
+          "Furnizor AI ales de client",
+          "Instalator și licență semnate",
+        ],
+        cta: "Solicitați o ofertă",
+      },
+      {
+        name: "Module Premium",
+        tag: "Plată unică · Per modul",
+        body: "Activați funcționalități suplimentare peste Platforma Basic. Fiecare modul este licențiat separat și activat de OPSQAI printr-o licență semnată — fără reinstalare necesară.",
+        bullets: [
+          "Licențe de modul semnate",
+          "Activate de OPSQAI",
+          "Fără dependențe între module",
+          "Fără întreruperi, fără migrare de date",
+        ],
+        cta: "Vedeți modulele",
+      },
+      {
+        name: "Mentenanță Anuală",
+        tag: "Recurent · Anual",
+        body: "Actualizări și versiuni de securitate semnate, suport prioritar cu obiective de răspuns definite, garanții de compatibilitate a modulelor și continuitate a dreptului de utilizare.",
+        bullets: [
+          "Versiuni și actualizări semnate",
+          "Suport cu obiective de răspuns",
+          "Compatibilitate garantată",
+          "Gestionată de OPSQAI",
+        ],
+        cta: "Discutați cu vânzările",
+      },
+    ],
+    footnote: "Prețul depinde de dimensiunea companiei, modulele Premium alese și nivelul de mentenanță · fiecare implementare este ofertată individual",
+  },
+  faq: {
+    eyebrow: "Întrebări frecvente",
+    headline: "Răspunsuri",
+    serifAccent: "sincere.",
+    items: [
+      {
+        question: "OPSQAI este un produs SaaS?",
+        answer: "Nu. OPSQAI este un produs Windows Self-Hosted. Achiziționați Platforma Basic o singură dată, adăugați module Premium după nevoie și o mențineți funcțională printr-un contract anual de mentenanță. Nu există abonament lunar per utilizator în cloud.",
+      },
+      {
+        question: "Ce include Platforma Basic?",
+        answer: "AI Chat, Bază de Cunoștințe, FAQ, Academy, Audit AI, Utilizatori, Organizație și Abonament. Rulează pe Windows Server-ul clientului, cu furnizorul AI ales de client.",
+      },
+      {
+        question: "Cum sunt prețuite modulele Premium?",
+        answer: "Fiecare modul Premium este licențiat separat. Prețul depinde de modul, de amploarea proiectului și de dimensiunea instalării. Activarea este emisă de OPSQAI ca licență de modul semnată — fără reinstalare necesară.",
+      },
+      {
+        question: "Ce este Mentenanța Anuală?",
+        answer: "Mentenanța Anuală acoperă actualizări semnate, versiuni de securitate, suport cu obiective de răspuns definite, garanții de compatibilitate a modulelor și continuitate a dreptului de utilizare.",
+      },
+    ],
+  },
+  finalCta: {
+    eyebrow: "Ofertă fixă · o singură pagină",
+    headline: "Solicitați",
+    serifAccent: "oferta dumneavoastră.",
+    body: "Spuneți-ne despre activitatea dumneavoastră — dimensiunea companiei, modulele vizate și nevoile de mentenanță. Revenim cu o ofertă fixă.",
+    ctaPrimary: "Solicitați o ofertă",
+    ctaSecondary: "Vedeți modulele",
+  },
+};
+
 export function usePricingCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }

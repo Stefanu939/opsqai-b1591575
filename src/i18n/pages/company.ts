@@ -146,7 +146,79 @@ const de: Copy = {
   },
 };
 
+const ro: Copy = {
+  hero: {
+    eyebrow: "Companie · Made in Europe",
+    serifAccent: "nu în locul lor.",
+    headline: "AI care lucrează pentru oameni.",
+    body: "OPSQAI construiește stratul de AI operațional pentru companii industriale — livrat ca produs Windows Self-Hosted, suveran prin design și deținut în întregime de client.",
+    ctaPrimary: "Discută cu fondatorii",
+    ctaSecondary: "Vezi produsul",
+  },
+  principles: {
+    eyebrow: "Misiune · Viziune · De ce acum",
+    serifAccent: "operăm.",
+    headline: "Principiile după care",
+    items: [
+      { title: "Misiune", body: "Aducem AI la lucru pentru oamenii care conduc operațiunile — supervizori, șefi de depozit, manageri de fabrică — fără să le cerem să predea cunoștințele lor către LLM-uri publice în cloud." },
+      { title: "Viziune", body: "Fiecare companie industrială operează o platformă de AI operațional în interiorul propriei granițe. Cunoștințele rămân acolo unde le este locul; AI-ul ajută echipa în loc să o înlocuiască." },
+      { title: "De ce acum", body: "Companiile industriale nu pot plasa cunoștințe operaționale în LLM-uri publice. Au nevoie de proprietate, guvernanță și suveranitate completă a datelor. OPSQAI este construit pentru această realitate." },
+    ],
+  },
+  team: {
+    eyebrow: "Echipă · Deliberat",
+    serifAccent: "exagerată.",
+    headline: "Mică. Niciodată",
+    intro: "Fiecare rol reflectă fie un fondator activ, fie o angajare planificată — nu listăm titluri pe care nu le deținem.",
+    members: [
+      {
+        name: "Ștefan Bari",
+        role: "Fondator & CEO / Proprietar",
+        body: "Deține direcția produsului, relațiile cu clienții și strategia comercială. Conduce poziționarea OPSQAI ca strat de AI operațional pentru companii industriale.",
+      },
+      {
+        name: "CTO",
+        role: "Chief Technology Officer — urmează a fi numit",
+        body: "Deține platforma, securitatea și sistemul de licențiere. Livrează instalatorul Windows, jurnalul de audit și pipeline-ul de actualizări.",
+      },
+      {
+        name: "Head of AI",
+        role: "AI & Retrieval — angajare planificată",
+        body: "Deține registrul de adaptoare AI, pipeline-ul de retrieval și contractul de prompt fundamentat.",
+      },
+    ],
+  },
+  gtm: {
+    eyebrow: "Strategie de piață",
+    serifAccent: "Europa industrială.",
+    headline: "Începem în DACH. Extindere în",
+    phases: [
+      { tag: "Faza 01", title: "Logistică DACH", body: "Operatori de depozitare, 3PL și distribuție din Germania, Austria și Elveția. Modelul nativ Windows se potrivește realității lor; suveranitatea datelor nu este negociabilă." },
+      { tag: "Faza 02", title: "Producție industrială", body: "Producție discretă și de proces. Aceeași problemă a cunoștințelor operaționale, aceeași presiune de reglementare, același profil de infrastructură." },
+      { tag: "Faza 03", title: "Extindere europeană", body: "Extindere către industriile europene reglementate în care AI-ul operațional trebuie să ruleze în interiorul granițelor clientului." },
+    ],
+  },
+  market: {
+    eyebrow: "Piață · Disciplină",
+    serifAccent: "apărabilă.",
+    headline: "Mare. Și",
+    items: [
+      { tag: "TAM", value: "4,8 mld. €", body: "Organizații industriale, de logistică și producție din UE cu peste 250 de angajați." },
+      { tag: "SAM", value: "1,1 mld. €", body: "Operatori din DACH + Benelux + țările nordice cu o suprafață SOP reglementată și buget IT enterprise." },
+      { tag: "SOM", value: "90 mil. €", body: "Primii parteneri de design: rețele de logistică, operatori de depozite și producători medii." },
+    ],
+  },
+  cta: {
+    eyebrow: "Construit în Europa",
+    serifAccent: "mediul tău Windows.",
+    headline: "Implementat în",
+    body: "Discută cu noi despre o instalare de referință, un parteneriat sau o demonstrație a produsului Windows Self-Hosted.",
+    ctaPrimary: "Contactează OPSQAI",
+    ctaSecondary: "Vezi produsul Self-Hosted",
+  },
+};
+
 export function useCompanyCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }

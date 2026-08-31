@@ -142,7 +142,78 @@ const de: Copy = {
   ctaSecurityOverview: "Sicherheitsübersicht",
 };
 
+
+const ro: Copy = {
+  heroEyebrow: "Self-Hosted · Produsul",
+  heroSerifAccent: "rămân ale dumneavoastră.",
+  heroHeadline: "Datele dumneavoastră",
+  heroBody:
+    "OPSQAI este instalat pe Windows Server-ul clientului. Datele, documentele, embeddings, utilizatorii și furnizorul AI se află toate în mediul clientului. OPSQAI Cloud este folosit doar atunci când instalarea are nevoie — pentru activarea licenței, verificarea actualizărilor și suport. Nimic operațional nu traversează vreodată granița.",
+  ctaRequestInstallation: "Solicitați pachetul de instalare",
+  ctaReadDocumentation: "Citiți documentația",
+
+  dataFlowEyebrow: "Fluxul de date",
+  dataFlowSerifAccent: "granița.",
+  dataFlowHeadline: "Totul circulă în interiorul",
+  dataFlowBody:
+    "Diagrama de mai jos reprezintă întregul traseu operațional. Doar heartbeat-ul licenței și verificările de actualizare traversează granița — și acestea nu conțin conținut operațional.",
+
+  flow: [
+    { label: "Windows Server", body: "Gazdă deținută de client, în rețeaua clientului." },
+    { label: "Platforma OPSQAI", body: "Servicii Windows gestionate de WinSW. Produsul propriu-zis." },
+    { label: "PostgreSQL local", body: "Magazie relațională. Utilizatori, conversații, documente, audit — totul local." },
+    { label: "pgvector", body: "Index vectorial în interiorul PostgreSQL. Embeddings nu pleacă niciodată." },
+    { label: "Stocare locală", body: "Documente pe sistemul de fișiere sau stocarea de obiecte a clientului." },
+    { label: "Furnizorul AI al clientului", body: "OpenAI, Azure OpenAI, Ollama sau un endpoint compatibil." },
+  ],
+
+  crossesBoundaryTitle: "Ce traversează granița",
+  crossesBoundaryItems: [
+    "Activare de licență semnată",
+    "Verificări ale manifestului de actualizare",
+    "Suport (opțional, inițiat de client)",
+  ],
+  neverLeavesTitle: "Ce nu părăsește niciodată mediul",
+  neverLeavesItems: [
+    "Documente, SOP-uri, proceduri",
+    "Embeddings și index vectorial",
+    "Mesaje de chat și înregistrări de audit AI",
+    "Utilizatori, roluri și configurația organizației",
+  ],
+
+  pillarsEyebrow: "Șase piloni",
+  pillarsSerifAccent: "prin construcție.",
+  pillarsHeadline: "Suveran",
+  pillars: [
+    { title: "Rulează pe Windows Server", body: "Windows Server 2019/2022. Instalatorul configurează PostgreSQL, stocarea, serviciile și Caddy. WinSW gestionează fiecare serviciu. Fără Docker, fără Kubernetes, fără Linux." },
+    { title: "PostgreSQL local + pgvector", body: "Baza de date și magazia vectorială se află în mediul Windows al clientului. Documentele, fragmentele și embeddings nu pleacă niciodată." },
+    { title: "Furnizor AI deținut de client", body: "OpenAI, Azure OpenAI, Ollama, OpenRouter sau orice endpoint compatibil OpenAI. Clientul deține contul și cheile." },
+    { title: "Totul semnat", body: "Instalator Windows semnat, manifeste de versiuni semnate, pachete de licență semnate. Fiecare artefact este verificabil criptografic." },
+    { title: "Single tenant prin design", body: "Fiecare instalare reprezintă un singur client, un singur workspace, o singură graniță. Nimic nu este partajat între clienți — nici baze de date, nici embeddings, nici chei AI." },
+    { title: "Recuperare în caz de dezastru inclusă", body: "Tokenuri de bootstrap DR, backupuri semnate și proceduri de restaurare documentate. Echipa de operațiuni a clientului poate reconstrui instalarea fără implicarea OPSQAI." },
+  ],
+
+  requirementsEyebrow: "Cerințe de sistem",
+  requirementsSerifAccent: "pregătit.",
+  requirementsHeadline: "Enterprise",
+  requirements: [
+    "Windows Server 2019 sau 2022 (Standard sau Datacenter)",
+    "8 vCPU · 16 GB RAM · minimum 200 GB SSD",
+    "HTTPS ieșire către furnizorul AI ales de client (sau deloc, cu modele locale)",
+    "Certificat TLS pentru domeniul intern (Caddy poate emite și prin ACME)",
+    "Administrator de domeniu pentru rularea instalatorului (drepturi elevate)",
+  ],
+
+  finalEyebrow: "Obțineți instalatorul semnat",
+  finalSerifAccent: "începe aici.",
+  finalHeadline: "Instalarea",
+  finalBody:
+    "Clienții existenți descarcă din Portalul Clienților. Clienții noi ne pot contacta pentru o evaluare licențiată.",
+  ctaContactSales: "Contactați vânzările",
+  ctaSecurityOverview: "Prezentare de securitate",
+};
+
 export function useSelfHostedCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }
