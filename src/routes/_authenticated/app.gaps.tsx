@@ -178,7 +178,7 @@ function GapsPage() {
     <ModulePage
       eyebrow="Knowledge"
       title="Knowledge Gaps"
-      description="Questions the AI could not answer from your SOPs and FAQs. Included in the Basic bundle."
+      description="Questions the AI could not answer from your SOPs and FAQs. Part of the Core platform."
       tabs={<SegmentedTabs value={filter} onChange={setFilter} options={FILTERS} />}
       toolbar={
         <Input
