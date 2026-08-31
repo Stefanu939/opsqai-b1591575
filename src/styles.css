@@ -463,19 +463,19 @@ body {
 }
 
 /* ============================================================
-   Aurora Noir shared shell scope — .n
+   Aurora Noir shared shell scope — .oix-shell
    Used by Management Center (mc-shell) and the Customer Portal.
    Floating panels on a deep navy / cool-white field.
    ============================================================ */
 
-.n {
+.oix-shell {
   background: var(--gradient-hero);
   color: var(--color-foreground);
   position: relative;
   isolation: isolate;
 }
 
-.n::before {
+.oix-shell::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -638,11 +638,11 @@ html:not(.dark) {
 
 /* In light mode the cinematic 3D layers recede so editorial copy
    stays legible. */
-html:not(.dark) .n canvas {
+html:not(.dark) .oix-shell canvas {
   opacity: 0.2;
 }
 
-html:not(.dark) .n [class*="-z-10"] > div[style] {
+html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   background: radial-gradient(
     80% 70% at 50% 30%,
     rgba(247, 248, 252, 0.55) 0%,
@@ -650,8 +650,8 @@ html:not(.dark) .n [class*="-z-10"] > div[style] {
   ) !important;
 }
 
-/* Marketing scope typography/background — applied through .n */
-.n {
+/* Marketing scope typography/background — applied through .oix-shell */
+.oix-shell {
   font-family: var(--font-body-oix);
   min-height: 100vh;
 }
@@ -895,7 +895,7 @@ html:not(.dark) .n [class*="-z-10"] > div[style] {
    ============================================================ */
 
 .oq-soft,
-.n {
+.oix-shell {
   --oq-soft-shadow: var(--shadow-soft);
   --oq-soft-shadow-lift: var(--shadow-lift);
 }
@@ -931,7 +931,7 @@ html:not(.dark) .n [class*="-z-10"] > div[style] {
    present and future — picks up the rounded, softly shadowed language. */
 .oq-soft .oq-soft-scope-card,
 .oq-soft [data-slot="card"],
-.n [data-slot="card"] {
+.oix-shell [data-slot="card"] {
   border-radius: 1.25rem;
   box-shadow: var(--oq-soft-shadow);
 }
