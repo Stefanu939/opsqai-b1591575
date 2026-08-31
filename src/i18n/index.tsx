@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-// OPSQAI v2: English + German only. Romanian removed from the product surface.
-export type Lang = "en" | "de";
+// OPSQAI public surface: English, German and Romanian.
+export type Lang = "en" | "de" | "ro";
+
 
 const dict = {
   de: {
@@ -324,6 +325,59 @@ const dict = {
 
 export type DictKey = keyof typeof dict.en;
 
+/** Romanian UI strings. Anything not listed falls back to English. */
+const ro: Partial<Record<DictKey, string>> = {
+  tagline: "Acces instant la cunoștințele companiei.",
+  dashboard: "Panou",
+  chat: "Chat",
+  newChat: "Conversație nouă",
+  knowledge: "Bază de cunoștințe",
+  faq: "Întrebări frecvente",
+  admin: "Administrare",
+  users: "Utilizatori",
+  auditLog: "Jurnal de audit",
+  signIn: "Autentificare",
+  signUp: "Înregistrare",
+  signOut: "Deconectare",
+  email: "E-mail",
+  password: "Parolă",
+  newPassword: "Parolă nouă",
+  resetPassword: "Resetează parola",
+  fullName: "Nume complet",
+  firstName: "Prenume",
+  lastName: "Nume",
+  position: "Funcție",
+  phone: "Telefon",
+  department: "Departament",
+  continueWithGoogle: "Continuă cu Google",
+  or: "sau",
+  welcome: "Bun venit",
+  conversations: "Conversații",
+  documents: "Documente",
+  faqs: "Întrebări frecvente",
+  search: "Caută",
+  edit: "Editează",
+  delete: "Șterge",
+  save: "Salvează",
+  today: "Astăzi",
+  language: "Limbă",
+  sendMessage: "Trimite mesajul",
+  typeMessage: "Scrie întrebarea ta…",
+  upload: "Încarcă",
+  processing: "Se procesează…",
+  title: "Titlu",
+  category: "Categorie",
+  file: "Fișier",
+  question: "Întrebare",
+  answer: "Răspuns",
+};
+
+const dicts: Record<Lang, Partial<Record<DictKey, string>>> = {
+  en: dict.en,
+  de: dict.de,
+  ro,
+};
+
 interface LangCtx {
   lang: Lang;
   setLang: (l: Lang) => void;
@@ -332,15 +386,17 @@ interface LangCtx {
 
 const Ctx = createContext<LangCtx | null>(null);
 
+const isLang = (v: unknown): v is Lang => v === "en" || v === "de" || v === "ro";
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("lang") : null;
-    if (stored === "de" || stored === "en") setLangState(stored);
+    if (isLang(stored)) setLangState(stored);
     else if (typeof navigator !== "undefined") {
       const nav = navigator.language.slice(0, 2).toLowerCase();
-      if (nav === "de") setLangState("de");
+      if (isLang(nav)) setLangState(nav);
     }
   }, []);
 
@@ -349,10 +405,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") localStorage.setItem("lang", l);
   };
 
-  const t = (k: DictKey) => dict[lang][k] ?? k;
+  const t = (k: DictKey) => dicts[lang]?.[k] ?? dict.en[k] ?? k;
 
   return <Ctx.Provider value={{ lang, setLang, t }}>{children}</Ctx.Provider>;
 }
+
 
 export function useT() {
   const v = useContext(Ctx);

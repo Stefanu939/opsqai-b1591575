@@ -55,6 +55,7 @@ import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
 import { OixButton } from "@/components/oix/buttons";
+import { Founders } from "@/components/oix/founders";
 import { useHomeCopy } from "@/i18n/pages/home";
 
 export const Route = createFileRoute("/")({
@@ -102,7 +103,7 @@ function Home() {
       <div
         style={{
           minHeight: "100vh",
-          background: "var(--oix-bg-deep, #04211a)",
+          background: "var(--oix-bg-deep, #0a0b14)",
         }}
         aria-hidden
       />
@@ -125,6 +126,7 @@ function Home() {
       <LandExpand />
       <Maturity />
       <FAQSection />
+      <Founders />
       <FinalCTA />
     </OixLayout>
   );
@@ -181,8 +183,8 @@ function Hero() {
       <div className="absolute inset-0 -z-10">
         <Scene3D cameraPosition={[0, 0.5, 7]} cameraFov={48}>
           <ambientLight intensity={0.25} />
-          <pointLight position={[6, 4, 6]} intensity={0.9} color="#c9a84c" />
-          <pointLight position={[-6, -3, 4]} intensity={0.6} color="#2dd4a8" />
+          <pointLight position={[6, 4, 6]} intensity={0.9} color="#5b8cf7" />
+          <pointLight position={[-6, -3, 4]} intensity={0.6} color="#8b6bff" />
           <GridFloor />
           <EmberFog />
           <ParticleGenesis progress={progress} autoPlay={false} />
@@ -192,7 +194,7 @@ function Hero() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(80% 60% at 50% 20%, rgba(13,122,95,0.20) 0%, transparent 60%), linear-gradient(180deg, rgba(4,10,8,0.55) 0%, rgba(4,10,8,0.85) 100%)",
+              "radial-gradient(80% 60% at 50% 20%, rgba(91,61,245,0.22) 0%, transparent 60%), linear-gradient(180deg, rgba(10,11,20,0.55) 0%, rgba(10,11,20,0.85) 100%)",
           }}
         />
       </div>

@@ -487,7 +487,7 @@ const de: Copy = {
   },
 };
 
-export const productOverviewCopy = { en, de };
+export const productOverviewCopy: Record<string, Copy> = { en, de };
 
 export function useProductOverviewCopy(): Copy {
   const { lang } = useT();

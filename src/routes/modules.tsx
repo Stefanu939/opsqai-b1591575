@@ -104,7 +104,7 @@ function ModulesPage() {
                       <div className="relative flex items-start justify-between gap-3">
                         <div className="font-semibold text-sm text-white">{m.label}</div>
                         {isBasic ? (
-                          <Badge className="border-[#0d7a5f]/40 bg-[#0d7a5f]/15 text-[10px] text-[#5fd4b3]">
+                          <Badge className="border-[#5b3df5]/40 bg-[#5b3df5]/15 text-[10px] text-[#5fd4b3]">
                             <Check className="h-3 w-3 mr-1" /> {t.basicBadge}
                           </Badge>
                         ) : (

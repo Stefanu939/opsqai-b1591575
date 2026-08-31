@@ -27,10 +27,10 @@ export function ServerMonolith() {
       <mesh castShadow receiveShadow>
         <boxGeometry args={[1.6, 3.8, 1.6]} />
         <meshStandardMaterial
-          color="#0a1512"
+          color="#0f1222"
           metalness={0.85}
           roughness={0.28}
-          emissive="#0d7a5f"
+          emissive="#5b3df5"
           emissiveIntensity={0.06}
         />
       </mesh>
@@ -39,8 +39,8 @@ export function ServerMonolith() {
       <mesh>
         <boxGeometry args={[1.62, 0.02, 1.62]} />
         <meshStandardMaterial
-          color="#c9a84c"
-          emissive="#c9a84c"
+          color="#5b8cf7"
+          emissive="#5b8cf7"
           emissiveIntensity={0.9}
           metalness={1}
           roughness={0.15}
@@ -49,8 +49,8 @@ export function ServerMonolith() {
       <mesh position={[0, -1.9, 0]}>
         <boxGeometry args={[1.62, 0.02, 1.62]} />
         <meshStandardMaterial
-          color="#c9a84c"
-          emissive="#c9a84c"
+          color="#5b8cf7"
+          emissive="#5b8cf7"
           emissiveIntensity={0.9}
           metalness={1}
           roughness={0.15}
@@ -59,8 +59,8 @@ export function ServerMonolith() {
       <mesh position={[0, 1.9, 0]}>
         <boxGeometry args={[1.62, 0.02, 1.62]} />
         <meshStandardMaterial
-          color="#c9a84c"
-          emissive="#c9a84c"
+          color="#5b8cf7"
+          emissive="#5b8cf7"
           emissiveIntensity={0.9}
           metalness={1}
           roughness={0.15}
@@ -71,12 +71,12 @@ export function ServerMonolith() {
       {Array.from({ length: 8 }).map((_, i) => (
         <mesh key={i} position={[0.82, 1.4 - i * 0.28, 0.5]}>
           <sphereGeometry args={[0.03, 12, 12]} />
-          <meshBasicMaterial color={i % 3 === 0 ? "#2dd4a8" : "#c9a84c"} />
+          <meshBasicMaterial color={i % 3 === 0 ? "#8b6bff" : "#5b8cf7"} />
         </mesh>
       ))}
 
       {/* Interior emerald glow */}
-      <pointLight ref={glowRef} position={[0, 0, 0]} color="#0d7a5f" intensity={1.6} distance={4} />
+      <pointLight ref={glowRef} position={[0, 0, 0]} color="#5b3df5" intensity={1.6} distance={4} />
     </group>
   );
 }

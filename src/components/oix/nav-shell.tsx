@@ -69,12 +69,12 @@ export function NavShell() {
         </Link>
 
 
-        <nav className="hidden items-center gap-5 lg:flex">
+        <nav className="hidden items-center gap-4 lg:flex xl:gap-5">
           {links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className="text-[12px] uppercase tracking-[0.22em] text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)] transition-colors"
+              className="whitespace-nowrap text-[12px] uppercase tracking-[0.18em] text-[var(--oix-cream-dim)] transition-colors hover:text-[var(--oix-gold-soft)]"
               activeProps={{ className: "text-[var(--oix-gold)]" }}
             >
               {l.label}
@@ -85,20 +85,20 @@ export function NavShell() {
         <div className="flex items-center gap-2 shrink-0">
           {/* Language — always visible */}
           <div
-            className="flex items-center overflow-hidden border border-[var(--oix-gold-line)]"
+            className="flex items-center overflow-hidden rounded-full border border-[var(--oix-gold-line)]"
             role="group"
             aria-label={m.a11y.language}
           >
-            {(["en", "de"] as const).map((code) => (
+            {(["en", "de", "ro"] as const).map((code) => (
               <button
                 key={code}
                 type="button"
                 onClick={() => setLang(code)}
                 aria-pressed={lang === code}
                 className={cn(
-                  "px-2.5 py-1.5 text-[11px] uppercase tracking-[0.18em] transition-colors",
+                  "px-2 py-1.5 text-[11px] uppercase tracking-[0.14em] transition-colors",
                   lang === code
-                    ? "bg-[var(--oix-gold)] text-[#04211a]"
+                    ? "bg-[var(--oix-gold)] text-[#0a0b14]"
                     : "text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)]",
                 )}
               >
@@ -113,7 +113,7 @@ export function NavShell() {
             onClick={toggleTheme}
             aria-label={m.a11y.theme}
             title={m.a11y.theme}
-            className="inline-flex h-8 w-8 items-center justify-center border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)] hover:border-[var(--oix-gold)] transition-colors"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)] hover:border-[var(--oix-gold)] transition-colors"
           >
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -126,7 +126,7 @@ export function NavShell() {
             {m.cta.signIn}
           </OixButton>
 
-          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 xl:inline-flex">
+          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 2xl:inline-flex">
             {m.cta.proposal}
           </OixButton>
         </div>

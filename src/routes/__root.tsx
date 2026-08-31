@@ -74,8 +74,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "OPSQAI" },
       { name: "format-detection", content: "telephone=no" },
-      { name: "theme-color", content: "#04211a", media: "(prefers-color-scheme: dark)" },
-      { name: "theme-color", content: "#f7f4ea", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#0a0b14", media: "(prefers-color-scheme: dark)" },
+      { name: "theme-color", content: "#f7f8fc", media: "(prefers-color-scheme: light)" },
+
       { title: "OPSQAI — AI Knowledge Platform for Logistics & Supply Chain" },
       {
         name: "description",
@@ -100,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Urbanist:wght@400;500;600;700;800&family=Epilogue:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Cormorant+Garamond:wght@400;500;600;700&family=Karla:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
       },
     ],
     scripts: [

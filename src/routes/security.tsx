@@ -72,8 +72,8 @@ function SecurityPage() {
         <div className="absolute inset-0 -z-10">
           <Scene3D cameraPosition={[0, 1.6, 6]} cameraFov={40}>
             <ambientLight intensity={0.3} />
-            <pointLight position={[4, 3, 4]} intensity={1.1} color="#c9a84c" />
-            <pointLight position={[-4, 2, 2]} intensity={0.6} color="#0d7a5f" />
+            <pointLight position={[4, 3, 4]} intensity={1.1} color="#5b8cf7" />
+            <pointLight position={[-4, 2, 2]} intensity={0.6} color="#5b3df5" />
             <GridFloor />
             <EmberFog />
             <ServerMonolith />
@@ -83,7 +83,7 @@ function SecurityPage() {
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(70% 60% at 70% 40%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.9) 82%)",
+                "radial-gradient(70% 60% at 70% 40%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.9) 82%)",
             }}
           />
         </div>

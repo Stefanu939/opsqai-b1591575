@@ -5,8 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Karla", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -57,179 +58,221 @@
 }
 
 /* ============================================================
-   OPSQAI v2.0 — Enterprise Identity
-   White / slate / charcoal / dark-navy accent. No purple, no
-   gradients, no glow. Feels like Linear / Stripe / GitHub
-   Enterprise / M365 Admin / Vercel. Built for 8+ hour usage.
-   WCAG AA verified in both themes.
+   OPSQAI — Aurora Noir (current visual direction)
+   Deep navy / near-black foundations, ambient violet + blue,
+   restrained warm ember accent. Floating surfaces, hairline
+   borders, soft elevation, purposeful motion.
+   This is the design that exists now — it is intentionally
+   replaceable by a future explicit redesign.
    ============================================================ */
 
 :root {
-  /* v3 radius scale — 10 / 14 / 20 */
-  --radius: 0.875rem; /* 14px card default */
-  --radius-panel: 1.25rem; /* 20px large panels */
+  /* Radius language — 12 / 16 / 24 */
+  --radius: 1rem; /* 16px card default */
+  --radius-panel: 1.5rem; /* 24px large panels */
 
-  /* Surface scale — Soft White / Light Gray */
-  --background: #f7f4ea; /* Parchment */
-  --surface-0: #fffdf6;
-  --surface-1: #f2ece0;
-  --surface-2: #e9e2d1;
-  --surface-3: #ded5c0;
-  --foreground: #0f221c; /* Emerald ink */
-  --surface: #fffdf6;
+  /* Surface scale — soft cool white */
+  --background: #f7f8fc;
+  --surface-0: #ffffff;
+  --surface-1: #f2f4fa;
+  --surface-2: #e9ecf6;
+  --surface-3: #dee2f0;
+  --foreground: #0f1222;
+  --surface: #ffffff;
 
-  --card: #fffdf6;
-  --card-foreground: #0f221c;
-  --popover: #fffdf6;
-  --popover-foreground: #0f221c;
+  --card: #ffffff;
+  --card-foreground: #0f1222;
+  --popover: #ffffff;
+  --popover-foreground: #0f1222;
 
-  /* Primary — deep emerald */
-  --primary: #064e3b;
-  --primary-foreground: #f7f4ea;
-  --primary-glow: #0d7a5f;
+  /* Primary — violet */
+  --primary: #5b3df5;
+  --primary-foreground: #ffffff;
+  --primary-glow: #8b6bff;
 
-  --secondary: #e9e2d1;
-  --secondary-foreground: #0f221c;
+  --secondary: #e9ecf6;
+  --secondary-foreground: #0f1222;
 
-  --muted: #f2ece0;
-  --muted-foreground: #4a5b52;
+  --muted: #f2f4fa;
+  --muted-foreground: #545a75;
 
-  --accent: #e9e2d1;
-  --accent-foreground: #0f221c;
+  /* Accent — blue */
+  --accent: #e6ecfb;
+  --accent-foreground: #1d3f8f;
 
-  --signal: #064e3b;
-  --signal-foreground: #f7f4ea;
+  --signal: #5b3df5;
+  --signal-foreground: #ffffff;
 
-  /* OPSQAI Gold — restrained accent */
-  --gold: #96762a;
-  --gold-foreground: #f7f4ea;
-  --gold-soft: rgba(150, 118, 42, 0.16);
-  --gold-line: rgba(150, 118, 42, 0.34);
+  /* Legacy variable name, new meaning: restrained warm ember */
+  --gold: #b8552b;
+  --gold-foreground: #ffffff;
+  --gold-soft: rgba(184, 85, 43, 0.14);
+  --gold-line: rgba(184, 85, 43, 0.3);
 
-  --destructive: #a32419;
-  --destructive-foreground: #fffdf6;
+  --destructive: #c22a26;
+  --destructive-foreground: #ffffff;
 
-  --success: #0d7a5f;
-  --success-foreground: #fffdf6;
-  --warning: #8a6410;
-  --warning-foreground: #fffdf6;
+  --success: #0f7a5a;
+  --success-foreground: #ffffff;
+  --warning: #97600d;
+  --warning-foreground: #ffffff;
 
-  --border: #ded5c0;
-  --border-strong: #c8bda3;
-  --input: #ded5c0;
-  --ring: #96762a;
+  --border: #dee2f0;
+  --border-strong: #c2c8de;
+  --input: #dee2f0;
+  --ring: #5b3df5;
 
-  --chart-1: #064e3b;
-  --chart-2: #4a5b52;
-  --chart-3: #96762a;
-  --chart-4: #0d7a5f;
-  --chart-5: #8a5a3a;
+  --chart-1: #5b3df5;
+  --chart-2: #2f6bd8;
+  --chart-3: #8b6bff;
+  --chart-4: #545a75;
+  --chart-5: #b8552b;
 
-  --sidebar: #fffdf6;
-  --sidebar-foreground: #0f221c;
-  --sidebar-primary: #064e3b;
-  --sidebar-primary-foreground: #f7f4ea;
-  --sidebar-accent: #f2ece0;
-  --sidebar-accent-foreground: #0f221c;
-  --sidebar-border: #e4dcc8;
-  --sidebar-ring: #96762a;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f1222;
+  --sidebar-primary: #5b3df5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f4fa;
+  --sidebar-accent-foreground: #0f1222;
+  --sidebar-border: #e4e8f4;
+  --sidebar-ring: #5b3df5;
 
-  --shadow-xs: 0 1px 2px 0 rgba(15, 34, 28, 0.04);
-  --shadow-sm: 0 1px 2px 0 rgba(15, 34, 28, 0.06);
-  --shadow-md: 0 6px 16px -6px rgba(15, 34, 28, 0.12);
-  --shadow-lg: 0 18px 40px -18px rgba(15, 34, 28, 0.20);
-  --shadow-glow: none;
+  /* Ambient glow tokens */
+  --glow-violet: radial-gradient(
+    60% 60% at 50% 0%,
+    rgba(91, 61, 245, 0.18),
+    transparent 70%
+  );
+  --glow-blue: radial-gradient(
+    55% 55% at 50% 50%,
+    rgba(47, 107, 216, 0.16),
+    transparent 72%
+  );
+  --glow-ember: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(184, 85, 43, 0.12),
+    transparent 72%
+  );
+
+  --shadow-xs: 0 1px 2px 0 rgba(15, 18, 34, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(15, 18, 34, 0.06);
+  --shadow-md: 0 6px 16px -6px rgba(15, 18, 34, 0.12);
+  --shadow-lg: 0 18px 40px -18px rgba(15, 18, 34, 0.2);
+  --shadow-soft: 0 2px 10px -4px rgba(15, 18, 34, 0.1);
+  --shadow-lift: 0 20px 50px -24px rgba(15, 18, 34, 0.24);
+  --shadow-glow: 0 0 48px -16px rgba(91, 61, 245, 0.35);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-fast: 180ms;
   --motion-base: 240ms;
   --motion-slow: 320ms;
 
-  --gradient-hero: none;
-  --gradient-cta: #f2ece0;
-  --gradient-primary: #064e3b;
-  --gradient-card: #fffdf6;
-  --gradient-sidebar: #fffdf6;
-  --gradient-surface: #fffdf6;
+  --gradient-hero: linear-gradient(180deg, #f7f8fc 0%, #eef0fb 100%);
+  --gradient-cta: linear-gradient(135deg, #eef0fb 0%, #e6ecfb 100%);
+  --gradient-primary: linear-gradient(135deg, #5b3df5 0%, #8b6bff 100%);
+  --gradient-card: #ffffff;
+  --gradient-sidebar: #ffffff;
+  --gradient-surface: #ffffff;
 }
 
 .dark {
-  /* Deep Navy dark — same identity, less brightness */
-  --background: #04211a;
-  --surface-0: #04211a;
-  --surface-1: #072e24;
-  --surface-2: #0a3a2d;
-  --surface-3: #0f4a39;
-  --foreground: #f5f0e0;
-  --surface: #072e24;
+  /* Near-black deep navy foundation */
+  --background: #0a0b14;
+  --surface-0: #0a0b14;
+  
+  --surface-1: #111320;
+  --surface-2: #171a2b;
+  --surface-3: #1f2338;
+  --foreground: #eef0fa;
+  --surface: #111320;
 
-  --card: #072e24;
-  --card-foreground: #f5f0e0;
-  --popover: #072e24;
-  --popover-foreground: #f5f0e0;
+  --card: #111320;
+  --card-foreground: #eef0fa;
+  --popover: #141728;
+  --popover-foreground: #eef0fa;
 
-  --primary: #c9a84c;
-  --primary-foreground: #04211a;
-  --primary-glow: #e8d48a;
+  --primary: #8b6bff;
+  --primary-foreground: #0a0b14;
+  --primary-glow: #b39dff;
 
-  --secondary: #0a3a2d;
-  --secondary-foreground: #f5f0e0;
+  --secondary: #1f2338;
+  --secondary-foreground: #eef0fa;
 
-  --muted: #072e24;
-  --muted-foreground: #a9bdb1;
+  --muted: #171a2b;
+  --muted-foreground: #9aa2c2;
 
-  --accent: #0a3a2d;
-  --accent-foreground: #f5f0e0;
+  --accent: #1b2440;
+  --accent-foreground: #a9c2ff;
 
-  --signal: #c9a84c;
-  --signal-foreground: #04211a;
+  --signal: #8b6bff;
+  --signal-foreground: #0a0b14;
 
-  --gold: #c9a84c;
-  --gold-foreground: #04211a;
-  --gold-soft: rgba(201, 168, 76, 0.20);
-  --gold-line: rgba(201, 168, 76, 0.38);
+  /* Legacy variable name, new meaning: restrained warm ember */
+  --gold: #e2793f;
+  --gold-foreground: #0a0b14;
+  --gold-soft: rgba(226, 121, 63, 0.16);
+  --gold-line: rgba(226, 121, 63, 0.32);
 
-  --destructive: #e5675c;
-  --destructive-foreground: #04211a;
+  --destructive: #f0675c;
+  --destructive-foreground: #0a0b14;
 
-  --success: #2dd4a8;
-  --success-foreground: #04211a;
-  --warning: #e8c063;
-  --warning-foreground: #04211a;
+  --success: #3ddcac;
+  --success-foreground: #0a0b14;
+  --warning: #f0b95f;
+  --warning-foreground: #0a0b14;
 
-  --border: rgba(201, 168, 76, 0.22);
-  --border-strong: rgba(201, 168, 76, 0.4);
-  --input: rgba(201, 168, 76, 0.24);
-  --ring: #c9a84c;
+  --border: rgba(160, 168, 210, 0.16);
+  --border-strong: rgba(160, 168, 210, 0.3);
+  --input: rgba(160, 168, 210, 0.18);
+  --ring: #8b6bff;
 
-  --chart-1: #f5f0e0;
-  --chart-2: #a9bdb1;
-  --chart-3: #c9a84c;
-  --chart-4: #2dd4a8;
-  --chart-5: #d18a5a;
+  --chart-1: #8b6bff;
+  --chart-2: #5b8cf7;
+  --chart-3: #b39dff;
+  --chart-4: #9aa2c2;
+  --chart-5: #e2793f;
 
-  --sidebar: #04211a;
-  --sidebar-foreground: #f5f0e0;
-  --sidebar-primary: #c9a84c;
-  --sidebar-primary-foreground: #04211a;
-  --sidebar-accent: #0a3a2d;
-  --sidebar-accent-foreground: #f5f0e0;
-  --sidebar-border: rgba(201, 168, 76, 0.2);
-  --sidebar-ring: #c9a84c;
+  --sidebar: #0a0b14;
+  --sidebar-foreground: #eef0fa;
+  --sidebar-primary: #8b6bff;
+  --sidebar-primary-foreground: #0a0b14;
+  --sidebar-accent: #171a2b;
+  --sidebar-accent-foreground: #eef0fa;
+  --sidebar-border: rgba(160, 168, 210, 0.14);
+  --sidebar-ring: #8b6bff;
+
+  --glow-violet: radial-gradient(
+    60% 60% at 50% 0%,
+    rgba(139, 107, 255, 0.28),
+    transparent 70%
+  );
+  --glow-blue: radial-gradient(
+    55% 55% at 50% 50%,
+    rgba(91, 140, 247, 0.22),
+    transparent 72%
+  );
+  --glow-ember: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(226, 121, 63, 0.16),
+    transparent 72%
+  );
 
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
   --shadow-md: 0 8px 20px -8px rgba(0, 0, 0, 0.55);
   --shadow-lg: 0 20px 44px -20px rgba(0, 0, 0, 0.7);
-  --shadow-glow: none;
+  --shadow-soft: 0 2px 12px -6px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 24px 60px -28px rgba(0, 0, 0, 0.75);
+  --shadow-glow: 0 0 60px -18px rgba(139, 107, 255, 0.45);
 
-  --gradient-hero: none;
-  --gradient-cta: #0a3a2d;
-  --gradient-primary: #c9a84c;
-  --gradient-card: #072e24;
-  --gradient-sidebar: #04211a;
-  --gradient-surface: #072e24;
+  --gradient-hero: linear-gradient(180deg, #0a0b14 0%, #12142a 100%);
+  --gradient-cta: linear-gradient(135deg, #141728 0%, #1b2440 100%);
+  --gradient-primary: linear-gradient(135deg, #6d4bf6 0%, #8b6bff 100%);
+  --gradient-card: #111320;
+  --gradient-sidebar: #0a0b14;
+  --gradient-surface: #111320;
 }
+
 
 @layer base {
   * {
@@ -420,175 +463,75 @@ body {
 }
 
 /* ============================================================
-   Mission Control — Noir & Gold premium scope
-   Scoped via .mc-shell so it doesn't leak into marketing/app.
+   Aurora Noir shared shell scope — .n
+   Used by Management Center (mc-shell) and the Customer Portal.
+   Floating panels on a deep navy / cool-white field.
    ============================================================ */
 
-.mc-shell {
-  /* Violet Noir palette — Mission Control Cloud */
-  --mc-bg: #0a0a1a;
-  --mc-surface-1: #12122a;
-  --mc-surface-2: #1a1a3d;
-  --mc-surface-3: #23234d;
-  /* Token names kept for backward-compat; values now violet/indigo */
-  --mc-gold: #7c5cff;
-  --mc-gold-soft: rgba(124, 92, 255, 0.5);
-  --mc-gold-glow: #a78bfa;
-  --mc-gold-line: rgba(124, 92, 255, 0.14);
-  --mc-gold-line-strong: rgba(124, 92, 255, 0.32);
-  --mc-fg: #e8e8ff;
-  --mc-fg-muted: #9a9ac8;
-  --mc-fg-dim: #6666a0;
-  --mc-danger: #f87171;
-  --mc-success: #34d399;
-  --mc-warning: #fbbf24;
-  --mc-cyan: #22d3ee;
-  --mc-magenta: #ec4899;
-
-  /* Override shadcn tokens inside MC scope */
-  --background: var(--mc-bg);
-  --foreground: var(--mc-fg);
-  --card: var(--mc-surface-1);
-  --card-foreground: var(--mc-fg);
-  --popover: var(--mc-surface-3);
-  --popover-foreground: var(--mc-fg);
-  --primary: var(--mc-gold);
-  --primary-foreground: #0a0a1a;
-  --secondary: var(--mc-surface-3);
-  --secondary-foreground: var(--mc-fg);
-  --muted: var(--mc-surface-2);
-  --muted-foreground: var(--mc-fg-muted);
-  --accent: var(--mc-surface-3);
-  --accent-foreground: var(--mc-gold-glow);
-  --border: var(--mc-gold-line);
-  --input: var(--mc-surface-3);
-  --ring: var(--mc-gold);
-  --sidebar: #08081a;
-  --sidebar-foreground: var(--mc-fg);
-  --sidebar-primary: var(--mc-gold);
-  --sidebar-primary-foreground: #0a0a1a;
-  --sidebar-accent: var(--mc-surface-2);
-  --sidebar-accent-foreground: var(--mc-gold-glow);
-  --sidebar-border: var(--mc-gold-line);
-  --sidebar-ring: var(--mc-gold);
-  --chart-1: #7c5cff;
-  --chart-2: #a78bfa;
-  --chart-3: #22d3ee;
-  --chart-4: #ec4899;
-  --chart-5: #34d399;
-
-  background: var(--mc-bg);
-  color: var(--mc-fg);
-  font-family: "Epilogue", "Inter", system-ui, sans-serif;
-  font-feature-settings: "ss01", "cv11", "tnum";
+.n {
+  background: var(--gradient-hero);
+  color: var(--color-foreground);
+  position: relative;
+  isolation: isolate;
 }
 
-.mc-shell h1,
-.mc-shell h2,
-.mc-shell h3,
-.mc-shell h4,
-.mc-shell .font-display,
-.mc-shell .mc-heading {
-  font-family: "Urbanist", "Inter", system-ui, sans-serif;
-  letter-spacing: -0.018em;
-  color: var(--mc-fg);
+.n::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--glow-violet), var(--glow-blue);
+  background-position:
+    50% -10%,
+    110% 60%;
+  background-repeat: no-repeat;
+  background-size:
+    140% 70%,
+    70% 70%;
 }
 
-.mc-shell .mc-eyebrow {
-  font-family: "Urbanist", "Inter", system-ui, sans-serif;
+@utility n-card {
+  background: color-mix(in oklab, var(--color-card) 88%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(10px);
+}
+
+@utility n-lift {
+  transition:
+    transform var(--motion-base) var(--ease-out-expo),
+    box-shadow var(--motion-base) var(--ease-out-expo),
+    border-color var(--motion-base) ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+    border-color: var(--color-border-strong, var(--border-strong));
+  }
+}
+
+@utility n-eyebrow {
   font-size: 0.68rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--mc-fg-muted);
+  color: var(--color-muted-foreground);
 }
 
-.mc-shell .mc-num {
+@utility n-num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-@utility mc-hairline {
-  position: relative;
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 12%;
-    right: 12%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(124, 92, 255, 0) 5%,
-      rgba(124, 92, 255, 0.55) 50%,
-      rgba(124, 92, 255, 0) 95%,
-      transparent 100%
-    );
-    pointer-events: none;
-  }
-}
-
-@utility mc-shadow-premium {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 1px 0 rgba(0, 0, 0, 0.4),
-    0 10px 30px -12px rgba(0, 0, 0, 0.7);
-}
-
-@utility mc-shadow-gold {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 1px 0 rgba(0, 0, 0, 0.5),
-    0 8px 24px -8px rgba(124, 92, 255, 0.55),
-    0 0 0 1px rgba(124, 92, 255, 0.4);
-}
-
-@utility mc-surface {
-  background: linear-gradient(180deg, #16163a 0%, #101028 100%);
-  border: 1px solid var(--mc-gold-line);
-  border-radius: 0.75rem;
-}
-
-@utility mc-surface-hover {
-  transition:
-    transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1),
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-  &:hover {
-    transform: translateY(-2px);
-    border-color: var(--mc-gold-line-strong);
-    box-shadow:
-      0 12px 32px -12px rgba(0, 0, 0, 0.7),
-      0 0 24px -8px rgba(124, 92, 255, 0.35);
-  }
-}
-
-@utility mc-gold-text {
-  background: linear-gradient(135deg, #a78bfa 0%, #7c5cff 55%, #22d3ee 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-@utility mc-gold-border {
-  border: 1px solid var(--mc-gold-line-strong);
-}
-
-@utility mc-grid-faint {
+@utility n-grid-faint {
   background-image:
-    linear-gradient(to right, rgba(124, 92, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(124, 92, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, color-mix(in oklab, var(--primary) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--primary) 8%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
-@utility mc-glow-violet {
-  box-shadow:
-    0 0 40px -10px rgba(124, 92, 255, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-@keyframes mc-fade-in-up {
+@keyframes n-fade-in-up {
   0% {
     opacity: 0;
     transform: translateY(6px);
@@ -599,28 +542,10 @@ body {
   }
 }
 
-@utility mc-enter {
-  animation: mc-fade-in-up 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+@utility n-enter {
+  animation: n-fade-in-up 420ms var(--ease-out-expo) both;
 }
 
-@keyframes mc-shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-@utility mc-shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(201, 168, 76, 0) 0%,
-    rgba(201, 168, 76, 0.35) 50%,
-    rgba(201, 168, 76, 0) 100%
-  );
-  background-size: 200% 100%;
-  animation: mc-shimmer 2.4s ease-in-out infinite;
-}
 
 /* ── Reduced motion ────────────────────────────────────────────────
    Respect the OS-level preference. Kill non-essential animation and
@@ -637,40 +562,43 @@ body {
 }
 
 /* ============================================================
-   OIX — Operational Intelligence Experience
-   Marketing site identity (Emerald Prestige + Gold + Cream)
-   Prefix: --oix-*. Applied via <div class="oix-shell"> wrapper.
+   OIX — marketing scope (Aurora Noir)
+   Prefix: --oix-*. Variable names are legacy; values are the
+   current navy / violet / blue / ember direction.
    ============================================================ */
 
 :root {
-  --oix-bg-deep: #04211a;
-  --oix-surface: #064e3b;
-  --oix-surface-2: #072e24;
-  --oix-emerald: #0d7a5f;
-  --oix-emerald-glow: #2dd4a8;
-  --oix-gold: #c9a84c;
-  --oix-gold-soft: #e8d48a;
-  --oix-gold-line: rgba(201, 168, 76, 0.22);
-  --oix-cream: #f5f0e0;
-  --oix-cream-dim: rgba(245, 240, 224, 0.72);
+  --oix-bg-deep: #0a0b14;
+  --oix-surface: #171a2b;
+  --oix-surface-2: #111320;
+  /* legacy name "emerald" → violet primary */
+  --oix-emerald: #5b3df5;
+  --oix-emerald-glow: #8b6bff;
+  /* legacy name "gold" → blue secondary signal */
+  --oix-gold: #5b8cf7;
+  --oix-gold-soft: #a9c2ff;
+  --oix-gold-line: rgba(139, 107, 255, 0.24);
+  --oix-ember: #e2793f;
+  --oix-cream: #eef0fa;
+  --oix-cream-dim: rgba(238, 240, 250, 0.72);
   --oix-hairline: 1px solid var(--oix-gold-line);
   --oix-gradient-genesis: radial-gradient(
     120% 80% at 50% 0%,
-    #0d7a5f 0%,
-    #064e3b 35%,
-    #04211a 75%,
-    #020f0b 100%
+    #3a2a8f 0%,
+    #1b1d3d 35%,
+    #0a0b14 75%,
+    #05060c 100%
   );
   --oix-gradient-gold-shimmer: linear-gradient(
     120deg,
-    #c9a84c 0%,
-    #f5f0e0 45%,
-    #c9a84c 100%
+    #8b6bff 0%,
+    #a9c2ff 45%,
+    #8b6bff 100%
   );
-  --oix-shadow-emerald-glow: 0 0 60px -10px rgba(45, 212, 168, 0.35);
-  --oix-shadow-gold-glow: 0 0 40px -12px rgba(201, 168, 76, 0.55);
+  --oix-shadow-emerald-glow: 0 0 60px -10px rgba(139, 107, 255, 0.4);
+  --oix-shadow-gold-glow: 0 0 40px -12px rgba(91, 140, 247, 0.45);
   --font-display-oix: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-serif-oix: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-serif-oix: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-body-oix: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -681,68 +609,53 @@ body {
   --color-oix-gold: var(--oix-gold);
   --color-oix-gold-soft: var(--oix-gold-soft);
   --color-oix-cream: var(--oix-cream);
+  --color-oix-ember: var(--oix-ember);
 }
 
-/* Light mode for the OIX marketing surfaces (token overrides only,
-   so every component that reads --oix-* adapts automatically). */
-html:not(.dark) .oix-shell {
-  --oix-bg-deep: #f7f4ea;
-  --oix-surface: #e8e2d0;
-  --oix-surface-2: #efeadb;
-  --oix-emerald: #0d7a5f;
-  --oix-emerald-glow: #0f8f6e;
-  --oix-gold: #96762a;
-  --oix-gold-soft: #7a5f1f;
-  --oix-gold-line: rgba(150, 118, 42, 0.28);
-  --oix-cream: #10201b;
-  --oix-cream-dim: rgba(16, 32, 27, 0.7);
-  --oix-shadow-gold-glow: 0 0 40px -14px rgba(150, 118, 42, 0.45);
+/* Light mode — token overrides only, so every component that reads
+   --oix-* adapts automatically. */
+html:not(.dark) {
+  --oix-bg-deep: #f7f8fc;
+  --oix-surface: #e9ecf6;
+  --oix-surface-2: #f2f4fa;
+  --oix-emerald: #5b3df5;
+  --oix-emerald-glow: #6d4bf6;
+  --oix-gold: #2f6bd8;
+  --oix-gold-soft: #1d3f8f;
+  --oix-gold-line: rgba(91, 61, 245, 0.2);
+  --oix-ember: #b8552b;
+  --oix-cream: #0f1222;
+  --oix-cream-dim: rgba(15, 18, 34, 0.7);
+  --oix-gradient-genesis: radial-gradient(
+    120% 80% at 50% 0%,
+    #e6e9fb 0%,
+    #eef0fb 40%,
+    #f7f8fc 80%
+  );
+  --oix-shadow-emerald-glow: 0 0 50px -14px rgba(91, 61, 245, 0.28);
+  --oix-shadow-gold-glow: 0 0 40px -14px rgba(47, 107, 216, 0.32);
 }
 
-html:not(.dark) .oix-shell::before {
-  opacity: 0.18;
-  mix-blend-mode: multiply;
+/* In light mode the cinematic 3D layers recede so editorial copy
+   stays legible. */
+html:not(.dark) .n canvas {
+  opacity: 0.2;
 }
 
-/* In light mode the cinematic 3D layers recede and the dark vignette
-   scrims are inverted so editorial copy stays legible. */
-html:not(.dark) .oix-shell canvas {
-  opacity: 0.18;
-}
-
-html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
+html:not(.dark) .n [class*="-z-10"] > div[style] {
   background: radial-gradient(
     80% 70% at 50% 30%,
-    rgba(247, 244, 234, 0.55) 0%,
-    rgba(247, 244, 234, 0.94) 80%
+    rgba(247, 248, 252, 0.55) 0%,
+    rgba(247, 248, 252, 0.94) 80%
   ) !important;
 }
 
-/* Root wrapper for the marketing site — scopes tokens/fonts */
-.oix-shell {
-  background: var(--oix-bg-deep);
-  color: var(--oix-cream);
+/* Marketing scope typography/background — applied through .n */
+.n {
   font-family: var(--font-body-oix);
   min-height: 100vh;
-  position: relative;
-  isolation: isolate;
 }
 
-.oix-shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.94 0 0 0 0 0.87 0 0 0 0.045 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  mix-blend-mode: overlay;
-  opacity: 0.4;
-}
-
-.oix-shell > * {
-  position: relative;
-  z-index: 1;
-}
 
 /* Editorial display — the motto/statement voice */
 @utility oix-display {
@@ -976,75 +889,17 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
 }
 
 /* ============================================================
-   OPSQAI Cloud "Soft Deck" — Management Center + Customer Portal
-   Warm off-white surfaces, generous radii, pill navigation.
-   Scoped via .oq-soft so Self-Hosted (/app) is untouched.
+   Cloud surfaces — Management Center + Customer Portal
+   No separate palette: they inherit the Aurora Noir tokens and
+   only carry their own elevation + card language.
    ============================================================ */
 
-.oq-soft {
-  --oq-soft-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 32px -20px rgba(16, 24, 40, 0.28);
-  --oq-soft-shadow-lift: 0 2px 4px rgba(16, 24, 40, 0.05), 0 20px 44px -22px rgba(16, 24, 40, 0.3);
-
-  --background: #f6f4f0;
-  --foreground: #17233a;
-  --card: #ffffff;
-  --card-foreground: #17233a;
-  --popover: #ffffff;
-  --popover-foreground: #17233a;
-  --primary: #c9a24c;
-  --primary-foreground: #1a1408;
-  --secondary: #f2eee6;
-  --secondary-foreground: #17233a;
-  --muted: #f2eee6;
-  --muted-foreground: #6b7385;
-  --accent: #f7f1e2;
-  --accent-foreground: #6b551d;
-  --border: rgba(23, 35, 58, 0.09);
-  --input: rgba(23, 35, 58, 0.12);
-  --ring: #c9a24c;
-  --surface-1: #f2eee6;
-  --surface-2: #eae4d8;
-  --gold: #c9a24c;
-  --gold-foreground: #1a1408;
-  --gold-soft: rgba(201, 162, 76, 0.14);
-  --gold-line: rgba(201, 162, 76, 0.32);
-  --mc-gold: #c9a24c;
-  --chart-1: #c9a24c;
-  --chart-2: #e0c47f;
-  --chart-3: #17233a;
-  --chart-4: #6b7385;
-  --chart-5: #2f9e78;
-
-  background: var(--background);
-  color: var(--foreground);
+.oq-soft,
+.n {
+  --oq-soft-shadow: var(--shadow-soft);
+  --oq-soft-shadow-lift: var(--shadow-lift);
 }
 
-.dark .oq-soft {
-  --oq-soft-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px -24px rgba(0, 0, 0, 0.7);
-  --oq-soft-shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.45), 0 24px 52px -24px rgba(0, 0, 0, 0.75);
-
-  --background: #0e1320;
-  --foreground: #eef1f7;
-  --card: #151b2b;
-  --card-foreground: #eef1f7;
-  --popover: #1a2131;
-  --popover-foreground: #eef1f7;
-  --secondary: #1a2131;
-  --secondary-foreground: #eef1f7;
-  --muted: #1a2131;
-  --muted-foreground: #9aa4ba;
-  --accent: #232b3d;
-  --accent-foreground: #e6c67c;
-  --border: rgba(238, 241, 247, 0.09);
-  --input: rgba(238, 241, 247, 0.14);
-  --surface-1: #151b2b;
-  --surface-2: #1e2637;
-  --gold: #d8b563;
-  --gold-soft: rgba(216, 181, 99, 0.16);
-  --gold-line: rgba(216, 181, 99, 0.3);
-  --mc-gold: #d8b563;
-  --chart-3: #eef1f7;
-}
 
 /* Soft card — the single card language of the cloud surfaces. */
 @utility oq-soft-card {
@@ -1075,10 +930,12 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
 /* Inside the soft scope, normalise the shared primitives so every page —
    present and future — picks up the rounded, softly shadowed language. */
 .oq-soft .oq-soft-scope-card,
-.oq-soft [data-slot="card"] {
+.oq-soft [data-slot="card"],
+.n [data-slot="card"] {
   border-radius: 1.25rem;
   box-shadow: var(--oq-soft-shadow);
 }
+
 
 .oq-soft .rounded-lg,
 .oq-soft .rounded-xl {

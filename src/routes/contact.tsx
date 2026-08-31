@@ -122,7 +122,7 @@ function ContactPage() {
         <div className="absolute inset-0 -z-10">
           <Scene3D cameraPosition={[0, 1.2, 5]} cameraFov={44}>
             <ambientLight intensity={0.4} />
-            <pointLight position={[3, 3, 3]} intensity={1} color="#c9a84c" />
+            <pointLight position={[3, 3, 3]} intensity={1} color="#5b8cf7" />
             <GridFloor />
             <EmberFog />
             <GoldBloom />
@@ -131,7 +131,7 @@ function ContactPage() {
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(60% 60% at 50% 50%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.92) 88%)",
+                "radial-gradient(60% 60% at 50% 50%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.92) 88%)",
             }}
           />
         </div>

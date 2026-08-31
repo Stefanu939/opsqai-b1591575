@@ -73,8 +73,8 @@ function PricingPage() {
         <div className="absolute inset-0 -z-10">
           <Scene3D cameraPosition={[0, 0.8, 5.5]} cameraFov={45}>
             <ambientLight intensity={0.4} />
-            <pointLight position={[3, 3, 3]} intensity={1.1} color="#c9a84c" />
-            <pointLight position={[-3, -1, 2]} intensity={0.5} color="#0d7a5f" />
+            <pointLight position={[3, 3, 3]} intensity={1.1} color="#5b8cf7" />
+            <pointLight position={[-3, -1, 2]} intensity={0.5} color="#5b3df5" />
             <GridFloor />
             <EmberFog />
             <ModuleConstellation nodeCount={12} />
@@ -84,7 +84,7 @@ function PricingPage() {
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(70% 60% at 50% 40%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.9) 85%)",
+                "radial-gradient(70% 60% at 50% 40%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.9) 85%)",
             }}
           />
         </div>
