@@ -930,10 +930,12 @@ html:not(.dark) .n [class*="-z-10"] > div[style] {
 /* Inside the soft scope, normalise the shared primitives so every page —
    present and future — picks up the rounded, softly shadowed language. */
 .oq-soft .oq-soft-scope-card,
-.oq-soft [data-slot="card"] {
+.oq-soft [data-slot="card"],
+.n [data-slot="card"] {
   border-radius: 1.25rem;
   box-shadow: var(--oq-soft-shadow);
 }
+
 
 .oq-soft .rounded-lg,
 .oq-soft .rounded-xl {
