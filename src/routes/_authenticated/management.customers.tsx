@@ -100,7 +100,7 @@ function daysUntil(d: string | null | undefined) {
 function CustomersPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { setActiveCompanyId } = useAuth();
+  const { setActiveCompanyId, session, loading: authLoading } = useAuth();
   const list = useServerFn(listCustomerProfiles);
   const save = useServerFn(upsertCustomerContract);
   const create = useServerFn(createCompany);
@@ -108,9 +108,14 @@ function CustomersPage() {
   const remove = useServerFn(deleteCompany);
 
   const { data = [], isLoading } = useQuery({
-    queryKey: ["mc-customers"],
+    queryKey: ["mc-customers", session?.user?.id ?? null],
     queryFn: () => list({ data: {} } as never) as Promise<Row[]>,
+    // Don't fetch before the session is hydrated or after sign-out — the
+    // protected fn would 401 with no bearer token and blank the screen.
+    enabled: !authLoading && Boolean(session?.user?.id),
+    retry: false,
   });
+
 
   const [q, setQ] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
