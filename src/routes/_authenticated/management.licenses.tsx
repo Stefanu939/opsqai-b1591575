@@ -744,3 +744,160 @@ function ActivateModuleDialog({
     </Dialog>
   );
 }
+
+// ─── Customers & entitlements ───────────────────────────────────────────
+// Management Center is the authority: the company profile decides which
+// OPSQAI products are available, the administrator explicitly enables them,
+// and the (re)issued installation license distributes those entitlements.
+
+type CompanyRow = {
+  id: string;
+  name: string;
+  max_users: number | null;
+  install_id: string | null;
+  business_type: string | null;
+  enabled_products: string[] | null;
+};
+
+function CustomerEntitlementsPanel({
+  licenses,
+  onIssueFor,
+}: {
+  licenses: License[];
+  onIssueFor: (p: IssuePrefill) => void;
+}) {
+  const qc = useQueryClient();
+  const listCompaniesFn = useServerFn(listCompanies);
+  const setProduct = useServerFn(setCompanyProduct);
+
+  const { data: companies = [], isLoading } = useQuery({
+    queryKey: ["mc-companies-entitlements"],
+    queryFn: () => listCompaniesFn({ data: {} } as never) as Promise<CompanyRow[]>,
+  });
+
+  const productMut = useMutation({
+    mutationFn: (v: { company_id: string; product_key: string; enabled: boolean }) =>
+      setProduct({ data: v }),
+    onSuccess: (_r, v) => {
+      toast.success(
+        v.enabled ? "Product enabled — reissue the license to distribute it." : "Product disabled",
+      );
+      qc.invalidateQueries({ queryKey: ["mc-companies-entitlements"] });
+      qc.invalidateQueries({ queryKey: ["mc-customers"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const licenseFor = (c: CompanyRow) => {
+    const wanted = (c.install_id ?? slugify(c.name)).toLowerCase();
+    return (
+      licenses.find((l) => l.install_id.toLowerCase() === wanted) ??
+      licenses.find((l) => l.company_name.trim().toLowerCase() === c.name.trim().toLowerCase()) ??
+      null
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        Loading customers…
+      </div>
+    );
+  }
+  if (companies.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-border bg-card">
+      <div className="border-b border-border p-3">
+        <h2 className="text-sm font-semibold text-foreground">Customers &amp; entitlements</h2>
+        <p className="text-xs text-muted-foreground">
+          Company profile decides what is available. Enable products explicitly, then issue or
+          reissue the license so the customer install receives them.
+        </p>
+      </div>
+      <ul className="divide-y divide-border">
+        {companies.map((c) => {
+          const profile = getCompanyProfile(c.business_type);
+          const available = productsAvailableFor(c.business_type);
+          const recommended = new Set<string>(productsRecommendedFor(c.business_type));
+          const enabled = new Set<string>(c.enabled_products ?? []);
+          const lic = licenseFor(c);
+          return (
+            <li key={c.id} className="space-y-3 p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground">{c.name}</span>
+                    <Badge variant="outline">{profile.label}</Badge>
+                    {lic ? (
+                      lic.revoked ? (
+                        <Badge variant="destructive">License revoked</Badge>
+                      ) : (
+                        <Badge>License active</Badge>
+                      )
+                    ) : (
+                      <Badge variant="secondary">No license</Badge>
+                    )}
+                  </div>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {c.install_id ?? slugify(c.name)}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant={lic ? "outline" : "default"}
+                  onClick={() =>
+                    onIssueFor({
+                      company_name: c.name,
+                      install_id: (c.install_id ?? slugify(c.name)).toLowerCase(),
+                      seats: c.max_users,
+                    })
+                  }
+                >
+                  <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                  {lic ? "Reissue license" : "Issue license"}
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {available.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">
+                    No products available for this profile.
+                  </span>
+                ) : (
+                  available.map((key) => {
+                    const p = getProduct(key);
+                    return (
+                      <label
+                        key={key}
+                        className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-xs"
+                      >
+                        <Switch
+                          checked={enabled.has(key)}
+                          disabled={productMut.isPending}
+                          onCheckedChange={(v) =>
+                            productMut.mutate({
+                              company_id: c.id,
+                              product_key: key,
+                              enabled: v,
+                            })
+                          }
+                          aria-label={`${p?.label ?? key} for ${c.name}`}
+                        />
+                        <span className="text-foreground">{p?.label ?? key}</span>
+                        {recommended.has(key) && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            Recommended
+                          </Badge>
+                        )}
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
