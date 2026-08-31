@@ -1,4 +1,5 @@
 import { ModulePage } from "@/components/app/module-page";
+import { getAddon, getProduct } from "@/lib/product-architecture";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -72,7 +73,7 @@ function PortalSubscription() {
     <ModulePage
       eyebrow="Customer portal"
       title="Subscription"
-      description="Read-only view of the licenses tied to your account. Contact OPSQAI to change seats, activate modules, or renew maintenance."
+      description="Read-only view of the licenses and entitlements tied to your account. OPSQAI platform capabilities are always included; contact OPSQAI to change seats, enable products, or renew maintenance."
       actions={
         <Button asChild size="sm" variant="outline">
           <Link to="/portal/support">Contact OPSQAI</Link>
@@ -149,7 +150,7 @@ function PortalSubscription() {
 
               <div>
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-                  Module licenses
+                  Entitlements
                 </div>
                 {inst.module_licenses.length ? (
                   <div className="rounded-lg border border-border divide-y divide-border text-sm overflow-hidden">
@@ -158,7 +159,7 @@ function PortalSubscription() {
                         key={m.module_key}
                         className="px-3 py-2 flex items-center justify-between flex-wrap gap-2 hover:bg-muted/30 transition-colors"
                       >
-                        <span className="font-mono text-xs">{m.module_key}</span>
+                        <span className="text-xs">{entitlementLabel(m.module_key)}</span>
                         <div className="flex gap-4 text-xs text-muted-foreground">
                           <span>maint: {fmt(m.maintenance_expires_at)}</span>
                           <span>exp: {fmt(m.expires_at)}</span>
@@ -179,7 +180,8 @@ function PortalSubscription() {
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">
-                    No premium modules yet. Request activation via support.
+                    No products or add-ons enabled yet — the OPSQAI platform capabilities included
+                    with your installation are always available. Ask support to enable a product.
                   </div>
                 )}
               </div>
@@ -189,4 +191,9 @@ function PortalSubscription() {
       )}
     </ModulePage>
   );
+}
+
+// Entitlement keys are technical; show the product / add-on name when known.
+function entitlementLabel(key: string): string {
+  return getProduct(key)?.label ?? getAddon(key)?.label ?? key;
 }
