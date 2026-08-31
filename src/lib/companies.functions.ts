@@ -56,10 +56,24 @@ export const createCompany = createServerFn({ method: "POST" })
       admin_password: z.string().min(8),
       admin_first_name: z.string().optional(),
       admin_last_name: z.string().optional(),
+      /** Canonical Company Profile — Management Center is the authority. */
+      business_type: z.string().min(1).max(64),
+      /** Explicitly enabled OPSQAI Products (never derived from the profile). */
+      enabled_products: z.array(z.string().min(1).max(64)).max(32).optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { isCompanyProfileKey, isProductKey, productsAvailableFor } = await import(
+      "@/lib/product-architecture"
+    );
+    const { applyCompanyProducts } = await import("@/lib/company-products.functions");
+    if (!isCompanyProfileKey(data.business_type)) throw new Error("Unknown company profile");
+    const available = productsAvailableFor(data.business_type) as readonly string[];
+    const products = (data.enabled_products ?? []).filter(
+      (p) => isProductKey(p) && available.includes(p),
+    );
+
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { data: company, error } = await supabaseAdmin
       .from("companies")
@@ -69,10 +83,21 @@ export const createCompany = createServerFn({ method: "POST" })
         subscription_plan: data.subscription_plan ?? "free",
         max_users: data.max_users ?? 10,
         active: data.active ?? true,
+        business_type: data.business_type,
+        enabled_products: products,
       })
       .select("id")
       .single();
     if (error || !company) throw new Error(error?.message || "Company create failed");
+
+    if (products.length) {
+      await applyCompanyProducts(
+        supabaseAdmin as never,
+        company.id,
+        products.map((product_key) => ({ product_key, enabled: true })),
+      );
+    }
+
 
     const { data: created, error: uerr } = await supabaseAdmin.auth.admin.createUser({
       email: data.admin_email,
