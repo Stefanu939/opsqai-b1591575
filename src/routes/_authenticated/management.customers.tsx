@@ -66,6 +66,9 @@ type Row = {
   user_count: number;
   created_at?: string | null;
   install_id: string | null;
+  business_type?: string | null;
+  enabled_products?: string[] | null;
+
   profile: {
     contract_status: string | null;
     renewal_date: string | null;
