@@ -1,52 +1,90 @@
-# Design Contract — o singură sursă de adevăr
+# Design Contract (structural) + Active Design State (schimbabil)
 
-Scop: designul actual (paletă, fonturi, layout pe module, scope-uri per produs) devine o regulă scrisă în repo, verificabilă, iar memoria proiectului nu mai conține variante contradictorii. Zero schimbare vizuală — doar codificarea a ceea ce există deja.
+Două fișiere, două scopuri diferite:
+- **Structural Design Contract** — arhitectura, stabilă; nu se schimbă la cereri de UI/UX.
+- **Active Design State** — identitatea vizuală curentă, o singură sursă de adevăr, schimbabilă intenționat de tine.
+
+Zero schimbare vizuală în acest pas: doar codificăm ce există și separăm structura de stil.
 
 ## Problema pe care o rezolvă
 
-- Memoria proiectului descrie „Design System v3" (Deep Navy, Space Grotesk + Inter) în timp ce codul rulează Emerald/Gold/Parchment cu Karla ca font body.
-- `mem://index.md` referă două fișiere de memorie care nu există (`design/palette-typography`, `design/motion-feedback`) și `.lovable/plan.md`, care se rescrie la fiecare plan nou.
-- `docs/engineering/03-add-a-module.md` nu menționează contractul de layout, deci un modul nou poate fi construit fără `ModulePage` și fără primitivele partajate.
+- Memoria proiectului descrie „Design System v3" (Deep Navy, Space Grotesk + Inter), în timp ce codul rulează Emerald/Gold/Parchment cu Karla ca font body. Două adevăruri contradictorii.
+- `mem://index.md` referă `mem://design/palette-typography` și `mem://design/motion-feedback`, fișiere care **nu există**, plus `.lovable/plan.md`, care se rescrie la fiecare plan nou.
+- `docs/engineering/03-add-a-module.md` nu menționează contractul de layout, deși `src/components/app/module-page.tsx` îl declară obligatoriu — un modul nou poate fi construit fără `ModulePage` și nimeni nu prinde asta.
 
-## Ce se creează
+## 1. `docs/engineering/09-design-contract.md` — reguli structurale (stabile)
 
-### 1. `docs/engineering/09-design-contract.md` (fișier nou, sursa de adevăr)
+Fără nicio culoare, font sau valoare de stil concretă. Conține doar:
 
-Conținut, extras din codul existent (nu inventat):
+- **Scope-uri de produs și proprietatea rutelor** — Self-Hosted `/app/*`, Management Center `/management/*` (`.mc-shell`), Customer Portal `/portal/*` (`.oq-soft`), site public (`.oix-shell`). Regulă: un scope nu împrumută niciodată wrapper-ul altuia; Self-Hosted nu conține niciodată clase MC/Portal.
+- **Arhitectura de layout partajată** — orice suprafață autentificată compune `ModulePage` (header + tabs opționale + slot toolbar + zonă de conținut).
+- **Primitivele reutilizabile** — `bento-grid`, `metric-tile`, `panel`, `progress-ring`, `segmented-tabs`, `mini-chart`, `stat-card`, `section-card`, `page-header`, `empty-state`, `skeleton`. Un ecran nou le compune, nu își face variante proprii.
+- **Reguli de compunere pe module** — fiecare modul: header, KPI/metric row, panel de conținut, empty state, skeleton, toolbar de acțiuni.
+- **Utilizarea tokenilor semantici** — culorile, razele, umbrele, spacing-ul și fonturile vin exclusiv din tokeni semantici definiți în `src/styles.css`. Interzis: `text-white`, `bg-black`, `bg-[#...]`, `text-[#...]`, `shadow-[...]`, `rounded-[...]`, stiluri inline de culoare în componente.
+- **Consistency checks** — ce verifică scriptul și cum se declară o excepție.
+- Explicit în document: *acest fișier nu definește paleta, fonturile sau stilul grafic*. Acelea trăiesc în Active Design State.
 
-- **Scope-uri per produs** — ce wrapper se folosește unde și ce e interzis:
-  - Self-Hosted `/app/*` → fără `.mc-shell`, fără `.oq-soft`; Emerald/Gold/Parchment, tokeni de bază.
-  - Management Center `/management/*` → `.mc-shell` (Noir & Gold, Urbanist + Epilogue).
-  - Customer Portal `/portal/*` → `.oq-soft`.
-  - Site public → `.oix-shell`.
-- **Tokeni și fonturi reale** — lista din `src/styles.css`: `--font-sans: Karla`, `--font-display: Space Grotesk`, `--font-mono: JetBrains Mono`, plus fonturile scoped MC/OIX. Regulă: doar tokeni semantici, niciodată `text-white` / `bg-[#...]`.
-- **Contractul de layout pe module** — orice suprafață autentificată compune `ModulePage` (header + segmented tabs opționale + slot toolbar + zonă bento/panel) și reutilizează primitivele: `bento-grid`, `metric-tile`, `panel`, `progress-ring`, `segmented-tabs`, `mini-chart`, `stat-card`, `section-card`, `empty-state`, `skeleton`.
-- **Motion** — motion explică schimbări de stare, nu decorează; utilitare `oq-*`, `Button loading/success`, `useCountUp`, vocabularul de toast din `src/lib/feedback.ts`.
-- **Golden Rule** — dacă un ecran nou nu arată ca parte din OPSQAI, se redesenează înainte de shipping.
-- **Cum se schimbă contractul** — doar la cerere explicită a utilizatorului, prin editarea acestui fișier în același commit cu schimbarea de cod.
+## 2. `docs/design/active-design-state.md` — identitatea vizuală curentă (schimbabilă)
 
-### 2. Legături din documentele existente
+Un singur fișier, cu versiune și dată, care descrie starea activă pe câmpuri fixe:
 
-- `docs/engineering/01-conventions.md`: linia despre design tokens trimite la contract.
-- `docs/engineering/03-add-a-module.md`: pas nou „UI: compune `ModulePage` + primitivele partajate — vezi design contract".
+```text
+version, updated
+graphic style         (ex. „Linear/enterprise — suprafețe plate, borduri fine, aură ambientală")
+color direction       (per scope: Self-Hosted, Portal, MC, site public)
+typography            (display / body / mono + greutăți)
+border radius language
+shadows & elevation
+component shape language
+spacing & density
+motion language
+iconography direction
+```
+
+Prima versiune se completează prin citirea `src/styles.css` (starea reală de azi: Emerald/Gold/Parchment, Karla body, Space Grotesk display, Noir & Gold scoped pe `.mc-shell`), nu din memorie.
+
+Fiecare câmp trimite la tokenii care îl implementează, ca schimbarea să aibă un singur loc de aplicare.
+
+## 3. Protocolul de schimbare — cele două moduri
+
+Se documentează în ambele fișiere și se salvează ca regulă de memorie.
+
+**Mod A — îmbunătățire UI/UX** („fă dashboardul mai clar", „aranjează cardurile"):
+direcția vizuală activă se **păstrează**; se schimbă doar layout, ierarhie, densitate, conținut. Fără paletă nouă, fără fonturi noi, fără stil grafic nou.
+
+**Mod B — schimbare de Design System** („schimbă stilul grafic din Linear în Bubbles", „mută produsul pe o direcție enterprise mai întunecată"):
+tratat ca schimbare intenționată, în această ordine:
+1. actualizează `docs/design/active-design-state.md` (versiune + câmpurile atinse);
+2. actualizează tokenii globali din `src/styles.css` și primitivele reutilizabile;
+3. listează suprafețele afectate (rute + componente);
+4. migrează limbajul vizual consecvent pe toate suprafețele scope-ului;
+5. **nu** schimbă arhitectura structurală decât dacă e strict necesar, și atunci o spune explicit.
+
+## 4. `scripts/verify-design-contract.mjs` — verifică structura, nu stilul
+
+Scriptul nu conține **nicio** culoare de brand și nu impune Emerald/Gold/Parchment sau orice altă paletă. Eșuează doar la:
+
+- rută autentificată nouă care nu compune `ModulePage` (allowlist explicită pentru excepții reale);
+- rută `/app/*` care conține `mc-shell` sau `oq-soft` (scurgere între scope-uri) și invers;
+- valori vizuale hardcodate în `src/components` și `src/routes`: `text-white`, `bg-black`, `bg-[#`, `text-[#`, `border-[#`, `shadow-[`, `rounded-[`, `font-family` inline;
+- tokeni de culoare/rază/umbră definiți în afara `src/styles.css`.
+
+Astfel, o schimbare de paletă sau de stil grafic trece verificarea automat, atâta timp cât se face central prin tokeni.
+
+Prima rulare va raporta încălcările existente; cele reale se corectează, restul intră pe allowlist cu motiv, ca scriptul să pornească verde. Se expune ca `npm run verify:design`, lângă `verify-source-imports` și `verify-bundle`.
+
+## 5. Legături în docs existente
+
+- `docs/engineering/01-conventions.md`: linia despre design tokens trimite la ambele fișiere.
+- `docs/engineering/03-add-a-module.md`: pas nou „UI: compune `ModulePage` + primitivele partajate; stilul vine din Active Design State".
 - `docs/engineering/08-pre-release-checklist.md`: un rând de verificare a contractului.
 
-### 3. Verificare automată: `scripts/verify-design-contract.mjs`
+## 6. Curățarea memoriei
 
-Rulează pe surse (rapid, fără build) și eșuează cu mesaj clar când:
-- o rută autentificată nouă (`src/routes/_authenticated/*.tsx`) nu compune `ModulePage`, cu o listă mică de excepții declarate explicit în script;
-- o rută `/app/*` (Self-Hosted) conține `mc-shell` sau `oq-soft`;
-- apar utilitare de culoare hardcodate (`text-white`, `bg-black`, `bg-[#`, `text-[#`) în `src/components` și `src/routes`.
-
-Prima rulare va raporta încălcările existente; cele reale se corectează, restul se trec pe allowlist explicită cu motiv, ca fișierul să pornească „verde".
-
-### 4. Curățarea memoriei
-
-- `mem://index.md`: Core rescris ca să descrie ce e în cod (Emerald/Gold/Parchment + Karla/Space Grotesk pentru Self-Hosted & Portal, Noir & Gold doar pentru MC), fără „Design System v3" contradictoriu, fără referințe la fișiere inexistente sau la `.lovable/plan.md`.
-- Se adaugă `mem://design/design-contract` — un pointer scurt către `docs/engineering/09-design-contract.md` ca singura sursă de adevăr.
+- `mem://index.md`: Core scurt — „structura = design contract, stilul = Active Design State", plus regula Mod A / Mod B. Se elimină „Design System v3" contradictoriu, referințele la fișierele inexistente și la `.lovable/plan.md`.
+- Se adaugă `mem://design/design-contract` — pointer către cele două documente ca surse unice de adevăr, cu protocolul de schimbare.
 
 ## Note tehnice
 
-- Nicio schimbare de token, culoare, font sau layout: doar documentație, un script de verificare și eventuale corecții punctuale pentru încălcări reale găsite de script.
-- Scriptul se adaugă ca `npm run verify:design` și se poate rula alături de verificările existente (`verify-source-imports`, `verify-bundle`).
-- Verificare finală: rulare script, typecheck, apoi o trecere în browser peste `/app`, `/management`, `/portal` în light și dark pentru a confirma că nimic nu s-a mișcat vizual.
+- Nicio schimbare de token, culoare, font sau layout în acest pas: doar documentație, un script de verificare și corecții punctuale pentru încălcările reale găsite.
+- Verificare finală: script, typecheck, apoi o trecere în browser peste `/app`, `/management`, `/portal` în light și dark ca să confirmăm că nimic nu s-a mișcat vizual.
