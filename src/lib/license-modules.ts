@@ -1,13 +1,24 @@
-// Catalog of modules sellable as separate license add-ons.
-// The "basic" bundle is always included in every license; add-on modules
-// unlock additional routes/features when a signed **Module License** for
-// that key exists for the install.
+// LEGACY module vocabulary — compatibility layer.
 //
-// Phase 1: frozen catalog. `MODULE_CATALOG_VERSION` bumps only when a
-// module is added, removed, or renamed. The version is embedded in
-// installer manifests + `opsqai doctor` output so a Self-Hosted install
-// and the Management Center that issued its licenses can prove they agree
-// on the module vocabulary.
+// The canonical product model now lives in `@/lib/product-architecture.ts`
+// (Core / Product / Add-on). This file remains only so that existing signed
+// licenses, activation bundles, `licenses.module_key` rows and the current
+// UI keep working unchanged. Every key here maps onto the canonical model
+// through `LEGACY_MODULE_MAP` / `classifyLegacy`.
+//
+// Do NOT add new commercial concepts here — add them to
+// `product-architecture.ts` instead. The `category: "Basic"` label below is
+// legacy terminology retained for wire/UI compatibility only; it does NOT
+// mean "a commercial Basic plan".
+//
+// `MODULE_CATALOG_VERSION` bumps only when a module is added, removed, or
+// renamed. It is embedded in installer manifests + `opsqai doctor` output.
+import {
+  LEGACY_INCLUDED_MODULE_KEYS,
+  classifyLegacy,
+  type Classification,
+} from "@/lib/product-architecture";
+
 export const MODULE_CATALOG_VERSION = "2026.08.1" as const;
 
 export type ModuleKey =
@@ -44,19 +55,14 @@ export interface LicenseModule {
   description: string;
 }
 
-export const BASIC_MODULES: ModuleKey[] = [
-  "chat",
-  "kb",
-  "faq",
-  "academy",
-  "audit_log",
-  "notifications",
-  "bilingual_ui",
-  "pwa",
-  // Knowledge Gap detection is part of the Basic platform: without it the
-  // AI Audit cannot see what the workspace does not know.
-  "knowledge_gaps",
-];
+/**
+ * Legacy always-included module set. Derived from the canonical model's
+ * `LEGACY_INCLUDED_MODULE_KEYS` so there is one place to change it.
+ *
+ * @deprecated use `CORE_CAPABILITY_KEYS` from `@/lib/product-architecture`.
+ */
+export const BASIC_MODULES: ModuleKey[] = LEGACY_INCLUDED_MODULE_KEYS as ModuleKey[];
+
 
 export const LICENSE_MODULE_CATALOG: LicenseModule[] = [
   {
