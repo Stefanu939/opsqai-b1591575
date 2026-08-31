@@ -65,7 +65,7 @@ function SelfHostedPage() {
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(60% 60% at 30% 40%, rgba(4,10,8,0) 0%, rgba(4,10,8,0.85) 80%)",
+                "radial-gradient(60% 60% at 30% 40%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.85) 80%)",
             }}
           />
         </div>

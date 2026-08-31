@@ -194,7 +194,7 @@ function Hero() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(80% 60% at 50% 20%, rgba(13,122,95,0.20) 0%, transparent 60%), linear-gradient(180deg, rgba(4,10,8,0.55) 0%, rgba(4,10,8,0.85) 100%)",
+              "radial-gradient(80% 60% at 50% 20%, rgba(91,61,245,0.22) 0%, transparent 60%), linear-gradient(180deg, rgba(10,11,20,0.55) 0%, rgba(10,11,20,0.85) 100%)",
           }}
         />
       </div>
