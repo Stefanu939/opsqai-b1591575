@@ -8,7 +8,7 @@ const en = {
   nav: {
     product: "Product",
     overview: "Overview",
-    modules: "Modules",
+    modules: "Platform",
     selfHosted: "Self-Hosted",
     security: "Security",
     pricing: "Pricing",
@@ -87,9 +87,9 @@ const en = {
     journeyEyebrow: "Delivery",
     journeyTitle: "From purchase to production",
     journeyIntro:
-      "No SaaS subscription. A one-time Basic Platform, premium modules purchased separately, and Annual Maintenance.",
+      "No SaaS subscription. A one-time Core platform license, OPSQAI products per business domain, optional add-ons and Annual Maintenance.",
     journey: [
-      { title: "Purchase", body: "Order the Basic Platform and any premium modules through OPSQAI." },
+      { title: "Purchase", body: "Order the Core platform and the OPSQAI products you need through OPSQAI." },
       { title: "Download package", body: "Retrieve the signed Windows installation package from the Customer Portal." },
       { title: "Run installer", body: "The installer provisions PostgreSQL, storage, services and Caddy on Windows Server." },
       { title: "Activate license", body: "Paste the Ed25519-signed license bundle issued by OPSQAI. Modules unlock as licensed." },
@@ -107,7 +107,7 @@ const de: MarketingCopy = {
   nav: {
     product: "Produkt",
     overview: "Überblick",
-    modules: "Module",
+    modules: "Plattform",
     selfHosted: "Self-Hosted",
     security: "Sicherheit",
     pricing: "Preise",
@@ -186,9 +186,9 @@ const de: MarketingCopy = {
     journeyEyebrow: "Auslieferung",
     journeyTitle: "Vom Kauf bis zum Produktivbetrieb",
     journeyIntro:
-      "Kein SaaS-Abo. Eine einmalige Basisplattform, Premium-Module separat erworben, plus jährliche Wartung.",
+      "Kein SaaS-Abo. Eine einmalige Core-Plattform-Lizenz, OPSQAI-Produkte je Fachbereich, optionale Add-ons plus jährliche Wartung.",
     journey: [
-      { title: "Kauf", body: "Basisplattform und gewünschte Premium-Module über OPSQAI bestellen." },
+      { title: "Kauf", body: "Core-Plattform und die benötigten OPSQAI-Produkte über OPSQAI bestellen." },
       { title: "Paket herunterladen", body: "Signiertes Windows-Installationspaket im Kundenportal abrufen." },
       { title: "Installer ausführen", body: "Der Installer richtet PostgreSQL, Storage, Dienste und Caddy auf dem Windows Server ein." },
       { title: "Lizenz aktivieren", body: "Das von OPSQAI ausgestellte Ed25519-signierte Lizenzpaket einfügen. Module werden gemäß Lizenz freigeschaltet." },
@@ -204,7 +204,7 @@ const ro: MarketingCopy = {
   nav: {
     product: "Produs",
     overview: "Prezentare",
-    modules: "Module",
+    modules: "Platformă",
     selfHosted: "Self-Hosted",
     security: "Securitate",
     pricing: "Prețuri",
@@ -283,9 +283,9 @@ const ro: MarketingCopy = {
     journeyEyebrow: "Livrare",
     journeyTitle: "De la achiziție la producție",
     journeyIntro:
-      "Fără abonament SaaS. O platformă Basic plătită o singură dată, module premium achiziționate separat și mentenanță anuală.",
+      "Fără abonament SaaS. O licență Core plătită o singură dată, produse OPSQAI per domeniu, add-on-uri opționale și mentenanță anuală.",
     journey: [
-      { title: "Achiziție", body: "Comandă platforma Basic și modulele premium dorite prin OPSQAI." },
+      { title: "Achiziție", body: "Comandă platforma Core și produsele OPSQAI necesare prin OPSQAI." },
       { title: "Descarcă pachetul", body: "Preia pachetul de instalare Windows semnat din Portalul Client." },
       { title: "Rulează installerul", body: "Installerul configurează PostgreSQL, stocarea, serviciile și Caddy pe Windows Server." },
       { title: "Activează licența", body: "Introdu pachetul de licență semnat Ed25519 emis de OPSQAI. Modulele se deblochează conform licenței." },

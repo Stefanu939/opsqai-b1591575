@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { pageHead, faqLd } from "@/lib/seo";
-import { Package, Puzzle, LifeBuoy, Check } from "lucide-react";
+import { Package, Puzzle, Layers, LifeBuoy, Check } from "lucide-react";
 import { OixLayout } from "@/components/oix/oix-layout";
 import { Scene3D } from "@/components/three/scene-3d";
 import { ModuleConstellation } from "@/components/three/primitives/module-constellation";
@@ -19,22 +19,22 @@ const PRICING_FAQS_SEO = [
   {
     question: "Is OPSQAI a SaaS product?",
     answer:
-      "No. OPSQAI is a Windows Self-Hosted product. You buy the Basic Platform once, add premium modules as needed, and keep it running under an annual maintenance contract. There is no monthly per-seat cloud subscription.",
+      "No. OPSQAI is a Windows Self-Hosted platform. You license the Core platform once for your installation, enable the OPSQAI products your business needs, and keep it running under an annual maintenance contract. There is no monthly per-seat cloud subscription.",
   },
   {
-    question: "What does the Basic Platform include?",
+    question: "What does the OPSQAI Core platform include?",
     answer:
-      "AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization and Subscription. It runs on the customer's Windows Server with the customer's chosen AI provider.",
+      "Every platform capability: AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Knowledge Gaps, SOP versioning, Internal Requests, Internal Chat, Reports, Support Center, Compliance Center, Enterprise Export, Workspace Health, RBAC, multi-language and notifications. These are never sold individually.",
   },
   {
-    question: "How are premium modules priced?",
+    question: "What is an OPSQAI product?",
     answer:
-      "Each premium module is licensed separately. Pricing depends on the module, scope and installation size. Activation is issued by OPSQAI as a signed module license — no reinstall required.",
+      "A domain solution such as OPSQAI Logistics. Your company profile determines which products are relevant; OPSQAI enables the ones you license and delivers them as signed entitlements.",
   },
   {
     question: "What is Annual Maintenance?",
     answer:
-      "Annual Maintenance covers signed updates, security releases, support with defined response targets, module compatibility guarantees and ownership continuity.",
+      "Annual Maintenance covers signed updates, security releases, support with defined response targets, compatibility guarantees and ownership continuity.",
   },
 ];
 
@@ -43,10 +43,10 @@ export const Route = createFileRoute("/pricing")({
     pageHead({
       title: "Pricing — OPSQAI Enterprise Operational AI Platform",
       description:
-        "OPSQAI pricing: one-time Basic Platform, premium modules purchased separately, and annual maintenance. Windows Self-Hosted — no SaaS lock-in.",
+        "OPSQAI pricing: one-time Core platform license, OPSQAI products per business domain, optional add-ons and annual maintenance. Windows Self-Hosted — no SaaS lock-in.",
       path: "/pricing",
       keywords:
-        "OPSQAI pricing, one-time license, annual maintenance, premium modules, self-hosted AI pricing",
+        "OPSQAI pricing, one-time license, annual maintenance, OPSQAI products, self-hosted AI pricing",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Pricing", path: "/pricing" },
@@ -59,6 +59,7 @@ export const Route = createFileRoute("/pricing")({
 const TIER_META = [
   { icon: Package, to: "/contact?subject=pricing", featured: true },
   { icon: Puzzle, to: "/modules", featured: false },
+  { icon: Layers, to: "/contact?subject=sales", featured: false },
   { icon: LifeBuoy, to: "/contact?subject=sales", featured: false },
 ];
 
@@ -111,7 +112,7 @@ function PricingPage() {
         <EditorialHeadline eyebrow={t.tiers.eyebrow} serifAccent={t.tiers.serifAccent}>
           {t.tiers.headline}
         </EditorialHeadline>
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
+        <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {tiers.map((tier) => (
             <Card
               key={tier.name}

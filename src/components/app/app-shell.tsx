@@ -44,6 +44,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
 import { useLicense, hasModule } from "@/lib/license";
 import type { ModuleKey } from "@/lib/license-modules";
+import { buildAppNavigation, type NavEntry } from "@/lib/app-navigation";
 // SupportWidget is mounted globally in __root.tsx so it appears on marketing
 // pages too. Do not remount here or the bubble/badge will duplicate.
 
@@ -71,6 +72,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     show: boolean;
     module?: ModuleKey | null;
   };
+  // Core platform items below feed `buildAppNavigation`, which appends one
+  // group per enabled OPSQAI Product. Core is never removed by product
+  // configuration — only by RBAC / license gating.
 
   // ── Self-hosted v2.0 nav — the ten canonical surfaces ─────────────────
   // /app/* is the Windows on-premise, single-tenant product for the end
@@ -147,11 +151,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   ];
 
-  const filterNav = (items: NavItem[]) => items.filter((i) => i.show && gate(i.module ?? null));
-
-  const sections: Array<{ label: string; items: NavItem[] }> = [
-    { label: "Workspace", items: filterNav(workspace) },
-  ];
+  const sections = buildAppNavigation({
+    coreLabel: "Workspace",
+    coreItems: workspace as unknown as NavEntry[],
+    profile: license.profile,
+    enabledProducts: license.products,
+    entitlements: license.modules,
+    gate: (i) => gate((i.module ?? null) as ModuleKey | null),
+  }) as unknown as Array<{ label: string; items: NavItem[] }>;
 
   // Legacy flat `nav` kept for the mobile bottom-tab bar — primary items only.
   const nav = sections[0]?.items ?? [];

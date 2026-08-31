@@ -9,21 +9,25 @@ import { OixButton } from "@/components/oix/buttons";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { pageHead } from "@/lib/seo";
-import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
+import {
+  ADDON_CATALOG,
+  CORE_CAPABILITIES,
+  PRODUCT_CATALOG,
+} from "@/lib/product-architecture";
 import { Check, Package } from "lucide-react";
 import { useModulesCopy } from "@/i18n/pages/modules";
 
 export const Route = createFileRoute("/modules")({
   head: () =>
     pageHead({
-      title: "Modules — OPSQAI Platform",
+      title: "Platform — OPSQAI Core, Products & Add-ons",
       description:
-        "Every module available for OPSQAI. Basic modules ship with every install. Premium modules are licensed separately and activated by OPSQAI.",
+        "The OPSQAI Core platform ships with every installation. OPSQAI products cover your business domain, and optional add-ons are licensed only if you need them.",
       path: "/modules",
-      keywords: "OPSQAI modules, AI modules, knowledge base, academy, audit, executive dashboard",
+      keywords: "OPSQAI platform, OPSQAI products, core capabilities, add-ons, self-hosted AI",
       breadcrumbs: [
         { name: "Home", path: "/" },
-        { name: "Modules", path: "/modules" },
+        { name: "Platform", path: "/modules" },
       ],
     }),
   component: ModulesPage,
@@ -31,8 +35,6 @@ export const Route = createFileRoute("/modules")({
 
 function ModulesPage() {
   const t = useModulesCopy();
-  const basicSet = new Set<string>(BASIC_MODULES);
-  const categories = Array.from(new Set(LICENSE_MODULE_CATALOG.map((m) => m.category)));
 
   return (
     <OixLayout>
@@ -74,63 +76,72 @@ function ModulesPage() {
       {/* Motto band */}
       <MottoBand compact />
 
-      {/* Catalog */}
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        {categories.map((cat) => {
-          const items = LICENSE_MODULE_CATALOG.filter((m) => m.category === cat);
-          return (
-            <div key={cat} className="mb-14">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-px flex-1 bg-gradient-to-r from-[#C9A24C]/40 to-transparent" />
-                <div className="flex items-center gap-2">
-                  <Package className="h-3.5 w-3.5 text-[#C9A24C]" />
-                  <h2 className="text-[11px] uppercase tracking-[0.32em] text-white/60">
-                    {cat}
-                  </h2>
+      {/* Core / Products / Add-ons */}
+      <section className="mx-auto max-w-6xl px-6 py-24 space-y-16">
+        <div>
+          <SectionHeading icon={Package} title={t.coreTitle} />
+          <div className="mt-4 flex items-center gap-3">
+            <Badge className="border-[#5b3df5]/40 bg-[#5b3df5]/15 text-[10px] text-[#5fd4b3]">
+              <Check className="h-3 w-3 mr-1" /> {t.coreBadge}
+            </Badge>
+            <p className="text-xs leading-relaxed text-white/60">{t.coreBody}</p>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {CORE_CAPABILITIES.map((cap) => (
+              <Card
+                key={cap.key}
+                className="border-white/10 bg-white/[0.02] p-5 transition-all hover:border-[#C9A24C]/40"
+              >
+                <div className="text-sm font-semibold text-white">{cap.label}</div>
+                <p className="mt-2 text-xs leading-relaxed text-white/60">{cap.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <SectionHeading icon={Package} title={t.productsTitle} />
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-white/60">{t.productsBody}</p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {PRODUCT_CATALOG.map((p) => (
+              <Card
+                key={p.key}
+                className="border-white/10 bg-white/[0.02] p-6 transition-all hover:border-[#C9A24C]/40"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-sm font-semibold text-white">{p.label}</div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      p.status === "available"
+                        ? "border-[#C9A24C]/40 text-[10px] text-[#C9A24C]"
+                        : "border-white/20 text-[10px] text-white/50"
+                    }
+                  >
+                    {p.status === "available" ? t.availableBadge : t.plannedBadge}
+                  </Badge>
                 </div>
-                <div className="h-px flex-1 bg-gradient-to-l from-[#C9A24C]/40 to-transparent" />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {items.map((m) => {
-                  const isBasic = basicSet.has(m.key);
-                  return (
-                    <Card
-                      key={m.key}
-                      className="group relative overflow-hidden border-white/10 bg-white/[0.02] p-6 transition-all hover:border-[#C9A24C]/40 hover:bg-white/[0.04]"
-                    >
-                      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
-                        <div className="absolute -inset-x-4 -top-4 h-24 bg-gradient-to-b from-[#C9A24C]/10 to-transparent blur-2xl" />
-                      </div>
-                      <div className="relative flex items-start justify-between gap-3">
-                        <div className="font-semibold text-sm text-white">{m.label}</div>
-                        {isBasic ? (
-                          <Badge className="border-[#5b3df5]/40 bg-[#5b3df5]/15 text-[10px] text-[#5fd4b3]">
-                            <Check className="h-3 w-3 mr-1" /> {t.basicBadge}
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-[#C9A24C]/40 text-[10px] text-[#C9A24C]"
-                          >
-                            {t.premiumBadge}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="relative mt-3 text-xs leading-relaxed text-white/60">
-                        {m.description}
-                      </p>
-                      <div className="relative mt-5 pt-4 border-t border-white/10 text-xs tabular-nums text-white/50">
-                        {isBasic
-                          ? t.includedWithBasic
-                          : `From €${(m.defaultPriceCents / 100).toLocaleString("de-DE")} ${t.fromPriceSuffix}`}
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+                <p className="mt-3 text-xs leading-relaxed text-white/60">{p.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <SectionHeading icon={Package} title={t.addonsTitle} />
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-white/60">{t.addonsBody}</p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {ADDON_CATALOG.map((a) => (
+              <Card
+                key={a.key}
+                className="border-white/10 bg-white/[0.02] p-6 transition-all hover:border-[#C9A24C]/40"
+              >
+                <div className="text-sm font-semibold text-white">{a.label}</div>
+                <p className="mt-3 text-xs leading-relaxed text-white/60">{a.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Activation */}
@@ -154,5 +165,25 @@ function ModulesPage() {
         </div>
       </section>
     </OixLayout>
+  );
+}
+
+// Shared gold rule + label used by the three architecture sections.
+function SectionHeading({
+  icon: Icon,
+  title,
+}: {
+  icon: typeof Package;
+  title: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-px flex-1 bg-gradient-to-r from-[#C9A24C]/40 to-transparent" />
+      <div className="flex items-center gap-2">
+        <Icon className="h-3.5 w-3.5 text-[#C9A24C]" />
+        <h2 className="text-[11px] uppercase tracking-[0.32em] text-white/60">{title}</h2>
+      </div>
+      <div className="h-px flex-1 bg-gradient-to-l from-[#C9A24C]/40 to-transparent" />
+    </div>
   );
 }

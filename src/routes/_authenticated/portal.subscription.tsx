@@ -1,5 +1,11 @@
 import { ModulePage } from "@/components/app/module-page";
-import { getAddon, getProduct } from "@/lib/product-architecture";
+import {
+  CORE_CAPABILITIES,
+  classify,
+  getAddon,
+  getProduct,
+} from "@/lib/product-architecture";
+import { usePortalEntitlementsCopy } from "@/i18n/pages/portal-entitlements";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -61,6 +67,7 @@ function MaintenanceRing({ daysLeft, totalDays = 365 }: { daysLeft: number; tota
 }
 
 function PortalSubscription() {
+  const c = usePortalEntitlementsCopy();
   const fn = useServerFn(getMyPortalOverview);
   const { data } = useQuery({
     queryKey: ["portal-overview"],
@@ -69,39 +76,41 @@ function PortalSubscription() {
 
   const installs = data?.installs ?? [];
 
+  const statusLabel = (e: { revoked: boolean; suspended?: boolean | null }) =>
+    e.revoked ? c.revoked : e.suspended ? c.suspended : c.active;
+
   return (
     <ModulePage
-      eyebrow="Customer portal"
-      title="Subscription"
-      description="Read-only view of the licenses and entitlements tied to your account. OPSQAI platform capabilities are always included; contact OPSQAI to change seats, enable products, or renew maintenance."
+      eyebrow={c.eyebrow}
+      title={c.title}
+      description={c.description}
       actions={
         <Button asChild size="sm" variant="outline">
-          <Link to="/portal/support">Contact OPSQAI</Link>
+          <Link to="/portal/support">{c.contactCta}</Link>
         </Button>
       }
     >
       {installs.length === 0 ? (
-        <EmptyState
-          icon={Inbox}
-          title="No subscription linked yet"
-          description="Once your OPSQAI installation is licensed, contract details appear here."
-        />
+        <EmptyState icon={Inbox} title={c.emptyTitle} description={c.emptyBody} />
       ) : (
         installs.map((inst) => {
           const days = daysUntil(inst.install_license?.maintenance_expires_at);
+          const active = inst.module_licenses.filter((m) => !m.revoked && !m.suspended);
+          const products = active.filter((m) => classify(m.module_key) === "product");
+          const addons = active.filter((m) => classify(m.module_key) !== "product");
           return (
-            <Card key={inst.install_id} className="p-6 space-y-5">
+            <Card key={inst.install_id} className="p-6 space-y-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex gap-5 items-center min-w-0">
                   {days !== null && <MaintenanceRing daysLeft={days} />}
                   <div className="min-w-0">
                     <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Install
+                      {c.install}
                     </div>
                     <div className="font-mono text-sm truncate">{inst.install_id}</div>
                     <div className="text-base font-medium mt-0.5">{inst.company_name}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Maintenance until {fmt(inst.install_license?.maintenance_expires_at)}
+                      {c.maintenanceUntil} {fmt(inst.install_license?.maintenance_expires_at)}
                     </div>
                   </div>
                 </div>
@@ -110,81 +119,118 @@ function PortalSubscription() {
                 </Badge>
               </div>
 
-              <div>
+              {/* LICENSE */}
+              <section>
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-                  Installation license
+                  {c.license}
                 </div>
                 {inst.install_license ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm rounded-lg border border-border bg-muted/20 p-4">
                     <div>
-                      <div className="text-muted-foreground text-xs">Seats</div>
+                      <div className="text-muted-foreground text-xs">{c.seats}</div>
                       <div className="font-medium tabular-nums">
                         {inst.install_license.seats ?? "—"}
                       </div>
                     </div>
                     <div>
-                      <div className="text-muted-foreground text-xs">Maintenance until</div>
+                      <div className="text-muted-foreground text-xs">{c.maintenanceUntil}</div>
                       <div className="font-medium">
                         {fmt(inst.install_license.maintenance_expires_at)}
                       </div>
                     </div>
                     <div>
-                      <div className="text-muted-foreground text-xs">Expires</div>
+                      <div className="text-muted-foreground text-xs">{c.expires}</div>
                       <div className="font-medium">{fmt(inst.install_license.expires_at)}</div>
                     </div>
                     <div>
-                      <div className="text-muted-foreground text-xs">Status</div>
-                      <div className="font-medium">
-                        {inst.install_license.revoked
-                          ? "Revoked"
-                          : inst.install_license.suspended
-                            ? "Suspended"
-                            : "Active"}
-                      </div>
+                      <div className="text-muted-foreground text-xs">{c.status}</div>
+                      <div className="font-medium">{statusLabel(inst.install_license)}</div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-muted-foreground">Not yet issued</div>
+                  <div className="text-sm text-muted-foreground">{c.licenseNotIssued}</div>
                 )}
-              </div>
+              </section>
 
-              <div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-                  Entitlements
+              {/* CORE PLATFORM — included, read-only */}
+              <section>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    {c.coreTitle}
+                  </div>
+                  <Badge variant="outline" className="text-[10px]">
+                    {c.coreSubtitle}
+                  </Badge>
                 </div>
-                {inst.module_licenses.length ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {CORE_CAPABILITIES.filter((cap) => cap.key !== "bilingual_ui").map((cap) => (
+                    <span
+                      key={cap.key}
+                      className="rounded-md border border-border bg-muted/20 px-2 py-1 text-xs"
+                    >
+                      {cap.label}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">{c.coreNote}</p>
+              </section>
+
+              {/* YOUR PRODUCTS */}
+              <section>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+                  {c.productsTitle}
+                </div>
+                {products.length ? (
                   <div className="rounded-lg border border-border divide-y divide-border text-sm overflow-hidden">
-                    {inst.module_licenses.map((m) => (
+                    {products.map((m) => (
                       <div
                         key={m.module_key}
-                        className="px-3 py-2 flex items-center justify-between flex-wrap gap-2 hover:bg-muted/30 transition-colors"
+                        className="px-3 py-2 flex items-center justify-between flex-wrap gap-2"
                       >
                         <span className="text-xs">{entitlementLabel(m.module_key)}</span>
                         <div className="flex gap-4 text-xs text-muted-foreground">
-                          <span>maint: {fmt(m.maintenance_expires_at)}</span>
-                          <span>exp: {fmt(m.expires_at)}</span>
-                          <span
-                            className={
-                              m.revoked
-                                ? "text-destructive font-medium"
-                                : m.suspended
-                                  ? "text-amber-600 font-medium"
-                                  : "text-emerald-600 font-medium"
-                            }
-                          >
-                            {m.revoked ? "Revoked" : m.suspended ? "Suspended" : "Active"}
+                          <span>
+                            {c.maintenanceUntil} {fmt(m.maintenance_expires_at)}
                           </span>
+                          <span>
+                            {c.expires} {fmt(m.expires_at)}
+                          </span>
+                          <span className="text-emerald-600 font-medium">{c.active}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-sm text-muted-foreground">
-                    No products or add-ons enabled yet — the OPSQAI platform capabilities included
-                    with your installation are always available. Ask support to enable a product.
-                  </div>
+                  <div className="text-sm text-muted-foreground">{c.productsEmpty}</div>
                 )}
-              </div>
+              </section>
+
+              {/* OPTIONAL ADD-ONS */}
+              <section>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+                  {c.addonsTitle}
+                </div>
+                {addons.length ? (
+                  <div className="rounded-lg border border-border divide-y divide-border text-sm overflow-hidden">
+                    {addons.map((m) => (
+                      <div
+                        key={m.module_key}
+                        className="px-3 py-2 flex items-center justify-between flex-wrap gap-2"
+                      >
+                        <span className="text-xs">{entitlementLabel(m.module_key)}</span>
+                        <div className="flex gap-4 text-xs text-muted-foreground">
+                          <span>
+                            {c.expires} {fmt(m.expires_at)}
+                          </span>
+                          <span className="text-emerald-600 font-medium">{c.active}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">{c.addonsEmpty}</div>
+                )}
+              </section>
             </Card>
           );
         })
