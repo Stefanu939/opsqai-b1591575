@@ -83,6 +83,9 @@ function LicensesPage() {
   const [q, setQ] = useState(installFilter ?? "");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [issueOpen, setIssueOpen] = useState(false);
+  const [prefill, setPrefill] = useState<IssuePrefill | null>(null);
+
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["mc-licenses"],
