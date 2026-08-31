@@ -13,7 +13,29 @@ Four products, one language, different density:
 website = most expressive · Management Center = strategic/powerful ·
 Customer Portal = calm/clear · Self-Hosted = dense/operational.
 
+One current design truth: Aurora Noir describes what exists after this work. It is
+not a contract — a future explicit request replaces it instead of blending with it.
+No permanent style guide, no palette-enforcing verification script, no second
+active design truth.
+
 ---
+
+## Phase 0 — Design truth cleanup
+
+Sweep active guidance and code for visual statements that will contradict Aurora
+Noir, then remove them rather than keep them alongside:
+
+- `docs/design/current-design.md` (currently describes Emerald/Gold/Parchment and
+  the Noir & Gold `.oq-soft` scope) — rewritten in Phase 8.
+- `mem://index.md` design pointer, plus the design line in
+  `docs/engineering/01-conventions.md`.
+- `src/styles.css`: obsolete palette comments, unused legacy scopes, legacy font
+  declarations, gold/parchment-specific one-off rules.
+- Hardcoded brand colours and gold/emerald terminology found in components
+  (audited earlier: 41 files reference gold/oix tokens, 19 use `oix-*`).
+
+Contradictions get resolved in favour of the code that ships in Phases 1–6; nothing
+is archived as an alternative instruction.
 
 ## Phase 1 — Visual foundation (`src/styles.css`)
 
