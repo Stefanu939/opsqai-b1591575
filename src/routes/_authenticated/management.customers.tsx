@@ -128,15 +128,8 @@ function CustomersPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: (v: {
-      name: string;
-      subscription_plan: "free" | "starter" | "pro" | "enterprise";
-      max_users: number;
-      admin_email: string;
-      admin_password: string;
-      admin_first_name?: string;
-      admin_last_name?: string;
-    }) => create({ data: v }),
+    mutationFn: (v: NewCustomerInput) => create({ data: v }),
+
     onSuccess: () => {
       toast.success("Customer created");
       invalidate();
