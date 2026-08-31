@@ -61,7 +61,7 @@ const en = {
       {
         tag: "Windows · The product",
         name: "Self-Hosted",
-        body: "The Windows Self-Hosted installation is the product. AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, Subscription, Updates and Modules — all running inside the customer's environment. Employees work here every day.",
+        body: "The Windows Self-Hosted installation is the product. Core Platform (AI Chat, Knowledge Base, SOPs, FAQ, Academy, AI Audit, Knowledge Gaps, Calendar, Users, Organization, License & Entitlements, Updates) plus the licensed OPSQAI product workspaces for Operations, Quality & Compliance, Logistics, HR, Finance and Inventory — all running inside the customer's environment with their own AI provider, including a fully local Ollama model. Employees work here every day.",
       },
     ],
     noteStrong: "Important:",
@@ -268,7 +268,7 @@ const de: HomeCopy = {
       {
         tag: "Windows · Das Produkt",
         name: "Self-Hosted",
-        body: "Die Windows-Self-Hosted-Installation ist das Produkt. KI-Chat, Wissensdatenbank, FAQ, Academy, KI-Audit, Benutzer, Organisation, Abonnement, Updates und Module — alles läuft innerhalb der Umgebung des Kunden. Mitarbeitende arbeiten hier jeden Tag.",
+        body: "Die Windows-Self-Hosted-Installation ist das Produkt. Core-Plattform (KI-Chat, Wissensdatenbank, SOPs, FAQ, Academy, KI-Audit, Wissenslücken, Kalender, Benutzer, Organisation, Lizenz & Entitlements, Updates) plus die lizenzierten OPSQAI-Produkt-Workspaces für Operations, Qualität & Compliance, Logistik, HR, Finanzen und Bestand — alles in der Umgebung des Kunden mit dem eigenen KI-Anbieter, inklusive vollständig lokalem Ollama-Modell. Mitarbeitende arbeiten hier jeden Tag.",
       },
     ],
     noteStrong: "Wichtig:",
@@ -473,7 +473,7 @@ const ro: HomeCopy = {
       {
         tag: "Windows · Produsul",
         name: "Self-Hosted",
-        body: "Instalarea Windows Self-Hosted este produsul. AI Chat, Bază de Cunoștințe, FAQ, Academy, Audit AI, Utilizatori, Organizație, Abonament, Actualizări și Licență & Drepturi — toate rulează în interiorul mediului clientului. Angajații lucrează aici în fiecare zi.",
+        body: "Instalarea Windows Self-Hosted este produsul. Platforma Core (AI Chat, Bază de Cunoștințe, SOP-uri, FAQ, Academy, Audit AI, Knowledge Gaps, Calendar, Utilizatori, Organizație, Licență & Drepturi, Actualizări) plus workspace-urile produselor OPSQAI licențiate pentru Operations, Calitate & Conformitate, Logistică, HR, Finanțe și Stocuri — toate rulează în mediul clientului, cu furnizorul său AI, inclusiv model complet local prin Ollama. Angajații lucrează aici în fiecare zi.",
       },
     ],
     noteStrong: "Important:",
