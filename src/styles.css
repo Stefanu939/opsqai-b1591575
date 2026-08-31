@@ -58,179 +58,221 @@
 }
 
 /* ============================================================
-   OPSQAI v2.0 — Enterprise Identity
-   White / slate / charcoal / dark-navy accent. No purple, no
-   gradients, no glow. Feels like Linear / Stripe / GitHub
-   Enterprise / M365 Admin / Vercel. Built for 8+ hour usage.
-   WCAG AA verified in both themes.
+   OPSQAI — Aurora Noir (current visual direction)
+   Deep navy / near-black foundations, ambient violet + blue,
+   restrained warm ember accent. Floating surfaces, hairline
+   borders, soft elevation, purposeful motion.
+   This is the design that exists now — it is intentionally
+   replaceable by a future explicit redesign.
    ============================================================ */
 
 :root {
-  /* v3 radius scale — 10 / 14 / 20 */
-  --radius: 0.875rem; /* 14px card default */
-  --radius-panel: 1.25rem; /* 20px large panels */
+  /* Radius language — 12 / 16 / 24 */
+  --radius: 1rem; /* 16px card default */
+  --radius-panel: 1.5rem; /* 24px large panels */
 
-  /* Surface scale — Soft White / Light Gray */
-  --background: #f7f4ea; /* Parchment */
-  --surface-0: #fffdf6;
-  --surface-1: #f2ece0;
-  --surface-2: #e9e2d1;
-  --surface-3: #ded5c0;
-  --foreground: #0f221c; /* Emerald ink */
-  --surface: #fffdf6;
+  /* Surface scale — soft cool white */
+  --background: #f7f8fc;
+  --surface-0: #ffffff;
+  --surface-1: #f2f4fa;
+  --surface-2: #e9ecf6;
+  --surface-3: #dee2f0;
+  --foreground: #0f1222;
+  --surface: #ffffff;
 
-  --card: #fffdf6;
-  --card-foreground: #0f221c;
-  --popover: #fffdf6;
-  --popover-foreground: #0f221c;
+  --card: #ffffff;
+  --card-foreground: #0f1222;
+  --popover: #ffffff;
+  --popover-foreground: #0f1222;
 
-  /* Primary — deep emerald */
-  --primary: #064e3b;
-  --primary-foreground: #f7f4ea;
-  --primary-glow: #0d7a5f;
+  /* Primary — violet */
+  --primary: #5b3df5;
+  --primary-foreground: #ffffff;
+  --primary-glow: #8b6bff;
 
-  --secondary: #e9e2d1;
-  --secondary-foreground: #0f221c;
+  --secondary: #e9ecf6;
+  --secondary-foreground: #0f1222;
 
-  --muted: #f2ece0;
-  --muted-foreground: #4a5b52;
+  --muted: #f2f4fa;
+  --muted-foreground: #545a75;
 
-  --accent: #e9e2d1;
-  --accent-foreground: #0f221c;
+  /* Accent — blue */
+  --accent: #e6ecfb;
+  --accent-foreground: #1d3f8f;
 
-  --signal: #064e3b;
-  --signal-foreground: #f7f4ea;
+  --signal: #5b3df5;
+  --signal-foreground: #ffffff;
 
-  /* OPSQAI Gold — restrained accent */
-  --gold: #96762a;
-  --gold-foreground: #f7f4ea;
-  --gold-soft: rgba(150, 118, 42, 0.16);
-  --gold-line: rgba(150, 118, 42, 0.34);
+  /* Legacy variable name, new meaning: restrained warm ember */
+  --gold: #b8552b;
+  --gold-foreground: #ffffff;
+  --gold-soft: rgba(184, 85, 43, 0.14);
+  --gold-line: rgba(184, 85, 43, 0.3);
 
-  --destructive: #a32419;
-  --destructive-foreground: #fffdf6;
+  --destructive: #c22a26;
+  --destructive-foreground: #ffffff;
 
-  --success: #0d7a5f;
-  --success-foreground: #fffdf6;
-  --warning: #8a6410;
-  --warning-foreground: #fffdf6;
+  --success: #0f7a5a;
+  --success-foreground: #ffffff;
+  --warning: #97600d;
+  --warning-foreground: #ffffff;
 
-  --border: #ded5c0;
-  --border-strong: #c8bda3;
-  --input: #ded5c0;
-  --ring: #96762a;
+  --border: #dee2f0;
+  --border-strong: #c2c8de;
+  --input: #dee2f0;
+  --ring: #5b3df5;
 
-  --chart-1: #064e3b;
-  --chart-2: #4a5b52;
-  --chart-3: #96762a;
-  --chart-4: #0d7a5f;
-  --chart-5: #8a5a3a;
+  --chart-1: #5b3df5;
+  --chart-2: #2f6bd8;
+  --chart-3: #8b6bff;
+  --chart-4: #545a75;
+  --chart-5: #b8552b;
 
-  --sidebar: #fffdf6;
-  --sidebar-foreground: #0f221c;
-  --sidebar-primary: #064e3b;
-  --sidebar-primary-foreground: #f7f4ea;
-  --sidebar-accent: #f2ece0;
-  --sidebar-accent-foreground: #0f221c;
-  --sidebar-border: #e4dcc8;
-  --sidebar-ring: #96762a;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f1222;
+  --sidebar-primary: #5b3df5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f4fa;
+  --sidebar-accent-foreground: #0f1222;
+  --sidebar-border: #e4e8f4;
+  --sidebar-ring: #5b3df5;
 
-  --shadow-xs: 0 1px 2px 0 rgba(15, 34, 28, 0.04);
-  --shadow-sm: 0 1px 2px 0 rgba(15, 34, 28, 0.06);
-  --shadow-md: 0 6px 16px -6px rgba(15, 34, 28, 0.12);
-  --shadow-lg: 0 18px 40px -18px rgba(15, 34, 28, 0.20);
-  --shadow-glow: none;
+  /* Ambient glow tokens */
+  --glow-violet: radial-gradient(
+    60% 60% at 50% 0%,
+    rgba(91, 61, 245, 0.18),
+    transparent 70%
+  );
+  --glow-blue: radial-gradient(
+    55% 55% at 50% 50%,
+    rgba(47, 107, 216, 0.16),
+    transparent 72%
+  );
+  --glow-ember: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(184, 85, 43, 0.12),
+    transparent 72%
+  );
+
+  --shadow-xs: 0 1px 2px 0 rgba(15, 18, 34, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(15, 18, 34, 0.06);
+  --shadow-md: 0 6px 16px -6px rgba(15, 18, 34, 0.12);
+  --shadow-lg: 0 18px 40px -18px rgba(15, 18, 34, 0.2);
+  --shadow-soft: 0 2px 10px -4px rgba(15, 18, 34, 0.1);
+  --shadow-lift: 0 20px 50px -24px rgba(15, 18, 34, 0.24);
+  --shadow-glow: 0 0 48px -16px rgba(91, 61, 245, 0.35);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-fast: 180ms;
   --motion-base: 240ms;
   --motion-slow: 320ms;
 
-  --gradient-hero: none;
-  --gradient-cta: #f2ece0;
-  --gradient-primary: #064e3b;
-  --gradient-card: #fffdf6;
-  --gradient-sidebar: #fffdf6;
-  --gradient-surface: #fffdf6;
+  --gradient-hero: linear-gradient(180deg, #f7f8fc 0%, #eef0fb 100%);
+  --gradient-cta: linear-gradient(135deg, #eef0fb 0%, #e6ecfb 100%);
+  --gradient-primary: linear-gradient(135deg, #5b3df5 0%, #8b6bff 100%);
+  --gradient-card: #ffffff;
+  --gradient-sidebar: #ffffff;
+  --gradient-surface: #ffffff;
 }
 
 .dark {
-  /* Deep Navy dark — same identity, less brightness */
-  --background: #04211a;
-  --surface-0: #04211a;
-  --surface-1: #072e24;
-  --surface-2: #0a3a2d;
-  --surface-3: #0f4a39;
-  --foreground: #f5f0e0;
-  --surface: #072e24;
+  /* Near-black deep navy foundation */
+  --background: #0a0b14;
+  --surface-0: #0a0b14;
+  --surface-1: #11132092;
+  --surface-1: #111320;
+  --surface-2: #171a2b;
+  --surface-3: #1f2338;
+  --foreground: #eef0fa;
+  --surface: #111320;
 
-  --card: #072e24;
-  --card-foreground: #f5f0e0;
-  --popover: #072e24;
-  --popover-foreground: #f5f0e0;
+  --card: #111320;
+  --card-foreground: #eef0fa;
+  --popover: #141728;
+  --popover-foreground: #eef0fa;
 
-  --primary: #c9a84c;
-  --primary-foreground: #04211a;
-  --primary-glow: #e8d48a;
+  --primary: #8b6bff;
+  --primary-foreground: #0a0b14;
+  --primary-glow: #b39dff;
 
-  --secondary: #0a3a2d;
-  --secondary-foreground: #f5f0e0;
+  --secondary: #1f2338;
+  --secondary-foreground: #eef0fa;
 
-  --muted: #072e24;
-  --muted-foreground: #a9bdb1;
+  --muted: #171a2b;
+  --muted-foreground: #9aa2c2;
 
-  --accent: #0a3a2d;
-  --accent-foreground: #f5f0e0;
+  --accent: #1b2440;
+  --accent-foreground: #a9c2ff;
 
-  --signal: #c9a84c;
-  --signal-foreground: #04211a;
+  --signal: #8b6bff;
+  --signal-foreground: #0a0b14;
 
-  --gold: #c9a84c;
-  --gold-foreground: #04211a;
-  --gold-soft: rgba(201, 168, 76, 0.20);
-  --gold-line: rgba(201, 168, 76, 0.38);
+  /* Legacy variable name, new meaning: restrained warm ember */
+  --gold: #e2793f;
+  --gold-foreground: #0a0b14;
+  --gold-soft: rgba(226, 121, 63, 0.16);
+  --gold-line: rgba(226, 121, 63, 0.32);
 
-  --destructive: #e5675c;
-  --destructive-foreground: #04211a;
+  --destructive: #f0675c;
+  --destructive-foreground: #0a0b14;
 
-  --success: #2dd4a8;
-  --success-foreground: #04211a;
-  --warning: #e8c063;
-  --warning-foreground: #04211a;
+  --success: #3ddcac;
+  --success-foreground: #0a0b14;
+  --warning: #f0b95f;
+  --warning-foreground: #0a0b14;
 
-  --border: rgba(201, 168, 76, 0.22);
-  --border-strong: rgba(201, 168, 76, 0.4);
-  --input: rgba(201, 168, 76, 0.24);
-  --ring: #c9a84c;
+  --border: rgba(160, 168, 210, 0.16);
+  --border-strong: rgba(160, 168, 210, 0.3);
+  --input: rgba(160, 168, 210, 0.18);
+  --ring: #8b6bff;
 
-  --chart-1: #f5f0e0;
-  --chart-2: #a9bdb1;
-  --chart-3: #c9a84c;
-  --chart-4: #2dd4a8;
-  --chart-5: #d18a5a;
+  --chart-1: #8b6bff;
+  --chart-2: #5b8cf7;
+  --chart-3: #b39dff;
+  --chart-4: #9aa2c2;
+  --chart-5: #e2793f;
 
-  --sidebar: #04211a;
-  --sidebar-foreground: #f5f0e0;
-  --sidebar-primary: #c9a84c;
-  --sidebar-primary-foreground: #04211a;
-  --sidebar-accent: #0a3a2d;
-  --sidebar-accent-foreground: #f5f0e0;
-  --sidebar-border: rgba(201, 168, 76, 0.2);
-  --sidebar-ring: #c9a84c;
+  --sidebar: #0a0b14;
+  --sidebar-foreground: #eef0fa;
+  --sidebar-primary: #8b6bff;
+  --sidebar-primary-foreground: #0a0b14;
+  --sidebar-accent: #171a2b;
+  --sidebar-accent-foreground: #eef0fa;
+  --sidebar-border: rgba(160, 168, 210, 0.14);
+  --sidebar-ring: #8b6bff;
+
+  --glow-violet: radial-gradient(
+    60% 60% at 50% 0%,
+    rgba(139, 107, 255, 0.28),
+    transparent 70%
+  );
+  --glow-blue: radial-gradient(
+    55% 55% at 50% 50%,
+    rgba(91, 140, 247, 0.22),
+    transparent 72%
+  );
+  --glow-ember: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(226, 121, 63, 0.16),
+    transparent 72%
+  );
 
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
   --shadow-md: 0 8px 20px -8px rgba(0, 0, 0, 0.55);
   --shadow-lg: 0 20px 44px -20px rgba(0, 0, 0, 0.7);
-  --shadow-glow: none;
+  --shadow-soft: 0 2px 12px -6px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 24px 60px -28px rgba(0, 0, 0, 0.75);
+  --shadow-glow: 0 0 60px -18px rgba(139, 107, 255, 0.45);
 
-  --gradient-hero: none;
-  --gradient-cta: #0a3a2d;
-  --gradient-primary: #c9a84c;
-  --gradient-card: #072e24;
-  --gradient-sidebar: #04211a;
-  --gradient-surface: #072e24;
+  --gradient-hero: linear-gradient(180deg, #0a0b14 0%, #12142a 100%);
+  --gradient-cta: linear-gradient(135deg, #141728 0%, #1b2440 100%);
+  --gradient-primary: linear-gradient(135deg, #6d4bf6 0%, #8b6bff 100%);
+  --gradient-card: #111320;
+  --gradient-sidebar: #0a0b14;
+  --gradient-surface: #111320;
 }
+
 
 @layer base {
   * {
