@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-// OPSQAI v2: English + German only. Romanian removed from the product surface.
-export type Lang = "en" | "de";
+// OPSQAI public surface: English, German and Romanian.
+export type Lang = "en" | "de" | "ro";
+
 
 const dict = {
   de: {
