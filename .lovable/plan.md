@@ -104,11 +104,32 @@ accents, larger type, glow used only on hero/status cards.
 routes: unchanged layout and density; new tokens, thinner borders, violet accent
 instead of gold, ambient aura toned down for 8-hour usage.
 
-## Phase 7 — Documentation
+## Phase 7 — Romanian language (EN / DE / RO)
+
+Romanian was removed from the product surface earlier (`src/i18n/index.tsx`:
+`type Lang = "en" | "de"`). It comes back as a third first-class language:
+
+- `src/i18n/index.tsx` — `Lang` becomes `"en" | "de" | "ro"`, a full `ro` dictionary
+  added to the app `dict`, persisted-language validation accepts `ro`.
+- `src/i18n/marketing.ts` — `ro` block (nav, footer, CTA, a11y labels).
+- All page copy files get a `ro` block: `home.ts` (incl. the new founders copy),
+  `company.ts`, `contact.ts`, `documentation.ts`, `modules.ts`, `pricing.ts`,
+  `product-overview.ts`, `security.ts`, `self-hosted.ts`, `support.ts`.
+- `src/components/oix/nav-shell.tsx` — the language control renders EN · DE · RO
+  (desktop and mobile), keeping the existing `aria-pressed` pattern.
+- Any `lang === "de" ? … : …` binary checks found across marketing routes and
+  helpers (`src/lib/seo.ts`, blog content, hreflang/sitemap if present) become
+  three-way, so `/sitemap.xml` and `hreflang` include `ro`.
+
+Translations are real Romanian with correct diacritics — no machine-literal
+placeholders — and verified page by page in the preview at all three languages.
+
+## Phase 8 — Documentation
 
 Rewrite `docs/design/current-design.md` to describe only Aurora Noir (old
 description deleted, not archived). Update the design pointer line in
 `mem://index.md`. No permanent standard, no verification script.
+
 
 ---
 
