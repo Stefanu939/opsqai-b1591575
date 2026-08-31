@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   listLicenses,
   issueLicense,
@@ -42,10 +42,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown, KeyRound, Plus, Search, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { listCompanies } from "@/lib/companies.functions";
+import { setCompanyProduct } from "@/lib/company-products.functions";
+import {
+  getCompanyProfile,
+  getProduct,
+  productsAvailableFor,
+  productsRecommendedFor,
+} from "@/lib/product-architecture";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { z } from "zod";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { confirmAction } from "@/components/ui/confirm";
+
 
 const searchSchema = z.object({ install: z.string().optional() });
 
@@ -83,6 +92,9 @@ function LicensesPage() {
   const [q, setQ] = useState(installFilter ?? "");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [issueOpen, setIssueOpen] = useState(false);
+  const [prefill, setPrefill] = useState<IssuePrefill | null>(null);
+
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["mc-licenses"],
@@ -279,9 +291,24 @@ function LicensesPage() {
       title="Licenses"
       description="Installation licenses and per-install module activations. Modules are activated exclusively here."
       actions={
-        <IssueLicenseDialog onIssue={(v) => issueMut.mutate(v)} pending={issueMut.isPending} />
+        <IssueLicenseDialog
+          onIssue={(v) => issueMut.mutate(v)}
+          pending={issueMut.isPending}
+          open={issueOpen}
+          onOpenChange={setIssueOpen}
+          prefill={prefill}
+        />
       }
     >
+      <CustomerEntitlementsPanel
+        licenses={data as License[]}
+        onIssueFor={(p) => {
+          setPrefill(p);
+          setIssueOpen(true);
+        }}
+      />
+
+
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -347,9 +374,18 @@ function slugify(input: string): string {
     .slice(0, 64);
 }
 
+export type IssuePrefill = {
+  company_name: string;
+  install_id: string;
+  seats?: number | null;
+};
+
 function IssueLicenseDialog({
   onIssue,
   pending,
+  open: openProp,
+  onOpenChange,
+  prefill,
 }: {
   onIssue: (v: {
     install_id: string;
@@ -360,8 +396,16 @@ function IssueLicenseDialog({
     expires_at?: string | null;
   }) => void;
   pending: boolean;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  prefill?: IssuePrefill | null;
 }) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (v: boolean) => {
+    setOpenState(v);
+    onOpenChange?.(v);
+  };
   const [installId, setInstallId] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -371,12 +415,29 @@ function IssueLicenseDialog({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [installIdDirty, setInstallIdDirty] = useState(false);
 
+  // Seed from a customer row when the dialog is opened from the customers panel.
+  const seededFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !prefill) return;
+    const stamp = `${prefill.company_name}|${prefill.install_id}`;
+    if (seededFor.current === stamp) return;
+    seededFor.current = stamp;
+    setCompany(prefill.company_name);
+    setInstallId(prefill.install_id);
+    setInstallIdDirty(true);
+    if (typeof prefill.seats === "number" && prefill.seats > 0) setSeats(prefill.seats);
+  }, [open, prefill]);
+  useEffect(() => {
+    if (!open) seededFor.current = null;
+  }, [open]);
+
   const listCompaniesFn = useServerFn(listCompanies);
   const { data: companies = [] } = useQuery({
     queryKey: ["mc-companies-for-license"],
     queryFn: () => listCompaniesFn({ data: {} } as never),
     enabled: open,
   });
+
 
   const pickCompany = (c: {
     id: string;
@@ -681,5 +742,162 @@ function ActivateModuleDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ─── Customers & entitlements ───────────────────────────────────────────
+// Management Center is the authority: the company profile decides which
+// OPSQAI products are available, the administrator explicitly enables them,
+// and the (re)issued installation license distributes those entitlements.
+
+type CompanyRow = {
+  id: string;
+  name: string;
+  max_users: number | null;
+  install_id: string | null;
+  business_type: string | null;
+  enabled_products: string[] | null;
+};
+
+function CustomerEntitlementsPanel({
+  licenses,
+  onIssueFor,
+}: {
+  licenses: License[];
+  onIssueFor: (p: IssuePrefill) => void;
+}) {
+  const qc = useQueryClient();
+  const listCompaniesFn = useServerFn(listCompanies);
+  const setProduct = useServerFn(setCompanyProduct);
+
+  const { data: companies = [], isLoading } = useQuery({
+    queryKey: ["mc-companies-entitlements"],
+    queryFn: () => listCompaniesFn({ data: {} } as never) as Promise<CompanyRow[]>,
+  });
+
+  const productMut = useMutation({
+    mutationFn: (v: { company_id: string; product_key: string; enabled: boolean }) =>
+      setProduct({ data: v }),
+    onSuccess: (_r, v) => {
+      toast.success(
+        v.enabled ? "Product enabled — reissue the license to distribute it." : "Product disabled",
+      );
+      qc.invalidateQueries({ queryKey: ["mc-companies-entitlements"] });
+      qc.invalidateQueries({ queryKey: ["mc-customers"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const licenseFor = (c: CompanyRow) => {
+    const wanted = (c.install_id ?? slugify(c.name)).toLowerCase();
+    return (
+      licenses.find((l) => l.install_id.toLowerCase() === wanted) ??
+      licenses.find((l) => l.company_name.trim().toLowerCase() === c.name.trim().toLowerCase()) ??
+      null
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        Loading customers…
+      </div>
+    );
+  }
+  if (companies.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-border bg-card">
+      <div className="border-b border-border p-3">
+        <h2 className="text-sm font-semibold text-foreground">Customers &amp; entitlements</h2>
+        <p className="text-xs text-muted-foreground">
+          Company profile decides what is available. Enable products explicitly, then issue or
+          reissue the license so the customer install receives them.
+        </p>
+      </div>
+      <ul className="divide-y divide-border">
+        {companies.map((c) => {
+          const profile = getCompanyProfile(c.business_type);
+          const available = productsAvailableFor(c.business_type);
+          const recommended = new Set<string>(productsRecommendedFor(c.business_type));
+          const enabled = new Set<string>(c.enabled_products ?? []);
+          const lic = licenseFor(c);
+          return (
+            <li key={c.id} className="space-y-3 p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground">{c.name}</span>
+                    <Badge variant="outline">{profile.label}</Badge>
+                    {lic ? (
+                      lic.revoked ? (
+                        <Badge variant="destructive">License revoked</Badge>
+                      ) : (
+                        <Badge>License active</Badge>
+                      )
+                    ) : (
+                      <Badge variant="secondary">No license</Badge>
+                    )}
+                  </div>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {c.install_id ?? slugify(c.name)}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant={lic ? "outline" : "default"}
+                  onClick={() =>
+                    onIssueFor({
+                      company_name: c.name,
+                      install_id: (c.install_id ?? slugify(c.name)).toLowerCase(),
+                      seats: c.max_users,
+                    })
+                  }
+                >
+                  <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                  {lic ? "Reissue license" : "Issue license"}
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {available.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">
+                    No products available for this profile.
+                  </span>
+                ) : (
+                  available.map((key) => {
+                    const p = getProduct(key);
+                    return (
+                      <label
+                        key={key}
+                        className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-xs"
+                      >
+                        <Switch
+                          checked={enabled.has(key)}
+                          disabled={productMut.isPending}
+                          onCheckedChange={(v) =>
+                            productMut.mutate({
+                              company_id: c.id,
+                              product_key: key,
+                              enabled: v,
+                            })
+                          }
+                          aria-label={`${p?.label ?? key} for ${c.name}`}
+                        />
+                        <span className="text-foreground">{p?.label ?? key}</span>
+                        {recommended.has(key) && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            Recommended
+                          </Badge>
+                        )}
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
