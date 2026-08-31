@@ -116,7 +116,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               url: "https://opsqai.de/",
               logo: "https://opsqai.de/icons/icon-192.png",
               description:
-                "Enterprise AI knowledge management, operational intelligence and compliance for logistics & supply chain.",
+                "Enterprise Operational AI Platform, delivered as a Windows Self-Hosted product with a local AI provider (Ollama). Knowledge, SOPs, compliance, academy, operations, quality, HR, finance and logistics workspaces — all inside the customer's own environment.",
               sameAs: ["https://www.linkedin.com/company/opsqai"],
             },
             {

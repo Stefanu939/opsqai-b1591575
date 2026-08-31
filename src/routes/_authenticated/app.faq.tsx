@@ -43,13 +43,13 @@ export const Route = createFileRoute("/_authenticated/app/faq")({
       {
         name: "description",
         content:
-          "Frequently asked logistics and warehouse questions answered for your team in OPSQAI.",
+          "Frequently asked operational questions answered for your team from your own OPSQAI knowledge base.",
       },
       { property: "og:title", content: "FAQs — OPSQAI" },
       {
         property: "og:description",
         content:
-          "Frequently asked logistics and warehouse questions answered for your team in OPSQAI.",
+          "Frequently asked operational questions answered for your team from your own OPSQAI knowledge base.",
       },
       { property: "og:url", content: "https://opsqai.lovable.app/faq" },
     ],

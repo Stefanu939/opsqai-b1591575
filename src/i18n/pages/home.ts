@@ -19,16 +19,16 @@ const en = {
   },
   whoFor: {
     eyebrow: "Who is OPSQAI for",
-    title: "Built for industrial operations.",
+    title: "Built for how organisations actually operate.",
     intro:
-      "OPSQAI is designed for teams whose knowledge is operational, regulated and never allowed to leave the company boundary.",
+      "OPSQAI is not a logistics tool. It is an operational AI platform: the Core Platform covers knowledge, SOPs, FAQ, Academy, AI Audit, compliance, users and audit trail, and each business domain is enabled as a licensed OPSQAI product — Operations, Quality & Compliance, Logistics, HR, Finance and Inventory.",
     audiences: [
-      "Warehousing",
-      "Logistics",
-      "Manufacturing",
-      "Production",
-      "Distribution",
-      "Enterprise Operations",
+      "Operations",
+      "Quality & Compliance",
+      "Logistics & Warehousing",
+      "Manufacturing & Production",
+      "HR & Training",
+      "Finance & Administration",
     ],
   },
   whyNow: {
@@ -61,7 +61,7 @@ const en = {
       {
         tag: "Windows · The product",
         name: "Self-Hosted",
-        body: "The Windows Self-Hosted installation is the product. AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Users, Organization, Subscription, Updates and Modules — all running inside the customer's environment. Employees work here every day.",
+        body: "The Windows Self-Hosted installation is the product. Core Platform (AI Chat, Knowledge Base, SOPs, FAQ, Academy, AI Audit, Knowledge Gaps, Calendar, Users, Organization, License & Entitlements, Updates) plus the licensed OPSQAI product workspaces for Operations, Quality & Compliance, Logistics, HR, Finance and Inventory — all running inside the customer's environment with their own AI provider, including a fully local Ollama model. Employees work here every day.",
       },
     ],
     noteStrong: "Important:",
@@ -226,16 +226,16 @@ const de: HomeCopy = {
   },
   whoFor: {
     eyebrow: "Für wen ist OPSQAI",
-    title: "Gebaut für industrielle Abläufe.",
+    title: "Gebaut für die tatsächliche Arbeitsweise von Organisationen.",
     intro:
-      "OPSQAI ist für Teams konzipiert, deren Wissen operativ, reguliert und niemals dazu bestimmt ist, die Unternehmensgrenze zu verlassen.",
+      "OPSQAI ist kein Logistiktool. Es ist eine operative KI-Plattform: Die Core-Plattform umfasst Wissen, SOPs, FAQ, Academy, KI-Audit, Compliance, Nutzer und Audit-Trail — jede Fachdomäne wird als lizenziertes OPSQAI-Produkt aktiviert: Operations, Qualität & Compliance, Logistik, HR, Finanzen und Bestand.",
     audiences: [
-      "Lagerhaltung",
-      "Logistik",
-      "Fertigung",
-      "Produktion",
-      "Distribution",
-      "Unternehmensabläufe",
+      "Operations",
+      "Qualität & Compliance",
+      "Logistik & Lager",
+      "Fertigung & Produktion",
+      "HR & Schulung",
+      "Finanzen & Verwaltung",
     ],
   },
   whyNow: {
@@ -268,7 +268,7 @@ const de: HomeCopy = {
       {
         tag: "Windows · Das Produkt",
         name: "Self-Hosted",
-        body: "Die Windows-Self-Hosted-Installation ist das Produkt. KI-Chat, Wissensdatenbank, FAQ, Academy, KI-Audit, Benutzer, Organisation, Abonnement, Updates und Module — alles läuft innerhalb der Umgebung des Kunden. Mitarbeitende arbeiten hier jeden Tag.",
+        body: "Die Windows-Self-Hosted-Installation ist das Produkt. Core-Plattform (KI-Chat, Wissensdatenbank, SOPs, FAQ, Academy, KI-Audit, Wissenslücken, Kalender, Benutzer, Organisation, Lizenz & Entitlements, Updates) plus die lizenzierten OPSQAI-Produkt-Workspaces für Operations, Qualität & Compliance, Logistik, HR, Finanzen und Bestand — alles in der Umgebung des Kunden mit dem eigenen KI-Anbieter, inklusive vollständig lokalem Ollama-Modell. Mitarbeitende arbeiten hier jeden Tag.",
       },
     ],
     noteStrong: "Wichtig:",
@@ -431,16 +431,16 @@ const ro: HomeCopy = {
   },
   whoFor: {
     eyebrow: "Pentru cine este OPSQAI",
-    title: "Construit pentru operațiuni industriale.",
+    title: "Construit pentru modul real în care funcționează organizațiile.",
     intro:
-      "OPSQAI este conceput pentru echipe ale căror cunoștințe sunt operaționale, reglementate și nu au voie să părăsească niciodată granița companiei.",
+      "OPSQAI nu este un instrument de logistică. Este o platformă de AI operațional: Platforma Core acoperă cunoștințe, SOP-uri, FAQ, Academy, AI Audit, conformitate, utilizatori și jurnal de audit, iar fiecare domeniu de business se activează ca produs OPSQAI licențiat — Operations, Calitate & Conformitate, Logistică, HR, Finanțe și Stocuri.",
     audiences: [
-      "Depozitare",
-      "Logistică",
-      "Producție",
-      "Fabricație",
-      "Distribuție",
-      "Operațiuni la nivel de companie",
+      "Operațiuni",
+      "Calitate & Conformitate",
+      "Logistică & Depozitare",
+      "Producție & Fabricație",
+      "HR & Instruire",
+      "Finanțe & Administrație",
     ],
   },
   whyNow: {
@@ -473,7 +473,7 @@ const ro: HomeCopy = {
       {
         tag: "Windows · Produsul",
         name: "Self-Hosted",
-        body: "Instalarea Windows Self-Hosted este produsul. AI Chat, Bază de Cunoștințe, FAQ, Academy, Audit AI, Utilizatori, Organizație, Abonament, Actualizări și Licență & Drepturi — toate rulează în interiorul mediului clientului. Angajații lucrează aici în fiecare zi.",
+        body: "Instalarea Windows Self-Hosted este produsul. Platforma Core (AI Chat, Bază de Cunoștințe, SOP-uri, FAQ, Academy, Audit AI, Knowledge Gaps, Calendar, Utilizatori, Organizație, Licență & Drepturi, Actualizări) plus workspace-urile produselor OPSQAI licențiate pentru Operations, Calitate & Conformitate, Logistică, HR, Finanțe și Stocuri — toate rulează în mediul clientului, cu furnizorul său AI, inclusiv model complet local prin Ollama. Angajații lucrează aici în fiecare zi.",
       },
     ],
     noteStrong: "Important:",

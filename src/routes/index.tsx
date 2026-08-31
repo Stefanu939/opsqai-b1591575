@@ -66,7 +66,7 @@ export const Route = createFileRoute("/")({
         "OPSQAI is an Enterprise Operational AI Platform delivered as a Windows Self-Hosted product. Sovereign by design: customers own their data, documents, embeddings and AI provider. OPSQAI never sees operational knowledge.",
       path: "/",
       keywords:
-        "enterprise operational AI, windows self-hosted AI, sovereign AI, industrial AI platform, logistics AI, manufacturing AI, on-premise AI",
+        "enterprise operational AI, windows self-hosted AI, sovereign AI, local LLM Ollama, operations AI, quality and compliance AI, HR and finance operations AI, on-premise AI",
       jsonLd: [
         softwareApplicationLd({
           description:
