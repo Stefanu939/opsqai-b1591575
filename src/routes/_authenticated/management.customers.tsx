@@ -25,10 +25,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  COMPANY_PROFILES,
+  getCompanyProfile,
+  getProduct,
+  productsAvailableFor,
+  productsRecommendedFor,
+} from "@/lib/product-architecture";
 import { Users, Search, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { confirmAction } from "@/components/ui/confirm";
+
+type NewCustomerInput = {
+  name: string;
+  business_type: string;
+  enabled_products: string[];
+  subscription_plan: "free" | "starter" | "pro" | "enterprise";
+  max_users: number;
+  admin_email: string;
+  admin_password: string;
+  admin_first_name?: string;
+  admin_last_name?: string;
+};
+
 
 export const Route = createFileRoute("/_authenticated/management/customers")({
   head: () => ({ meta: [{ title: "Customers — Management Center" }] }),
