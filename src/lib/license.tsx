@@ -160,7 +160,7 @@ function resolveInstallPayload(token: string): RawPayload | null {
 function buildSelfHostState(): LicenseState {
   const token = resolveLicenseToken();
   if (!token) {
-    // Self-host without any license token → basic bundle only, no add-ons.
+    // Self-host without any license token → Core platform only, no products or add-ons.
     return {
       mode: "selfhost",
       install_id: null,
@@ -195,7 +195,7 @@ function buildSelfHostState(): LicenseState {
   }
   const now = Math.floor(Date.now() / 1000);
   // Availability is controlled solely by expires_at — once past, add-on
-  // modules are blocked (basic bundle stays available via hasModule()).
+  // modules are blocked (Core stays available via hasModule()).
   const expired = typeof payload.expires_at === "number" && payload.expires_at < now;
   return {
     mode: "selfhost",

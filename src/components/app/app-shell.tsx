@@ -103,7 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/gaps",
       label: "Knowledge Gaps",
       icon: BrainCircuit,
-      // Part of the Basic bundle — always available.
+      // Core platform capability — always available.
       show:
         mode === "selfhost" ||
         hasAnyPermission("knowledge.manage", "analytics.view", "knowledge.read"),
@@ -135,7 +135,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/subscription",
       label: "Subscription",
       icon: Package,
-      // Self-Hosted access is governed by the local license (Modules), not billing.
+      // Self-Hosted access is governed by the local license, not billing.
       show: mode !== "selfhost",
       module: null,
     },

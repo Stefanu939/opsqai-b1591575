@@ -4,8 +4,8 @@ import * as THREE from "three";
 
 /**
  * ModuleConstellation — a rotating network of nodes orbiting a central core.
- * The core represents the Basic Platform; the outer nodes represent premium
- * modules that light up as they connect. Gold links pulse between them.
+ * The centre represents the Core platform; the outer nodes represent OPSQAI
+ * products and optional add-ons that light up as they connect. Gold links pulse between them.
  */
 export function ModuleConstellation({ nodeCount = 14 }: { nodeCount?: number }) {
   const groupRef = useRef<THREE.Group | null>(null);
@@ -56,7 +56,7 @@ export function ModuleConstellation({ nodeCount = 14 }: { nodeCount?: number }) 
 
   return (
     <group ref={groupRef}>
-      {/* Central core — Basic Platform */}
+      {/* Centre — Core platform */}
       <mesh ref={coreRef}>
         <icosahedronGeometry args={[0.7, 1]} />
         <meshStandardMaterial

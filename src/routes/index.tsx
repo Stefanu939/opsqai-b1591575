@@ -118,8 +118,8 @@ function Home() {
       <WhyNow />
       <MottoBand />
       <ThreeSurfaces />
-      <BasicPlatform />
-      <PremiumModules />
+      <CorePlatform />
+      <ProductsAndAddons />
       <DeliveryComparison />
       <Differentiation />
       <SecurityWall />
@@ -365,11 +365,11 @@ function ThreeSurfaces() {
   );
 }
 
-/* ---------------- Basic Platform ---------------- */
+/* ---------------- Core Platform ---------------- */
 
-const BASIC_ICONS = [MessageSquare, BookOpen, FileCheck2, GraduationCap, ScrollText, Users, Building2, Package];
+const CORE_ICONS = [MessageSquare, BookOpen, FileCheck2, GraduationCap, ScrollText, Users, Building2, Package];
 
-function BasicPlatform() {
+function CorePlatform() {
   const t = useHomeCopy().basic;
   return (
     <section className="border-y border-border/50 bg-surface-1">
@@ -377,7 +377,7 @@ function BasicPlatform() {
         <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
         <div className="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           {t.items.map((m, i) => {
-            const Icon = BASIC_ICONS[i];
+            const Icon = CORE_ICONS[i];
             return (
               <Card key={m.name} className="p-5 border-border/60">
                 <Icon className="h-5 w-5 text-primary" />
@@ -392,11 +392,11 @@ function BasicPlatform() {
   );
 }
 
-/* ---------------- Premium Modules ---------------- */
+/* ---------------- Products & Add-ons ---------------- */
 
-const PREMIUM_ICONS = [Activity, Puzzle, Workflow];
+const PRODUCT_ICONS = [Activity, Puzzle, Workflow];
 
-function PremiumModules() {
+function ProductsAndAddons() {
   const t = useHomeCopy().premium;
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
@@ -404,7 +404,7 @@ function PremiumModules() {
         <SectionHead eyebrow={t.eyebrow} title={t.title} intro={t.intro} />
         <div className="space-y-3">
           {t.reasons.map((r, i) => {
-            const Icon = PREMIUM_ICONS[i];
+            const Icon = PRODUCT_ICONS[i];
             return (
               <Card key={r.title} className="p-5 border-border/60">
                 <div className="flex items-start gap-3">

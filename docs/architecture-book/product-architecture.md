@@ -65,3 +65,46 @@ Both are additive; older signed tokens and older installations keep working.
 Legacy "module" vocabulary survives only in wire formats (`licenses.module_key`,
 signed `kind: "module"` tokens) and in `license-modules.ts`, which is a derived
 compatibility layer.
+
+## Product Workspaces
+
+A Product is not a renamed module. Each OPSQAI Product contributes one or more
+**Product Workspaces** — logical areas of work inside its domain:
+
+```text
+PRODUCT  ->  WORKSPACE  ->  capabilities  ->  route (only when implemented)
+```
+
+Workspaces are declared in `PRODUCT_WORKSPACES` (`src/lib/product-architecture.ts`)
+with a status:
+
+- `implemented` — the workspace points at a route that exists in the app.
+- `planned` — declared architecture only. It has no route and is never rendered.
+
+A test enforces that invariant, so a planned workspace can never leak into the
+UI as a dead link.
+
+### Navigation rules
+
+`src/lib/app-navigation.ts` derives the Self-Hosted sidebar:
+
+1. The Core group is always built from the caller's Core items, filtered only by
+   RBAC / license gates.
+2. One group per **explicitly enabled** product. A company profile alone never
+   produces a group — it only recommends products.
+3. Only `implemented` workspaces become entries.
+4. Empty groups are dropped, so a licensed product whose workspaces are still in
+   preparation adds nothing to the sidebar.
+
+Today every product workspace is `planned`, so the sidebar shows the Core group
+only. Shipping a real product route means flipping one workspace to
+`implemented` with its route — no navigation code changes.
+
+### Terminology and compatibility
+
+Customer-facing surfaces use only **Core platform**, **Products** and
+**Add-ons**. The legacy vocabulary in `license-modules.ts`,
+`feature-catalog.ts` and `subscription-plans.ts` (`BASIC_MODULES`, `inBasic`,
+`category: "Basic"`) survives purely as a compatibility layer for already-signed
+licenses and existing `licenses.module_key` rows. It must not appear in UI copy;
+use `moduleClassification()` / `classify()` instead.

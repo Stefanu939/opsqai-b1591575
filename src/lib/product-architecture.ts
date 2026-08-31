@@ -572,3 +572,307 @@ export const LEGACY_INCLUDED_MODULE_KEYS: readonly string[] = [
   "pwa",
   "knowledge_gaps",
 ] as const;
+
+// ─── Product Workspaces ───────────────────────────────────────────────────
+//
+// A Product is not a renamed module: it is a domain solution that contributes
+// one or more PRODUCT WORKSPACES — logical areas of work inside that domain.
+//
+//   PRODUCT  ->  WORKSPACE  ->  capabilities  ->  (route, when implemented)
+//
+// Honesty rule (enforced by tests): a workspace may only be marked
+// "implemented" when it points at a route that actually exists in the app.
+// Everything else is "planned" — declared architecture, never rendered as
+// working navigation. Core capabilities keep their Core entitlement even when
+// a workspace groups them contextually; a workspace never re-classifies Core.
+
+export type WorkspaceStatus = "implemented" | "planned";
+
+export interface ProductWorkspace {
+  /** Stable key, unique across all products. */
+  key: string;
+  product: ProductKey;
+  label: string;
+  description: string;
+  /** Lucide icon name; resolved by the UI layer so this module stays UI-agnostic. */
+  icon: string;
+  /** Existing application route. Required when `status === "implemented"`. */
+  route?: string;
+  /** Capabilities this workspace surfaces (Core or product capabilities). */
+  capabilities: readonly string[];
+  status: WorkspaceStatus;
+}
+
+export const PRODUCT_WORKSPACES: readonly ProductWorkspace[] = [
+  // ── OPSQAI Logistics ───────────────────────────────────────────────────
+  {
+    key: "logistics_people",
+    product: "opsqai_logistics",
+    label: "People",
+    description: "Workforce and internal people operations for logistics teams.",
+    icon: "Users",
+    capabilities: ["logistics_workspace"],
+    status: "planned",
+  },
+  {
+    key: "logistics_operations",
+    product: "opsqai_logistics",
+    label: "Operations",
+    description: "Operational knowledge, processes and operational intelligence.",
+    icon: "Workflow",
+    capabilities: ["logistics_workspace", "logistics_workflows"],
+    status: "planned",
+  },
+  {
+    key: "logistics_planning",
+    product: "opsqai_logistics",
+    label: "Planning",
+    description: "Operational and workforce planning for logistics sites.",
+    icon: "CalendarRange",
+    capabilities: ["logistics_workspace"],
+    status: "planned",
+  },
+  {
+    key: "logistics_performance",
+    product: "opsqai_logistics",
+    label: "Performance",
+    description: "Logistics reporting, analytics and performance follow-up.",
+    icon: "LineChart",
+    capabilities: ["logistics_workspace"],
+    status: "planned",
+  },
+  {
+    key: "logistics_knowledge",
+    product: "opsqai_logistics",
+    label: "Knowledge",
+    description:
+      "Logistics context over the Core knowledge capabilities: knowledge base, FAQ, academy, SOPs and knowledge gaps.",
+    icon: "BookOpen",
+    capabilities: ["logistics_sops"],
+    status: "planned",
+  },
+
+  // ── OPSQAI HR ──────────────────────────────────────────────────────────
+  {
+    key: "hr_people",
+    product: "opsqai_hr",
+    label: "People",
+    description: "Employee information, people operations and employee knowledge.",
+    icon: "Users",
+    capabilities: ["hr_workspace"],
+    status: "planned",
+  },
+  {
+    key: "hr_workforce",
+    product: "opsqai_hr",
+    label: "Workforce",
+    description: "Workforce and headcount planning with workforce insights.",
+    icon: "UsersRound",
+    capabilities: ["hr_workspace"],
+    status: "planned",
+  },
+  {
+    key: "hr_leave",
+    product: "opsqai_hr",
+    label: "Leave & Availability",
+    description: "Leave, availability and absence workflows.",
+    icon: "CalendarCheck",
+    capabilities: ["hr_workspace"],
+    status: "planned",
+  },
+  {
+    key: "hr_talent",
+    product: "opsqai_hr",
+    label: "Talent",
+    description: "Onboarding, development and talent workflows.",
+    icon: "Sparkles",
+    capabilities: ["onboarding"],
+    status: "planned",
+  },
+  {
+    key: "hr_knowledge",
+    product: "opsqai_hr",
+    label: "HR Knowledge",
+    description: "Policies, procedures and HR knowledge in an HR context.",
+    icon: "ScrollText",
+    capabilities: ["policies"],
+    status: "planned",
+  },
+
+  // ── OPSQAI Finance ─────────────────────────────────────────────────────
+  {
+    key: "finance_operations",
+    product: "opsqai_finance",
+    label: "Financial Operations",
+    description: "Day-to-day finance operations and approvals.",
+    icon: "Wallet",
+    capabilities: ["finance_workspace", "approvals"],
+    status: "planned",
+  },
+  {
+    key: "finance_planning",
+    product: "opsqai_finance",
+    label: "Planning",
+    description: "Financial planning and forecasting.",
+    icon: "CalendarRange",
+    capabilities: ["finance_workspace"],
+    status: "planned",
+  },
+  {
+    key: "finance_controls",
+    product: "opsqai_finance",
+    label: "Controls",
+    description: "Financial controls and compliance follow-up.",
+    icon: "ShieldCheck",
+    capabilities: ["finance_workspace"],
+    status: "planned",
+  },
+  {
+    key: "finance_reporting",
+    product: "opsqai_finance",
+    label: "Reporting",
+    description: "Financial reporting and insights.",
+    icon: "LineChart",
+    capabilities: ["finance_workspace"],
+    status: "planned",
+  },
+  {
+    key: "finance_knowledge",
+    product: "opsqai_finance",
+    label: "Financial Knowledge",
+    description: "Finance procedures and document intelligence in context.",
+    icon: "BookOpen",
+    capabilities: ["document_intelligence"],
+    status: "planned",
+  },
+
+  // ── OPSQAI Transport ───────────────────────────────────────────────────
+  {
+    key: "transport_operations",
+    product: "opsqai_transport",
+    label: "Transport Operations",
+    description: "Daily transport operations, drivers and dispatch.",
+    icon: "Truck",
+    capabilities: ["fleet_workspace", "drivers"],
+    status: "planned",
+  },
+  {
+    key: "transport_planning",
+    product: "opsqai_transport",
+    label: "Planning",
+    description: "Transport and capacity planning.",
+    icon: "CalendarRange",
+    capabilities: ["fleet_workspace"],
+    status: "planned",
+  },
+  {
+    key: "transport_fleet",
+    product: "opsqai_transport",
+    label: "Fleet",
+    description: "Vehicles, maintenance and fleet compliance.",
+    icon: "Wrench",
+    capabilities: ["vehicles", "maintenance"],
+    status: "planned",
+  },
+  {
+    key: "transport_performance",
+    product: "opsqai_transport",
+    label: "Performance",
+    description: "Transport performance and cost follow-up.",
+    icon: "LineChart",
+    capabilities: ["fleet_workspace"],
+    status: "planned",
+  },
+  {
+    key: "transport_knowledge",
+    product: "opsqai_transport",
+    label: "Transport Knowledge",
+    description: "Transport procedures and driver knowledge in context.",
+    icon: "BookOpen",
+    capabilities: ["fleet_workspace"],
+    status: "planned",
+  },
+
+  // ── OPSQAI Inventory ───────────────────────────────────────────────────
+  {
+    key: "inventory_operations",
+    product: "opsqai_inventory",
+    label: "Inventory Operations",
+    description: "Inventory operations and stock movements.",
+    icon: "Boxes",
+    capabilities: ["inventory_workspace", "stock"],
+    status: "planned",
+  },
+  {
+    key: "inventory_stock",
+    product: "opsqai_inventory",
+    label: "Stock",
+    description: "Products, stock levels and suppliers.",
+    icon: "Package",
+    capabilities: ["stock", "suppliers"],
+    status: "planned",
+  },
+  {
+    key: "inventory_planning",
+    product: "opsqai_inventory",
+    label: "Planning",
+    description: "Replenishment and inventory planning.",
+    icon: "CalendarRange",
+    capabilities: ["inventory_workspace"],
+    status: "planned",
+  },
+  {
+    key: "inventory_performance",
+    product: "opsqai_inventory",
+    label: "Performance",
+    description: "Inventory performance and low-stock follow-up.",
+    icon: "LineChart",
+    capabilities: ["inventory_workspace"],
+    status: "planned",
+  },
+  {
+    key: "inventory_knowledge",
+    product: "opsqai_inventory",
+    label: "Inventory Knowledge",
+    description: "Inventory procedures and stock-handling knowledge in context.",
+    icon: "BookOpen",
+    capabilities: ["inventory_workspace"],
+    status: "planned",
+  },
+] as const;
+
+export function workspacesForProduct(key: string): readonly ProductWorkspace[] {
+  return PRODUCT_WORKSPACES.filter((w) => w.product === key);
+}
+
+/** Workspaces that point at a route that exists today. */
+export function implementedWorkspacesForProduct(key: string): readonly ProductWorkspace[] {
+  return workspacesForProduct(key).filter((w) => w.status === "implemented" && !!w.route);
+}
+
+export interface ResolvedProductWorkspaces {
+  product: OpsqaiProduct;
+  workspaces: readonly ProductWorkspace[];
+  implemented: readonly ProductWorkspace[];
+}
+
+/**
+ * Workspaces the customer's effective configuration actually contains — one
+ * entry per explicitly enabled product. A company profile alone resolves to
+ * nothing here, exactly like `resolveEffectiveConfig`.
+ */
+export function resolveProductWorkspaces(
+  input: EffectiveConfigInput = {},
+): ResolvedProductWorkspaces[] {
+  return resolveEffectiveConfig(input).products.flatMap((key) => {
+    const product = getProduct(key);
+    if (!product) return [];
+    return [
+      {
+        product,
+        workspaces: workspacesForProduct(key),
+        implemented: implementedWorkspacesForProduct(key),
+      },
+    ];
+  });
+}
