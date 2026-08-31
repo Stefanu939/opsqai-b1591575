@@ -20,7 +20,7 @@ export const listCompanies = createServerFn({ method: "POST" })
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { data: companies, error } = await supabaseAdmin
       .from("companies")
-      .select("id, name, subscription_status, subscription_plan, max_users, active, created_at, install_id")
+      .select("id, name, subscription_status, subscription_plan, max_users, active, created_at, install_id, business_type, enabled_products")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
