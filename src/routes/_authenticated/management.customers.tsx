@@ -193,10 +193,29 @@ function CustomersPage() {
       ),
     },
     {
-      key: "plan",
-      header: "Plan",
-      render: (r) => <Badge variant="outline">{r.subscription_plan}</Badge>,
+      key: "company_profile",
+      header: "Company profile",
+      render: (r) =>
+        r.business_type ? (
+          <Badge variant="outline">{getCompanyProfile(r.business_type).label}</Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground">Not set</span>
+        ),
     },
+    {
+      key: "products",
+      header: "Products",
+      render: (r) => {
+        const keys = (r.enabled_products ?? []).filter(Boolean);
+        if (!keys.length) return <span className="text-xs text-muted-foreground">Core only</span>;
+        return (
+          <span className="text-xs text-foreground">
+            {keys.map((k) => getProduct(k)?.label ?? k).join(" + ")}
+          </span>
+        );
+      },
+    },
+
     {
       key: "since",
       header: "Customer since",
