@@ -19,16 +19,16 @@ const en = {
   },
   whoFor: {
     eyebrow: "Who is OPSQAI for",
-    title: "Built for industrial operations.",
+    title: "Built for how organisations actually operate.",
     intro:
-      "OPSQAI is designed for teams whose knowledge is operational, regulated and never allowed to leave the company boundary.",
+      "OPSQAI is not a logistics tool. It is an operational AI platform: the Core Platform covers knowledge, SOPs, FAQ, Academy, AI Audit, compliance, users and audit trail, and each business domain is enabled as a licensed OPSQAI product — Operations, Quality & Compliance, Logistics, HR, Finance and Inventory.",
     audiences: [
-      "Warehousing",
-      "Logistics",
-      "Manufacturing",
-      "Production",
-      "Distribution",
-      "Enterprise Operations",
+      "Operations",
+      "Quality & Compliance",
+      "Logistics & Warehousing",
+      "Manufacturing & Production",
+      "HR & Training",
+      "Finance & Administration",
     ],
   },
   whyNow: {
@@ -226,16 +226,16 @@ const de: HomeCopy = {
   },
   whoFor: {
     eyebrow: "Für wen ist OPSQAI",
-    title: "Gebaut für industrielle Abläufe.",
+    title: "Gebaut für die tatsächliche Arbeitsweise von Organisationen.",
     intro:
-      "OPSQAI ist für Teams konzipiert, deren Wissen operativ, reguliert und niemals dazu bestimmt ist, die Unternehmensgrenze zu verlassen.",
+      "OPSQAI ist kein Logistiktool. Es ist eine operative KI-Plattform: Die Core-Plattform umfasst Wissen, SOPs, FAQ, Academy, KI-Audit, Compliance, Nutzer und Audit-Trail — jede Fachdomäne wird als lizenziertes OPSQAI-Produkt aktiviert: Operations, Qualität & Compliance, Logistik, HR, Finanzen und Bestand.",
     audiences: [
-      "Lagerhaltung",
-      "Logistik",
-      "Fertigung",
-      "Produktion",
-      "Distribution",
-      "Unternehmensabläufe",
+      "Operations",
+      "Qualität & Compliance",
+      "Logistik & Lager",
+      "Fertigung & Produktion",
+      "HR & Schulung",
+      "Finanzen & Verwaltung",
     ],
   },
   whyNow: {
@@ -431,16 +431,16 @@ const ro: HomeCopy = {
   },
   whoFor: {
     eyebrow: "Pentru cine este OPSQAI",
-    title: "Construit pentru operațiuni industriale.",
+    title: "Construit pentru modul real în care funcționează organizațiile.",
     intro:
-      "OPSQAI este conceput pentru echipe ale căror cunoștințe sunt operaționale, reglementate și nu au voie să părăsească niciodată granița companiei.",
+      "OPSQAI nu este un instrument de logistică. Este o platformă de AI operațional: Platforma Core acoperă cunoștințe, SOP-uri, FAQ, Academy, AI Audit, conformitate, utilizatori și jurnal de audit, iar fiecare domeniu de business se activează ca produs OPSQAI licențiat — Operations, Calitate & Conformitate, Logistică, HR, Finanțe și Stocuri.",
     audiences: [
-      "Depozitare",
-      "Logistică",
-      "Producție",
-      "Fabricație",
-      "Distribuție",
-      "Operațiuni la nivel de companie",
+      "Operațiuni",
+      "Calitate & Conformitate",
+      "Logistică & Depozitare",
+      "Producție & Fabricație",
+      "HR & Instruire",
+      "Finanțe & Administrație",
     ],
   },
   whyNow: {
