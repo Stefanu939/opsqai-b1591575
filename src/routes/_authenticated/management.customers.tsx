@@ -25,10 +25,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  COMPANY_PROFILES,
+  getCompanyProfile,
+  getProduct,
+  productsAvailableFor,
+  productsRecommendedFor,
+} from "@/lib/product-architecture";
 import { Users, Search, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { confirmAction } from "@/components/ui/confirm";
+
+type NewCustomerInput = {
+  name: string;
+  business_type: string;
+  enabled_products: string[];
+  subscription_plan: "free" | "starter" | "pro" | "enterprise";
+  max_users: number;
+  admin_email: string;
+  admin_password: string;
+  admin_first_name?: string;
+  admin_last_name?: string;
+};
+
 
 export const Route = createFileRoute("/_authenticated/management/customers")({
   head: () => ({ meta: [{ title: "Customers — Management Center" }] }),
@@ -45,6 +66,9 @@ type Row = {
   user_count: number;
   created_at?: string | null;
   install_id: string | null;
+  business_type?: string | null;
+  enabled_products?: string[] | null;
+
   profile: {
     contract_status: string | null;
     renewal_date: string | null;
@@ -104,15 +128,8 @@ function CustomersPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: (v: {
-      name: string;
-      subscription_plan: "free" | "starter" | "pro" | "enterprise";
-      max_users: number;
-      admin_email: string;
-      admin_password: string;
-      admin_first_name?: string;
-      admin_last_name?: string;
-    }) => create({ data: v }),
+    mutationFn: (v: NewCustomerInput) => create({ data: v }),
+
     onSuccess: () => {
       toast.success("Customer created");
       invalidate();
@@ -169,10 +186,29 @@ function CustomersPage() {
       ),
     },
     {
-      key: "plan",
-      header: "Plan",
-      render: (r) => <Badge variant="outline">{r.subscription_plan}</Badge>,
+      key: "company_profile",
+      header: "Company profile",
+      render: (r) =>
+        r.business_type ? (
+          <Badge variant="outline">{getCompanyProfile(r.business_type).label}</Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground">Not set</span>
+        ),
     },
+    {
+      key: "products",
+      header: "Products",
+      render: (r) => {
+        const keys = (r.enabled_products ?? []).filter(Boolean);
+        if (!keys.length) return <span className="text-xs text-muted-foreground">Core only</span>;
+        return (
+          <span className="text-xs text-foreground">
+            {keys.map((k) => getProduct(k)?.label ?? k).join(" + ")}
+          </span>
+        );
+      },
+    },
+
     {
       key: "since",
       header: "Customer since",
@@ -376,19 +412,13 @@ function NewCustomerDialog({
   onCreate,
   pending,
 }: {
-  onCreate: (v: {
-    name: string;
-    subscription_plan: "free" | "starter" | "pro" | "enterprise";
-    max_users: number;
-    admin_email: string;
-    admin_password: string;
-    admin_first_name?: string;
-    admin_last_name?: string;
-  }) => void;
+  onCreate: (v: NewCustomerInput) => void;
   pending: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [profile, setProfile] = useState<string>("");
+  const [products, setProducts] = useState<string[]>([]);
   const [plan, setPlan] = useState<"free" | "starter" | "pro" | "enterprise">("free");
   const [maxUsers, setMaxUsers] = useState(10);
   const [email, setEmail] = useState("");
@@ -396,13 +426,30 @@ function NewCustomerDialog({
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
 
+  const selected = profile ? getCompanyProfile(profile) : null;
+  const available = selected ? productsAvailableFor(selected.key) : [];
+  const recommended = new Set(selected ? productsRecommendedFor(selected.key) : []);
+
+  const onProfileChange = (v: string) => {
+    setProfile(v);
+    // Changing the profile never auto-enables products; it only narrows the
+    // catalogue the administrator may choose from.
+    const next = new Set(productsAvailableFor(v) as readonly string[]);
+    setProducts((prev) => prev.filter((p) => next.has(p)));
+  };
+
+  const toggle = (key: string) =>
+    setProducts((prev) => (prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]));
+
   const submit = () => {
-    if (!name.trim() || !email.trim() || password.length < 8) {
-      toast.error("Name, admin email and password (min 8 chars) are required.");
+    if (!name.trim() || !profile || !email.trim() || password.length < 8) {
+      toast.error("Customer name, company profile, admin email and password (min 8) are required.");
       return;
     }
     onCreate({
       name: name.trim(),
+      business_type: profile,
+      enabled_products: products,
       subscription_plan: plan,
       max_users: maxUsers,
       admin_email: email.trim(),
@@ -412,11 +459,22 @@ function NewCustomerDialog({
     });
     setOpen(false);
     setName("");
+    setProfile("");
+    setProducts([]);
     setEmail("");
     setPassword("");
     setFirst("");
     setLast("");
   };
+
+  const section = (n: number, title: string, hint?: string) => (
+    <div className="mb-2 flex items-baseline gap-2">
+      <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+        Step {n} — {title}
+      </span>
+      {hint ? <span className="text-[11px] text-muted-foreground/70">{hint}</span> : null}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -426,45 +484,89 @@ function NewCustomerDialog({
           New customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>New customer</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="space-y-5">
           <div>
-            <Label>Customer name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Plan</Label>
-              <Select value={plan} onValueChange={(v) => setPlan(v as typeof plan)}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="starter">Starter</SelectItem>
-                  <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Max users</Label>
-              <Input
-                type="number"
-                min={1}
-                value={maxUsers}
-                onChange={(e) => setMaxUsers(parseInt(e.target.value) || 1)}
-                className="mt-1"
-              />
+            {section(1, "Who is the company?")}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Customer name</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label>Company profile</Label>
+                <Select value={profile} onValueChange={onProfileChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select company profile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COMPANY_PROFILES.map((p) => (
+                      <SelectItem key={p.key} value={p.key}>
+                        {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-          <div className="border-t border-border pt-3">
-            <div className="mb-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              Initial admin
-            </div>
+
+          <div className="border-t border-border pt-4">
+            {section(2, "What OPSQAI products does it receive?", "recommendations are not automatic")}
+            {!selected ? (
+              <p className="text-xs text-muted-foreground">
+                Select a company profile to see the products you can enable.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {available.map((key) => {
+                  const product = getProduct(key);
+                  const isRec = recommended.has(key);
+                  const on = products.includes(key);
+                  return (
+                    <label
+                      key={key}
+                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-card/60 p-3"
+                    >
+                      <Checkbox checked={on} onCheckedChange={() => toggle(key)} className="mt-0.5" />
+                      <span className="min-w-0">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium text-foreground">
+                            {product?.label ?? key}
+                          </span>
+                          {isRec ? (
+                            <Badge variant="secondary" className="text-[10px]">
+                              Recommended
+                            </Badge>
+                          ) : null}
+                          {product && product.status !== "available" ? (
+                            <Badge variant="outline" className="text-[10px]">
+                              {product.status}
+                            </Badge>
+                          ) : null}
+                        </span>
+                        {product?.description ? (
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {product.description}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  );
+                })}
+                <p className="text-[11px] text-muted-foreground">
+                  Core platform capabilities are always included and are never purchased. Only the
+                  products enabled here are distributed through the signed license.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-border pt-4">
+            {section(3, "Who administers it?")}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>First name</Label>
@@ -475,23 +577,55 @@ function NewCustomerDialog({
                 <Input value={last} onChange={(e) => setLast(e.target.value)} className="mt-1" />
               </div>
             </div>
-            <div className="mt-3">
-              <Label>Email</Label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1"
-              />
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Password (min 8)</Label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
             </div>
-            <div className="mt-3">
-              <Label>Password (min 8)</Label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1"
-              />
+          </div>
+
+          <div className="border-t border-border pt-4">
+            {section(4, "Commercial settings", "license seats & expiry are issued separately")}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Seats (max users)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={maxUsers}
+                  onChange={(e) => setMaxUsers(parseInt(e.target.value) || 1)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Billing tier (legacy)</Label>
+                <Select value={plan} onValueChange={(v) => setPlan(v as typeof plan)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="starter">Starter</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>
@@ -500,10 +634,11 @@ function NewCustomerDialog({
             Cancel
           </Button>
           <Button onClick={submit} disabled={pending}>
-            {pending ? "Creating…" : "Create"}
+            {pending ? "Creating…" : "Create customer"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
