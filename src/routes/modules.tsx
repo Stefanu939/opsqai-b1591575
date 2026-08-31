@@ -13,6 +13,7 @@ import {
   ADDON_CATALOG,
   CORE_CAPABILITIES,
   PRODUCT_CATALOG,
+  workspacesForProduct,
 } from "@/lib/product-architecture";
 import { Check, Package } from "lucide-react";
 import { useModulesCopy } from "@/i18n/pages/modules";
@@ -122,6 +123,16 @@ function ModulesPage() {
                   </Badge>
                 </div>
                 <p className="mt-3 text-xs leading-relaxed text-white/60">{p.description}</p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {workspacesForProduct(p.key).map((w) => (
+                    <span
+                      key={w.key}
+                      className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] text-white/55"
+                    >
+                      {localizeWorkspaceLabel(w.route, w.label, lang)}
+                    </span>
+                  ))}
+                </div>
               </Card>
             ))}
           </div>
