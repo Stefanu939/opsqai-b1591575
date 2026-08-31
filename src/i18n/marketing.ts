@@ -8,7 +8,7 @@ const en = {
   nav: {
     product: "Product",
     overview: "Overview",
-    modules: "Modules",
+    modules: "Platform",
     selfHosted: "Self-Hosted",
     security: "Security",
     pricing: "Pricing",
@@ -107,7 +107,7 @@ const de: MarketingCopy = {
   nav: {
     product: "Produkt",
     overview: "Überblick",
-    modules: "Module",
+    modules: "Plattform",
     selfHosted: "Self-Hosted",
     security: "Sicherheit",
     pricing: "Preise",
@@ -204,7 +204,7 @@ const ro: MarketingCopy = {
   nav: {
     product: "Produs",
     overview: "Prezentare",
-    modules: "Module",
+    modules: "Platformă",
     selfHosted: "Self-Hosted",
     security: "Securitate",
     pricing: "Prețuri",
