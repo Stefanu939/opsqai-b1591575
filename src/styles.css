@@ -889,75 +889,17 @@ html:not(.dark) .n [class*="-z-10"] > div[style] {
 }
 
 /* ============================================================
-   OPSQAI Cloud "Soft Deck" — Management Center + Customer Portal
-   Warm off-white surfaces, generous radii, pill navigation.
-   Scoped via .oq-soft so Self-Hosted (/app) is untouched.
+   Cloud surfaces — Management Center + Customer Portal
+   No separate palette: they inherit the Aurora Noir tokens and
+   only carry their own elevation + card language.
    ============================================================ */
 
-.oq-soft {
-  --oq-soft-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 32px -20px rgba(16, 24, 40, 0.28);
-  --oq-soft-shadow-lift: 0 2px 4px rgba(16, 24, 40, 0.05), 0 20px 44px -22px rgba(16, 24, 40, 0.3);
-
-  --background: #f6f4f0;
-  --foreground: #17233a;
-  --card: #ffffff;
-  --card-foreground: #17233a;
-  --popover: #ffffff;
-  --popover-foreground: #17233a;
-  --primary: #c9a24c;
-  --primary-foreground: #1a1408;
-  --secondary: #f2eee6;
-  --secondary-foreground: #17233a;
-  --muted: #f2eee6;
-  --muted-foreground: #6b7385;
-  --accent: #f7f1e2;
-  --accent-foreground: #6b551d;
-  --border: rgba(23, 35, 58, 0.09);
-  --input: rgba(23, 35, 58, 0.12);
-  --ring: #c9a24c;
-  --surface-1: #f2eee6;
-  --surface-2: #eae4d8;
-  --gold: #c9a24c;
-  --gold-foreground: #1a1408;
-  --gold-soft: rgba(201, 162, 76, 0.14);
-  --gold-line: rgba(201, 162, 76, 0.32);
-  --mc-gold: #c9a24c;
-  --chart-1: #c9a24c;
-  --chart-2: #e0c47f;
-  --chart-3: #17233a;
-  --chart-4: #6b7385;
-  --chart-5: #2f9e78;
-
-  background: var(--background);
-  color: var(--foreground);
+.oq-soft,
+.n {
+  --oq-soft-shadow: var(--shadow-soft);
+  --oq-soft-shadow-lift: var(--shadow-lift);
 }
 
-.dark .oq-soft {
-  --oq-soft-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px -24px rgba(0, 0, 0, 0.7);
-  --oq-soft-shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.45), 0 24px 52px -24px rgba(0, 0, 0, 0.75);
-
-  --background: #0e1320;
-  --foreground: #eef1f7;
-  --card: #151b2b;
-  --card-foreground: #eef1f7;
-  --popover: #1a2131;
-  --popover-foreground: #eef1f7;
-  --secondary: #1a2131;
-  --secondary-foreground: #eef1f7;
-  --muted: #1a2131;
-  --muted-foreground: #9aa4ba;
-  --accent: #232b3d;
-  --accent-foreground: #e6c67c;
-  --border: rgba(238, 241, 247, 0.09);
-  --input: rgba(238, 241, 247, 0.14);
-  --surface-1: #151b2b;
-  --surface-2: #1e2637;
-  --gold: #d8b563;
-  --gold-soft: rgba(216, 181, 99, 0.16);
-  --gold-line: rgba(216, 181, 99, 0.3);
-  --mc-gold: #d8b563;
-  --chart-3: #eef1f7;
-}
 
 /* Soft card — the single card language of the cloud surfaces. */
 @utility oq-soft-card {
