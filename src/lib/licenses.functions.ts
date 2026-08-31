@@ -4,6 +4,8 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
+import { getCompanyProfile, isProductKey } from "@/lib/product-architecture";
+
 import { buildInstallLicenseRow, mapLicenseDbError } from "@/lib/license-issue";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
 
@@ -105,6 +107,22 @@ export const issueLicense = createServerFn({ method: "POST" })
       ? Math.floor(new Date(data.maintenance_expires_at).getTime() / 1000)
       : expSec;
 
+    const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
+
+    // Entitlement distribution: the install license carries the company
+    // profile and the explicitly enabled OPSQAI Products (additive claims).
+    const { data: companyRow } = await supabaseAdmin
+      .from("companies")
+      .select("business_type, enabled_products")
+      .ilike("name", data.company_name.trim())
+      .maybeSingle();
+    const profile = getCompanyProfile(
+      (companyRow as { business_type: string | null } | null)?.business_type ?? null,
+    ).key;
+    const products = (
+      ((companyRow as { enabled_products: string[] | null } | null)?.enabled_products ?? []) as string[]
+    ).filter(isProductKey);
+
     const { token } = await signInstallLicense({
       install_id: data.install_id,
       customer: data.company_name,
@@ -112,9 +130,11 @@ export const issueLicense = createServerFn({ method: "POST" })
       issued_at: issuedAt,
       expires_at: expSec,
       maintenance_expires_at: maintSec,
+      profile,
+      products,
     });
 
-    const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
+
 
     // An install_id carries exactly ONE Installation License (DB unique index
     // `licenses_install_id_key`). Re-issuing must replace the existing token
@@ -254,6 +274,100 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
 
     return { ok: true, token, install_id: data.install_id, module_key: data.module_key };
   });
+
+// ─── Issue Product License ──────────────────────────────────────────────
+//
+// An OPSQAI Product entitlement. Signed with the existing module-license
+// shape (`kind: "module"`, `module: <product_key>`) so every already-deployed
+// verifier — including offline Self-Hosted Ed25519/JWS validation — accepts
+// it unchanged. The `product_key` column marks it as a product row.
+
+export const issueProductLicense = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        install_id: InstallIdSchema,
+        product_key: z.string().refine(isProductKey, "unknown OPSQAI product"),
+        expires_at: z.string().datetime().nullable().optional(),
+        maintenance_expires_at: z.string().datetime().nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    assertNoBlacklistedSecrets(data, "issueProductLicense input");
+    const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
+
+    const { data: install } = await supabaseAdmin
+      .from("licenses")
+      .select("install_id")
+      .eq("install_id", data.install_id)
+      .eq("kind", "install")
+      .maybeSingle();
+    if (!install) throw new Error("No Installation License for this install_id — issue one first.");
+
+    const { signModuleLicense } = await import("@/lib/license-signing.server");
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const expSec = data.expires_at ? Math.floor(new Date(data.expires_at).getTime() / 1000) : null;
+    const maintSec = data.maintenance_expires_at
+      ? Math.floor(new Date(data.maintenance_expires_at).getTime() / 1000)
+      : expSec;
+
+    const { token } = await signModuleLicense({
+      install_id: data.install_id,
+      module: data.product_key,
+      issued_at: issuedAt,
+      expires_at: expSec,
+      maintenance_expires_at: maintSec,
+    });
+
+    const rowPatch = {
+      signed_token: token,
+      product_key: data.product_key,
+      expires_at: data.expires_at ?? null,
+      maintenance_expires_at: data.maintenance_expires_at ?? data.expires_at ?? null,
+      revoked: false,
+      revoked_at: null,
+      revoked_reason: null,
+      suspended: false,
+      suspended_at: null,
+      suspended_reason: null,
+      issued_by: context.userId,
+      license_version: 1,
+    };
+
+    const { data: existing } = await supabaseAdmin
+      .from("licenses")
+      .select("id")
+      .eq("install_id", data.install_id)
+      .eq("kind", "module")
+      .eq("module_key", data.product_key)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabaseAdmin
+        .from("licenses")
+        .update(rowPatch)
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabaseAdmin.from("licenses").insert({
+        install_id: data.install_id,
+        kind: "module",
+        module_key: data.product_key,
+        company_name: "",
+        modules: [],
+        max_users: 0,
+        ...rowPatch,
+      });
+      if (error) throw new Error(error.message);
+    }
+
+    return { ok: true, token, install_id: data.install_id, product_key: data.product_key };
+  });
+
+
 
 // ─── Revoke ─────────────────────────────────────────────────────────────
 

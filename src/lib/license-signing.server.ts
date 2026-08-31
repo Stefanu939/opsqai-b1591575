@@ -48,12 +48,21 @@ export interface InstallLicensePayload extends BaseLicensePayload {
   kind: "install";
   customer: string;
   seats: number;
+  /**
+   * Additive entitlement fields (license_version stays 1 — older verifiers
+   * ignore unknown claims). `profile` is the company profile / business type,
+   * `products` the explicitly enabled OPSQAI Products.
+   */
+  profile?: string;
+  products?: string[];
 }
 
 export interface ModuleLicensePayload extends BaseLicensePayload {
   kind: "module";
+  /** Legacy module key, an OPSQAI product key, or an add-on key. */
   module: string;
 }
+
 
 export type AnyLicensePayload = InstallLicensePayload | ModuleLicensePayload;
 
