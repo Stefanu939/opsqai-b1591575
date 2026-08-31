@@ -1,6 +1,11 @@
-// Subscription engine — single source of truth for what a plan unlocks.
-// Selecting a plan automatically derives every other value used by the
-// Customer Workspace Manager and by document generation.
+// Commercial subscription plans (Cloud / customer packaging).
+//
+// This is a commercial packaging layer, NOT the product model. The canonical
+// product model (Core / OPSQAI Products / Add-ons) lives in
+// `@/lib/product-architecture.ts`; the `modules` arrays below are legacy
+// feature keys resolved through `canonicalKey()` when a plan needs to be
+// translated into capabilities.
+
 
 export type SubscriptionPlanKey = "pilot" | "standard" | "business" | "enterprise";
 
