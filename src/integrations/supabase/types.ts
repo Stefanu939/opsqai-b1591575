@@ -964,9 +964,11 @@ export type Database = {
         Row: {
           active: boolean
           billing_override: boolean
+          business_type: string | null
           cancelled_at: string | null
           created_at: string
           display_name: string | null
+          enabled_products: string[]
           grace_period_days: number
           grace_period_ends_at: string | null
           id: string
@@ -994,9 +996,11 @@ export type Database = {
         Insert: {
           active?: boolean
           billing_override?: boolean
+          business_type?: string | null
           cancelled_at?: string | null
           created_at?: string
           display_name?: string | null
+          enabled_products?: string[]
           grace_period_days?: number
           grace_period_ends_at?: string | null
           id?: string
@@ -1024,9 +1028,11 @@ export type Database = {
         Update: {
           active?: boolean
           billing_override?: boolean
+          business_type?: string | null
           cancelled_at?: string | null
           created_at?: string
           display_name?: string | null
+          enabled_products?: string[]
           grace_period_days?: number
           grace_period_ends_at?: string | null
           id?: string
@@ -1093,6 +1099,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "company_integrations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_products: {
+        Row: {
+          company_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          notes: string | null
+          product_key: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          notes?: string | null
+          product_key: string
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          notes?: string | null
+          product_key?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_products_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -2641,6 +2688,7 @@ export type Database = {
           owner_since: string
           owner_type: string
           pinned_installer_version: string | null
+          product_key: string | null
           revoked: boolean
           revoked_at: string | null
           revoked_reason: string | null
@@ -2674,6 +2722,7 @@ export type Database = {
           owner_since?: string
           owner_type?: string
           pinned_installer_version?: string | null
+          product_key?: string | null
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null
@@ -2707,6 +2756,7 @@ export type Database = {
           owner_since?: string
           owner_type?: string
           pinned_installer_version?: string | null
+          product_key?: string | null
           revoked?: boolean
           revoked_at?: string | null
           revoked_reason?: string | null

@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { listCompanies } from "@/lib/companies.functions";
 import { listLicenses } from "@/lib/licenses.functions";
+import {
+  getCompanyArchitecture,
+  setCompanyProduct,
+  setCompanyProfile,
+} from "@/lib/company-products.functions";
+import { COMPANY_PROFILES } from "@/lib/product-architecture";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
 import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
@@ -11,10 +17,19 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Building2, Download, FileText, KeyRound, Package, Users } from "lucide-react";
+import { Building2, Download, FileText, KeyRound, Layers, Package, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+
 
 export const Route = createFileRoute("/_authenticated/management/companies/$id")({
   component: CompanyDetailPage,
@@ -150,11 +165,14 @@ function CompanyDetailPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="installations">Installations</TabsTrigger>
           <TabsTrigger value="licenses">Licenses</TabsTrigger>
           <TabsTrigger value="download">Download</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
+
+
 
         <TabsContent value="overview" className="space-y-4">
           <div className="rounded-lg border border-border bg-card p-5">
@@ -185,7 +203,12 @@ function CompanyDetailPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="products">
+          <ProductsTab companyId={company.id} />
+        </TabsContent>
+
         <TabsContent value="installations">
+
           <InstallationsTable
             installs={installs}
             loading={licensesQ.isLoading}
@@ -405,5 +428,156 @@ function LicensesTable({ installs, loading }: { installs: License[]; loading: bo
         description: "Issue a license from the Licenses page.",
       }}
     />
+  );
+}
+
+// ─── Company Profile + enabled OPSQAI Products ──────────────────────────
+//
+// A company profile only RECOMMENDS products. Nothing is active until it is
+// explicitly enabled here; the entitlement then travels in the license.
+// Core platform capabilities are shown read-only — they are never
+// purchasable and never toggleable.
+
+function ProductsTab({ companyId }: { companyId: string }) {
+  const qc = useQueryClient();
+  const getArch = useServerFn(getCompanyArchitecture);
+  const setProfile = useServerFn(setCompanyProfile);
+  const setProduct = useServerFn(setCompanyProduct);
+
+  const archQ = useQuery({
+    queryKey: ["mc-company-architecture", companyId],
+    queryFn: () => getArch({ data: { company_id: companyId } }),
+  });
+
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: ["mc-company-architecture", companyId] });
+
+  const profileMut = useMutation({
+    mutationFn: (business_type: string) =>
+      setProfile({ data: { company_id: companyId, business_type } }),
+    onSuccess: () => {
+      toast.success("Company profile updated — no product was activated");
+      void invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const productMut = useMutation({
+    mutationFn: (v: { product_key: string; enabled: boolean }) =>
+      setProduct({ data: { company_id: companyId, ...v } }),
+    onSuccess: (_r, v) => {
+      toast.success(v.enabled ? "Product enabled" : "Product disabled");
+      void invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (archQ.isLoading) return <div className="h-40 animate-pulse rounded-lg bg-muted" />;
+  if (archQ.isError)
+    return (
+      <EmptyState
+        icon={Layers}
+        title="Could not load products"
+        description={(archQ.error as Error).message}
+      />
+    );
+
+  const arch = archQ.data!;
+  const enabled = new Set(arch.enabled_products as string[]);
+  const available = new Set(arch.available_products as string[]);
+  const recommended = new Set(arch.recommended_products as string[]);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h3 className="font-display text-base font-semibold text-foreground">Company profile</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The business type of this customer. It determines which OPSQAI Products are recommended
+          and available — it never activates anything on its own.
+        </p>
+        <div className="mt-3 max-w-sm">
+          <Select
+            value={arch.profile}
+            onValueChange={(v) => profileMut.mutate(v)}
+            disabled={profileMut.isPending}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a company profile" />
+            </SelectTrigger>
+            <SelectContent>
+              {COMPANY_PROFILES.map((p) => (
+                <SelectItem key={p.key} value={p.key}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h3 className="font-display text-base font-semibold text-foreground">OPSQAI Products</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Explicit entitlements. Enabled products are distributed to the installation through the
+          license payload.
+        </p>
+        <div className="mt-3 divide-y divide-border">
+          {arch.catalog.map((p) => {
+            const isAvailable = available.has(p.key);
+            return (
+              <div key={p.key} className="flex items-start justify-between gap-4 py-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-foreground">{p.label}</span>
+                    <Badge variant="outline">{p.domain}</Badge>
+                    {recommended.has(p.key) && <Badge>Recommended</Badge>}
+                    {p.status === "planned" && <Badge variant="outline">Planned</Badge>}
+                    {!isAvailable && <Badge variant="outline">Not for this profile</Badge>}
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+                </div>
+                <Switch
+                  checked={enabled.has(p.key)}
+                  disabled={productMut.isPending || (!isAvailable && !enabled.has(p.key))}
+                  onCheckedChange={(v) => productMut.mutate({ product_key: p.key, enabled: v })}
+                  aria-label={`Enable ${p.label}`}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h3 className="font-display text-base font-semibold text-foreground">
+          Included OPSQAI Core
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Part of the OPSQAI platform for every customer. Not purchasable, not activatable — still
+          restricted by roles and permissions.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {arch.core_capabilities.map((c) => (
+            <Badge key={c.key} variant="outline">
+              {c.label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h3 className="font-display text-base font-semibold text-foreground">Optional add-ons</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The only commercial capabilities. Granted per installation from the Licenses page.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {arch.addons.map((a) => (
+            <Badge key={a.key} variant="outline">
+              {a.label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

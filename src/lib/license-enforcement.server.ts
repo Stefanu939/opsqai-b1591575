@@ -1,15 +1,23 @@
-// Central license enforcement (Phase 1).
+// Central license enforcement.
 //
-// A module is accessible on an install if and only if:
-//   1. The install has a valid, non-revoked, non-suspended Installation License, AND
-//   2. Either the module is in the Basic bundle, OR the install has a
-//      valid, non-revoked, non-suspended Module License for that module.
+// A capability is accessible on an install if and only if:
+//   1. The install has a valid, non-revoked, non-suspended Installation
+//      License, AND
+//   2. Either the capability is CORE (part of the OPSQAI platform and never
+//      commercialized — see `product-architecture.ts`), OR the install has a
+//      valid, non-revoked, non-suspended license row for that product /
+//      add-on key.
 //
-// This is the ONLY place that decides "is this module unlocked?". All
-// server functions that gate a paid module MUST route through
-// `requireModule` — no ad-hoc reads of the licenses table for enforcement.
+// Core is never deniable by module licensing; it is still RBAC-gated
+// elsewhere (`module-access.ts`). Products and add-ons always require an
+// explicit entitlement.
+//
+// This is the ONLY place that decides "is this unlocked?". All server
+// functions that gate a product/add-on MUST route through `requireModule`.
 
-import { BASIC_MODULES, isValidModuleKey, type ModuleKey } from "@/lib/license-modules";
+import { isValidModuleKey, type ModuleKey } from "@/lib/license-modules";
+import { CORE_CAPABILITY_KEYS, classifyLegacy } from "@/lib/product-architecture";
+
 
 export type EnforcementDenyReason =
   | "unknown_module"
@@ -65,7 +73,13 @@ export function evaluateModuleAccess(
   if (isExpired(install, now))
     return { ok: false, reason: "install_expired", install_id, module_key: mk };
 
-  if ((BASIC_MODULES as readonly string[]).includes(mk)) {
+  // Core platform capabilities are included in OPSQAI — a valid install
+  // license is all they require.
+  if (
+    (CORE_CAPABILITY_KEYS as readonly string[]).includes(mk) ||
+    classifyLegacy(mk) === "core"
+  ) {
+
     return { ok: true, install_id, module_key: mk };
   }
 
