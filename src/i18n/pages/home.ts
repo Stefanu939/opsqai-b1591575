@@ -81,17 +81,17 @@ const en = {
       { name: "AI Audit", body: "Every AI interaction is logged with inputs, outputs, sources and users." },
       { name: "Users", body: "Role-based access: owner, admin, manager, supervisor, worker, viewer." },
       { name: "Organization", body: "Configure AI provider, departments, branding and workspace-wide policy." },
-      { name: "Subscription", body: "See the exact platform and modules licensed to this installation." },
+      { name: "License & Entitlements", body: "See the exact platform, products and add-ons licensed to this installation." },
     ],
   },
   premium: {
-    eyebrow: "Premium Modules",
+    eyebrow: "Products & Add-ons",
     title: "Grow capability without reinstalling.",
     intro:
       "OPSQAI products and optional add-ons extend the Core platform for your business domain. Each is enabled per company and delivered by OPSQAI through a signed license — no reinstall, no downtime.",
     reasons: [
-      { title: "Signed license activation", body: "OPSQAI issues an Ed25519-signed license bundle. The install verifies it locally and unlocks the module." },
-      { title: "No cross-module dependencies", body: "Modules are independent. Buy only what your operation needs, when it needs it." },
+      { title: "Signed license activation", body: "OPSQAI issues an Ed25519-signed license. The install verifies it locally and resolves your entitlements." },
+      { title: "No hidden dependencies", body: "Products and add-ons are independent. License only what your operation needs, when it needs it." },
       { title: "Activated in place", body: "No reinstall, no migration, no data movement. Activation is silent and instant." },
     ],
     browseModules: "Browse all modules",
@@ -178,8 +178,8 @@ const en = {
         a: "OpenAI, Azure OpenAI, Ollama, OpenRouter, and any custom OpenAI-compatible endpoint. The customer owns the AI provider and its keys. OPSQAI has no default provider.",
       },
       {
-        q: "How do we get new modules?",
-        a: "Premium modules are purchased separately and activated by OPSQAI through a signed license bundle. Activation is silent — no reinstall, no data movement.",
+        q: "How do we get new products or add-ons?",
+        a: "OPSQAI products and optional add-ons are enabled per company and delivered by OPSQAI through a signed license. Activation is silent — no reinstall, no data movement.",
       },
       {
         q: "What happens if we go offline?",
@@ -493,20 +493,20 @@ const ro: HomeCopy = {
       { name: "Audit AI", body: "Fiecare interacțiune AI este înregistrată cu intrări, ieșiri, surse și utilizatori." },
       { name: "Utilizatori", body: "Acces bazat pe roluri: owner, admin, manager, supervizor, lucrător, vizualizator." },
       { name: "Organizație", body: "Configurează furnizorul de AI, departamentele, brandingul și politica la nivel de workspace." },
-      { name: "Abonament", body: "Vezi exact ce platformă și module sunt licențiate pentru această instalare." },
+      { name: "Licență și drepturi", body: "Vezi exact ce platformă, produse și add-on-uri sunt licențiate pentru această instalare." },
     ],
   },
   premium: {
-    eyebrow: "Module Premium",
+    eyebrow: "Produse și add-on-uri",
     title: "Extinde capabilitățile fără reinstalare.",
     intro:
-      "Modulele premium deblochează capabilități mai avansate peste Platforma de Bază. Fiecare este licențiat separat și activat de OPSQAI printr-o licență semnată — fără reinstalare, fără timp de nefuncționare.",
+      "Produsele OPSQAI și add-on-urile opționale extind platforma Core pentru domeniul afacerii tale. Fiecare este activat per companie și livrat de OPSQAI printr-o licență semnată — fără reinstalare, fără timp de nefuncționare.",
     reasons: [
-      { title: "Activare prin licență semnată", body: "OPSQAI emite un pachet de licență semnat Ed25519. Instalarea îl verifică local și deblochează modulul." },
-      { title: "Fără dependențe între module", body: "Modulele sunt independente. Cumperi doar ce are nevoie operațiunea ta, atunci când are nevoie." },
+      { title: "Activare prin licență semnată", body: "OPSQAI emite o licență semnată Ed25519. Instalarea o verifică local și rezolvă drepturile." },
+      { title: "Fără dependențe ascunse", body: "Produsele și add-on-urile sunt independente. Licențiezi doar ce are nevoie operațiunea ta." },
       { title: "Activare pe loc", body: "Fără reinstalare, fără migrare, fără mutare de date. Activarea este silențioasă și instantanee." },
     ],
-    browseModules: "Vezi toate modulele",
+    browseModules: "Vezi platforma",
   },
   compare: {
     eyebrow: "Model de livrare",
@@ -590,8 +590,8 @@ const ro: HomeCopy = {
         a: "OpenAI, Azure OpenAI, Ollama, OpenRouter și orice endpoint personalizat compatibil OpenAI. Clientul deține furnizorul de AI și cheile acestuia. OPSQAI nu are un furnizor implicit.",
       },
       {
-        q: "Cum obținem module noi?",
-        a: "Modulele premium se achiziționează separat și sunt activate de OPSQAI printr-un pachet de licență semnat. Activarea este silențioasă — fără reinstalare, fără mutare de date.",
+        q: "Cum obținem produse sau add-on-uri noi?",
+        a: "Produsele OPSQAI și add-on-urile opționale se activează per companie și sunt livrate de OPSQAI printr-o licență semnată. Activarea este silențioasă — fără reinstalare, fără mutare de date.",
       },
       {
         q: "Ce se întâmplă dacă rămânem offline?",

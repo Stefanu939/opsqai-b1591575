@@ -285,7 +285,7 @@ const ro: MarketingCopy = {
     journeyIntro:
       "Fără abonament SaaS. O licență Core plătită o singură dată, produse OPSQAI per domeniu, add-on-uri opționale și mentenanță anuală.",
     journey: [
-      { title: "Achiziție", body: "Comandă platforma Basic și modulele premium dorite prin OPSQAI." },
+      { title: "Achiziție", body: "Comandă platforma Core și produsele OPSQAI necesare prin OPSQAI." },
       { title: "Descarcă pachetul", body: "Preia pachetul de instalare Windows semnat din Portalul Client." },
       { title: "Rulează installerul", body: "Installerul configurează PostgreSQL, stocarea, serviciile și Caddy pe Windows Server." },
       { title: "Activează licența", body: "Introdu pachetul de licență semnat Ed25519 emis de OPSQAI. Modulele se deblochează conform licenței." },
