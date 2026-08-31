@@ -89,7 +89,7 @@ export function NavShell() {
             role="group"
             aria-label={m.a11y.language}
           >
-            {(["en", "de"] as const).map((code) => (
+            {(["en", "de", "ro"] as const).map((code) => (
               <button
                 key={code}
                 type="button"
