@@ -32,8 +32,27 @@ async function resolveAccessToken(timeoutMs = 2000): Promise<string | null> {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     try {
-      const session = await getBrowserAuthProvider().getSession();
-      if (session?.accessToken) return session.accessToken;
+      const provider = getBrowserAuthProvider();
+      const session = await provider.getSession();
+      if (session?.accessToken) {
+        // A stored-but-expired access token makes the server auth
+        // middleware reject the RPC with "Unauthorized: invalid_token".
+        // Refresh proactively when the token is expired or about to be.
+        const expiresAtMs = (session.expiresAt ?? 0) * 1000;
+        if (expiresAtMs && expiresAtMs - Date.now() < 30_000) {
+          const refreshed = await provider.refreshSession?.();
+          if (refreshed?.accessToken) return refreshed.accessToken;
+          // Refresh token is gone/revoked: drop the dead session so the
+          // user lands on sign-in instead of a blank 401 screen.
+          try {
+            await provider.signOut();
+          } catch {
+            /* ignore */
+          }
+          return null;
+        }
+        return session.accessToken;
+      }
     } catch {
       return null;
     }
