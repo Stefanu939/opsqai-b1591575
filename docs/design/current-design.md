@@ -67,5 +67,5 @@ Marketing tokens use the legacy `--oix-*` names mapped to Aurora Noir values.
 - Components read semantic tokens (`bg-background`, `text-foreground`, `border-border`, …).
   This is a technical convention that keeps light/dark and per-scope theming working — it
   is independent of which palette is currently active.
-- Languages: EN / DE / RO. Common UI and marketing copy have RO; per-page marketing
-  dictionaries in `src/i18n/pages/*` still fall back to EN for RO.
+- Languages: EN / DE / RO. Common app UI, marketing copy and every per-page
+  dictionary in `src/i18n/pages/*` have full RO translations.
