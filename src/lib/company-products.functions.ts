@@ -154,33 +154,10 @@ export const setCompanyProduct = createServerFn({ method: "POST" })
     if (!isProductKey(data.product_key)) throw new Error("Unknown OPSQAI product");
     const admin = await getCloudSupabaseAdmin("company-products");
 
-    const { error } = await admin.from("company_products").upsert(
-      {
-        company_id: data.company_id,
-        product_key: data.product_key,
-        enabled: data.enabled,
-        source: "management_center",
-        notes: data.notes ?? null,
-      },
-      { onConflict: "company_id,product_key" },
-    );
-    if (error) throw new Error(error.message);
+    const enabled = await applyCompanyProducts(admin as never, data.company_id, [
+      { product_key: data.product_key, enabled: data.enabled, notes: data.notes ?? null },
+    ]);
 
-    // Keep the denormalised array on companies in sync — it is what the
-    // license entitlement payload and heartbeat read.
-    const { data: rows, error: rErr } = await admin
-      .from("company_products")
-      .select("product_key, enabled")
-      .eq("company_id", data.company_id);
-    if (rErr) throw new Error(rErr.message);
-    const enabled = (rows ?? [])
-      .filter((r) => r.enabled && isProductKey(r.product_key))
-      .map((r) => r.product_key);
-    const { error: uErr } = await admin
-      .from("companies")
-      .update({ enabled_products: enabled })
-      .eq("id", data.company_id);
-    if (uErr) throw new Error(uErr.message);
 
     return { ok: true, enabled_products: enabled };
   });
