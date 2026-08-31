@@ -562,40 +562,43 @@ body {
 }
 
 /* ============================================================
-   OIX — Operational Intelligence Experience
-   Marketing site identity (Emerald Prestige + Gold + Cream)
-   Prefix: --oix-*. Applied via <div class="oix-shell"> wrapper.
+   OIX — marketing scope (Aurora Noir)
+   Prefix: --oix-*. Variable names are legacy; values are the
+   current navy / violet / blue / ember direction.
    ============================================================ */
 
 :root {
-  --oix-bg-deep: #04211a;
-  --oix-surface: #064e3b;
-  --oix-surface-2: #072e24;
-  --oix-emerald: #0d7a5f;
-  --oix-emerald-glow: #2dd4a8;
-  --oix-gold: #c9a84c;
-  --oix-gold-soft: #e8d48a;
-  --oix-gold-line: rgba(201, 168, 76, 0.22);
-  --oix-cream: #f5f0e0;
-  --oix-cream-dim: rgba(245, 240, 224, 0.72);
+  --oix-bg-deep: #0a0b14;
+  --oix-surface: #171a2b;
+  --oix-surface-2: #111320;
+  /* legacy name "emerald" → violet primary */
+  --oix-emerald: #5b3df5;
+  --oix-emerald-glow: #8b6bff;
+  /* legacy name "gold" → blue secondary signal */
+  --oix-gold: #5b8cf7;
+  --oix-gold-soft: #a9c2ff;
+  --oix-gold-line: rgba(139, 107, 255, 0.24);
+  --oix-ember: #e2793f;
+  --oix-cream: #eef0fa;
+  --oix-cream-dim: rgba(238, 240, 250, 0.72);
   --oix-hairline: 1px solid var(--oix-gold-line);
   --oix-gradient-genesis: radial-gradient(
     120% 80% at 50% 0%,
-    #0d7a5f 0%,
-    #064e3b 35%,
-    #04211a 75%,
-    #020f0b 100%
+    #3a2a8f 0%,
+    #1b1d3d 35%,
+    #0a0b14 75%,
+    #05060c 100%
   );
   --oix-gradient-gold-shimmer: linear-gradient(
     120deg,
-    #c9a84c 0%,
-    #f5f0e0 45%,
-    #c9a84c 100%
+    #8b6bff 0%,
+    #a9c2ff 45%,
+    #8b6bff 100%
   );
-  --oix-shadow-emerald-glow: 0 0 60px -10px rgba(45, 212, 168, 0.35);
-  --oix-shadow-gold-glow: 0 0 40px -12px rgba(201, 168, 76, 0.55);
+  --oix-shadow-emerald-glow: 0 0 60px -10px rgba(139, 107, 255, 0.4);
+  --oix-shadow-gold-glow: 0 0 40px -12px rgba(91, 140, 247, 0.45);
   --font-display-oix: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-serif-oix: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-serif-oix: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-body-oix: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -606,42 +609,47 @@ body {
   --color-oix-gold: var(--oix-gold);
   --color-oix-gold-soft: var(--oix-gold-soft);
   --color-oix-cream: var(--oix-cream);
+  --color-oix-ember: var(--oix-ember);
 }
 
-/* Light mode for the OIX marketing surfaces (token overrides only,
-   so every component that reads --oix-* adapts automatically). */
-html:not(.dark) .oix-shell {
-  --oix-bg-deep: #f7f4ea;
-  --oix-surface: #e8e2d0;
-  --oix-surface-2: #efeadb;
-  --oix-emerald: #0d7a5f;
-  --oix-emerald-glow: #0f8f6e;
-  --oix-gold: #96762a;
-  --oix-gold-soft: #7a5f1f;
-  --oix-gold-line: rgba(150, 118, 42, 0.28);
-  --oix-cream: #10201b;
-  --oix-cream-dim: rgba(16, 32, 27, 0.7);
-  --oix-shadow-gold-glow: 0 0 40px -14px rgba(150, 118, 42, 0.45);
+/* Light mode — token overrides only, so every component that reads
+   --oix-* adapts automatically. */
+html:not(.dark) {
+  --oix-bg-deep: #f7f8fc;
+  --oix-surface: #e9ecf6;
+  --oix-surface-2: #f2f4fa;
+  --oix-emerald: #5b3df5;
+  --oix-emerald-glow: #6d4bf6;
+  --oix-gold: #2f6bd8;
+  --oix-gold-soft: #1d3f8f;
+  --oix-gold-line: rgba(91, 61, 245, 0.2);
+  --oix-ember: #b8552b;
+  --oix-cream: #0f1222;
+  --oix-cream-dim: rgba(15, 18, 34, 0.7);
+  --oix-gradient-genesis: radial-gradient(
+    120% 80% at 50% 0%,
+    #e6e9fb 0%,
+    #eef0fb 40%,
+    #f7f8fc 80%
+  );
+  --oix-shadow-emerald-glow: 0 0 50px -14px rgba(91, 61, 245, 0.28);
+  --oix-shadow-gold-glow: 0 0 40px -14px rgba(47, 107, 216, 0.32);
 }
 
-html:not(.dark) .oix-shell::before {
-  opacity: 0.18;
-  mix-blend-mode: multiply;
+/* In light mode the cinematic 3D layers recede so editorial copy
+   stays legible. */
+html:not(.dark) .n canvas {
+  opacity: 0.2;
 }
 
-/* In light mode the cinematic 3D layers recede and the dark vignette
-   scrims are inverted so editorial copy stays legible. */
-html:not(.dark) .oix-shell canvas {
-  opacity: 0.18;
-}
-
-html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
+html:not(.dark) .n [class*="-z-10"] > div[style] {
   background: radial-gradient(
     80% 70% at 50% 30%,
-    rgba(247, 244, 234, 0.55) 0%,
-    rgba(247, 244, 234, 0.94) 80%
+    rgba(247, 248, 252, 0.55) 0%,
+    rgba(247, 248, 252, 0.94) 80%
   ) !important;
 }
+
 
 /* Root wrapper for the marketing site — scopes tokens/fonts */
 .oix-shell {
