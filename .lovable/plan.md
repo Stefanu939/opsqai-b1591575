@@ -104,3 +104,22 @@ No table or column is dropped in this refactor.
 7. **Phase 7:** documentation updates (product/architecture/admin books, terminology), plus RO/DE/EN strings for new UI.
 
 Only Phase 1 is a code-only, zero-risk step; each later phase is gated on the previous one verifying green (`tsgo`, build, migration verifiers).
+
+## 12. Approved clarifications
+
+- A Company Profile never activates products: it only marks products recommended/available. Management Center enables products explicitly, products travel as license entitlements, Self-Hosted resolves visible workspaces from those entitlements.
+- Core is never commercialized: Enterprise RBAC, Compliance Center, Enterprise Export, SOP Versioning, Internal Requests, Reports, Support Center, Multi-Language, Workspace Health, Internal Chat, plus AI Chat, Knowledge Base, FAQ, Academy, AI Audit, Notifications, PWA, Knowledge Gaps. No prices, no activation toggles, no website pricing items; RBAC still applies.
+- Self-Hosted "Modules" is eventually renamed "License & Entitlements": license status, expiry, maintenance, included Core capabilities, enabled Products, optional add-ons, import/activate/refresh. No prices, no purchasable catalogue.
+- `src/lib/product-architecture.ts` is canonical; `license-modules.ts`, `feature-catalog.ts` and `subscription-plans.ts` become derived compatibility layers.
+
+## 13. Phase 1 execution scope (only this phase)
+
+Deliverables:
+- New `src/lib/product-architecture.ts`: `CORE_CAPABILITIES`, `PRODUCT_CATALOG` (Logistics available; Transport/HR/Finance/Inventory declared, not implemented), `ADDON_CATALOG`, `COMPANY_PROFILES` with recommended vs available products, `classify`, `resolveEffectiveConfig`.
+- Legacy compatibility mapping: `LEGACY_MODULE_MAP`, `LEGACY_FEATURE_ALIASES`, `canonicalKey`, `classifyLegacy`, and `LEGACY_INCLUDED_MODULE_KEYS` preserving today's included set exactly.
+- `license-modules.ts`, `feature-catalog.ts`, `subscription-plans.ts` take labels/classification from the new file where safe, keeping their existing exported shapes and values.
+- Unit tests: classification, legacy-mapping completeness, profile/product separation, resolver output.
+
+Out of scope for Phase 1: database migrations, enforcement changes, navigation changes, UI/label changes, price removal from existing screens. Gating behaviour after Phase 1 is identical to before.
+
+Then run tests, `tsgo` typecheck and build, and report files changed, compatibility mapping and unresolved decisions before Phase 2.
