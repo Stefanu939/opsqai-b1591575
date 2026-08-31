@@ -27,7 +27,7 @@ export function ServerMonolith() {
       <mesh castShadow receiveShadow>
         <boxGeometry args={[1.6, 3.8, 1.6]} />
         <meshStandardMaterial
-          color="#0a1512"
+          color="#0f1222"
           metalness={0.85}
           roughness={0.28}
           emissive="#5b3df5"
