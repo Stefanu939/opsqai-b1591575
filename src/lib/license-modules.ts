@@ -254,6 +254,20 @@ export const LICENSE_MODULE_CATALOG: LicenseModule[] = [
 
 export const ADDON_MODULES = LICENSE_MODULE_CATALOG.filter((m) => !m.inBasic);
 
+/**
+ * Canonical classification of a legacy module key ("core" | "product" |
+ * "addon"). Use this instead of `inBasic` / `category` in new code.
+ */
+export function moduleClassification(key: string): Classification | "unknown" {
+  return classifyLegacy(key);
+}
+
+/** Legacy module keys whose canonical classification is Core. */
+export const CORE_MODULE_KEYS: ModuleKey[] = LICENSE_MODULE_CATALOG.filter(
+  (m) => classifyLegacy(m.key) === "core",
+).map((m) => m.key);
+
+
 export function isValidModuleKey(k: string): k is ModuleKey {
   return LICENSE_MODULE_CATALOG.some((m) => m.key === k);
 }
