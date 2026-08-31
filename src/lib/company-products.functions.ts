@@ -19,6 +19,50 @@ import {
 const Uuid = uuidString();
 
 /**
+ * Single source of truth for writing explicit product enablement.
+ *
+ * Upserts the `company_products` rows and re-syncs the denormalised
+ * `companies.enabled_products` array that the license entitlement payload and
+ * the heartbeat read. Used by both customer creation and the Products tab.
+ */
+export async function applyCompanyProducts(
+  admin: { from: (t: string) => any },
+  companyId: string,
+  changes: ReadonlyArray<{ product_key: string; enabled: boolean; notes?: string | null }>,
+): Promise<string[]> {
+  const valid = changes.filter((c) => isProductKey(c.product_key));
+  if (valid.length) {
+    const { error } = await admin.from("company_products").upsert(
+      valid.map((c) => ({
+        company_id: companyId,
+        product_key: c.product_key,
+        enabled: c.enabled,
+        source: "management_center",
+        notes: c.notes ?? null,
+      })),
+      { onConflict: "company_id,product_key" },
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  const { data: rows, error: rErr } = await admin
+    .from("company_products")
+    .select("product_key, enabled")
+    .eq("company_id", companyId);
+  if (rErr) throw new Error(rErr.message);
+  const enabled = ((rows ?? []) as Array<{ product_key: string; enabled: boolean }>)
+    .filter((r) => r.enabled && isProductKey(r.product_key))
+    .map((r) => r.product_key);
+  const { error: uErr } = await admin
+    .from("companies")
+    .update({ enabled_products: enabled })
+    .eq("id", companyId);
+  if (uErr) throw new Error(uErr.message);
+  return enabled;
+}
+
+
+/**
  * Company Profile + explicitly enabled OPSQAI Products for one company.
  *
  * A profile NEVER activates products: it only reports recommended/available
