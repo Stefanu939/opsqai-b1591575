@@ -137,7 +137,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     },
 
     { to: "/app/updates", label: "Updates", icon: Download, show: true, module: null },
-    { to: "/app/modules", label: "Modules", icon: ClipboardCheck, show: true, module: null },
+    {
+      to: "/app/modules",
+      label: "License & Entitlements",
+      icon: ClipboardCheck,
+      show: true,
+      module: null,
+    },
+
   ];
 
   const filterNav = (items: NavItem[]) => items.filter((i) => i.show && gate(i.module ?? null));
