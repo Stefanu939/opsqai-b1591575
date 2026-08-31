@@ -1089,8 +1089,17 @@ export interface LicenseEntitlements {
   customer: string | null;
   edition: string;
   seats: number | null;
-  /** Add-on module keys granted by signed module tokens. */
+  /**
+   * Entitlement keys granted by signed tokens: OPSQAI Product keys, optional
+   * add-ons and legacy module keys. Core platform capabilities are NOT listed
+   * here — they are included with any valid installation license.
+   */
   modules: string[];
+  /** Company profile (business type) carried by the installation license. */
+  profile?: string | null;
+  /** Explicitly enabled OPSQAI Product keys. Subset of `modules`. */
+  products?: string[];
+
   expiresAt: number | null; // unix seconds
   maintenanceExpiresAt: number | null; // unix seconds
   revoked: boolean;
