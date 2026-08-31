@@ -365,9 +365,18 @@ function slugify(input: string): string {
     .slice(0, 64);
 }
 
+export type IssuePrefill = {
+  company_name: string;
+  install_id: string;
+  seats?: number | null;
+};
+
 function IssueLicenseDialog({
   onIssue,
   pending,
+  open: openProp,
+  onOpenChange,
+  prefill,
 }: {
   onIssue: (v: {
     install_id: string;
@@ -378,8 +387,16 @@ function IssueLicenseDialog({
     expires_at?: string | null;
   }) => void;
   pending: boolean;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  prefill?: IssuePrefill | null;
 }) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (v: boolean) => {
+    setOpenState(v);
+    onOpenChange?.(v);
+  };
   const [installId, setInstallId] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -389,12 +406,29 @@ function IssueLicenseDialog({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [installIdDirty, setInstallIdDirty] = useState(false);
 
+  // Seed from a customer row when the dialog is opened from the customers panel.
+  const seededFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !prefill) return;
+    const stamp = `${prefill.company_name}|${prefill.install_id}`;
+    if (seededFor.current === stamp) return;
+    seededFor.current = stamp;
+    setCompany(prefill.company_name);
+    setInstallId(prefill.install_id);
+    setInstallIdDirty(true);
+    if (typeof prefill.seats === "number" && prefill.seats > 0) setSeats(prefill.seats);
+  }, [open, prefill]);
+  useEffect(() => {
+    if (!open) seededFor.current = null;
+  }, [open]);
+
   const listCompaniesFn = useServerFn(listCompanies);
   const { data: companies = [] } = useQuery({
     queryKey: ["mc-companies-for-license"],
     queryFn: () => listCompaniesFn({ data: {} } as never),
     enabled: open,
   });
+
 
   const pickCompany = (c: {
     id: string;
