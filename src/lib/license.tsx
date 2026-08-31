@@ -30,6 +30,10 @@ export interface LicenseState {
   revoked: boolean;
   /** true when every module in the catalog is available (cloud mode). */
   unlimited: boolean;
+  /** Company profile (business type) carried by the installation license. */
+  profile: string | null;
+  /** Explicitly enabled OPSQAI Products (canonical product keys). */
+  products: string[];
 }
 
 const CLOUD_STATE: LicenseState = {
@@ -43,6 +47,8 @@ const CLOUD_STATE: LicenseState = {
   maintenance_expires_at: null,
   revoked: false,
   unlimited: true,
+  profile: null,
+  products: [],
 };
 
 interface RawPayload {
@@ -166,6 +172,8 @@ function buildSelfHostState(): LicenseState {
       maintenance_expires_at: null,
       revoked: false,
       unlimited: false,
+      profile: null,
+      products: [],
     };
   }
   const payload = resolveInstallPayload(token);
@@ -181,6 +189,8 @@ function buildSelfHostState(): LicenseState {
       maintenance_expires_at: null,
       revoked: true,
       unlimited: false,
+      profile: null,
+      products: [],
     };
   }
   const now = Math.floor(Date.now() / 1000);
@@ -198,6 +208,10 @@ function buildSelfHostState(): LicenseState {
     maintenance_expires_at: payload.maintenance_expires_at ?? null,
     revoked: expired,
     unlimited: false,
+    profile: (payload as { profile?: string }).profile ?? null,
+    products: Array.isArray((payload as { products?: string[] }).products)
+      ? ((payload as { products?: string[] }).products as string[])
+      : [],
   };
 }
 
@@ -235,6 +249,8 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
           maintenance_expires_at: ent.maintenanceExpiresAt,
           revoked: expired || ent.revoked,
           unlimited: ent.unlimited,
+          profile: ent.profile ?? null,
+          products: ent.products ?? [],
         });
       })
       .catch(() => {

@@ -69,10 +69,10 @@ const en = {
       "OPSQAI Cloud is not the product. It exists only for licensing, releases, installer distribution, customer support, the Customer Portal and the Management Center. The product itself is the Windows installation inside the customer's environment.",
   },
   basic: {
-    eyebrow: "Basic Platform",
+    eyebrow: "Core Platform",
     title: "Everything you need to operate on day one.",
     intro:
-      "The Basic Platform ships with every OPSQAI installation. It's what employees use every day.",
+      "The Core platform ships with every OPSQAI installation. It's what employees use every day.",
     items: [
       { name: "AI Chat", body: "Grounded, source-cited conversations over the customer's own knowledge." },
       { name: "Knowledge Base", body: "SOPs, manuals and procedures — chunked, embedded and retrievable locally." },
@@ -88,7 +88,7 @@ const en = {
     eyebrow: "Premium Modules",
     title: "Grow capability without reinstalling.",
     intro:
-      "Premium modules unlock deeper capabilities on top of the Basic Platform. Each is licensed separately and activated by OPSQAI through a signed license — no reinstall, no downtime.",
+      "OPSQAI products and optional add-ons extend the Core platform for your business domain. Each is enabled per company and delivered by OPSQAI through a signed license — no reinstall, no downtime.",
     reasons: [
       { title: "Signed license activation", body: "OPSQAI issues an Ed25519-signed license bundle. The install verifies it locally and unlocks the module." },
       { title: "No cross-module dependencies", body: "Modules are independent. Buy only what your operation needs, when it needs it." },
@@ -121,7 +121,7 @@ const en = {
       { title: "Offline Capable", body: "Daily operation is fully local. Cloud only for licensing and updates." },
       { title: "Governed AI", body: "Every answer is grounded and cited from local knowledge." },
       { title: "Audit Trail", body: "Hash-chained, append-only audit of every privileged and AI action." },
-      { title: "Module Licensing", body: "Signed premium modules activated without reinstall." },
+      { title: "Entitlement Licensing", body: "Signed products and add-ons activated without reinstall." },
       { title: "Source Citations", body: "Answers point back to the exact document and section." },
       { title: "Role-Based Access", body: "Chunk-level ACLs; owners, admins, managers, workers, viewers." },
       { title: "Local Embeddings", body: "pgvector inside your PostgreSQL. Vectors never leave." },
@@ -135,10 +135,10 @@ const en = {
     title: "A five-step customer journey.",
     intro: "OPSQAI is designed to start focused and grow with the operation.",
     steps: [
-      { title: "Land", body: "Start with the Basic Platform on one Windows Server. One department, one operational domain." },
+      { title: "Land", body: "Start with the Core platform on one Windows Server. One department, one operational domain." },
       { title: "Ground", body: "Ingest SOPs, manuals and procedures. Local embeddings; customer-owned AI provider." },
       { title: "Adopt", body: "Employees use AI Chat, FAQ and Academy every day. AI Audit records every interaction." },
-      { title: "Expand", body: "Activate premium modules through signed licenses — no reinstall, no downtime." },
+      { title: "Expand", body: "Enable OPSQAI products through signed licenses — no reinstall, no downtime." },
       { title: "Scale", body: "Roll out to adjacent sites and departments. Annual Maintenance keeps everything current." },
     ],
   },
@@ -276,10 +276,10 @@ const de: HomeCopy = {
       "Die OPSQAI Cloud ist nicht das Produkt. Sie existiert nur für Lizenzierung, Releases, Installer-Verteilung, Kundensupport, das Kundenportal und das Management Center. Das Produkt selbst ist die Windows-Installation innerhalb der Umgebung des Kunden.",
   },
   basic: {
-    eyebrow: "Basisplattform",
+    eyebrow: "Core-Plattform",
     title: "Alles, was Sie ab dem ersten Tag brauchen.",
     intro:
-      "Die Basisplattform ist Bestandteil jeder OPSQAI-Installation. Sie wird von Mitarbeitenden täglich genutzt.",
+      "Die Core-Plattform ist Bestandteil jeder OPSQAI-Installation. Sie wird von Mitarbeitenden täglich genutzt.",
     items: [
       { name: "KI-Chat", body: "Belegte, quellengestützte Gespräche über das eigene Wissen des Kunden." },
       { name: "Wissensdatenbank", body: "SOPs, Handbücher und Verfahren — lokal aufgeteilt, eingebettet und abrufbar." },
@@ -292,10 +292,10 @@ const de: HomeCopy = {
     ],
   },
   premium: {
-    eyebrow: "Premium-Module",
+    eyebrow: "Produkte & Add-ons",
     title: "Funktionsumfang erweitern, ohne neu zu installieren.",
     intro:
-      "Premium-Module schalten tiefere Funktionen zusätzlich zur Basisplattform frei. Jedes wird separat lizenziert und von OPSQAI über eine signierte Lizenz aktiviert — ohne Neuinstallation, ohne Ausfallzeit.",
+      "OPSQAI-Produkte und optionale Add-ons erweitern die Core-Plattform um Ihren Fachbereich. Sie werden pro Unternehmen aktiviert und von OPSQAI über eine signierte Lizenz ausgeliefert — ohne Neuinstallation, ohne Ausfallzeit.",
     reasons: [
       { title: "Signierte Lizenzaktivierung", body: "OPSQAI stellt ein Ed25519-signiertes Lizenzpaket aus. Die Installation prüft es lokal und schaltet das Modul frei." },
       { title: "Keine modulübergreifenden Abhängigkeiten", body: "Module sind unabhängig. Kaufen Sie nur, was Ihr Betrieb braucht, wann er es braucht." },
@@ -328,7 +328,7 @@ const de: HomeCopy = {
       { title: "Offlinefähig", body: "Der tägliche Betrieb ist vollständig lokal. Cloud nur für Lizenzierung und Updates." },
       { title: "Governance-fähige KI", body: "Jede Antwort ist belegt und aus lokalem Wissen zitiert." },
       { title: "Audit-Trail", body: "Hash-verketteter, unveränderlicher Audit jeder privilegierten und KI-Aktion." },
-      { title: "Modul-Lizenzierung", body: "Signierte Premium-Module ohne Neuinstallation aktiviert." },
+      { title: "Berechtigungs-Lizenzierung", body: "Signierte Produkte und Add-ons ohne Neuinstallation aktiviert." },
       { title: "Quellenangaben", body: "Antworten verweisen auf das genaue Dokument und den Abschnitt." },
       { title: "Rollenbasierter Zugriff", body: "ACLs auf Chunk-Ebene; Owner, Admins, Manager, Worker, Viewer." },
       { title: "Lokale Embeddings", body: "pgvector innerhalb Ihres PostgreSQL. Vektoren verlassen das Haus nie." },
@@ -342,10 +342,10 @@ const de: HomeCopy = {
     title: "Eine fünfstufige Kundenreise.",
     intro: "OPSQAI ist darauf ausgelegt, fokussiert zu starten und mit dem Betrieb zu wachsen.",
     steps: [
-      { title: "Landen", body: "Start mit der Basisplattform auf einem Windows Server. Eine Abteilung, eine operative Domäne." },
+      { title: "Landen", body: "Start mit der Core-Plattform auf einem Windows Server. Eine Abteilung, eine operative Domäne." },
       { title: "Grundlage schaffen", body: "SOPs, Handbücher und Verfahren einlesen. Lokale Embeddings; kundeneigener KI-Anbieter." },
       { title: "Annehmen", body: "Mitarbeitende nutzen täglich KI-Chat, FAQ und Academy. KI-Audit erfasst jede Interaktion." },
-      { title: "Erweitern", body: "Premium-Module über signierte Lizenzen aktivieren — ohne Neuinstallation, ohne Ausfallzeit." },
+      { title: "Erweitern", body: "OPSQAI-Produkte über signierte Lizenzen aktivieren — ohne Neuinstallation, ohne Ausfallzeit." },
       { title: "Skalieren", body: "Rollout auf angrenzende Standorte und Abteilungen. Jährliche Wartung hält alles aktuell." },
     ],
   },
@@ -386,7 +386,7 @@ const de: HomeCopy = {
       },
       {
         q: "Wie erhalten wir neue Module?",
-        a: "Premium-Module werden separat erworben und von OPSQAI über ein signiertes Lizenzpaket aktiviert. Die Aktivierung erfolgt still — ohne Neuinstallation, ohne Datenbewegung.",
+        a: "OPSQAI-Produkte und Add-ons werden pro Unternehmen aktiviert und von OPSQAI über ein signiertes Lizenzpaket ausgeliefert. Die Aktivierung erfolgt still — ohne Neuinstallation, ohne Datenbewegung.",
       },
       {
         q: "Was passiert, wenn wir offline gehen?",
@@ -533,7 +533,7 @@ const ro: HomeCopy = {
       { title: "Capabil offline", body: "Operarea zilnică este complet locală. Cloud doar pentru licențiere și actualizări." },
       { title: "AI guvernat", body: "Fiecare răspuns este fundamentat și citat din cunoștințe locale." },
       { title: "Jurnal de audit", body: "Audit hash-chained, append-only al fiecărei acțiuni privilegiate sau AI." },
-      { title: "Licențiere pe module", body: "Module premium semnate, activate fără reinstalare." },
+      { title: "Licențiere prin drepturi", body: "Produse și add-on-uri semnate, activate fără reinstalare." },
       { title: "Citarea surselor", body: "Răspunsurile trimit înapoi la documentul și secțiunea exactă." },
       { title: "Acces bazat pe roluri", body: "ACL-uri la nivel de fragment; owners, admini, manageri, lucrători, vizualizatori." },
       { title: "Embeddings locale", body: "pgvector în interiorul propriului PostgreSQL. Vectorii nu părăsesc niciodată mediul." },
@@ -550,7 +550,7 @@ const ro: HomeCopy = {
       { title: "Land", body: "Începe cu Platforma de Bază pe un singur Windows Server. Un departament, un domeniu operațional." },
       { title: "Ground", body: "Se încarcă SOP-uri, manuale și proceduri. Embeddings locale; furnizor AI deținut de client." },
       { title: "Adopt", body: "Angajații folosesc zilnic AI Chat, FAQ și Academy. Audit AI înregistrează fiecare interacțiune." },
-      { title: "Expand", body: "Activează module premium prin licențe semnate — fără reinstalare, fără timp de nefuncționare." },
+      { title: "Expand", body: "Activează produse OPSQAI prin licențe semnate — fără reinstalare, fără timp de nefuncționare." },
       { title: "Scale", body: "Extindere la sedii și departamente adiacente. Mentenanța anuală menține totul actualizat." },
     ],
   },
