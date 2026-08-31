@@ -42,7 +42,28 @@ const de: Copy = {
   ctaRequestActivation: "Aktivierung anfragen",
 };
 
+
+const ro: Copy = {
+  heroEyebrow: "Rețeaua de module OPSQAI",
+  heroSerifAccent: "Fiecare modul orbitează în jurul ei.",
+  heroHeadline: "O singură platformă.",
+  heroBody:
+    "Platforma Basic este inclusă în fiecare instalare OPSQAI. Modulele Premium se conectează prin pachete de licență semnate — activate de OPSQAI, fără reinstalare, fără inflație de licențe, fără dependență de cloud.",
+  ctaRequestModules: "Solicitați module",
+  ctaSeePricing: "Vedeți modelul de preț",
+  basicBadge: "Basic",
+  premiumBadge: "Premium",
+  includedWithBasic: "Inclus în Basic",
+  fromPriceSuffix: "· plată unică",
+  activationEyebrow: "Activare",
+  activationHeadlinePrefix: "Modulele se conectează prin",
+  activationHeadlineAccent: "pachete semnate.",
+  activationBody:
+    "OPSQAI emite un pachet de licență semnat Ed25519. Instalarea dumneavoastră îl verifică offline și deblochează modulul instant — fără reinstalare, fără apel către cloud, fără inflație de licențe.",
+  ctaRequestActivation: "Solicitați activarea",
+};
+
 export function useModulesCopy(): Copy {
   const { lang } = useT();
-  return lang === "de" ? de : en;
+  return lang === "de" ? de : lang === "ro" ? ro : en;
 }
