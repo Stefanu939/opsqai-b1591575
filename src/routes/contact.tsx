@@ -122,7 +122,7 @@ function ContactPage() {
         <div className="absolute inset-0 -z-10">
           <Scene3D cameraPosition={[0, 1.2, 5]} cameraFov={44}>
             <ambientLight intensity={0.4} />
-            <pointLight position={[3, 3, 3]} intensity={1} color="#c9a84c" />
+            <pointLight position={[3, 3, 3]} intensity={1} color="#5b8cf7" />
             <GridFloor />
             <EmberFog />
             <GoldBloom />

@@ -14,7 +14,7 @@ interface EmberFogProps {
  */
 export function EmberFog({
   count = 400,
-  color = "#c9a84c",
+  color = "#5b8cf7",
   spread = 12,
   size = 0.04,
 }: EmberFogProps) {

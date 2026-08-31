@@ -58,8 +58,8 @@ function ProductPage() {
         <div className="absolute inset-0 -z-10">
           <Scene3D cameraPosition={[0, 1.4, 6.4]} cameraFov={42}>
             <ambientLight intensity={0.28} />
-            <pointLight position={[5, 3, 5]} intensity={1} color="#c9a84c" />
-            <pointLight position={[-5, 2, 2]} intensity={0.6} color="#2dd4a8" />
+            <pointLight position={[5, 3, 5]} intensity={1} color="#5b8cf7" />
+            <pointLight position={[-5, 2, 2]} intensity={0.6} color="#8b6bff" />
             <GridFloor />
             <EmberFog />
             <ServerMonolith />

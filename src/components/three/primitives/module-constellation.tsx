@@ -60,7 +60,7 @@ export function ModuleConstellation({ nodeCount = 14 }: { nodeCount?: number }) 
       <mesh ref={coreRef}>
         <icosahedronGeometry args={[0.7, 1]} />
         <meshStandardMaterial
-          color="#0d7a5f"
+          color="#5b3df5"
           emissive="#C9A24C"
           emissiveIntensity={0.35}
           metalness={0.9}
@@ -110,7 +110,7 @@ function ModuleNode({
       <octahedronGeometry args={[0.14, 0]} />
       <meshStandardMaterial
         color={isGold ? "#C9A24C" : "#e8ecef"}
-        emissive={isGold ? "#C9A24C" : "#0d7a5f"}
+        emissive={isGold ? "#C9A24C" : "#5b3df5"}
         emissiveIntensity={isGold ? 0.9 : 0.35}
         metalness={0.85}
         roughness={0.2}

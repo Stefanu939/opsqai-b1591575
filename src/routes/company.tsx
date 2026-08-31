@@ -54,8 +54,8 @@ function CompanyPage() {
         <div className="absolute inset-0 -z-10">
           <Scene3D cameraPosition={[0, 0.6, 6]} cameraFov={44}>
             <ambientLight intensity={0.35} />
-            <pointLight position={[3, 3, 3]} intensity={1} color="#c9a84c" />
-            <pointLight position={[-3, 2, 1]} intensity={0.5} color="#0d7a5f" />
+            <pointLight position={[3, 3, 3]} intensity={1} color="#5b8cf7" />
+            <pointLight position={[-3, 2, 1]} intensity={0.5} color="#5b3df5" />
             <GridFloor />
             <EmberFog />
             <ParticleGenesis progress={0.6} />

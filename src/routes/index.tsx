@@ -102,7 +102,7 @@ function Home() {
       <div
         style={{
           minHeight: "100vh",
-          background: "var(--oix-bg-deep, #04211a)",
+          background: "var(--oix-bg-deep, #0a0b14)",
         }}
         aria-hidden
       />
@@ -181,8 +181,8 @@ function Hero() {
       <div className="absolute inset-0 -z-10">
         <Scene3D cameraPosition={[0, 0.5, 7]} cameraFov={48}>
           <ambientLight intensity={0.25} />
-          <pointLight position={[6, 4, 6]} intensity={0.9} color="#c9a84c" />
-          <pointLight position={[-6, -3, 4]} intensity={0.6} color="#2dd4a8" />
+          <pointLight position={[6, 4, 6]} intensity={0.9} color="#5b8cf7" />
+          <pointLight position={[-6, -3, 4]} intensity={0.6} color="#8b6bff" />
           <GridFloor />
           <EmberFog />
           <ParticleGenesis progress={progress} autoPlay={false} />

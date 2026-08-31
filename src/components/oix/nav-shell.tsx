@@ -98,7 +98,7 @@ export function NavShell() {
                 className={cn(
                   "px-2.5 py-1.5 text-[11px] uppercase tracking-[0.18em] transition-colors",
                   lang === code
-                    ? "bg-[var(--oix-gold)] text-[#04211a]"
+                    ? "bg-[var(--oix-gold)] text-[#0a0b14]"
                     : "text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)]",
                 )}
               >

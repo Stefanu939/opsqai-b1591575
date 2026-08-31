@@ -16,7 +16,7 @@ const PALETTE: Array<{ name: string; hex: string; role: string; ink?: string }> 
   { name: "Ink", hex: "#141414", role: "Elevated surface", ink: "#F0D78C" },
   { name: "Gold", hex: "#C9A24C", role: "Accent · nucleus", ink: "#0A0A0A" },
   { name: "Champagne", hex: "#F0D78C", role: "Accent · highlight", ink: "#0A0A0A" },
-  { name: "Bone", hex: "#F5F0E6", role: "Light ground", ink: "#0A0A0A" },
+  { name: "Bone", hex: "#eef0fa", role: "Light ground", ink: "#0A0A0A" },
 ];
 
 const ASSETS: Array<{ label: string; file: string; ground: "onyx" | "bone" | "gold" }> = [
@@ -37,7 +37,7 @@ function BrandBoard() {
       className="min-h-dvh"
       style={{
         background: "#0A0A0A",
-        color: "#F5F0E6",
+        color: "#eef0fa",
         fontFamily: "'Karla', system-ui, sans-serif",
       }}
     >
@@ -54,7 +54,7 @@ function BrandBoard() {
           >
             The <em className="font-normal italic text-[#F0D78C]">Sovereign</em> Mark.
           </h1>
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-[#F5F0E6]/70">
+          <p className="mt-6 max-w-xl text-sm leading-relaxed text-[#eef0fa]/70">
             A heraldic seal for a private intelligence. Engraved octagonal cartouche, a coronet of eight
             nodes for the knowledge network, and a gold monogram at the optical center. Built at grid
             64×64 and drawn to survive at 16 pixels.
@@ -72,7 +72,7 @@ function BrandBoard() {
           >
             <img src="/brand/sovereign-mark.svg" alt="Sovereign Mark" className="h-[62%] w-[62%]" />
           </div>
-          <div className="flex flex-col justify-center gap-6 text-sm leading-relaxed text-[#F5F0E6]/75">
+          <div className="flex flex-col justify-center gap-6 text-sm leading-relaxed text-[#eef0fa]/75">
             <p>
               An octagonal cartouche — the classical form of a coin die — closes around the monogram
               <em className="italic text-[#F0D78C]"> OQ</em>. Eight coronet nodes ride the inner ring:
@@ -83,10 +83,10 @@ function BrandBoard() {
               minted, not marketed.
             </p>
             <dl className="grid grid-cols-2 gap-x-6 gap-y-2 pt-4 text-xs uppercase tracking-[0.2em] text-[#C9A24C]/70">
-              <dt>Grid</dt><dd className="text-[#F5F0E6]">64 × 64</dd>
-              <dt>Cartouche</dt><dd className="text-[#F5F0E6]">Regular octagon, r 28</dd>
-              <dt>Gravure</dt><dd className="text-[#F5F0E6]">Double line, 0.6 / 0.25</dd>
-              <dt>Monogram</dt><dd className="text-[#F5F0E6]">Cormorant Garamond 500</dd>
+              <dt>Grid</dt><dd className="text-[#eef0fa]">64 × 64</dd>
+              <dt>Cartouche</dt><dd className="text-[#eef0fa]">Regular octagon, r 28</dd>
+              <dt>Gravure</dt><dd className="text-[#eef0fa]">Double line, 0.6 / 0.25</dd>
+              <dt>Monogram</dt><dd className="text-[#eef0fa]">Cormorant Garamond 500</dd>
             </dl>
           </div>
         </div>
@@ -99,7 +99,7 @@ function BrandBoard() {
           <div className="border border-[#C9A24C]/15 p-8" style={{ background: "#0A0A0A" }}>
             <ConstructionSVG />
           </div>
-          <ul className="space-y-4 text-sm leading-relaxed text-[#F5F0E6]/75">
+          <ul className="space-y-4 text-sm leading-relaxed text-[#eef0fa]/75">
             <li><span className="text-[#F0D78C]">·</span> The cartouche is a regular octagon inscribed in a circle of radius 28 on a 64-unit grid.</li>
             <li><span className="text-[#F0D78C]">·</span> A secondary gravure line sits 3 units inside — the depth of a printed seal.</li>
             <li><span className="text-[#F0D78C]">·</span> Eight nodes ride a circle of radius 22, aligned to the octagon's vertices.</li>
@@ -117,7 +117,7 @@ function BrandBoard() {
             <div key={c.hex} className="border border-[#C9A24C]/15">
               <div
                 className="flex aspect-[4/5] items-end p-5"
-                style={{ background: c.hex, color: c.ink ?? "#F5F0E6" }}
+                style={{ background: c.hex, color: c.ink ?? "#eef0fa" }}
               >
                 <div>
                   <div
@@ -129,7 +129,7 @@ function BrandBoard() {
                   <div className="mt-2 text-[10px] uppercase tracking-[0.25em] opacity-80">{c.role}</div>
                 </div>
               </div>
-              <div className="flex items-center justify-between px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-[#F5F0E6]/70">
+              <div className="flex items-center justify-between px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-[#eef0fa]/70">
                 <span>{c.hex}</span>
                 <span className="text-[#C9A24C]/60">HEX</span>
               </div>
@@ -152,20 +152,20 @@ function BrandBoard() {
               <br />
               <em className="italic">Knowledge.</em>
             </div>
-            <div className="mt-6 text-xs uppercase tracking-[0.25em] text-[#F5F0E6]/60">
+            <div className="mt-6 text-xs uppercase tracking-[0.25em] text-[#eef0fa]/60">
               Cormorant Garamond · 500 · tracking +20
             </div>
           </div>
           <div className="border border-[#C9A24C]/15 p-10" style={{ background: "#141414" }}>
             <div className="text-[10px] uppercase tracking-[0.35em] text-[#C9A24C]/70">Body</div>
             <p
-              className="mt-6 text-base leading-relaxed text-[#F5F0E6]/85"
+              className="mt-6 text-base leading-relaxed text-[#eef0fa]/85"
               style={{ fontFamily: "'Karla', system-ui, sans-serif", fontWeight: 400 }}
             >
               OPSQAI is a self-hosted operational intelligence platform. Your procedures, your data,
               your model — held inside your boundary, answering in the language your teams speak.
             </p>
-            <div className="mt-8 text-xs uppercase tracking-[0.25em] text-[#F5F0E6]/60">
+            <div className="mt-8 text-xs uppercase tracking-[0.25em] text-[#eef0fa]/60">
               Karla · 400 / 500 / 600
             </div>
           </div>
@@ -187,13 +187,13 @@ function BrandBoard() {
                 className="flex aspect-[5/4] items-center justify-center p-6"
                 style={{
                   background:
-                    a.ground === "onyx" ? "#0A0A0A" : a.ground === "bone" ? "#F5F0E6" : "#C9A24C",
+                    a.ground === "onyx" ? "#0A0A0A" : a.ground === "bone" ? "#eef0fa" : "#C9A24C",
                 }}
               >
                 <img src={a.file} alt={a.label} className="max-h-full max-w-full" />
               </div>
               <div className="flex items-center justify-between px-4 py-3 text-[11px] uppercase tracking-[0.22em]">
-                <span className="text-[#F5F0E6]/80">{a.label}</span>
+                <span className="text-[#eef0fa]/80">{a.label}</span>
                 <span className="text-[#C9A24C]/60 group-hover:text-[#F0D78C]">SVG ↓</span>
               </div>
             </a>
@@ -214,7 +214,7 @@ function BrandBoard() {
 
       {/* Footer */}
       <footer className="border-t border-[#C9A24C]/20">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-10 text-[11px] uppercase tracking-[0.3em] text-[#F5F0E6]/60">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-10 text-[11px] uppercase tracking-[0.3em] text-[#eef0fa]/60">
           <span>OPSQAI · Sovereign Mark · v1</span>
           <span className="text-[#C9A24C]/70">Onyx & Gold</span>
         </div>
@@ -228,7 +228,7 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
     <div>
       <div className="text-[10px] uppercase tracking-[0.4em] text-[#C9A24C]/70">{eyebrow}</div>
       <h2
-        className="mt-4 text-4xl text-[#F5F0E6]"
+        className="mt-4 text-4xl text-[#eef0fa]"
         style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 500, letterSpacing: "0.01em" }}
       >
         {title}
@@ -255,12 +255,12 @@ function Rule({ kind, title, body }: { kind: "do" | "dont"; title: string; body:
         {isDo ? "Do" : "Don't"}
       </div>
       <div
-        className="mt-4 text-2xl text-[#F5F0E6]"
+        className="mt-4 text-2xl text-[#eef0fa]"
         style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 500 }}
       >
         {title}
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-[#F5F0E6]/70">{body}</p>
+      <p className="mt-3 text-sm leading-relaxed text-[#eef0fa]/70">{body}</p>
     </div>
   );
 }

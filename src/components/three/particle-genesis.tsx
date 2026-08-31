@@ -132,8 +132,8 @@ export function ParticleGenesis({
   progress,
   autoPlay = true,
   cycleDuration = 22,
-  color = "#2dd4a8",
-  goldTint = "#c9a84c",
+  color = "#8b6bff",
+  goldTint = "#5b8cf7",
   size = 0.03,
 }: ParticleGenesisProps) {
   const geomRef = useRef<THREE.BufferGeometry | null>(null);

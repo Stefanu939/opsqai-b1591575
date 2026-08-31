@@ -53,7 +53,7 @@ function PdfButton({ label, variant = "ghost" }: { label: string; variant?: "gol
       className={[
         "group relative oix-brackets inline-flex items-center justify-center gap-2 px-6 py-3 text-[13px] font-medium uppercase tracking-[0.18em] transition-all duration-300",
         variant === "gold"
-          ? "bg-[var(--oix-gold)] text-[#04211a] hover:bg-[var(--oix-gold-soft)]"
+          ? "bg-[var(--oix-gold)] text-[#0a0b14] hover:bg-[var(--oix-gold-soft)]"
           : "border border-[var(--oix-gold-line)] text-[var(--oix-cream)] hover:border-[var(--oix-gold)] hover:text-[var(--oix-gold-soft)]",
       ].join(" ")}
     >
