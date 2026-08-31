@@ -90,6 +90,12 @@ export function createSupabaseBrowserAuthProvider(): IBrowserAuthProvider {
       return toSession(data.session as SupabaseSessionLike | null);
     },
 
+    async refreshSession(): Promise<OpsqaiSession | null> {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) return null;
+      return toSession(data.session as SupabaseSessionLike | null);
+    },
+
     async getUser(): Promise<OpsqaiUser | null> {
       const { data, error } = await supabase.auth.getUser();
       if (error) return null;
