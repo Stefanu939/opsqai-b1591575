@@ -54,6 +54,9 @@ interface InstallLicenseClaims extends BaseLicenseClaims {
   support?: string;
   support_level?: string;
   flags?: Record<string, boolean>;
+  /** Additive entitlement claims (ignored by older builds). */
+  profile?: string;
+  products?: string[];
 }
 
 interface ModuleLicenseClaims extends BaseLicenseClaims {
@@ -482,6 +485,21 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
     }
   }
 
+  // Entitlements can arrive two ways, both signed: as individual module /
+  // product tokens, or as the `products` claim on the installation license.
+  // Union of both, de-duplicated.
+  function mergeEntitlementKeys(
+    install: InstallLicenseClaims,
+    set: VerifiedLicenseSet,
+  ): string[] {
+    const keys = new Set<string>();
+    for (const m of set.modules) if (m.claims.module) keys.add(m.claims.module);
+    if (Array.isArray(install.products)) {
+      for (const p of install.products) if (typeof p === "string" && p) keys.add(p);
+    }
+    return [...keys];
+  }
+
   return {
     capability: Capability.Licensing,
     name: "opsqai.selfhost.local-licensing",
@@ -511,7 +529,11 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
           customer: claims.customer,
           edition: claims.edition as string,
           seats: claims.seats ?? null,
-          modules: verified.modules.map((m) => m.claims.module).filter(Boolean) as string[],
+          modules: mergeEntitlementKeys(claims, verified),
+          profile: typeof claims.profile === "string" ? claims.profile : null,
+          products: Array.isArray(claims.products)
+            ? claims.products.filter((p): p is string => typeof p === "string")
+            : [],
           expiresAt: expirySeconds(claims),
           maintenanceExpiresAt:
             typeof claims.maintenance_expires_at === "number" ? claims.maintenance_expires_at : null,
@@ -531,6 +553,8 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
           edition: "community",
           seats: null,
           modules: [] as string[],
+          profile: null,
+          products: [] as string[],
           expiresAt: null,
           maintenanceExpiresAt: null,
           revoked: kind === "revoked",
