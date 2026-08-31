@@ -463,175 +463,75 @@ body {
 }
 
 /* ============================================================
-   Mission Control — Noir & Gold premium scope
-   Scoped via .mc-shell so it doesn't leak into marketing/app.
+   Aurora Noir shared shell scope — .n
+   Used by Management Center (mc-shell) and the Customer Portal.
+   Floating panels on a deep navy / cool-white field.
    ============================================================ */
 
-.mc-shell {
-  /* Violet Noir palette — Mission Control Cloud */
-  --mc-bg: #0a0a1a;
-  --mc-surface-1: #12122a;
-  --mc-surface-2: #1a1a3d;
-  --mc-surface-3: #23234d;
-  /* Token names kept for backward-compat; values now violet/indigo */
-  --mc-gold: #7c5cff;
-  --mc-gold-soft: rgba(124, 92, 255, 0.5);
-  --mc-gold-glow: #a78bfa;
-  --mc-gold-line: rgba(124, 92, 255, 0.14);
-  --mc-gold-line-strong: rgba(124, 92, 255, 0.32);
-  --mc-fg: #e8e8ff;
-  --mc-fg-muted: #9a9ac8;
-  --mc-fg-dim: #6666a0;
-  --mc-danger: #f87171;
-  --mc-success: #34d399;
-  --mc-warning: #fbbf24;
-  --mc-cyan: #22d3ee;
-  --mc-magenta: #ec4899;
-
-  /* Override shadcn tokens inside MC scope */
-  --background: var(--mc-bg);
-  --foreground: var(--mc-fg);
-  --card: var(--mc-surface-1);
-  --card-foreground: var(--mc-fg);
-  --popover: var(--mc-surface-3);
-  --popover-foreground: var(--mc-fg);
-  --primary: var(--mc-gold);
-  --primary-foreground: #0a0a1a;
-  --secondary: var(--mc-surface-3);
-  --secondary-foreground: var(--mc-fg);
-  --muted: var(--mc-surface-2);
-  --muted-foreground: var(--mc-fg-muted);
-  --accent: var(--mc-surface-3);
-  --accent-foreground: var(--mc-gold-glow);
-  --border: var(--mc-gold-line);
-  --input: var(--mc-surface-3);
-  --ring: var(--mc-gold);
-  --sidebar: #08081a;
-  --sidebar-foreground: var(--mc-fg);
-  --sidebar-primary: var(--mc-gold);
-  --sidebar-primary-foreground: #0a0a1a;
-  --sidebar-accent: var(--mc-surface-2);
-  --sidebar-accent-foreground: var(--mc-gold-glow);
-  --sidebar-border: var(--mc-gold-line);
-  --sidebar-ring: var(--mc-gold);
-  --chart-1: #7c5cff;
-  --chart-2: #a78bfa;
-  --chart-3: #22d3ee;
-  --chart-4: #ec4899;
-  --chart-5: #34d399;
-
-  background: var(--mc-bg);
-  color: var(--mc-fg);
-  font-family: "Epilogue", "Inter", system-ui, sans-serif;
-  font-feature-settings: "ss01", "cv11", "tnum";
+.n {
+  background: var(--gradient-hero);
+  color: var(--color-foreground);
+  position: relative;
+  isolation: isolate;
 }
 
-.mc-shell h1,
-.mc-shell h2,
-.mc-shell h3,
-.mc-shell h4,
-.mc-shell .font-display,
-.mc-shell .mc-heading {
-  font-family: "Urbanist", "Inter", system-ui, sans-serif;
-  letter-spacing: -0.018em;
-  color: var(--mc-fg);
+.n::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--glow-violet), var(--glow-blue);
+  background-position:
+    50% -10%,
+    110% 60%;
+  background-repeat: no-repeat;
+  background-size:
+    140% 70%,
+    70% 70%;
 }
 
-.mc-shell .mc-eyebrow {
-  font-family: "Urbanist", "Inter", system-ui, sans-serif;
+@utility n-card {
+  background: color-mix(in oklab, var(--color-card) 88%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(10px);
+}
+
+@utility n-lift {
+  transition:
+    transform var(--motion-base) var(--ease-out-expo),
+    box-shadow var(--motion-base) var(--ease-out-expo),
+    border-color var(--motion-base) ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+    border-color: var(--color-border-strong, var(--border-strong));
+  }
+}
+
+@utility n-eyebrow {
   font-size: 0.68rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--mc-fg-muted);
+  color: var(--color-muted-foreground);
 }
 
-.mc-shell .mc-num {
+@utility n-num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-@utility mc-hairline {
-  position: relative;
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 12%;
-    right: 12%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(124, 92, 255, 0) 5%,
-      rgba(124, 92, 255, 0.55) 50%,
-      rgba(124, 92, 255, 0) 95%,
-      transparent 100%
-    );
-    pointer-events: none;
-  }
-}
-
-@utility mc-shadow-premium {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 1px 0 rgba(0, 0, 0, 0.4),
-    0 10px 30px -12px rgba(0, 0, 0, 0.7);
-}
-
-@utility mc-shadow-gold {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 1px 0 rgba(0, 0, 0, 0.5),
-    0 8px 24px -8px rgba(124, 92, 255, 0.55),
-    0 0 0 1px rgba(124, 92, 255, 0.4);
-}
-
-@utility mc-surface {
-  background: linear-gradient(180deg, #16163a 0%, #101028 100%);
-  border: 1px solid var(--mc-gold-line);
-  border-radius: 0.75rem;
-}
-
-@utility mc-surface-hover {
-  transition:
-    transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1),
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-  &:hover {
-    transform: translateY(-2px);
-    border-color: var(--mc-gold-line-strong);
-    box-shadow:
-      0 12px 32px -12px rgba(0, 0, 0, 0.7),
-      0 0 24px -8px rgba(124, 92, 255, 0.35);
-  }
-}
-
-@utility mc-gold-text {
-  background: linear-gradient(135deg, #a78bfa 0%, #7c5cff 55%, #22d3ee 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-@utility mc-gold-border {
-  border: 1px solid var(--mc-gold-line-strong);
-}
-
-@utility mc-grid-faint {
+@utility n-grid-faint {
   background-image:
-    linear-gradient(to right, rgba(124, 92, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(124, 92, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, color-mix(in oklab, var(--primary) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--primary) 8%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
-@utility mc-glow-violet {
-  box-shadow:
-    0 0 40px -10px rgba(124, 92, 255, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-@keyframes mc-fade-in-up {
+@keyframes n-fade-in-up {
   0% {
     opacity: 0;
     transform: translateY(6px);
@@ -642,28 +542,10 @@ body {
   }
 }
 
-@utility mc-enter {
-  animation: mc-fade-in-up 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+@utility n-enter {
+  animation: n-fade-in-up 420ms var(--ease-out-expo) both;
 }
 
-@keyframes mc-shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-@utility mc-shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(201, 168, 76, 0) 0%,
-    rgba(201, 168, 76, 0.35) 50%,
-    rgba(201, 168, 76, 0) 100%
-  );
-  background-size: 200% 100%;
-  animation: mc-shimmer 2.4s ease-in-out infinite;
-}
 
 /* ── Reduced motion ────────────────────────────────────────────────
    Respect the OS-level preference. Kill non-essential animation and
