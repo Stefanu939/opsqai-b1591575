@@ -200,9 +200,107 @@ const de: MarketingCopy = {
   },
 };
 
-export const marketingCopy = { en, de };
+const ro: MarketingCopy = {
+  nav: {
+    product: "Produs",
+    overview: "Prezentare",
+    modules: "Module",
+    selfHosted: "Self-Hosted",
+    security: "Securitate",
+    pricing: "Prețuri",
+    company: "Companie",
+    documentation: "Documentație",
+    blog: "Blog",
+    contact: "Contact",
+  },
+  cta: {
+    proposal: "Solicită o ofertă",
+    signIn: "Autentificare",
+    portal: "Portal client",
+    howItWorks: "Cum funcționează",
+    requestDemo: "Solicită demo",
+    contactSales: "Contactează vânzările",
+    selfHostedDetails: "Detalii self-hosted",
+  },
+  a11y: {
+    language: "Schimbă limba",
+    theme: "Schimbă tema",
+  },
+  footer: {
+    platform: "Platformă",
+    company: "Companie",
+    resources: "Resurse",
+    legal: "Juridic",
+    about: "Despre",
+    support: "Suport",
+    firstRun: "Prima rulare",
+    privacy: "Confidențialitate",
+    terms: "Termeni",
+    imprint: "Date legale",
+    rights: "Operational Intelligence Experience",
+    motto: "Alimentat de cunoștințele voastre — nu de ale noastre.",
+  },
+  home: {
+    eyebrow: "Inteligență operațională pentru companii",
+    h1a: "Sistemul de operare",
+    h1b: "pentru cunoștințele operaționale —",
+    serif: "pentru oameni.",
+    intro:
+      "OPSQAI este o platformă Windows self-hosted care aduce AI guvernat în operațiunile industriale. Suverană prin construcție: clienții își dețin datele, documentele, embeddings-urile și furnizorul de AI. Noi nu vedem niciodată cunoștințele operaționale — și am construit-o intenționat astfel, pentru că",
+    introEm: "nu merge fără oameni",
+  },
+  product: {
+    eyebrow: "Produs · O singură platformă",
+    title: "Un singur produs.",
+    serif: "Trei suprafețe.",
+    intro:
+      "OPSQAI este un produs Windows self-hosted. Cele două suprafețe cloud — Management Center și Portalul Client — există doar pentru a susține instalarea. Angajații nu lucrează niciodată în cloud; lucrează în propria instalare.",
+    guaranteeEyebrow: "Granița",
+    guaranteeStrong: "Produsul este instalarea Windows.",
+    guarantee:
+      "OPSQAI Cloud este folosit exclusiv pentru licențiere, versiuni, distribuția installerului, suport pentru clienți, Portalul Client și Management Center.",
+    surfacesEyebrow: "Cele trei suprafețe",
+    surfaces: [
+      {
+        name: "Management Center",
+        who: "Doar echipa OPSQAI",
+        tag: "Cloud",
+        what: "Plan de control interne. Companii, clienți, instalări, licențe, versiuni, chei de semnare, pachete de activare, contracte, suport, proprietate, administrarea portalului, audit și starea sistemului. Nu se vinde, nu se instalează și nu este accesibil clienților.",
+      },
+      {
+        name: "Portal client",
+        who: "Persoanele de contact ale clientului",
+        tag: "Cloud",
+        what: "Suprafață de serviciu la opsqai.de. Descarcă installerul și actualizările, preia pachetul de activare, citește documentația și notele de versiune, vezi informațiile de abonament și deschide tichete de suport. Nu este produsul — este un strat de servicii în jurul lui.",
+      },
+      {
+        name: "Self-Hosted",
+        who: "Utilizatorii finali, în fiecare zi",
+        tag: "Windows · Produsul",
+        what: "Instalarea Windows self-hosted este produsul. AI Chat, Bază de cunoștințe, FAQ, Academy, AI Audit, Utilizatori, Organizație, Abonament, Actualizări și Module — rulând pe serverul Windows al clientului.",
+      },
+    ],
+    journeyEyebrow: "Livrare",
+    journeyTitle: "De la achiziție la producție",
+    journeyIntro:
+      "Fără abonament SaaS. O platformă Basic plătită o singură dată, module premium achiziționate separat și mentenanță anuală.",
+    journey: [
+      { title: "Achiziție", body: "Comandă platforma Basic și modulele premium dorite prin OPSQAI." },
+      { title: "Descarcă pachetul", body: "Preia pachetul de instalare Windows semnat din Portalul Client." },
+      { title: "Rulează installerul", body: "Installerul configurează PostgreSQL, stocarea, serviciile și Caddy pe Windows Server." },
+      { title: "Activează licența", body: "Introdu pachetul de licență semnat Ed25519 emis de OPSQAI. Modulele se deblochează conform licenței." },
+      { title: "Configurează AI", body: "Alege furnizorul de AI — OpenAI, Azure OpenAI, Ollama, OpenRouter sau un endpoint compatibil." },
+      { title: "Începe să folosești OPSQAI", body: "Invită utilizatori, încarcă SOP-uri și răspunde la întrebări operaționale cu surse citate." },
+    ],
+    ctaTitle: "Vrei să vezi arhitectura în funcțiune?",
+    ctaBody: "Discută cu noi despre o instalare de referință a produsului Windows self-hosted.",
+  },
+};
+
+export const marketingCopy: Record<string, MarketingCopy> = { en, de, ro };
 
 export function useMarketing(): MarketingCopy {
   const { lang } = useT();
   return marketingCopy[lang] ?? en;
 }
+
