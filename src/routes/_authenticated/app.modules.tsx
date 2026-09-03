@@ -15,6 +15,7 @@ import {
   CORE_CAPABILITIES,
   PRODUCT_CATALOG,
   getCompanyProfile,
+  resolveEffectiveConfig,
 } from "@/lib/product-architecture";
 import { LicenseActivationPanel } from "@/components/app/license-activation-panel";
 import { createInternalRequest } from "@/lib/internal-requests.functions";
