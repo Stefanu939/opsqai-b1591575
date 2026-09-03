@@ -122,13 +122,43 @@ function OverviewPage() {
   const tierMix = overviewQ.data?.tierMix ?? [];
   const tierTotal = tierMix.reduce((a, t) => a + t.count, 0);
 
+  const greetName = (() => {
+    const local = session?.user?.email?.split("@")[0]?.split(/[._-]/)[0] ?? "";
+    return local ? local.charAt(0).toUpperCase() + local.slice(1) : "there";
+  })();
+
   return (
-    <ModulePage
-      eyebrow="Management Center"
-      title="Control Center"
-      description="Live state of every installation, license and customer across the OPSQAI fleet."
-      width="full"
-    >
+    <ModulePage eyebrow="Management Center" title="Control Center" width="full">
+      <div className="oq-soft-card relative mb-4 overflow-hidden p-5 md:p-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-[var(--gold-soft)] blur-2xl"
+        />
+        <div className="relative flex flex-wrap items-center gap-4">
+          <div className="min-w-0">
+            <h2 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
+              Welcome back, {greetName}! 👋
+            </h2>
+            <p className="mt-1.5 max-w-lg text-sm text-muted-foreground">
+              Live state of every installation, license and customer across the OPSQAI fleet.
+            </p>
+          </div>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <Button asChild size="sm" className="rounded-xl">
+              <Link to="/management/customers">
+                <Users2 className="mr-1.5 h-3.5 w-3.5" />
+                Customers
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="rounded-xl">
+              <Link to="/management/licenses">
+                <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                Licenses
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-4">
           {/* Licenses growth */}
