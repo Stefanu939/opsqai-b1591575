@@ -79,7 +79,8 @@ export function createSupabaseAiAuditRepository(
 
     async learnerSignals(companyId, limit): Promise<AuditLearnerSignalRow[]> {
       const [profiles, progress, enrollments, messages, assistant, quizzes] = await Promise.all([
-        sb.from("profiles").select("user_id,first_name,last_name,full_name,department").eq("company_id", companyId),
+        // `profiles` is keyed by `id` (references auth.users); alias it to user_id.
+        sb.from("profiles").select("user_id:id,first_name,last_name,full_name,department").eq("company_id", companyId),
         sb.from("academy_lesson_progress").select("user_id,time_spent_seconds").eq("company_id", companyId),
         sb.from("academy_enrollments").select("user_id,status,started_at,completed_at,due_at").eq("company_id", companyId),
         sb.from("messages").select("user_id,created_at,role").eq("company_id", companyId).eq("role", "user"),
