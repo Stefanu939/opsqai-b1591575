@@ -27,7 +27,7 @@ Shortening the video would not help — the flicker is not a length problem. It 
 
 ## Verification
 
-- Render a still pair a few frames apart in the middle of a screenshot shot and diff them — the screen content should be pixel-identical (or move by whole pixels only).
+- Render a still pair a few frames apart in the middle of a screenshot shot and diff them — the screen content must be pixel-identical (fully static).
 - Re-render the full MP4 to `/mnt/documents/OPSQAI_Demo_v2.mp4` and check size/bitrate plus 4-5 spot frames.
 
 ## Out of scope
