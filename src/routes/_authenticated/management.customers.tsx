@@ -37,6 +37,8 @@ import { Users, Search, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { confirmAction } from "@/components/ui/confirm";
+import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
+
 
 type NewCustomerInput = {
   name: string;
