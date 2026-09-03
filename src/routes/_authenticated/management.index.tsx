@@ -3,7 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 
-import { Building2, KeyRound, Package, Rocket, TrendingUp } from "lucide-react";
+import {
+  Building2,
+  KeyRound,
+  Package,
+  Rocket,
+  TrendingUp,
+  Users2,
+  CalendarClock,
+} from "lucide-react";
 import { getPlatformOverviewStats } from "@/lib/platform-overview.functions";
 import { platformStats } from "@/lib/companies.functions";
 import { ModulePage } from "@/components/app/module-page";
@@ -11,6 +19,8 @@ import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/ui/icon-tile";
 import { AreaTrend } from "@/components/ui/mini-chart";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatDistanceToNow } from "date-fns";
@@ -338,8 +348,11 @@ function OverviewPage() {
                 View all →
               </Link>
             </div>
-            <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
-              {kpis?.expiringSoon ?? "—"}
+            <div className="flex items-center gap-3">
+              <IconTile icon={CalendarClock} size="lg" tone="warning" />
+              <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
+                {kpis?.expiringSoon ?? "—"}
+              </div>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Licenses expiring within the next 30 days.
@@ -348,8 +361,11 @@ function OverviewPage() {
 
           <div className="oq-soft-card p-4 md:p-5">
             <h2 className="font-display mb-1 text-sm font-semibold text-foreground">Users</h2>
-            <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
-              {platform?.total_users ?? "—"}
+            <div className="flex items-center gap-3">
+              <IconTile icon={Users2} size="lg" />
+              <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
+                {platform?.total_users ?? "—"}
+              </div>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Across all tenants</p>
           </div>
