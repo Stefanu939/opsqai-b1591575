@@ -309,7 +309,9 @@ function CustomersPage() {
       align: "right",
       render: (r) => (
         <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <ManageCustomerDialog companyId={r.id} companyName={r.name} />
           <Button
+
             size="sm"
             variant="ghost"
             onClick={() =>
