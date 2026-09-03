@@ -190,9 +190,20 @@ export function ManagementShell({ children }: { children: ReactNode }) {
               className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
           </label>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-1.5">
             <NotificationsBell />
             <ThemeToggle />
+            <span className="ml-1 flex items-center gap-2 rounded-2xl border border-border bg-secondary/60 py-1 pl-1 pr-2.5">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[color:var(--gold)] text-[11px] font-semibold text-[color:var(--gold-foreground)]">
+                {(user?.email?.split("@")[0]?.slice(0, 2) ?? "OQ").toUpperCase()}
+              </span>
+              <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+                <span className="truncate text-xs font-semibold text-foreground">
+                  {user?.email?.split("@")[0] ?? "Account"}
+                </span>
+                <span className="truncate text-[10px] text-muted-foreground">Platform staff</span>
+              </span>
+            </span>
           </div>
         </header>
         <main className="oq-soft-card min-w-0 flex-1 overflow-hidden">{children}</main>
