@@ -17,6 +17,7 @@ import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
 import { useProductOverviewCopy } from "@/i18n/pages/product-overview";
+import demoVideo from "@/assets/opsqai-demo.mp4.asset.json";
 
 const PDF_HREF = "/OPSQAI_Product_Overview.pdf";
 
@@ -34,6 +35,16 @@ export const Route = createFileRoute("/product-overview")({
         { name: "Product Overview", path: "/product-overview" },
       ],
       jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "VideoObject",
+          name: "OPSQAI Product Demo",
+          description:
+            "Walkthrough of OPSQAI: customer configuration in the Management Center, signed license issuance, and the Windows Self-Hosted employee workspace.",
+          uploadDate: "2026-09-03",
+          duration: "PT1M39S",
+          contentUrl: "https://opsqai.de/product-overview",
+        },
         softwareApplicationLd({
           description:
             "OPSQAI is an Operational Intelligence Platform combining knowledge, AI, learning, intelligence and management in one workspace, available Cloud or Self-Hosted.",
