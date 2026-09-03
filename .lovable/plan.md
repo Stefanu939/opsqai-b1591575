@@ -13,8 +13,9 @@ Shortening the video would not help — the flicker is not a length problem. It 
 
 **Screenshots (main cause)**
 - Pre-downscale each capture once to the exact pixel size it is displayed at (Lanczos, written to `remotion/public/images/`), so the browser no longer resamples a 2880px image every frame.
-- Replace the continuous zoom/pan with either a fully static screen or a very slow move that is snapped to whole pixels, and apply an entrance-only spring (fade + slide) instead of animating scale for the whole shot duration.
-- Keep the window-frame card, rotation removed or set to 0 (a rotated bitmap also resamples each frame).
+- Remove the continuous zoom/pan entirely: each screenshot is fully static for the whole shot. Only the card entrance stays animated (fade + slide in, then it settles and does not move).
+- Keep the window-frame card, with rotation removed (a rotated bitmap also resamples each frame).
+
 
 **Background**
 - Freeze the grid (no translate) and lower its opacity slightly.
@@ -26,7 +27,7 @@ Shortening the video would not help — the flicker is not a length problem. It 
 
 ## Verification
 
-- Render a still pair a few frames apart in the middle of a screenshot shot and diff them — the screen content should be pixel-identical (or move by whole pixels only).
+- Render a still pair a few frames apart in the middle of a screenshot shot and diff them — the screen content must be pixel-identical (fully static).
 - Re-render the full MP4 to `/mnt/documents/OPSQAI_Demo_v2.mp4` and check size/bitrate plus 4-5 spot frames.
 
 ## Out of scope
