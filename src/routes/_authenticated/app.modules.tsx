@@ -64,12 +64,23 @@ function fmtDate(sec: number | null): string {
 function EntitlementsPage() {
   const license = useLicense();
   const selfhost = getClientDeploymentMode() === "selfhost";
-  const granted = new Set<string>(license.modules ?? []);
+  // Product / add-on entitlements travel in `license.products`; `license.modules`
+  // only carries the legacy module vocabulary, so product keys never appear there.
+  const cfg = resolveEffectiveConfig({
+    profile: license.profile,
+    enabledProducts: license.products,
+    entitlements: [...(license.products ?? []), ...(license.modules ?? [])],
+  });
+  const granted = new Set<string>([
+    ...cfg.products,
+    ...cfg.addons,
+    ...(license.modules ?? []),
+  ]);
 
   const products = PRODUCT_CATALOG.filter(
     (p) => granted.has(p.key) || p.status === "available" || license.unlimited,
   );
-  const profile = getCompanyProfile(null);
+  const profile = getCompanyProfile(license.profile);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [note, setNote] = useState("");
