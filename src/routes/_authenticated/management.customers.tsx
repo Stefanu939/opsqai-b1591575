@@ -37,6 +37,8 @@ import { Users, Search, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { confirmAction } from "@/components/ui/confirm";
+import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
+
 
 type NewCustomerInput = {
   name: string;
@@ -309,7 +311,9 @@ function CustomersPage() {
       align: "right",
       render: (r) => (
         <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <ManageCustomerDialog companyId={r.id} companyName={r.name} />
           <Button
+
             size="sm"
             variant="ghost"
             onClick={() =>
