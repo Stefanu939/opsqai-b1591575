@@ -1,12 +1,12 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, interpolate } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { C } from "../theme";
 
 /** Persistent Aurora Noir background: drifting violet/blue auras + fine grid. */
 export const Aurora: React.FC = () => {
   const f = useCurrentFrame();
   const drift = (speed: number, amp: number, phase = 0) =>
-    Math.sin((f / speed) + phase) * amp;
+    Math.sin((f / (speed * 3)) + phase) * (amp * 0.35);
 
   return (
     <AbsoluteFill style={{ backgroundColor: C.bg }}>
@@ -27,10 +27,9 @@ export const Aurora: React.FC = () => {
       />
       <AbsoluteFill
         style={{
-          opacity: 0.16,
+          opacity: 0.10,
           backgroundImage: `linear-gradient(${C.line} 1px, transparent 1px), linear-gradient(90deg, ${C.line} 1px, transparent 1px)`,
           backgroundSize: "72px 72px",
-          transform: `translateY(${interpolate(f, [0, 1700], [0, -70])}px)`,
         }}
       />
       <AbsoluteFill
