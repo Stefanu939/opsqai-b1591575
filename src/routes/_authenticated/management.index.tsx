@@ -3,7 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 
-import { Building2, KeyRound, Package, Rocket, TrendingUp } from "lucide-react";
+import {
+  Building2,
+  KeyRound,
+  Package,
+  Rocket,
+  TrendingUp,
+  Users2,
+  CalendarClock,
+} from "lucide-react";
 import { getPlatformOverviewStats } from "@/lib/platform-overview.functions";
 import { platformStats } from "@/lib/companies.functions";
 import { ModulePage } from "@/components/app/module-page";
@@ -11,6 +19,8 @@ import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/ui/icon-tile";
 import { AreaTrend } from "@/components/ui/mini-chart";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatDistanceToNow } from "date-fns";
@@ -122,13 +132,43 @@ function OverviewPage() {
   const tierMix = overviewQ.data?.tierMix ?? [];
   const tierTotal = tierMix.reduce((a, t) => a + t.count, 0);
 
+  const greetName = (() => {
+    const local = session?.user?.email?.split("@")[0]?.split(/[._-]/)[0] ?? "";
+    return local ? local.charAt(0).toUpperCase() + local.slice(1) : "there";
+  })();
+
   return (
-    <ModulePage
-      eyebrow="Management Center"
-      title="Control Center"
-      description="Live state of every installation, license and customer across the OPSQAI fleet."
-      width="full"
-    >
+    <ModulePage eyebrow="Management Center" title="Control Center" width="full">
+      <div className="oq-soft-card relative mb-4 overflow-hidden p-5 md:p-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-[var(--gold-soft)] blur-2xl"
+        />
+        <div className="relative flex flex-wrap items-center gap-4">
+          <div className="min-w-0">
+            <h2 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
+              Welcome back, {greetName}! 👋
+            </h2>
+            <p className="mt-1.5 max-w-lg text-sm text-muted-foreground">
+              Live state of every installation, license and customer across the OPSQAI fleet.
+            </p>
+          </div>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <Button asChild size="sm" className="rounded-xl">
+              <Link to="/management/customers">
+                <Users2 className="mr-1.5 h-3.5 w-3.5" />
+                Customers
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="rounded-xl">
+              <Link to="/management/licenses">
+                <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                Licenses
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-4">
           {/* Licenses growth */}
@@ -308,8 +348,11 @@ function OverviewPage() {
                 View all →
               </Link>
             </div>
-            <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
-              {kpis?.expiringSoon ?? "—"}
+            <div className="flex items-center gap-3">
+              <IconTile icon={CalendarClock} size="lg" tone="warning" />
+              <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
+                {kpis?.expiringSoon ?? "—"}
+              </div>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Licenses expiring within the next 30 days.
@@ -318,8 +361,11 @@ function OverviewPage() {
 
           <div className="oq-soft-card p-4 md:p-5">
             <h2 className="font-display mb-1 text-sm font-semibold text-foreground">Users</h2>
-            <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
-              {platform?.total_users ?? "—"}
+            <div className="flex items-center gap-3">
+              <IconTile icon={Users2} size="lg" />
+              <div className="font-display text-3xl font-semibold tabular-nums text-foreground">
+                {platform?.total_users ?? "—"}
+              </div>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Across all tenants</p>
           </div>

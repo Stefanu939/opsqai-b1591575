@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LifeBuoy,
+  Headphones,
   Download,
   FileText,
   MessagesSquare,
@@ -22,11 +22,16 @@ import {
   Menu,
   X,
   CalendarDays,
-
+  Search,
+  ChevronDown,
 } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/ui/icon-tile";
+import { LogoMark } from "@/components/brand/logo";
+import { NotificationsBell } from "@/components/app/notifications-bell";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { RouteErrorState } from "@/components/app/route-error-state";
 
 // Customer Portal — cloud-only surface for designated customer contacts:
@@ -64,6 +69,13 @@ const NAV: readonly NavItem[] = [
   { to: "/portal/admin", label: "Admin", icon: Shield, staffOnly: true },
 ];
 
+function initials(email: string | null | undefined) {
+  const local = email?.split("@")[0] ?? "";
+  const parts = local.split(/[._-]+/).filter(Boolean);
+  const raw = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? parts[0]?.[1] ?? "");
+  return (raw || "OQ").toUpperCase();
+}
+
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isPlatformAdmin, signOut, user } = useAuth();
@@ -93,24 +105,26 @@ function PortalLayout() {
   };
   const SidebarInner = (
     <>
-      <div className="flex items-center gap-2.5 px-2 py-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[var(--gold-soft)] border border-[var(--gold-line)]">
-          <LifeBuoy className="h-4 w-4 text-[color:var(--gold)]" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-display font-semibold text-sm leading-tight">Customer Portal</div>
-          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">OPSQAI</div>
+      <div className="flex items-center gap-2.5 px-2 py-4">
+        <LogoMark className="h-8 w-8" />
+        <div className="min-w-0 flex-1 leading-tight">
+          <div className="font-display text-lg font-semibold tracking-tight text-foreground">
+            OPSQAI
+          </div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[color:var(--gold)]">
+            Customer Portal
+          </div>
         </div>
         <button
           type="button"
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
-          className="md:hidden h-8 w-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary"
+          className="md:hidden flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
-      <nav className="mt-1 flex-1 space-y-1 overflow-y-auto pb-2">
+      <nav className="mt-1 flex-1 space-y-1.5 overflow-y-auto pb-2">
         {visible.map((item) => {
           const active = item.exact ? path === item.to : path.startsWith(item.to);
           const Icon = item.icon;
@@ -119,28 +133,40 @@ function PortalLayout() {
               key={item.to}
               to={item.to}
               onClick={() => setMobileOpen(false)}
-              className={`oq-pill flex items-center gap-3 px-3 py-2.5 text-sm ${
+              className={`oq-pill flex items-center gap-3 px-2.5 py-2 text-sm ${
                 active
                   ? "bg-[color:var(--gold)] font-semibold text-[color:var(--gold-foreground)] shadow-[0_10px_24px_-14px_color-mix(in_oklab,var(--gold)_80%,transparent)]"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               }`}
             >
-              <Icon className="h-4 w-4 shrink-0" strokeWidth={1.9} />
+              <span
+                aria-hidden
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl border ${
+                  active
+                    ? "border-transparent bg-[color:var(--gold-foreground)]/15 text-[color:var(--gold-foreground)]"
+                    : "border-border bg-secondary/70"
+                }`}
+              >
+                <Icon className="h-4 w-4" strokeWidth={1.8} />
+              </span>
               <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
       <div className="rounded-2xl border border-border bg-secondary/60 p-3">
-        <div className="text-xs font-semibold text-foreground">Need help?</div>
-        <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-          Our support team is here for you.
-        </p>
-        {user?.email && (
-          <div className="mt-2 truncate text-[11px] text-muted-foreground" title={user.email}>
-            {user.email}
+        <div className="flex items-start gap-2.5">
+          <IconTile icon={Headphones} size="md" round />
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-foreground">Need help?</div>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+              Our support team is here for you.
+            </p>
           </div>
-        )}
+        </div>
+        <Button asChild variant="outline" size="sm" className="mt-3 w-full rounded-xl">
+          <Link to="/portal/support">Contact support</Link>
+        </Button>
         <Button
           variant="ghost"
           size="sm"
@@ -171,20 +197,40 @@ function PortalLayout() {
         </>
       )}
       <main className="flex min-w-0 flex-1 flex-col gap-4">
-        <div className="md:hidden oq-soft-card sticky top-0 z-30 flex items-center gap-2 h-14 px-3">
+        <div className="oq-soft-card sticky top-0 z-30 flex h-14 items-center gap-2 px-3 md:h-16 md:px-4">
           <button
             type="button"
             aria-label="Open menu"
             onClick={() => setMobileOpen(true)}
-            className="h-9 w-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center">
-              <LifeBuoy className="h-3.5 w-3.5 text-[color:var(--gold)]" />
-            </div>
-            <span className="text-sm font-medium">Customer Portal</span>
+          <label className="hidden min-w-0 flex-1 items-center gap-2 rounded-2xl border border-border bg-secondary/60 px-3 py-2 sm:flex">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              type="search"
+              placeholder="Search documentation, downloads, tickets…"
+              className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+          </label>
+          <div className="ml-auto flex items-center gap-1.5">
+            <NotificationsBell />
+            <ThemeToggle />
+            <span className="ml-1 flex items-center gap-2 rounded-2xl border border-border bg-secondary/60 py-1 pl-1 pr-2.5">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[color:var(--gold)] text-[11px] font-semibold text-[color:var(--gold-foreground)]">
+                {initials(user?.email)}
+              </span>
+              <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+                <span className="truncate text-xs font-semibold text-foreground">
+                  {user?.email?.split("@")[0] ?? "Account"}
+                </span>
+                <span className="truncate text-[10px] text-muted-foreground">
+                  {user?.email?.split("@")[1] ?? "OPSQAI"}
+                </span>
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            </span>
           </div>
         </div>
         <div className="oq-soft-card min-w-0 flex-1 overflow-hidden">
@@ -194,4 +240,3 @@ function PortalLayout() {
     </div>
   );
 }
-

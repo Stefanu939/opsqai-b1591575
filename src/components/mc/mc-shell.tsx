@@ -106,13 +106,23 @@ export function ManagementShell({ children }: { children: ReactNode }) {
                     to={item.to}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      "oq-pill flex items-center gap-3 px-3 py-2.5 text-sm",
+                      "oq-pill flex items-center gap-3 px-2.5 py-2 text-sm",
                       active
                         ? "bg-[color:var(--gold)] font-semibold text-[color:var(--gold-foreground)] shadow-[0_10px_24px_-14px_color-mix(in_oklab,var(--gold)_80%,transparent)]"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
-                    <Icon className="h-4 w-4 shrink-0" strokeWidth={1.9} />
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-xl border",
+                        active
+                          ? "border-transparent bg-[color:var(--gold-foreground)]/15 text-[color:var(--gold-foreground)]"
+                          : "border-border bg-secondary/70",
+                      )}
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={1.8} />
+                    </span>
                     <span className="truncate">{item.label}</span>
                   </Link>
                 );
@@ -180,9 +190,20 @@ export function ManagementShell({ children }: { children: ReactNode }) {
               className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
           </label>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-1.5">
             <NotificationsBell />
             <ThemeToggle />
+            <span className="ml-1 flex items-center gap-2 rounded-2xl border border-border bg-secondary/60 py-1 pl-1 pr-2.5">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[color:var(--gold)] text-[11px] font-semibold text-[color:var(--gold-foreground)]">
+                {(user?.email?.split("@")[0]?.slice(0, 2) ?? "OQ").toUpperCase()}
+              </span>
+              <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+                <span className="truncate text-xs font-semibold text-foreground">
+                  {user?.email?.split("@")[0] ?? "Account"}
+                </span>
+                <span className="truncate text-[10px] text-muted-foreground">Platform staff</span>
+              </span>
+            </span>
           </div>
         </header>
         <main className="oq-soft-card min-w-0 flex-1 overflow-hidden">{children}</main>
