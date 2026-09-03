@@ -18,12 +18,12 @@ Style stays on the active Aurora Noir direction (navy near-black, violet/blue au
 ## How screens are captured
 
 1. Mint a browser session for a non-privileged auth user, sign in and capture real screens at 1280x1800:
-   - `/management/customers` (New Customer dialog with Company Profile + product switches)
-   - `/management/licenses` (Customers & Entitlements panel, Issue License)
-   - `/management/installations`
-   - `/portal` license & entitlements view
-   - `/app` dashboard, `/app/chat`, one `/app/products/<product>/<workspace>` workspace
-2. Neutralize data: before screenshotting, replace real customer names/emails in the rendered DOM with neutral demo labels ("Nordwind Logistik GmbH", "demo@example.com") via a page script, so no real customer data appears in the video. Screenshots only — no database writes.
+  - `/management/customers` (New Customer dialog with Company Profile + product switches)
+  - `/management/licenses` (Customers & Entitlements panel, Issue License)
+  - `/management/installations`
+  - `/portal` license & entitlements view
+  - `/app` dashboard, `/app/chat`, one `/app/products/<product>/<workspace>` workspace
+2. Neutralize data: before screenshotting, replace real customer names/emails in the rendered DOM with neutral demo labels ("Nordwind Logistik GmbH", "[demo@example.com](mailto:demo@example.com)") via a page script, so no real customer data appears in the video. Screenshots only — no database writes.
 3. Screenshots go to `remotion/public/images/`.
 
 ## Video build
@@ -33,9 +33,9 @@ Style stays on the active Aurora Noir direction (navy near-black, violet/blue au
 - All motion frame-based (`useCurrentFrame`, `interpolate`, `spring`); no CSS animation.
 - Rendered via `scripts/render-remotion.mjs` (chrome-for-testing, muted, concurrency 1) to `/mnt/documents/OPSQAI_Demo.mp4`, delivered as a downloadable artifact in chat.
 - Frame spot-checks at each scene start before final render.
+- Voice over the context 
 
 ## Out of scope
 
 - No changes to app code, styling, licensing logic, or database.
 - No Windows installer screen recording (installer runs outside the sandbox); the Self-Hosted section uses the app UI as served by the same codebase.
-- No audio track.
