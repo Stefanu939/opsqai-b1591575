@@ -3,6 +3,13 @@ import { useT } from "@/i18n";
 // Copy for the public /product-overview page (EN + DE).
 
 const en = {
+  demo: {
+    eyebrow: "Product demo",
+    headline: "See the platform",
+    serifAccent: "end to end.",
+    body: "A short walkthrough: how a customer is configured, how the signed license is issued, and what employees see inside the Windows Self-Hosted workspace.",
+    caption: "English narration with captions · approx. 1:40",
+  },
   hero: {
     eyebrow: "Product Overview · Operational Intelligence Platform",
     headline: "One workspace for operational knowledge, AI",
@@ -245,6 +252,13 @@ const en = {
 type Copy = typeof en;
 
 const de: Copy = {
+  demo: {
+    eyebrow: "Produkt-Demo",
+    headline: "Die Plattform",
+    serifAccent: "von A bis Z.",
+    body: "Ein kurzer Rundgang: wie ein Kunde konfiguriert wird, wie die signierte Lizenz ausgestellt wird und was Mitarbeitende im Windows-Self-Hosted-Arbeitsbereich sehen.",
+    caption: "Englische Sprecherstimme mit Untertiteln · ca. 1:40",
+  },
   hero: {
     eyebrow: "Produktüberblick · Operational Intelligence Platform",
     headline: "Ein Arbeitsbereich für operatives Wissen, KI",
@@ -488,6 +502,13 @@ const de: Copy = {
 };
 
 const ro: Copy = {
+  demo: {
+    eyebrow: "Demo produs",
+    headline: "Vezi platforma",
+    serifAccent: "de la cap la cap.",
+    body: "Un tur scurt: cum se configurează un client, cum se emite licența semnată și ce văd angajații în aplicația Windows Self-Hosted.",
+    caption: "Narațiune în engleză cu subtitrare · aprox. 1:40",
+  },
   hero: {
     eyebrow: "Prezentare produs · Platformă de Operational Intelligence",
     headline: "Un singur spațiu de lucru pentru cunoștințe operaționale, AI",

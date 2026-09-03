@@ -26,7 +26,7 @@ export const ScreenCard: React.FC<Props> = ({
   zoomTo = 1.09,
   panY = [0, -40],
   width = 1180,
-  rotate = 0,
+  rotate: _rotate = 0,
   ratio = 900 / 1440,
   style,
   duration,
@@ -35,14 +35,10 @@ export const ScreenCard: React.FC<Props> = ({
   const { fps } = useVideoConfig();
   const s = spring({ frame: frame - delay, fps, config: { damping: 200 } });
   const enterY = interpolate(s, [0, 1], [46, 0]);
-  const scale = interpolate(frame - delay, [0, duration], [zoomFrom, zoomTo], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const y = interpolate(frame - delay, [0, duration], panY, {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  // Fully static image: any continuous scale/pan of a downsampled UI capture
+  // resamples every frame and reads as flicker. Only the frame animates in.
+  void zoomFrom; void zoomTo; void panY; void duration;
+
 
   return (
     <div
@@ -54,7 +50,7 @@ export const ScreenCard: React.FC<Props> = ({
         background: C.bgAlt,
         boxShadow: "0 60px 140px rgba(2,4,12,0.7), 0 0 0 1px rgba(124,92,255,0.14)",
         opacity: s,
-        transform: `translateY(${enterY}px) rotate(${rotate}deg)`,
+        transform: `translateY(${enterY}px)`,
         ...style,
       }}
     >
@@ -79,8 +75,7 @@ export const ScreenCard: React.FC<Props> = ({
           style={{
             width: "100%",
             display: "block",
-            transform: `scale(${scale}) translateY(${y}px)`,
-            transformOrigin: "50% 12%",
+    
           }}
         />
       </div>

@@ -17,6 +17,7 @@ import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
 import { useProductOverviewCopy } from "@/i18n/pages/product-overview";
+import demoVideo from "@/assets/opsqai-demo.mp4.asset.json";
 
 const PDF_HREF = "/OPSQAI_Product_Overview.pdf";
 
@@ -34,6 +35,16 @@ export const Route = createFileRoute("/product-overview")({
         { name: "Product Overview", path: "/product-overview" },
       ],
       jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "VideoObject",
+          name: "OPSQAI Product Demo",
+          description:
+            "Walkthrough of OPSQAI: customer configuration in the Management Center, signed license issuance, and the Windows Self-Hosted employee workspace.",
+          uploadDate: "2026-09-03",
+          duration: "PT1M39S",
+          contentUrl: "https://opsqai.de/product-overview",
+        },
         softwareApplicationLd({
           description:
             "OPSQAI is an Operational Intelligence Platform combining knowledge, AI, learning, intelligence and management in one workspace, available Cloud or Self-Hosted.",
@@ -112,7 +123,32 @@ function ProductOverviewPage() {
         </div>
       </SectionShell>
 
+      {/* 1b — Demo video */}
+      <SectionShell className="oix-hairline-bottom">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <EditorialHeadline size="md" eyebrow={c.demo.eyebrow} serifAccent={c.demo.serifAccent}>
+              {c.demo.headline}
+            </EditorialHeadline>
+            <p className="mt-6 text-base leading-relaxed text-[var(--oix-cream)]/80">{c.demo.body}</p>
+            <p className="mt-3 text-xs uppercase tracking-[0.22em] text-[var(--oix-gold)]">
+              {c.demo.caption}
+            </p>
+          </div>
+          <div className="border border-[var(--oix-gold-line)] bg-[var(--oix-bg-deep)] p-2">
+            <video
+              className="block w-full"
+              src={demoVideo.url}
+              controls
+              playsInline
+              preload="metadata"
+            />
+          </div>
+        </div>
+      </SectionShell>
+
       {/* 2 — What is OPSQAI */}
+
       <SectionShell>
         <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
           <div>
