@@ -106,13 +106,23 @@ export function ManagementShell({ children }: { children: ReactNode }) {
                     to={item.to}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      "oq-pill flex items-center gap-3 px-3 py-2.5 text-sm",
+                      "oq-pill flex items-center gap-3 px-2.5 py-2 text-sm",
                       active
                         ? "bg-[color:var(--gold)] font-semibold text-[color:var(--gold-foreground)] shadow-[0_10px_24px_-14px_color-mix(in_oklab,var(--gold)_80%,transparent)]"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
-                    <Icon className="h-4 w-4 shrink-0" strokeWidth={1.9} />
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-xl border",
+                        active
+                          ? "border-transparent bg-[color:var(--gold-foreground)]/15 text-[color:var(--gold-foreground)]"
+                          : "border-border bg-secondary/70",
+                      )}
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={1.8} />
+                    </span>
                     <span className="truncate">{item.label}</span>
                   </Link>
                 );
