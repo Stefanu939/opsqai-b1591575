@@ -11,11 +11,11 @@
 - [x] Make the four pricing cards direct, keyboard-accessible destinations
 - [x] Replace moving public hero scenes with Enterprise Live Intelligence visuals
 - [x] Align website copy, metadata and public documentation with Windows Self-Hosted as the customer product
-- [ ] Establish one product-wide Graphite Precision token and component system with light/dark parity
-- [ ] Align every Self-Hosted shell, dashboard, module, chat, Academy, product workspace, and utility state
-- [ ] Align the web first-run wizard and native Windows installer/desktop shell
-- [ ] Align every Management Center page and shared shell
-- [ ] Align every Customer Portal page and shared shell
-- [ ] Remove obsolete Aurora Noir, glass, glow, legacy gold, and excessive-radius presentation patterns
-- [ ] Update the current design documentation to make product-wide Graphite Precision authoritative
+- [x] Establish one product-wide Graphite Precision token and component system with light/dark parity
+- [x] Align every Self-Hosted shell, dashboard, module, chat, Academy, product workspace, and utility state
+- [x] Align the web first-run wizard and native Windows installer/desktop shell
+- [x] Align every Management Center page and shared shell
+- [x] Align every Customer Portal page and shared shell
+- [x] Remove obsolete Aurora Noir, glass, glow, legacy gold, and excessive-radius presentation patterns
+- [x] Update the current design documentation to make product-wide Graphite Precision authoritative
 - [ ] Verify representative and outlier screens on desktop/mobile in light/dark, plus typecheck/build/installer guards

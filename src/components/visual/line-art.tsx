@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Abstract generative line field — data-inspired backdrop for Aurora Noir
+ * Abstract generative line field — data-inspired backdrop for Graphite Precision
  * surfaces. Deterministic (no randomness) so SSR and hydration agree.
  */
 export function LineArt({
