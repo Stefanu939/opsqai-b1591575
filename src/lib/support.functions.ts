@@ -51,6 +51,14 @@ export const listSupportConversations = createServerFn({ method: "POST" })
     if (data.priority) q = q.eq("priority", data.priority);
     if (data.assigned_to) q = q.eq("assigned_to", data.assigned_to);
     if (data.search) q = q.ilike("subject", `%${data.search}%`);
+    if (data.scope === "platform") {
+      // Management Center staff only see tickets of the customers they own.
+      const { resolveMcScope } = await import("@/lib/mc-scope.server");
+      const scope = await resolveMcScope(context);
+      if (!scope.isSuperAdmin) {
+        q = q.in("company_id", scope.companyIds?.length ? scope.companyIds : [""]);
+      }
+    }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
