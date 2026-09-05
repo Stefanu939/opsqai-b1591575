@@ -658,27 +658,27 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
 
 /* Marketing pages are intentionally static and calm. Blog interactions remain
    untouched through the route-aware .oix-blog scope. Keyboard focus stays visible. */
-.oix-static :where(a, button, [role="button"], [data-slot="card"]),
-.oix-static :where(a, button, [role="button"], [data-slot="card"]) * {
+.oix-static :where(main, footer) :where(a, button, [role="button"], [data-slot="card"]),
+.oix-static :where(main, footer) :where(a, button, [role="button"], [data-slot="card"]) * {
   transition-property: none !important;
 }
 
-.oix-static :where(a, button, [role="button"]):hover,
-.oix-static :where(a, button, [role="button"]):hover * {
+.oix-static :where(main, footer) :where(a, button, [role="button"]):hover,
+.oix-static :where(main, footer) :where(a, button, [role="button"]):hover * {
   transform: none !important;
 }
 
-.oix-static :where([data-slot="card"]):hover {
+.oix-static :where(main, footer) :where([data-slot="card"]):hover {
   transform: none !important;
   box-shadow: var(--oq-soft-shadow) !important;
 }
 
-.oix-static :where(a, button, [role="button"]):hover {
+.oix-static :where(main, footer) :where(a, button, [role="button"]):hover {
   filter: none !important;
 }
 
-.oix-static .oq-lift:hover,
-.oix-static .oq-soft-lift:hover {
+.oix-static :where(main, footer) .oq-lift:hover,
+.oix-static :where(main, footer) .oq-soft-lift:hover {
   transform: none !important;
   box-shadow: var(--shadow-soft) !important;
 }
