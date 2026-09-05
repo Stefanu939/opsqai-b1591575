@@ -69,7 +69,7 @@ function CompanyPage() {
               </OixButton>
             </div>
           </div>
-          <EnterpriseIntelligence variant="company" className="hidden md:flex" />
+          <EnterpriseIntelligence variant="company" className="hidden md:block" />
         </div>
       </section>
 

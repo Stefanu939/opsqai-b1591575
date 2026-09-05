@@ -69,7 +69,7 @@ function SelfHostedPage() {
               </OixButton>
             </div>
           </div>
-          <EnterpriseIntelligence variant="product" className="hidden md:flex" />
+          <EnterpriseIntelligence variant="product" className="hidden md:block" />
         </div>
       </section>
 

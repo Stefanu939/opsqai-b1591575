@@ -187,7 +187,7 @@ function Hero() {
             </OixButton>
           </div>
         </div>
-        <EnterpriseIntelligence variant="platform" className="hidden md:flex" />
+        <EnterpriseIntelligence variant="platform" className="hidden md:block" />
 
         <div className="pointer-events-none mt-10 hidden items-center gap-6 text-xs font-medium text-[var(--oix-cream-dim)] md:flex">
           {acts.map((a) => (

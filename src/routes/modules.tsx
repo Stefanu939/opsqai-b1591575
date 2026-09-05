@@ -65,7 +65,7 @@ function ModulesPage() {
             </OixButton>
           </div>
           </div>
-          <EnterpriseIntelligence variant="platform" compact className="hidden md:flex" />
+          <EnterpriseIntelligence variant="platform" compact className="hidden md:block" />
         </div>
       </section>
 
