@@ -73,6 +73,10 @@ export const getCompanyArchitecture = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+      await assertCompanyInScope(context, data.company_id);
+    }
     const admin = await getCloudSupabaseAdmin("company-products");
 
     const [{ data: company, error: cErr }, { data: rows, error: pErr }] = await Promise.all([
