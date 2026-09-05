@@ -1,72 +1,46 @@
-# Current design — Aurora Noir
+# Current design — Graphite Precision public site
 
-> This file describes the design that is **implemented in the codebase today**, as a
-> consistency reference. It is not a permanent standard and it does not lock the product
-> to any palette, typography or graphic style. When a visual change is explicitly
-> requested, the implementation changes and this file is rewritten to match the new
-> reality — the old description is deleted, not kept as an alternative. History lives in
-> git only.
->
-> There is exactly one current design per product scope at any given time.
+This file describes the design implemented in the codebase today. It is a consistency reference, not an immutable design lock. An explicitly approved visual change replaces this description; history remains in version control.
 
-Source of truth for values: `src/styles.css`. This document only summarises what is there.
+Source of truth for values: `src/styles.css`.
 
----
+## Public website
 
-## Shared visual language (all scopes)
+- **Scope:** `.oix-shell` only. The redesign does not alter Self-Hosted, Management Center, or Customer Portal.
+- **Direction:** light-first European enterprise editorial design with quiet, structured surfaces and factual system diagrams.
+- **Palette:** Graphite `#101315` / `#252B2D`, paper `#F1F3EF`, operational green `#26A67A`, and supporting teal `#247D91`. Dark mode uses the same palette with inverted foundations.
+- **Typography:** Instrument Serif for editorial display headings and Work Sans for navigation, body copy, controls, and data labels.
+- **Layout:** magazine-like hierarchy, restrained cards, clear section rules, generous whitespace, and compact factual labels.
+- **Motion:** non-blog public pages remain calm and static. Blog links and cards retain interactive feedback. Focus indicators remain visible everywhere.
+- **Navigation:** complete desktop navigation plus a mobile sheet with routes, EN/DE/RO language controls, theme control, contact, and sign-in actions.
+- **Visuals:** static diagrams explain the Windows Self-Hosted product, Core, licensed Products, Add-ons, and cloud support boundaries. No decorative 3D or unsupported performance/compliance claims.
 
-- **Graphic style** — "Aurora Noir": near-black navy foundations, atmospheric violet/blue
-  auras, premium floating surfaces with hairline borders, abstract data-inspired line art
-  and deterministic starfields, generous whitespace.
-- **Color direction** — dark (default): background `#0a0b14`, surfaces
-  `#111320` / `#171a2b` / `#1f2338`, violet primary `#8b6bff` (`#5b3df5` solid), blue
-  secondary signal `#5b8cf7`, ember accent `#e2793f`, text `#eef0fa`.
-  Light: background `#f7f8fc`, surfaces `#e9ecf6` / `#f2f4fa`, primary `#5b3df5`,
-  blue `#2f6bd8`, ink `#0f1222`.
-- **Typography** — display `Space Grotesk`, authenticated-product body `Inter`, public-site
-  body `DM Sans`, mono `JetBrains Mono`.
-- **Radius** — `--radius: 0.875rem` (14px cards), `--radius-panel: 1.25rem` (20px panels).
-- **Elevation** — glow + soft shadow tokens (`--shadow-soft`, `--shadow-lift`,
-  `--shadow-glow`); depth comes from hairlines and ambient glow, not heavy drop shadows.
-- **Motion** — authenticated-product transitions explain state. Public marketing pages are
-  deliberately static with no visual hover effects; blog cards and links remain interactive.
-- **Iconography** — `lucide-react`, thin strokes, currentColor only.
+Primary public primitives:
 
-Shared primitives:
+- `src/components/oix/oix-layout.tsx`
+- `src/components/oix/nav-shell.tsx`
+- `src/components/oix/footer-oix.tsx`
+- `src/components/oix/editorial-headline.tsx`
+- `src/components/oix/section-shell.tsx`
+- `src/components/oix/buttons.tsx`
+- `src/components/oix/enterprise-intelligence.tsx`
 
-- `src/components/visual/ambient-glow.tsx` — violet/blue/ember token-based auras.
-- `src/components/visual/line-art.tsx` — deterministic SVG wave/fan line fields.
-- `src/components/visual/starfield.tsx` — deterministic luminous point fields.
-- `src/components/ui/button.tsx` — `violet`, `glass`, `subtle` variants.
-- `.n` / `n-card` / `n-lift` utilities in `src/styles.css`.
+## Authenticated products
 
-## Self-Hosted — `/app/*`
+Authenticated scopes retain their existing visual systems and behavior:
 
-Global `:root` / `.dark` tokens; module shell `src/components/app/module-page.tsx`
-(glass header + ambient aura + bento content areas). Comfortable-dense: `max-w-7xl`,
-`space-y-4`, `px-4 py-6` / `md:px-6 md:py-8`, sticky secondary toolbar.
+- Self-Hosted: `/app/*`
+- Management Center: `/management/*`
+- Customer Portal: `/portal/*`
 
-## Management Center — `/management/*` and Customer Portal — `/portal/*`
+Their licensing, entitlements, RBAC, product architecture, data access, and workflows are independent from the public-site visual scope.
 
-Shell `src/components/mc/mc-shell.tsx` and `src/routes/_authenticated/portal.tsx` use the
-`.oq-soft` scope, which now inherits the Aurora Noir tokens: floating `oq-soft-card`
-regions (sidebar, header, main) separated by `gap-4`, 248px sidebar, 14/16px header bar,
-soft shadow + hover lift.
+## Product truth
 
-## Public website — marketing routes
-
-Wrapper `.oix-shell` (`src/components/oix/oix-layout.tsx`). Enterprise Live Intelligence:
-left-aligned editorial product message paired with restrained, static operational diagrams
-made from governed data lines, status panels, concentric system rings and a central Windows
-Self-Hosted core. No cubes, perpetual rotation, drifting particles or decorative hover motion.
-Marketing tokens retain the legacy `--oix-*` names mapped to Aurora Noir values.
-
----
-
-## Notes
-
-- Components read semantic tokens (`bg-background`, `text-foreground`, `border-border`, …).
-  This is a technical convention that keeps light/dark and per-scope theming working — it
-  is independent of which palette is currently active.
-- Languages: EN / DE / RO. Common app UI, marketing copy and every per-page
-  dictionary in `src/i18n/pages/*` have full RO translations.
+- Windows Self-Hosted is the customer product.
+- Core capabilities are permanent platform capabilities.
+- Products are Operations, Quality & Compliance, Logistics, HR, Finance, and Inventory; availability is shown truthfully.
+- Optional Add-ons are separately entitled.
+- Management Center is an OPSQAI staff support service.
+- Customer Portal is a support surface for designated customer contacts.
+- Public content is maintained in EN, DE, and RO.
