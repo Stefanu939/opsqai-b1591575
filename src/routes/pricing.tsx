@@ -81,7 +81,7 @@ function PricingPage() {
               {t.hero.body}
             </p>
           </div>
-          <EnterpriseIntelligence variant="platform" compact className="hidden md:flex" />
+          <EnterpriseIntelligence variant="platform" compact className="hidden md:block" />
         </div>
       </section>
 

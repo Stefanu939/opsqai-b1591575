@@ -130,7 +130,7 @@ function ContactPage() {
               {t.heroBody}
             </p>
           </div>
-          <EnterpriseIntelligence variant="contact" compact className="hidden md:flex" />
+          <EnterpriseIntelligence variant="contact" compact className="hidden md:block" />
         </div>
       </section>
 

@@ -66,7 +66,7 @@ function SecurityPage() {
       {/* Cinematic hero — vault of signatures */}
       <section className="relative isolate min-h-[90vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
         <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32 grid md:grid-cols-2 gap-12 items-center">
-          <EnterpriseIntelligence variant="security" className="hidden md:flex" />
+          <EnterpriseIntelligence variant="security" className="hidden md:block" />
           <div>
             <EditorialHeadline
               as="h1"
