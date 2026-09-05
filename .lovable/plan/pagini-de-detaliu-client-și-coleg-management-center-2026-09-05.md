@@ -1,11 +1,13 @@
 # Pagini de detaliu: Client și Coleg (Management Center)
 
 ## Ce există deja (verificat)
+
 - Pagina de detaliu client există la `/management/companies/$id` cu taburi: Overview, Products, Installations, Licenses, Download, Activity — dar îi lipsesc contractul, tichetele de suport, accesul partajat și acțiunile rapide.
 - Cardurile de colegi (`OwnerCards`) din Customers doar filtrează tabelul — nu duc nicăieri.
 - Tabelul de clienți nu are link pe numele clientului.
 
 ## Variante alese
+
 - **Client:** Taburi complete
 - **Coleg:** Panou complet de lucru
 - **Navigare:** Click pe nume + carduri, cu buton Înapoi / breadcrumb
@@ -35,12 +37,16 @@ Vizibilă doar SuperAdminilor (restul primesc „Forbidden"). Structură „pano
 - **Navigare:** cardul colegului din Customers (`OwnerCards`) primește o acțiune „Vezi panoul" → pagina coleg; rândul colegului din pagina Team primește link pe nume.
 
 ## 3. Ce NU se schimbă
+
 - Culorile/designul Graphite, licențierea, RBAC-ul, separarea Self-Hosted/Cloud, comportamentul existent al cardurilor (filtrarea rămâne — pagina coleg e în plus, nu înlocuiește filtrul).
 
 ## Detalii tehnice
+
 - Rută nouă: `src/routes/_authenticated/management.team.$userId.tsx` (createFileRoute `/_authenticated/management/team/$userId`).
 - Funcții server noi în `src/lib/mc-ownership.functions.ts`: `getColleagueOverview` (SuperAdmin-only).
 - Extindere `src/routes/_authenticated/management.companies.$id.tsx` cu taburile Contract/Suport/Acces partajat și acțiuni licențe; refolosire componente existente (`SharedAccessPanel`, dialog Manage Customer, `upsertCustomerContract`, funcții suport existente).
 - `src/routes/_authenticated/management.customers.tsx`: nume client → `Link` către `/management/companies/$id`.
 - `src/components/mc/owner-cards.tsx`: buton suplimentar pe cardul colegului pentru deschiderea panoului (păstrând click = filtru).
-- Verificare: `bunx tsgo --noEmit`, `bun run build`, test de acces (coleg fără drept nu vede clientul/panoul colegului).
+- Verificare: `bunx tsgo --noEmit`, `bun run build`, test de acces (coleg fără drept nu vede clientul/panoul colegului).  
+  
+Super admini / Admini , pot aproba unu altuia concediile , pot vedea clientii si muta clientii de la un coleg la altul. 

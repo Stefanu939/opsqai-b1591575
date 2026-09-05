@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -263,9 +263,15 @@ function TeamPage() {
                           </div>
                           <div className="min-w-0">
                             <div className="font-medium truncate">
-                              {m.full_name ||
-                                `${m.first_name ?? ""} ${m.last_name ?? ""}`.trim() ||
-                                m.email}
+                              <Link
+                                to="/management/team/$userId"
+                                params={{ userId: m.id }}
+                                className="hover:underline"
+                              >
+                                {m.full_name ||
+                                  `${m.first_name ?? ""} ${m.last_name ?? ""}`.trim() ||
+                                  m.email}
+                              </Link>
                             </div>
                             <div className="text-xs text-muted-foreground truncate">{m.email}</div>
                           </div>

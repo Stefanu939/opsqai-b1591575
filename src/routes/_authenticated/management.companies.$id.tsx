@@ -11,12 +11,18 @@ import {
 } from "@/lib/company-products.functions";
 import { COMPANY_PROFILES } from "@/lib/product-architecture";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
+import { listSupportConversations } from "@/lib/support.functions";
+import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.functions";
+import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
+import { SharedAccessPanel } from "@/components/mc/shared-access";
 import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -26,7 +32,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Building2, Download, FileText, KeyRound, Layers, Package, Users } from "lucide-react";
+import {
+  Building2,
+  Download,
+  FileSignature,
+  FileText,
+  Headset,
+  KeyRound,
+  Layers,
+  Package,
+  UserCog,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -70,6 +87,7 @@ function CompanyDetailPage() {
   const list = useServerFn(listCompanies);
   const listLic = useServerFn(listLicenses);
   const downloadUrl = useServerFn(getMyInstallationPackageDownloadUrl);
+  const listTickets = useServerFn(listSupportConversations);
 
   const companyQ = useQuery({
     queryKey: ["mc-companies"],
@@ -79,6 +97,22 @@ function CompanyDetailPage() {
     queryKey: ["mc-licenses"],
     queryFn: () => listLic({ data: {} } as never),
   });
+  const ticketsQ = useQuery({
+    queryKey: ["mc-company-tickets", id],
+    queryFn: () => listTickets({ data: { scope: "platform", company_id: id } } as never),
+    retry: false,
+  });
+
+  type Ticket = {
+    id: string;
+    subject: string | null;
+    status: string;
+    priority: string | null;
+    last_message_at: string | null;
+    unread_for_platform: boolean | null;
+  };
+  const tickets = (ticketsQ.data ?? []) as unknown as Ticket[];
+  const openTickets = tickets.filter((t) => t.status === "open" || t.status === "pending");
 
   const company = useMemo(
     () => (companyQ.data ?? []).find((c) => c.id === id),
@@ -146,12 +180,15 @@ function CompanyDetailPage() {
       title={company.name}
       breadcrumbs={[{ label: "Companies", to: "/management/companies" }, { label: company.name }]}
       actions={
-        <Badge variant={company.active ? "default" : "outline"}>
-          {company.active ? company.subscription_status : "suspended"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={company.active ? "default" : "outline"}>
+            {company.active ? company.subscription_status : "suspended"}
+          </Badge>
+          <ManageCustomerDialog companyId={company.id} companyName={company.name} />
+        </div>
       }
     >
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Plan" value={company.subscription_plan} icon={Package} />
         <StatCard
           label="Users"
@@ -160,14 +197,23 @@ function CompanyDetailPage() {
         />
         <StatCard label="Total seats" value={totalSeats || "—"} icon={KeyRound} />
         <StatCard label="Online installs" value={totalOnline} icon={Package} />
+        <StatCard label="Open tickets" value={openTickets.length} icon={Headset} />
+        <StatCard
+          label="Country"
+          value={(company as { country?: string | null }).country ?? "—"}
+          icon={Building2}
+        />
       </section>
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="contract">Contract</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="installations">Installations</TabsTrigger>
           <TabsTrigger value="licenses">Licenses</TabsTrigger>
+          <TabsTrigger value="support">Support</TabsTrigger>
+          <TabsTrigger value="access">Shared access</TabsTrigger>
           <TabsTrigger value="download">Download</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
@@ -203,6 +249,10 @@ function CompanyDetailPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="contract">
+          <ContractTab companyId={company.id} />
+        </TabsContent>
+
         <TabsContent value="products">
           <ProductsTab companyId={company.id} />
         </TabsContent>
@@ -217,8 +267,88 @@ function CompanyDetailPage() {
           />
         </TabsContent>
 
-        <TabsContent value="licenses">
+        <TabsContent value="licenses" className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">
+              Issue, reissue or revoke licenses for this customer.
+            </p>
+            <div className="flex gap-2">
+              {installs[0] ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/management/licenses" search={{ install: installs[0].install_id }}>
+                    <KeyRound className="mr-1.5 h-4 w-4" /> Reissue / manage
+                  </Link>
+                </Button>
+              ) : null}
+              <Button asChild size="sm">
+                <Link to="/management/licenses" search={{ install: undefined }}>
+                  Issue license
+                </Link>
+              </Button>
+            </div>
+          </div>
           <LicensesTable installs={installs} loading={licensesQ.isLoading} />
+        </TabsContent>
+
+        <TabsContent value="support" className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">
+              Support conversations opened by this customer.
+            </p>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/management/support">Open Support</Link>
+            </Button>
+          </div>
+          {tickets.length === 0 ? (
+            <EmptyState
+              icon={Headset}
+              title="No support tickets"
+              description="This customer has not opened any support conversation yet."
+            />
+          ) : (
+            <div className="divide-y divide-border rounded-lg border border-border bg-card">
+              {tickets.map((t) => {
+                const waiting =
+                  (t.status === "open" || t.status === "pending") &&
+                  t.last_message_at &&
+                  Date.now() - new Date(t.last_message_at).getTime() > 24 * 60 * 60 * 1000;
+                return (
+                  <div key={t.id} className="flex flex-wrap items-center gap-2 p-4 text-sm">
+                    <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                      {t.subject || "(no subject)"}
+                    </span>
+                    <Badge variant="outline">{t.priority ?? "normal"}</Badge>
+                    <Badge
+                      variant={
+                        t.status === "resolved" || t.status === "closed" ? "outline" : "default"
+                      }
+                    >
+                      {t.status}
+                    </Badge>
+                    {waiting ? <Badge variant="destructive">waiting &gt;24h</Badge> : null}
+                    {t.unread_for_platform ? <Badge variant="secondary">unread</Badge> : null}
+                    <span className="text-xs text-muted-foreground">
+                      {t.last_message_at
+                        ? formatDistanceToNow(new Date(t.last_message_at), { addSuffix: true })
+                        : "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="access">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <h3 className="font-display text-base font-semibold text-foreground">
+              Shared access
+            </h3>
+            <p className="mt-1 mb-4 text-sm text-muted-foreground">
+              Colleagues who can see and manage this customer — used for holiday cover.
+            </p>
+            <SharedAccessPanel companyId={company.id} />
+          </div>
         </TabsContent>
 
         <TabsContent value="download" className="space-y-3">
@@ -428,6 +558,128 @@ function LicensesTable({ installs, loading }: { installs: License[]; loading: bo
         description: "Issue a license from the Licenses page.",
       }}
     />
+  );
+}
+
+// ─── Contract tab ────────────────────────────────────────────────────────
+
+const CONTRACT_STATUSES = ["prospect", "trial", "active", "renewal", "churned"] as const;
+
+function ContractTab({ companyId }: { companyId: string }) {
+  const qc = useQueryClient();
+  const list = useServerFn(listCustomerProfiles);
+  const save = useServerFn(upsertCustomerContract);
+
+  const q = useQuery({
+    queryKey: ["mc-customer-profiles"],
+    queryFn: () => list({ data: {} } as never),
+    retry: false,
+  });
+
+  const row = useMemo(
+    () =>
+      ((q.data ?? []) as Array<{
+        id: string;
+        profile: {
+          contract_status: string | null;
+          renewal_date: string | null;
+          onboarding_pct: number | null;
+          account_manager_id: string | null;
+        } | null;
+      }>).find((r) => r.id === companyId),
+    [q.data, companyId],
+  );
+
+  const [status, setStatus] = useState<string | null>(null);
+  const [renewal, setRenewal] = useState<string | null>(null);
+  const [onboarding, setOnboarding] = useState<string | null>(null);
+
+  // Initialise the form once the row loads.
+  const loadedFor = row?.id ?? null;
+  if (row && status === null && loadedFor) {
+    setStatus(row.profile?.contract_status ?? "prospect");
+    setRenewal(row.profile?.renewal_date ?? "");
+    setOnboarding(
+      row.profile?.onboarding_pct != null ? String(row.profile.onboarding_pct) : "",
+    );
+  }
+
+  const saveMut = useMutation({
+    mutationFn: () =>
+      save({
+        data: {
+          company_id: companyId,
+          contract_status: (status ?? "prospect") as (typeof CONTRACT_STATUSES)[number],
+          renewal_date: renewal || null,
+          onboarding_pct: onboarding ? Math.max(0, Math.min(100, parseInt(onboarding, 10) || 0)) : null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Contract updated");
+      void qc.invalidateQueries({ queryKey: ["mc-customer-profiles"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (q.isLoading) return <div className="h-40 animate-pulse rounded-lg bg-muted" />;
+  if (q.isError)
+    return (
+      <EmptyState
+        icon={FileSignature}
+        title="Could not load contract"
+        description={(q.error as Error).message}
+      />
+    );
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-5">
+      <h3 className="font-display text-base font-semibold text-foreground">Contract</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Contract lifecycle, renewal date and onboarding progress for this customer.
+      </p>
+      <div className="mt-4 grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-3">
+        <div>
+          <Label>Contract status</Label>
+          <Select value={status ?? "prospect"} onValueChange={setStatus}>
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CONTRACT_STATUSES.map((s) => (
+                <SelectItem key={s} value={s} className="capitalize">
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Renewal date</Label>
+          <Input
+            type="date"
+            className="mt-1"
+            value={renewal ?? ""}
+            onChange={(e) => setRenewal(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label>Onboarding %</Label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            className="mt-1"
+            value={onboarding ?? ""}
+            onChange={(e) => setOnboarding(e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="mt-4">
+        <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+          Save contract
+        </Button>
+      </div>
+    </div>
   );
 }
 
