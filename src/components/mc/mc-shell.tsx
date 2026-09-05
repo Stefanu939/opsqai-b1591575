@@ -192,6 +192,18 @@ export function ManagementShell({ children }: { children: ReactNode }) {
             />
           </label>
           <div className="ml-auto flex items-center gap-1.5">
+            {/* Ticketing lives in the Customer Portal bubble; staff answer here. */}
+            <Button
+              asChild
+              variant={path.startsWith("/management/support") ? "secondary" : "ghost"}
+              size="sm"
+              className="gap-2"
+            >
+              <Link to="/management/support">
+                <Inbox className="h-4 w-4" />
+                <span className="hidden sm:inline">Support inbox</span>
+              </Link>
+            </Button>
             <NotificationsBell />
             <ThemeToggle />
             <AccountMenu
