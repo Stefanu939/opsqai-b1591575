@@ -8,7 +8,7 @@ interface PanelProps {
   icon?: LucideIcon;
   actions?: ReactNode;
   footer?: ReactNode;
-  /** Glass surface with a gold edge-light — for hero/feature panels. */
+  /** Elevated enterprise surface. Kept for API compatibility. */
   glass?: boolean;
   /** Remove body padding (tables, lists that own their own padding). */
   flush?: boolean;
@@ -36,8 +36,8 @@ export function Panel({
   return (
     <section
       className={cn(
-        "relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-xs",
-        glass && "oq-glass oq-edge-gold",
+         "relative flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-xs",
+         glass && "bg-card",
         className,
       )}
     >
@@ -45,8 +45,8 @@ export function Panel({
         <header className="flex items-start justify-between gap-3 border-b border-border/70 px-4 py-3">
           <div className="flex min-w-0 items-start gap-2.5">
             {Icon && (
-              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-gold-line bg-gold-soft">
-                <Icon className="h-3.5 w-3.5 text-gold" strokeWidth={1.75} />
+               <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-primary/25 bg-primary/10">
+                 <Icon className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
               </span>
             )}
             <div className="min-w-0">

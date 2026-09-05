@@ -37,16 +37,7 @@ export function ModulePage({
   width?: "wide" | "full";
 }) {
   return (
-    <div className="oq-page relative min-h-full bg-background text-foreground">
-      {/* Ambient command-deck backdrop — gold/primary aura behind the header. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-64"
-        style={{
-          background:
-            "radial-gradient(70% 100% at 12% 0%, color-mix(in oklab, var(--gold) 12%, transparent) 0%, transparent 70%), radial-gradient(60% 100% at 90% 0%, color-mix(in oklab, var(--primary) 12%, transparent) 0%, transparent 72%)",
-        }}
-      />
+     <div className="oq-page relative min-h-full bg-background text-foreground">
       <div
         className={cn(
           "relative mx-auto px-4 py-6 md:px-6 md:py-8",
@@ -54,7 +45,7 @@ export function ModulePage({
           className,
         )}
       >
-        <div className="relative mb-5 overflow-hidden rounded-xl border border-border bg-card/70 px-4 py-4 shadow-xs oq-edge-gold backdrop-blur md:px-5 md:py-5">
+         <div className="relative mb-6 border-b border-border px-0 pb-5 pt-1">
           <PageHeader
             eyebrow={eyebrow}
             title={title}
@@ -68,7 +59,7 @@ export function ModulePage({
         {tabs && <div className="mb-4 flex flex-wrap items-center gap-2">{tabs}</div>}
 
         {toolbar && (
-          <div className="sticky top-0 z-10 -mx-1 mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/85 px-2 py-2 backdrop-blur supports-[backdrop-filter]:bg-card/70">
+           <div className="sticky top-0 z-10 -mx-1 mb-4 flex flex-wrap items-center gap-2 border border-border bg-card px-2 py-2 shadow-xs">
             {toolbar}
           </div>
         )}

@@ -55,7 +55,7 @@ function createWindow() {
     autoHideMenuBar: true,
     title: "OPSQAI Self-Hosted Setup",
     icon: path.join(__dirname, "assets", "opsqai.ico"),
-    backgroundColor: "#0f172a",
+    backgroundColor: "#101315",
     show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
