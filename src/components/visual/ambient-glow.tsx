@@ -9,7 +9,7 @@ const TONE: Record<Tone, string> = {
 };
 
 /**
- * Aurora Noir ambient aura. A purely decorative, pointer-transparent layer —
+ * Graphite Precision ambient aura. A purely decorative, pointer-transparent layer —
  * use it to give a hero or status surface atmosphere, not as a default.
  */
 export function AmbientGlow({

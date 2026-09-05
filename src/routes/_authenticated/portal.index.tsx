@@ -145,12 +145,8 @@ function PortalHome() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-4">
           {/* Welcome banner */}
-          <div className="oq-soft-card relative overflow-hidden p-5 md:p-6">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-[var(--gold-soft)] blur-2xl"
-            />
-            <div className="relative">
+           <div className="oq-soft-card relative overflow-hidden p-5 md:p-6">
+             <div className="relative">
               <h2 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
                 Welcome back, {greeting}! 👋
               </h2>

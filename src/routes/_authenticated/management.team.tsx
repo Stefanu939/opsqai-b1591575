@@ -258,7 +258,7 @@ function TeamPage() {
                     <tr key={m.id} className="hover:bg-muted/20">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold">
+                           <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary/15 text-xs font-semibold text-primary">
                             {initials(m)}
                           </div>
                           <div className="min-w-0">

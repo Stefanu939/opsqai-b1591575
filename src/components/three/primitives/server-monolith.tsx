@@ -30,7 +30,7 @@ export function ServerMonolith() {
           color="#0f1222"
           metalness={0.85}
           roughness={0.28}
-          emissive="#5b3df5"
+          emissive="#26a67a"
           emissiveIntensity={0.06}
         />
       </mesh>
@@ -39,8 +39,8 @@ export function ServerMonolith() {
       <mesh>
         <boxGeometry args={[1.62, 0.02, 1.62]} />
         <meshStandardMaterial
-          color="#5b8cf7"
-          emissive="#5b8cf7"
+          color="#247d91"
+          emissive="#247d91"
           emissiveIntensity={0.9}
           metalness={1}
           roughness={0.15}
@@ -49,8 +49,8 @@ export function ServerMonolith() {
       <mesh position={[0, -1.9, 0]}>
         <boxGeometry args={[1.62, 0.02, 1.62]} />
         <meshStandardMaterial
-          color="#5b8cf7"
-          emissive="#5b8cf7"
+          color="#247d91"
+          emissive="#247d91"
           emissiveIntensity={0.9}
           metalness={1}
           roughness={0.15}
@@ -59,8 +59,8 @@ export function ServerMonolith() {
       <mesh position={[0, 1.9, 0]}>
         <boxGeometry args={[1.62, 0.02, 1.62]} />
         <meshStandardMaterial
-          color="#5b8cf7"
-          emissive="#5b8cf7"
+          color="#247d91"
+          emissive="#247d91"
           emissiveIntensity={0.9}
           metalness={1}
           roughness={0.15}
@@ -71,12 +71,12 @@ export function ServerMonolith() {
       {Array.from({ length: 8 }).map((_, i) => (
         <mesh key={i} position={[0.82, 1.4 - i * 0.28, 0.5]}>
           <sphereGeometry args={[0.03, 12, 12]} />
-          <meshBasicMaterial color={i % 3 === 0 ? "#8b6bff" : "#5b8cf7"} />
+          <meshBasicMaterial color={i % 3 === 0 ? "#26a67a" : "#247d91"} />
         </mesh>
       ))}
 
       {/* Interior emerald glow */}
-      <pointLight ref={glowRef} position={[0, 0, 0]} color="#5b3df5" intensity={1.6} distance={4} />
+      <pointLight ref={glowRef} position={[0, 0, 0]} color="#26a67a" intensity={1.6} distance={4} />
     </group>
   );
 }

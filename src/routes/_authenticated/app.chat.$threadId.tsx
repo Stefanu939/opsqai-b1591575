@@ -456,8 +456,8 @@ function ChatInner({
         <div className="max-w-3xl mx-auto px-3 md:px-8 py-6 space-y-2">
           {messages.length === 0 && (
             <div className="text-center py-16">
-              <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-[var(--gold-soft)] grid place-items-center border border-[var(--gold-line)]">
-                <LogoMark size={28} className="text-gold" />
+               <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-md border border-primary/25 bg-primary/10">
+                 <LogoMark size={28} className="text-primary" />
               </div>
               <p className="font-display text-lg font-medium text-foreground">
                 {firstName !== "there" ? `Hi ${firstName} — ${T("askAnything")}` : T("askAnything")}
@@ -468,7 +468,7 @@ function ChatInner({
 
           {messages.length > 0 && (
             <div className="flex justify-center pb-2">
-              <span className="rounded-full border border-border/70 bg-card/70 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground backdrop-blur">
+               <span className="rounded-sm border border-border bg-card px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {T("today") || "Today"}
               </span>
             </div>
@@ -493,7 +493,7 @@ function ChatInner({
                     </div>
                   )}
                   {rawText.trim() && (
-                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground whitespace-pre-wrap shadow-sm">
+                     <div className="max-w-[85%] rounded-lg rounded-br-sm bg-primary px-3.5 py-2 text-sm text-primary-foreground shadow-xs whitespace-pre-wrap">
                       {rawText}
                       <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] opacity-70">
                         <CheckCheck className="h-3 w-3" />
@@ -516,14 +516,14 @@ function ChatInner({
               <div key={m.id} className="oq-enter group flex gap-2.5">
                 <div className="w-8 shrink-0">
                   {!grouped && (
-                    <div className="h-8 w-8 rounded-full bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center">
-                      <LogoMark size={18} className="text-gold" />
+                     <div className="grid h-8 w-8 place-items-center rounded-sm border border-primary/25 bg-primary/10">
+                       <LogoMark size={18} className="text-primary" />
                     </div>
                   )}
                 </div>
                 <div className="min-w-0 max-w-[88%]">
                   <div
-                    className={`rounded-2xl border border-border/70 bg-card px-3.5 py-2.5 shadow-sm ${grouped ? "rounded-tl-md" : "rounded-bl-md"}`}
+                     className={`rounded-lg border border-border bg-card px-3.5 py-2.5 shadow-xs ${grouped ? "rounded-tl-sm" : "rounded-bl-sm"}`}
                   >
                     <div className="text-[15px] leading-relaxed prose prose-sm max-w-none prose-headings:font-display prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0">
                       {text ? (
@@ -612,10 +612,10 @@ function ChatInner({
           })}
           {loading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-2.5">
-              <div className="h-8 w-8 rounded-full bg-[var(--gold-soft)] border border-[var(--gold-line)] grid place-items-center shrink-0">
-                <LogoMark size={18} className="text-gold" />
+               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-sm border border-primary/25 bg-primary/10">
+                 <LogoMark size={18} className="text-primary" />
               </div>
-              <div className="rounded-2xl rounded-bl-md border border-border/70 bg-card px-3.5 py-2.5 shadow-sm">
+               <div className="rounded-lg rounded-bl-sm border border-border bg-card px-3.5 py-2.5 shadow-xs">
                 <ThinkingDots label={T("searching")} />
               </div>
             </div>
@@ -623,7 +623,7 @@ function ChatInner({
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="border-t border-border bg-background/80 backdrop-blur">
+       <form onSubmit={onSubmit} className="border-t border-border bg-background">
         <div className="max-w-3xl mx-auto p-3 md:p-4">
           {failureKind && (
             <div
@@ -664,7 +664,7 @@ function ChatInner({
               ))}
             </div>
           )}
-          <div className="flex gap-1.5 items-end rounded-3xl border border-border bg-card p-1.5 pl-2 shadow-sm focus-within:border-gold/60 focus-within:ring-4 focus-within:ring-gold/10 transition-all">
+           <div className="flex gap-1.5 items-end rounded-lg border border-border bg-card p-1.5 pl-2 shadow-xs focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-colors">
             <EmojiPicker
               onPick={(emoji: string) => {
                 setInput((v) => v + emoji);

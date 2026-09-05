@@ -1,12 +1,12 @@
-# Current design — Graphite Precision public site
+# Current design — Graphite Precision
 
 This file describes the design implemented in the codebase today. It is a consistency reference, not an immutable design lock. An explicitly approved visual change replaces this description; history remains in version control.
 
 Source of truth for values: `src/styles.css`.
 
-## Public website
+## Product-wide direction
 
-- **Scope:** `.oix-shell` only. The redesign does not alter Self-Hosted, Management Center, or Customer Portal.
+- **Scope:** the public website, Windows Self-Hosted product, first-run flow, native installer and desktop shell, Management Center, and Customer Portal.
 - **Direction:** light-first European enterprise editorial design with quiet, structured surfaces and factual system diagrams.
 - **Palette:** Graphite `#101315` / `#252B2D`, paper `#F1F3EF`, operational green `#26A67A`, and supporting teal `#247D91`. Dark mode uses the same palette with inverted foundations.
 - **Typography:** Instrument Serif for editorial display headings and Work Sans for navigation, body copy, controls, and data labels.
@@ -27,13 +27,21 @@ Primary public primitives:
 
 ## Authenticated products
 
-Authenticated scopes retain their existing visual systems and behavior:
+Authenticated scopes use the same Graphite Precision tokens and enterprise component language:
 
 - Self-Hosted: `/app/*`
 - Management Center: `/management/*`
 - Customer Portal: `/portal/*`
 
-Their licensing, entitlements, RBAC, product architecture, data access, and workflows are independent from the public-site visual scope.
+Their licensing, entitlements, RBAC, product architecture, data access, deployment boundaries, and workflows remain independent and unchanged. Visual alignment never merges product responsibilities.
+
+## Product surfaces
+
+- **Self-Hosted:** operational application with a compact navigation rail, editorial page hierarchy, flat data panels, restrained charts, and licensed Product Workspaces.
+- **Management Center:** OPSQAI staff workspace with dense customer, installation, license, release, support, ownership, and audit views.
+- **Customer Portal:** customer-contact workspace for status, downloads, subscription, releases, documentation, calendar, and support.
+- **Setup:** both the web first-run flow and native Windows installer use the same graphite/paper/green/teal language and compact progress patterns.
+- **Compatibility:** old `gold`, `oq-soft`, and `glass` API names may remain temporarily in code, but render as teal, flat Graphite Precision surfaces rather than a separate visual system.
 
 ## Product truth
 

@@ -49,7 +49,7 @@ export function MetricTile({
     <Root
       {...(onClick ? { type: "button" as const, onClick } : {})}
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card p-4 text-left shadow-xs oq-lift",
+        "group relative flex h-full flex-col overflow-hidden rounded-lg border bg-card p-4 text-left shadow-xs oq-lift",
         onClick &&
           "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         toneRing[tone],
@@ -62,7 +62,7 @@ export function MetricTile({
         </span>
         {Icon && (
           <Icon
-            className="h-4 w-4 shrink-0 text-muted-foreground transition-colors duration-150 group-hover:text-gold"
+             className="h-4 w-4 shrink-0 text-muted-foreground transition-colors duration-150 group-hover:text-primary"
             strokeWidth={1.75}
           />
         )}

@@ -36,7 +36,7 @@ export function StatCard({
         </span>
         {Icon && (
           <Icon
-            className="h-4 w-4 text-muted-foreground transition-colors duration-150 group-hover:text-gold"
+             className="h-4 w-4 text-muted-foreground transition-colors duration-150 group-hover:text-primary"
             strokeWidth={1.75}
           />
         )}

@@ -16,7 +16,7 @@ export function GridFloor({
   size = 60,
   divisions = 60,
   y = -2.5,
-  color = "#5b3df5",
+  color = "#26a67a",
   opacity = 0.4,
 }: GridFloorProps) {
   const material = useMemo(() => {

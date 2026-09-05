@@ -60,14 +60,14 @@ export function ModuleConstellation({ nodeCount = 14 }: { nodeCount?: number }) 
       <mesh ref={coreRef}>
         <icosahedronGeometry args={[0.7, 1]} />
         <meshStandardMaterial
-          color="#5b3df5"
-          emissive="#5b8cf7"
+          color="#26a67a"
+          emissive="#247d91"
           emissiveIntensity={0.35}
           metalness={0.9}
           roughness={0.25}
         />
       </mesh>
-      <pointLight position={[0, 0, 0]} intensity={1.8} color="#5b8cf7" distance={8} />
+      <pointLight position={[0, 0, 0]} intensity={1.8} color="#247d91" distance={8} />
 
       {/* Module nodes */}
       {nodes.map((n, i) => (
@@ -76,7 +76,7 @@ export function ModuleConstellation({ nodeCount = 14 }: { nodeCount?: number }) 
 
       {/* Gold links */}
       <lineSegments ref={linesRef} geometry={lineGeometry}>
-        <lineBasicMaterial color="#5b8cf7" transparent opacity={0.25} />
+        <lineBasicMaterial color="#247d91" transparent opacity={0.25} />
       </lineSegments>
     </group>
   );
@@ -109,8 +109,8 @@ function ModuleNode({
     <mesh ref={ref}>
       <octahedronGeometry args={[0.14, 0]} />
       <meshStandardMaterial
-        color={isGold ? "#5b8cf7" : "#e8ecef"}
-        emissive={isGold ? "#5b8cf7" : "#5b3df5"}
+        color={isGold ? "#247d91" : "#e8ecef"}
+        emissive={isGold ? "#247d91" : "#26a67a"}
         emissiveIntensity={isGold ? 0.9 : 0.35}
         metalness={0.85}
         roughness={0.2}
