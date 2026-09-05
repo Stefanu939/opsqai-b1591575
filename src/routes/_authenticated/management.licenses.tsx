@@ -151,6 +151,30 @@ function LicensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const bulkDeleteMut = useMutation({
+    mutationFn: async (installIds: string[]) => {
+      const failed: string[] = [];
+      for (const install_id of installIds) {
+        try {
+          await remove({ data: { install_id } });
+        } catch {
+          failed.push(install_id);
+        }
+      }
+      return { failed, total: installIds.length };
+    },
+    onSuccess: ({ failed, total }) => {
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["mc-licenses"] });
+      if (failed.length)
+        toast.error(`${total - failed.length}/${total} deleted. Failed: ${failed.join(", ")}`);
+      else toast.success(`${total} license${total === 1 ? "" : "s"} deleted`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
+
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase();
     return (data as License[]).filter((l) => {
