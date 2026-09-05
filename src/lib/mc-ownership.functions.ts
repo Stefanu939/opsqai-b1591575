@@ -47,7 +47,7 @@ export const listOwnershipCards = createServerFn({ method: "POST" })
 
     const [{ data: profiles }, usersResp] = await Promise.all([
       staffIds.length
-        ? admin.from("profiles").select("id, full_name, first_name, last_name, email").in("id", staffIds)
+        ? admin.from("profiles").select("id, full_name, first_name, last_name").in("id", staffIds)
         : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
       admin.auth.admin.listUsers({ perPage: 1000 }),
     ]);
