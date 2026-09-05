@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  ArrowLeftRight,
   CalendarDays,
   CircleUser,
   HelpCircle,
@@ -17,6 +18,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { audienceForPath } from "@/lib/sign-out-target";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
