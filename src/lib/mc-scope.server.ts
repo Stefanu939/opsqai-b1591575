@@ -26,7 +26,9 @@ type Ctx = { supabase: unknown; userId: string };
 export async function resolveMcScope(context: Ctx): Promise<McScope> {
   const actor = await getActorRoles(context.supabase, context.userId);
   if (!actor.isPlatformAdmin) throw new Error("Forbidden: platform admin required");
-  if (actor.isPlatformOwner) {
+  // Every OPSQAI staff SuperAdmin/Admin sees the whole fleet; ownership stays
+  // informative (who is responsible) but no longer hides customers.
+  if (actor.isPlatformAdmin) {
     return { isSuperAdmin: true, userId: context.userId, companyIds: null, installIds: null };
   }
 
