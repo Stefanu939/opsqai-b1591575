@@ -36,7 +36,11 @@ function MaintenanceRing({ daysLeft, totalDays = 365 }: { daysLeft: number; tota
   const c = 2 * Math.PI * r;
   const offset = c * (1 - pct);
   const stroke =
-    daysLeft <= 0 ? "hsl(var(--destructive))" : daysLeft < 30 ? "#e0a800" : "var(--gold)";
+    daysLeft <= 0
+      ? "var(--destructive)"
+      : daysLeft < 30
+        ? "var(--warning)"
+        : "var(--primary)";
   return (
     <div className="relative shrink-0" style={{ width: 104, height: 104 }}>
       <svg width="104" height="104" viewBox="0 0 104 104" className="-rotate-90">
