@@ -119,7 +119,7 @@ function PortalLayout() {
           type="button"
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
-          className="md:hidden flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground"
+           className="md:hidden flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
         >
           <X className="h-4 w-4" />
         </button>
@@ -135,15 +135,15 @@ function PortalLayout() {
               onClick={() => setMobileOpen(false)}
               className={`oq-pill flex items-center gap-3 px-2.5 py-2 text-sm ${
                 active
-                  ? "bg-[color:var(--gold)] font-semibold text-[color:var(--gold-foreground)] shadow-[0_10px_24px_-14px_color-mix(in_oklab,var(--gold)_80%,transparent)]"
+                   ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               }`}
             >
               <span
                 aria-hidden
-                className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl border ${
+                 className={`grid h-8 w-8 shrink-0 place-items-center rounded-md border ${
                   active
-                    ? "border-transparent bg-[color:var(--gold-foreground)]/15 text-[color:var(--gold-foreground)]"
+                     ? "border-primary/25 bg-primary/10 text-primary"
                     : "border-border bg-secondary/70"
                 }`}
               >
@@ -154,7 +154,7 @@ function PortalLayout() {
           );
         })}
       </nav>
-      <div className="rounded-2xl border border-border bg-secondary/60 p-3">
+       <div className="rounded-md border border-border bg-secondary/60 p-3">
         <div className="flex items-start gap-2.5">
           <IconTile icon={Headphones} size="md" round />
           <div className="min-w-0">
@@ -164,14 +164,14 @@ function PortalLayout() {
             </p>
           </div>
         </div>
-        <Button asChild variant="outline" size="sm" className="mt-3 w-full rounded-xl">
+         <Button asChild variant="outline" size="sm" className="mt-3 w-full">
           <Link to="/portal/support">Contact support</Link>
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleSignOut}
-          className="mt-1 w-full justify-start gap-2 rounded-xl text-muted-foreground hover:text-foreground"
+           className="mt-1 w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
         >
           <LogOut className="h-4 w-4" />
           Sign out
@@ -180,7 +180,7 @@ function PortalLayout() {
     </>
   );
   return (
-    <div className="oq-soft flex flex-1 gap-4 p-0 md:p-4">
+     <div className="oq-product oq-portal-shell oq-soft flex flex-1 gap-0">
       <aside className="oq-soft-card hidden md:flex w-[248px] flex-col shrink-0 p-3">
         {SidebarInner}
       </aside>
@@ -191,22 +191,22 @@ function PortalLayout() {
             onClick={() => setMobileOpen(false)}
             aria-hidden
           />
-          <aside className="oq-soft-card md:hidden fixed inset-y-3 left-3 z-50 w-64 flex flex-col p-3">
+           <aside className="oq-soft-card md:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col p-3">
             {SidebarInner}
           </aside>
         </>
       )}
-      <main className="flex min-w-0 flex-1 flex-col gap-4">
+       <main className="flex min-w-0 flex-1 flex-col">
         <div className="oq-soft-card sticky top-0 z-30 flex h-14 items-center gap-2 px-3 md:h-16 md:px-4">
           <button
             type="button"
             aria-label="Open menu"
             onClick={() => setMobileOpen(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
+             className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <label className="hidden min-w-0 flex-1 items-center gap-2 rounded-2xl border border-border bg-secondary/60 px-3 py-2 sm:flex">
+           <label className="hidden min-w-0 max-w-xl flex-1 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3 py-2 sm:flex">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <input
               type="search"
@@ -217,8 +217,8 @@ function PortalLayout() {
           <div className="ml-auto flex items-center gap-1.5">
             <NotificationsBell />
             <ThemeToggle />
-            <span className="ml-1 flex items-center gap-2 rounded-2xl border border-border bg-secondary/60 py-1 pl-1 pr-2.5">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[color:var(--gold)] text-[11px] font-semibold text-[color:var(--gold-foreground)]">
+             <span className="ml-1 flex items-center gap-2 rounded-md border border-border bg-secondary/60 py-1 pl-1 pr-2.5">
+               <span className="grid h-8 w-8 place-items-center rounded-sm bg-primary text-[11px] font-semibold text-primary-foreground">
                 {initials(user?.email)}
               </span>
               <span className="hidden min-w-0 flex-col leading-tight sm:flex">

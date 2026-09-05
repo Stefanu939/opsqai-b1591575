@@ -13,9 +13,9 @@ const tones: Record<IconTileTone, string> = {
 };
 
 const sizes = {
-  sm: "h-8 w-8 rounded-xl [&>svg]:h-4 [&>svg]:w-4",
-  md: "h-10 w-10 rounded-2xl [&>svg]:h-[18px] [&>svg]:w-[18px]",
-  lg: "h-12 w-12 rounded-2xl [&>svg]:h-5 [&>svg]:w-5",
+  sm: "h-8 w-8 rounded-sm [&>svg]:h-4 [&>svg]:w-4",
+  md: "h-10 w-10 rounded-md [&>svg]:h-[18px] [&>svg]:w-[18px]",
+  lg: "h-12 w-12 rounded-md [&>svg]:h-5 [&>svg]:w-5",
 };
 
 /**

@@ -183,22 +183,19 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 
   const linkCls =
-    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 transition-[background-color,color,transform] duration-150 ease-out hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground active:scale-[0.99] motion-reduce:active:scale-100 data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground";
+    "group relative flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:bg-sidebar-accent data-[status=active]:font-semibold data-[status=active]:text-sidebar-accent-foreground";
 
   // Active marker glides in from the rail instead of blinking on.
   const ActiveIndicator = () => (
     <span
       aria-hidden
-      className="absolute left-0 top-1.5 bottom-1.5 w-[3px] origin-left scale-y-50 rounded-r-full bg-gold opacity-0 transition-[opacity,transform] duration-200 ease-out group-data-[status=active]:scale-y-100 group-data-[status=active]:opacity-100"
+       className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-primary opacity-0 transition-opacity duration-150 group-data-[status=active]:opacity-100"
     />
   );
 
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <div
-      className="flex h-full flex-col text-sidebar-foreground"
-      style={{ background: "var(--gradient-sidebar)" }}
-    >
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
         <LogoMark size={32} className="text-sidebar-foreground" />
         <div className="min-w-0 flex-1">
@@ -231,7 +228,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   className={linkCls}
                 >
                   <ActiveIndicator />
-                  <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 transition-[color,transform] duration-150 ease-out group-hover:translate-x-0.5 group-data-[status=active]:text-gold group-data-[status=active]:translate-x-0.5" />
+                   <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 transition-colors duration-150 group-data-[status=active]:text-primary" />
 
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -265,7 +262,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg px-2 py-2 bg-sidebar-accent/30">
+         <div className="flex items-center gap-2 rounded-md border border-sidebar-border px-2 py-2 bg-sidebar-accent/40">
           <AvatarUploader size="sm" />
           <span className="truncate flex-1 text-left text-[12px] text-sidebar-foreground/85">
             {user?.email}
@@ -314,14 +311,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const bottomTabs = nav.slice(0, 4);
 
   return (
-    <div className="min-h-dvh flex bg-background">
+     <div className="oq-product oq-app-shell min-h-dvh flex bg-background">
       <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border">
         <SidebarContent />
       </aside>
 
       {/* Mobile top bar — safe-area aware, sticky, app-like */}
       <div
-        className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar/95 backdrop-blur text-sidebar-foreground px-3 border-b border-sidebar-border"
+         className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between bg-sidebar text-sidebar-foreground px-3 border-b border-sidebar-border"
         style={{
           paddingTop: "env(safe-area-inset-top)",
           height: "calc(3.5rem + env(safe-area-inset-top))",
@@ -375,7 +372,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile bottom tab bar — app-like primary navigation */}
       <nav
         aria-label="Primary"
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-sidebar/95 backdrop-blur border-t border-sidebar-border"
+         className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-sidebar border-t border-sidebar-border"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <ul className="grid grid-cols-5 h-16">

@@ -10,18 +10,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:shadow-md",
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md",
+           "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-ring/40",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+           "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground hover:border-ring/40",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline active:scale-100",
         violet:
-          "bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-glow)]",
+           "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         glass:
-          "border border-border bg-card/60 backdrop-blur-md text-foreground shadow-[var(--shadow-soft)] hover:border-ring/40 hover:bg-card/80",
+           "border border-border bg-card text-foreground shadow-xs hover:border-ring/40 hover:bg-accent",
         subtle: "bg-muted/60 text-foreground hover:bg-muted",
 
       },
