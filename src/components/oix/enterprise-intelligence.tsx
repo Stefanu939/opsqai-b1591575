@@ -1,7 +1,8 @@
-// Public-site product visual: a static "operations panel" built from real
-// product screenshots (Self-Hosted, Management Center, Customer Portal) with a
-// factual signal strip. No motion, no invented metrics.
-import { Activity, Cloud, HardDrive, ShieldCheck } from "lucide-react";
+// Public-site product visual: "precision layered architecture" — two real
+// product windows stacked with depth (cloud Management Center behind, the
+// Windows Self-Hosted dashboard in front), a divided stats grid and a factual
+// caption. Static, no motion, no invented metrics.
+import { Cloud, HardDrive, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import shDashboard from "@/assets/shot-sh-dashboard.png.asset.json";
@@ -24,7 +25,7 @@ type VariantConfig = {
   eyebrow: string;
   title: string;
   signal: string;
-  main: { src: string; caption: string; alt: string };
+  main: { src: string; caption: string; badge: string; alt: string };
   inset: { src: string; caption: string; alt: string };
   facts: Array<{ label: string; value: string }>;
 };
@@ -36,7 +37,8 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     signal: "Licensed configuration",
     main: {
       src: shDashboard.url,
-      caption: "Self-Hosted · Dashboard",
+      caption: "Self-Hosted Dashboard — Windows native",
+      badge: "Ollama AI active",
       alt: "OPSQAI Self-Hosted dashboard with operational overview",
     },
     inset: {
@@ -56,12 +58,13 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     signal: "Entitlements verified",
     main: {
       src: shDashboard.url,
-      caption: "Self-Hosted · Dashboard",
+      caption: "Self-Hosted Dashboard — Windows native",
+      badge: "Ollama AI active",
       alt: "OPSQAI Self-Hosted dashboard with operational overview",
     },
     inset: {
       src: mcInstallations.url,
-      caption: "MC · Installations",
+      caption: "Management Center / Cloud support",
       alt: "OPSQAI Management Center installation fleet view",
     },
     facts: [
@@ -76,12 +79,13 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     signal: "Signed & governed",
     main: {
       src: shAudit.url,
-      caption: "Self-Hosted · Audit",
+      caption: "Self-Hosted Audit — findings & remediation",
+      badge: "Ed25519 signed",
       alt: "OPSQAI audit and compliance findings screen",
     },
     inset: {
       src: instLicense.url,
-      caption: "Signed license",
+      caption: "Signed license activation",
       alt: "OPSQAI installer license activation step",
     },
     facts: [
@@ -96,7 +100,8 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     signal: "People in control",
     main: {
       src: shAcademy.url,
-      caption: "Self-Hosted · Academy",
+      caption: "Self-Hosted Academy — learning paths",
+      badge: "Certificates",
       alt: "OPSQAI Academy learning paths for employees",
     },
     inset: {
@@ -116,7 +121,8 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     signal: "Architecture aligned",
     main: {
       src: mcCustomers.url,
-      caption: "Management Center · Customers",
+      caption: "Management Center — customer configuration",
+      badge: "Entitlements",
       alt: "OPSQAI Management Center customer configuration",
     },
     inset: {
@@ -142,58 +148,40 @@ export function EnterpriseIntelligence({
   return (
     <figure
       className={cn(
-        "relative mx-auto w-full max-w-[36rem] rounded-lg border border-border bg-card p-4 shadow-sm",
-        compact && "max-w-[28rem] p-3",
+        "relative mx-auto flex w-full max-w-xl flex-col gap-6 overflow-hidden rounded-xl border border-border bg-card p-6 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.25)]",
+        compact && "max-w-[28rem] gap-5 p-5",
         className,
       )}
     >
-      {/* Signal header */}
-      <div className="flex items-start justify-between gap-3">
+      {/* Header: eyebrow, serif title, verified pill */}
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
             {copy.eyebrow}
           </div>
-          <div className="mt-1 truncate font-display text-base text-foreground">{copy.title}</div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2 rounded-md border border-border bg-secondary/60 px-2.5 py-1.5">
-          <Activity className="h-3.5 w-3.5 text-primary" strokeWidth={1.6} />
-          <div className="leading-tight">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground">
-              {copy.signal}
-            </div>
-            <div className="mt-1 h-0.5 w-20 rounded-full bg-border">
-              <i className="block h-0.5 w-14 rounded-full bg-primary" />
-            </div>
+          <div className="mt-1 font-display text-2xl font-medium leading-tight text-foreground">
+            {copy.title}
           </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {copy.signal}
+          </span>
         </div>
       </div>
 
-      {/* Main product screenshot in a restrained window frame */}
-      <div className="relative mt-4 overflow-hidden rounded-md border border-border bg-secondary/40">
-        <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-          <HardDrive className="h-3.5 w-3.5 text-primary" strokeWidth={1.6} />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            {copy.main.caption}
-          </span>
-        </div>
-        <img
-          src={copy.main.src}
-          alt={copy.main.alt}
-          loading="lazy"
-          decoding="async"
-          className="block w-full"
-        />
-
-        {/* Secondary screenshot, offset like a stacked report */}
-        <div
-          className={cn(
-            "absolute bottom-3 right-3 w-[46%] overflow-hidden rounded-md border border-border bg-card shadow-md",
-            compact && "w-[52%]",
-          )}
-        >
-          <div className="flex items-center gap-1.5 border-b border-border px-2 py-1">
+      {/* Layered product windows */}
+      <div className={cn("relative w-full", compact ? "h-56" : "h-64")}>
+        {/* Background window: cloud surface, top-right */}
+        <div className="absolute right-0 top-0 h-[72%] w-4/5 overflow-hidden rounded-lg border border-border bg-secondary/40 shadow-xl">
+          <div className="flex items-center gap-2 border-b border-border bg-secondary/70 px-3 py-2">
+            <span className="flex gap-1">
+              <i className="h-1.5 w-1.5 rounded-full bg-border" />
+              <i className="h-1.5 w-1.5 rounded-full bg-border" />
+            </span>
             <Cloud className="h-3 w-3 text-muted-foreground" strokeWidth={1.6} />
-            <span className="truncate text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <span className="truncate font-mono text-[9px] uppercase tracking-tighter text-muted-foreground">
               {copy.inset.caption}
             </span>
           </div>
@@ -202,26 +190,59 @@ export function EnterpriseIntelligence({
             alt={copy.inset.alt}
             loading="lazy"
             decoding="async"
-            className="block w-full"
+            className="block h-full w-full object-cover object-top"
+          />
+        </div>
+
+        {/* Foreground window: Self-Hosted dashboard, bottom-left */}
+        <div className="absolute bottom-0 left-0 h-[80%] w-[92%] overflow-hidden rounded-lg border border-border bg-card shadow-2xl ring-4 ring-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/70 px-4 py-2">
+            <div className="flex min-w-0 items-center gap-3">
+              <HardDrive className="h-3 w-3 shrink-0 text-primary" strokeWidth={1.6} />
+              <span className="truncate text-[10px] font-medium tracking-tight text-foreground">
+                {copy.main.caption}
+              </span>
+            </div>
+            <span className="shrink-0 rounded border border-primary/25 bg-primary/10 px-2 py-0.5 text-[8px] font-bold uppercase text-primary">
+              {copy.main.badge}
+            </span>
+          </div>
+          <img
+            src={copy.main.src}
+            alt={copy.main.alt}
+            loading="lazy"
+            decoding="async"
+            className="block h-full w-full object-cover object-top"
           />
         </div>
       </div>
 
-      {/* Factual signal strip */}
-      <dl className="mt-4 grid grid-cols-3 gap-2">
-        {copy.facts.map((fact) => (
-          <div key={fact.label} className="rounded-md border border-border bg-secondary/40 p-2.5">
-            <dt className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      {/* Stats grid with hairline dividers */}
+      <dl className="grid grid-cols-3 overflow-hidden rounded-lg border border-border">
+        {copy.facts.map((fact, i) => (
+          <div
+            key={fact.label}
+            className={cn("bg-secondary/30 p-4", i > 0 && "border-l border-border")}
+          >
+            <dt
+              className={cn(
+                "text-[9px] font-bold uppercase tracking-widest",
+                i === 0 ? "text-primary" : i === 1 ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
               {fact.label}
             </dt>
-            <dd className="mt-1 text-[11px] leading-snug text-foreground">{fact.value}</dd>
+            <dd className="mt-2 text-xs leading-tight text-foreground">{fact.value}</dd>
           </div>
         ))}
       </dl>
 
-      <figcaption className="mt-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-        <ShieldCheck className="h-3.5 w-3.5 text-primary" strokeWidth={1.6} />
-        Real product screens · Windows Self-Hosted with Cloud support services
+      {/* Caption footer */}
+      <figcaption className="flex items-center gap-3 pt-1">
+        <ShieldCheck className="h-4 w-4 shrink-0 text-primary/60" strokeWidth={1.5} />
+        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          Real product screens · Windows Self-Hosted · Local Ollama AI
+        </span>
       </figcaption>
     </figure>
   );
