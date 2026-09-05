@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   ArrowRight,
   Brain,
@@ -46,11 +46,7 @@ import {
 } from "@/components/ui/accordion";
 import { pageHead, softwareApplicationLd } from "@/lib/seo";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { ParticleGenesis } from "@/components/three/particle-genesis";
-import { GridFloor } from "@/components/three/primitives/grid-floor";
-import { EmberFog } from "@/components/three/primitives/ember-fog";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
@@ -156,67 +152,15 @@ function SectionHead({
   );
 }
 
-/* ---------------- Hero — Cinematic 3D Genesis ---------------- */
-
-function useScrollProgress(maxScroll = 1100) {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const y = Math.min(window.scrollY, maxScroll);
-      setP((y / maxScroll) * 4);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [maxScroll]);
-  return p;
-}
+/* ---------------- Hero — Enterprise intelligence ---------------- */
 
 function Hero() {
   const t = useHomeCopy();
-  const progress = useScrollProgress(1100);
   const acts = t.hero.acts.map((label, i) => ({ i, label }));
-  const activeAct = Math.min(4, Math.max(0, Math.round(progress)));
 
   return (
     <section className="relative isolate min-h-dvh overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <Scene3D cameraPosition={[0, 0.5, 7]} cameraFov={48}>
-          <ambientLight intensity={0.25} />
-          <pointLight position={[6, 4, 6]} intensity={0.9} color="#5b8cf7" />
-          <pointLight position={[-6, -3, 4]} intensity={0.6} color="#8b6bff" />
-          <GridFloor />
-          <EmberFog />
-          <ParticleGenesis progress={progress} autoPlay={false} />
-          <GoldBloom />
-        </Scene3D>
-        {/* Readability scrims — theme-aware so the editorial copy stays legible
-            over the 3D stage in both light and dark. */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(70% 55% at 50% 18%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, transparent 62%)",
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, color-mix(in oklab, var(--oix-bg-deep) 78%, transparent) 0%, color-mix(in oklab, var(--oix-bg-deep) 62%, transparent) 55%, color-mix(in oklab, var(--oix-bg-deep) 92%, transparent) 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(100deg, color-mix(in oklab, var(--oix-bg-deep) 88%, transparent) 0%, color-mix(in oklab, var(--oix-bg-deep) 55%, transparent) 48%, transparent 78%)",
-          }}
-        />
-
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-40 md:pt-40 md:pb-48">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-40 pt-32 md:grid-cols-[minmax(0,1fr)_minmax(26rem,0.85fr)] md:px-10 md:pb-48 md:pt-40">
         <div className="max-w-4xl">
           <EditorialHeadline
             as="h1"
@@ -247,6 +191,7 @@ function Hero() {
             </OixButton>
           </div>
         </div>
+        <EnterpriseIntelligence variant="platform" className="hidden md:flex" />
 
         <div className="pointer-events-none mt-24 hidden md:flex items-center gap-6 text-[10px] uppercase tracking-[0.28em] text-[var(--oix-cream)]/50">
           {acts.map((a) => (
@@ -254,7 +199,7 @@ function Hero() {
               key={a.label}
               className={
                 "flex items-center gap-2 transition-opacity duration-500 " +
-                (a.i === activeAct ? "opacity-100 text-[var(--oix-gold)]" : "opacity-40")
+                (a.i === 0 ? "opacity-100 text-[var(--oix-gold)]" : "opacity-50")
               }
             >
               <span className="font-mono">0{a.i + 1}</span>
@@ -331,7 +276,7 @@ function WhyNow() {
   );
 }
 
-/* ---------------- Three Surfaces ---------------- */
+/* ---------------- Product and support services ---------------- */
 
 const SURFACE_ICONS = [Building2, Users, HardDrive];
 

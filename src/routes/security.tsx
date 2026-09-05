@@ -18,11 +18,7 @@ import {
   HardDrive,
 } from "lucide-react";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { ServerMonolith } from "@/components/three/primitives/server-monolith";
-import { GridFloor } from "@/components/three/primitives/grid-floor";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
-import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
@@ -69,27 +65,8 @@ function SecurityPage() {
     <OixLayout>
       {/* Cinematic hero — vault of signatures */}
       <section className="relative isolate min-h-[90vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
-        <div className="absolute inset-0 -z-10">
-          <Scene3D cameraPosition={[0, 1.6, 6]} cameraFov={40}>
-            <ambientLight intensity={0.3} />
-            <pointLight position={[4, 3, 4]} intensity={1.1} color="#5b8cf7" />
-            <pointLight position={[-4, 2, 2]} intensity={0.6} color="#5b3df5" />
-            <GridFloor />
-            <EmberFog />
-            <ServerMonolith />
-            <GoldBloom />
-          </Scene3D>
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(70% 60% at 70% 40%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.9) 82%)",
-            }}
-          />
-        </div>
-
         <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32 grid md:grid-cols-2 gap-12 items-center">
-          <div className="hidden md:block" />
+          <EnterpriseIntelligence variant="security" className="hidden md:flex" />
           <div>
             <EditorialHeadline
               as="h1"

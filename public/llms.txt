@@ -11,10 +11,10 @@
 ## Pages
 
 - [Home](/): Positioning, architecture, modules, differentiation.
-- [Product](/product): One product, three surfaces.
-- [Modules](/modules): Basic Platform and Premium Modules.
+- [Product](/product): Windows Self-Hosted customer product and its supporting cloud services.
+- [Platform](/modules): Core Platform, licensed OPSQAI Products and optional Add-ons.
 - [Self-hosted](/self-hosted): Windows deployment, data flow, requirements.
 - [Security](/security): Ed25519 licenses, hash-chained audit, CRL, chunk-level ACL.
-- [Pricing](/pricing): Basic Platform, Premium Modules, Annual Maintenance.
+- [Pricing](/pricing): Core Platform, OPSQAI Products, optional Add-ons and Annual Maintenance.
 - [Company](/company): Mission, team, go-to-market.
 - [Contact](/contact): Request pricing, demo or installer.

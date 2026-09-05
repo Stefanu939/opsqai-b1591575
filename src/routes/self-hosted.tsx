@@ -13,11 +13,7 @@ import {
   Cloud,
 } from "lucide-react";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { ServerMonolith } from "@/components/three/primitives/server-monolith";
-import { GridFloor } from "@/components/three/primitives/grid-floor";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
-import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
@@ -51,25 +47,6 @@ function SelfHostedPage() {
     <OixLayout>
       {/* Cinematic hero with rotating monolith */}
       <section className="relative isolate min-h-[90vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
-        <div className="absolute inset-0 -z-10">
-          <Scene3D cameraPosition={[3.5, 1.2, 5.5]} cameraFov={42}>
-            <ambientLight intensity={0.35} />
-            <pointLight position={[5, 4, 5]} intensity={1.2} color="#5b8cf7" />
-            <pointLight position={[-4, 2, 3]} intensity={0.7} color="#5b3df5" />
-            <GridFloor />
-            <EmberFog />
-            <ServerMonolith />
-            <GoldBloom />
-          </Scene3D>
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(60% 60% at 30% 40%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.85) 80%)",
-            }}
-          />
-        </div>
-
         <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <EditorialHeadline
@@ -92,7 +69,7 @@ function SelfHostedPage() {
               </OixButton>
             </div>
           </div>
-          <div className="hidden md:block" />
+          <EnterpriseIntelligence variant="product" className="hidden md:flex" />
         </div>
       </section>
 

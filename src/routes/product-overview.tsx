@@ -26,7 +26,7 @@ export const Route = createFileRoute("/product-overview")({
     pageHead({
       title: "Product Overview — OPSQAI Operational Intelligence Platform",
       description:
-        "One workspace for operational knowledge, AI and intelligence: Knowledge Base, SOPs, FAQs, AI Chat, Knowledge Gaps, AI Audit, Academy, management dashboards, Cloud or Self-Hosted.",
+        "OPSQAI Windows Self-Hosted brings operational knowledge, AI, learning, audit and licensed product workspaces into the customer's own environment.",
       path: "/product-overview",
       keywords:
         "operational intelligence platform, knowledge base, SOP management, AI chat approved sources, knowledge gaps, AI audit, academy, self-hosted AI, local AI",
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/product-overview")({
         },
         softwareApplicationLd({
           description:
-            "OPSQAI is an Operational Intelligence Platform combining knowledge, AI, learning, intelligence and management in one workspace, available Cloud or Self-Hosted.",
+            "OPSQAI is a licensed Windows Self-Hosted Operational Intelligence Platform. Its cloud services support licensing, downloads, releases and customer support.",
         }),
       ],
     }),
@@ -62,15 +62,15 @@ function PdfButton({ label, variant = "ghost" }: { label: string; variant?: "gol
       href={PDF_HREF}
       download="OPSQAI_Product_Overview.pdf"
       className={[
-        "group relative oix-brackets inline-flex items-center justify-center gap-2 px-6 py-3 text-[13px] font-medium uppercase tracking-[0.18em] transition-all duration-300",
+        "relative oix-brackets inline-flex items-center justify-center gap-2 px-6 py-3 text-[13px] font-medium uppercase tracking-[0.18em]",
         variant === "gold"
-          ? "bg-[var(--oix-gold)] text-[#0a0b14] hover:bg-[var(--oix-gold-soft)]"
-          : "border border-[var(--oix-gold-line)] text-[var(--oix-cream)] hover:border-[var(--oix-gold)] hover:text-[var(--oix-gold-soft)]",
+          ? "bg-[var(--oix-gold)] text-[#0a0b14]"
+          : "border border-[var(--oix-gold-line)] text-[var(--oix-cream)]",
       ].join(" ")}
     >
       <span>{label}</span>
       <ArrowDownToLine
-        className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5"
+        className="h-4 w-4"
         strokeWidth={1.5}
       />
     </a>
@@ -209,7 +209,7 @@ function ProductOverviewPage() {
             return (
               <article
                 key={item.title}
-                className="flex flex-col bg-[var(--oix-bg-deep)] p-8 transition-colors hover:bg-[var(--oix-surface-2)]"
+                className="flex flex-col bg-[var(--oix-bg-deep)] p-8"
               >
                 <div className="flex items-center justify-between">
                   <Icon className="h-6 w-6 text-[var(--oix-gold)]" strokeWidth={1.4} />

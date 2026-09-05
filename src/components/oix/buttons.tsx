@@ -17,11 +17,11 @@ const base =
 
 const variants: Record<Variant, string> = {
   gold:
-    "bg-[var(--oix-gold)] text-[#0a0b14] hover:bg-[var(--oix-gold-soft)] shadow-[var(--oix-shadow-gold-glow)]",
+    "bg-[var(--oix-gold)] text-[#0a0b14] shadow-[var(--oix-shadow-gold-glow)]",
   ghost:
-    "border border-[var(--oix-gold-line)] text-[var(--oix-cream)] hover:border-[var(--oix-gold)] hover:text-[var(--oix-gold-soft)]",
+    "border border-[var(--oix-gold-line)] text-[var(--oix-cream)]",
   emerald:
-    "bg-[var(--oix-emerald)] text-[var(--oix-cream)] hover:bg-[var(--oix-emerald-glow)] hover:text-[#0a0b14]",
+    "bg-[var(--oix-emerald)] text-[var(--oix-cream)]",
 };
 
 export const OixButton = forwardRef<HTMLButtonElement, OixButtonProps>(
@@ -30,10 +30,7 @@ export const OixButton = forwardRef<HTMLButtonElement, OixButtonProps>(
       <>
         <span>{children}</span>
         {withArrow ? (
-          <ArrowRight
-            className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-            strokeWidth={1.5}
-          />
+          <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
         ) : null}
       </>
     );

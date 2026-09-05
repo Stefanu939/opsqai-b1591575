@@ -55,7 +55,7 @@ export function FooterOix() {
                   <li key={item.to}>
                     <Link
                       to={item.to}
-                      className="text-sm text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)] transition-colors"
+                      className="text-sm text-[var(--oix-cream-dim)]"
                     >
                       {item.label}
                     </Link>

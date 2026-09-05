@@ -31,7 +31,7 @@ const en = {
     },
     {
       title: "Engineering Handbook",
-      body: "Conventions, release process, adding modules, issuing licenses, adding AI adapters, publishing container images, migrations, pre-release checklist.",
+      body: "Conventions, Windows release process, Product Workspaces, signed licenses, AI providers, migrations and verification.",
     },
   ],
   openBook: "Open →",

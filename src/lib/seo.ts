@@ -118,13 +118,7 @@ export function softwareApplicationLd(input: {
     description: input.description,
     url: input.url ?? SITE_URL,
     applicationCategory: input.category ?? "BusinessApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "EUR",
-      availability: "https://schema.org/InStock",
-    },
+    operatingSystem: "Windows",
   };
 }
 

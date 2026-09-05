@@ -13,7 +13,7 @@ export const Route = createFileRoute("/documentation/")({
         "OPSQAI documentation: administrator guide, architecture handbook, product, security, technical reference, engineering handbook.",
       path: "/documentation",
       keywords:
-        "OPSQAI documentation, administrator guide, architecture, docker, self-hosted, RAG pipeline",
+        "OPSQAI documentation, administrator guide, architecture, Windows self-hosted, operational AI",
       breadcrumbs: [
         { name: "Home", path: "/" },
         { name: "Documentation", path: "/documentation" },

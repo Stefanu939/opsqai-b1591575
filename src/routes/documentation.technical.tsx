@@ -3,130 +3,22 @@ import { pageHead } from "@/lib/seo";
 import { DocPage, DocSection, DocCode } from "@/components/docs/doc-page";
 
 export const Route = createFileRoute("/documentation/technical")({
-  head: () =>
-    pageHead({
-      title: "Technical Reference — OPSQAI Documentation",
-      description:
-        "docker-compose reference, environment variables, ports, volumes, AI adapter contract, RAG pipeline internals, embeddings, storage adapters, public API, jobs, and schema.",
-      path: "/documentation/technical",
-      breadcrumbs: [
-        { name: "Home", path: "/" },
-        { name: "Documentation", path: "/documentation" },
-        { name: "Technical Reference", path: "/documentation/technical" },
-      ],
-    }),
+  head: () => pageHead({ title: "Technical Reference — OPSQAI Documentation", description: "Technical reference for the OPSQAI Windows services, local PostgreSQL, AI provider boundary, signed licenses, health and updates.", path: "/documentation/technical", breadcrumbs: [{ name: "Home", path: "/" }, { name: "Documentation", path: "/documentation" }, { name: "Technical Reference", path: "/documentation/technical" }] }),
   component: Technical,
 });
 
 function Technical() {
-  return (
-    <DocPage
-      eyebrow="Book 5"
-      title="Technical Reference"
-      intro="Reference material for developers and SREs integrating with or operating OPSQAI at a low level."
-    >
-      <DocSection id="compose" title="1. docker-compose.yml (excerpt)">
-        <DocCode>{`services:
-  web:
-    image: ghcr.io/opsqai/opsqai-web:\${OPSQAI_VERSION}
-    env_file: .env
-    ports: ["8080:8080"]
-    depends_on: [postgres, redis, minio]
-
-  worker:
-    image: ghcr.io/opsqai/opsqai-worker:\${OPSQAI_VERSION}
-    env_file: .env
-    depends_on: [postgres, redis, minio]
-
-  postgres:
-    image: ghcr.io/opsqai/postgres-pgvector:16
-    environment:
-      POSTGRES_USER: opsqai
-      POSTGRES_DB: opsqai
-      POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}
-    volumes: [pgdata:/var/lib/postgresql/data]
-
-  redis:
-    image: redis:7-alpine
-
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address :9001
-    volumes: [objects:/data]
-
-volumes:
-  pgdata:
-  objects:`}</DocCode>
-      </DocSection>
-
-      <DocSection id="ports" title="2. Ports">
-        <ul className="list-disc pl-6 space-y-1">
-          <li><code>8080</code> — <code>opsqai-web</code> HTTP (put behind TLS proxy).</li>
-          <li><code>5432</code> — Postgres (do not expose externally).</li>
-          <li><code>6379</code> — Redis (internal only).</li>
-          <li><code>9000 / 9001</code> — MinIO API / console (internal only).</li>
-        </ul>
-      </DocSection>
-
-      <DocSection id="volumes" title="3. Persistent volumes">
-        <ul className="list-disc pl-6 space-y-1">
-          <li><code>pgdata</code> — Postgres. Back this up. Do not delete on upgrade.</li>
-          <li><code>objects</code> — MinIO bucket. Back this up. Migrate to external S3 in production.</li>
-        </ul>
-      </DocSection>
-
-      <DocSection id="adapter" title="4. AI adapter contract">
-        <DocCode>{`export interface AiAdapter {
-  chat(messages: Message[], opts: ChatOpts): Promise<ChatResult>;
-  stream(messages: Message[], opts: ChatOpts): AsyncIterable<Chunk>;
-  embed(texts: string[]): Promise<number[][]>;
-}`}</DocCode>
-        <p>Ship a new provider by implementing this interface and registering it in <code>src/lib/ai/registry.ts</code>. All rate limiting, retries, and cost accounting are handled by the wrapping layer.</p>
-      </DocSection>
-
-      <DocSection id="rag" title="5. RAG pipeline">
-        <ol className="list-decimal pl-6 space-y-1">
-          <li>Extract — PDF / DOCX / HTML → normalised text.</li>
-          <li>Chunk — recursive splitter, ~800 tokens with 120-token overlap.</li>
-          <li>Embed — batched to the configured adapter (Ollama locally); the model's native vector length is authoritative.</li>
-          <li>Store — <code>document_chunks(embedding vector(N))</code> where N is the probed embedding dimension, with an HNSW index.</li>
-          <li>Retrieve — <code>&lt;-&gt;</code> cosine, top-k=8, MMR re-rank optional.</li>
-          <li>Generate — pass chunks + question as system context; response cites chunk ids.</li>
-        </ol>
-      </DocSection>
-
-      <DocSection id="storage" title="6. Storage adapters">
-        <ul className="list-disc pl-6 space-y-1">
-          <li><code>s3</code> — MinIO, AWS S3, Cloudflare R2, Backblaze B2.</li>
-          <li><code>azure-blob</code> — Azure Storage v2.</li>
-          <li><code>filesystem</code> — POSIX path (single-node only; not recommended for HA).</li>
-        </ul>
-      </DocSection>
-
-      <DocSection id="api" title="7. Public HTTP API">
-        <p>External integrations use <code>/api/public/*</code> routes with signed webhook secrets. See <code>src/routes/api/public/</code> for the current surface. Server functions (RPC) are for the app UI and are not part of the stability contract.</p>
-      </DocSection>
-
-      <DocSection id="jobs" title="8. Background jobs">
-        <ul className="list-disc pl-6 space-y-1">
-          <li><code>document.ingest</code></li>
-          <li><code>document.embed</code></li>
-          <li><code>backup.run</code> — nightly at 03:00 local, configurable.</li>
-          <li><code>license.refresh</code> — every 24h.</li>
-          <li><code>audit.rollup</code> — hourly.</li>
-        </ul>
-      </DocSection>
-
-      <DocSection id="schema" title="9. Core schema (public)">
-        <ul className="list-disc pl-6 space-y-1">
-          <li><code>companies</code>, <code>profiles</code>, <code>user_roles</code></li>
-          <li><code>documents</code>, <code>document_chunks</code></li>
-          <li><code>conversations</code>, <code>messages</code></li>
-          <li><code>tickets</code>, <code>workflows</code>, <code>workflow_runs</code></li>
-          <li><code>platform_config</code>, <code>audit_log</code>, <code>license</code></li>
-        </ul>
-        <p>Every table has RLS enabled and explicit <code>GRANT</code>s to <code>authenticated</code> / <code>service_role</code>. See migrations for exact policies.</p>
-      </DocSection>
-    </DocPage>
-  );
+  return <DocPage eyebrow="Book 5" title="Technical Reference" intro="Reference for teams operating and integrating the Windows Self-Hosted OPSQAI product.">
+    <DocSection id="runtime" title="1. Windows runtime"><p>The signed installer provisions the application, supporting Windows services and local PostgreSQL. The desktop shell checks service health before opening the application and directs administrators to recovery information when a dependency is unavailable.</p></DocSection>
+    <DocSection id="data" title="2. Local data"><ul className="list-disc pl-6 space-y-1"><li><b>PostgreSQL</b> — application records, configuration, audit data and vector-backed knowledge.</li><li><b>Installation storage</b> — customer documents, backups and release assets managed within the customer boundary.</li><li><b>Backups</b> — administrator-controlled backup and restore procedures for the local installation.</li></ul></DocSection>
+    <DocSection id="ai" title="3. AI provider boundary"><DocCode>{`Self-Hosted application
+  -> governed context retrieval
+  -> configured AI provider
+     (Ollama for a fully local model, or an approved compatible provider)
+  -> source-grounded response`}</DocCode><p>The selected provider is installation configuration. OPSQAI Cloud does not receive the customer's operational knowledge.</p></DocSection>
+    <DocSection id="license" title="4. Signed entitlements"><p>Licenses are Ed25519-signed JWTs. The validated profile, products, add-ons and legacy compatibility claims resolve the effective configuration and visible workspaces. Invalid or absent claims do not unlock capabilities.</p></DocSection>
+    <DocSection id="health" title="5. Health and heartbeat"><p>Local readiness checks report whether required application services are available. A separate installation heartbeat may report installation status to Management Center; it does not transmit operational knowledge.</p></DocSection>
+    <DocSection id="integration" title="6. Integration surface"><p>Supported integrations use authenticated application functions or documented public endpoints. Public callbacks validate their caller, input and signature before performing work.</p></DocSection>
+    <DocSection id="updates" title="7. Release lifecycle"><p>Authorized Windows packages are listed through Customer Portal. The installation's Updates area and operational tooling provide the local update path and health checks.</p></DocSection>
+  </DocPage>;
 }

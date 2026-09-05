@@ -104,7 +104,7 @@ export function Founders() {
           {copy.people.map((p, i) => (
             <figure
               key={p.name}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card/70 shadow-[var(--shadow-soft)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] motion-reduce:transform-none"
+              className="relative overflow-hidden rounded-2xl border border-border bg-card/70 shadow-[var(--shadow-soft)] backdrop-blur-sm"
             >
               <div className="relative aspect-4/5 overflow-hidden">
                 <img
@@ -112,7 +112,7 @@ export function Founders() {
                   alt={`${p.name} — ${p.role}, OPSQAI`}
                   loading="lazy"
                   decoding="async"
-                  className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transform-none"
+                  className="h-full w-full object-cover object-top"
                 />
                 <div
                   aria-hidden
