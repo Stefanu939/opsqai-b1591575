@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 interface Notif {
   id: string;
   kind: string;
+  category: string;
   title: string;
   body: string | null;
   link: string | null;
