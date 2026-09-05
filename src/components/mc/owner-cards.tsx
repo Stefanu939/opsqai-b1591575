@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, ArrowLeft, Inbox, Radio, ShieldCheck, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
