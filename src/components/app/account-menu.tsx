@@ -132,10 +132,21 @@ export function AccountMenu({
   supportHref,
   className,
 }: AccountMenuProps) {
-  const { user, signOut, session, loading } = useAuth();
+  const { user, signOut, session, loading, isPlatformAdmin } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // One cloud sign-in covers both surfaces: platform staff can keep
+  // Management Center and Customer Portal open side by side (separate tabs,
+  // same shared session) without signing in twice.
+  const showSurfaceSwitch =
+    getClientDeploymentMode() !== "selfhost" &&
+    isPlatformAdmin &&
+    (pathname.startsWith("/management") || pathname.startsWith("/portal"));
+  const switchTarget = pathname.startsWith("/management")
+    ? { href: "/portal", label: "Open Customer Portal" }
+    : { href: "/management", label: "Open Management Center" };
 
   const [statusOpen, setStatusOpen] = useState(false);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
