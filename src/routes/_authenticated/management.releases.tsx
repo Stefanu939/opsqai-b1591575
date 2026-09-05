@@ -194,15 +194,19 @@ function ReleasesPage() {
       key: "notes",
       header: "Notes",
       render: (r) =>
-        r.release_notes_url || r.notes_storage_path ? (
+        r.release_notes_url ? (
           <a
-            href={r.release_notes_url ?? "#"}
+            href={r.release_notes_url}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs underline underline-offset-4"
           >
             Open <ExternalLink className="h-3 w-3" />
           </a>
+        ) : r.notes_storage_path ? (
+          <span className="text-xs text-muted-foreground">
+            {r.notes_storage_path.split("/").pop()}
+          </span>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>
         ),
