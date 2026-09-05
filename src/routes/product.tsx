@@ -11,11 +11,7 @@ import {
   Play,
 } from "lucide-react";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { GridFloor } from "@/components/three/primitives/grid-floor";
-import { EmberFog } from "@/components/three/primitives/ember-fog";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
-import { ServerMonolith } from "@/components/three/primitives/server-monolith";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
@@ -25,9 +21,9 @@ import { useMarketing } from "@/i18n/marketing";
 export const Route = createFileRoute("/product")({
   head: () =>
     pageHead({
-      title: "Product — OPSQAI · One platform, three surfaces",
+      title: "Product — OPSQAI Windows Self-Hosted",
       description:
-        "OPSQAI is one product with three surfaces: the Windows Self-Hosted product (the actual product), the Management Center used only by OPSQAI, and the Customer Portal used by customer contacts.",
+        "OPSQAI is a licensed Windows Self-Hosted operational AI platform. Management Center and Customer Portal are support services, not customer products.",
       path: "/product",
       keywords:
         "enterprise operational AI platform, windows self-hosted, customer portal, management center, signed license, windows installer",
@@ -55,25 +51,6 @@ function ProductPage() {
     <OixLayout>
       {/* Cinematic hero */}
       <section className="relative isolate min-h-[88vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
-        <div className="absolute inset-0 -z-10">
-          <Scene3D cameraPosition={[0, 1.4, 6.4]} cameraFov={42}>
-            <ambientLight intensity={0.28} />
-            <pointLight position={[5, 3, 5]} intensity={1} color="#5b8cf7" />
-            <pointLight position={[-5, 2, 2]} intensity={0.6} color="#8b6bff" />
-            <GridFloor />
-            <EmberFog />
-            <ServerMonolith />
-            <GoldBloom />
-          </Scene3D>
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(70% 60% at 30% 40%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.9) 84%)",
-            }}
-          />
-        </div>
-
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-32 md:grid-cols-2 md:px-10 md:pb-32 md:pt-40">
           <div>
             <EditorialHeadline as="h1" size="xl" eyebrow={m.product.eyebrow} serifAccent={m.product.serif}>
@@ -91,7 +68,7 @@ function ProductPage() {
               </OixButton>
             </div>
           </div>
-          <div className="hidden md:block" />
+          <EnterpriseIntelligence variant="product" className="hidden md:flex" />
         </div>
       </section>
 
@@ -108,7 +85,7 @@ function ProductPage() {
         </div>
       </SectionShell>
 
-      {/* Three surfaces */}
+      {/* Product and supporting services */}
       <SectionShell>
         <div className="oix-eyebrow mb-10">{m.product.surfacesEyebrow}</div>
         <div className="grid gap-px bg-[var(--oix-gold-line)] md:grid-cols-3">

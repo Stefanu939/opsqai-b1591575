@@ -13,11 +13,7 @@ import {
   Truck,
 } from "lucide-react";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { ParticleGenesis } from "@/components/three/particle-genesis";
-import { GridFloor } from "@/components/three/primitives/grid-floor";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
-import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
@@ -51,26 +47,7 @@ function CompanyPage() {
     <OixLayout>
       {/* Hero — particle genesis */}
       <section className="relative isolate min-h-[90vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
-        <div className="absolute inset-0 -z-10">
-          <Scene3D cameraPosition={[0, 0.6, 6]} cameraFov={44}>
-            <ambientLight intensity={0.35} />
-            <pointLight position={[3, 3, 3]} intensity={1} color="#5b8cf7" />
-            <pointLight position={[-3, 2, 1]} intensity={0.5} color="#5b3df5" />
-            <GridFloor />
-            <EmberFog />
-            <ParticleGenesis progress={0.6} />
-            <GoldBloom />
-          </Scene3D>
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(65% 60% at 30% 45%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.88) 82%)",
-            }}
-          />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-32 md:grid-cols-2 md:px-10 md:pb-32 md:pt-40">
           <div className="max-w-3xl">
             <EditorialHeadline
               as="h1"
@@ -92,6 +69,7 @@ function CompanyPage() {
               </OixButton>
             </div>
           </div>
+          <EnterpriseIntelligence variant="company" className="hidden md:flex" />
         </div>
       </section>
 
