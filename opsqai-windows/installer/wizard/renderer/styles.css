@@ -52,6 +52,11 @@ body {
 
 /* ── Sidebar ────────────────────────────────────────────────────── */
 .sidebar {
+  --text: #f1f3ef;
+  --text-muted: #aeb8b4;
+  --text-dim: #84908c;
+  --border: rgba(241, 243, 239, 0.16);
+  --border-strong: rgba(241, 243, 239, 0.28);
   background: #101315;
   border-right: 1px solid var(--border);
   padding: 24px 0 16px;
@@ -633,7 +638,7 @@ body {
   min-width: 92px;
   transition: all var(--dur) var(--ease);
 }
-.btn:hover:not(:disabled) { background: #0a3a2d; border-color: rgba(38,166,122,0.38); }
+.btn:hover:not(:disabled) { background: #dfe6e1; border-color: rgba(38,166,122,0.38); }
 .btn:focus-visible { outline: none; box-shadow: var(--focus); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-primary {

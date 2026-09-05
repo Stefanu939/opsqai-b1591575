@@ -12,7 +12,7 @@ interface SectionCardProps {
 
 /**
  * SectionCard — v2 primitive. Neutral surface card.
- * Replaces `PremiumCard` from the retired Noir & Gold shell.
+ * Shared restrained enterprise section surface.
  */
 export function SectionCard({
   title,
