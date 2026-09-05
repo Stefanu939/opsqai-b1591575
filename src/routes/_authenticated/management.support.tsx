@@ -238,6 +238,16 @@ function SupportPage() {
                           >
                             {r.status}
                           </Badge>
+                          {(r.status === "open" || r.status === "pending") &&
+                          Date.now() - new Date(r.last_message_at ?? r.created_at).getTime() >
+                            24 * 60 * 60 * 1000 ? (
+                            <Badge
+                              variant="outline"
+                              className="h-4 px-1.5 text-[9px] text-destructive"
+                            >
+                              waiting {relTime(r.last_message_at ?? r.created_at)}
+                            </Badge>
+                          ) : null}
                           <Badge
                             variant={
                               r.priority === "critical"

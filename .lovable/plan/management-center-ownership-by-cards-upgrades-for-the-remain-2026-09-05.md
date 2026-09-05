@@ -23,30 +23,38 @@ Three variants for how strict this is — pick one:
 ## B. Page-by-page — complex variants
 
 ### Overview — control centre
+
 Actionable alert lanes instead of plain numbers: licenses expiring in 30/60/90 days, installations silent >48h, customers with no license, customers with products enabled but no reissued license, open tickets past response target, releases not yet adopted. Each alert has a direct action button (Reissue, Open customer, Open ticket). Scoped to your own customers; SuperAdmin gets a fleet roll-up plus per-colleague breakdown. Optional: "My day" strip (your pending approvals, tickets assigned to you, upcoming renewals).
 
 ### Calendar
+
 - Fix: time off approved from the profile corner currently lands in the customer-portal calendar only, so Management Center staff never see it. It will be written into the calendar matching the person (staff → fleet calendar) so approved holidays appear automatically, and disappear when cancelled/rejected.
 - Add automatic entries: license expiry / renewal dates, maintenance windows, release publish dates.
 - Filters: by customer, by colleague, by type (holiday / license / release / meeting); "only mine" default, SuperAdmin can switch to everything.
 - Optional: team absence overview so you see who is out this week.
 
 ### Customers
+
 One detail page per customer with tabs: summary (profile, products, health), licenses (with history and reissue), installation & signal, users, tickets, activity, notes. Plus owner shown/assignable, a "needs attention" banner (expiring license, silent install, products changed without reissue), and one-click actions from every tab.
 
 ### Installations
+
 Clear status: healthy (signal <12h), late (12–48h), offline (>48h), never reported. Installed version vs. newest release with an "outdated" warning, plus platform/version breakdown and a "chase" action that opens the customer or ticket. Optional: signal timeline chart per install.
 
 ### Licenses
+
 Bulk actions (reissue for all customers whose products changed, bulk expiry extension), expiry warnings by band, visible per-customer history (who issued, when, which products, which version), diff between the last issued license and the current entitlements, and a re-download / resend of a bundle.
 
 ### Releases
+
 Mark a "current" release, structured release notes (EN/DE/RO), and adoption tracking: how many installs run this version, which customers are behind, with a chase action. Optional: staged rollout flag (internal / early / general).
 
 ### Team
+
 Explicit roles (SuperAdmin / Manager / Agent) with clear descriptions, email invitations with expiring links, active/deactivated state, per-colleague customer count and workload, and reassignment of a leaver's customers.
 
 ### Support
+
 Filters by state / priority / customer / assignee, assignment to a colleague, first-response and resolution timers with a breach flag, saved views ("mine, open", "unassigned", "breached"), internal notes vs. customer replies, and canned replies. Scoped: you see tickets from your customers; SuperAdmin sees all with the colleague breakdown.
 
 ## Suggested order
@@ -67,6 +75,6 @@ Filters by state / priority / customer / assignee, assignment to a colleague, fi
 
 ## Confirm before build
 
-- Which ownership variant (1, 2 or 3)?
-- Should SuperAdmin be able to reassign customers between colleagues?
-- Do all upgrades in one go, or start with ownership + calendar?
+- Which ownership variant (1, 2 or 3)?  - I pick 2
+- Should SuperAdmin be able to reassign customers between colleagues? Yes 
+- Do all upgrades in one go, or start with ownership + calendar? All in one go

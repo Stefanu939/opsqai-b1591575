@@ -15,13 +15,30 @@ const CompanyInput = z.object({
 
 export const listCompanies = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: unknown) =>
+    z
+      .object({ owner_user_id: z.string().nullable().optional(), unassigned: z.boolean().optional() })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { resolveMcScope } = await import("@/lib/mc-scope.server");
+    const scope = await resolveMcScope(context);
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
-    const { data: companies, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("companies")
-      .select("id, name, subscription_status, subscription_plan, max_users, active, created_at, install_id, business_type, enabled_products")
+      .select(
+        "id, name, subscription_status, subscription_plan, max_users, active, created_at, install_id, business_type, enabled_products, owner_user_id",
+      )
       .order("created_at", { ascending: false });
+    if (!scope.isSuperAdmin) {
+      query = query.in("id", scope.companyIds?.length ? scope.companyIds : [""]);
+    } else if (data.unassigned) {
+      query = query.is("owner_user_id", null);
+    } else if (data.owner_user_id) {
+      query = query.eq("owner_user_id", data.owner_user_id);
+    }
+    const { data: companies, error } = await query;
     if (error) throw new Error(error.message);
 
     // Aggregate counts
@@ -47,6 +64,7 @@ export const listCompanies = createServerFn({ method: "POST" })
       faq_count: faqsBy.get(c.id) ?? 0,
     }));
   });
+
 
 export const createCompany = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -85,6 +103,8 @@ export const createCompany = createServerFn({ method: "POST" })
         active: data.active ?? true,
         business_type: data.business_type,
         enabled_products: products,
+        // The colleague who creates a customer owns it (SuperAdmin can reassign).
+        owner_user_id: context.userId,
       })
       .select("id")
       .single();
@@ -135,6 +155,8 @@ export const updateCompany = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyInput.extend({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+    await assertCompanyInScope(context, data.id);
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { id, ...patch } = data;
     const { error } = await supabaseAdmin.from("companies").update(patch).eq("id", id);
@@ -147,6 +169,8 @@ export const deleteCompany = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { assertCompanyInScope: assertDeletable } = await import("@/lib/mc-scope.server");
+    await assertDeletable(context, data.id);
     if (data.id === "00000000-0000-0000-0000-000000000001")
       throw new Error("Cannot delete Default Company");
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");

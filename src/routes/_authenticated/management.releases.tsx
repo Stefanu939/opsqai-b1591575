@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   listReleases,
   createRelease,
   setCurrentRelease,
   deleteRelease,
+  listInstallations,
 } from "@/lib/releases.functions";
 import { getPortalSnapshot } from "@/lib/mc-admin.functions";
 import { StatCard } from "@/components/ui/stat-card";
@@ -112,6 +113,23 @@ function ReleasesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const installsFn = useServerFn(listInstallations);
+  const installsQ = useQuery({
+    queryKey: ["mc-releases-adoption"],
+    queryFn: () =>
+      installsFn({ data: {} } as never) as Promise<Array<{ app_version: string | null }>>,
+    staleTime: 60_000,
+  });
+  const adoption = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const i of installsQ.data ?? []) {
+      if (!i.app_version) continue;
+      map.set(i.app_version, (map.get(i.app_version) ?? 0) + 1);
+    }
+    return map;
+  }, [installsQ.data]);
+  const totalInstalls = (installsQ.data ?? []).filter((i) => i.app_version).length;
+
   const columns: Column<Release>[] = [
     {
       key: "version",
@@ -122,6 +140,20 @@ function ReleasesPage() {
           {r.is_current && <Badge>Current</Badge>}
         </div>
       ),
+    },
+    {
+      key: "adoption",
+      header: "Installations on this version",
+      render: (r) => {
+        const n = adoption.get(r.version) ?? 0;
+        const pct = totalInstalls ? Math.round((n / totalInstalls) * 100) : 0;
+        return (
+          <span className="text-xs text-muted-foreground">
+            <span className="tabular-nums font-medium text-foreground">{n}</span>
+            {totalInstalls ? ` of ${totalInstalls} (${pct}%)` : ""}
+          </span>
+        );
+      },
     },
     {
       key: "channel",

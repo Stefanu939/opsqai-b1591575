@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { listInstallations } from "@/lib/releases.functions";
+import { listInstallations, listReleases } from "@/lib/releases.functions";
 import { listSelfHostFleet, type SelfHostFleetRow } from "@/lib/selfhost-fleet.functions";
 import {
   statusBadgeVariant,
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Package, Search } from "lucide-react";
+import { MetricTile } from "@/components/ui/metric-tile";
 
 export const Route = createFileRoute("/_authenticated/management/installations")({
   head: () => ({
@@ -169,8 +170,22 @@ function InstallationsPage() {
     [installsQuery.data, fleetQuery.data],
   );
 
+  const releasesFn = useServerFn(listReleases);
+  const releasesQuery = useQuery({
+    queryKey: ["mc-releases-current"],
+    queryFn: () => releasesFn({ data: {} } as never) as Promise<
+      Array<{ version: string; is_current: boolean | null; published_at: string | null }>
+    >,
+    staleTime: 60_000,
+  });
+  const currentVersion =
+    (releasesQuery.data ?? []).find((r) => r.is_current)?.version ??
+    (releasesQuery.data ?? [])[0]?.version ??
+    null;
+
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
+  const [outdatedOnly, setOutdatedOnly] = useState(false);
   const [country, setCountry] = useState("all");
   const [version, setVersion] = useState("all");
   const [licenseStatus, setLicenseStatus] = useState("all");
@@ -199,11 +214,19 @@ function InstallationsPage() {
       if (country !== "all" && r.country !== country) return false;
       if (version !== "all" && r.app_version !== version) return false;
       if (licenseStatus !== "all" && r.license_status !== licenseStatus) return false;
+      if (outdatedOnly) {
+        if (!currentVersion || !r.app_version || r.app_version === currentVersion) return false;
+      }
       return true;
     });
-  }, [data, q, status, country, version, licenseStatus]);
+  }, [data, q, status, country, version, licenseStatus, outdatedOnly, currentVersion]);
 
   const online = data.filter((r) => r.display_status === "online").length;
+  const offline = data.filter((r) => r.display_status === "offline").length;
+  const never = data.filter((r) => !r.last_heartbeat_at).length;
+  const outdated = currentVersion
+    ? data.filter((r) => r.app_version && r.app_version !== currentVersion).length
+    : 0;
 
   const columns: Column<Row>[] = [
     {
@@ -249,7 +272,14 @@ function InstallationsPage() {
       header: "App / Installer",
       render: (r) => (
         <div className="flex flex-col font-mono text-xs">
-          <span>{r.app_version ?? "—"}</span>
+          <span className="flex items-center gap-1.5">
+            {r.app_version ?? "—"}
+            {currentVersion && r.app_version && r.app_version !== currentVersion ? (
+              <Badge variant="outline" className="font-sans text-[10px] text-amber-500">
+                outdated
+              </Badge>
+            ) : null}
+          </span>
           <span className="text-muted-foreground">{r.installer_version ?? "—"}</span>
         </div>
       ),
@@ -318,6 +348,16 @@ function InstallationsPage() {
       title="Installations"
       description="Every self-hosted OPSQAI installation: license state, heartbeat telemetry, versions and module coverage. Visibility only — no remote control actions."
     >
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricTile label="Online" value={online} />
+        <MetricTile label="Offline" value={offline} />
+        <MetricTile label="Never reported" value={never} />
+        <MetricTile
+          label={currentVersion ? `Outdated (current ${currentVersion})` : "Outdated"}
+          value={outdated}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -380,6 +420,15 @@ function InstallationsPage() {
             ))}
           </SelectContent>
         </Select>
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={outdatedOnly}
+            onChange={(e) => setOutdatedOnly(e.target.checked)}
+            className="h-3.5 w-3.5 accent-primary"
+          />
+          Outdated only
+        </label>
         <div className="ml-auto text-xs text-muted-foreground">
           <span className="tabular-nums">{online}</span> online ·{" "}
           <span className="tabular-nums">{rows.length}</span> / {data.length}

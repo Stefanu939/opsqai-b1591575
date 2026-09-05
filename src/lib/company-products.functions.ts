@@ -73,6 +73,10 @@ export const getCompanyArchitecture = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ company_id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+      await assertCompanyInScope(context, data.company_id);
+    }
     const admin = await getCloudSupabaseAdmin("company-products");
 
     const [{ data: company, error: cErr }, { data: rows, error: pErr }] = await Promise.all([
@@ -126,6 +130,10 @@ export const setCompanyProfile = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+      await assertCompanyInScope(context, data.company_id);
+    }
     if (!isCompanyProfileKey(data.business_type)) throw new Error("Unknown company profile");
     const admin = await getCloudSupabaseAdmin("company-products");
     const { error } = await admin
@@ -151,6 +159,10 @@ export const setCompanyProduct = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+      await assertCompanyInScope(context, data.company_id);
+    }
     if (!isProductKey(data.product_key)) throw new Error("Unknown OPSQAI product");
     const admin = await getCloudSupabaseAdmin("company-products");
 

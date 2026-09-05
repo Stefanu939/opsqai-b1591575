@@ -49,6 +49,8 @@ export const listLicenses = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
+    const { resolveMcScope } = await import("@/lib/mc-scope.server");
+    const scope = await resolveMcScope(context);
     const { data, error } = await getCloudSupabase(context, "licenses")
       .from("licenses")
       .select(
@@ -57,7 +59,9 @@ export const listLicenses = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
-    const rows = data ?? [];
+    const rows = (data ?? []).filter(
+      (r) => scope.isSuperAdmin || (scope.installIds ?? []).includes(r.install_id),
+    );
     const installs = rows.filter((r) => r.kind === "install");
     const modules = rows.filter((r) => r.kind === "module");
     const modulesByInstall = new Map<string, typeof modules>();
@@ -98,6 +102,10 @@ export const issueLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => IssueInstallInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertInstallInScope } = await import("@/lib/mc-scope.server");
+      await assertInstallInScope(context, data.install_id);
+    }
     assertNoBlacklistedSecrets(data, "issueLicense input");
 
     const { signInstallLicense } = await import("@/lib/license-signing.server");
@@ -192,6 +200,10 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => IssueModuleInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertInstallInScope } = await import("@/lib/mc-scope.server");
+      await assertInstallInScope(context, data.install_id);
+    }
     assertNoBlacklistedSecrets(data, "issueModuleLicense input");
     const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
 
@@ -296,6 +308,10 @@ export const issueProductLicense = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertInstallInScope } = await import("@/lib/mc-scope.server");
+      await assertInstallInScope(context, data.install_id);
+    }
     assertNoBlacklistedSecrets(data, "issueProductLicense input");
     const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
 
@@ -376,6 +392,10 @@ export const revokeLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => RevokeInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertInstallInScope } = await import("@/lib/mc-scope.server");
+      await assertInstallInScope(context, data.install_id);
+    }
     let q = getCloudSupabase(context, "licenses")
       .from("licenses")
       .update({
@@ -401,6 +421,10 @@ export const deleteLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertInstallInScope } = await import("@/lib/mc-scope.server");
+      await assertInstallInScope(context, data.install_id);
+    }
     const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
     const { error } = await supabaseAdmin
       .from("licenses")
