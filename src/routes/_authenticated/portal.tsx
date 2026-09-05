@@ -180,7 +180,7 @@ function PortalLayout() {
     </>
   );
   return (
-     <div className="oq-product oq-portal-shell oq-soft flex flex-1 gap-0">
+     <div className="oq-product oq-portal-shell oq-soft flex flex-1 gap-0 md:h-dvh md:overflow-hidden">
       <aside className="oq-soft-card hidden md:flex w-[248px] flex-col shrink-0 p-3 md:sticky md:top-0 md:h-dvh md:overflow-hidden">
         {SidebarInner}
       </aside>
@@ -196,7 +196,7 @@ function PortalLayout() {
           </aside>
         </>
       )}
-       <main className="flex min-w-0 flex-1 flex-col">
+       <main className="flex min-w-0 flex-1 flex-col md:min-h-0">
         <div className="oq-soft-card sticky top-0 z-30 flex h-14 items-center gap-2 px-3 md:h-16 md:px-4">
           <button
             type="button"
