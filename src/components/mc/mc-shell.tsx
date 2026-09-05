@@ -195,7 +195,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
             {/* Ticketing lives in the Customer Portal bubble; staff answer here. */}
             <Button
               asChild
-              variant={path.startsWith("/management/support") ? "secondary" : "ghost"}
+              variant={currentPath.startsWith("/management/support") ? "secondary" : "ghost"}
               size="sm"
               className="gap-2"
             >
