@@ -61,7 +61,7 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     },
     inset: {
       src: mcInstallations.url,
-      caption: "Management Center · Installations",
+      caption: "MC · Installations",
       alt: "OPSQAI Management Center installation fleet view",
     },
     facts: [
