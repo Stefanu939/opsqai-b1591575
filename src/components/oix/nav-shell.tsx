@@ -57,7 +57,7 @@ export function NavShell() {
       )}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-6">
-        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0 transition-opacity duration-200 hover:opacity-80">
           <LogoMark
             size={26}
             accent="var(--oix-gold-soft)"
@@ -74,7 +74,7 @@ export function NavShell() {
             <Link
               key={l.to}
               to={l.to}
-              className="whitespace-nowrap text-[12px] uppercase tracking-[0.18em] text-[var(--oix-cream-dim)]"
+              className="whitespace-nowrap text-[12px] uppercase tracking-[0.18em] text-[var(--oix-cream-dim)] transition-colors duration-200 hover:text-[var(--oix-gold-soft)]"
               activeProps={{ className: "text-[var(--oix-gold)]" }}
             >
               {l.label}
@@ -99,7 +99,7 @@ export function NavShell() {
                   "px-2 py-1.5 text-[11px] uppercase tracking-[0.14em] transition-colors",
                   lang === code
                     ? "bg-[var(--oix-gold)] text-[#0a0b14]"
-                    : "text-[var(--oix-cream-dim)]",
+                    : "text-[var(--oix-cream-dim)] hover:bg-[var(--oix-gold)]/10 hover:text-[var(--oix-cream)]",
                 )}
               >
                 {code}
@@ -113,7 +113,7 @@ export function NavShell() {
             onClick={toggleTheme}
             aria-label={m.a11y.theme}
             title={m.a11y.theme}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)] transition-colors duration-200 hover:border-[var(--oix-gold)]/60 hover:text-[var(--oix-gold-soft)]"
           >
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -121,12 +121,12 @@ export function NavShell() {
           <OixButton
             variant="ghost"
             to="/auth"
-            className="hidden px-4 py-2 sm:inline-flex"
+            className="hidden px-4 py-2 transition-colors duration-200 hover:border-[var(--oix-gold)]/70 hover:text-[var(--oix-gold-soft)] sm:inline-flex"
           >
             {m.cta.signIn}
           </OixButton>
 
-          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 2xl:inline-flex">
+          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 transition-[filter] duration-200 hover:brightness-110 2xl:inline-flex">
             {m.cta.proposal}
           </OixButton>
         </div>
