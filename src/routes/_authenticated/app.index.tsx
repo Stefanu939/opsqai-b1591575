@@ -186,8 +186,8 @@ function Dashboard() {
   return (
     <div className="oq-page min-h-full bg-background text-foreground">
       {/* Hero */}
-      <div className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10">
-        <div className="inline-flex items-center gap-2 rounded-full border border-gold-line bg-gold-soft px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold">
+       <div className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10">
+         <div className="inline-flex items-center gap-2 rounded-sm border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
           <Sparkles className="h-3 w-3" />
           {isEmptyWorkspace ? "Get started" : "Operational overview"}
         </div>
@@ -252,8 +252,8 @@ function Dashboard() {
                   >
                     <X className="h-4 w-4" />
                   </button>
-                  <div className="h-9 w-9 rounded-md bg-gold-soft border border-gold-line flex items-center justify-center transition-[background-color,border-color,transform] duration-150 group-hover:scale-105 group-hover:bg-gold-soft/80">
-                    <c.icon className="h-4 w-4 text-gold" />
+                  <div className="h-9 w-9 rounded-md bg-primary/10 border border-primary/25 flex items-center justify-center transition-colors duration-150 group-hover:bg-primary/15">
+                    <c.icon className="h-4 w-4 text-primary" />
                   </div>
                   <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{c.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed flex-1">
@@ -522,7 +522,7 @@ function DashboardWidgets() {
                       key={i}
                       className="flex gap-2 rounded-lg border border-border/60 bg-muted/25 p-3"
                     >
-                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold" />
+                       <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
                       {line}
                     </li>
                   ))}

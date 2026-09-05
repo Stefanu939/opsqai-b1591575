@@ -82,8 +82,8 @@ function ChatWelcome() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 min-h-[calc(100vh-3.5rem)] md:min-h-dvh oq-chat-canvas">
       <div className="w-full max-w-2xl text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--gold-line)] bg-card/60 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
-          <Sparkles className="h-3 w-3 text-gold" />
+        <div className="inline-flex items-center gap-2 rounded-sm border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] text-muted-foreground">
+          <Sparkles className="h-3 w-3 text-primary" />
           <span className="tracking-wide uppercase">OPSQAI Assistant</span>
         </div>
         <h1 className="mt-6 font-display text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
@@ -93,7 +93,7 @@ function ChatWelcome() {
           {lang === "de" ? "Wie kann ich heute helfen?" : "How can I help you today?"}
         </p>
 
-        <div className="mt-10 rounded-2xl border border-border bg-card shadow-md p-2 focus-within:border-gold/60 focus-within:shadow-lg focus-within:ring-4 focus-within:ring-gold/10 transition-all">
+        <div className="mt-10 rounded-lg border border-border bg-card shadow-xs p-2 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-colors">
           <Textarea
             ref={ref}
             value={text}
@@ -133,7 +133,7 @@ function ChatWelcome() {
               disabled={!text.trim() || busy}
               size="icon"
               aria-label={lang === "de" ? "Frage senden" : "Send question"}
-              className="h-9 w-9 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40"
+              className="h-9 w-9 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 disabled:opacity-40"
             >
               <ArrowUp className="h-4 w-4" />
             </Button>
@@ -145,7 +145,7 @@ function ChatWelcome() {
             <button
               key={p}
               onClick={() => setText(`Tell me about ${p}`)}
-              className="rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs text-muted-foreground hover:border-gold/50 hover:text-foreground transition-colors"
+              className="rounded-sm border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
             >
               {p}
             </button>

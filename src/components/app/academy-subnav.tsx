@@ -10,13 +10,13 @@ import {
 import { useAuth } from "@/lib/auth-context";
 
 const baseCls =
-  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors data-[status=active]:bg-primary/10 data-[status=active]:text-primary";
+  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[12.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors data-[status=active]:bg-primary/10 data-[status=active]:text-primary";
 
 export function AcademySubnav() {
   const { hasPermission } = useAuth();
   const canManage = hasPermission("academy.manage");
   return (
-    <nav className="flex flex-wrap items-center gap-1 border-b border-border/60 px-4 md:px-6 py-2 bg-background/80 backdrop-blur sticky top-0 z-20">
+    <nav className="sticky top-0 z-20 flex flex-wrap items-center gap-1 border-b border-border bg-background px-4 py-2 md:px-6">
       <Link to="/app/academy" activeOptions={{ exact: true }} className={baseCls}>
         <GraduationCap className="h-3.5 w-3.5" /> My Training
       </Link>

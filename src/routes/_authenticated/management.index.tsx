@@ -139,12 +139,8 @@ function OverviewPage() {
 
   return (
     <ModulePage eyebrow="Management Center" title="Control Center" width="full">
-      <div className="oq-soft-card relative mb-4 overflow-hidden p-5 md:p-6">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-[var(--gold-soft)] blur-2xl"
-        />
-        <div className="relative flex flex-wrap items-center gap-4">
+       <div className="oq-soft-card relative mb-4 overflow-hidden p-5 md:p-6">
+         <div className="relative flex flex-wrap items-center gap-4">
           <div className="min-w-0">
             <h2 className="font-display text-2xl font-semibold text-foreground md:text-3xl">
               Welcome back, {greetName}! 👋
@@ -154,13 +150,13 @@ function OverviewPage() {
             </p>
           </div>
           <div className="ml-auto flex flex-wrap gap-2">
-            <Button asChild size="sm" className="rounded-xl">
+             <Button asChild size="sm">
               <Link to="/management/customers">
                 <Users2 className="mr-1.5 h-3.5 w-3.5" />
                 Customers
               </Link>
             </Button>
-            <Button asChild size="sm" variant="outline" className="rounded-xl">
+             <Button asChild size="sm" variant="outline">
               <Link to="/management/licenses">
                 <KeyRound className="mr-1.5 h-3.5 w-3.5" />
                 Licenses
@@ -320,7 +316,7 @@ function OverviewPage() {
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--gold-soft)] text-[color:var(--gold)]">
+               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
                 <Rocket className="h-5 w-5" />
               </span>
               <div className="min-w-0">

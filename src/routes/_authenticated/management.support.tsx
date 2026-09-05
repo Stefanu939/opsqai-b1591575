@@ -338,7 +338,7 @@ function SupportPage() {
                 return (
                   <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                     <div
-                      className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap shadow-sm ${
+                       className={`max-w-[75%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap shadow-xs ${
                         mine
                           ? "bg-primary text-primary-foreground rounded-br-sm"
                           : "bg-card border border-border rounded-bl-sm"
