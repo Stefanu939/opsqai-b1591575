@@ -2639,6 +2639,8 @@ export type Database = {
           id: string
           is_current: boolean
           min_supported: string | null
+          notes_storage_path: string | null
+          package_storage_path: string | null
           published_at: string
           release_notes_url: string | null
           updated_at: string
@@ -2653,6 +2655,8 @@ export type Database = {
           id?: string
           is_current?: boolean
           min_supported?: string | null
+          notes_storage_path?: string | null
+          package_storage_path?: string | null
           published_at?: string
           release_notes_url?: string | null
           updated_at?: string
@@ -2667,6 +2671,8 @@ export type Database = {
           id?: string
           is_current?: boolean
           min_supported?: string | null
+          notes_storage_path?: string | null
+          package_storage_path?: string | null
           published_at?: string
           release_notes_url?: string | null
           updated_at?: string

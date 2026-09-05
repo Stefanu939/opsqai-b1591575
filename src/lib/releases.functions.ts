@@ -12,7 +12,7 @@ export const listReleases = createServerFn({ method: "POST" })
     const { data, error } = await getCloudSupabase(context, "releases")
       .from("license_releases")
       .select(
-        "id, version, channel, docker_image, checksum, release_notes_url, min_supported, is_current, published_at, created_at",
+        "id, version, channel, docker_image, package_storage_path, checksum, release_notes_url, notes_storage_path, min_supported, is_current, published_at, created_at",
       )
       .order("published_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -23,8 +23,10 @@ const CreateReleaseInput = z.object({
   version: z.string().min(1).max(64),
   channel: z.enum(["stable", "beta", "canary"]).default("stable"),
   docker_image: z.string().min(1).max(500),
+  package_storage_path: z.string().max(500).optional().nullable(),
   checksum: z.string().max(200).optional().nullable(),
   release_notes_url: z.string().url().optional().nullable(),
+  notes_storage_path: z.string().max(500).optional().nullable(),
   min_supported: z.string().max(64).optional().nullable(),
   is_current: z.boolean().default(false),
   published_at: z.string().datetime().optional(),
@@ -51,8 +53,10 @@ export const createRelease = createServerFn({ method: "POST" })
         version: data.version,
         channel: data.channel,
         docker_image: data.docker_image,
+        package_storage_path: data.package_storage_path ?? null,
         checksum: data.checksum ?? null,
         release_notes_url: data.release_notes_url ?? null,
+        notes_storage_path: data.notes_storage_path ?? null,
         min_supported: data.min_supported ?? null,
         is_current: data.is_current,
         published_at: data.published_at ?? new Date().toISOString(),

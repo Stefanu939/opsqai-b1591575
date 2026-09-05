@@ -34,13 +34,41 @@ export const Route = createFileRoute("/api/public/v1/license/releases")({
         const { data: rel } = await supabaseAdmin
           .from("license_releases")
           .select(
-            "version, docker_image, checksum, release_notes_url, channel, min_supported, published_at",
+            "version, docker_image, package_storage_path, checksum, release_notes_url, notes_storage_path, channel, min_supported, published_at",
           )
           .eq("channel", channel)
           .eq("is_current", true)
           .order("published_at", { ascending: false })
           .limit(1)
           .maybeSingle();
+
+        let signedDockerImage = rel?.docker_image ?? null;
+        if (rel?.package_storage_path) {
+          const { data: signed } = await supabaseAdmin.storage
+            .from("releases")
+            .createSignedUrl(rel.package_storage_path, 3600);
+          if (signed?.signedUrl) signedDockerImage = signed.signedUrl;
+        }
+
+        let signedReleaseNotesUrl = rel?.release_notes_url ?? null;
+        if (rel?.notes_storage_path) {
+          const { data: signed } = await supabaseAdmin.storage
+            .from("releases")
+            .createSignedUrl(rel.notes_storage_path, 3600);
+          if (signed?.signedUrl) signedReleaseNotesUrl = signed.signedUrl;
+        }
+
+        const current = rel
+          ? {
+              version: rel.version,
+              docker_image: signedDockerImage,
+              checksum: rel.checksum,
+              release_notes_url: signedReleaseNotesUrl,
+              channel: rel.channel,
+              min_supported: rel.min_supported,
+              published_at: rel.published_at,
+            }
+          : null;
 
         // Also return the current signing public key so wizard can pin it.
         const { data: key } = await supabaseAdmin
@@ -51,7 +79,7 @@ export const Route = createFileRoute("/api/public/v1/license/releases")({
           .limit(1)
           .maybeSingle();
 
-        return json({ channel, current: rel, public_key: key });
+        return json({ channel, current, public_key: key });
       },
     },
   },

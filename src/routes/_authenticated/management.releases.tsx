@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, useCallback, type ChangeEvent, type DragEvent } from "react";
 import {
   listReleases,
   createRelease,
@@ -11,7 +11,7 @@ import {
 } from "@/lib/releases.functions";
 import { getPortalSnapshot } from "@/lib/mc-admin.functions";
 import { StatCard } from "@/components/ui/stat-card";
-import { Package, Inbox } from "lucide-react";
+import { Package, Inbox, UploadCloud, X, FileText } from "lucide-react";
 import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import {
 import { Rocket, Plus, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/management/releases")({
   head: () => ({ meta: [{ title: "Releases — Management Center" }] }),
@@ -48,8 +49,10 @@ type Release = {
   version: string;
   channel: string;
   docker_image: string;
+  package_storage_path: string | null;
   checksum: string | null;
   release_notes_url: string | null;
+  notes_storage_path: string | null;
   min_supported: string | null;
   is_current: boolean;
   published_at: string | null;
@@ -83,8 +86,10 @@ function ReleasesPage() {
       version: string;
       channel: "stable" | "beta" | "canary";
       docker_image: string;
+      package_storage_path?: string | null;
       checksum?: string | null;
       release_notes_url?: string | null;
+      notes_storage_path?: string | null;
       min_supported?: string | null;
       is_current: boolean;
     }) => create({ data: v }),
@@ -164,7 +169,11 @@ function ReleasesPage() {
       key: "image",
       header: "Installer package",
       render: (r) => (
-        <span className="font-mono text-xs text-muted-foreground">{r.docker_image}</span>
+        <span className="font-mono text-xs text-muted-foreground">
+          {r.package_storage_path
+            ? `releases/${r.package_storage_path.split("/").slice(0, -1).join("/")}…${r.package_storage_path.split("/").pop()}`
+            : r.docker_image}
+        </span>
       ),
     },
     {
@@ -185,9 +194,9 @@ function ReleasesPage() {
       key: "notes",
       header: "Notes",
       render: (r) =>
-        r.release_notes_url ? (
+        r.release_notes_url || r.notes_storage_path ? (
           <a
-            href={r.release_notes_url}
+            href={r.release_notes_url ?? "#"}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs underline underline-offset-4"
