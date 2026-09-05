@@ -12,7 +12,6 @@ import {
   Menu,
   X,
   Languages,
-  UserCircle,
   Building2,
   LineChart,
   GraduationCap,
@@ -175,11 +174,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       setMobileOpen(false);
       navigate({ to: "/auth", replace: true });
     }
-  };
-
-  const handleProfile = () => {
-    setMobileOpen(false);
-    navigate({ to: "/app/organization" });
   };
 
 
