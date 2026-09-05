@@ -113,6 +113,49 @@ export function NotificationsBell() {
   const unread = useMemo(() => items.filter((n) => !n.read_at).length, [items]);
   const visible = tab === "unread" ? items.filter((n) => !n.read_at) : items;
 
+  // ---- Desktop (OS) alerts -------------------------------------------------
+  const seen = useRef<Set<string> | null>(null);
+  const [desktop, setDesktop] = useState<NotificationPermission>("default");
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setDesktop(Notification.permission);
+    }
+  }, []);
+  const enableDesktop = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    setDesktop(await Notification.requestPermission());
+  };
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const fresh = items.filter((n) => !n.read_at).map((n) => n.id);
+    // First pass only records what already existed — no pop-up storm on load.
+    if (seen.current === null) {
+      seen.current = new Set(fresh);
+      return;
+    }
+    if (Notification.permission !== "granted") {
+      seen.current = new Set(fresh);
+      return;
+    }
+    for (const n of items) {
+      if (n.read_at || seen.current.has(n.id)) continue;
+      try {
+        const note = new Notification(n.title, { body: n.body ?? undefined, tag: n.id });
+        note.onclick = () => {
+          window.focus();
+          if (n.link) window.location.assign(n.link);
+        };
+      } catch {
+        /* OS refused the toast — the in-app bell already shows it. */
+      }
+    }
+    seen.current = new Set(fresh);
+  }, [items]);
+
+  const inManagement = useRouterState({
+    select: (s) => s.location.pathname.startsWith("/management"),
+  });
+
   const markRead = async (id: string) => {
     setItems((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)),
