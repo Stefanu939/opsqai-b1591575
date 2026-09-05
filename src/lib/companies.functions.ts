@@ -15,13 +15,30 @@ const CompanyInput = z.object({
 
 export const listCompanies = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: unknown) =>
+    z
+      .object({ owner_user_id: z.string().nullable().optional(), unassigned: z.boolean().optional() })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { resolveMcScope } = await import("@/lib/mc-scope.server");
+    const scope = await resolveMcScope(context);
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
-    const { data: companies, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("companies")
-      .select("id, name, subscription_status, subscription_plan, max_users, active, created_at, install_id, business_type, enabled_products")
+      .select(
+        "id, name, subscription_status, subscription_plan, max_users, active, created_at, install_id, business_type, enabled_products, owner_user_id",
+      )
       .order("created_at", { ascending: false });
+    if (!scope.isSuperAdmin) {
+      query = query.in("id", scope.companyIds?.length ? scope.companyIds : [""]);
+    } else if (data.unassigned) {
+      query = query.is("owner_user_id", null);
+    } else if (data.owner_user_id) {
+      query = query.eq("owner_user_id", data.owner_user_id);
+    }
+    const { data: companies, error } = await query;
     if (error) throw new Error(error.message);
 
     // Aggregate counts
@@ -47,6 +64,7 @@ export const listCompanies = createServerFn({ method: "POST" })
       faq_count: faqsBy.get(c.id) ?? 0,
     }));
   });
+
 
 export const createCompany = createServerFn({ method: "POST" })
   .middleware([requireAuth])
