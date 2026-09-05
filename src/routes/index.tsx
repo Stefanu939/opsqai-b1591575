@@ -111,15 +111,11 @@ function Home() {
     <OixLayout>
       <Hero />
       <WhoFor />
-      <WhyNow />
-      <MottoBand />
       <ThreeSurfaces />
       <CorePlatform />
       <ProductsAndAddons />
-      <DeliveryComparison />
       <Differentiation />
       <SecurityWall />
-      <LandExpand />
       <Maturity />
       <FAQSection />
       <Founders />
@@ -143,8 +139,8 @@ function SectionHead({
 }) {
   return (
     <div className={center ? "max-w-3xl mx-auto text-center" : "max-w-3xl"}>
-      <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">{title}</h2>
+      <p className="oix-eyebrow">{eyebrow}</p>
+      <h2 className="oix-display mt-3 text-4xl md:text-5xl">{title}</h2>
       {intro && (
         <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">{intro}</p>
       )}
@@ -159,8 +155,8 @@ function Hero() {
   const acts = t.hero.acts.map((label, i) => ({ i, label }));
 
   return (
-    <section className="relative isolate min-h-dvh overflow-hidden">
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-40 pt-32 md:grid-cols-[minmax(0,1fr)_minmax(26rem,0.85fr)] md:px-10 md:pb-48 md:pt-40">
+    <section className="relative isolate overflow-hidden border-b border-[var(--oix-gold-line)]">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-28 md:min-h-[42rem] md:grid-cols-[minmax(0,1fr)_minmax(26rem,0.85fr)] md:px-10 md:pb-28 md:pt-36">
         <div className="max-w-4xl">
           <EditorialHeadline
             as="h1"
@@ -193,7 +189,7 @@ function Hero() {
         </div>
         <EnterpriseIntelligence variant="platform" className="hidden md:flex" />
 
-        <div className="pointer-events-none mt-24 hidden md:flex items-center gap-6 text-[10px] uppercase tracking-[0.28em] text-[var(--oix-cream)]/50">
+        <div className="pointer-events-none mt-10 hidden items-center gap-6 text-xs font-medium text-[var(--oix-cream-dim)] md:flex">
           {acts.map((a) => (
             <div
               key={a.label}
@@ -208,9 +204,6 @@ function Hero() {
           ))}
         </div>
 
-        <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-[var(--oix-cream)]/40">
-          {t.hero.scrollHint}
-        </div>
       </div>
     </section>
   );

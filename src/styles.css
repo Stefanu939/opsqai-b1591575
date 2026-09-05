@@ -671,10 +671,38 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   --oix-shadow-card: 0 18px 44px -34px color-mix(in oklab, #101315 38%, transparent);
   --oix-shadow-emerald-glow: var(--oix-shadow-card);
   --oix-shadow-gold-glow: none;
+  --background: var(--oix-bg-deep);
+  --foreground: var(--oix-cream);
+  --card: var(--oix-surface-2);
+  --card-foreground: var(--oix-cream);
+  --popover: var(--oix-surface-2);
+  --popover-foreground: var(--oix-cream);
+  --primary: var(--oix-emerald);
+  --primary-foreground: var(--oix-primary-ink);
+  --secondary: var(--oix-surface);
+  --secondary-foreground: var(--oix-cream);
+  --muted: var(--oix-surface);
+  --muted-foreground: var(--oix-cream-dim);
+  --accent: var(--oix-surface);
+  --accent-foreground: var(--oix-cream);
+  --border: var(--oix-gold-line);
+  --input: var(--oix-gold-line);
+  --ring: var(--oix-emerald);
+  --surface-1: var(--oix-surface-2);
+  --surface-2: var(--oix-surface);
+  --oix-onyx: var(--oix-surface-2);
   font-family: var(--font-body-oix);
   min-height: 100vh;
   background: var(--oix-bg-deep);
   color: var(--oix-cream);
+}
+
+.oix-shell footer {
+  --oix-cream: var(--oix-footer-ink);
+  --oix-cream-dim: color-mix(in oklab, var(--oix-footer-ink) 68%, transparent);
+  --oix-gold: #4e9daf;
+  --oix-gold-soft: #8fc6d1;
+  --oix-gold-line: color-mix(in oklab, var(--oix-footer-ink) 16%, transparent);
 }
 
 .dark .oix-shell {
@@ -734,17 +762,20 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
 /* Static enterprise live-intelligence composition shared by public heroes. */
 .enterprise-intelligence {
   color: var(--oix-cream-dim);
+  border: 1px solid var(--oix-gold-line);
+  background: var(--oix-surface-2);
+  box-shadow: var(--oix-shadow-card);
 }
 
 .enterprise-ring {
   position: absolute;
   border: 1px solid var(--oix-gold-line);
-  border-radius: 9999px;
+  border-radius: 0;
 }
 
-.enterprise-ring-outer { inset: 5%; }
-.enterprise-ring-middle { inset: 17%; border-style: dashed; }
-.enterprise-ring-inner { inset: 30%; border-color: color-mix(in oklab, var(--oix-gold) 42%, transparent); }
+.enterprise-ring-outer { inset: 7%; }
+.enterprise-ring-middle { inset: 18%; border-style: dashed; }
+.enterprise-ring-inner { inset: 31%; border-color: color-mix(in oklab, var(--oix-gold) 42%, transparent); }
 
 .enterprise-path {
   fill: none;
@@ -771,6 +802,7 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   border: 1px solid var(--oix-gold-line);
   background: color-mix(in oklab, var(--oix-surface) 92%, transparent);
   box-shadow: var(--oix-shadow-emerald-glow);
+  border-radius: 0.2rem;
 }
 
 .enterprise-signal,

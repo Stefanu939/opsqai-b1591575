@@ -32,7 +32,7 @@ const en = {
       {
         name: "OPSQAI Products",
         tag: "Per domain · Enabled by OPSQAI",
-        body: "Domain solutions on top of Core. OPSQAI Operations and OPSQAI Logistics are available today; OPSQAI Transport, HR, Finance and Inventory follow. A product is enabled for your company and delivered through your signed license — no reinstall.",
+        body: "Domain solutions on top of Core. OPSQAI Operations and OPSQAI Logistics are available today; Quality & Compliance, HR, Finance and Inventory are planned. A product is enabled for your company and delivered through your signed license — no reinstall.",
         bullets: [
           "Chosen from your company profile",
           "Signed product entitlements",
@@ -135,7 +135,7 @@ const de: Copy = {
       {
         name: "OPSQAI Produkte",
         tag: "Pro Fachbereich · Von OPSQAI aktiviert",
-        body: "Fachlösungen auf Basis von Core. OPSQAI Operations und OPSQAI Logistics sind heute verfügbar; OPSQAI Transport, HR, Finance und Inventory folgen. Ein Produkt wird für Ihr Unternehmen aktiviert und über Ihre signierte Lizenz ausgeliefert — ohne Neuinstallation.",
+        body: "Fachlösungen auf Basis von Core. OPSQAI Operations und OPSQAI Logistics sind heute verfügbar; Quality & Compliance, HR, Finance und Inventory sind geplant. Ein Produkt wird für Ihr Unternehmen aktiviert und über Ihre signierte Lizenz ausgeliefert — ohne Neuinstallation.",
         bullets: [
           "Ausgewählt anhand Ihres Unternehmensprofils",
           "Signierte Produktberechtigungen",
@@ -236,7 +236,7 @@ const ro: Copy = {
       {
         name: "Produse OPSQAI",
         tag: "Per domeniu · Activate de OPSQAI",
-        body: "Soluții de domeniu peste Core. OPSQAI Operations și OPSQAI Logistics sunt disponibile astăzi; OPSQAI Transport, HR, Finance și Inventory urmează. Un produs este activat pentru compania dumneavoastră și livrat prin licența semnată — fără reinstalare.",
+        body: "Soluții de domeniu peste Core. OPSQAI Operations și OPSQAI Logistics sunt disponibile astăzi; Quality & Compliance, HR, Finance și Inventory sunt planificate. Un produs este activat pentru compania dumneavoastră și livrat prin licența semnată — fără reinstalare.",
         bullets: [
           "Alese pe baza profilului companiei",
           "Drepturi de produs semnate",
