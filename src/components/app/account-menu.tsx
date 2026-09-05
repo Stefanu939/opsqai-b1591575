@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  ArrowLeftRight,
   CalendarDays,
   CircleUser,
   HelpCircle,
@@ -17,6 +18,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { audienceForPath } from "@/lib/sign-out-target";
+import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -130,10 +132,21 @@ export function AccountMenu({
   supportHref,
   className,
 }: AccountMenuProps) {
-  const { user, signOut, session, loading } = useAuth();
+  const { user, signOut, session, loading, isPlatformAdmin } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // One cloud sign-in covers both surfaces: platform staff can keep
+  // Management Center and Customer Portal open side by side (separate tabs,
+  // same shared session) without signing in twice.
+  const showSurfaceSwitch =
+    getClientDeploymentMode() !== "selfhost" &&
+    isPlatformAdmin &&
+    (pathname.startsWith("/management") || pathname.startsWith("/portal"));
+  const switchTarget = pathname.startsWith("/management")
+    ? { href: "/portal", label: "Open Customer Portal" }
+    : { href: "/management", label: "Open Management Center" };
 
   const [statusOpen, setStatusOpen] = useState(false);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
@@ -222,6 +235,19 @@ export function AccountMenu({
             <HelpCircle className="mr-2 h-4 w-4" />
             Help
           </DropdownMenuItem>
+          {showSurfaceSwitch ? (
+            <DropdownMenuItem
+              onSelect={() => {
+                // New tab keeps the current surface open; the Supabase
+                // session in localStorage is shared across tabs, so the
+                // second surface loads already signed in.
+                window.open(switchTarget.href, "_blank", "noopener");
+              }}
+            >
+              <ArrowLeftRight className="mr-2 h-4 w-4" />
+              {switchTarget.label}
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={() => {
