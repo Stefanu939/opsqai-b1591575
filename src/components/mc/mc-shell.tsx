@@ -54,6 +54,7 @@ const SECTIONS: Section[] = [
   {
     title: "Operations",
     items: [
+      { to: "/management/activity", label: "Activity Center", icon: Bell },
       { to: "/management/support", label: "Support", icon: Inbox },
     ],
   },
