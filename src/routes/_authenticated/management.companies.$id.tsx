@@ -87,6 +87,7 @@ function CompanyDetailPage() {
   const list = useServerFn(listCompanies);
   const listLic = useServerFn(listLicenses);
   const downloadUrl = useServerFn(getMyInstallationPackageDownloadUrl);
+  const listTickets = useServerFn(listSupportConversations);
 
   const companyQ = useQuery({
     queryKey: ["mc-companies"],
@@ -96,6 +97,22 @@ function CompanyDetailPage() {
     queryKey: ["mc-licenses"],
     queryFn: () => listLic({ data: {} } as never),
   });
+  const ticketsQ = useQuery({
+    queryKey: ["mc-company-tickets", id],
+    queryFn: () => listTickets({ data: { scope: "platform", company_id: id } } as never),
+    retry: false,
+  });
+
+  type Ticket = {
+    id: string;
+    subject: string | null;
+    status: string;
+    priority: string | null;
+    last_message_at: string | null;
+    unread_for_platform: boolean | null;
+  };
+  const tickets = (ticketsQ.data ?? []) as unknown as Ticket[];
+  const openTickets = tickets.filter((t) => t.status === "open" || t.status === "pending");
 
   const company = useMemo(
     () => (companyQ.data ?? []).find((c) => c.id === id),
