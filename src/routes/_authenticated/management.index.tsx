@@ -25,6 +25,7 @@ import { AreaTrend } from "@/components/ui/mini-chart";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { formatDistanceToNow } from "date-fns";
 import { UpcomingCard } from "@/components/calendar/upcoming-card";
+import { AlertLanes } from "@/components/mc/alert-lanes";
 
 
 export const Route = createFileRoute("/_authenticated/management/")({
@@ -165,6 +166,10 @@ function OverviewPage() {
           </div>
         </div>
       </div>
+      <div className="mb-4">
+        <AlertLanes />
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-4">
           {/* Licenses growth */}
