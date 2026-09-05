@@ -56,6 +56,7 @@ function relativeTime(iso: string): string {
 export function NotificationsBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const flushCriticalEmails = useServerFn(flushMyCriticalAlertEmails);
   const [items, setItems] = useState<Notif[]>([]);
   const [tab, setTab] = useState<"unread" | "all">("unread");
   const [busy, setBusy] = useState(false);
