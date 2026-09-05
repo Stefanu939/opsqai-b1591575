@@ -981,6 +981,7 @@ export type Database = {
           min_confidence: number
           name: string
           next_invoice_due_at: string | null
+          owner_user_id: string | null
           renewal_date: string | null
           subscription_plan: string
           subscription_status: string
@@ -1013,6 +1014,7 @@ export type Database = {
           min_confidence?: number
           name: string
           next_invoice_due_at?: string | null
+          owner_user_id?: string | null
           renewal_date?: string | null
           subscription_plan?: string
           subscription_status?: string
@@ -1045,6 +1047,7 @@ export type Database = {
           min_confidence?: number
           name?: string
           next_invoice_due_at?: string | null
+          owner_user_id?: string | null
           renewal_date?: string | null
           subscription_plan?: string
           subscription_status?: string
@@ -1058,6 +1061,41 @@ export type Database = {
           workspace_retention?: string
         }
         Relationships: []
+      }
+      company_collaborators: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_collaborators_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_integrations: {
         Row: {
@@ -4371,6 +4409,7 @@ export type Database = {
         }
         Returns: string
       }
+      mc_can_see_company: { Args: { _company: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
