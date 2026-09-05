@@ -180,12 +180,15 @@ function CompanyDetailPage() {
       title={company.name}
       breadcrumbs={[{ label: "Companies", to: "/management/companies" }, { label: company.name }]}
       actions={
-        <Badge variant={company.active ? "default" : "outline"}>
-          {company.active ? company.subscription_status : "suspended"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={company.active ? "default" : "outline"}>
+            {company.active ? company.subscription_status : "suspended"}
+          </Badge>
+          <ManageCustomerDialog companyId={company.id} companyName={company.name} />
+        </div>
       }
     >
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Plan" value={company.subscription_plan} icon={Package} />
         <StatCard
           label="Users"
@@ -194,14 +197,23 @@ function CompanyDetailPage() {
         />
         <StatCard label="Total seats" value={totalSeats || "—"} icon={KeyRound} />
         <StatCard label="Online installs" value={totalOnline} icon={Package} />
+        <StatCard label="Open tickets" value={openTickets.length} icon={Headset} />
+        <StatCard
+          label="Country"
+          value={(company as { country?: string | null }).country ?? "—"}
+          icon={Building2}
+        />
       </section>
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="contract">Contract</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="installations">Installations</TabsTrigger>
           <TabsTrigger value="licenses">Licenses</TabsTrigger>
+          <TabsTrigger value="support">Support</TabsTrigger>
+          <TabsTrigger value="access">Shared access</TabsTrigger>
           <TabsTrigger value="download">Download</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
