@@ -1,7 +1,8 @@
 // Public-site product visual: "precision layered architecture" — two real
-// product windows stacked with depth (cloud Management Center behind, the
-// Windows Self-Hosted dashboard in front), a divided stats grid and a factual
-// caption. Static, no motion, no invented metrics.
+// product windows stacked with depth, a divided stats grid and a factual
+// caption. Static, no motion, no invented metrics. All screenshots are fresh
+// captures of the current product design (cloud surfaces only — the Windows
+// Self-Hosted app authenticates locally and cannot be screenshotted here).
 import { Cloud, HardDrive, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
