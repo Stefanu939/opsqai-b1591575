@@ -1,19 +1,19 @@
 // Public-site product visual: "precision layered architecture" — two real
-// product windows stacked with depth (cloud Management Center behind, the
-// Windows Self-Hosted dashboard in front), a divided stats grid and a factual
-// caption. Static, no motion, no invented metrics.
+// product windows stacked with depth, a divided stats grid and a factual
+// caption. Static, no motion, no invented metrics. All screenshots are fresh
+// captures of the current product design (cloud surfaces only — the Windows
+// Self-Hosted app authenticates locally and cannot be screenshotted here).
 import { Cloud, HardDrive, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import shDashboard from "@/assets/shot-sh-dashboard.png.asset.json";
-import shChat from "@/assets/shot-sh-chat.png.asset.json";
-import shAudit from "@/assets/shot-sh-audit.png.asset.json";
-import shAcademy from "@/assets/shot-sh-academy.png.asset.json";
-import shKnowledge from "@/assets/shot-sh-knowledge.png.asset.json";
-import mcInstallations from "@/assets/shot-mc-installations.png.asset.json";
-import mcCustomers from "@/assets/shot-mc-customers.png.asset.json";
-import portalShot from "@/assets/shot-portal.png.asset.json";
-import instLicense from "@/assets/shot-inst-license.png.asset.json";
+// Fresh captures of the current Graphite enterprise design, taken from the
+// live Management Center and Customer Portal (September 2026).
+import mcOverview from "@/assets/shot-mc-overview.png.asset.json";
+import mcInstallations from "@/assets/shot-mc-installations-v2.png.asset.json";
+import mcCustomers from "@/assets/shot-mc-customers-v2.png.asset.json";
+import mcLicenses from "@/assets/shot-mc-licenses.png.asset.json";
+import portalOverview from "@/assets/shot-portal-overview.png.asset.json";
+import portalDownloads from "@/assets/shot-portal-downloads.png.asset.json";
 
 type EnterpriseIntelligenceProps = {
   variant?: "product" | "platform" | "security" | "company" | "contact";
@@ -36,15 +36,15 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     title: "Windows Self-Hosted",
     signal: "Licensed configuration",
     main: {
-      src: shDashboard.url,
-      caption: "Self-Hosted Dashboard — Windows native",
-      badge: "Ollama AI active",
-      alt: "OPSQAI Self-Hosted dashboard with operational overview",
+      src: portalDownloads.url,
+      caption: "Customer Portal — installer & licenses",
+      badge: "Guided setup",
+      alt: "OPSQAI Customer Portal downloads with Windows installer, activation bundle and module license",
     },
     inset: {
-      src: shChat.url,
-      caption: "AI assistant",
-      alt: "OPSQAI AI assistant answering from company knowledge",
+      src: mcLicenses.url,
+      caption: "Signed license issuance",
+      alt: "OPSQAI Management Center license issuance for a customer",
     },
     facts: [
       { label: "Runs on", value: "Windows Server / Pro" },
@@ -57,15 +57,15 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     title: "Core + licensed products",
     signal: "Entitlements verified",
     main: {
-      src: shDashboard.url,
-      caption: "Self-Hosted Dashboard — Windows native",
-      badge: "Ollama AI active",
-      alt: "OPSQAI Self-Hosted dashboard with operational overview",
+      src: mcOverview.url,
+      caption: "Management Center — Control Center",
+      badge: "Live fleet",
+      alt: "OPSQAI Management Center control center with licenses, revenue and installations",
     },
     inset: {
-      src: mcInstallations.url,
-      caption: "Management Center / Cloud support",
-      alt: "OPSQAI Management Center installation fleet view",
+      src: portalOverview.url,
+      caption: "Customer Portal",
+      alt: "OPSQAI Customer Portal overview with subscription and downloads",
     },
     facts: [
       { label: "Core", value: "Always on" },
@@ -78,15 +78,15 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     title: "Knowledge stays local",
     signal: "Signed & governed",
     main: {
-      src: shAudit.url,
-      caption: "Self-Hosted Audit — findings & remediation",
+      src: mcLicenses.url,
+      caption: "Management Center — signed licenses",
       badge: "Ed25519 signed",
-      alt: "OPSQAI audit and compliance findings screen",
+      alt: "OPSQAI Management Center signed license management",
     },
     inset: {
-      src: instLicense.url,
-      caption: "Signed license activation",
-      alt: "OPSQAI installer license activation step",
+      src: mcInstallations.url,
+      caption: "Installation fleet",
+      alt: "OPSQAI Management Center installation fleet with heartbeat status",
     },
     facts: [
       { label: "Licenses", value: "Ed25519 signed" },
@@ -99,15 +99,15 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
     title: "Built for real work",
     signal: "People in control",
     main: {
-      src: shAcademy.url,
-      caption: "Self-Hosted Academy — learning paths",
-      badge: "Certificates",
-      alt: "OPSQAI Academy learning paths for employees",
+      src: mcCustomers.url,
+      caption: "Management Center — customers",
+      badge: "Ownership",
+      alt: "OPSQAI Management Center customer list with ownership",
     },
     inset: {
-      src: shKnowledge.url,
-      caption: "Governed knowledge",
-      alt: "OPSQAI knowledge library with governed documents",
+      src: portalOverview.url,
+      caption: "Customer Portal",
+      alt: "OPSQAI Customer Portal overview for customers",
     },
     facts: [
       { label: "Knowledge", value: "Reviewed & versioned" },
@@ -126,7 +126,7 @@ const variantCopy: Record<EnterpriseIntelligenceProps["variant"] & string, Varia
       alt: "OPSQAI Management Center customer configuration",
     },
     inset: {
-      src: portalShot.url,
+      src: portalOverview.url,
       caption: "Customer Portal",
       alt: "OPSQAI Customer Portal overview for customers",
     },
@@ -241,7 +241,7 @@ export function EnterpriseIntelligence({
       <figcaption className="flex items-center gap-3 pt-1">
         <ShieldCheck className="h-4 w-4 shrink-0 text-primary/60" strokeWidth={1.5} />
         <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-          Real product screens · Windows Self-Hosted · Local Ollama AI
+          Real product screens · Management Center · Customer Portal
         </span>
       </figcaption>
     </figure>
