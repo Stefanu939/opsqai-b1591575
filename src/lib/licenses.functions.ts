@@ -200,6 +200,10 @@ export const issueModuleLicense = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => IssueModuleInput.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertInstallInScope } = await import("@/lib/mc-scope.server");
+      await assertInstallInScope(context, data.install_id);
+    }
     assertNoBlacklistedSecrets(data, "issueModuleLicense input");
     const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
 
@@ -304,6 +308,10 @@ export const issueProductLicense = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertInstallInScope } = await import("@/lib/mc-scope.server");
+      await assertInstallInScope(context, data.install_id);
+    }
     assertNoBlacklistedSecrets(data, "issueProductLicense input");
     const supabaseAdmin = await getCloudSupabaseAdmin("licenses");
 
