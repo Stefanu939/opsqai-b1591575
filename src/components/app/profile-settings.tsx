@@ -10,7 +10,7 @@ import { getMyProfile, updateMyProfile } from "@/lib/users.functions";
 import { getMyPresence } from "@/lib/presence.functions";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 import {
-  AccountMenu as _AccountMenu,
+  
   HolidaysDialog,
   PresenceDot,
   PRESENCE_META,
