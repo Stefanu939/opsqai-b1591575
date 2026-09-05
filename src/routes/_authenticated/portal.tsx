@@ -181,7 +181,7 @@ function PortalLayout() {
   );
   return (
      <div className="oq-product oq-portal-shell oq-soft flex flex-1 gap-0">
-      <aside className="oq-soft-card hidden md:flex w-[248px] flex-col shrink-0 p-3">
+      <aside className="oq-soft-card hidden md:flex w-[248px] flex-col shrink-0 p-3 md:sticky md:top-0 md:h-dvh md:overflow-hidden">
         {SidebarInner}
       </aside>
       {mobileOpen && (

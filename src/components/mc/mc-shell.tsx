@@ -160,7 +160,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
 
   return (
      <div className="oq-product oq-management-shell oq-soft flex min-h-dvh w-full gap-0">
-      <div className="hidden md:block">{Sidebar}</div>
+      <div className="hidden md:block md:sticky md:top-0 md:h-dvh">{Sidebar}</div>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">

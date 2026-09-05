@@ -312,7 +312,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
      <div className="oq-product oq-app-shell min-h-dvh flex bg-background">
-      <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border">
+      <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border md:sticky md:top-0 md:h-dvh md:overflow-hidden">
         <SidebarContent />
       </aside>
 
