@@ -78,11 +78,22 @@ export async function assertCompanyInScope(context: Ctx, companyId: string): Pro
 export async function assertInstallInScope(context: Ctx, installId: string): Promise<McScope> {
   const scope = await resolveMcScope(context);
   if (scope.isSuperAdmin) return scope;
-  if (!scope.installIds?.includes(installId)) {
-    throw new Error("Forbidden: this installation belongs to another colleague");
-  }
-  return scope;
+  if (scope.installIds?.includes(installId)) return scope;
+
+  // An installation id that is not attached to any customer yet (a fresh
+  // install about to receive its first license) is allowed: ownership only
+  // becomes exclusive once the id belongs to a customer record.
+  const admin = await getCloudSupabaseAdmin("mc-scope");
+  const { data: owner } = await admin
+    .from("companies")
+    .select("id")
+    .eq("install_id", installId)
+    .maybeSingle();
+  if (!owner) return scope;
+
+  throw new Error("Forbidden: this installation belongs to another colleague");
 }
+
 
 export function inScope<T>(scope: McScope, rows: T[], key: (row: T) => string | null): T[] {
   if (scope.isSuperAdmin) return rows;
