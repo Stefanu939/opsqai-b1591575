@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { pageHead, faqLd } from "@/lib/seo";
 import { Package, Puzzle, Layers, LifeBuoy, Check } from "lucide-react";
@@ -91,7 +91,7 @@ function PricingPage() {
         </EditorialHeadline>
         <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {tiers.map((tier) => (
-            <Link key={tier.name} to={tier.to} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--oix-gold)]">
+            <a key={tier.name} href={tier.to} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--oix-gold)]">
             <Card className={`relative h-full p-8 flex flex-col border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur ${tier.featured ? "border-[var(--oix-gold)]/70" : ""}`}>
               {tier.featured && (
                 <span
@@ -120,7 +120,7 @@ function PricingPage() {
                 {tier.cta} <span aria-hidden>↗</span>
               </div>
             </Card>
-            </Link>
+            </a>
           ))}
         </div>
         <p className="mt-10 text-xs uppercase tracking-[0.22em] text-[var(--oix-cream)]/50 text-center max-w-2xl mx-auto">

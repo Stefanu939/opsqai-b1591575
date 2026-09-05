@@ -181,7 +181,7 @@ function BrandBoard() {
               key={a.file}
               href={a.file}
               download
-              className="group border border-[#C9A24C]/15 transition-colors hover:border-[#C9A24C]/40"
+              className="border border-[#C9A24C]/15"
             >
               <div
                 className="flex aspect-[5/4] items-center justify-center p-6"
@@ -194,7 +194,7 @@ function BrandBoard() {
               </div>
               <div className="flex items-center justify-between px-4 py-3 text-[11px] uppercase tracking-[0.22em]">
                 <span className="text-[#eef0fa]/80">{a.label}</span>
-                <span className="text-[#C9A24C]/60 group-hover:text-[#F0D78C]">SVG ↓</span>
+                <span className="text-[#C9A24C]/60">SVG ↓</span>
               </div>
             </a>
           ))}

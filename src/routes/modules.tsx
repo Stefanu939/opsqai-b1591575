@@ -86,7 +86,7 @@ function ModulesPage() {
             {CORE_CAPABILITIES.map((cap) => (
               <Card
                 key={cap.key}
-                className="border-white/10 bg-white/[0.02] p-5 transition-all hover:border-[#C9A24C]/40"
+                className="border-white/10 bg-white/[0.02] p-5"
               >
                 <div className="text-sm font-semibold text-white">{cap.label}</div>
                 <p className="mt-2 text-xs leading-relaxed text-white/60">{cap.description}</p>
@@ -102,7 +102,7 @@ function ModulesPage() {
             {PRODUCT_CATALOG.map((p) => (
               <Card
                 key={p.key}
-                className="border-white/10 bg-white/[0.02] p-6 transition-all hover:border-[#C9A24C]/40"
+                className="border-white/10 bg-white/[0.02] p-6"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="text-sm font-semibold text-white">{p.label}</div>
@@ -140,7 +140,7 @@ function ModulesPage() {
             {ADDON_CATALOG.map((a) => (
               <Card
                 key={a.key}
-                className="border-white/10 bg-white/[0.02] p-6 transition-all hover:border-[#C9A24C]/40"
+                className="border-white/10 bg-white/[0.02] p-6"
               >
                 <div className="text-sm font-semibold text-white">{a.label}</div>
                 <p className="mt-3 text-xs leading-relaxed text-white/60">{a.description}</p>

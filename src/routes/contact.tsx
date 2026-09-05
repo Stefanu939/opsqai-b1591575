@@ -254,7 +254,7 @@ function ContactPage() {
                   {t.consentPrefix}{" "}
                   <a
                     href="/legal/privacy"
-                    className="underline hover:text-[var(--oix-gold-soft)]"
+                    className="underline"
                   >
                     {t.privacyNotice}
                   </a>
@@ -288,7 +288,7 @@ function ContactPage() {
                 <div className="oix-eyebrow text-[10px]">{c.label}</div>
                 <a
                   href={`/contact?subject=${c.subject}`}
-                  className="mt-3 flex items-center gap-2 text-sm font-medium text-[var(--oix-cream)] hover:text-[var(--oix-gold-soft)] transition-colors"
+                  className="mt-3 flex items-center gap-2 text-sm font-medium text-[var(--oix-cream)]"
                 >
                   <c.icon className="h-4 w-4 text-[var(--oix-gold)]" /> {c.email}
                 </a>

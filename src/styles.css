@@ -673,6 +673,16 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   box-shadow: var(--oq-soft-shadow) !important;
 }
 
+.oix-static :where(a, button, [role="button"]):hover {
+  filter: none !important;
+}
+
+.oix-static .oq-lift:hover,
+.oix-static .oq-soft-lift:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
 /* Static enterprise live-intelligence composition shared by public heroes. */
 .enterprise-intelligence {
   color: var(--oix-cream-dim);
