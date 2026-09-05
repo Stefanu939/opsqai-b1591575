@@ -28,8 +28,23 @@ export const Route = createFileRoute("/windows-only")({
 function WindowsOnlyPage() {
   const { lang } = useT();
   const de = lang === "de";
+  const ro = lang === "ro";
 
-  const copy = de
+  const copy = ro
+    ? {
+        badge: "Produs Self-Hosted",
+        h1: "Aplicația OPSQAI rulează în compania dumneavoastră.",
+        lead: "OPSQAI nu este un SaaS în cloud. Este un produs instalat pe Windows Server, în propria infrastructură. Utilizatorii, cunoștințele și furnizorul AI rămân în rețeaua companiei.",
+        ctaHow: "Cum funcționează",
+        ctaPortal: "Portal Clienți (descărcări)",
+        selfhostedTitle: "Self-Hosted (Windows)",
+        selfhostedBody: "Produsul propriu-zis. Este instalat pe Windows Server, iar utilizatorii companiei se conectează local după activarea instalării de către administrator.",
+        portalTitle: "Portal Clienți (acest site)",
+        portalBody: "Doar pentru contactele desemnate ale clientului: instalatoare, pachete de activare, note de versiune și solicitări de suport.",
+        mcTitle: "Management Center",
+        mcBody: "Doar pentru echipa OPSQAI: licențe, versiuni și suport pentru clienți. Nu este accesibil clienților.",
+      }
+    : de
     ? {
         badge: "Self-Hosted-Produkt",
         h1: "OPSQAI läuft im Netzwerk Ihres Unternehmens.",
@@ -65,13 +80,13 @@ function WindowsOnlyPage() {
 
   return (
     <MarketingLayout>
-      <section className="mx-auto max-w-3xl px-4 py-20 md:py-28 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface-1 px-3 py-1 text-xs uppercase tracking-wider text-muted-foreground">
+      <section className="mx-auto max-w-4xl px-6 py-24 text-center md:py-32">
+        <div className="oix-eyebrow inline-flex items-center gap-2 border border-[var(--oix-gold-line)] bg-[var(--oix-surface-2)] px-3 py-2">
           <HardDrive className="h-3.5 w-3.5" />
           {copy.badge}
         </div>
-        <h1 className="mt-6 text-4xl md:text-5xl font-semibold tracking-tight">{copy.h1}</h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed">{copy.lead}</p>
+        <h1 className="oix-display mt-7 text-5xl md:text-7xl">{copy.h1}</h1>
+        <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-[var(--oix-cream-dim)]">{copy.lead}</p>
         <div className="mt-8 flex gap-3 justify-center flex-wrap">
           <Button asChild>
             <Link to="/self-hosted">{copy.ctaHow}</Link>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
 import { BookOpen, Shield, Code2, Wrench, Boxes, Building2 } from "lucide-react";
 import { useDocumentationCopy } from "@/i18n/pages/documentation";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
 
 export const Route = createFileRoute("/documentation/")({
   head: () =>
@@ -35,11 +36,8 @@ function DocumentationIndex() {
   const t = useDocumentationCopy();
   return (
     <>
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.hero.eyebrow}</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          {t.hero.headline}
-        </h1>
+      <section className="mx-auto max-w-6xl px-6 py-24 md:py-32">
+        <EditorialHeadline as="h1" size="xl" eyebrow={t.hero.eyebrow}>{t.hero.headline}</EditorialHeadline>
         <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
           {t.hero.body} <Link to="/blog" className="text-[color:var(--gold)] hover:underline">{t.hero.blogLink}</Link>{t.hero.bodyEnd}
         </p>

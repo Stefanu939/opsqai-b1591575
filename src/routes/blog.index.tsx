@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { pageHead } from "@/lib/seo";
 import { BLOG_POSTS, formatDate } from "@/content/blog";
 import { ArrowRight } from "lucide-react";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
 
 export const Route = createFileRoute("/blog/")({
   head: () =>
@@ -23,11 +24,8 @@ function BlogIndex() {
   const posts = [...BLOG_POSTS].sort((a, b) => (a.date < b.date ? 1 : -1));
   return (
     <>
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Blog</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          Notes from the OPSQAI team.
-        </h1>
+      <section className="mx-auto max-w-5xl px-6 py-24 md:py-32">
+        <EditorialHeadline as="h1" size="xl" eyebrow="Blog">Notes from the OPSQAI team.</EditorialHeadline>
         <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-2xl">
           How the self-hosted Windows platform is built, secured and operated. Short posts,
           concrete detail, no marketing filler.
