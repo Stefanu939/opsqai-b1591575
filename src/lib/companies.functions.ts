@@ -103,6 +103,8 @@ export const createCompany = createServerFn({ method: "POST" })
         active: data.active ?? true,
         business_type: data.business_type,
         enabled_products: products,
+        // The colleague who creates a customer owns it (SuperAdmin can reassign).
+        owner_user_id: context.userId,
       })
       .select("id")
       .single();
@@ -153,6 +155,8 @@ export const updateCompany = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CompanyInput.extend({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+    await assertCompanyInScope(context, data.id);
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
     const { id, ...patch } = data;
     const { error } = await supabaseAdmin.from("companies").update(patch).eq("id", id);
@@ -165,6 +169,8 @@ export const deleteCompany = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: uuidString() }).parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    const { assertCompanyInScope: assertDeletable } = await import("@/lib/mc-scope.server");
+    await assertDeletable(context, data.id);
     if (data.id === "00000000-0000-0000-0000-000000000001")
       throw new Error("Cannot delete Default Company");
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
