@@ -2916,38 +2916,68 @@ export type Database = {
       }
       notifications: {
         Row: {
+          assigned_to: string | null
           body: string | null
+          category: string
           company_id: string
           created_at: string
+          emailed_at: string | null
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string | null
+          group_key: string | null
           id: string
           kind: string
           link: string | null
           payload: Json
           read_at: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
           title: string
           user_id: string
         }
         Insert: {
+          assigned_to?: string | null
           body?: string | null
+          category?: string
           company_id: string
           created_at?: string
+          emailed_at?: string | null
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string | null
+          group_key?: string | null
           id?: string
           kind: string
           link?: string | null
           payload?: Json
           read_at?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
           title: string
           user_id: string
         }
         Update: {
+          assigned_to?: string | null
           body?: string | null
+          category?: string
           company_id?: string
           created_at?: string
+          emailed_at?: string | null
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string | null
+          group_key?: string | null
           id?: string
           kind?: string
           link?: string | null
           payload?: Json
           read_at?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
           title?: string
           user_id?: string
         }
@@ -4258,6 +4288,8 @@ export type Database = {
       }
       can_manage_time_off: { Args: { _company: string }; Returns: boolean }
       cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
+      cron_notify_install_health: { Args: never; Returns: number }
+      cron_notify_license_expiry: { Args: never; Returns: number }
       cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }
       customer_health: { Args: { p_company: string }; Returns: Json }
@@ -4424,6 +4456,40 @@ export type Database = {
         Returns: {
           permission: string
         }[]
+      }
+      notify_emit: {
+        Args: {
+          _body: string
+          _category?: string
+          _company: string
+          _entity_id?: string
+          _entity_label?: string
+          _entity_type?: string
+          _group_key?: string
+          _kind: string
+          _link: string
+          _payload?: Json
+          _severity?: string
+          _title: string
+          _user_ids: string[]
+        }
+        Returns: number
+      }
+      notify_platform_staff: {
+        Args: {
+          _body: string
+          _category?: string
+          _entity_id?: string
+          _entity_label?: string
+          _entity_type?: string
+          _extra_users?: string[]
+          _group_key?: string
+          _kind: string
+          _link: string
+          _severity?: string
+          _title: string
+        }
+        Returns: number
       }
       purge_archived_audit_log: { Args: never; Returns: Json }
       purge_terminated_tenants: { Args: never; Returns: Json }

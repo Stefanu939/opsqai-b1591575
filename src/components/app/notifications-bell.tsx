@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   BellRing,
@@ -7,10 +7,13 @@ import {
   FileWarning,
   GraduationCap,
   Info,
+  Monitor,
   ShieldAlert,
   Trash2,
 } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { flushMyCriticalAlertEmails } from "@/lib/critical-alerts.functions";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -55,6 +58,7 @@ function relativeTime(iso: string): string {
 export function NotificationsBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const flushCriticalEmails = useServerFn(flushMyCriticalAlertEmails);
   const [items, setItems] = useState<Notif[]>([]);
   const [tab, setTab] = useState<"unread" | "all">("unread");
   const [busy, setBusy] = useState(false);
@@ -109,8 +113,60 @@ export function NotificationsBell() {
     };
   }, [userId, enabled, load]);
 
+  // Critical alerts also go out by email, once each. Fire-and-forget: the
+  // server stamps `emailed_at`, so repeated mounts never duplicate a send.
+  useEffect(() => {
+    if (!userId || !enabled) return;
+    void flushCriticalEmails().catch(() => {
+      /* email is a secondary channel — the bell still shows the alert */
+    });
+  }, [userId, enabled]);
+
   const unread = useMemo(() => items.filter((n) => !n.read_at).length, [items]);
   const visible = tab === "unread" ? items.filter((n) => !n.read_at) : items;
+
+  // ---- Desktop (OS) alerts -------------------------------------------------
+  const seen = useRef<Set<string> | null>(null);
+  const [desktop, setDesktop] = useState<NotificationPermission>("default");
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setDesktop(Notification.permission);
+    }
+  }, []);
+  const enableDesktop = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    setDesktop(await Notification.requestPermission());
+  };
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const fresh = items.filter((n) => !n.read_at).map((n) => n.id);
+    // First pass only records what already existed — no pop-up storm on load.
+    if (seen.current === null) {
+      seen.current = new Set(fresh);
+      return;
+    }
+    if (Notification.permission !== "granted") {
+      seen.current = new Set(fresh);
+      return;
+    }
+    for (const n of items) {
+      if (n.read_at || seen.current.has(n.id)) continue;
+      try {
+        const note = new Notification(n.title, { body: n.body ?? undefined, tag: n.id });
+        note.onclick = () => {
+          window.focus();
+          if (n.link) window.location.assign(n.link);
+        };
+      } catch {
+        /* OS refused the toast — the in-app bell already shows it. */
+      }
+    }
+    seen.current = new Set(fresh);
+  }, [items]);
+
+  const inManagement = useRouterState({
+    select: (s) => s.location.pathname.startsWith("/management"),
+  });
 
   const markRead = async (id: string) => {
     setItems((prev) =>
@@ -261,6 +317,30 @@ export function NotificationsBell() {
             })}
           </div>
         )}
+        <div className="flex items-center justify-between gap-2 border-t px-3 py-2">
+          {desktop === "granted" ? (
+            <span className="text-[10px] text-muted-foreground">Desktop alerts on</span>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 text-xs"
+              onClick={enableDesktop}
+              disabled={desktop === "denied"}
+            >
+              <Monitor className="h-3 w-3" />
+              {desktop === "denied" ? "Desktop alerts blocked" : "Enable desktop alerts"}
+            </Button>
+          )}
+          {inManagement && (
+            <Link
+              to="/management/activity"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Activity Center
+            </Link>
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
