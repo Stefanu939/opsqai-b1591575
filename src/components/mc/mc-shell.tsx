@@ -7,19 +7,16 @@ import {
   Radio,
   Rocket,
   Inbox,
-  Crown,
-  ScrollText,
-  Settings,
   Menu,
   X,
   LogOut,
-  Search,
   ShieldCheck,
   CalendarDays,
 
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { AccountMenu } from "@/components/app/account-menu";
+import { QuickSearch } from "@/components/mc/quick-search";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
@@ -58,9 +55,6 @@ const SECTIONS: Section[] = [
     title: "Operations",
     items: [
       { to: "/management/support", label: "Support", icon: Inbox },
-      { to: "/management/ownership", label: "Ownership", icon: Crown },
-      { to: "/management/audit-logs", label: "Audit Logs", icon: ScrollText },
-      { to: "/management/settings", label: "Settings", icon: Settings },
     ],
   },
   // NOTE: the Management Center intentionally exposes NO Self-Hosted product
@@ -183,14 +177,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
           >
             {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
-           <label className="hidden min-w-0 max-w-xl flex-1 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3 py-2 sm:flex">
-            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Search companies, licenses, installations…"
-              className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            />
-          </label>
+          <QuickSearch />
           <div className="ml-auto flex items-center gap-1.5">
             {/* Ticketing lives in the Customer Portal bubble; staff answer here. */}
             <Button

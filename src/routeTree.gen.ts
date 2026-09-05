@@ -90,18 +90,15 @@ import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authe
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedManagementTeamRouteImport } from './routes/_authenticated/management.team'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
-import { Route as AuthenticatedManagementSettingsRouteImport } from './routes/_authenticated/management.settings'
 import { Route as AuthenticatedManagementSelfhostFleetRouteImport } from './routes/_authenticated/management.selfhost-fleet'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
 import { Route as AuthenticatedManagementProfileRouteImport } from './routes/_authenticated/management.profile'
 import { Route as AuthenticatedManagementPortalRouteImport } from './routes/_authenticated/management.portal'
-import { Route as AuthenticatedManagementOwnershipRouteImport } from './routes/_authenticated/management.ownership'
 import { Route as AuthenticatedManagementLicensesRouteImport } from './routes/_authenticated/management.licenses'
 import { Route as AuthenticatedManagementInstallationsRouteImport } from './routes/_authenticated/management.installations'
 import { Route as AuthenticatedManagementCustomersRouteImport } from './routes/_authenticated/management.customers'
 import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_authenticated/management.companies'
 import { Route as AuthenticatedManagementCalendarRouteImport } from './routes/_authenticated/management.calendar'
-import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_authenticated/management.audit-logs'
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
@@ -567,12 +564,6 @@ const AuthenticatedManagementSupportRoute =
     path: '/support',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
-const AuthenticatedManagementSettingsRoute =
-  AuthenticatedManagementSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => AuthenticatedManagementRoute,
-  } as any)
 const AuthenticatedManagementSelfhostFleetRoute =
   AuthenticatedManagementSelfhostFleetRouteImport.update({
     id: '/selfhost-fleet',
@@ -595,12 +586,6 @@ const AuthenticatedManagementPortalRoute =
   AuthenticatedManagementPortalRouteImport.update({
     id: '/portal',
     path: '/portal',
-    getParentRoute: () => AuthenticatedManagementRoute,
-  } as any)
-const AuthenticatedManagementOwnershipRoute =
-  AuthenticatedManagementOwnershipRouteImport.update({
-    id: '/ownership',
-    path: '/ownership',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementLicensesRoute =
@@ -631,12 +616,6 @@ const AuthenticatedManagementCalendarRoute =
   AuthenticatedManagementCalendarRouteImport.update({
     id: '/calendar',
     path: '/calendar',
-    getParentRoute: () => AuthenticatedManagementRoute,
-  } as any)
-const AuthenticatedManagementAuditLogsRoute =
-  AuthenticatedManagementAuditLogsRouteImport.update({
-    id: '/audit-logs',
-    path: '/audit-logs',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedAppUsersRoute = AuthenticatedAppUsersRouteImport.update({
@@ -933,18 +912,15 @@ export interface FileRoutesByFullPath {
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
-  '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
   '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
-  '/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
-  '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
@@ -1061,18 +1037,15 @@ export interface FileRoutesByTo {
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
-  '/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
   '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
-  '/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
-  '/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
@@ -1196,18 +1169,15 @@ export interface FileRoutesById {
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
-  '/_authenticated/management/audit-logs': typeof AuthenticatedManagementAuditLogsRoute
   '/_authenticated/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/_authenticated/management/customers': typeof AuthenticatedManagementCustomersRoute
   '/_authenticated/management/installations': typeof AuthenticatedManagementInstallationsRoute
   '/_authenticated/management/licenses': typeof AuthenticatedManagementLicensesRoute
-  '/_authenticated/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/_authenticated/management/portal': typeof AuthenticatedManagementPortalRoute
   '/_authenticated/management/profile': typeof AuthenticatedManagementProfileRoute
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
-  '/_authenticated/management/settings': typeof AuthenticatedManagementSettingsRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
   '/_authenticated/management/team': typeof AuthenticatedManagementTeamRoute
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
@@ -1332,18 +1302,15 @@ export interface FileRouteTypes {
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
-    | '/management/audit-logs'
     | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
     | '/management/installations'
     | '/management/licenses'
-    | '/management/ownership'
     | '/management/portal'
     | '/management/profile'
     | '/management/releases'
     | '/management/selfhost-fleet'
-    | '/management/settings'
     | '/management/support'
     | '/management/team'
     | '/portal/admin'
@@ -1460,18 +1427,15 @@ export interface FileRouteTypes {
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
-    | '/management/audit-logs'
     | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
     | '/management/installations'
     | '/management/licenses'
-    | '/management/ownership'
     | '/management/portal'
     | '/management/profile'
     | '/management/releases'
     | '/management/selfhost-fleet'
-    | '/management/settings'
     | '/management/support'
     | '/management/team'
     | '/portal/calendar'
@@ -1594,18 +1558,15 @@ export interface FileRouteTypes {
     | '/_authenticated/app/subscription'
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
-    | '/_authenticated/management/audit-logs'
     | '/_authenticated/management/calendar'
     | '/_authenticated/management/companies'
     | '/_authenticated/management/customers'
     | '/_authenticated/management/installations'
     | '/_authenticated/management/licenses'
-    | '/_authenticated/management/ownership'
     | '/_authenticated/management/portal'
     | '/_authenticated/management/profile'
     | '/_authenticated/management/releases'
     | '/_authenticated/management/selfhost-fleet'
-    | '/_authenticated/management/settings'
     | '/_authenticated/management/support'
     | '/_authenticated/management/team'
     | '/_authenticated/portal/admin'
@@ -2295,13 +2256,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementSupportRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
-    '/_authenticated/management/settings': {
-      id: '/_authenticated/management/settings'
-      path: '/settings'
-      fullPath: '/management/settings'
-      preLoaderRoute: typeof AuthenticatedManagementSettingsRouteImport
-      parentRoute: typeof AuthenticatedManagementRoute
-    }
     '/_authenticated/management/selfhost-fleet': {
       id: '/_authenticated/management/selfhost-fleet'
       path: '/selfhost-fleet'
@@ -2328,13 +2282,6 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/management/portal'
       preLoaderRoute: typeof AuthenticatedManagementPortalRouteImport
-      parentRoute: typeof AuthenticatedManagementRoute
-    }
-    '/_authenticated/management/ownership': {
-      id: '/_authenticated/management/ownership'
-      path: '/ownership'
-      fullPath: '/management/ownership'
-      preLoaderRoute: typeof AuthenticatedManagementOwnershipRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/management/licenses': {
@@ -2370,13 +2317,6 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/management/calendar'
       preLoaderRoute: typeof AuthenticatedManagementCalendarRouteImport
-      parentRoute: typeof AuthenticatedManagementRoute
-    }
-    '/_authenticated/management/audit-logs': {
-      id: '/_authenticated/management/audit-logs'
-      path: '/audit-logs'
-      fullPath: '/management/audit-logs'
-      preLoaderRoute: typeof AuthenticatedManagementAuditLogsRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/app/users': {
@@ -2750,18 +2690,15 @@ const AuthenticatedManagementCompaniesRouteWithChildren =
   )
 
 interface AuthenticatedManagementRouteChildren {
-  AuthenticatedManagementAuditLogsRoute: typeof AuthenticatedManagementAuditLogsRoute
   AuthenticatedManagementCalendarRoute: typeof AuthenticatedManagementCalendarRoute
   AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRouteWithChildren
   AuthenticatedManagementCustomersRoute: typeof AuthenticatedManagementCustomersRoute
   AuthenticatedManagementInstallationsRoute: typeof AuthenticatedManagementInstallationsRoute
   AuthenticatedManagementLicensesRoute: typeof AuthenticatedManagementLicensesRoute
-  AuthenticatedManagementOwnershipRoute: typeof AuthenticatedManagementOwnershipRoute
   AuthenticatedManagementPortalRoute: typeof AuthenticatedManagementPortalRoute
   AuthenticatedManagementProfileRoute: typeof AuthenticatedManagementProfileRoute
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
   AuthenticatedManagementSelfhostFleetRoute: typeof AuthenticatedManagementSelfhostFleetRoute
-  AuthenticatedManagementSettingsRoute: typeof AuthenticatedManagementSettingsRoute
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
   AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRoute
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
@@ -2769,8 +2706,6 @@ interface AuthenticatedManagementRouteChildren {
 
 const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren =
   {
-    AuthenticatedManagementAuditLogsRoute:
-      AuthenticatedManagementAuditLogsRoute,
     AuthenticatedManagementCalendarRoute: AuthenticatedManagementCalendarRoute,
     AuthenticatedManagementCompaniesRoute:
       AuthenticatedManagementCompaniesRouteWithChildren,
@@ -2779,14 +2714,11 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementInstallationsRoute:
       AuthenticatedManagementInstallationsRoute,
     AuthenticatedManagementLicensesRoute: AuthenticatedManagementLicensesRoute,
-    AuthenticatedManagementOwnershipRoute:
-      AuthenticatedManagementOwnershipRoute,
     AuthenticatedManagementPortalRoute: AuthenticatedManagementPortalRoute,
     AuthenticatedManagementProfileRoute: AuthenticatedManagementProfileRoute,
     AuthenticatedManagementReleasesRoute: AuthenticatedManagementReleasesRoute,
     AuthenticatedManagementSelfhostFleetRoute:
       AuthenticatedManagementSelfhostFleetRoute,
-    AuthenticatedManagementSettingsRoute: AuthenticatedManagementSettingsRoute,
     AuthenticatedManagementSupportRoute: AuthenticatedManagementSupportRoute,
     AuthenticatedManagementTeamRoute: AuthenticatedManagementTeamRoute,
     AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
