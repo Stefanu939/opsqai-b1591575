@@ -68,12 +68,16 @@ async function createCalendarEvent(
       return res.id;
     }
     const { getCloudSupabaseAdmin } = await import("@/lib/providers/not-available");
+    const core = await import("@/lib/calendar-core.server");
+    // Write into the calendar the person actually uses: OPSQAI staff see the
+    // fleet ("platform") calendar, customer contacts the portal calendar.
+    const resolved = await core.resolveScope(context as never);
     const admin = await getCloudSupabaseAdmin("time-off");
     const { data, error } = await admin
       .from("calendar_events")
       .insert({
-        scope: "portal",
-        owner_email: context.claims?.email ?? null,
+        scope: resolved.scope,
+        owner_email: resolved.scope === "portal" ? context.claims?.email ?? null : null,
         title: label(req, who),
         description: req.reason,
         kind: "other",
