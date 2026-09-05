@@ -209,6 +209,10 @@ export const upsertCustomerContract = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => UpsertContractSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requirePlatformAdmin(context);
+    {
+      const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+      await assertCompanyInScope(context, data.company_id);
+    }
     const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
     const patch: {
       company_id: string;
