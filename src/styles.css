@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
 
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 4px);
@@ -58,219 +58,151 @@
 }
 
 /* ============================================================
-   OPSQAI — Aurora Noir (current visual direction)
-   Deep navy / near-black foundations, ambient violet + blue,
-   restrained warm ember accent. Floating surfaces, hairline
-   borders, soft elevation, purposeful motion.
-   This is the design that exists now — it is intentionally
-   replaceable by a future explicit redesign.
+   OPSQAI — Graphite Precision (product-wide visual direction)
+   Light-first enterprise surfaces, graphite foundations,
+   operational green actions and technical teal information.
    ============================================================ */
 
 :root {
-  /* Radius language — 12 / 16 / 24 */
-  --radius: 1rem; /* 16px card default */
-  --radius-panel: 1.5rem; /* 24px large panels */
-
-  /* Surface scale — soft cool white */
-  --background: #f7f8fc;
-  --surface-0: #ffffff;
-  --surface-1: #f2f4fa;
-  --surface-2: #e9ecf6;
-  --surface-3: #dee2f0;
-  --foreground: #0f1222;
-  --surface: #ffffff;
-
-  --card: #ffffff;
-  --card-foreground: #0f1222;
-  --popover: #ffffff;
-  --popover-foreground: #0f1222;
-
-  /* Primary — violet */
-  --primary: #5b3df5;
-  --primary-foreground: #ffffff;
-  --primary-glow: #8b6bff;
-
-  --secondary: #e9ecf6;
-  --secondary-foreground: #0f1222;
-
-  --muted: #f2f4fa;
-  --muted-foreground: #545a75;
-
-  /* Accent — blue */
-  --accent: #e6ecfb;
-  --accent-foreground: #1d3f8f;
-
-  --signal: #5b3df5;
-  --signal-foreground: #ffffff;
-
-  /* Legacy variable name, new meaning: restrained warm ember */
-  --gold: #b8552b;
-  --gold-foreground: #ffffff;
-  --gold-soft: rgba(184, 85, 43, 0.14);
-  --gold-line: rgba(184, 85, 43, 0.3);
-
-  --destructive: #c22a26;
-  --destructive-foreground: #ffffff;
-
-  --success: #0f7a5a;
-  --success-foreground: #ffffff;
-  --warning: #97600d;
-  --warning-foreground: #ffffff;
-
-  --border: #dee2f0;
-  --border-strong: #c2c8de;
-  --input: #dee2f0;
-  --ring: #5b3df5;
-
-  --chart-1: #5b3df5;
-  --chart-2: #2f6bd8;
-  --chart-3: #8b6bff;
-  --chart-4: #545a75;
-  --chart-5: #b8552b;
-
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0f1222;
-  --sidebar-primary: #5b3df5;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f2f4fa;
-  --sidebar-accent-foreground: #0f1222;
-  --sidebar-border: #e4e8f4;
-  --sidebar-ring: #5b3df5;
-
-  /* Ambient glow tokens */
-  --glow-violet: radial-gradient(
-    60% 60% at 50% 0%,
-    rgba(91, 61, 245, 0.18),
-    transparent 70%
-  );
-  --glow-blue: radial-gradient(
-    55% 55% at 50% 50%,
-    rgba(47, 107, 216, 0.16),
-    transparent 72%
-  );
-  --glow-ember: radial-gradient(
-    50% 50% at 50% 50%,
-    rgba(184, 85, 43, 0.12),
-    transparent 72%
-  );
-
-  --shadow-xs: 0 1px 2px 0 rgba(15, 18, 34, 0.04);
-  --shadow-sm: 0 1px 2px 0 rgba(15, 18, 34, 0.06);
-  --shadow-md: 0 6px 16px -6px rgba(15, 18, 34, 0.12);
-  --shadow-lg: 0 18px 40px -18px rgba(15, 18, 34, 0.2);
-  --shadow-soft: 0 2px 10px -4px rgba(15, 18, 34, 0.1);
-  --shadow-lift: 0 20px 50px -24px rgba(15, 18, 34, 0.24);
-  --shadow-glow: 0 0 48px -16px rgba(91, 61, 245, 0.35);
-
+  --radius: 0.5rem;
+  --radius-panel: 0.5rem;
+  --background: oklch(0.96 0.008 135);
+  --surface-0: oklch(0.985 0.004 135);
+  --surface-1: oklch(0.94 0.01 145);
+  --surface-2: oklch(0.91 0.012 150);
+  --surface-3: oklch(0.87 0.014 155);
+  --foreground: oklch(0.18 0.01 190);
+  --surface: oklch(0.985 0.004 135);
+  --card: oklch(0.985 0.004 135);
+  --card-foreground: oklch(0.18 0.01 190);
+  --popover: oklch(0.985 0.004 135);
+  --popover-foreground: oklch(0.18 0.01 190);
+  --primary: oklch(0.65 0.13 160);
+  --primary-foreground: oklch(0.985 0.004 135);
+  --primary-glow: oklch(0.59 0.12 160);
+  --secondary: oklch(0.92 0.012 150);
+  --secondary-foreground: oklch(0.24 0.012 190);
+  --muted: oklch(0.93 0.009 145);
+  --muted-foreground: oklch(0.46 0.018 200);
+  --accent: oklch(0.91 0.025 210);
+  --accent-foreground: oklch(0.34 0.075 215);
+  --signal: oklch(0.55 0.09 215);
+  --signal-foreground: oklch(0.985 0.004 135);
+  --gold: oklch(0.55 0.09 215);
+  --gold-foreground: oklch(0.985 0.004 135);
+  --gold-soft: color-mix(in oklab, var(--gold) 12%, transparent);
+  --gold-line: color-mix(in oklab, var(--gold) 28%, transparent);
+  --destructive: oklch(0.53 0.19 27);
+  --destructive-foreground: oklch(0.985 0.004 135);
+  --success: oklch(0.65 0.13 160);
+  --success-foreground: oklch(0.985 0.004 135);
+  --warning: oklch(0.63 0.14 75);
+  --warning-foreground: oklch(0.18 0.01 190);
+  --border: color-mix(in oklab, oklch(0.28 0.01 190) 18%, transparent);
+  --border-strong: color-mix(in oklab, oklch(0.28 0.01 190) 38%, transparent);
+  --input: color-mix(in oklab, oklch(0.28 0.01 190) 22%, transparent);
+  --ring: oklch(0.65 0.13 160);
+  --chart-1: oklch(0.65 0.13 160);
+  --chart-2: oklch(0.55 0.09 215);
+  --chart-3: oklch(0.63 0.14 75);
+  --chart-4: oklch(0.46 0.018 200);
+  --chart-5: oklch(0.53 0.19 27);
+  --sidebar: oklch(0.985 0.004 135);
+  --sidebar-foreground: oklch(0.18 0.01 190);
+  --sidebar-primary: oklch(0.65 0.13 160);
+  --sidebar-primary-foreground: oklch(0.985 0.004 135);
+  --sidebar-accent: oklch(0.92 0.012 150);
+  --sidebar-accent-foreground: oklch(0.18 0.01 190);
+  --sidebar-border: color-mix(in oklab, oklch(0.28 0.01 190) 16%, transparent);
+  --sidebar-ring: oklch(0.65 0.13 160);
+  --glow-violet: none;
+  --glow-blue: none;
+  --glow-ember: none;
+  --shadow-xs: 0 1px 2px color-mix(in oklab, var(--foreground) 7%, transparent);
+  --shadow-sm: 0 4px 12px -8px color-mix(in oklab, var(--foreground) 20%, transparent);
+  --shadow-md: 0 12px 30px -24px color-mix(in oklab, var(--foreground) 30%, transparent);
+  --shadow-lg: 0 20px 42px -32px color-mix(in oklab, var(--foreground) 35%, transparent);
+  --shadow-soft: var(--shadow-xs);
+  --shadow-lift: var(--shadow-md);
+  --shadow-glow: none;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --motion-fast: 180ms;
-  --motion-base: 240ms;
-  --motion-slow: 320ms;
-
-  --gradient-hero: linear-gradient(180deg, #f7f8fc 0%, #eef0fb 100%);
-  --gradient-cta: linear-gradient(135deg, #eef0fb 0%, #e6ecfb 100%);
-  --gradient-primary: linear-gradient(135deg, #5b3df5 0%, #8b6bff 100%);
-  --gradient-card: #ffffff;
-  --gradient-sidebar: #ffffff;
-  --gradient-surface: #ffffff;
+  --motion-fast: 160ms;
+  --motion-base: 200ms;
+  --motion-slow: 280ms;
+  --gradient-hero: var(--background);
+  --gradient-cta: var(--secondary);
+  --gradient-primary: var(--primary);
+  --gradient-card: var(--card);
+  --gradient-sidebar: var(--sidebar);
+  --gradient-surface: var(--surface);
 }
 
 .dark {
-  /* Near-black deep navy foundation */
-  --background: #0a0b14;
-  --surface-0: #0a0b14;
-  
-  --surface-1: #111320;
-  --surface-2: #171a2b;
-  --surface-3: #1f2338;
-  --foreground: #eef0fa;
-  --surface: #111320;
-
-  --card: #111320;
-  --card-foreground: #eef0fa;
-  --popover: #141728;
-  --popover-foreground: #eef0fa;
-
-  --primary: #8b6bff;
-  --primary-foreground: #0a0b14;
-  --primary-glow: #b39dff;
-
-  --secondary: #1f2338;
-  --secondary-foreground: #eef0fa;
-
-  --muted: #171a2b;
-  --muted-foreground: #9aa2c2;
-
-  --accent: #1b2440;
-  --accent-foreground: #a9c2ff;
-
-  --signal: #8b6bff;
-  --signal-foreground: #0a0b14;
-
-  /* Legacy variable name, new meaning: restrained warm ember */
-  --gold: #e2793f;
-  --gold-foreground: #0a0b14;
-  --gold-soft: rgba(226, 121, 63, 0.16);
-  --gold-line: rgba(226, 121, 63, 0.32);
-
-  --destructive: #f0675c;
-  --destructive-foreground: #0a0b14;
-
-  --success: #3ddcac;
-  --success-foreground: #0a0b14;
-  --warning: #f0b95f;
-  --warning-foreground: #0a0b14;
-
-  --border: rgba(160, 168, 210, 0.16);
-  --border-strong: rgba(160, 168, 210, 0.3);
-  --input: rgba(160, 168, 210, 0.18);
-  --ring: #8b6bff;
-
-  --chart-1: #8b6bff;
-  --chart-2: #5b8cf7;
-  --chart-3: #b39dff;
-  --chart-4: #9aa2c2;
-  --chart-5: #e2793f;
-
-  --sidebar: #0a0b14;
-  --sidebar-foreground: #eef0fa;
-  --sidebar-primary: #8b6bff;
-  --sidebar-primary-foreground: #0a0b14;
-  --sidebar-accent: #171a2b;
-  --sidebar-accent-foreground: #eef0fa;
-  --sidebar-border: rgba(160, 168, 210, 0.14);
-  --sidebar-ring: #8b6bff;
-
-  --glow-violet: radial-gradient(
-    60% 60% at 50% 0%,
-    rgba(139, 107, 255, 0.28),
-    transparent 70%
-  );
-  --glow-blue: radial-gradient(
-    55% 55% at 50% 50%,
-    rgba(91, 140, 247, 0.22),
-    transparent 72%
-  );
-  --glow-ember: radial-gradient(
-    50% 50% at 50% 50%,
-    rgba(226, 121, 63, 0.16),
-    transparent 72%
-  );
-
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 8px 20px -8px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 20px 44px -20px rgba(0, 0, 0, 0.7);
-  --shadow-soft: 0 2px 12px -6px rgba(0, 0, 0, 0.6);
-  --shadow-lift: 0 24px 60px -28px rgba(0, 0, 0, 0.75);
-  --shadow-glow: 0 0 60px -18px rgba(139, 107, 255, 0.45);
-
-  --gradient-hero: linear-gradient(180deg, #0a0b14 0%, #12142a 100%);
-  --gradient-cta: linear-gradient(135deg, #141728 0%, #1b2440 100%);
-  --gradient-primary: linear-gradient(135deg, #6d4bf6 0%, #8b6bff 100%);
-  --gradient-card: #111320;
-  --gradient-sidebar: #0a0b14;
-  --gradient-surface: #111320;
+  --background: oklch(0.18 0.01 190);
+  --surface-0: oklch(0.18 0.01 190);
+  --surface-1: oklch(0.22 0.012 190);
+  --surface-2: oklch(0.26 0.014 190);
+  --surface-3: oklch(0.3 0.015 190);
+  --foreground: oklch(0.96 0.008 135);
+  --surface: oklch(0.22 0.012 190);
+  --card: oklch(0.22 0.012 190);
+  --card-foreground: oklch(0.96 0.008 135);
+  --popover: oklch(0.24 0.012 190);
+  --popover-foreground: oklch(0.96 0.008 135);
+  --primary: oklch(0.7 0.13 160);
+  --primary-foreground: oklch(0.18 0.01 190);
+  --primary-glow: oklch(0.74 0.12 160);
+  --secondary: oklch(0.28 0.014 190);
+  --secondary-foreground: oklch(0.96 0.008 135);
+  --muted: oklch(0.26 0.014 190);
+  --muted-foreground: oklch(0.72 0.018 175);
+  --accent: oklch(0.3 0.035 215);
+  --accent-foreground: oklch(0.84 0.06 210);
+  --signal: oklch(0.68 0.09 215);
+  --signal-foreground: oklch(0.18 0.01 190);
+  --gold: oklch(0.68 0.09 215);
+  --gold-foreground: oklch(0.18 0.01 190);
+  --gold-soft: color-mix(in oklab, var(--gold) 13%, transparent);
+  --gold-line: color-mix(in oklab, var(--gold) 30%, transparent);
+  --destructive: oklch(0.7 0.17 25);
+  --destructive-foreground: oklch(0.18 0.01 190);
+  --success: oklch(0.72 0.13 160);
+  --success-foreground: oklch(0.18 0.01 190);
+  --warning: oklch(0.76 0.13 78);
+  --warning-foreground: oklch(0.18 0.01 190);
+  --border: color-mix(in oklab, oklch(0.86 0.012 150) 17%, transparent);
+  --border-strong: color-mix(in oklab, oklch(0.86 0.012 150) 32%, transparent);
+  --input: color-mix(in oklab, oklch(0.86 0.012 150) 20%, transparent);
+  --ring: oklch(0.7 0.13 160);
+  --chart-1: oklch(0.7 0.13 160);
+  --chart-2: oklch(0.68 0.09 215);
+  --chart-3: oklch(0.76 0.13 78);
+  --chart-4: oklch(0.72 0.018 175);
+  --chart-5: oklch(0.7 0.17 25);
+  --sidebar: oklch(0.16 0.01 190);
+  --sidebar-foreground: oklch(0.96 0.008 135);
+  --sidebar-primary: oklch(0.7 0.13 160);
+  --sidebar-primary-foreground: oklch(0.18 0.01 190);
+  --sidebar-accent: oklch(0.25 0.014 190);
+  --sidebar-accent-foreground: oklch(0.96 0.008 135);
+  --sidebar-border: color-mix(in oklab, oklch(0.86 0.012 150) 15%, transparent);
+  --sidebar-ring: oklch(0.7 0.13 160);
+  --glow-violet: none;
+  --glow-blue: none;
+  --glow-ember: none;
+  --shadow-xs: 0 1px 2px color-mix(in oklab, black 24%, transparent);
+  --shadow-sm: 0 4px 12px -8px color-mix(in oklab, black 50%, transparent);
+  --shadow-md: 0 12px 30px -24px color-mix(in oklab, black 75%, transparent);
+  --shadow-lg: 0 20px 42px -32px color-mix(in oklab, black 85%, transparent);
+  --shadow-soft: var(--shadow-xs);
+  --shadow-lift: var(--shadow-md);
+  --shadow-glow: none;
+  --gradient-hero: var(--background);
+  --gradient-cta: var(--secondary);
+  --gradient-primary: var(--primary);
+  --gradient-card: var(--card);
+  --gradient-sidebar: var(--sidebar);
+  --gradient-surface: var(--surface);
 }
 
 
@@ -289,7 +221,7 @@
   h5,
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
   }
   body {
     background-color: var(--color-background);
@@ -1033,115 +965,95 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   }
 }
 
-/* ── Command Deck surfaces (Self-Hosted redesign) ───────────────────────── */
-
-/* Layered glass surface — same tokens, more depth. */
+/* ── Product-wide Graphite Precision compatibility utilities ─────────── */
 @utility oq-glass {
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in oklab, var(--card) 92%, var(--primary)) 0%,
-      var(--card) 55%,
-      color-mix(in oklab, var(--card) 94%, var(--gold)) 100%
-    );
-  backdrop-filter: blur(6px);
+  background: var(--card);
 }
 
-/* Hairline gold edge-light along the top of a panel. */
 @utility oq-edge-gold {
-  &::before {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    top: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in oklab, var(--gold) 70%, transparent),
-      transparent
-    );
-    pointer-events: none;
-  }
+  border-color: var(--border-strong);
 }
 
-/* Soft gold aura for the active/critical element. */
 @utility oq-glow {
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--gold) 35%, transparent),
-    0 14px 40px -26px color-mix(in oklab, var(--gold) 60%, transparent);
+  box-shadow: var(--shadow-xs);
 }
 
-/* Chat wallpaper — faint emerald/gold weave behind the transcript. */
 @utility oq-chat-canvas {
-  background-color: var(--background);
-  background-image:
-    radial-gradient(
-      circle at 18% 12%,
-      color-mix(in oklab, var(--primary) 12%, transparent) 0%,
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 84% 82%,
-      color-mix(in oklab, var(--gold) 10%, transparent) 0%,
-      transparent 42%
-    );
+  background: var(--background);
 }
 
-/* ============================================================
-   Cloud surfaces — Management Center + Customer Portal
-   No separate palette: they inherit the Aurora Noir tokens and
-   only carry their own elevation + card language.
-   ============================================================ */
-
-.oq-soft,
-.oix-shell {
-  --oq-soft-shadow: var(--shadow-soft);
-  --oq-soft-shadow-lift: var(--shadow-lift);
+.oq-product {
+  --radius: 0.5rem;
+  --radius-panel: 0.5rem;
+  --oq-soft-shadow: var(--shadow-xs);
+  --oq-soft-shadow-lift: var(--shadow-sm);
+  min-height: 100%;
+  font-family: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
 }
 
+.oq-product h1,
+.oq-product .font-display {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
 
-/* Soft card — the single card language of the cloud surfaces. */
 @utility oq-soft-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
-  box-shadow: var(--oq-soft-shadow);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
 }
 
 @utility oq-soft-lift {
-  transition:
-    transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1),
-    box-shadow 200ms ease;
+  transition: border-color var(--motion-fast) ease, background-color var(--motion-fast) ease;
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--oq-soft-shadow-lift);
+    border-color: var(--border-strong);
   }
 }
 
-/* Pill navigation item used by both cloud sidebars. */
 @utility oq-pill {
-  border-radius: 0.875rem;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
 }
 
-/* Inside the soft scope, normalise the shared primitives so every page —
-   present and future — picks up the rounded, softly shadowed language. */
-.oq-soft .oq-soft-scope-card,
-.oq-soft [data-slot="card"],
-.oix-shell [data-slot="card"] {
-  border-radius: 1.25rem;
-  box-shadow: var(--oq-soft-shadow);
+.oq-product [data-slot="card"],
+.oq-product .oq-soft-scope-card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
 }
 
-
-.oq-soft .rounded-lg,
-.oq-soft .rounded-xl {
-  border-radius: 1.125rem;
+.oq-product .rounded-2xl,
+.oq-product .rounded-xl,
+.oq-product .rounded-lg {
+  border-radius: var(--radius);
 }
 
-.oq-soft .rounded-md {
-  border-radius: 0.75rem;
+.oq-product .backdrop-blur,
+.oq-product .backdrop-blur-sm,
+.oq-product .backdrop-blur-md {
+  backdrop-filter: none;
+}
+
+.oq-management-shell > aside,
+.oq-portal-shell > aside {
+  border-right: 1px solid var(--sidebar-border);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.oq-management-shell > div > header,
+.oq-portal-shell main > div:first-child {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.oq-management-shell > div > main,
+.oq-portal-shell main > div:last-child {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
