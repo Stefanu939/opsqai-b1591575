@@ -305,6 +305,30 @@ export function NotificationsBell() {
             })}
           </div>
         )}
+        <div className="flex items-center justify-between gap-2 border-t px-3 py-2">
+          {desktop === "granted" ? (
+            <span className="text-[10px] text-muted-foreground">Desktop alerts on</span>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 text-xs"
+              onClick={enableDesktop}
+              disabled={desktop === "denied"}
+            >
+              <Monitor className="h-3 w-3" />
+              {desktop === "denied" ? "Desktop alerts blocked" : "Enable desktop alerts"}
+            </Button>
+          )}
+          {inManagement && (
+            <Link
+              to="/management/activity"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Activity Center
+            </Link>
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
