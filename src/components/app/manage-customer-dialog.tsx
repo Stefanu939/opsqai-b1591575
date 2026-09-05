@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { KeyRound, Loader2, Mail, Settings2, UserCog } from "lucide-react";
+import { SharedAccessPanel } from "@/components/mc/shared-access";
 
 type CustomerUser = {
   id: string;
@@ -61,7 +62,12 @@ export function ManageCustomerDialog({
               User accounts for this customer — email address, password and account access.
             </DialogDescription>
           </DialogHeader>
-          {open ? <ManageBody companyId={companyId} /> : null}
+          {open ? (
+            <div className="space-y-4">
+              <SharedAccessPanel companyId={companyId} />
+              <ManageBody companyId={companyId} />
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
     </>
