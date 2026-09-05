@@ -1,9 +1,6 @@
 import adela from "@/assets/founder-adela.png.asset.json";
 import stefan from "@/assets/founder-stefan.png.asset.json";
 import { useT } from "@/i18n";
-import { LineArt } from "@/components/visual/line-art";
-import { Starfield } from "@/components/visual/starfield";
-import { AmbientGlow } from "@/components/visual/ambient-glow";
 
 type Copy = {
   eyebrow: string;
@@ -80,23 +77,19 @@ export function Founders() {
   const copy = lang === "de" ? de : lang === "ro" ? ro : en;
 
   return (
-    <section className="relative overflow-hidden py-24 sm:py-32" aria-labelledby="founders-title">
-      <AmbientGlow tone="violet" intensity={0.7} />
-      <Starfield count={22} opacity={0.5} />
-      <LineArt variant="fan" opacity={0.18} className="top-auto h-1/2" />
-
+    <section className="relative overflow-hidden border-y border-[var(--oix-gold-line)] bg-[var(--oix-surface-2)] py-24 sm:py-32" aria-labelledby="founders-title">
       <div className="relative mx-auto max-w-6xl px-6">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+        <p className="oix-eyebrow">
           {copy.eyebrow}
         </p>
         <h2
           id="founders-title"
-          className="mt-4 max-w-3xl font-[family-name:var(--font-display)] text-3xl leading-[1.1] tracking-tight sm:text-5xl"
+          className="oix-display mt-4 max-w-3xl text-4xl leading-[1] sm:text-6xl"
         >
           {copy.title}{" "}
-          <span className="text-primary">{copy.serif}</span>
+          <span className="italic text-[var(--oix-gold)]">{copy.serif}</span>
         </h2>
-        <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
+        <p className="mt-6 max-w-2xl text-base leading-relaxed text-[var(--oix-cream-dim)]">
           {copy.intro}
         </p>
 
@@ -104,7 +97,7 @@ export function Founders() {
           {copy.people.map((p, i) => (
             <figure
               key={p.name}
-              className="relative overflow-hidden rounded-2xl border border-border bg-card/70 shadow-[var(--shadow-soft)] backdrop-blur-sm"
+              className="relative overflow-hidden rounded-sm border border-[var(--oix-gold-line)] bg-[var(--oix-bg-deep)] shadow-[var(--oix-shadow-card)]"
             >
               <div className="relative aspect-4/5 overflow-hidden">
                 <img
@@ -116,15 +109,15 @@ export function Founders() {
                 />
                 <div
                   aria-hidden
-                  className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-card via-card/60 to-transparent"
+                   className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-[var(--oix-bg-deep)] via-[color-mix(in_oklab,var(--oix-bg-deep)_62%,transparent)] to-transparent"
                 />
               </div>
               <figcaption className="relative -mt-16 p-7">
-                <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight">
+                 <h3 className="oix-display text-2xl">
                   {p.name}
                 </h3>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-primary">{p.role}</p>
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{p.bio}</p>
+                 <p className="mt-1 text-xs font-semibold text-[var(--oix-gold)]">{p.role}</p>
+                 <p className="mt-4 text-sm leading-relaxed text-[var(--oix-cream-dim)]">{p.bio}</p>
               </figcaption>
             </figure>
           ))}

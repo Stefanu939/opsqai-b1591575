@@ -13,15 +13,15 @@ interface OixButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  "inline-flex items-center justify-center gap-2 px-6 py-3 text-[13px] font-medium uppercase tracking-[0.18em] transition-all duration-300 relative group";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-sm px-5 py-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--oix-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--oix-bg-deep)] relative group";
 
 const variants: Record<Variant, string> = {
   gold:
-    "bg-[var(--oix-gold)] text-[#0a0b14] shadow-[var(--oix-shadow-gold-glow)]",
+    "bg-[var(--oix-emerald)] text-[var(--oix-primary-ink)] hover:bg-[var(--oix-emerald-strong)]",
   ghost:
-    "border border-[var(--oix-gold-line)] text-[var(--oix-cream)]",
+    "border border-[var(--oix-border-strong)] bg-transparent text-[var(--oix-cream)] hover:bg-[var(--oix-surface)]",
   emerald:
-    "bg-[var(--oix-emerald)] text-[var(--oix-cream)]",
+    "bg-[var(--oix-gold)] text-[var(--oix-primary-ink)] hover:bg-[var(--oix-gold-strong)]",
 };
 
 export const OixButton = forwardRef<HTMLButtonElement, OixButtonProps>(
@@ -35,7 +35,7 @@ export const OixButton = forwardRef<HTMLButtonElement, OixButtonProps>(
       </>
     );
 
-    const cls = cn(base, variants[variant], "oix-brackets", className);
+    const cls = cn(base, variants[variant], className);
 
     if (to && external) {
       return (
