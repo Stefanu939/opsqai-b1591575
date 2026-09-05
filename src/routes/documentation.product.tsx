@@ -3,7 +3,7 @@ import { pageHead } from "@/lib/seo";
 import { DocPage, DocSection } from "@/components/docs/doc-page";
 
 export const Route = createFileRoute("/documentation/product")({
-  head: () => pageHead({ title: "Product Documentation — OPSQAI", description: "The OPSQAI Windows Self-Hosted product, Core Platform, licensed products, add-ons, grounded AI and support services.", path: "/documentation/product", breadcrumbs: [{ name: "Home", path: "/" }, { name: "Documentation", path: "/documentation" }, { name: "Product", path: "/documentation/product" }] }), component: Product,
+  head: () => pageHead({ title: "Product Documentation — OPSQAI", description: "The OPSQAI Operational AI Platform for Windows Self-Hosted environments. Core Platform, licensed products, add-ons, grounded AI and support services.", path: "/documentation/product", breadcrumbs: [{ name: "Home", path: "/" }, { name: "Documentation", path: "/documentation" }, { name: "Product", path: "/documentation/product" }] }), component: Product,
 });
 
 function Product() {

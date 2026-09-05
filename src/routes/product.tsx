@@ -21,9 +21,9 @@ import { useMarketing } from "@/i18n/marketing";
 export const Route = createFileRoute("/product")({
   head: () =>
     pageHead({
-      title: "Product — OPSQAI Windows Self-Hosted",
+      title: "Product — OPSQAI Operational AI Platform for Windows Self-Hosted",
       description:
-        "OPSQAI is a licensed Windows Self-Hosted operational AI platform. Management Center and Customer Portal are support services, not customer products.",
+        "OPSQAI is a licensed operational AI platform for Windows Self-Hosted environments. Management Center and Customer Portal are support services, not customer products.",
       path: "/product",
       keywords:
         "enterprise operational AI platform, windows self-hosted, customer portal, management center, signed license, windows installer",
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/product")({
       jsonLd: [
         softwareApplicationLd({
           description:
-            "OPSQAI is a Windows Self-Hosted Enterprise Operational AI Platform. Cloud surfaces exist only to support the installation.",
+            "OPSQAI is an Operational AI Platform delivered as a Windows Self-Hosted product. Cloud surfaces exist only to support the installation.",
         }),
       ],
     }),
