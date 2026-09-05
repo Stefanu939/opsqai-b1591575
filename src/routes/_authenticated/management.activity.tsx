@@ -246,7 +246,7 @@ function ActivityCenterPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All areas</SelectItem>
-              {ACTIVITY_CATEGORIES.map((c) => (
+              {MC_CATEGORIES.map((c) => (
                 <SelectItem key={c} value={c}>
                   {CATEGORY_LABELS[c]}
                 </SelectItem>
