@@ -6,6 +6,7 @@ import { OixLayout } from "@/components/oix/oix-layout";
 import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
+import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
 import { usePricingCopy } from "@/i18n/pages/pricing";
 
