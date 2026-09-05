@@ -348,6 +348,16 @@ function InstallationsPage() {
       title="Installations"
       description="Every self-hosted OPSQAI installation: license state, heartbeat telemetry, versions and module coverage. Visibility only — no remote control actions."
     >
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricTile label="Online" value={online} />
+        <MetricTile label="Offline" value={offline} />
+        <MetricTile label="Never reported" value={never} />
+        <MetricTile
+          label={currentVersion ? `Outdated (current ${currentVersion})` : "Outdated"}
+          value={outdated}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -410,6 +420,15 @@ function InstallationsPage() {
             ))}
           </SelectContent>
         </Select>
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={outdatedOnly}
+            onChange={(e) => setOutdatedOnly(e.target.checked)}
+            className="h-3.5 w-3.5 accent-primary"
+          />
+          Outdated only
+        </label>
         <div className="ml-auto text-xs text-muted-foreground">
           <span className="tabular-nums">{online}</span> online ·{" "}
           <span className="tabular-nums">{rows.length}</span> / {data.length}
