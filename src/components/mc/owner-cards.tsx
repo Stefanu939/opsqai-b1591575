@@ -87,9 +87,10 @@ export function OwnerCards({
       </button>
 
       {cards.map((c) => (
-        <button
+        <div
           key={c.user_id ?? "unassigned"}
-          type="button"
+          role="button"
+          tabIndex={0}
           onClick={() =>
             onSelect(
               c.user_id === null
@@ -97,7 +98,15 @@ export function OwnerCards({
                 : { userId: c.user_id, unassigned: false },
             )
           }
-          className="rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40"
+          onKeyDown={(e) => {
+            if (e.key === "Enter")
+              onSelect(
+                c.user_id === null
+                  ? { userId: null, unassigned: true }
+                  : { userId: c.user_id, unassigned: false },
+              );
+          }}
+          className="cursor-pointer rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
@@ -124,8 +133,18 @@ export function OwnerCards({
               <Inbox className="h-3 w-3" />
               {c.open_tickets} tickets
             </span>
+            {c.user_id ? (
+              <Link
+                to="/management/team/$userId"
+                params={{ userId: c.user_id }}
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                Open panel →
+              </Link>
+            ) : null}
           </div>
-        </button>
+        </div>
       ))}
     </div>
   );
