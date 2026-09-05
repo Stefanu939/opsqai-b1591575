@@ -1976,3 +1976,67 @@ export interface ICalendarRepository {
 }
 
 export type CalendarRepositoryFactory = (dataCtx: unknown) => ICalendarRepository;
+
+// --------------------------------------------------------------------
+// Presence + time off repository (account menu).
+// Cloud: Supabase (RLS as the signed-in user).
+// Self-Hosted: local PostgreSQL (migration 0028_presence_time_off.sql).
+// --------------------------------------------------------------------
+
+export type PresenceStatus = "available" | "busy" | "away" | "dnd";
+
+export interface PresenceRecord {
+  userId: string;
+  status: PresenceStatus;
+  message: string | null;
+  until: string | null;
+}
+
+export type TimeOffStatus = "pending" | "approved" | "rejected" | "cancelled";
+
+export interface TimeOffRecord {
+  id: string;
+  userId: string;
+  companyId: string | null;
+  startsOn: string;
+  endsOn: string;
+  reason: string | null;
+  status: TimeOffStatus;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  calendarEventId: string | null;
+  createdAt: string;
+  requesterName?: string | null;
+}
+
+export interface IPresenceRepository {
+  getPresence(userId: string): Promise<PresenceRecord | null>;
+  setPresence(
+    userId: string,
+    patch: { status: PresenceStatus; message: string | null; until: string | null },
+  ): Promise<PresenceRecord>;
+  listPresence(userIds: string[]): Promise<PresenceRecord[]>;
+
+  createTimeOff(input: {
+    userId: string;
+    companyId: string | null;
+    startsOn: string;
+    endsOn: string;
+    reason: string | null;
+    status: TimeOffStatus;
+  }): Promise<TimeOffRecord>;
+  listMyTimeOff(userId: string): Promise<TimeOffRecord[]>;
+  listCompanyTimeOff(companyId: string | null): Promise<TimeOffRecord[]>;
+  getTimeOff(id: string): Promise<TimeOffRecord | null>;
+  updateTimeOff(
+    id: string,
+    patch: {
+      status?: TimeOffStatus;
+      approvedBy?: string | null;
+      approvedAt?: string | null;
+      calendarEventId?: string | null;
+    },
+  ): Promise<TimeOffRecord>;
+}
+
+export type PresenceRepositoryFactory = (dataCtx: unknown) => IPresenceRepository;
