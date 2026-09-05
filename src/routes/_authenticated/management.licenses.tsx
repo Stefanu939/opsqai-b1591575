@@ -183,7 +183,7 @@ function LicensesPage() {
             setSelected(v ? new Set(allInstallIds) : new Set<string>())
           }
         />
-      ) as unknown as string,
+      ),
       render: (l) => (
         <Checkbox
           checked={selected.has(l.install_id)}
