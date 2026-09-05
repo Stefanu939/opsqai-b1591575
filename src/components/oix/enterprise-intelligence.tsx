@@ -241,7 +241,7 @@ export function EnterpriseIntelligence({
       <figcaption className="flex items-center gap-3 pt-1">
         <ShieldCheck className="h-4 w-4 shrink-0 text-primary/60" strokeWidth={1.5} />
         <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-          Real product screens · Windows Self-Hosted · Local Ollama AI
+          Real product screens · Management Center · Customer Portal
         </span>
       </figcaption>
     </figure>
