@@ -311,7 +311,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const bottomTabs = nav.slice(0, 4);
 
   return (
-     <div className="oq-product oq-app-shell min-h-dvh flex bg-background">
+     <div className="oq-product oq-app-shell min-h-dvh md:h-dvh md:overflow-hidden flex bg-background">
       <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border md:sticky md:top-0 md:h-dvh md:overflow-hidden">
         <SidebarContent />
       </aside>
@@ -350,7 +350,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <main
-        className="flex-1 min-w-0 flex flex-col md:pt-0"
+        className="flex-1 min-w-0 flex flex-col md:pt-0 md:min-h-0 md:overflow-y-auto"
         style={{
           paddingTop: "calc(3.5rem + env(safe-area-inset-top))",
           paddingBottom: "calc(4rem + env(safe-area-inset-bottom))",
@@ -363,7 +363,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         {/* Route change gets a short fade/rise so navigation reads as a state
             change rather than a hard swap. */}
-        <div key={pathname} className="oq-page flex-1 min-w-0 flex flex-col">
+        <div key={pathname} className="oq-page flex-1 min-h-0 min-w-0 flex flex-col">
           {children}
         </div>
 

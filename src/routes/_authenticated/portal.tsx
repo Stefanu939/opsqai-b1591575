@@ -233,7 +233,7 @@ function PortalLayout() {
             </span>
           </div>
         </div>
-        <div className="oq-soft-card min-w-0 flex-1 overflow-hidden">
+        <div className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto">
           <Outlet />
         </div>
       </main>

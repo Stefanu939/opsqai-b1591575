@@ -172,7 +172,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-       <div className="flex min-h-dvh min-w-0 flex-1 flex-col md:min-h-0">
+       <div className="flex min-h-dvh min-w-0 flex-1 flex-col md:h-dvh md:min-h-0">
         <header className="oq-soft-card flex h-14 items-center gap-3 px-3 md:h-16 md:px-4">
           <Button
             variant="ghost"
@@ -206,7 +206,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
             </span>
           </div>
         </header>
-        <main className="oq-soft-card min-w-0 flex-1 overflow-hidden">{children}</main>
+        <main className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto">{children}</main>
       </div>
     </div>
   );
