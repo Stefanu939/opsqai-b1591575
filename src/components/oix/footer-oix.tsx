@@ -44,8 +44,8 @@ export function FooterOix() {
   ];
 
   return (
-    <footer className="oix-hairline-top mt-32 bg-[var(--oix-bg-deep)]">
-      <div className="mx-auto w-full max-w-7xl px-6 md:px-10 py-20">
+    <footer className="oix-hairline-top mt-24 bg-[var(--oix-footer)] text-[var(--oix-footer-ink)]">
+      <div className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 md:py-20">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4 md:gap-16">
           {columns.map((col) => (
             <div key={col.heading}>

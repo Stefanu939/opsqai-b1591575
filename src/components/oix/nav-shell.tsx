@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OixButton } from "./buttons";
 import { LogoMark } from "@/components/brand/logo";
 import { useT } from "@/i18n";
 import { useMarketing } from "@/i18n/marketing";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 export function NavShell() {
   const [scrolled, setScrolled] = useState(false);
@@ -50,32 +52,32 @@ export function NavShell() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
+        "fixed inset-x-0 top-0 z-50 border-b transition-colors duration-200",
         scrolled
-          ? "backdrop-blur-xl bg-[color-mix(in_srgb,var(--oix-bg-deep)_78%,transparent)] oix-hairline-bottom"
-          : "bg-transparent",
+          ? "border-[var(--oix-gold-line)] bg-[color-mix(in_srgb,var(--oix-bg-deep)_94%,transparent)] backdrop-blur-xl"
+          : "border-transparent bg-[color-mix(in_srgb,var(--oix-bg-deep)_86%,transparent)] backdrop-blur-lg",
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-6">
+      <div className="mx-auto flex h-[4.5rem] w-full max-w-7xl items-center justify-between gap-3 px-5 md:px-8">
         <Link to="/" className="flex items-center gap-2.5 group shrink-0 transition-opacity duration-200 hover:opacity-80">
           <LogoMark
             size={26}
             accent="var(--oix-gold-soft)"
             className="text-[var(--oix-gold)]"
           />
-          <span className="oix-display text-lg tracking-[0.24em] text-[var(--oix-cream)]">
+          <span className="text-lg font-semibold text-[var(--oix-cream)]">
             OPSQAI
           </span>
         </Link>
 
 
-        <nav className="hidden items-center gap-4 lg:flex xl:gap-5">
+        <nav className="hidden items-center gap-5 lg:flex xl:gap-6" aria-label="Primary navigation">
           {links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className="whitespace-nowrap text-[12px] uppercase tracking-[0.18em] text-[var(--oix-cream-dim)] transition-colors duration-200 hover:text-[var(--oix-gold-soft)]"
-              activeProps={{ className: "text-[var(--oix-gold)]" }}
+              className="border-b-2 border-transparent py-2 text-sm font-medium text-[var(--oix-cream-dim)] transition-colors duration-200 hover:text-[var(--oix-cream)]"
+              activeProps={{ className: "border-[var(--oix-emerald)] text-[var(--oix-cream)]" }}
             >
               {l.label}
             </Link>
@@ -85,7 +87,7 @@ export function NavShell() {
         <div className="flex items-center gap-2 shrink-0">
           {/* Language — always visible */}
           <div
-            className="flex items-center overflow-hidden rounded-full border border-[var(--oix-gold-line)]"
+            className="hidden items-center overflow-hidden rounded-sm border border-[var(--oix-gold-line)] sm:flex"
             role="group"
             aria-label={m.a11y.language}
           >
@@ -96,9 +98,9 @@ export function NavShell() {
                 onClick={() => setLang(code)}
                 aria-pressed={lang === code}
                 className={cn(
-                  "px-2 py-1.5 text-[11px] uppercase tracking-[0.14em] transition-colors",
+                  "px-2.5 py-1.5 text-xs font-semibold uppercase transition-colors",
                   lang === code
-                    ? "bg-[var(--oix-gold)] text-[#0a0b14]"
+                    ? "bg-[var(--oix-cream)] text-[var(--oix-bg-deep)]"
                     : "text-[var(--oix-cream-dim)] hover:bg-[var(--oix-gold)]/10 hover:text-[var(--oix-cream)]",
                 )}
               >
@@ -113,7 +115,7 @@ export function NavShell() {
             onClick={toggleTheme}
             aria-label={m.a11y.theme}
             title={m.a11y.theme}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)] transition-colors duration-200 hover:border-[var(--oix-gold)]/60 hover:text-[var(--oix-gold-soft)]"
+            className="hidden h-9 w-9 items-center justify-center rounded-sm border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)] transition-colors duration-200 hover:border-[var(--oix-gold)] hover:text-[var(--oix-gold)] sm:inline-flex"
           >
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -121,14 +123,46 @@ export function NavShell() {
           <OixButton
             variant="ghost"
             to="/auth"
-            className="hidden px-4 py-2 transition-colors duration-200 hover:border-[var(--oix-gold)]/70 hover:text-[var(--oix-gold-soft)] sm:inline-flex"
+            className="hidden px-4 py-2 xl:inline-flex"
           >
             {m.cta.signIn}
           </OixButton>
 
-          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 transition-[filter] duration-200 hover:brightness-110 2xl:inline-flex">
+          <OixButton variant="gold" to="/contact" withArrow className="hidden px-4 py-2 2xl:inline-flex">
             {m.cta.proposal}
           </OixButton>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="border-[var(--oix-gold-line)] bg-transparent text-[var(--oix-cream)] lg:hidden" aria-label="Open navigation">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="oix-shell border-[var(--oix-gold-line)] bg-[var(--oix-bg-deep)] p-0 text-[var(--oix-cream)]">
+              <SheetHeader className="border-b border-[var(--oix-gold-line)] px-6 py-5 text-left">
+                <SheetTitle className="font-[family-name:var(--font-body-oix)] text-[var(--oix-cream)]">OPSQAI</SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col px-6 py-6" aria-label="Mobile navigation">
+                {links.map((link) => (
+                  <Link key={link.to} to={link.to} className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{link.label}</Link>
+                ))}
+                <Link to="/documentation" className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{m.nav.documentation}</Link>
+                <Link to="/blog" className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{m.nav.blog}</Link>
+              </nav>
+              <div className="space-y-4 px-6 pb-6">
+                <div className="flex items-center gap-2" role="group" aria-label={m.a11y.language}>
+                  {(["en", "de", "ro"] as const).map((code) => (
+                    <button key={code} type="button" onClick={() => setLang(code)} aria-pressed={lang === code} className={cn("h-10 flex-1 rounded-sm border border-[var(--oix-gold-line)] text-xs font-semibold uppercase", lang === code && "bg-[var(--oix-cream)] text-[var(--oix-bg-deep)]")}>{code}</button>
+                  ))}
+                  <button type="button" onClick={toggleTheme} aria-label={m.a11y.theme} className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[var(--oix-gold-line)]">
+                    {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </button>
+                </div>
+                <OixButton variant="gold" to="/contact" withArrow className="w-full">{m.cta.proposal}</OixButton>
+                <OixButton variant="ghost" to="/auth" className="w-full">{m.cta.signIn}</OixButton>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

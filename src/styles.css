@@ -562,9 +562,7 @@ body {
 }
 
 /* ============================================================
-   OIX — marketing scope (Aurora Noir)
-   Prefix: --oix-*. Variable names are legacy; values are the
-   current navy / violet / blue / ember direction.
+   OIX — public marketing scope (Graphite Precision)
    ============================================================ */
 
 :root {
@@ -597,9 +595,9 @@ body {
   );
   --oix-shadow-emerald-glow: 0 0 60px -10px rgba(139, 107, 255, 0.4);
   --oix-shadow-gold-glow: 0 0 40px -12px rgba(91, 140, 247, 0.45);
-  --font-display-oix: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-serif-oix: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-body-oix: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display-oix: "Instrument Serif", Georgia, serif;
+  --font-serif-oix: "Instrument Serif", Georgia, serif;
+  --font-body-oix: "Work Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -652,8 +650,58 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
 
 /* Marketing scope typography/background — applied through .oix-shell */
 .oix-shell {
+  --oix-bg-deep: #f1f3ef;
+  --oix-surface: #e7ebe6;
+  --oix-surface-2: #f8f9f6;
+  --oix-emerald: #26a67a;
+  --oix-emerald-strong: #16815d;
+  --oix-emerald-glow: #26a67a;
+  --oix-gold: #247d91;
+  --oix-gold-strong: #176476;
+  --oix-gold-soft: #175b6a;
+  --oix-gold-line: color-mix(in oklab, #252b2d 18%, transparent);
+  --oix-border-strong: color-mix(in oklab, #252b2d 38%, transparent);
+  --oix-ember: #26a67a;
+  --oix-cream: #101315;
+  --oix-cream-dim: color-mix(in oklab, #252b2d 76%, transparent);
+  --oix-primary-ink: #f1f3ef;
+  --oix-footer: #101315;
+  --oix-footer-ink: #f1f3ef;
+  --oix-hairline: 1px solid var(--oix-gold-line);
+  --oix-shadow-card: 0 18px 44px -34px color-mix(in oklab, #101315 38%, transparent);
+  --oix-shadow-emerald-glow: var(--oix-shadow-card);
+  --oix-shadow-gold-glow: none;
   font-family: var(--font-body-oix);
   min-height: 100vh;
+  background: var(--oix-bg-deep);
+  color: var(--oix-cream);
+}
+
+.dark .oix-shell {
+  --oix-bg-deep: #101315;
+  --oix-surface: #252b2d;
+  --oix-surface-2: #191e20;
+  --oix-emerald: #35b98c;
+  --oix-emerald-strong: #5ac9a3;
+  --oix-gold: #4e9daf;
+  --oix-gold-strong: #70b5c4;
+  --oix-gold-soft: #8fc6d1;
+  --oix-gold-line: color-mix(in oklab, #f1f3ef 16%, transparent);
+  --oix-border-strong: color-mix(in oklab, #f1f3ef 34%, transparent);
+  --oix-cream: #f1f3ef;
+  --oix-cream-dim: color-mix(in oklab, #f1f3ef 72%, transparent);
+  --oix-primary-ink: #101315;
+  --oix-footer: #090b0c;
+  --oix-footer-ink: #f1f3ef;
+  --oix-shadow-card: 0 20px 50px -36px #000;
+}
+
+.oix-shell :where([data-slot="card"]) {
+  border-radius: 0.25rem;
+  border-color: var(--oix-gold-line);
+  background: var(--oix-surface-2);
+  color: var(--oix-cream);
+  box-shadow: var(--oix-shadow-card);
 }
 
 /* Marketing pages are intentionally static and calm. Blog interactions remain
@@ -782,19 +830,17 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
 /* Editorial display — the motto/statement voice */
 @utility oix-display {
   font-family: var(--font-display-oix);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 0.9;
-  text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.96;
   color: var(--oix-cream);
 }
 
 @utility oix-display-xxl {
   font-family: var(--font-display-oix);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 0.82;
-  text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.9;
   color: var(--oix-cream);
   font-size: clamp(3.5rem, 12vw, 12rem);
 }
@@ -803,15 +849,15 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   font-family: var(--font-serif-oix);
   font-style: italic;
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--oix-gold-soft);
 }
 
 @utility oix-eyebrow {
-  font-family: var(--font-display-oix);
-  font-weight: 500;
+  font-family: var(--font-body-oix);
+  font-weight: 600;
   font-size: 0.75rem;
-  letter-spacing: 0.3em;
+  letter-spacing: 0;
   text-transform: uppercase;
   color: var(--oix-gold);
 }
