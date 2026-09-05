@@ -129,7 +129,7 @@ export function AccountMenu({
   supportHref,
   className,
 }: AccountMenuProps) {
-  const { user, signOut, isAuthenticated } = useAuth();
+  const { user, signOut, session, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -137,11 +137,11 @@ export function AccountMenu({
   const [holidaysOpen, setHolidaysOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const enabled = Boolean(isAuthenticated && user?.id);
+  const enabled = Boolean(!loading && session && user?.id);
 
   const presence = useQuery({
     queryKey: ["presence", "me", user?.id],
-    queryFn: () => getMyPresence({ data: {} }),
+    queryFn: () => getMyPresence(),
     enabled,
     retry: false,
     staleTime: 30_000,
@@ -385,7 +385,7 @@ export function HolidaysDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const { isAuthenticated, user } = useAuth();
+  const { session, loading, user } = useAuth();
   const qc = useQueryClient();
   const [startsOn, setStartsOn] = useState("");
   const [endsOn, setEndsOn] = useState("");
@@ -393,8 +393,8 @@ export function HolidaysDialog({
 
   const list = useQuery({
     queryKey: ["time-off", user?.id],
-    queryFn: () => listMyTimeOff({ data: {} }),
-    enabled: Boolean(open && isAuthenticated && user?.id),
+    queryFn: () => listMyTimeOff(),
+    enabled: Boolean(open && !loading && session && user?.id),
     retry: false,
   });
 

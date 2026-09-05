@@ -29,9 +29,9 @@ const LANGS = [
 ] as const;
 
 export function ProfileSettings({ title = "Profile settings" }: { title?: string }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, session, loading } = useAuth();
   const qc = useQueryClient();
-  const enabled = Boolean(isAuthenticated && user?.id);
+  const enabled = Boolean(!loading && session && user?.id);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
 
   const profile = useQuery({
@@ -43,7 +43,7 @@ export function ProfileSettings({ title = "Profile settings" }: { title?: string
 
   const presence = useQuery({
     queryKey: ["presence", "me", user?.id],
-    queryFn: () => getMyPresence({ data: {} }),
+    queryFn: () => getMyPresence(),
     enabled,
     retry: false,
   });
