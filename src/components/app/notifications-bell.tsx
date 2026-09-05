@@ -12,6 +12,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { flushMyCriticalAlertEmails } from "@/lib/critical-alerts.functions";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import { useAuth } from "@/lib/auth-context";
 import {
