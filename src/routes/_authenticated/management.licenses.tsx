@@ -94,6 +94,7 @@ function LicensesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [issueOpen, setIssueOpen] = useState(false);
   const [prefill, setPrefill] = useState<IssuePrefill | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
 
   const { data = [], isLoading } = useQuery({
