@@ -63,7 +63,7 @@ export function NavShell() {
             accent="var(--oix-gold-soft)"
             className="text-[var(--oix-gold)]"
           />
-          <span className="oix-display text-lg tracking-[0.24em] text-[var(--oix-cream)] group-hover:text-[var(--oix-gold-soft)] transition-colors">
+          <span className="oix-display text-lg tracking-[0.24em] text-[var(--oix-cream)]">
             OPSQAI
           </span>
         </Link>
@@ -74,7 +74,7 @@ export function NavShell() {
             <Link
               key={l.to}
               to={l.to}
-              className="whitespace-nowrap text-[12px] uppercase tracking-[0.18em] text-[var(--oix-cream-dim)] transition-colors hover:text-[var(--oix-gold-soft)]"
+              className="whitespace-nowrap text-[12px] uppercase tracking-[0.18em] text-[var(--oix-cream-dim)]"
               activeProps={{ className: "text-[var(--oix-gold)]" }}
             >
               {l.label}
@@ -99,7 +99,7 @@ export function NavShell() {
                   "px-2 py-1.5 text-[11px] uppercase tracking-[0.14em] transition-colors",
                   lang === code
                     ? "bg-[var(--oix-gold)] text-[#0a0b14]"
-                    : "text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)]",
+                    : "text-[var(--oix-cream-dim)]",
                 )}
               >
                 {code}
@@ -113,7 +113,7 @@ export function NavShell() {
             onClick={toggleTheme}
             aria-label={m.a11y.theme}
             title={m.a11y.theme}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)] hover:text-[var(--oix-gold-soft)] hover:border-[var(--oix-gold)] transition-colors"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--oix-gold-line)] text-[var(--oix-cream-dim)]"
           >
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>

@@ -668,13 +668,6 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   transform: none !important;
 }
 
-.oix-static :where(a, button, [role="button"]):hover {
-  color: inherit !important;
-  background-color: inherit !important;
-  border-color: inherit !important;
-  box-shadow: inherit !important;
-}
-
 .oix-static :where([data-slot="card"]):hover {
   transform: none !important;
   box-shadow: var(--oq-soft-shadow) !important;

@@ -17,7 +17,7 @@ export function DocPage({
     <article className="mx-auto max-w-4xl px-4 py-14 md:py-20">
       <Link
         to="/documentation"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground"
       >
         <ChevronLeft className="h-4 w-4" /> All documentation
       </Link>

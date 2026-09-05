@@ -94,7 +94,7 @@ function ProductPage() {
             return (
               <div
                 key={s.name}
-                className="group flex flex-col bg-[var(--oix-bg-deep)] p-8 transition-colors hover:bg-[var(--oix-surface-2)]"
+                className="flex flex-col bg-[var(--oix-bg-deep)] p-8"
               >
                 <Icon className="h-6 w-6 text-[var(--oix-gold)]" strokeWidth={1.4} />
                 <div className="mt-6 text-[10px] uppercase tracking-[0.28em] text-[var(--oix-gold-soft)]">

@@ -276,7 +276,7 @@ function WhyNow() {
   );
 }
 
-/* ---------------- Three Surfaces ---------------- */
+/* ---------------- Product and support services ---------------- */
 
 const SURFACE_ICONS = [Building2, Users, HardDrive];
 
