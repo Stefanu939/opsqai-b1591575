@@ -41,7 +41,7 @@ function ModulesPage() {
   return (
     <OixLayout>
       {/* Cinematic hero */}
-      <section className="relative overflow-hidden border-b border-white/5">
+      <section className="relative overflow-hidden border-b border-[var(--oix-gold-line)]">
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pb-32 pt-32 md:grid-cols-[minmax(0,1fr)_minmax(24rem,0.8fr)] md:pb-40 md:pt-40">
           <div>
           <EditorialHeadline
@@ -53,7 +53,7 @@ function ModulesPage() {
           >
             {t.heroHeadline}
           </EditorialHeadline>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-[var(--oix-cream-dim)]">
             {t.heroBody}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
