@@ -197,6 +197,15 @@ export type ColleagueCompany = {
   expires_at: string | null;
 };
 
+export type ColleagueTimeOff = {
+  id: string;
+  starts_on: string;
+  ends_on: string;
+  status: string;
+  reason: string | null;
+  created_at: string;
+};
+
 /**
  * SuperAdmin-only: the full work panel for one colleague — their customers
  * (owned + shared), fleet health, open tickets and time-off requests.
