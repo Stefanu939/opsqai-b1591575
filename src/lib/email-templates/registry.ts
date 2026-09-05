@@ -30,6 +30,7 @@ import { template as documentApproval } from "./document-approval";
 import { template as accountDeactivated } from "./account-deactivated";
 import { template as securityAlert } from "./security-alert";
 import { template as installationPackageReady } from "./installation-package-ready";
+import { template as criticalAlert } from "./critical-alert";
 
 /**
  * Central registry — every OPSQAI transactional email lives here.
@@ -57,4 +58,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "account-deactivated": accountDeactivated,
   "security-alert": securityAlert,
   "installation-package-ready": installationPackageReady,
+  "critical-alert": criticalAlert,
 };
