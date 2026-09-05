@@ -10,8 +10,8 @@ const en = {
     intro:
       "OPSQAI is a Windows Self-Hosted platform that brings governed AI to industrial operations. Sovereign by design. Customers own their data, documents, embeddings and AI provider. We never see operational knowledge — and we built it that way on purpose, because it's",
     introEm: "not without them",
-    scrollHint: "Scroll — the film begins",
-    acts: ["Chaos", "Documents", "SOPs", "Network", "OPSQAI"],
+    scrollHint: "Windows Self-Hosted · Customer-owned",
+    acts: ["Core", "Knowledge", "Products", "Governance", "OPSQAI"],
   },
   cta: {
     howItWorks: "How it works",
@@ -44,7 +44,7 @@ const en = {
   },
   surfaces: {
     eyebrow: "Product architecture",
-    title: "One platform. Three surfaces. One product.",
+    title: "One Windows product. Two support services.",
     intro:
       "OPSQAI Cloud is not the product. The Windows Self-Hosted installation is the product. The two cloud surfaces exist only to support it.",
     items: [
@@ -217,8 +217,8 @@ const de: HomeCopy = {
     intro:
       "OPSQAI ist eine Windows-Self-Hosted-Plattform, die governance-fähige KI in industrielle Abläufe bringt. Souverän von Grund auf: Kunden besitzen ihre Daten, Dokumente, Embeddings und ihren KI-Anbieter. Wir sehen operatives Wissen nie — und das ist bewusst so gebaut, denn es geht",
     introEm: "nicht ohne die Menschen",
-    scrollHint: "Scrollen — der Film beginnt",
-    acts: ["Chaos", "Dokumente", "SOPs", "Netzwerk", "OPSQAI"],
+    scrollHint: "Windows Self-Hosted · Im Besitz des Kunden",
+    acts: ["Core", "Wissen", "Produkte", "Governance", "OPSQAI"],
   },
   cta: {
     howItWorks: "So funktioniert es",
@@ -251,7 +251,7 @@ const de: HomeCopy = {
   },
   surfaces: {
     eyebrow: "Produktarchitektur",
-    title: "Eine Plattform. Drei Oberflächen. Ein Produkt.",
+    title: "Ein Windows-Produkt. Zwei Support-Services.",
     intro:
       "Die OPSQAI Cloud ist nicht das Produkt. Die Windows-Self-Hosted-Installation ist das Produkt. Die beiden Cloud-Oberflächen dienen nur zu deren Unterstützung.",
     items: [
@@ -422,8 +422,8 @@ const ro: HomeCopy = {
     intro:
       "OPSQAI este o platformă Windows Self-Hosted care aduce AI guvernat în operațiunile industriale. Suverană prin design. Clienții dețin datele, documentele, embeddings-urile și furnizorul de AI. Noi nu vedem niciodată cunoștințele operaționale — și am construit-o intenționat așa, pentru că",
     introEm: "nu se poate fără ei",
-    scrollHint: "Derulați — filmul începe",
-    acts: ["Haos", "Documente", "SOP-uri", "Rețea", "OPSQAI"],
+    scrollHint: "Windows Self-Hosted · Deținut de client",
+    acts: ["Core", "Cunoștințe", "Produse", "Guvernanță", "OPSQAI"],
   },
   cta: {
     howItWorks: "Cum funcționează",
@@ -456,7 +456,7 @@ const ro: HomeCopy = {
   },
   surfaces: {
     eyebrow: "Arhitectura produsului",
-    title: "O platformă. Trei interfețe. Un singur produs.",
+    title: "Un produs Windows. Două servicii de suport.",
     intro:
       "OPSQAI Cloud nu este produsul. Instalarea Windows Self-Hosted este produsul. Cele două interfețe cloud există doar pentru a-l susține.",
     items: [

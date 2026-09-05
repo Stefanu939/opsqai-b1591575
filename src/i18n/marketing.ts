@@ -55,15 +55,15 @@ const en = {
   },
   product: {
     eyebrow: "Product · One platform",
-    title: "One product.",
-    serif: "Three surfaces.",
+    title: "One customer product.",
+    serif: "Supported by OPSQAI Cloud.",
     intro:
       "OPSQAI is a Windows Self-Hosted product. The two cloud surfaces — Management Center and Customer Portal — exist only to support the installation. Employees never work inside the cloud; they work inside their own installation.",
     guaranteeEyebrow: "The boundary",
     guaranteeStrong: "The product is the Windows installation.",
     guarantee:
       "OPSQAI Cloud is used only for licensing, releases, installer distribution, customer support, the Customer Portal and the Management Center.",
-    surfacesEyebrow: "The three surfaces",
+    surfacesEyebrow: "Product and support services",
     surfaces: [
       {
         name: "Management Center",
@@ -154,15 +154,15 @@ const de: MarketingCopy = {
   },
   product: {
     eyebrow: "Produkt · Eine Plattform",
-    title: "Ein Produkt.",
-    serif: "Drei Oberflächen.",
+    title: "Ein Kundenprodukt.",
+    serif: "Unterstützt durch OPSQAI Cloud.",
     intro:
       "OPSQAI ist ein Windows-Self-Hosted-Produkt. Die beiden Cloud-Oberflächen — Management Center und Kundenportal — existieren ausschließlich zur Unterstützung der Installation. Mitarbeitende arbeiten niemals in der Cloud, sondern in ihrer eigenen Installation.",
     guaranteeEyebrow: "Die Grenze",
     guaranteeStrong: "Das Produkt ist die Windows-Installation.",
     guarantee:
       "Die OPSQAI Cloud dient nur der Lizenzierung, den Releases, der Installer-Verteilung, dem Kundensupport, dem Kundenportal und dem Management Center.",
-    surfacesEyebrow: "Die drei Oberflächen",
+    surfacesEyebrow: "Produkt und Support-Services",
     surfaces: [
       {
         name: "Management Center",
@@ -251,15 +251,15 @@ const ro: MarketingCopy = {
   },
   product: {
     eyebrow: "Produs · O singură platformă",
-    title: "Un singur produs.",
-    serif: "Trei suprafețe.",
+    title: "Un produs pentru client.",
+    serif: "Susținut de OPSQAI Cloud.",
     intro:
       "OPSQAI este un produs Windows self-hosted. Cele două suprafețe cloud — Management Center și Portalul Client — există doar pentru a susține instalarea. Angajații nu lucrează niciodată în cloud; lucrează în propria instalare.",
     guaranteeEyebrow: "Granița",
     guaranteeStrong: "Produsul este instalarea Windows.",
     guarantee:
       "OPSQAI Cloud este folosit exclusiv pentru licențiere, versiuni, distribuția installerului, suport pentru clienți, Portalul Client și Management Center.",
-    surfacesEyebrow: "Cele trei suprafețe",
+    surfacesEyebrow: "Produs și servicii de suport",
     surfaces: [
       {
         name: "Management Center",

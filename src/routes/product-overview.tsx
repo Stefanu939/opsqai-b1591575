@@ -26,7 +26,7 @@ export const Route = createFileRoute("/product-overview")({
     pageHead({
       title: "Product Overview — OPSQAI Operational Intelligence Platform",
       description:
-        "One workspace for operational knowledge, AI and intelligence: Knowledge Base, SOPs, FAQs, AI Chat, Knowledge Gaps, AI Audit, Academy, management dashboards, Cloud or Self-Hosted.",
+        "OPSQAI Windows Self-Hosted brings operational knowledge, AI, learning, audit and licensed product workspaces into the customer's own environment.",
       path: "/product-overview",
       keywords:
         "operational intelligence platform, knowledge base, SOP management, AI chat approved sources, knowledge gaps, AI audit, academy, self-hosted AI, local AI",
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/product-overview")({
         },
         softwareApplicationLd({
           description:
-            "OPSQAI is an Operational Intelligence Platform combining knowledge, AI, learning, intelligence and management in one workspace, available Cloud or Self-Hosted.",
+            "OPSQAI is a licensed Windows Self-Hosted Operational Intelligence Platform. Its cloud services support licensing, downloads, releases and customer support.",
         }),
       ],
     }),
