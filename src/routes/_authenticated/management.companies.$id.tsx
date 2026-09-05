@@ -249,6 +249,10 @@ function CompanyDetailPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="contract">
+          <ContractTab companyId={company.id} />
+        </TabsContent>
+
         <TabsContent value="products">
           <ProductsTab companyId={company.id} />
         </TabsContent>
