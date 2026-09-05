@@ -184,12 +184,12 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="h-px flex-1 bg-gradient-to-r from-[#C9A24C]/40 to-transparent" />
+      <div className="h-px flex-1 bg-gradient-to-r from-[var(--oix-gold)]/40 to-transparent" />
       <div className="flex items-center gap-2">
-        <Icon className="h-3.5 w-3.5 text-[#C9A24C]" />
-        <h2 className="text-[11px] uppercase tracking-[0.32em] text-white/60">{title}</h2>
+        <Icon className="h-3.5 w-3.5 text-[var(--oix-gold)]" />
+        <h2 className="text-xs font-semibold uppercase text-[var(--oix-cream-dim)]">{title}</h2>
       </div>
-      <div className="h-px flex-1 bg-gradient-to-l from-[#C9A24C]/40 to-transparent" />
+      <div className="h-px flex-1 bg-gradient-to-l from-[var(--oix-gold)]/40 to-transparent" />
     </div>
   );
 }
