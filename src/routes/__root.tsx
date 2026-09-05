@@ -77,11 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#0a0b14", media: "(prefers-color-scheme: dark)" },
       { name: "theme-color", content: "#f7f8fc", media: "(prefers-color-scheme: light)" },
 
-      { title: "OPSQAI — AI Knowledge Platform for Logistics & Supply Chain" },
+      { title: "OPSQAI — Windows Self-Hosted Operational AI" },
       {
         name: "description",
         content:
-          "OPSQAI turns your SOPs, manuals and FAQs into instant, grounded answers for every warehouse and operations team. Multilingual, auditable, GDPR-ready.",
+          "OPSQAI is a licensed Windows Self-Hosted operational AI platform with governed knowledge, learning, compliance and domain product workspaces.",
       },
       { property: "og:site_name", content: "OPSQAI" },
       { property: "og:type", content: "website" },
@@ -101,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
       },
     ],
     scripts: [

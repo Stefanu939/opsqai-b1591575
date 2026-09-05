@@ -15,10 +15,7 @@ import { Mail, ShieldCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 import type { ContactSubject } from "@/lib/email/routing";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { GridFloor } from "@/components/three/primitives/grid-floor";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
-import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
@@ -119,24 +116,7 @@ function ContactPage() {
     <OixLayout>
       {/* Hero */}
       <section className="relative isolate min-h-[60vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
-        <div className="absolute inset-0 -z-10">
-          <Scene3D cameraPosition={[0, 1.2, 5]} cameraFov={44}>
-            <ambientLight intensity={0.4} />
-            <pointLight position={[3, 3, 3]} intensity={1} color="#5b8cf7" />
-            <GridFloor />
-            <EmberFog />
-            <GoldBloom />
-          </Scene3D>
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(60% 60% at 50% 50%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.92) 88%)",
-            }}
-          />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-16 md:pt-40 md:pb-24">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-16 pt-32 md:grid-cols-2 md:px-10 md:pb-24 md:pt-40">
           <div className="max-w-3xl">
             <EditorialHeadline
               as="h1"
@@ -150,6 +130,7 @@ function ContactPage() {
               {t.heroBody}
             </p>
           </div>
+          <EnterpriseIntelligence variant="contact" compact className="hidden md:flex" />
         </div>
       </section>
 

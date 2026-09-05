@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { ModuleConstellation } from "@/components/three/primitives/module-constellation";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { MottoBand } from "@/components/oix/motto-band";
 import { OixButton } from "@/components/oix/buttons";
@@ -44,16 +42,8 @@ function ModulesPage() {
     <OixLayout>
       {/* Cinematic hero */}
       <section className="relative overflow-hidden border-b border-white/5">
-        <div className="absolute inset-0 h-[720px]">
-          <Scene3D cameraPosition={[0, 0.6, 6.5]} cameraFov={45}>
-            <ambientLight intensity={0.3} />
-            <ModuleConstellation nodeCount={16} />
-            <GoldBloom />
-          </Scene3D>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background pointer-events-none" />
-        </div>
-
-        <div className="relative mx-auto max-w-6xl px-6 pt-32 pb-40 md:pt-40 md:pb-48">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pb-32 pt-32 md:grid-cols-[minmax(0,1fr)_minmax(24rem,0.8fr)] md:pb-40 md:pt-40">
+          <div>
           <EditorialHeadline
             as="h1"
             size="xl"
@@ -74,6 +64,8 @@ function ModulesPage() {
               {t.ctaSeePricing}
             </OixButton>
           </div>
+          </div>
+          <EnterpriseIntelligence variant="platform" compact className="hidden md:flex" />
         </div>
       </section>
 
