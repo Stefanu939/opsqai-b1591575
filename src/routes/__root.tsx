@@ -77,12 +77,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#101315", media: "(prefers-color-scheme: dark)" },
       { name: "theme-color", content: "#f1f3ef", media: "(prefers-color-scheme: light)" },
 
-      { title: "OPSQAI — Windows Self-Hosted Operational AI" },
+      { title: "OPSQAI — Operational AI Platform for Windows Self-Hosted" },
       {
         name: "description",
         content:
-          "OPSQAI is a licensed Windows Self-Hosted operational AI platform with governed knowledge, learning, compliance and domain product workspaces.",
-      },
+          "OPSQAI is a licensed operational AI platform for Windows Self-Hosted environments, with governed knowledge, compliance, learning and domain workspaces.",
+      }
       { property: "og:site_name", content: "OPSQAI" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
