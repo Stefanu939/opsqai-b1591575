@@ -364,7 +364,7 @@ export const getColleagueOverview = createServerFn({ method: "POST" })
         ).length,
       },
       companies,
-      time_off: (timeOffRows ?? []) as Array<Record<string, unknown>>,
+      time_off: (timeOffRows ?? []) as unknown as ColleagueTimeOff[],
       colleagues: staffIds
         .filter((id) => id !== uid)
         .map((id) => ({ user_id: id, name: staffName.get(id) ?? "Colleague", email: emailById.get(id) ?? "" })),
