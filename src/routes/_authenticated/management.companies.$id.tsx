@@ -257,10 +257,10 @@ function CompanyDetailPage() {
           <EmptyState
             icon={FileText}
             title="Activity log"
-            description="Audit trail for this company is available in Audit Logs, filtered by company."
+            description="Recent activity for this company is reflected in its licenses and installations."
             action={
               <Button variant="outline" asChild>
-                <Link to="/management/audit-logs">Open Audit Logs</Link>
+                <Link to="/management/installations">Open Installations</Link>
               </Button>
             }
           />
