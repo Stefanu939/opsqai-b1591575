@@ -27,11 +27,12 @@ import { useAuth } from "@/lib/auth-context";
 import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { listTeamMembers } from "@/lib/team.functions";
 import {
-  ACTIVITY_CATEGORIES,
   ACTIVITY_SELECT,
   CATEGORY_LABELS,
+  MC_CATEGORIES,
   SEVERITIES,
   categoryLabel,
+  isMcActivity,
   severityLabel,
   severityRank,
   type ActivityRow,
