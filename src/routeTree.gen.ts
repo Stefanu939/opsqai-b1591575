@@ -126,6 +126,7 @@ import { Route as ApiPublicV1FaqsRouteImport } from './routes/api/public/v1/faqs
 import { Route as ApiPublicCalendarTokenRouteImport } from './routes/api/public/calendar.$token'
 import { Route as AuthenticatedPortalNewsSlugRouteImport } from './routes/_authenticated/portal.news.$slug'
 import { Route as AuthenticatedPortalAdminDownloadsRouteImport } from './routes/_authenticated/portal.admin.downloads'
+import { Route as AuthenticatedManagementTeamUserIdRouteImport } from './routes/_authenticated/management.team.$userId'
 import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAcademyTeacherRouteImport } from './routes/_authenticated/app.academy.teacher'
@@ -766,6 +767,12 @@ const AuthenticatedPortalAdminDownloadsRoute =
     path: '/downloads',
     getParentRoute: () => AuthenticatedPortalAdminRoute,
   } as any)
+const AuthenticatedManagementTeamUserIdRoute =
+  AuthenticatedManagementTeamUserIdRouteImport.update({
+    id: '/$userId',
+    path: '/$userId',
+    getParentRoute: () => AuthenticatedManagementTeamRoute,
+  } as any)
 const AuthenticatedManagementCompaniesIdRoute =
   AuthenticatedManagementCompaniesIdRouteImport.update({
     id: '/$id',
@@ -922,7 +929,7 @@ export interface FileRoutesByFullPath {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
-  '/management/team': typeof AuthenticatedManagementTeamRoute
+  '/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
@@ -957,6 +964,7 @@ export interface FileRoutesByFullPath {
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
@@ -1047,7 +1055,7 @@ export interface FileRoutesByTo {
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
-  '/management/team': typeof AuthenticatedManagementTeamRoute
+  '/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
@@ -1081,6 +1089,7 @@ export interface FileRoutesByTo {
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
@@ -1179,7 +1188,7 @@ export interface FileRoutesById {
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
-  '/_authenticated/management/team': typeof AuthenticatedManagementTeamRoute
+  '/_authenticated/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
@@ -1214,6 +1223,7 @@ export interface FileRoutesById {
   '/_authenticated/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/_authenticated/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/_authenticated/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/_authenticated/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
   '/api/public/calendar/$token': typeof ApiPublicCalendarTokenRoute
@@ -1347,6 +1357,7 @@ export interface FileRouteTypes {
     | '/app/academy/teacher'
     | '/app/chat/$threadId'
     | '/management/companies/$id'
+    | '/management/team/$userId'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
     | '/api/public/calendar/$token'
@@ -1471,6 +1482,7 @@ export interface FileRouteTypes {
     | '/app/academy/teacher'
     | '/app/chat/$threadId'
     | '/management/companies/$id'
+    | '/management/team/$userId'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
     | '/api/public/calendar/$token'
@@ -1603,6 +1615,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/academy/teacher'
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/management/companies/$id'
+    | '/_authenticated/management/team/$userId'
     | '/_authenticated/portal/admin/downloads'
     | '/_authenticated/portal/news/$slug'
     | '/api/public/calendar/$token'
@@ -2508,6 +2521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalAdminDownloadsRouteImport
       parentRoute: typeof AuthenticatedPortalAdminRoute
     }
+    '/_authenticated/management/team/$userId': {
+      id: '/_authenticated/management/team/$userId'
+      path: '/$userId'
+      fullPath: '/management/team/$userId'
+      preLoaderRoute: typeof AuthenticatedManagementTeamUserIdRouteImport
+      parentRoute: typeof AuthenticatedManagementTeamRoute
+    }
     '/_authenticated/management/companies/$id': {
       id: '/_authenticated/management/companies/$id'
       path: '/$id'
@@ -2689,6 +2709,21 @@ const AuthenticatedManagementCompaniesRouteWithChildren =
     AuthenticatedManagementCompaniesRouteChildren,
   )
 
+interface AuthenticatedManagementTeamRouteChildren {
+  AuthenticatedManagementTeamUserIdRoute: typeof AuthenticatedManagementTeamUserIdRoute
+}
+
+const AuthenticatedManagementTeamRouteChildren: AuthenticatedManagementTeamRouteChildren =
+  {
+    AuthenticatedManagementTeamUserIdRoute:
+      AuthenticatedManagementTeamUserIdRoute,
+  }
+
+const AuthenticatedManagementTeamRouteWithChildren =
+  AuthenticatedManagementTeamRoute._addFileChildren(
+    AuthenticatedManagementTeamRouteChildren,
+  )
+
 interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementCalendarRoute: typeof AuthenticatedManagementCalendarRoute
   AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRouteWithChildren
@@ -2700,7 +2735,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
   AuthenticatedManagementSelfhostFleetRoute: typeof AuthenticatedManagementSelfhostFleetRoute
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
-  AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRoute
+  AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRouteWithChildren
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
 }
 
@@ -2720,7 +2755,8 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementSelfhostFleetRoute:
       AuthenticatedManagementSelfhostFleetRoute,
     AuthenticatedManagementSupportRoute: AuthenticatedManagementSupportRoute,
-    AuthenticatedManagementTeamRoute: AuthenticatedManagementTeamRoute,
+    AuthenticatedManagementTeamRoute:
+      AuthenticatedManagementTeamRouteWithChildren,
     AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
   }
 
