@@ -6,3 +6,7 @@
 - [x] English narration via Lovable AI TTS + muxed audio
 - [x] Export 16:9, 1:1, 9:16 to /mnt/documents
 - [x] Embed 16:9 video on /product-overview (EN/DE/RO + VideoObject JSON-LD)
+- [x] Remove non-blog marketing hover effects while preserving the blog exception
+- [x] Make the four pricing cards direct, keyboard-accessible destinations
+- [x] Replace moving public hero scenes with Enterprise Live Intelligence visuals
+- [x] Align website copy, metadata and public documentation with Windows Self-Hosted as the customer product
