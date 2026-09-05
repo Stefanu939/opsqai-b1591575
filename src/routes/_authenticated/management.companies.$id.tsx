@@ -267,8 +267,88 @@ function CompanyDetailPage() {
           />
         </TabsContent>
 
-        <TabsContent value="licenses">
+        <TabsContent value="licenses" className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">
+              Issue, reissue or revoke licenses for this customer.
+            </p>
+            <div className="flex gap-2">
+              {installs[0] ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/management/licenses" search={{ install: installs[0].install_id }}>
+                    <KeyRound className="mr-1.5 h-4 w-4" /> Reissue / manage
+                  </Link>
+                </Button>
+              ) : null}
+              <Button asChild size="sm">
+                <Link to="/management/licenses" search={{ install: undefined }}>
+                  Issue license
+                </Link>
+              </Button>
+            </div>
+          </div>
           <LicensesTable installs={installs} loading={licensesQ.isLoading} />
+        </TabsContent>
+
+        <TabsContent value="support" className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">
+              Support conversations opened by this customer.
+            </p>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/management/support">Open Support</Link>
+            </Button>
+          </div>
+          {tickets.length === 0 ? (
+            <EmptyState
+              icon={Headset}
+              title="No support tickets"
+              description="This customer has not opened any support conversation yet."
+            />
+          ) : (
+            <div className="divide-y divide-border rounded-lg border border-border bg-card">
+              {tickets.map((t) => {
+                const waiting =
+                  (t.status === "open" || t.status === "pending") &&
+                  t.last_message_at &&
+                  Date.now() - new Date(t.last_message_at).getTime() > 24 * 60 * 60 * 1000;
+                return (
+                  <div key={t.id} className="flex flex-wrap items-center gap-2 p-4 text-sm">
+                    <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                      {t.subject || "(no subject)"}
+                    </span>
+                    <Badge variant="outline">{t.priority ?? "normal"}</Badge>
+                    <Badge
+                      variant={
+                        t.status === "resolved" || t.status === "closed" ? "outline" : "default"
+                      }
+                    >
+                      {t.status}
+                    </Badge>
+                    {waiting ? <Badge variant="destructive">waiting &gt;24h</Badge> : null}
+                    {t.unread_for_platform ? <Badge variant="secondary">unread</Badge> : null}
+                    <span className="text-xs text-muted-foreground">
+                      {t.last_message_at
+                        ? formatDistanceToNow(new Date(t.last_message_at), { addSuffix: true })
+                        : "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="access">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <h3 className="font-display text-base font-semibold text-foreground">
+              Shared access
+            </h3>
+            <p className="mt-1 mb-4 text-sm text-muted-foreground">
+              Colleagues who can see and manage this customer — used for holiday cover.
+            </p>
+            <SharedAccessPanel companyId={company.id} />
+          </div>
         </TabsContent>
 
         <TabsContent value="download" className="space-y-3">
