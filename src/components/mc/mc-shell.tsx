@@ -143,7 +143,7 @@ export function ManagementShell({ children }: { children: ReactNode }) {
            className="mt-2 w-full justify-start text-muted-foreground hover:text-foreground"
           onClick={async () => {
             await signOut();
-            navigate({ to: "/auth" });
+            navigate({ to: "/auth", search: { audience: "mc" }, replace: true });
           }}
         >
           <LogOut className="mr-2 h-4 w-4" />

@@ -22,10 +22,21 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  const path = useRouterState({ select: (s) => s.location.pathname });
   // /management/* and /portal/* provide their own shells (ManagementShell,
   // PortalLayout). Wrapping them in AppShell would render two sidebars.
-  const bare = path.startsWith("/management") || path.startsWith("/portal");
+  //
+  // This must be decided from the COMMITTED matches, not `location.pathname`:
+  // during a pending navigation (e.g. sign-out → /auth) the location updates
+  // first while the old route is still mounted, which briefly wrapped the
+  // Management Center / Portal sidebar inside the AppShell sidebar.
+  const bare = useRouterState({
+    select: (s) =>
+      s.matches.some(
+        (m) =>
+          m.routeId.startsWith("/_authenticated/management") ||
+          m.routeId.startsWith("/_authenticated/portal"),
+      ),
+  });
   if (bare) return <Outlet />;
   return (
     <AppShell>
