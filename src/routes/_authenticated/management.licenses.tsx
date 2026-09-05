@@ -169,8 +169,38 @@ function LicensesPage() {
     });
   }, [data, q, tierFilter, statusFilter]);
 
+  const allInstallIds = useMemo(() => [...new Set(rows.map((l) => l.install_id))], [rows]);
+  const allSelected = allInstallIds.length > 0 && allInstallIds.every((i) => selected.has(i));
+
   const columns: Column<License>[] = [
     {
+      key: "select",
+      header: (
+        <Checkbox
+          checked={allSelected}
+          aria-label="Select all licenses"
+          onCheckedChange={(v) =>
+            setSelected(v ? new Set(allInstallIds) : new Set<string>())
+          }
+        />
+      ) as unknown as string,
+      render: (l) => (
+        <Checkbox
+          checked={selected.has(l.install_id)}
+          aria-label={`Select license ${l.install_id}`}
+          onCheckedChange={(v) =>
+            setSelected((prev) => {
+              const next = new Set(prev);
+              if (v) next.add(l.install_id);
+              else next.delete(l.install_id);
+              return next;
+            })
+          }
+        />
+      ),
+    },
+    {
+
       key: "company",
       header: "Company / Install",
       render: (l) => (
