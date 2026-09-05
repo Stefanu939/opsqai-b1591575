@@ -1,16 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { pageHead, faqLd } from "@/lib/seo";
 import { Package, Puzzle, Layers, LifeBuoy, Check } from "lucide-react";
 import { OixLayout } from "@/components/oix/oix-layout";
-import { Scene3D } from "@/components/three/scene-3d";
-import { ModuleConstellation } from "@/components/three/primitives/module-constellation";
-import { GridFloor } from "@/components/three/primitives/grid-floor";
-import { GoldBloom } from "@/components/three/primitives/gold-bloom";
-import { EmberFog } from "@/components/three/primitives/ember-fog";
+import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
-import { OixButton } from "@/components/oix/buttons";
 import { MottoBand } from "@/components/oix/motto-band";
 import { usePricingCopy } from "@/i18n/pages/pricing";
 
@@ -71,26 +66,7 @@ function PricingPage() {
     <OixLayout>
       {/* Hero */}
       <section className="relative isolate min-h-[85vh] overflow-hidden border-b border-[var(--oix-gold-line)]/40">
-        <div className="absolute inset-0 -z-10">
-          <Scene3D cameraPosition={[0, 0.8, 5.5]} cameraFov={45}>
-            <ambientLight intensity={0.4} />
-            <pointLight position={[3, 3, 3]} intensity={1.1} color="#5b8cf7" />
-            <pointLight position={[-3, -1, 2]} intensity={0.5} color="#5b3df5" />
-            <GridFloor />
-            <EmberFog />
-            <ModuleConstellation nodeCount={12} />
-            <GoldBloom />
-          </Scene3D>
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(70% 60% at 50% 40%, rgba(10,11,20,0) 0%, rgba(10,11,20,0.9) 85%)",
-            }}
-          />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-6 md:px-10 pt-32 pb-24 md:pt-40 md:pb-32">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-32 md:grid-cols-[minmax(0,1fr)_minmax(24rem,0.8fr)] md:px-10 md:pb-32 md:pt-40">
           <div className="max-w-3xl">
             <EditorialHeadline
               as="h1"
@@ -104,6 +80,7 @@ function PricingPage() {
               {t.hero.body}
             </p>
           </div>
+          <EnterpriseIntelligence variant="platform" compact className="hidden md:flex" />
         </div>
       </section>
 
@@ -114,12 +91,8 @@ function PricingPage() {
         </EditorialHeadline>
         <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {tiers.map((tier) => (
-            <Card
-              key={tier.name}
-              className={`relative p-8 flex flex-col border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur transition-all hover:-translate-y-1 ${
-                tier.featured ? "border-[var(--oix-gold)]/70" : ""
-              }`}
-            >
+            <Link key={tier.name} to={tier.to} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--oix-gold)]">
+            <Card className={`relative h-full p-8 flex flex-col border-[var(--oix-gold-line)]/40 bg-[var(--oix-onyx)]/60 backdrop-blur ${tier.featured ? "border-[var(--oix-gold)]/70" : ""}`}>
               {tier.featured && (
                 <span
                   aria-hidden
@@ -143,17 +116,11 @@ function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-8">
-                <OixButton
-                  to={tier.to}
-                  variant={tier.featured ? "gold" : "ghost"}
-                  withArrow
-                  className="w-full"
-                >
-                  {tier.cta}
-                </OixButton>
+              <div className="mt-8 border-t border-[var(--oix-gold-line)] pt-5 text-xs font-medium uppercase tracking-[0.18em] text-[var(--oix-gold-soft)]">
+                {tier.cta} <span aria-hidden>↗</span>
               </div>
             </Card>
+            </Link>
           ))}
         </div>
         <p className="mt-10 text-xs uppercase tracking-[0.22em] text-[var(--oix-cream)]/50 text-center max-w-2xl mx-auto">
