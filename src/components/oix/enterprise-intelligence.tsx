@@ -5,15 +5,14 @@
 import { Cloud, HardDrive, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import shDashboard from "@/assets/shot-sh-dashboard.png.asset.json";
-import shChat from "@/assets/shot-sh-chat.png.asset.json";
-import shAudit from "@/assets/shot-sh-audit.png.asset.json";
-import shAcademy from "@/assets/shot-sh-academy.png.asset.json";
-import shKnowledge from "@/assets/shot-sh-knowledge.png.asset.json";
-import mcInstallations from "@/assets/shot-mc-installations.png.asset.json";
-import mcCustomers from "@/assets/shot-mc-customers.png.asset.json";
-import portalShot from "@/assets/shot-portal.png.asset.json";
-import instLicense from "@/assets/shot-inst-license.png.asset.json";
+// Fresh captures of the current Graphite enterprise design, taken from the
+// live Management Center and Customer Portal (September 2026).
+import mcOverview from "@/assets/shot-mc-overview.png.asset.json";
+import mcInstallations from "@/assets/shot-mc-installations-v2.png.asset.json";
+import mcCustomers from "@/assets/shot-mc-customers-v2.png.asset.json";
+import mcLicenses from "@/assets/shot-mc-licenses.png.asset.json";
+import portalOverview from "@/assets/shot-portal-overview.png.asset.json";
+import portalDownloads from "@/assets/shot-portal-downloads.png.asset.json";
 
 type EnterpriseIntelligenceProps = {
   variant?: "product" | "platform" | "security" | "company" | "contact";
