@@ -49,6 +49,8 @@ export const listLicenses = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
+    const { resolveMcScope } = await import("@/lib/mc-scope.server");
+    const scope = await resolveMcScope(context);
     const { data, error } = await getCloudSupabase(context, "licenses")
       .from("licenses")
       .select(
@@ -57,7 +59,9 @@ export const listLicenses = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
-    const rows = data ?? [];
+    const rows = (data ?? []).filter(
+      (r) => scope.isSuperAdmin || (scope.installIds ?? []).includes(r.install_id),
+    );
     const installs = rows.filter((r) => r.kind === "install");
     const modules = rows.filter((r) => r.kind === "module");
     const modulesByInstall = new Map<string, typeof modules>();

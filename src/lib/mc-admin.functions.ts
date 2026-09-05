@@ -116,13 +116,22 @@ export const listCustomerProfiles = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     await requirePlatformAdmin(context);
+    const { resolveMcScope } = await import("@/lib/mc-scope.server");
+    const scope = await resolveMcScope(context);
     const supabaseAdmin = await getCloudSupabaseAdmin("mc-admin");
-    const { data: companies, error } = await supabaseAdmin
+    let companiesQuery = supabaseAdmin
       .from("companies")
       .select(
-        "id, name, subscription_plan, subscription_status, active, max_users, install_id, created_at, business_type, enabled_products",
+        "id, name, subscription_plan, subscription_status, active, max_users, install_id, created_at, business_type, enabled_products, owner_user_id",
       )
       .order("name");
+    if (!scope.isSuperAdmin) {
+      companiesQuery = companiesQuery.in(
+        "id",
+        scope.companyIds?.length ? scope.companyIds : [""],
+      );
+    }
+    const { data: companies, error } = await companiesQuery;
     if (error) throw new Error(error.message);
 
     const ids = (companies ?? []).map((c) => c.id);
