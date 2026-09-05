@@ -27,11 +27,12 @@ import { useAuth } from "@/lib/auth-context";
 import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { listTeamMembers } from "@/lib/team.functions";
 import {
-  ACTIVITY_CATEGORIES,
   ACTIVITY_SELECT,
   CATEGORY_LABELS,
+  MC_CATEGORIES,
   SEVERITIES,
   categoryLabel,
+  isMcActivity,
   severityLabel,
   severityRank,
   type ActivityRow,
@@ -128,7 +129,9 @@ function ActivityCenterPage() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Update failed"),
   });
 
-  const rows = activity.data ?? [];
+  // Only Management Center business belongs here — alerts produced inside
+  // the customers' own installations are filtered out.
+  const rows = (activity.data ?? []).filter(isMcActivity);
   const openRows = rows.filter((r) => !r.resolved_at);
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -243,7 +246,7 @@ function ActivityCenterPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All areas</SelectItem>
-              {ACTIVITY_CATEGORIES.map((c) => (
+              {MC_CATEGORIES.map((c) => (
                 <SelectItem key={c} value={c}>
                   {CATEGORY_LABELS[c]}
                 </SelectItem>

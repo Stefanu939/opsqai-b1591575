@@ -33,6 +33,37 @@ export const CATEGORY_LABELS: Record<ActivityCategory, string> = {
   general: "General",
 };
 
+/**
+ * Areas that belong to the Management Center itself. Everything else
+ * (knowledge, academy, AI audit output) is produced inside the customers'
+ * own Self-Hosted installations and must never surface in MC triage.
+ */
+export const MC_CATEGORIES = [
+  "customers",
+  "licenses",
+  "timeoff",
+  "releases",
+  "health",
+  "support",
+  "billing",
+] as const;
+
+/** Legacy Self-Hosted event kinds that were stored under `general`. */
+const SELFHOST_KINDS = new Set([
+  "new_gap",
+  "low_confidence",
+  "ai_sop_generated",
+  "workspace_audit_ready",
+  "quarterly_report",
+  "outdated_knowledge",
+]);
+
+export function isMcActivity(row: { category: string; kind: string }): boolean {
+  if ((MC_CATEGORIES as readonly string[]).includes(row.category)) return true;
+  if (row.category !== "general") return false;
+  return !SELFHOST_KINDS.has(row.kind);
+}
+
 export const SEVERITIES = ["critical", "warning", "info"] as const;
 export type ActivitySeverity = (typeof SEVERITIES)[number];
 

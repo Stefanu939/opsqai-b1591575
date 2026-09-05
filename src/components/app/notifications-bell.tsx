@@ -15,6 +15,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { flushMyCriticalAlertEmails } from "@/lib/critical-alerts.functions";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
+import { isMcActivity } from "@/lib/activity-center";
 import { useAuth } from "@/lib/auth-context";
 import {
   DropdownMenu,
@@ -26,6 +27,7 @@ import { Button } from "@/components/ui/button";
 interface Notif {
   id: string;
   kind: string;
+  category: string;
   title: string;
   body: string | null;
   link: string | null;
@@ -76,7 +78,7 @@ export function NotificationsBell() {
     // notifications, which can never be marked read or dismissed.
     const { data } = await db
       .from("notifications")
-      .select("id, kind, title, body, link, read_at, created_at")
+      .select("id, kind, category, title, body, link, read_at, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50);
@@ -122,8 +124,19 @@ export function NotificationsBell() {
     });
   }, [userId, enabled]);
 
-  const unread = useMemo(() => items.filter((n) => !n.read_at).length, [items]);
-  const visible = tab === "unread" ? items.filter((n) => !n.read_at) : items;
+  const inManagement = useRouterState({
+    select: (s) => s.location.pathname.startsWith("/management"),
+  });
+
+  // In the Management Center the bell mirrors the Activity Center: only
+  // Management Center business, never alerts from customers' installations.
+  const scoped = useMemo(
+    () => (inManagement ? items.filter((n) => isMcActivity(n)) : items),
+    [items, inManagement],
+  );
+
+  const unread = useMemo(() => scoped.filter((n) => !n.read_at).length, [scoped]);
+  const visible = tab === "unread" ? scoped.filter((n) => !n.read_at) : scoped;
 
   // ---- Desktop (OS) alerts -------------------------------------------------
   const seen = useRef<Set<string> | null>(null);
@@ -139,7 +152,7 @@ export function NotificationsBell() {
   };
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
-    const fresh = items.filter((n) => !n.read_at).map((n) => n.id);
+    const fresh = scoped.filter((n) => !n.read_at).map((n) => n.id);
     // First pass only records what already existed — no pop-up storm on load.
     if (seen.current === null) {
       seen.current = new Set(fresh);
@@ -149,7 +162,7 @@ export function NotificationsBell() {
       seen.current = new Set(fresh);
       return;
     }
-    for (const n of items) {
+    for (const n of scoped) {
       if (n.read_at || seen.current.has(n.id)) continue;
       try {
         const note = new Notification(n.title, { body: n.body ?? undefined, tag: n.id });
@@ -162,11 +175,7 @@ export function NotificationsBell() {
       }
     }
     seen.current = new Set(fresh);
-  }, [items]);
-
-  const inManagement = useRouterState({
-    select: (s) => s.location.pathname.startsWith("/management"),
-  });
+  }, [scoped]);
 
   const markRead = async (id: string) => {
     setItems((prev) =>
@@ -182,7 +191,7 @@ export function NotificationsBell() {
   };
 
   const markAllRead = async () => {
-    const ids = items.filter((n) => !n.read_at).map((n) => n.id);
+    const ids = scoped.filter((n) => !n.read_at).map((n) => n.id);
     if (!ids.length || busy) return;
     setBusy(true);
     setItems((prev) => prev.map((n) => (n.read_at ? n : { ...n, read_at: new Date().toISOString() })));
