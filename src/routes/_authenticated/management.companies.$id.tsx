@@ -11,12 +11,18 @@ import {
 } from "@/lib/company-products.functions";
 import { COMPANY_PROFILES } from "@/lib/product-architecture";
 import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
+import { listSupportConversations } from "@/lib/support.functions";
+import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.functions";
+import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
+import { SharedAccessPanel } from "@/components/mc/shared-access";
 import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -26,7 +32,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Building2, Download, FileText, KeyRound, Layers, Package, Users } from "lucide-react";
+import {
+  Building2,
+  Download,
+  FileSignature,
+  FileText,
+  Headset,
+  KeyRound,
+  Layers,
+  Package,
+  UserCog,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
