@@ -110,6 +110,15 @@ export function NotificationsBell() {
     };
   }, [userId, enabled, load]);
 
+  // Critical alerts also go out by email, once each. Fire-and-forget: the
+  // server stamps `emailed_at`, so repeated mounts never duplicate a send.
+  useEffect(() => {
+    if (!userId || !enabled) return;
+    void flushCriticalEmails().catch(() => {
+      /* email is a secondary channel — the bell still shows the alert */
+    });
+  }, [userId, enabled]);
+
   const unread = useMemo(() => items.filter((n) => !n.read_at).length, [items]);
   const visible = tab === "unread" ? items.filter((n) => !n.read_at) : items;
 
