@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 
 export interface Column<T> {
   key: string;
-  header: string;
+  header: ReactNode;
   className?: string;
   align?: "left" | "right" | "center";
   render: (row: T) => ReactNode;

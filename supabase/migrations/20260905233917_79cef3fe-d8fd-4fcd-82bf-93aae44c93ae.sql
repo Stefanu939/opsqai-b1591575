@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles DROP CONSTRAINT profiles_company_id_fkey;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;

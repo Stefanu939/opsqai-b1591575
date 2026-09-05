@@ -50,6 +50,7 @@ import {
   productsRecommendedFor,
 } from "@/lib/product-architecture";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { z } from "zod";
 import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
@@ -94,6 +95,7 @@ function LicensesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [issueOpen, setIssueOpen] = useState(false);
   const [prefill, setPrefill] = useState<IssuePrefill | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
 
   const { data = [], isLoading } = useQuery({
@@ -150,6 +152,30 @@ function LicensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const bulkDeleteMut = useMutation({
+    mutationFn: async (installIds: string[]) => {
+      const failed: string[] = [];
+      for (const install_id of installIds) {
+        try {
+          await remove({ data: { install_id } });
+        } catch {
+          failed.push(install_id);
+        }
+      }
+      return { failed, total: installIds.length };
+    },
+    onSuccess: ({ failed, total }) => {
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["mc-licenses"] });
+      if (failed.length)
+        toast.error(`${total - failed.length}/${total} deleted. Failed: ${failed.join(", ")}`);
+      else toast.success(`${total} license${total === 1 ? "" : "s"} deleted`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
+
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase();
     return (data as License[]).filter((l) => {
@@ -169,8 +195,38 @@ function LicensesPage() {
     });
   }, [data, q, tierFilter, statusFilter]);
 
+  const allInstallIds = useMemo(() => [...new Set(rows.map((l) => l.install_id))], [rows]);
+  const allSelected = allInstallIds.length > 0 && allInstallIds.every((i) => selected.has(i));
+
   const columns: Column<License>[] = [
     {
+      key: "select",
+      header: (
+        <Checkbox
+          checked={allSelected}
+          aria-label="Select all licenses"
+          onCheckedChange={(v) =>
+            setSelected(v ? new Set(allInstallIds) : new Set<string>())
+          }
+        />
+      ),
+      render: (l) => (
+        <Checkbox
+          checked={selected.has(l.install_id)}
+          aria-label={`Select license ${l.install_id}`}
+          onCheckedChange={(v) =>
+            setSelected((prev) => {
+              const next = new Set(prev);
+              if (v) next.add(l.install_id);
+              else next.delete(l.install_id);
+              return next;
+            })
+          }
+        />
+      ),
+    },
+    {
+
       key: "company",
       header: "Company / Install",
       render: (l) => (
@@ -346,6 +402,40 @@ function LicensesPage() {
           <span className="tabular-nums">{rows.length}</span> / {(data as License[]).length}
         </div>
       </div>
+
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-3">
+          <span className="text-sm font-medium text-foreground">
+            {selected.size} selected
+          </span>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+            Clear selection
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="ml-auto"
+            disabled={bulkDeleteMut.isPending}
+            onClick={async () => {
+              const ids = [...selected];
+              if (
+                await confirmAction({
+                  title: `Delete ${ids.length} license${ids.length === 1 ? "" : "s"}?`,
+                  description:
+                    "These installs lose their licenses and all module entitlements. This cannot be undone.",
+                  confirmLabel: "Delete licenses",
+                })
+              )
+                bulkDeleteMut.mutate(ids);
+            }}
+          >
+            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+            {bulkDeleteMut.isPending ? "Deleting…" : "Delete selected"}
+          </Button>
+        </div>
+      )}
+
+
 
       <DataTable<License>
         columns={columns}
