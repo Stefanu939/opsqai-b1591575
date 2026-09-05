@@ -174,10 +174,42 @@ export const deleteCompany = createServerFn({ method: "POST" })
     if (data.id === "00000000-0000-0000-0000-000000000001")
       throw new Error("Cannot delete Default Company");
     const supabaseAdmin = await getCloudSupabaseAdmin("companies");
+
+    // Collect the company's users and name before the row disappears.
+    const [{ data: company }, { data: members }] = await Promise.all([
+      supabaseAdmin.from("companies").select("name").eq("id", data.id).maybeSingle(),
+      supabaseAdmin.from("profiles").select("id").eq("company_id", data.id),
+    ]);
+
+    // Licenses are keyed by install/company name, not by a FK — remove them too.
+    if (company?.name) {
+      const { data: installs } = await supabaseAdmin
+        .from("licenses")
+        .select("install_id")
+        .eq("company_name", company.name);
+      const installIds = [...new Set((installs ?? []).map((r) => r.install_id))];
+      if (installIds.length) {
+        await supabaseAdmin.from("licenses").delete().in("install_id", installIds);
+        await supabaseAdmin.from("license_installs").delete().in("install_id", installIds);
+        await supabaseAdmin.from("selfhost_installations").delete().in("install_id", installIds);
+      }
+    }
+
+    // Company row: dependent rows (profiles included) cascade away.
     const { error } = await supabaseAdmin.from("companies").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    // Finally remove the login accounts of that company's users.
+    for (const m of members ?? []) {
+      try {
+        await supabaseAdmin.auth.admin.deleteUser(m.id);
+      } catch {
+        // account already gone — deletion of the company still succeeded
+      }
+    }
     return { ok: true };
   });
+
 
 export const platformStats = createServerFn({ method: "POST" })
   .middleware([requireAuth])
