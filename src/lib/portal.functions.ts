@@ -86,17 +86,40 @@ export const listPortalReleases = createServerFn({ method: "POST" })
     z.object({ channel: z.string().max(32).optional() }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    const query = getCloudSupabase(context, "portal")
+    const db = getCloudSupabase(context, "portal");
+    const query = db
       .from("license_releases")
       .select(
-        "version, channel, docker_image, checksum, min_supported, published_at, release_notes_url, is_current",
+        "version, channel, docker_image, package_storage_path, checksum, min_supported, published_at, release_notes_url, notes_storage_path, is_current",
       )
       .order("published_at", { ascending: false })
       .limit(50);
     if (data.channel) query.eq("channel", data.channel);
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+
+    const admin = await getCloudSupabaseAdmin("portal");
+    const signed = await Promise.all(
+      (rows ?? []).map(async (r) => {
+        let docker_image = r.docker_image;
+        if (r.package_storage_path) {
+          const { data: signedUrl } = await admin.storage
+            .from("releases")
+            .createSignedUrl(r.package_storage_path, 3600);
+          if (signedUrl?.signedUrl) docker_image = signedUrl.signedUrl;
+        }
+        let release_notes_url = r.release_notes_url;
+        if (r.notes_storage_path) {
+          const { data: signedUrl } = await admin.storage
+            .from("releases")
+            .createSignedUrl(r.notes_storage_path, 3600);
+          if (signedUrl?.signedUrl) release_notes_url = signedUrl.signedUrl;
+        }
+        return { ...r, docker_image, release_notes_url };
+      }),
+    );
+
+    return signed;
   });
 
 const DownloadInput = z.object({ install_id: z.string().min(3).max(64) });

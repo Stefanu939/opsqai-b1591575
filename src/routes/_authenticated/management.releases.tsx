@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, useCallback, type ChangeEvent, type DragEvent } from "react";
 import {
   listReleases,
   createRelease,
@@ -11,7 +11,7 @@ import {
 } from "@/lib/releases.functions";
 import { getPortalSnapshot } from "@/lib/mc-admin.functions";
 import { StatCard } from "@/components/ui/stat-card";
-import { Package, Inbox } from "lucide-react";
+import { Package, Inbox, UploadCloud, X, FileText } from "lucide-react";
 import { ModulePage } from "@/components/app/module-page";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import {
 import { Rocket, Plus, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/management/releases")({
   head: () => ({ meta: [{ title: "Releases — Management Center" }] }),
@@ -48,8 +49,10 @@ type Release = {
   version: string;
   channel: string;
   docker_image: string;
+  package_storage_path: string | null;
   checksum: string | null;
   release_notes_url: string | null;
+  notes_storage_path: string | null;
   min_supported: string | null;
   is_current: boolean;
   published_at: string | null;
@@ -83,8 +86,10 @@ function ReleasesPage() {
       version: string;
       channel: "stable" | "beta" | "canary";
       docker_image: string;
+      package_storage_path?: string | null;
       checksum?: string | null;
       release_notes_url?: string | null;
+      notes_storage_path?: string | null;
       min_supported?: string | null;
       is_current: boolean;
     }) => create({ data: v }),
@@ -164,7 +169,11 @@ function ReleasesPage() {
       key: "image",
       header: "Installer package",
       render: (r) => (
-        <span className="font-mono text-xs text-muted-foreground">{r.docker_image}</span>
+        <span className="font-mono text-xs text-muted-foreground">
+          {r.package_storage_path
+            ? `releases/${r.package_storage_path.split("/").slice(0, -1).join("/")}…${r.package_storage_path.split("/").pop()}`
+            : r.docker_image}
+        </span>
       ),
     },
     {
@@ -194,6 +203,10 @@ function ReleasesPage() {
           >
             Open <ExternalLink className="h-3 w-3" />
           </a>
+        ) : r.notes_storage_path ? (
+          <span className="text-xs text-muted-foreground">
+            {r.notes_storage_path.split("/").pop()}
+          </span>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>
         ),
@@ -277,51 +290,75 @@ function ReleasesPage() {
   );
 }
 
+type NewReleaseInput = {
+  version: string;
+  channel: "stable" | "beta" | "canary";
+  docker_image: string;
+  package_storage_path?: string | null;
+  checksum?: string | null;
+  release_notes_url?: string | null;
+  notes_storage_path?: string | null;
+  min_supported?: string | null;
+  is_current: boolean;
+};
+
 function NewReleaseDialog({
   onCreate,
   pending,
 }: {
-  onCreate: (v: {
-    version: string;
-    channel: "stable" | "beta" | "canary";
-    docker_image: string;
-    checksum?: string | null;
-    release_notes_url?: string | null;
-    min_supported?: string | null;
-    is_current: boolean;
-  }) => void;
+  onCreate: (v: NewReleaseInput) => void;
   pending: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [version, setVersion] = useState("");
   const [channel, setChannel] = useState<"stable" | "beta" | "canary">("stable");
-  const [image, setImage] = useState("");
+  const [imageMode, setImageMode] = useState<"url" | "upload">("url");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<UploadedFile | null>(null);
   const [checksum, setChecksum] = useState("");
-  const [notes, setNotes] = useState("");
+  const [notesMode, setNotesMode] = useState<"url" | "upload">("url");
+  const [notesUrl, setNotesUrl] = useState("");
+  const [notesFile, setNotesFile] = useState<UploadedFile | null>(null);
   const [minSupported, setMinSupported] = useState("");
   const [current, setCurrent] = useState(true);
 
+  const reset = () => {
+    setVersion("");
+    setChannel("stable");
+    setImageMode("url");
+    setImageUrl("");
+    setImageFile(null);
+    setChecksum("");
+    setNotesMode("url");
+    setNotesUrl("");
+    setNotesFile(null);
+    setMinSupported("");
+    setCurrent(true);
+  };
+
   const submit = () => {
-    if (!version.trim() || !image.trim()) {
-      toast.error("Version and installer package are required.");
+    if (!version.trim()) {
+      toast.error("Version is required.");
+      return;
+    }
+    const imageValue = imageMode === "upload" ? imageFile?.path : imageUrl.trim();
+    if (!imageValue) {
+      toast.error("Installer package URL or uploaded file is required.");
       return;
     }
     onCreate({
       version: version.trim(),
       channel,
-      docker_image: image.trim(),
+      docker_image: imageMode === "upload" ? `releases/${imageFile?.path}` : imageUrl.trim(),
+      package_storage_path: imageMode === "upload" ? imageFile?.path ?? null : null,
       checksum: checksum.trim() || null,
-      release_notes_url: notes.trim() || null,
+      release_notes_url: notesMode === "url" ? notesUrl.trim() || null : null,
+      notes_storage_path: notesMode === "upload" ? notesFile?.path ?? null : null,
       min_supported: minSupported.trim() || null,
       is_current: current,
     });
     setOpen(false);
-    setVersion("");
-    setImage("");
-    setChecksum("");
-    setNotes("");
-    setMinSupported("");
-    setCurrent(true);
+    reset();
   };
 
   return (
@@ -332,11 +369,11 @@ function NewReleaseDialog({
           Publish release
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Publish release</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Version</Label>
@@ -361,23 +398,40 @@ function NewReleaseDialog({
               </Select>
             </div>
           </div>
-          <div>
-            <Label>Installer package</Label>
-            <Input
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="ghcr.io/opsqai/app:1.4.0"
-              className="mt-1 font-mono"
-            />
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="mb-0">Installer package</Label>
+              <ModeToggle mode={imageMode} onChange={setImageMode} />
+            </div>
+            {imageMode === "url" ? (
+              <Input
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="ghcr.io/opsqai/app:1.4.0"
+                className="font-mono"
+              />
+            ) : (
+              <ReleaseFileUpload
+                version={version}
+                kind="installer"
+                file={imageFile}
+                onChange={setImageFile}
+                onChecksum={setChecksum}
+              />
+            )}
           </div>
+
           <div>
             <Label>Checksum (sha256)</Label>
             <Input
               value={checksum}
               onChange={(e) => setChecksum(e.target.value)}
+              placeholder={imageMode === "upload" ? "Computed automatically after upload" : "sha256:…"}
               className="mt-1 font-mono"
             />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Min supported</Label>
@@ -388,16 +442,28 @@ function NewReleaseDialog({
                 className="mt-1 font-mono"
               />
             </div>
-            <div>
-              <Label>Release notes URL</Label>
-              <Input
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="https://…"
-                className="mt-1"
-              />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="mb-0">Release notes</Label>
+                <ModeToggle mode={notesMode} onChange={setNotesMode} />
+              </div>
+              {notesMode === "url" ? (
+                <Input
+                  value={notesUrl}
+                  onChange={(e) => setNotesUrl(e.target.value)}
+                  placeholder="https://…"
+                />
+              ) : (
+                <ReleaseFileUpload
+                  version={version}
+                  kind="notes"
+                  file={notesFile}
+                  onChange={setNotesFile}
+                />
+              )}
             </div>
           </div>
+
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={current} onCheckedChange={(v) => setCurrent(v === true)} />
             Mark as current for {channel}
@@ -413,5 +479,143 @@ function NewReleaseDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: "url" | "upload";
+  onChange: (mode: "url" | "upload") => void;
+}) {
+  return (
+    <div className="inline-flex rounded-md border border-border overflow-hidden text-xs">
+      <button
+        type="button"
+        onClick={() => onChange("url")}
+        className={`px-2 py-1 ${mode === "url" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
+      >
+        URL
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("upload")}
+        className={`px-2 py-1 ${mode === "upload" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
+      >
+        Upload
+      </button>
+    </div>
+  );
+}
+
+type UploadedFile = { path: string; name: string; size: number };
+
+async function sha256Hex(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", buffer);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function ReleaseFileUpload({
+  version,
+  kind,
+  file,
+  onChange,
+  onChecksum,
+}: {
+  version: string;
+  kind: "installer" | "notes";
+  file: UploadedFile | null;
+  onChange: (file: UploadedFile | null) => void;
+  onChecksum?: (checksum: string) => void;
+}) {
+  const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const accept = kind === "installer" ? ".exe,.msi,.zip" : ".pdf,.md,.txt";
+
+  const upload = useCallback(
+    async (selected: File) => {
+      setUploading(true);
+      try {
+        const safeVersion = (version || "draft").replace(/[^a-zA-Z0-9._-]/g, "_");
+        const ext = selected.name.includes(".") ? selected.name.split(".").pop() : "";
+        const path = `${safeVersion}/${kind}/${Date.now()}.${ext}`;
+        const { error } = await supabase.storage.from("releases").upload(path, selected, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (error) throw error;
+        onChange({ path, name: selected.name, size: selected.size });
+        toast.success(`${kind === "installer" ? "Installer" : "Release notes"} uploaded`);
+        if (onChecksum && kind === "installer") {
+          const sum = await sha256Hex(selected);
+          onChecksum(sum);
+        }
+      } catch (e) {
+        toast.error(`Upload failed: ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        setUploading(false);
+      }
+    },
+    [version, kind, onChange, onChecksum],
+  );
+
+  const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) upload(selected);
+  };
+
+  const onDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) upload(dropped);
+  };
+
+  if (file) {
+    return (
+      <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 px-3 py-2">
+        {kind === "installer" ? <Package className="h-4 w-4 shrink-0" /> : <FileText className="h-4 w-4 shrink-0" />}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm">{file.name}</div>
+          <div className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
+        </div>
+        <Button type="button" variant="ghost" size="icon" onClick={() => onChange(null)} aria-label="Remove file">
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onDrop={onDrop}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && inputRef.current?.click()}
+      className={`cursor-pointer rounded-md border border-dashed px-4 py-6 text-center transition-colors ${
+        dragOver ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"
+      } ${uploading ? "pointer-events-none opacity-60" : ""}`}
+    >
+      <UploadCloud className="mx-auto h-6 w-6 text-muted-foreground" />
+      <p className="mt-2 text-sm">
+        {uploading ? "Uploading…" : "Drag file here or click to browse"}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        {kind === "installer" ? ".exe, .msi, .zip" : ".pdf, .md, .txt"}
+      </p>
+      <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={onInputChange} />
+    </div>
   );
 }
