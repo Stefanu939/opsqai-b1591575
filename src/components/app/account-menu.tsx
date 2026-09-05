@@ -235,6 +235,19 @@ export function AccountMenu({
             <HelpCircle className="mr-2 h-4 w-4" />
             Help
           </DropdownMenuItem>
+          {showSurfaceSwitch ? (
+            <DropdownMenuItem
+              onSelect={() => {
+                // New tab keeps the current surface open; the Supabase
+                // session in localStorage is shared across tabs, so the
+                // second surface loads already signed in.
+                window.open(switchTarget.href, "_blank", "noopener");
+              }}
+            >
+              <ArrowLeftRight className="mr-2 h-4 w-4" />
+              {switchTarget.label}
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={() => {
