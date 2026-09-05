@@ -7,6 +7,7 @@ import {
   Radio,
   Rocket,
   Inbox,
+  Bell,
   Menu,
   X,
   LogOut,
