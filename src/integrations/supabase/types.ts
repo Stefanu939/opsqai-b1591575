@@ -3167,6 +3167,9 @@ export type Database = {
           last_name: string | null
           phone: string | null
           position: string | null
+          presence_message: string | null
+          presence_status: string
+          presence_until: string | null
           updated_at: string
         }
         Insert: {
@@ -3184,6 +3187,9 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           position?: string | null
+          presence_message?: string | null
+          presence_status?: string
+          presence_until?: string | null
           updated_at?: string
         }
         Update: {
@@ -3201,6 +3207,9 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           position?: string | null
+          presence_message?: string | null
+          presence_status?: string
+          presence_until?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3713,6 +3722,62 @@ export type Database = {
           },
         ]
       }
+      time_off_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          calendar_event_id: string | null
+          company_id: string | null
+          created_at: string
+          decision_note: string | null
+          ends_on: string
+          id: string
+          reason: string | null
+          starts_on: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          calendar_event_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          decision_note?: string | null
+          ends_on: string
+          id?: string
+          reason?: string | null
+          starts_on: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          calendar_event_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          decision_note?: string | null
+          ends_on?: string
+          id?: string
+          reason?: string | null
+          starts_on?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_off_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_module_access: {
         Row: {
           company_id: string
@@ -4153,6 +4218,7 @@ export type Database = {
         }
         Returns: string
       }
+      can_manage_time_off: { Args: { _company: string }; Returns: boolean }
       cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
       cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }

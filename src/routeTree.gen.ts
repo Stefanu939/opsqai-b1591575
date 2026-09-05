@@ -82,6 +82,7 @@ import { Route as ApiAuthPasswordResetConfirmRouteImport } from './routes/api/au
 import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
 import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
 import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
+import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authenticated/portal.profile'
 import { Route as AuthenticatedPortalNewsRouteImport } from './routes/_authenticated/portal.news'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
 import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
@@ -92,6 +93,7 @@ import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_au
 import { Route as AuthenticatedManagementSettingsRouteImport } from './routes/_authenticated/management.settings'
 import { Route as AuthenticatedManagementSelfhostFleetRouteImport } from './routes/_authenticated/management.selfhost-fleet'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
+import { Route as AuthenticatedManagementProfileRouteImport } from './routes/_authenticated/management.profile'
 import { Route as AuthenticatedManagementPortalRouteImport } from './routes/_authenticated/management.portal'
 import { Route as AuthenticatedManagementOwnershipRouteImport } from './routes/_authenticated/management.ownership'
 import { Route as AuthenticatedManagementLicensesRouteImport } from './routes/_authenticated/management.licenses'
@@ -103,6 +105,7 @@ import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
+import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppOrganizationRouteImport } from './routes/_authenticated/app.organization'
 import { Route as AuthenticatedAppModulesRouteImport } from './routes/_authenticated/app.modules'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
@@ -517,6 +520,12 @@ const AuthenticatedPortalReleaseNotesRoute =
     path: '/release-notes',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalProfileRoute =
+  AuthenticatedPortalProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalNewsRoute = AuthenticatedPortalNewsRouteImport.update({
   id: '/news',
   path: '/news',
@@ -574,6 +583,12 @@ const AuthenticatedManagementReleasesRoute =
   AuthenticatedManagementReleasesRouteImport.update({
     id: '/releases',
     path: '/releases',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
+const AuthenticatedManagementProfileRoute =
+  AuthenticatedManagementProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementPortalRoute =
@@ -640,6 +655,11 @@ const AuthenticatedAppSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppOrganizationRoute =
   AuthenticatedAppOrganizationRouteImport.update({
     id: '/organization',
@@ -909,6 +929,7 @@ export interface FileRoutesByFullPath {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -920,6 +941,7 @@ export interface FileRoutesByFullPath {
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
   '/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
+  '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
@@ -930,6 +952,7 @@ export interface FileRoutesByFullPath {
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
+  '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -1034,6 +1057,7 @@ export interface FileRoutesByTo {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -1045,6 +1069,7 @@ export interface FileRoutesByTo {
   '/management/licenses': typeof AuthenticatedManagementLicensesRoute
   '/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/management/portal': typeof AuthenticatedManagementPortalRoute
+  '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/management/settings': typeof AuthenticatedManagementSettingsRoute
@@ -1054,6 +1079,7 @@ export interface FileRoutesByTo {
   '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
+  '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -1166,6 +1192,7 @@ export interface FileRoutesById {
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/modules': typeof AuthenticatedAppModulesRoute
   '/_authenticated/app/organization': typeof AuthenticatedAppOrganizationRoute
+  '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
@@ -1177,6 +1204,7 @@ export interface FileRoutesById {
   '/_authenticated/management/licenses': typeof AuthenticatedManagementLicensesRoute
   '/_authenticated/management/ownership': typeof AuthenticatedManagementOwnershipRoute
   '/_authenticated/management/portal': typeof AuthenticatedManagementPortalRoute
+  '/_authenticated/management/profile': typeof AuthenticatedManagementProfileRoute
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
   '/_authenticated/management/settings': typeof AuthenticatedManagementSettingsRoute
@@ -1187,6 +1215,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
+  '/_authenticated/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
@@ -1299,6 +1328,7 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
+    | '/app/profile'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1310,6 +1340,7 @@ export interface FileRouteTypes {
     | '/management/licenses'
     | '/management/ownership'
     | '/management/portal'
+    | '/management/profile'
     | '/management/releases'
     | '/management/selfhost-fleet'
     | '/management/settings'
@@ -1320,6 +1351,7 @@ export interface FileRouteTypes {
     | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
+    | '/portal/profile'
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
@@ -1424,6 +1456,7 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
+    | '/app/profile'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1435,6 +1468,7 @@ export interface FileRouteTypes {
     | '/management/licenses'
     | '/management/ownership'
     | '/management/portal'
+    | '/management/profile'
     | '/management/releases'
     | '/management/selfhost-fleet'
     | '/management/settings'
@@ -1444,6 +1478,7 @@ export interface FileRouteTypes {
     | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
+    | '/portal/profile'
     | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
@@ -1555,6 +1590,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/modules'
     | '/_authenticated/app/organization'
+    | '/_authenticated/app/profile'
     | '/_authenticated/app/subscription'
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
@@ -1566,6 +1602,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/licenses'
     | '/_authenticated/management/ownership'
     | '/_authenticated/management/portal'
+    | '/_authenticated/management/profile'
     | '/_authenticated/management/releases'
     | '/_authenticated/management/selfhost-fleet'
     | '/_authenticated/management/settings'
@@ -1576,6 +1613,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
     | '/_authenticated/portal/news'
+    | '/_authenticated/portal/profile'
     | '/_authenticated/portal/release-notes'
     | '/_authenticated/portal/subscription'
     | '/_authenticated/portal/support'
@@ -2201,6 +2239,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalReleaseNotesRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/profile': {
+      id: '/_authenticated/portal/profile'
+      path: '/profile'
+      fullPath: '/portal/profile'
+      preLoaderRoute: typeof AuthenticatedPortalProfileRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/news': {
       id: '/_authenticated/portal/news'
       path: '/news'
@@ -2269,6 +2314,13 @@ declare module '@tanstack/react-router' {
       path: '/releases'
       fullPath: '/management/releases'
       preLoaderRoute: typeof AuthenticatedManagementReleasesRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
+    '/_authenticated/management/profile': {
+      id: '/_authenticated/management/profile'
+      path: '/profile'
+      fullPath: '/management/profile'
+      preLoaderRoute: typeof AuthenticatedManagementProfileRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/management/portal': {
@@ -2346,6 +2398,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/app/subscription'
       preLoaderRoute: typeof AuthenticatedAppSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/profile': {
+      id: '/_authenticated/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/organization': {
@@ -2625,6 +2684,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppModulesRoute: typeof AuthenticatedAppModulesRoute
   AuthenticatedAppOrganizationRoute: typeof AuthenticatedAppOrganizationRoute
+  AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppSubscriptionRoute: typeof AuthenticatedAppSubscriptionRoute
   AuthenticatedAppUpdatesRoute: typeof AuthenticatedAppUpdatesRoute
   AuthenticatedAppUsersRoute: typeof AuthenticatedAppUsersRoute
@@ -2650,6 +2710,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppModulesRoute: AuthenticatedAppModulesRoute,
   AuthenticatedAppOrganizationRoute: AuthenticatedAppOrganizationRoute,
+  AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppSubscriptionRoute: AuthenticatedAppSubscriptionRoute,
   AuthenticatedAppUpdatesRoute: AuthenticatedAppUpdatesRoute,
   AuthenticatedAppUsersRoute: AuthenticatedAppUsersRoute,
@@ -2697,6 +2758,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementLicensesRoute: typeof AuthenticatedManagementLicensesRoute
   AuthenticatedManagementOwnershipRoute: typeof AuthenticatedManagementOwnershipRoute
   AuthenticatedManagementPortalRoute: typeof AuthenticatedManagementPortalRoute
+  AuthenticatedManagementProfileRoute: typeof AuthenticatedManagementProfileRoute
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
   AuthenticatedManagementSelfhostFleetRoute: typeof AuthenticatedManagementSelfhostFleetRoute
   AuthenticatedManagementSettingsRoute: typeof AuthenticatedManagementSettingsRoute
@@ -2720,6 +2782,7 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementOwnershipRoute:
       AuthenticatedManagementOwnershipRoute,
     AuthenticatedManagementPortalRoute: AuthenticatedManagementPortalRoute,
+    AuthenticatedManagementProfileRoute: AuthenticatedManagementProfileRoute,
     AuthenticatedManagementReleasesRoute: AuthenticatedManagementReleasesRoute,
     AuthenticatedManagementSelfhostFleetRoute:
       AuthenticatedManagementSelfhostFleetRoute,
@@ -2771,6 +2834,7 @@ interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
   AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRouteWithChildren
+  AuthenticatedPortalProfileRoute: typeof AuthenticatedPortalProfileRoute
   AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
   AuthenticatedPortalSubscriptionRoute: typeof AuthenticatedPortalSubscriptionRoute
   AuthenticatedPortalSupportRoute: typeof AuthenticatedPortalSupportRoute
@@ -2783,6 +2847,7 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
   AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRouteWithChildren,
+  AuthenticatedPortalProfileRoute: AuthenticatedPortalProfileRoute,
   AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
   AuthenticatedPortalSubscriptionRoute: AuthenticatedPortalSubscriptionRoute,
   AuthenticatedPortalSupportRoute: AuthenticatedPortalSupportRoute,

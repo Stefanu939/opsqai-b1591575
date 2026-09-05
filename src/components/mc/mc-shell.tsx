@@ -19,6 +19,7 @@ import {
 
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { AccountMenu } from "@/components/app/account-menu";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
@@ -193,17 +194,17 @@ export function ManagementShell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-1.5">
             <NotificationsBell />
             <ThemeToggle />
-             <span className="ml-1 flex items-center gap-2 rounded-md border border-border bg-secondary/60 py-1 pl-1 pr-2.5">
-               <span className="grid h-8 w-8 place-items-center rounded-sm bg-primary text-[11px] font-semibold text-primary-foreground">
-                {(user?.email?.split("@")[0]?.slice(0, 2) ?? "OQ").toUpperCase()}
-              </span>
-              <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-                <span className="truncate text-xs font-semibold text-foreground">
-                  {user?.email?.split("@")[0] ?? "Account"}
-                </span>
-                <span className="truncate text-[10px] text-muted-foreground">Platform staff</span>
-              </span>
-            </span>
+            <AccountMenu
+              profilePath="/management/profile"
+              roleLabel="Platform staff"
+              supportHref="/portal/support"
+              helpLinks={[
+                { label: "Customers", description: "Company profiles and enabled products", href: "/management/customers" },
+                { label: "Licenses", description: "Issue, reissue and track licenses", href: "/management/licenses" },
+                { label: "Installations", description: "Self-Hosted fleet and heartbeats", href: "/management/installations" },
+                { label: "Documentation", description: "Product and architecture docs", href: "/documentation" },
+              ]}
+            />
           </div>
         </header>
         <main className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto">{children}</main>

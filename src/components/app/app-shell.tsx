@@ -12,7 +12,6 @@ import {
   Menu,
   X,
   Languages,
-  UserCircle,
   Building2,
   LineChart,
   GraduationCap,
@@ -39,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { LogoMark } from "@/components/brand/logo";
 import { NotificationsBell } from "@/components/app/notifications-bell";
+import { AccountMenu } from "@/components/app/account-menu";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
@@ -176,11 +176,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleProfile = () => {
-    setMobileOpen(false);
-    navigate({ to: "/app/organization" });
-  };
-
 
   const linkCls =
     "group relative flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium text-sidebar-foreground/75 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[status=active]:bg-sidebar-accent data-[status=active]:font-semibold data-[status=active]:text-sidebar-accent-foreground";
@@ -269,14 +264,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={handleProfile}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sidebar-foreground/85 hover:bg-sidebar-accent transition-colors"
-        >
-          <UserCircle className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
-          <span>{t("myProfile")}</span>
-        </button>
+        <AccountMenu
+          className="ml-0 w-full"
+          profilePath="/app/profile"
+          roleLabel="Self-Hosted"
+          helpLinks={[
+            { label: "Knowledge", description: "SOPs, documents and governed knowledge", href: "/app/knowledge" },
+            { label: "Academy", description: "Training, quizzes and certificates", href: "/app/academy" },
+            { label: "License & Entitlements", description: "Active products and add-ons", href: "/app/modules" },
+            { label: "Calendar", description: "Reviews, deadlines and time off", href: "/app/calendar" },
+          ]}
+        />
 
         {/* Ticketing is a Cloud-only surface — the Self-Hosted product has no
             vendor inbox, so the entry point is hidden instead of dead. */}

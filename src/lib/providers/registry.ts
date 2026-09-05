@@ -57,6 +57,8 @@ import type {
   IAcademyRepository,
   CalendarRepositoryFactory,
   ICalendarRepository,
+  PresenceRepositoryFactory,
+  IPresenceRepository,
 } from "./interfaces";
 
 interface Registry {
@@ -94,6 +96,7 @@ interface Registry {
   exportFactory?: ExportRepositoryFactory;
   academyFactory?: AcademyRepositoryFactory;
   calendarFactory?: CalendarRepositoryFactory;
+  presenceFactory?: PresenceRepositoryFactory;
 }
 
 
@@ -184,6 +187,12 @@ export function registerDashboardRepositoryFactory(f: DashboardRepositoryFactory
 export function registerExportRepositoryFactory(f: ExportRepositoryFactory): void { registry.exportFactory = f; }
 export function registerAcademyRepositoryFactory(f: AcademyRepositoryFactory): void { registry.academyFactory = f; }
 export function registerCalendarRepositoryFactory(f: CalendarRepositoryFactory): void { registry.calendarFactory = f; }
+export function registerPresenceRepositoryFactory(f: PresenceRepositoryFactory): void { registry.presenceFactory = f; }
+export function hasPresenceRepository(): boolean { return !!registry.presenceFactory; }
+export function getPresenceRepository(dataCtx: unknown): IPresenceRepository {
+  if (!registry.presenceFactory) throw new Error("No presence repository factory registered");
+  return registry.presenceFactory(dataCtx);
+}
 export function hasCalendarRepository(): boolean { return !!registry.calendarFactory; }
 export function getCalendarRepository(dataCtx: unknown): ICalendarRepository {
   if (!registry.calendarFactory) throw new Error("No calendar repository factory registered");
@@ -385,6 +394,7 @@ export function __resetProviderRegistryForTests(): void {
   registry.exportFactory = undefined;
   registry.academyFactory = undefined;
   registry.calendarFactory = undefined;
+  registry.presenceFactory = undefined;
   registry.moduleAccessFactory = undefined;
 }
 

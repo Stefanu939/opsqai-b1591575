@@ -55,6 +55,7 @@ import {
   registerDashboardRepositoryFactory,
   registerExportRepositoryFactory,
   registerAcademyRepositoryFactory,
+  registerPresenceRepositoryFactory,
 } from "@/lib/providers/registry";
 
 import { createSupabaseAuthProvider } from "./supabase-auth.server";
@@ -79,6 +80,7 @@ import { createSupabaseModuleAccessRepository } from "./supabase-module-access-r
 import { createSupabaseDashboardRepository } from "./supabase-dashboard-repository.server";
 import { createSupabaseExportRepository } from "./supabase-export-repository.server";
 import { createSupabaseAcademyRepository } from "./supabase-academy-repository.server";
+import { createSupabasePresenceRepository } from "./supabase-presence-repository.server";
 
 
 class CloudUserRepository implements IUserRepository {
@@ -283,6 +285,9 @@ export function bootstrapCloud(): void {
   registerDashboardRepositoryFactory((ctx)=>createSupabaseDashboardRepository(ctx as SupabaseClient<Database>));
   registerExportRepositoryFactory((ctx) => createSupabaseExportRepository(ctx as SupabaseClient<Database>));
   registerAcademyRepositoryFactory((ctx) => createSupabaseAcademyRepository(ctx as SupabaseClient<Database>));
+  registerPresenceRepositoryFactory((ctx) =>
+    createSupabasePresenceRepository(ctx as never),
+  );
 
 
   // Admin flavour: lazy-load service-role client so this module does not
