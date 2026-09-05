@@ -402,6 +402,40 @@ function LicensesPage() {
         </div>
       </div>
 
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-3">
+          <span className="text-sm font-medium text-foreground">
+            {selected.size} selected
+          </span>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+            Clear selection
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="ml-auto"
+            disabled={bulkDeleteMut.isPending}
+            onClick={async () => {
+              const ids = [...selected];
+              if (
+                await confirmAction({
+                  title: `Delete ${ids.length} license${ids.length === 1 ? "" : "s"}?`,
+                  description:
+                    "These installs lose their licenses and all module entitlements. This cannot be undone.",
+                  confirmLabel: "Delete licenses",
+                })
+              )
+                bulkDeleteMut.mutate(ids);
+            }}
+          >
+            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+            {bulkDeleteMut.isPending ? "Deleting…" : "Delete selected"}
+          </Button>
+        </div>
+      )}
+
+
+
       <DataTable<License>
         columns={columns}
         rows={rows}
