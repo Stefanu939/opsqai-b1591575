@@ -18,4 +18,4 @@
 - [x] Align every Customer Portal page and shared shell
 - [x] Remove obsolete Aurora Noir, glass, glow, legacy gold, and excessive-radius presentation patterns
 - [x] Update the current design documentation to make product-wide Graphite Precision authoritative
-- [ ] Verify representative and outlier screens on desktop/mobile in light/dark, plus typecheck/build/installer guards
+- [x] Verify representative and outlier screens on desktop/mobile in light/dark, plus typecheck/build/installer guards
