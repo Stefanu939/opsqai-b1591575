@@ -561,6 +561,128 @@ function LicensesTable({ installs, loading }: { installs: License[]; loading: bo
   );
 }
 
+// ─── Contract tab ────────────────────────────────────────────────────────
+
+const CONTRACT_STATUSES = ["prospect", "trial", "active", "renewal", "churned"] as const;
+
+function ContractTab({ companyId }: { companyId: string }) {
+  const qc = useQueryClient();
+  const list = useServerFn(listCustomerProfiles);
+  const save = useServerFn(upsertCustomerContract);
+
+  const q = useQuery({
+    queryKey: ["mc-customer-profiles"],
+    queryFn: () => list({ data: {} } as never),
+    retry: false,
+  });
+
+  const row = useMemo(
+    () =>
+      ((q.data ?? []) as Array<{
+        id: string;
+        profile: {
+          contract_status: string | null;
+          renewal_date: string | null;
+          onboarding_pct: number | null;
+          account_manager_id: string | null;
+        } | null;
+      }>).find((r) => r.id === companyId),
+    [q.data, companyId],
+  );
+
+  const [status, setStatus] = useState<string | null>(null);
+  const [renewal, setRenewal] = useState<string | null>(null);
+  const [onboarding, setOnboarding] = useState<string | null>(null);
+
+  // Initialise the form once the row loads.
+  const loadedFor = row?.id ?? null;
+  if (row && status === null && loadedFor) {
+    setStatus(row.profile?.contract_status ?? "prospect");
+    setRenewal(row.profile?.renewal_date ?? "");
+    setOnboarding(
+      row.profile?.onboarding_pct != null ? String(row.profile.onboarding_pct) : "",
+    );
+  }
+
+  const saveMut = useMutation({
+    mutationFn: () =>
+      save({
+        data: {
+          company_id: companyId,
+          contract_status: (status ?? "prospect") as (typeof CONTRACT_STATUSES)[number],
+          renewal_date: renewal || null,
+          onboarding_pct: onboarding ? Math.max(0, Math.min(100, parseInt(onboarding, 10) || 0)) : null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Contract updated");
+      void qc.invalidateQueries({ queryKey: ["mc-customer-profiles"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (q.isLoading) return <div className="h-40 animate-pulse rounded-lg bg-muted" />;
+  if (q.isError)
+    return (
+      <EmptyState
+        icon={FileSignature}
+        title="Could not load contract"
+        description={(q.error as Error).message}
+      />
+    );
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-5">
+      <h3 className="font-display text-base font-semibold text-foreground">Contract</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Contract lifecycle, renewal date and onboarding progress for this customer.
+      </p>
+      <div className="mt-4 grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-3">
+        <div>
+          <Label>Contract status</Label>
+          <Select value={status ?? "prospect"} onValueChange={setStatus}>
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CONTRACT_STATUSES.map((s) => (
+                <SelectItem key={s} value={s} className="capitalize">
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Renewal date</Label>
+          <Input
+            type="date"
+            className="mt-1"
+            value={renewal ?? ""}
+            onChange={(e) => setRenewal(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label>Onboarding %</Label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            className="mt-1"
+            value={onboarding ?? ""}
+            onChange={(e) => setOnboarding(e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="mt-4">
+        <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+          Save contract
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Company Profile + enabled OPSQAI Products ──────────────────────────
 //
 // A company profile only RECOMMENDS products. Nothing is active until it is
