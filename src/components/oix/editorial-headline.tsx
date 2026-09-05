@@ -12,8 +12,7 @@ interface EditorialHeadlineProps {
 }
 
 /**
- * OIX headline. Uppercase Space Grotesk with optional Instrument Serif italic
- * accent for a keyword. Ships with a gold eyebrow above and adjustable size.
+ * Public editorial headline with an optional italic emphasis.
  */
 export function EditorialHeadline({
   eyebrow,
@@ -26,10 +25,10 @@ export function EditorialHeadline({
 }: EditorialHeadlineProps) {
   const sizeCls =
     size === "xl"
-      ? "text-[clamp(3rem,7vw,6.5rem)]"
+      ? "text-[clamp(3.25rem,6.6vw,6.4rem)]"
       : size === "lg"
-        ? "text-[clamp(2.25rem,5vw,4.5rem)]"
-        : "text-[clamp(1.75rem,3.5vw,3rem)]";
+        ? "text-[clamp(2.5rem,4.8vw,4.5rem)]"
+        : "text-[clamp(2rem,3.3vw,3.25rem)]";
 
   return (
     <div className={cn(align === "center" && "text-center", className)}>

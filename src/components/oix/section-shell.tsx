@@ -12,8 +12,7 @@ interface SectionShellProps {
 }
 
 /**
- * OIX section frame. Consistent vertical rhythm, optional gold corner
- * brackets, optional container width. Renders semantic <section> by default.
+ * Public section frame with consistent editorial rhythm.
  */
 export function SectionShell({
   children,
@@ -28,7 +27,7 @@ export function SectionShell({
     <Tag
       id={id}
       className={cn(
-        "relative w-full py-24 md:py-32",
+        "relative w-full py-20 md:py-28",
         fullHeight && "min-h-dvh flex items-center",
         bracketed && "oix-brackets",
         className,

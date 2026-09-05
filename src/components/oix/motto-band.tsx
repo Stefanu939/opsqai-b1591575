@@ -9,16 +9,16 @@ interface MottoBandProps {
 
 /**
  * The OPSQAI signature motto. Repeated across the marketing site as a
- * recurring visual anchor. Two stacked lines, gold hairline under.
+ * recurring editorial pull-quote.
  */
 export function MottoBand({ className, size = "xl", compact = false }: MottoBandProps) {
   const t = useHomeCopy().mottoBand;
   const cls =
     size === "xl"
-      ? "text-[clamp(3rem,14vw,14rem)]"
+      ? "text-[clamp(3.5rem,10vw,9rem)]"
       : size === "lg"
-        ? "text-[clamp(2.5rem,10vw,10rem)]"
-        : "text-[clamp(2rem,6vw,5rem)]";
+        ? "text-[clamp(3rem,7vw,6.5rem)]"
+        : "text-[clamp(2.25rem,5vw,4.5rem)]";
 
   return (
     <div
@@ -32,12 +32,12 @@ export function MottoBand({ className, size = "xl", compact = false }: MottoBand
       <div className="mx-auto max-w-[100rem] px-6 md:px-10">
         <p
           className={cn(
-            "oix-display leading-[0.82] tracking-[-0.04em] text-[var(--oix-cream)]",
+            "oix-display max-w-5xl leading-[0.95] text-[var(--oix-cream)]",
             cls,
           )}
         >
           <span className="block">{t.lineOne}</span>
-          <span className="block text-[var(--oix-gold)]">{t.lineTwo}</span>
+          <span className="block italic text-[var(--oix-gold)]">{t.lineTwo}</span>
         </p>
       </div>
       <div

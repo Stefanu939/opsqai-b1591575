@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Redesign the public website with Graphite Precision, editorial typography, responsive navigation, scoped light/dark tokens, and canonical EN/DE/RO product copy
 - [x] Plan demo video v2 (flicker fix, Self-Hosted scenes, EN narration, social formats, website embed)
 - [x] Capture Self-Hosted app screens (dashboard, AI chat, Academy, audit, gaps, product workspace)
 - [x] Remove zoom/pan flicker in Remotion (static screens, frozen grid, calmer aurora, CRF 14)

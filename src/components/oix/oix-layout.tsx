@@ -15,7 +15,7 @@ export function OixLayout({ children }: { children: ReactNode }) {
   return (
     <div className={cn("oix-shell", isBlog ? "oix-blog" : "oix-static")}>
       <NavShell />
-      <main className="pt-16">{children}</main>
+      <main className="pt-[4.5rem]">{children}</main>
       <FooterOix />
     </div>
   );

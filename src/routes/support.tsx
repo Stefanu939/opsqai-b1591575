@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
 import { LifeBuoy, MessageSquare, Clock, ShieldCheck, BookOpen } from "lucide-react";
 import { useSupportCopy } from "@/i18n/pages/support";
+import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { OixButton } from "@/components/oix/buttons";
 
 export const Route = createFileRoute("/support")({
   head: () =>
@@ -26,21 +28,14 @@ function SupportPage() {
   const t = useSupportCopy();
   return (
     <MarketingLayout>
-      <section className="mx-auto max-w-5xl px-4 py-16 md:py-24">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.hero.eyebrow}</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
-          {t.hero.headline}
-        </h1>
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-3xl">
+      <section className="mx-auto max-w-6xl px-6 py-24 md:py-32">
+        <EditorialHeadline as="h1" size="xl" eyebrow={t.hero.eyebrow}>{t.hero.headline}</EditorialHeadline>
+        <p className="mt-6 max-w-3xl text-lg leading-relaxed text-[var(--oix-cream-dim)]">
           {t.hero.body}
         </p>
         <div className="mt-8 flex gap-3">
-          <Button asChild>
-            <Link to="/portal/support">{t.hero.ctaPrimary}</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/contact">{t.hero.ctaSecondary}</Link>
-          </Button>
+          <OixButton to="/portal/support" variant="gold">{t.hero.ctaPrimary}</OixButton>
+          <OixButton to="/contact" variant="ghost">{t.hero.ctaSecondary}</OixButton>
         </div>
       </section>
 

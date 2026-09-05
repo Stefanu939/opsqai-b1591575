@@ -51,11 +51,12 @@ export function EnterpriseIntelligence({
     <div
       aria-hidden="true"
       className={cn(
-        "enterprise-intelligence relative mx-auto flex aspect-square w-full max-w-[32rem] items-center justify-center",
+        "enterprise-intelligence relative mx-auto flex aspect-[6/5] w-full max-w-[34rem] items-center justify-center overflow-hidden rounded-sm",
         compact && "max-w-[25rem]",
         className,
       )}
     >
+      <div className="absolute left-6 top-5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--oix-gold)]">Operational system map</div>
       <div className="enterprise-ring enterprise-ring-outer" />
       <div className="enterprise-ring enterprise-ring-middle" />
       <div className="enterprise-ring enterprise-ring-inner" />
@@ -69,7 +70,7 @@ export function EnterpriseIntelligence({
         <circle className="enterprise-node enterprise-node-ember" cx="425" cy="330" r="4" />
       </svg>
 
-      <div className="enterprise-core oix-brackets">
+      <div className="enterprise-core">
         <HardDrive className="h-7 w-7 text-[var(--oix-gold)]" strokeWidth={1.4} />
         <span className="mt-4 text-[9px] uppercase tracking-[0.24em] text-[var(--oix-gold)]">
           {copy.eyebrow}

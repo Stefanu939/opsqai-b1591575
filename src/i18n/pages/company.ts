@@ -23,22 +23,12 @@ const en = {
     eyebrow: "Team · Deliberate",
     serifAccent: "overstated.",
     headline: "Small.  Never",
-    intro: "Every role reflects either an active founder or a planned hire — we don't list titles we don't hold.",
+    intro: "Founder-led, product-focused and direct with customers.",
     members: [
       {
         name: "Ștefan Bari",
         role: "Founder & CEO / Owner",
         body: "Owns product direction, customer relationships and commercial strategy. Drives OPSQAI's positioning as the operational AI layer for industrial companies.",
-      },
-      {
-        name: "CTO",
-        role: "Chief Technology Officer — to be named",
-        body: "Owns platform, security and the license system. Ships the Windows installer, audit trail and update pipeline.",
-      },
-      {
-        name: "Head of AI",
-        role: "AI & Retrieval — planned hire",
-        body: "Owns the AI adapter registry, retrieval pipeline and grounded-prompt contract.",
       },
     ],
   },
@@ -53,13 +43,13 @@ const en = {
     ],
   },
   market: {
-    eyebrow: "Market · Discipline",
-    serifAccent: "defensible.",
-    headline: "Large. And",
+    eyebrow: "Customer focus · Europe",
+    serifAccent: "operational reality.",
+    headline: "Built around",
     items: [
-      { tag: "TAM", value: "€4.8B", body: "EU industrial, logistics and manufacturing organisations with 250+ employees." },
-      { tag: "SAM", value: "€1.1B", body: "DACH + Benelux + Nordics operators with a regulated SOP surface and enterprise IT budget." },
-      { tag: "SOM", value: "€90M", body: "First-wave design partners: logistics networks, warehouse operators and mid-cap manufacturers." },
+      { tag: "Environment", value: "Windows", body: "Designed for organizations that operate Windows infrastructure and need local control." },
+      { tag: "Knowledge", value: "Governed", body: "For teams whose procedures, evidence and operational context require accountable access." },
+      { tag: "Adoption", value: "Focused", body: "Start with a defined domain, then enable licensed products as operational needs grow." },
     ],
   },
   cta: {
@@ -97,22 +87,12 @@ const de: Copy = {
     eyebrow: "Team · Bewusst",
     serifAccent: "übertrieben.",
     headline: "Klein.  Nie",
-    intro: "Jede Rolle steht entweder für einen aktiven Gründer oder eine geplante Einstellung — wir führen keine Titel, die wir nicht innehaben.",
+    intro: "Gründergeführt, produktorientiert und im direkten Austausch mit Kunden.",
     members: [
       {
         name: "Ștefan Bari",
         role: "Gründer & CEO / Inhaber",
         body: "Verantwortet Produktrichtung, Kundenbeziehungen und Unternehmensstrategie. Treibt die Positionierung von OPSQAI als operative KI-Ebene für Industrieunternehmen voran.",
-      },
-      {
-        name: "CTO",
-        role: "Chief Technology Officer — noch zu besetzen",
-        body: "Verantwortet Plattform, Sicherheit und das Lizenzsystem. Liefert den Windows-Installer, das Audit-Log und die Update-Pipeline.",
-      },
-      {
-        name: "Head of AI",
-        role: "KI & Retrieval — geplante Einstellung",
-        body: "Verantwortet das KI-Adapter-Register, die Retrieval-Pipeline und den fundierten Prompt-Vertrag.",
       },
     ],
   },
@@ -127,13 +107,13 @@ const de: Copy = {
     ],
   },
   market: {
-    eyebrow: "Markt · Disziplin",
-    serifAccent: "verteidigbar.",
-    headline: "Groß. Und",
+    eyebrow: "Kundenfokus · Europa",
+    serifAccent: "operative Realität.",
+    headline: "Gebaut für",
     items: [
-      { tag: "TAM", value: "€4,8 Mrd.", body: "EU-Industrie-, Logistik- und Fertigungsunternehmen mit 250+ Mitarbeitenden." },
-      { tag: "SAM", value: "€1,1 Mrd.", body: "DACH + Benelux + Nordics mit regulierter SOP-Fläche und Enterprise-IT-Budget." },
-      { tag: "SOM", value: "€90 Mio.", body: "Erste Design-Partner: Logistiknetzwerke, Lagerbetreiber und mittelständische Fertigungsunternehmen." },
+      { tag: "Umgebung", value: "Windows", body: "Für Organisationen mit Windows-Infrastruktur und dem Bedarf an lokaler Kontrolle." },
+      { tag: "Wissen", value: "Governed", body: "Für Teams, deren Verfahren, Nachweise und Kontext einen nachvollziehbaren Zugriff erfordern." },
+      { tag: "Einführung", value: "Fokussiert", body: "Mit einem Bereich starten und lizenzierte Produkte bei wachsendem Bedarf aktivieren." },
     ],
   },
   cta: {
@@ -169,22 +149,12 @@ const ro: Copy = {
     eyebrow: "Echipă · Deliberat",
     serifAccent: "exagerată.",
     headline: "Mică. Niciodată",
-    intro: "Fiecare rol reflectă fie un fondator activ, fie o angajare planificată — nu listăm titluri pe care nu le deținem.",
+    intro: "Condusă de fondator, concentrată pe produs și în dialog direct cu clienții.",
     members: [
       {
         name: "Ștefan Bari",
         role: "Fondator & CEO / Proprietar",
         body: "Deține direcția produsului, relațiile cu clienții și strategia comercială. Conduce poziționarea OPSQAI ca strat de AI operațional pentru companii industriale.",
-      },
-      {
-        name: "CTO",
-        role: "Chief Technology Officer — urmează a fi numit",
-        body: "Deține platforma, securitatea și sistemul de licențiere. Livrează instalatorul Windows, jurnalul de audit și pipeline-ul de actualizări.",
-      },
-      {
-        name: "Head of AI",
-        role: "AI & Retrieval — angajare planificată",
-        body: "Deține registrul de adaptoare AI, pipeline-ul de retrieval și contractul de prompt fundamentat.",
       },
     ],
   },
@@ -199,13 +169,13 @@ const ro: Copy = {
     ],
   },
   market: {
-    eyebrow: "Piață · Disciplină",
-    serifAccent: "apărabilă.",
-    headline: "Mare. Și",
+    eyebrow: "Focus client · Europa",
+    serifAccent: "realitatea operațională.",
+    headline: "Construit pentru",
     items: [
-      { tag: "TAM", value: "4,8 mld. €", body: "Organizații industriale, de logistică și producție din UE cu peste 250 de angajați." },
-      { tag: "SAM", value: "1,1 mld. €", body: "Operatori din DACH + Benelux + țările nordice cu o suprafață SOP reglementată și buget IT enterprise." },
-      { tag: "SOM", value: "90 mil. €", body: "Primii parteneri de design: rețele de logistică, operatori de depozite și producători medii." },
+      { tag: "Mediu", value: "Windows", body: "Pentru organizații care operează infrastructură Windows și au nevoie de control local." },
+      { tag: "Cunoștințe", value: "Guvernate", body: "Pentru echipe ale căror proceduri, dovezi și context cer acces responsabil și verificabil." },
+      { tag: "Adopție", value: "Focalizată", body: "Începeți cu un domeniu definit și activați produse licențiate pe măsură ce nevoile cresc." },
     ],
   },
   cta: {

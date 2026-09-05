@@ -158,7 +158,7 @@ const en = {
       "Signed release manifests and updates",
       "Documented disaster recovery with bootstrap tokens",
       "Role-based access control across the workspace",
-      "Bilingual UI (EN/DE) and PWA support",
+      "Multilingual UI (EN/DE/RO) and PWA support",
     ],
   },
   faq: {
