@@ -103,6 +103,7 @@ import { Route as AuthenticatedManagementAuditLogsRouteImport } from './routes/_
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
+import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppOrganizationRouteImport } from './routes/_authenticated/app.organization'
 import { Route as AuthenticatedAppModulesRouteImport } from './routes/_authenticated/app.modules'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
@@ -640,6 +641,11 @@ const AuthenticatedAppSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppOrganizationRoute =
   AuthenticatedAppOrganizationRouteImport.update({
     id: '/organization',
@@ -909,6 +915,7 @@ export interface FileRoutesByFullPath {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -1034,6 +1041,7 @@ export interface FileRoutesByTo {
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/modules': typeof AuthenticatedAppModulesRoute
   '/app/organization': typeof AuthenticatedAppOrganizationRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
@@ -1166,6 +1174,7 @@ export interface FileRoutesById {
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/modules': typeof AuthenticatedAppModulesRoute
   '/_authenticated/app/organization': typeof AuthenticatedAppOrganizationRoute
+  '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
@@ -1299,6 +1308,7 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
+    | '/app/profile'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1424,6 +1434,7 @@ export interface FileRouteTypes {
     | '/app/knowledge'
     | '/app/modules'
     | '/app/organization'
+    | '/app/profile'
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
@@ -1555,6 +1566,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/modules'
     | '/_authenticated/app/organization'
+    | '/_authenticated/app/profile'
     | '/_authenticated/app/subscription'
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
@@ -2348,6 +2360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSubscriptionRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/profile': {
+      id: '/_authenticated/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/organization': {
       id: '/_authenticated/app/organization'
       path: '/organization'
@@ -2625,6 +2644,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppModulesRoute: typeof AuthenticatedAppModulesRoute
   AuthenticatedAppOrganizationRoute: typeof AuthenticatedAppOrganizationRoute
+  AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppSubscriptionRoute: typeof AuthenticatedAppSubscriptionRoute
   AuthenticatedAppUpdatesRoute: typeof AuthenticatedAppUpdatesRoute
   AuthenticatedAppUsersRoute: typeof AuthenticatedAppUsersRoute
@@ -2650,6 +2670,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppModulesRoute: AuthenticatedAppModulesRoute,
   AuthenticatedAppOrganizationRoute: AuthenticatedAppOrganizationRoute,
+  AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppSubscriptionRoute: AuthenticatedAppSubscriptionRoute,
   AuthenticatedAppUpdatesRoute: AuthenticatedAppUpdatesRoute,
   AuthenticatedAppUsersRoute: AuthenticatedAppUsersRoute,
