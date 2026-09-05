@@ -182,6 +182,187 @@ export const listOwnershipCards = createServerFn({ method: "POST" })
     return { isSuperAdmin: true, cards };
   });
 
+export type ColleagueCompany = {
+  id: string;
+  name: string;
+  active: boolean;
+  subscription_status: string | null;
+  install_id: string | null;
+  shared: boolean;
+  open_tickets: number;
+  online: boolean;
+  silent: boolean;
+  outdated: boolean;
+  app_version: string | null;
+  expires_at: string | null;
+};
+
+/**
+ * SuperAdmin-only: the full work panel for one colleague — their customers
+ * (owned + shared), fleet health, open tickets and time-off requests.
+ */
+export const getColleagueOverview = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ user_id: uuidString() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const scope = await resolveMcScope(context);
+    if (!scope.isSuperAdmin) throw new Error("Forbidden: only a SuperAdmin can open colleague panels");
+    const admin = await getCloudSupabaseAdmin("mc-ownership");
+    const uid = data.user_id;
+
+    const [
+      { data: ownedRows },
+      { data: collabRows },
+      { data: roleRows },
+      { data: profile },
+      usersResp,
+      { data: timeOffRows },
+      { data: currentRelease },
+    ] = await Promise.all([
+      admin
+        .from("companies")
+        .select("id, name, active, subscription_status, install_id")
+        .eq("owner_user_id", uid),
+      admin
+        .from("company_collaborators")
+        .select("company_id, companies(id, name, active, subscription_status, install_id, owner_user_id)")
+        .eq("user_id", uid),
+      admin.from("user_roles").select("user_id, role").in("role", ["platform_admin", "platform_owner"]),
+      admin
+        .from("profiles")
+        .select("id, full_name, first_name, last_name")
+        .eq("id", uid)
+        .maybeSingle(),
+      admin.auth.admin.listUsers({ perPage: 1000 }),
+      admin
+        .from("time_off_requests")
+        .select("id, starts_on, ends_on, status, reason, created_at")
+        .eq("user_id", uid)
+        .order("starts_on", { ascending: false })
+        .limit(12),
+      admin
+        .from("license_releases")
+        .select("version")
+        .eq("is_current", true)
+        .maybeSingle(),
+    ]);
+
+    const emailById = new Map(usersResp.data.users.map((u) => [u.id, u.email ?? ""]));
+    const staffIds = [...new Set((roleRows ?? []).map((r) => r.user_id as string))];
+    const { data: staffProfiles } = staffIds.length
+      ? await admin.from("profiles").select("id, full_name, first_name, last_name").in("id", staffIds)
+      : { data: [] as Array<Record<string, unknown>> };
+    const staffName = new Map(
+      (staffProfiles ?? []).map((p) => {
+        const composed = [p.first_name, p.last_name].filter(Boolean).join(" ");
+        return [p.id as string, ((p.full_name as string | null) || composed || (emailById.get(p.id as string) ?? "").split("@")[0] || "Colleague") as string];
+      }),
+    );
+
+    const owned = (ownedRows ?? []) as Array<Record<string, unknown>>;
+    const shared = ((collabRows ?? []) as Array<{ companies: Record<string, unknown> | null }>)
+      .map((r) => r.companies)
+      .filter((c): c is Record<string, unknown> => Boolean(c))
+      .filter((c) => c.owner_user_id !== uid);
+
+    const companyIds = [...owned, ...shared].map((c) => c.id as string);
+    const installIds = [...owned, ...shared]
+      .map((c) => c.install_id as string | null)
+      .filter((v): v is string => Boolean(v));
+
+    const soon = new Date(Date.now() + 30 * DAY).toISOString();
+    const [{ data: tickets }, { data: installs }, { data: licenses }] = await Promise.all([
+      companyIds.length
+        ? admin
+            .from("support_conversations")
+            .select("company_id, status")
+            .in("company_id", companyIds)
+            .in("status", ["open", "pending"])
+        : Promise.resolve({ data: [] as Array<{ company_id: string; status: string }> }),
+      installIds.length
+        ? admin
+            .from("license_installs")
+            .select("install_id, last_heartbeat_at, app_version")
+            .in("install_id", installIds)
+        : Promise.resolve({ data: [] as Array<{ install_id: string; last_heartbeat_at: string | null; app_version: string | null }> }),
+      installIds.length
+        ? admin
+            .from("licenses")
+            .select("install_id, expires_at, revoked")
+            .eq("kind", "install")
+            .in("install_id", installIds)
+        : Promise.resolve({ data: [] as Array<{ install_id: string; expires_at: string | null; revoked: boolean | null }> }),
+    ]);
+
+    const ticketsByCompany = new Map<string, number>();
+    for (const t of tickets ?? []) {
+      ticketsByCompany.set(t.company_id, (ticketsByCompany.get(t.company_id) ?? 0) + 1);
+    }
+    const installById = new Map((installs ?? []).map((i) => [i.install_id, i]));
+    const licenseByInstall = new Map((licenses ?? []).map((l) => [l.install_id, l]));
+    const currentVersion = (currentRelease?.version as string | undefined) ?? null;
+
+    const toRow = (c: Record<string, unknown>, isShared: boolean): ColleagueCompany => {
+      const installId = (c.install_id as string | null) ?? null;
+      const inst = installId ? installById.get(installId) : undefined;
+      const lic = installId ? licenseByInstall.get(installId) : undefined;
+      const lastBeat = inst?.last_heartbeat_at ? new Date(inst.last_heartbeat_at).getTime() : null;
+      const online = lastBeat != null && Date.now() - lastBeat < 15 * 60 * 1000;
+      const silent = installId != null && (lastBeat == null || Date.now() - lastBeat > 2 * DAY);
+      const outdated = Boolean(
+        inst?.app_version && currentVersion && inst.app_version !== currentVersion,
+      );
+      return {
+        id: c.id as string,
+        name: (c.name as string) ?? "—",
+        active: Boolean(c.active),
+        subscription_status: (c.subscription_status as string | null) ?? null,
+        install_id: installId,
+        shared: isShared,
+        open_tickets: ticketsByCompany.get(c.id as string) ?? 0,
+        online,
+        silent,
+        outdated,
+        app_version: (inst?.app_version as string | null) ?? null,
+        expires_at: lic && !lic.revoked ? ((lic.expires_at as string | null) ?? null) : null,
+      };
+    };
+
+    const companies: ColleagueCompany[] = [
+      ...owned.map((c) => toRow(c, false)),
+      ...shared.map((c) => toRow(c, true)),
+    ].sort((a, b) => a.name.localeCompare(b.name));
+
+    const name =
+      (profile?.full_name as string | null) ||
+      [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
+      (emailById.get(uid) ?? "").split("@")[0] ||
+      "Colleague";
+
+    return {
+      member: {
+        user_id: uid,
+        name,
+        email: emailById.get(uid) ?? "",
+        is_super_admin: staffIds.includes(uid),
+      },
+      kpis: {
+        customers: companies.length,
+        open_tickets: companies.reduce((s, c) => s + c.open_tickets, 0),
+        silent_installs: companies.filter((c) => c.silent).length,
+        expiring_licenses: companies.filter(
+          (c) => c.expires_at && c.expires_at <= soon,
+        ).length,
+      },
+      companies,
+      time_off: (timeOffRows ?? []) as Array<Record<string, unknown>>,
+      colleagues: staffIds
+        .filter((id) => id !== uid)
+        .map((id) => ({ user_id: id, name: staffName.get(id) ?? "Colleague", email: emailById.get(id) ?? "" })),
+      current_version: currentVersion,
+    };
+  });
+
 /** SuperAdmin-only: hand a customer over to another colleague. */
 export const setCompanyOwner = createServerFn({ method: "POST" })
   .middleware([requireAuth])
