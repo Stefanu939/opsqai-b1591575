@@ -3,6 +3,7 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -18,6 +19,19 @@ import { getBrowserAuthProvider } from "@/lib/providers/registry";
 import { ChatGlider } from "@/components/support/chat-glider";
 import { SupportWidget } from "@/components/support/support-widget";
 import { LicenseProvider } from "@/lib/license";
+
+/**
+ * Exactly one floating bubble per product surface:
+ * - Customer Portal (/portal/*): ticketing only.
+ * - Management Center (/management/*) and Self-Hosted (/app/*): employee chat only.
+ * - Public marketing pages: none.
+ */
+function FloatingBubbles() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname.startsWith("/portal")) return <SupportWidget />;
+  if (pathname.startsWith("/management") || pathname.startsWith("/app")) return <ChatGlider />;
+  return null;
+}
 
 function NotFoundComponent() {
   return (
@@ -185,9 +199,7 @@ function RootComponent() {
         <AuthProvider>
           <LicenseProvider>
             <Outlet />
-            <ChatGlider />
-            {/* Cloud-only ticketing bubble; self-gated via cloudFeaturesEnabled(). */}
-            <SupportWidget />
+            <FloatingBubbles />
             <Toaster />
             <ConfirmHost />
           </LicenseProvider>
