@@ -41,6 +41,7 @@ import { pgModuleAccessRepositoryFactory } from "./pg-module-access-repository.s
 import { createPgDashboardRepository } from "./pg-dashboard-repository.server";
 import { createPgExportRepository } from "./pg-export-repository.server";
 import { createPgCalendarRepository } from "./pg-calendar-repository.server";
+import { createPgPresenceRepository } from "./pg-presence-repository.server";
 import { createPgAcademyRepository } from "./pg-academy-repository.server";
 import {
   registerAdminCompanyRepositoryFactory,
@@ -68,6 +69,7 @@ import {
   registerExportRepositoryFactory,
   registerAcademyRepositoryFactory,
   registerCalendarRepositoryFactory,
+  registerPresenceRepositoryFactory,
 } from "@/lib/providers/registry";
 
 import { createLocalAuthProvider } from "./local-auth.server";
@@ -342,4 +344,6 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerAcademyRepositoryFactory(() => academyRepo);
   const calendarRepo = createPgCalendarRepository({ pool, tenantCompanyId });
   registerCalendarRepositoryFactory(() => calendarRepo);
+  const presenceRepo = createPgPresenceRepository({ pool, tenantCompanyId });
+  registerPresenceRepositoryFactory(() => presenceRepo);
 }
