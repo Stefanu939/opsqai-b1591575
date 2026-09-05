@@ -2,7 +2,7 @@
 // Customer Portal: presence status, holidays, profile settings, help, sign out.
 
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   CalendarDays,
   CircleUser,
@@ -16,6 +16,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { audienceForPath } from "@/lib/sign-out-target";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -132,6 +133,7 @@ export function AccountMenu({
   const { user, signOut, session, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const [statusOpen, setStatusOpen] = useState(false);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
@@ -227,7 +229,11 @@ export function AccountMenu({
                 await qc.cancelQueries();
                 qc.clear();
                 await signOut();
-                void navigate({ to: "/auth", replace: true });
+                void navigate({
+                  to: "/auth",
+                  search: { audience: audienceForPath(pathname) },
+                  replace: true,
+                });
               })();
             }}
           >
