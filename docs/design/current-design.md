@@ -23,13 +23,13 @@ Source of truth for values: `src/styles.css`. This document only summarises what
   secondary signal `#5b8cf7`, ember accent `#e2793f`, text `#eef0fa`.
   Light: background `#f7f8fc`, surfaces `#e9ecf6` / `#f2f4fa`, primary `#5b3df5`,
   blue `#2f6bd8`, ink `#0f1222`.
-- **Typography** — display `Space Grotesk` (uppercase, tight tracking), body `Inter`,
-  mono `JetBrains Mono`, editorial serif `Cormorant Garamond` where a serif accent is used.
+- **Typography** — display `Space Grotesk`, authenticated-product body `Inter`, public-site
+  body `DM Sans`, mono `JetBrains Mono`.
 - **Radius** — `--radius: 0.875rem` (14px cards), `--radius-panel: 1.25rem` (20px panels).
 - **Elevation** — glow + soft shadow tokens (`--shadow-soft`, `--shadow-lift`,
   `--shadow-glow`); depth comes from hairlines and ambient glow, not heavy drop shadows.
-- **Motion** — 160–260ms `--ease-out-expo` transitions, hover lift, scroll reveals; motion
-  explains state, it does not decorate.
+- **Motion** — authenticated-product transitions explain state. Public marketing pages are
+  deliberately static with no visual hover effects; blog cards and links remain interactive.
 - **Iconography** — `lucide-react`, thin strokes, currentColor only.
 
 Shared primitives:
@@ -55,10 +55,11 @@ soft shadow + hover lift.
 
 ## Public website — marketing routes
 
-Wrapper `.n` (`src/components/oix/oix-layout.tsx`). Cinematic editorial: full-bleed
-gradient stages (`--gradient-hero`), fixed ambient glow layer (`.n::before`), Three.js
-scenes (particles, grid floor, ember fog, bloom) in violet/blue, uppercase statement type.
-Marketing tokens use the legacy `--oix-*` names mapped to Aurora Noir values.
+Wrapper `.oix-shell` (`src/components/oix/oix-layout.tsx`). Enterprise Live Intelligence:
+left-aligned editorial product message paired with restrained, static operational diagrams
+made from governed data lines, status panels, concentric system rings and a central Windows
+Self-Hosted core. No cubes, perpetual rotation, drifting particles or decorative hover motion.
+Marketing tokens retain the legacy `--oix-*` names mapped to Aurora Noir values.
 
 ---
 
