@@ -38,6 +38,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { confirmAction } from "@/components/ui/confirm";
 import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
+import { OwnerCards, useOwnershipCards, type OwnerSelection } from "@/components/mc/owner-cards";
+import { setCompanyOwner } from "@/lib/mc-ownership.functions";
 
 
 type NewCustomerInput = {
@@ -70,6 +72,7 @@ type Row = {
   install_id: string | null;
   business_type?: string | null;
   enabled_products?: string[] | null;
+  owner_user_id?: string | null;
 
   profile: {
     contract_status: string | null;
@@ -120,6 +123,20 @@ function CustomersPage() {
 
 
   const [q, setQ] = useState("");
+  const [owner, setOwner] = useState<OwnerSelection>(null);
+  const ownership = useOwnershipCards();
+  const isSuperAdmin = Boolean(ownership.data?.isSuperAdmin);
+  const staff = (ownership.data?.cards ?? []).filter((c) => c.user_id);
+  const reassign = useServerFn(setCompanyOwner);
+  const reassignMut = useMutation({
+    mutationFn: (v: { company_id: string; owner_user_id: string | null }) => reassign({ data: v }),
+    onSuccess: () => {
+      toast.success("Owner updated");
+      qc.invalidateQueries({ queryKey: ["mc-customers"] });
+      qc.invalidateQueries({ queryKey: ["mc-ownership-cards"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -171,12 +188,17 @@ function CustomersPage() {
     const query = q.trim().toLowerCase();
     return (data as Row[]).filter((r) => {
       if (query && !r.name.toLowerCase().includes(query)) return false;
+      if (owner) {
+        if (owner.unassigned && r.owner_user_id) return false;
+        if (!owner.unassigned && owner.userId !== "__all__" && r.owner_user_id !== owner.userId)
+          return false;
+      }
       if (planFilter !== "all" && r.subscription_plan !== planFilter) return false;
       if (statusFilter === "active" && !r.active) return false;
       if (statusFilter === "suspended" && r.active) return false;
       return true;
     });
-  }, [data, q, planFilter, statusFilter]);
+  }, [data, q, owner, planFilter, statusFilter]);
 
   const columns: Column<Row>[] = [
     {
@@ -305,6 +327,39 @@ function CustomersPage() {
         </Badge>
       ),
     },
+    ...(isSuperAdmin
+      ? [
+          {
+            key: "owner",
+            header: "Owner",
+            render: (r: Row) => (
+              <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                <Select
+                  value={r.owner_user_id ?? "__none__"}
+                  onValueChange={(v) =>
+                    reassignMut.mutate({
+                      company_id: r.id,
+                      owner_user_id: v === "__none__" ? null : v,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-[160px]">
+                    <SelectValue placeholder="Unassigned" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Unassigned</SelectItem>
+                    {staff.map((c) => (
+                      <SelectItem key={c.user_id as string} value={c.user_id as string}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ),
+          } as Column<Row>,
+        ]
+      : []),
     {
       key: "actions",
       header: "",
@@ -359,6 +414,8 @@ function CustomersPage() {
         <NewCustomerDialog onCreate={(v) => createMut.mutate(v)} pending={createMut.isPending} />
       }
     >
+      <OwnerCards selection={owner} onSelect={setOwner} />
+
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
