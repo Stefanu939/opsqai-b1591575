@@ -129,7 +129,9 @@ function ActivityCenterPage() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Update failed"),
   });
 
-  const rows = activity.data ?? [];
+  // Only Management Center business belongs here — alerts produced inside
+  // the customers' own installations are filtered out.
+  const rows = (activity.data ?? []).filter(isMcActivity);
   const openRows = rows.filter((r) => !r.resolved_at);
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
