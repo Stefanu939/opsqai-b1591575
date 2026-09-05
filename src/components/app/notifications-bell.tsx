@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   BellRing,
@@ -7,10 +7,11 @@ import {
   FileWarning,
   GraduationCap,
   Info,
+  Monitor,
   ShieldAlert,
   Trash2,
 } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import { useAuth } from "@/lib/auth-context";
 import {
