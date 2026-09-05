@@ -77,19 +77,19 @@ function ModulesPage() {
         <div>
           <SectionHeading icon={Package} title={t.coreTitle} />
           <div className="mt-4 flex items-center gap-3">
-            <Badge className="border-[#5b3df5]/40 bg-[#5b3df5]/15 text-[10px] text-[#5fd4b3]">
+            <Badge className="border-[var(--oix-emerald)]/40 bg-[var(--oix-emerald)]/10 text-[10px] text-[var(--oix-emerald)]">
               <Check className="h-3 w-3 mr-1" /> {t.coreBadge}
             </Badge>
-            <p className="text-xs leading-relaxed text-white/60">{t.coreBody}</p>
+            <p className="text-xs leading-relaxed text-[var(--oix-cream-dim)]">{t.coreBody}</p>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {CORE_CAPABILITIES.map((cap) => (
               <Card
                 key={cap.key}
-                className="border-white/10 bg-white/[0.02] p-5"
+                className="p-5"
               >
-                <div className="text-sm font-semibold text-white">{cap.label}</div>
-                <p className="mt-2 text-xs leading-relaxed text-white/60">{cap.description}</p>
+                <div className="text-sm font-semibold text-[var(--oix-cream)]">{cap.label}</div>
+                <p className="mt-2 text-xs leading-relaxed text-[var(--oix-cream-dim)]">{cap.description}</p>
               </Card>
             ))}
           </div>
@@ -97,32 +97,32 @@ function ModulesPage() {
 
         <div>
           <SectionHeading icon={Package} title={t.productsTitle} />
-          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-white/60">{t.productsBody}</p>
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-[var(--oix-cream-dim)]">{t.productsBody}</p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {PRODUCT_CATALOG.map((p) => (
               <Card
                 key={p.key}
-                className="border-white/10 bg-white/[0.02] p-6"
+                className="p-6"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="text-sm font-semibold text-white">{p.label}</div>
+                  <div className="text-sm font-semibold text-[var(--oix-cream)]">{p.label}</div>
                   <Badge
                     variant="outline"
                     className={
                       p.status === "available"
-                        ? "border-[#C9A24C]/40 text-[10px] text-[#C9A24C]"
-                        : "border-white/20 text-[10px] text-white/50"
+                        ? "border-[var(--oix-emerald)]/40 text-[10px] text-[var(--oix-emerald)]"
+                        : "border-[var(--oix-gold-line)] text-[10px] text-[var(--oix-cream-dim)]"
                     }
                   >
                     {p.status === "available" ? t.availableBadge : t.plannedBadge}
                   </Badge>
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-white/60">{p.description}</p>
+                <p className="mt-3 text-xs leading-relaxed text-[var(--oix-cream-dim)]">{p.description}</p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {workspacesForProduct(p.key).map((w) => (
                     <span
                       key={w.key}
-                      className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] text-white/55"
+                      className="rounded-full border border-[var(--oix-gold-line)] bg-[var(--oix-surface)] px-2 py-0.5 text-[10px] text-[var(--oix-cream-dim)]"
                     >
                       {localizeWorkspaceLabel(w.route, w.label, lang)}
                     </span>
@@ -135,15 +135,15 @@ function ModulesPage() {
 
         <div>
           <SectionHeading icon={Package} title={t.addonsTitle} />
-          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-white/60">{t.addonsBody}</p>
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-[var(--oix-cream-dim)]">{t.addonsBody}</p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {ADDON_CATALOG.map((a) => (
               <Card
                 key={a.key}
-                className="border-white/10 bg-white/[0.02] p-6"
+                className="p-6"
               >
-                <div className="text-sm font-semibold text-white">{a.label}</div>
-                <p className="mt-3 text-xs leading-relaxed text-white/60">{a.description}</p>
+                <div className="text-sm font-semibold text-[var(--oix-cream)]">{a.label}</div>
+                <p className="mt-3 text-xs leading-relaxed text-[var(--oix-cream-dim)]">{a.description}</p>
               </Card>
             ))}
           </div>
@@ -151,16 +151,16 @@ function ModulesPage() {
       </section>
 
       {/* Activation */}
-      <section className="border-t border-white/5 bg-gradient-to-b from-transparent to-white/[0.02]">
+      <section className="border-t border-[var(--oix-gold-line)] bg-[var(--oix-surface-2)]">
         <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-          <p className="text-[11px] uppercase tracking-[0.32em] text-[#C9A24C]/80">
+          <p className="oix-eyebrow">
             {t.activationEyebrow}
           </p>
-          <h2 className="mt-4 text-3xl md:text-4xl font-light tracking-tight text-white">
+          <h2 className="oix-display mt-4 text-4xl md:text-5xl">
             {t.activationHeadlinePrefix}{" "}
-            <span className="font-serif italic text-[#C9A24C]">{t.activationHeadlineAccent}</span>
+            <span className="italic text-[var(--oix-gold)]">{t.activationHeadlineAccent}</span>
           </h2>
-          <p className="mt-5 text-white/60 leading-relaxed">
+          <p className="mt-5 text-[var(--oix-cream-dim)] leading-relaxed">
             {t.activationBody}
           </p>
           <div className="mt-8">

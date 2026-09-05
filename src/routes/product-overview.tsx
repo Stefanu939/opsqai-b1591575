@@ -62,9 +62,9 @@ function PdfButton({ label, variant = "ghost" }: { label: string; variant?: "gol
       href={PDF_HREF}
       download="OPSQAI_Product_Overview.pdf"
       className={[
-        "relative oix-brackets inline-flex items-center justify-center gap-2 px-6 py-3 text-[13px] font-medium uppercase tracking-[0.18em]",
+        "relative inline-flex min-h-11 items-center justify-center gap-2 rounded-sm px-5 py-3 text-sm font-semibold",
         variant === "gold"
-          ? "bg-[var(--oix-gold)] text-[#0a0b14]"
+          ? "bg-[var(--oix-emerald)] text-[var(--oix-primary-ink)]"
           : "border border-[var(--oix-gold-line)] text-[var(--oix-cream)]",
       ].join(" ")}
     >
