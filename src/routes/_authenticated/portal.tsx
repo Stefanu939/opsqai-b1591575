@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
+import { AccountMenu } from "@/components/app/account-menu";
 import { Button } from "@/components/ui/button";
 import { IconTile } from "@/components/ui/icon-tile";
 import { LogoMark } from "@/components/brand/logo";
@@ -217,20 +218,17 @@ function PortalLayout() {
           <div className="ml-auto flex items-center gap-1.5">
             <NotificationsBell />
             <ThemeToggle />
-             <span className="ml-1 flex items-center gap-2 rounded-md border border-border bg-secondary/60 py-1 pl-1 pr-2.5">
-               <span className="grid h-8 w-8 place-items-center rounded-sm bg-primary text-[11px] font-semibold text-primary-foreground">
-                {initials(user?.email)}
-              </span>
-              <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-                <span className="truncate text-xs font-semibold text-foreground">
-                  {user?.email?.split("@")[0] ?? "Account"}
-                </span>
-                <span className="truncate text-[10px] text-muted-foreground">
-                  {user?.email?.split("@")[1] ?? "OPSQAI"}
-                </span>
-              </span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-            </span>
+            <AccountMenu
+              profilePath="/portal/profile"
+              roleLabel={user?.email?.split("@")[1] ?? "OPSQAI"}
+              supportHref="/portal/support"
+              helpLinks={[
+                { label: "Downloads", description: "Installer packages and modules", href: "/portal/downloads" },
+                { label: "Subscription", description: "Licenses, plan and entitlements", href: "/portal/subscription" },
+                { label: "Release notes", description: "What changed in the latest builds", href: "/portal/release-notes" },
+                { label: "Documentation", description: "Setup and product guides", href: "/portal/documentation" },
+              ]}
+            />
           </div>
         </div>
         <div className="oq-soft-card min-w-0 flex-1 min-h-0 overflow-y-auto">
