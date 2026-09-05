@@ -99,6 +99,7 @@ import { Route as AuthenticatedManagementInstallationsRouteImport } from './rout
 import { Route as AuthenticatedManagementCustomersRouteImport } from './routes/_authenticated/management.customers'
 import { Route as AuthenticatedManagementCompaniesRouteImport } from './routes/_authenticated/management.companies'
 import { Route as AuthenticatedManagementCalendarRouteImport } from './routes/_authenticated/management.calendar'
+import { Route as AuthenticatedManagementActivityRouteImport } from './routes/_authenticated/management.activity'
 import { Route as AuthenticatedAppUsersRouteImport } from './routes/_authenticated/app.users'
 import { Route as AuthenticatedAppUpdatesRouteImport } from './routes/_authenticated/app.updates'
 import { Route as AuthenticatedAppSubscriptionRouteImport } from './routes/_authenticated/app.subscription'
@@ -619,6 +620,12 @@ const AuthenticatedManagementCalendarRoute =
     path: '/calendar',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
+const AuthenticatedManagementActivityRoute =
+  AuthenticatedManagementActivityRouteImport.update({
+    id: '/activity',
+    path: '/activity',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedAppUsersRoute = AuthenticatedAppUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -919,6 +926,7 @@ export interface FileRoutesByFullPath {
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
+  '/management/activity': typeof AuthenticatedManagementActivityRoute
   '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
@@ -1045,6 +1053,7 @@ export interface FileRoutesByTo {
   '/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/app/users': typeof AuthenticatedAppUsersRoute
+  '/management/activity': typeof AuthenticatedManagementActivityRoute
   '/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/management/customers': typeof AuthenticatedManagementCustomersRoute
@@ -1178,6 +1187,7 @@ export interface FileRoutesById {
   '/_authenticated/app/subscription': typeof AuthenticatedAppSubscriptionRoute
   '/_authenticated/app/updates': typeof AuthenticatedAppUpdatesRoute
   '/_authenticated/app/users': typeof AuthenticatedAppUsersRoute
+  '/_authenticated/management/activity': typeof AuthenticatedManagementActivityRoute
   '/_authenticated/management/calendar': typeof AuthenticatedManagementCalendarRoute
   '/_authenticated/management/companies': typeof AuthenticatedManagementCompaniesRouteWithChildren
   '/_authenticated/management/customers': typeof AuthenticatedManagementCustomersRoute
@@ -1312,6 +1322,7 @@ export interface FileRouteTypes {
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
+    | '/management/activity'
     | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
@@ -1438,6 +1449,7 @@ export interface FileRouteTypes {
     | '/app/subscription'
     | '/app/updates'
     | '/app/users'
+    | '/management/activity'
     | '/management/calendar'
     | '/management/companies'
     | '/management/customers'
@@ -1570,6 +1582,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/subscription'
     | '/_authenticated/app/updates'
     | '/_authenticated/app/users'
+    | '/_authenticated/management/activity'
     | '/_authenticated/management/calendar'
     | '/_authenticated/management/companies'
     | '/_authenticated/management/customers'
@@ -2332,6 +2345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementCalendarRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
+    '/_authenticated/management/activity': {
+      id: '/_authenticated/management/activity'
+      path: '/activity'
+      fullPath: '/management/activity'
+      preLoaderRoute: typeof AuthenticatedManagementActivityRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/app/users': {
       id: '/_authenticated/app/users'
       path: '/users'
@@ -2725,6 +2745,7 @@ const AuthenticatedManagementTeamRouteWithChildren =
   )
 
 interface AuthenticatedManagementRouteChildren {
+  AuthenticatedManagementActivityRoute: typeof AuthenticatedManagementActivityRoute
   AuthenticatedManagementCalendarRoute: typeof AuthenticatedManagementCalendarRoute
   AuthenticatedManagementCompaniesRoute: typeof AuthenticatedManagementCompaniesRouteWithChildren
   AuthenticatedManagementCustomersRoute: typeof AuthenticatedManagementCustomersRoute
@@ -2741,6 +2762,7 @@ interface AuthenticatedManagementRouteChildren {
 
 const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren =
   {
+    AuthenticatedManagementActivityRoute: AuthenticatedManagementActivityRoute,
     AuthenticatedManagementCalendarRoute: AuthenticatedManagementCalendarRoute,
     AuthenticatedManagementCompaniesRoute:
       AuthenticatedManagementCompaniesRouteWithChildren,
