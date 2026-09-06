@@ -293,14 +293,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         )}
 
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-destructive hover:bg-destructive/10 transition-colors"
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          <span>{t("signOut")}</span>
-        </button>
       </div>
     </div>
   );
