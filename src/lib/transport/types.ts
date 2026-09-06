@@ -49,6 +49,10 @@ export interface TransportSettings {
   liveTracking: boolean;
   gpsPollMinutes: number;
   searchProvider: "auto" | "osm" | "off";
+  /** How often the periodic audit is expected; "manual" = no schedule. */
+  auditCadence: "manual" | "weekly" | "biweekly" | "monthly";
+  auditOwnerUserId: string | null;
+  auditReminder: boolean;
 }
 
 export interface TransportGpsDevice {
@@ -217,6 +221,7 @@ export interface ChecklistItem {
 export interface WeeklyCheck {
   id: string;
   period_start: string;
+  due_on: string | null;
   status: "in_progress" | "completed" | "cancelled";
   summary: string | null;
   ran_by_name: string | null;
@@ -232,6 +237,8 @@ export interface CheckResult {
   outcome: "pending" | "ok" | "issue" | "not_applicable";
   note: string | null;
   checked_at: string | null;
+  incident_id: string | null;
+  request_id: string | null;
 }
 
 export interface TransportNote {
