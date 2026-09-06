@@ -67,3 +67,5 @@ Because Self-Hosted installations can run without internet, the map degrades gra
 - The seven routes stay at `/app/products/transport/<workspace>`, implemented as dedicated components instead of the current generic placeholder; the generic placeholder route remains for all other products so nothing else regresses.
 - Expiry alerts reuse the existing notification pipeline (30/60/90-day windows) and the Self-Hosted scheduled job runner.
 - Verification: typecheck, production build, existing architecture/licensing test suites, plus new unit tests for the compliance packs and grant checks.
+- Map: coordinates, zone polygons and geocode cache stored in `transport_places` / `transport_zones` (part of migration 0029). Tiles and geocoding via the Google Maps Platform connector managed by Lovable (server-side lookups only, cached locally so an offline install keeps working); a self-hosted/offline tile source can be pointed at from Transport settings. New route `/app/products/transport/map` plus a reusable map panel component.
+- New tasks recorded in `roadmap.md` when implementation starts.
