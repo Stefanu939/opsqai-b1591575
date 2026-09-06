@@ -24,6 +24,10 @@ const KINDS = {
   gaps: { en: "Knowledge Gaps", de: "Wissenslücken", ro: "Lacune de cunoștințe" },
   reports: { en: "Reports", de: "Berichte", ro: "Rapoarte" },
   intelligence: { en: "Intelligence", de: "Intelligence", ro: "Intelligence" },
+  map: { en: "Map", de: "Karte", ro: "Hartă" },
+  cmr: { en: "CMR", de: "CMR", ro: "CMR" },
+  settings: { en: "Settings", de: "Einstellungen", ro: "Setări" },
+
 } as const;
 
 const PRODUCT_DOMAINS = {
