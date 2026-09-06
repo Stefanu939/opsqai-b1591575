@@ -1,12 +1,12 @@
 import type { Pool, PoolClient } from "pg";
 import type { DirectMessageRecord, IDirectMessageRepository, JsonLike } from "@/lib/providers/interfaces";
-import { toIso } from "./dates";
+import { toIso, toIsoOrNull } from "./dates";
 
 function message(row: { id:string; conversation_id:string; sender_id:string; body:string|null;
   attachments: JsonLike[]; created_at:Date; edited_at:Date|null; deleted_at:Date|null }): DirectMessageRecord {
   return { id:row.id, conversationId:row.conversation_id, senderId:row.sender_id, body:row.body,
     attachments:row.attachments ?? [], createdAt:toIso(row.created_at),
-    editedAt:toIso(row.edited_at) ?? null, deletedAt:toIso(row.deleted_at) ?? null };
+    editedAt:toIsoOrNull(row.edited_at), deletedAt:toIsoOrNull(row.deleted_at) };
 }
 async function member(db: Pool | PoolClient, userId: string, conversationId: string) {
   const { rows } = await db.query("SELECT 1 FROM public.direct_conversation_members WHERE user_id=$1 AND conversation_id=$2", [userId, conversationId]);
