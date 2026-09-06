@@ -658,12 +658,27 @@ function ReleaseFileUpload({
       } ${uploading ? "pointer-events-none opacity-60" : ""}`}
     >
       <UploadCloud className="mx-auto h-6 w-6 text-muted-foreground" />
-      <p className="mt-2 text-sm">
-        {uploading ? "Uploading…" : "Drag file here or click to browse"}
-      </p>
-      <p className="text-xs text-muted-foreground">
-        {kind === "installer" ? ".exe, .msi, .zip" : ".pdf, .md, .txt"}
-      </p>
+      {uploading ? (
+        <div className="mt-3 space-y-2 text-left">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-foreground">
+              {hashing ? "Calculating checksum…" : "Uploading…"}
+            </span>
+            <span className="tabular-nums text-muted-foreground">{progress}%</span>
+          </div>
+          <Progress value={progress} />
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            {formatBytes(uploadedBytes)} of {formatBytes(totalBytes)}
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="mt-2 text-sm">Drag file here or click to browse</p>
+          <p className="text-xs text-muted-foreground">
+            {kind === "installer" ? ".exe, .msi, .zip" : ".pdf, .md, .txt"}
+          </p>
+        </>
+      )}
       <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={onInputChange} />
     </div>
   );
