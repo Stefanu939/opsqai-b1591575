@@ -137,6 +137,7 @@ import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './route
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
 import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
+import { Route as AuthenticatedAppProductsTransportWorkspaceRouteImport } from './routes/_authenticated/app.products.transport.$workspace'
 import { Route as AuthenticatedAppProductsProductWorkspaceRouteImport } from './routes/_authenticated/app.products.$product.$workspace'
 import { Route as AuthenticatedAppAcademyPathPathIdRouteImport } from './routes/_authenticated/app.academy.path.$pathId'
 import { Route as AuthenticatedAppAcademyLessonLessonIdRouteImport } from './routes/_authenticated/app.academy.lesson.$lessonId'
@@ -833,6 +834,12 @@ const ApiPublicV1LicenseHeartbeatRoute =
     path: '/api/public/v1/license/heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAppProductsTransportWorkspaceRoute =
+  AuthenticatedAppProductsTransportWorkspaceRouteImport.update({
+    id: '/products/transport/$workspace',
+    path: '/products/transport/$workspace',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppProductsProductWorkspaceRoute =
   AuthenticatedAppProductsProductWorkspaceRouteImport.update({
     id: '/products/$product/$workspace',
@@ -981,6 +988,7 @@ export interface FileRoutesByFullPath {
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
+  '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1106,6 +1114,7 @@ export interface FileRoutesByTo {
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
+  '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1240,6 +1249,7 @@ export interface FileRoutesById {
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
   '/_authenticated/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
+  '/_authenticated/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
 }
@@ -1374,6 +1384,7 @@ export interface FileRouteTypes {
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
     | '/app/products/$product/$workspace'
+    | '/app/products/transport/$workspace'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   fileRoutesByTo: FileRoutesByTo
@@ -1499,6 +1510,7 @@ export interface FileRouteTypes {
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
     | '/app/products/$product/$workspace'
+    | '/app/products/transport/$workspace'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   id:
@@ -1632,6 +1644,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
     | '/_authenticated/app/products/$product/$workspace'
+    | '/_authenticated/app/products/transport/$workspace'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
   fileRoutesById: FileRoutesById
@@ -2598,6 +2611,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1LicenseHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app/products/transport/$workspace': {
+      id: '/_authenticated/app/products/transport/$workspace'
+      path: '/products/transport/$workspace'
+      fullPath: '/app/products/transport/$workspace'
+      preLoaderRoute: typeof AuthenticatedAppProductsTransportWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/products/$product/$workspace': {
       id: '/_authenticated/app/products/$product/$workspace'
       path: '/products/$product/$workspace'
@@ -2659,6 +2679,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAcademyLessonLessonIdRoute: typeof AuthenticatedAppAcademyLessonLessonIdRoute
   AuthenticatedAppAcademyPathPathIdRoute: typeof AuthenticatedAppAcademyPathPathIdRoute
   AuthenticatedAppProductsProductWorkspaceRoute: typeof AuthenticatedAppProductsProductWorkspaceRoute
+  AuthenticatedAppProductsTransportWorkspaceRoute: typeof AuthenticatedAppProductsTransportWorkspaceRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -2689,6 +2710,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
     AuthenticatedAppAcademyPathPathIdRoute,
   AuthenticatedAppProductsProductWorkspaceRoute:
     AuthenticatedAppProductsProductWorkspaceRoute,
+  AuthenticatedAppProductsTransportWorkspaceRoute:
+    AuthenticatedAppProductsTransportWorkspaceRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
