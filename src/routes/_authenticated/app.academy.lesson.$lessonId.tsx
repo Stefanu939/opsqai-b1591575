@@ -540,9 +540,15 @@ function TeacherChat({
                       </span>
                     </div>
                     {quiz.map((q, i) => (
-                      <div key={`w${i}`} className={!result && i !== qIndex ? "hidden" : undefined}>
-                    {[q].map(() => (
-                      <div key={i} className="space-y-2 border-b last:border-0 pb-3 last:pb-0">
+                      <div
+                        key={i}
+                        className={
+                          !result && i !== qIndex
+                            ? "hidden"
+                            : "space-y-2 border-b last:border-0 pb-3 last:pb-0"
+                        }
+                      >
+
                         <div className="text-sm font-medium">
                           {i + 1}. {q.question}
                         </div>
