@@ -529,11 +529,19 @@ function TeacherChat({
               {quiz && (
                 <div className="flex justify-start">
                   <Card className="w-full max-w-[92%] p-4 space-y-4 border-primary/30">
-                    <div className="font-medium flex items-center gap-2 text-sm">
-                      <ListChecks className="h-4 w-4 text-primary" /> Quick check — let's see what
-                      stuck
+                    <div className="font-medium flex items-center justify-between gap-2 text-sm">
+                      <span className="inline-flex items-center gap-2">
+                        <ListChecks className="h-4 w-4 text-primary" /> Quiz
+                      </span>
+                      <span className="text-[11px] font-normal text-muted-foreground">
+                        {result
+                          ? "Review"
+                          : `Question ${Math.min(qIndex + 1, quiz.length)} of ${quiz.length} · pass mark ${passing}%`}
+                      </span>
                     </div>
                     {quiz.map((q, i) => (
+                      <div key={`w${i}`} className={!result && i !== qIndex ? "hidden" : undefined}>
+                    {[q].map(() => (
                       <div key={i} className="space-y-2 border-b last:border-0 pb-3 last:pb-0">
                         <div className="text-sm font-medium">
                           {i + 1}. {q.question}
