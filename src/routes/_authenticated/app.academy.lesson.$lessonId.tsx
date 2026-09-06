@@ -629,9 +629,33 @@ function TeacherChat({
                       </div>
                     ))}
                     {!result ? (
-                      <Button onClick={finishQuiz} disabled={answers.some((a) => !a)} size="sm">
-                        Submit answers
-                      </Button>
+                      <div className="flex items-center justify-between gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={qIndex === 0}
+                          onClick={() => setQIndex((i) => Math.max(0, i - 1))}
+                        >
+                          Back
+                        </Button>
+                        {qIndex < quiz.length - 1 ? (
+                          <Button
+                            size="sm"
+                            disabled={!answers[qIndex]}
+                            onClick={() => setQIndex((i) => Math.min(quiz.length - 1, i + 1))}
+                          >
+                            Next question
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={finishQuiz}
+                            disabled={answers.some((a) => !a)}
+                            size="sm"
+                          >
+                            Submit answers
+                          </Button>
+                        )}
+                      </div>
                     ) : (
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <Badge
