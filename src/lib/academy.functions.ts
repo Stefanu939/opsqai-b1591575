@@ -834,15 +834,34 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
       70;
 
 
-    // Grade using stored, trusted correct_answer values.
-    const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
+    // Grade using stored, trusted correct answers, resolved to option indices so
+    // a stored letter ("A") or English true/false never mismatches localized
+    // option text. Ungradeable questions are excluded from the score.
+    const results: Array<{
+      correct: boolean;
+      scored: boolean;
+      explanation: string;
+      correct_answer: string;
+    }> = [];
 
     for (let i = 0; i < parsedQuestions.length; i++) {
       const q: StoredQuestion = parsedQuestions[i];
       const a = (data.answers[i] ?? "").trim();
       if (q.type === "multiple_choice" || q.type === "true_false") {
-        const correct = a.toLowerCase() === q.correct_answer.trim().toLowerCase();
-        results.push({ correct, explanation: q.explanation, correct_answer: q.correct_answer });
+        const graded = gradeChoiceAnswer(a, q.correct_answer, q.options ?? [], q.type);
+        results.push({
+          correct: graded.correct,
+          scored: graded.scored,
+          explanation: q.explanation,
+          correct_answer: graded.correctAnswerText || q.correct_answer,
+        });
+      } else if (isUngradeableExpectedAnswer(q.correct_answer)) {
+        results.push({
+          correct: false,
+          scored: false,
+          explanation: q.explanation,
+          correct_answer: "",
+        });
       } else {
         const text = await generateAiText({
           role: "chat",
@@ -858,12 +877,21 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
           ],
         });
         const correct = /^yes/i.test(text.trim());
-        results.push({ correct, explanation: q.explanation, correct_answer: q.correct_answer });
+        results.push({
+          correct,
+          scored: true,
+          explanation: q.explanation,
+          correct_answer: q.correct_answer,
+        });
       }
     }
-    const correctCount = results.filter((r) => r.correct).length;
-    const score = Math.round((correctCount / results.length) * 100);
-    const passed = score >= passingScore;
+    const scoredResults = results.filter((r) => r.scored);
+    const correctCount = scoredResults.filter((r) => r.correct).length;
+    const score = scoredResults.length
+      ? Math.round((correctCount / scoredResults.length) * 100)
+      : 0;
+    const passed = scoredResults.length > 0 && score >= passingScore;
+
 
     // Finalize the pending attempt row rather than inserting a new one.
     await repo.gradeQuizAttempt(attempt.id, {
