@@ -778,7 +778,9 @@ function SourcesPanel({
   answerBucket: ConfBucket;
   T: (k: string) => string;
 }) {
+  const navigate = useNavigate();
   const docs = sources.filter((s) => s.type === "document");
+
   const faqs = sources.filter((s) => s.type === "faq");
   const primary = docs.find((d) => d.primary) ?? docs[0];
   const primarySim = typeof primary?.similarity === "number" ? primary.similarity : 0;
