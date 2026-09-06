@@ -82,9 +82,14 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
 
 
   const query=textOf([...messages].reverse().find((m)=>m.role==="user"));
-  const isGreeting=greeting.test(query);
-  const isCapability=!isGreeting&&capability.test(query);
+  // A greeting / capability question only qualifies when the WHOLE message is
+  // that — otherwise "bună, care e capitala Germaniei?" escaped the grounding
+  // gate and got answered from general knowledge.
+  const shortAsk=query.length<=70&&query.split("?").filter((p)=>p.trim()).length<=1;
+  const isGreeting=shortAsk&&greeting.test(query)&&query.length<=45;
+  const isCapability=!isGreeting&&shortAsk&&capability.test(query);
   const isFollowup=!isGreeting&&!isCapability&&messages.some((m)=>m.role==="assistant")&&followup.test(query);
+
   const sources:Source[]=[];
   let context="";
   let confidence=0;
