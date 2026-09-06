@@ -66,12 +66,20 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
 
   const dataCtx=await getAuthProvider().getDataContext(header.slice(7));
   const threads=getThreadRepository(dataCtx);
-  const thread=(await threads.listForUser(identity.userId,{limit:500})).find((item)=>item.id===body.threadId);
+  // Thread ownership + profile + existing history are independent reads: run them
+  // together so the first token is not delayed by three sequential round trips.
+  const messageRepo=getMessageRepository(dataCtx);
+  const [threadList,profile,existing]=await Promise.all([
+    threads.listForUser(identity.userId,{limit:200}),
+    getProfileRepository(dataCtx).findByUserId(identity.userId),
+    messageRepo.listByThread(body.threadId),
+  ]);
+  const thread=threadList.find((item)=>item.id===body.threadId);
   if(!thread)return new Response("Thread not found",{status:404});
-  const profile=await getProfileRepository(dataCtx).findByUserId(identity.userId);
   const companyId=thread.companyId||profile?.companyId;
   if(!companyId)return new Response("Company not found",{status:400});
   const firstName=firstNameFrom(profile?.fullName,identity.email);
+
 
   const query=textOf([...messages].reverse().find((m)=>m.role==="user"));
   const isGreeting=greeting.test(query);
