@@ -7,18 +7,14 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Headphones,
   Download,
   FileText,
   MessagesSquare,
-  Package,
   Home,
-  BookOpen,
   Shield,
   Newspaper,
-  LogOut,
   Menu,
   X,
   CalendarDays,
@@ -65,8 +61,6 @@ const NAV: readonly NavItem[] = [
   { to: "/portal/downloads", label: "Downloads", icon: Download, customerOnly: true },
   { to: "/portal/subscription", label: "Subscription", icon: FileText, customerOnly: true },
   { to: "/portal/support", label: "Support", icon: MessagesSquare, customerOnly: true },
-  { to: "/portal/release-notes", label: "Release notes", icon: Package, customerOnly: true },
-  { to: "/portal/documentation", label: "Documentation", icon: BookOpen },
   { to: "/portal/admin", label: "Admin", icon: Shield, staffOnly: true },
 ];
 
@@ -79,9 +73,8 @@ function initials(email: string | null | undefined) {
 
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isPlatformAdmin, signOut, user } = useAuth();
+  const { isPlatformAdmin, user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const visible = NAV.filter((item) => {
     if (item.staffOnly) return isPlatformAdmin;
     if (item.customerOnly) return !isPlatformAdmin;
@@ -98,12 +91,6 @@ function PortalLayout() {
   useEffect(() => {
     setMobileOpen(false);
   }, [path]);
-  const handleSignOut = async () => {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await signOut();
-    navigate({ to: "/auth", search: { audience: "portal" }, replace: true });
-  };
   const SidebarInner = (
     <>
       <div className="flex items-center gap-2.5 px-2 py-4">
@@ -155,33 +142,22 @@ function PortalLayout() {
           );
         })}
       </nav>
-       <div className="rounded-md border border-border bg-secondary/60 p-3">
-        {!isPlatformAdmin && (
-          <>
-            <div className="flex items-start gap-2.5">
-              <IconTile icon={Headphones} size="md" round />
-              <div className="min-w-0">
-                <div className="text-xs font-semibold text-foreground">Need help?</div>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-                  Our support team is here for you.
-                </p>
-              </div>
+      {!isPlatformAdmin && (
+        <div className="rounded-md border border-border bg-secondary/60 p-3">
+          <div className="flex items-start gap-2.5">
+            <IconTile icon={Headphones} size="md" round />
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-foreground">Need help?</div>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                Our support team is here for you.
+              </p>
             </div>
-            <Button asChild variant="outline" size="sm" className="mt-3 w-full">
-              <Link to="/portal/support">Contact support</Link>
-            </Button>
-          </>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSignOut}
-           className="mt-1 w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </Button>
-      </div>
+          </div>
+          <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+            <Link to="/portal/support">Contact support</Link>
+          </Button>
+        </div>
+      )}
     </>
   );
   return (
@@ -229,8 +205,7 @@ function PortalLayout() {
               helpLinks={[
                 { label: "Downloads", description: "Installer packages and modules", href: "/portal/downloads" },
                 { label: "Subscription", description: "Licenses, plan and entitlements", href: "/portal/subscription" },
-                { label: "Release notes", description: "What changed in the latest builds", href: "/portal/release-notes" },
-                { label: "Documentation", description: "Setup and product guides", href: "/portal/documentation" },
+                { label: "News", description: "Latest product announcements", href: "/portal/news" },
               ]}
             />
           </div>

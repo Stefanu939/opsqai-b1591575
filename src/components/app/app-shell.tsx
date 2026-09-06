@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useMyModuleAccess } from "@/hooks/use-module-access";
 import { useState, type ReactNode } from "react";
 import {
@@ -8,7 +8,6 @@ import {
   BookOpen,
   HelpCircle,
   Users,
-  LogOut,
   Menu,
   X,
   Languages,
@@ -51,9 +50,8 @@ import { resolveWorkspaceIcon } from "@/lib/workspace-icons";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
-  const { signOut, user, companyName, hasPermission, hasAnyPermission } = auth;
+  const { user, companyName, hasPermission, hasAnyPermission } = auth;
   const { t, lang, setLang } = useT();
-  const navigate = useNavigate();
   const license = useLicense();
   const { canSeeModule } = useMyModuleAccess();
   // A nav item shows only when the install is licensed for the module AND the
@@ -167,14 +165,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Legacy flat `nav` kept for the mobile bottom-tab bar — primary items only.
   const nav = sections[0]?.items ?? [];
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } finally {
-      setMobileOpen(false);
-      navigate({ to: "/auth", replace: true });
-    }
-  };
 
 
   const linkCls =
@@ -293,14 +283,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         )}
 
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-destructive hover:bg-destructive/10 transition-colors"
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          <span>{t("signOut")}</span>
-        </button>
       </div>
     </div>
   );

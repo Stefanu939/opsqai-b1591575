@@ -69,7 +69,7 @@ function DocumentationIndex() {
           </p>
           <div className="mt-6 flex gap-3 justify-center">
             <Button asChild>
-              <Link to="/portal/documentation">{t.installSpecific.ctaPrimary}</Link>
+              <Link to="/portal">{t.installSpecific.ctaPrimary}</Link>
             </Button>
             <Button asChild variant="outline">
               <Link to="/contact">{t.installSpecific.ctaSecondary}</Link>

@@ -81,11 +81,9 @@ import { Route as ApiAuthPasswordResetRequestRouteImport } from './routes/api/au
 import { Route as ApiAuthPasswordResetConfirmRouteImport } from './routes/api/auth/password-reset-confirm'
 import { Route as AuthenticatedPortalSupportRouteImport } from './routes/_authenticated/portal.support'
 import { Route as AuthenticatedPortalSubscriptionRouteImport } from './routes/_authenticated/portal.subscription'
-import { Route as AuthenticatedPortalReleaseNotesRouteImport } from './routes/_authenticated/portal.release-notes'
 import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authenticated/portal.profile'
 import { Route as AuthenticatedPortalNewsRouteImport } from './routes/_authenticated/portal.news'
 import { Route as AuthenticatedPortalDownloadsRouteImport } from './routes/_authenticated/portal.downloads'
-import { Route as AuthenticatedPortalDocumentationRouteImport } from './routes/_authenticated/portal.documentation'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedManagementTeamRouteImport } from './routes/_authenticated/management.team'
@@ -513,12 +511,6 @@ const AuthenticatedPortalSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
-const AuthenticatedPortalReleaseNotesRoute =
-  AuthenticatedPortalReleaseNotesRouteImport.update({
-    id: '/release-notes',
-    path: '/release-notes',
-    getParentRoute: () => AuthenticatedPortalRoute,
-  } as any)
 const AuthenticatedPortalProfileRoute =
   AuthenticatedPortalProfileRouteImport.update({
     id: '/profile',
@@ -534,12 +526,6 @@ const AuthenticatedPortalDownloadsRoute =
   AuthenticatedPortalDownloadsRouteImport.update({
     id: '/downloads',
     path: '/downloads',
-    getParentRoute: () => AuthenticatedPortalRoute,
-  } as any)
-const AuthenticatedPortalDocumentationRoute =
-  AuthenticatedPortalDocumentationRouteImport.update({
-    id: '/documentation',
-    path: '/documentation',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
 const AuthenticatedPortalCalendarRoute =
@@ -940,11 +926,9 @@ export interface FileRoutesByFullPath {
   '/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
-  '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
-  '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/auth/password-reset-confirm': typeof ApiAuthPasswordResetConfirmRoute
@@ -1066,11 +1050,9 @@ export interface FileRoutesByTo {
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
-  '/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
-  '/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/auth/password-reset-confirm': typeof ApiAuthPasswordResetConfirmRoute
@@ -1201,11 +1183,9 @@ export interface FileRoutesById {
   '/_authenticated/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
-  '/_authenticated/portal/documentation': typeof AuthenticatedPortalDocumentationRoute
   '/_authenticated/portal/downloads': typeof AuthenticatedPortalDownloadsRoute
   '/_authenticated/portal/news': typeof AuthenticatedPortalNewsRouteWithChildren
   '/_authenticated/portal/profile': typeof AuthenticatedPortalProfileRoute
-  '/_authenticated/portal/release-notes': typeof AuthenticatedPortalReleaseNotesRoute
   '/_authenticated/portal/subscription': typeof AuthenticatedPortalSubscriptionRoute
   '/_authenticated/portal/support': typeof AuthenticatedPortalSupportRoute
   '/api/auth/password-reset-confirm': typeof ApiAuthPasswordResetConfirmRoute
@@ -1336,11 +1316,9 @@ export interface FileRouteTypes {
     | '/management/team'
     | '/portal/admin'
     | '/portal/calendar'
-    | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
     | '/portal/profile'
-    | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
     | '/api/auth/password-reset-confirm'
@@ -1462,11 +1440,9 @@ export interface FileRouteTypes {
     | '/management/support'
     | '/management/team'
     | '/portal/calendar'
-    | '/portal/documentation'
     | '/portal/downloads'
     | '/portal/news'
     | '/portal/profile'
-    | '/portal/release-notes'
     | '/portal/subscription'
     | '/portal/support'
     | '/api/auth/password-reset-confirm'
@@ -1596,11 +1572,9 @@ export interface FileRouteTypes {
     | '/_authenticated/management/team'
     | '/_authenticated/portal/admin'
     | '/_authenticated/portal/calendar'
-    | '/_authenticated/portal/documentation'
     | '/_authenticated/portal/downloads'
     | '/_authenticated/portal/news'
     | '/_authenticated/portal/profile'
-    | '/_authenticated/portal/release-notes'
     | '/_authenticated/portal/subscription'
     | '/_authenticated/portal/support'
     | '/api/auth/password-reset-confirm'
@@ -2219,13 +2193,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalSubscriptionRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
-    '/_authenticated/portal/release-notes': {
-      id: '/_authenticated/portal/release-notes'
-      path: '/release-notes'
-      fullPath: '/portal/release-notes'
-      preLoaderRoute: typeof AuthenticatedPortalReleaseNotesRouteImport
-      parentRoute: typeof AuthenticatedPortalRoute
-    }
     '/_authenticated/portal/profile': {
       id: '/_authenticated/portal/profile'
       path: '/profile'
@@ -2245,13 +2212,6 @@ declare module '@tanstack/react-router' {
       path: '/downloads'
       fullPath: '/portal/downloads'
       preLoaderRoute: typeof AuthenticatedPortalDownloadsRouteImport
-      parentRoute: typeof AuthenticatedPortalRoute
-    }
-    '/_authenticated/portal/documentation': {
-      id: '/_authenticated/portal/documentation'
-      path: '/documentation'
-      fullPath: '/portal/documentation'
-      preLoaderRoute: typeof AuthenticatedPortalDocumentationRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
     '/_authenticated/portal/calendar': {
@@ -2821,11 +2781,9 @@ const AuthenticatedPortalNewsRouteWithChildren =
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRouteWithChildren
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
-  AuthenticatedPortalDocumentationRoute: typeof AuthenticatedPortalDocumentationRoute
   AuthenticatedPortalDownloadsRoute: typeof AuthenticatedPortalDownloadsRoute
   AuthenticatedPortalNewsRoute: typeof AuthenticatedPortalNewsRouteWithChildren
   AuthenticatedPortalProfileRoute: typeof AuthenticatedPortalProfileRoute
-  AuthenticatedPortalReleaseNotesRoute: typeof AuthenticatedPortalReleaseNotesRoute
   AuthenticatedPortalSubscriptionRoute: typeof AuthenticatedPortalSubscriptionRoute
   AuthenticatedPortalSupportRoute: typeof AuthenticatedPortalSupportRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
@@ -2834,11 +2792,9 @@ interface AuthenticatedPortalRouteChildren {
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRouteWithChildren,
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
-  AuthenticatedPortalDocumentationRoute: AuthenticatedPortalDocumentationRoute,
   AuthenticatedPortalDownloadsRoute: AuthenticatedPortalDownloadsRoute,
   AuthenticatedPortalNewsRoute: AuthenticatedPortalNewsRouteWithChildren,
   AuthenticatedPortalProfileRoute: AuthenticatedPortalProfileRoute,
-  AuthenticatedPortalReleaseNotesRoute: AuthenticatedPortalReleaseNotesRoute,
   AuthenticatedPortalSubscriptionRoute: AuthenticatedPortalSubscriptionRoute,
   AuthenticatedPortalSupportRoute: AuthenticatedPortalSupportRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
