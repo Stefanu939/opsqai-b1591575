@@ -39,6 +39,7 @@ import { Route as SolutionsIndexRouteImport } from './routes/solutions.index'
 import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as SolutionsVerticalRouteImport } from './routes/solutions.$vertical'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
@@ -288,6 +289,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
   id: '/verify/$code',
   path: '/verify/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsVerticalRoute = SolutionsVerticalRouteImport.update({
+  id: '/solutions/$vertical',
+  path: '/solutions/$vertical',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
@@ -901,6 +907,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
@@ -1028,6 +1035,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog': typeof BlogIndexRoute
   '/documentation': typeof DocumentationIndexRoute
@@ -1160,6 +1168,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
@@ -1294,6 +1303,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
     | '/documentation/'
@@ -1421,6 +1431,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog'
     | '/documentation'
@@ -1552,6 +1563,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
     | '/documentation/'
@@ -1670,6 +1682,7 @@ export interface RootRouteChildren {
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  SolutionsVerticalRoute: typeof SolutionsVerticalRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   SolutionsIndexRoute: typeof SolutionsIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -1908,6 +1921,13 @@ declare module '@tanstack/react-router' {
       path: '/verify/$code'
       fullPath: '/verify/$code'
       preLoaderRoute: typeof VerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/$vertical': {
+      id: '/solutions/$vertical'
+      path: '/solutions/$vertical'
+      fullPath: '/solutions/$vertical'
+      preLoaderRoute: typeof SolutionsVerticalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/terms': {
@@ -2935,6 +2955,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  SolutionsVerticalRoute: SolutionsVerticalRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   SolutionsIndexRoute: SolutionsIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
