@@ -1,9 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  streamText,
+  type UIMessage,
+} from "ai";
 import { resolveChatModel } from "@/lib/ai-provider.server";
 import { getAcademyRepository, getAuthProvider, getProfileRepository } from "@/lib/providers/registry";
-import { academyLanguageInstruction, normalizeAcademyLanguage } from "@/lib/academy-language";
+import {
+  academyLanguageInstruction,
+  academyLanguageQualityIssue,
+  normalizeAcademyLanguage,
+} from "@/lib/academy-language";
+import { checkAcademyGrounding } from "@/lib/academy-grounding";
+
+/** Safe reply built only from the stored lesson, used when generation is rejected. */
+const RECAP_LEAD: Record<string, string> = {
+  en: "Let's stay with what the lesson says. Here is the relevant part:",
+  de: "Bleiben wir bei dem, was die Lektion sagt. Hier ist der relevante Teil:",
+  ro: "Hai să rămânem la ce spune lecția. Iată partea relevantă:",
+  fr: "Restons sur ce que dit la leçon. Voici la partie concernée :",
+  es: "Quedémonos con lo que dice la lección. Esta es la parte relevante:",
+  it: "Restiamo su ciò che dice la lezione. Ecco la parte rilevante:",
+  pt: "Vamos ficar pelo que a lição diz. Esta é a parte relevante:",
+  pl: "Zostańmy przy tym, co mówi lekcja. Oto istotna część:",
+  uk: "Залишимося з тим, що написано в уроці. Ось відповідна частина:",
+};
+
+const FALLBACK_RECAP = (lesson: any, language: string | null) => {
+  const lead = RECAP_LEAD[language ?? "en"] ?? RECAP_LEAD.en;
+  const objectives = (lesson.objectives ?? []).slice(0, 3) as string[];
+  const parts = [
+    `**${lesson.title}**`,
+    objectives.length ? objectives.map((o) => `- ${o}`).join("\n") : "",
+    (lesson.summary as string) || (lesson.explanation as string) || "",
+  ].filter(Boolean);
+  return `${lead}\n\n${parts.join("\n\n")}`.slice(0, 4000);
+};
+
 
 const SYSTEM = (lessonBlock: string, chosenLanguage: string | null) => {
   const normalizedLanguage = chosenLanguage ? normalizeAcademyLanguage(chosenLanguage) : null;
