@@ -90,7 +90,9 @@ export function CmrSection({ t }: { t: Ui }) {
         },
       ]}
       fields={fields}
+      canCreate={canEdit}
       canEdit={canEdit}
+      canDelete={canEdit}
       emptyTitle={t.none}
       emptyBody={t.cmrBody}
       labels={{

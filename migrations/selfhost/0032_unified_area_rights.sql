@@ -28,6 +28,19 @@ CREATE TABLE IF NOT EXISTS public.user_area_rights (
 CREATE INDEX IF NOT EXISTS user_area_rights_user_idx ON public.user_area_rights (user_id);
 CREATE INDEX IF NOT EXISTS user_area_rights_company_idx ON public.user_area_rights (company_id);
 
+ALTER TABLE public.transport_grants DROP CONSTRAINT IF EXISTS transport_grants_key_check;
+ALTER TABLE public.transport_grants ADD CONSTRAINT transport_grants_key_check CHECK (
+  grant_key IN ('view','create','edit','delete','approve','checklist','settings','export','cmr')
+);
+
+-- Existing Transport edit rights historically covered create/edit/delete.
+INSERT INTO public.transport_grants (user_id, grant_key, granted_by)
+SELECT user_id, expanded.grant_key, granted_by
+FROM public.transport_grants current_grant
+CROSS JOIN LATERAL (VALUES ('create'), ('delete')) AS expanded(grant_key)
+WHERE current_grant.grant_key = 'edit'
+ON CONFLICT (user_id, grant_key) DO NOTHING;
+
 INSERT INTO public.area_permission_map (area_key, action, permission_key) VALUES
   ('platform','administer','platform.manage'),
   ('roles','administer','role.manage'),
@@ -44,6 +57,25 @@ INSERT INTO public.area_permission_map (area_key, action, permission_key) VALUES
   ('analytics','view','analytics.view'),('dashboard','view','dashboard.view'),
   ('feedback','create','feedback.submit')
 ON CONFLICT DO NOTHING;
+
+-- Bridge the existing Transport-specific matrix into the canonical rights.
+INSERT INTO public.user_area_rights (user_id, company_id, area_key, action, granted, granted_by)
+SELECT tg.user_id, u.company_id, 'transport', mapped.action, TRUE, tg.granted_by
+FROM public.transport_grants tg
+JOIN public.users u ON u.id = tg.user_id
+CROSS JOIN LATERAL (
+  SELECT CASE tg.grant_key
+    WHEN 'view' THEN 'view'
+    WHEN 'create' THEN 'create'
+    WHEN 'edit' THEN 'edit'
+    WHEN 'delete' THEN 'delete'
+    WHEN 'approve' THEN 'approve'
+    WHEN 'settings' THEN 'administer'
+    ELSE NULL
+  END AS action
+) mapped
+WHERE u.company_id IS NOT NULL AND mapped.action IS NOT NULL
+ON CONFLICT (user_id, company_id, area_key, action) DO NOTHING;
 
 -- Ensure all permanent full-access roles inherit every current permission.
 INSERT INTO public.role_permissions (role_key, permission_key)

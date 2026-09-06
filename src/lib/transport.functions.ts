@@ -43,10 +43,28 @@ async function actor(context: Ctx): Promise<Actor> {
     roles.roles.includes("workspace_owner");
 
   const stored = await db.listGrants(context.userId);
+  const areaRights = await import("@/lib/providers/registry").then(({ getAreaRightsRepository, hasAreaRightsRepository }) =>
+    hasAreaRightsRepository()
+      ? getAreaRightsRepository(context.supabase).listForUser(companyId, context.userId)
+      : Promise.resolve([]),
+  );
+  const transportRights = areaRights.filter((right) => right.areaKey === "transport");
+  const canonical = transportRights.filter((right) => right.granted).flatMap((right): TransportGrantKey[] => {
+    switch (right.action) {
+      case "view": return ["view"];
+      case "create": return ["create"];
+      case "edit": return ["edit", "checklist", "cmr"];
+      case "delete": return ["delete"];
+      case "approve": return ["approve"];
+      case "administer": return ["settings", "export"];
+    }
+  });
   const grants: TransportGrantKey[] = isUnrestricted
     ? [...TRANSPORT_GRANTS]
-    : stored.length
-      ? Array.from(new Set<TransportGrantKey>(["view", ...stored]))
+    : transportRights.length
+      ? Array.from(new Set<TransportGrantKey>(canonical))
+      : stored.length
+        ? Array.from(new Set<TransportGrantKey>(["view", ...stored]))
       : ["view"];
 
   return {
@@ -57,7 +75,7 @@ async function actor(context: Ctx): Promise<Actor> {
       context.claims?.email ||
       "User",
     grants,
-    canManageGrants: isUnrestricted || stored.includes("settings"),
+    canManageGrants: isUnrestricted || grants.includes("settings"),
   };
 }
 
@@ -547,6 +565,20 @@ export const setTransportGrant = createServerFn({ method: "POST" })
     }
     const db = await import("@/lib/transport/db.server");
     await db.setGrant(data.userId, data.grant, data.enabled, a.userId);
+    const { getAreaRightsRepository, hasAreaRightsRepository } = await import("@/lib/providers/registry");
+    if (hasAreaRightsRepository()) {
+      const target = await getProfileRepository(context.supabase).findByUserId(data.userId);
+      if (!target?.companyId || target.companyId !== a.companyId) throw new Error("Forbidden: target user is outside this workspace");
+      const repo = getAreaRightsRepository(context.supabase);
+      const existing = await repo.listForUser(a.companyId, data.userId);
+      const action = data.grant === "settings" || data.grant === "export" ? "administer"
+        : data.grant === "checklist" || data.grant === "cmr" ? "edit" : data.grant;
+      const next = existing
+        .filter((right) => !(right.areaKey === "transport" && right.action === action))
+        .map((right) => ({ area: right.areaKey, action: right.action, granted: right.granted }));
+      next.push({ area: "transport", action, granted: data.enabled });
+      await repo.replaceForUser(a.companyId, data.userId, next, a.userId);
+    }
     return { ok: true };
   });
 

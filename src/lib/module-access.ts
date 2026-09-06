@@ -80,6 +80,8 @@ export function resolveAccessibleModules(input: ResolveAccessibleModulesInput): 
     return ALL_MODULE_KEYS.filter((m) => licensedSet.has(m));
   }
 
-  const base = input.explicit && input.explicit.length > 0 ? input.explicit : ROLE_MODULE_PRESETS[role];
+  const base = input.explicit !== undefined && input.explicit !== null
+    ? input.explicit
+    : ROLE_MODULE_PRESETS[role];
   return base.filter((m) => licensedSet.has(m));
 }
