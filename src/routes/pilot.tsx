@@ -39,9 +39,9 @@ export const Route = createFileRoute("/pilot")({
           { name: "Pilot Program", path: "/pilot" },
         ]),
       ],
-    });
-  },
+    }),
   component: PilotPage,
+
 });
 
 const inputCls =
