@@ -85,30 +85,63 @@ const values = z.record(z.string(), z.unknown());
 
 export const getTransportOverview = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .handler(async ({ context }): Promise<TransportOverview> => {
+  .inputValidator((input: unknown) =>
+    z
+      .object({ periodDays: z.number().int().min(7).max(365).optional() })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<TransportOverview> => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/transport/db.server");
-    const [settings, c, alerts, incidents, requests, check] = await Promise.all([
+    const periodDays = data.periodDays ?? 30;
+    const [
+      settings,
+      c,
+      alerts,
+      incidents,
+      requests,
+      check,
+      vehicles,
+      drivers,
+      carriers,
+      pins,
+      trendData,
+      auditRuns,
+    ] = await Promise.all([
       db.getSettings(a.companyId),
       db.counts(a.companyId),
       db.expiryAlerts(a.companyId),
       db.listIncidents(a.companyId),
       db.listRequests(a.companyId),
       db.lastCheck(a.companyId),
+      db.listVehicles(a.companyId),
+      db.listDrivers(a.companyId),
+      db.listCarriers(a.companyId),
+      db.listMapPins(a.companyId),
+      db.trends(a.companyId, periodDays),
+      db.listAuditRuns(a.companyId, 1),
     ]);
     return {
       settings,
       counts: c,
-      alerts: alerts.slice(0, 25),
-      recentIncidents: incidents.slice(0, 6),
+      alerts: alerts.slice(0, 50),
+      recentIncidents: incidents.slice(0, 25),
       openRequests: requests
         .filter((r) => r.status === "open" || r.status === "in_review")
-        .slice(0, 6),
+        .slice(0, 25),
+      vehicles,
+      drivers,
+      carriers,
+      pins,
+      trends: trendData,
+      periodDays,
+      lastAudit: auditRuns[0] ?? null,
       lastCheck: check,
       grants: a.grants,
       canManageGrants: a.canManageGrants,
     };
   });
+
 
 // ── Registers ────────────────────────────────────────────────────────────
 
@@ -386,13 +419,26 @@ export const getTransportMap = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/transport/db.server");
-    const [pins, zones, settings, alerts] = await Promise.all([
+    const [pins, zones, settings, alerts, devices, vehicles] = await Promise.all([
       db.listMapPins(a.companyId),
       db.listZones(a.companyId),
       db.getSettings(a.companyId),
       db.expiryAlerts(a.companyId),
+      db.listGpsDevices(a.companyId),
+      db.listVehicles(a.companyId),
     ]);
-    return { pins, zones, settings, alerts, grants: a.grants };
+    return { pins, zones, settings, alerts, devices, vehicles, grants: a.grants };
+  });
+
+export const searchTransportPlaces = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ query: z.string().min(2).max(300) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    const db = await import("@/lib/transport/db.server");
+    return { hits: await db.searchPlaces(a.companyId, data.query, 6) };
   });
 
 export const geocodeTransportPlace = createServerFn({ method: "POST" })
@@ -405,6 +451,7 @@ export const geocodeTransportPlace = createServerFn({ method: "POST" })
     const db = await import("@/lib/transport/db.server");
     return { hit: await db.geocode(a.companyId, data.query) };
   });
+
 
 export const saveTransportPlace = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -455,11 +502,19 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
         language: z.enum(["en", "de", "ro"]).optional(),
         units: z.enum(["metric", "imperial"]).optional(),
         alertWindows: z.array(z.number().int().min(1).max(365)).max(6).optional(),
+        docAlertWindows: z.record(z.string(), z.number().int().min(1).max(365)).optional(),
         mapEnabled: z.boolean().optional(),
-        mapTileUrl: z.string().max(500).nullish(),
-        geocodeUrl: z.string().max(500).nullish(),
-        allowExternalLookups: z.boolean().optional(),
         cmrPrefix: z.string().min(1).max(12).optional(),
+        timezone: z.string().min(1).max(64).optional(),
+        weekStart: z.number().int().min(1).max(7).optional(),
+        auditDay: z.number().int().min(1).max(7).optional(),
+        auditRequired: z.boolean().optional(),
+        mapCenterLat: z.number().min(-90).max(90).nullish(),
+        mapCenterLng: z.number().min(-180).max(180).nullish(),
+        mapZoom: z.number().int().min(2).max(18).optional(),
+        liveTracking: z.boolean().optional(),
+        gpsPollMinutes: z.number().int().min(1).max(120).optional(),
+        searchProvider: z.enum(["auto", "osm", "off"]).optional(),
       })
       .parse(input),
   )
@@ -469,10 +524,11 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
     const db = await import("@/lib/transport/db.server");
     return db.saveSettings(a.companyId, {
       ...data,
-      mapTileUrl: data.mapTileUrl ?? null,
-      geocodeUrl: data.geocodeUrl ?? null,
+      mapCenterLat: data.mapCenterLat ?? null,
+      mapCenterLng: data.mapCenterLng ?? null,
     });
   });
+
 
 export const setTransportGrant = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -629,4 +685,127 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
       filename: `transport-${data.dataset}-${new Date().toISOString().slice(0, 10)}.csv`,
       csv: csv(rows as unknown as Array<Record<string, unknown>>),
     };
+  });
+
+// ── GPS / telematics ─────────────────────────────────────────────────────
+
+export const listTransportGpsDevices = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    const db = await import("@/lib/transport/db.server");
+    const [devices, vehicles] = await Promise.all([
+      db.listGpsDevices(a.companyId),
+      db.listVehicles(a.companyId),
+    ]);
+    return { devices, vehicles, grants: a.grants };
+  });
+
+export const saveTransportGpsDevice = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: uuidString().optional(),
+        vehicleId: uuidString().nullish(),
+        provider: z.enum(["manual", "tcomm", "webfleet", "wialon", "traccar", "other"]),
+        deviceId: z.string().min(1).max(120),
+        label: z.string().max(160).nullish(),
+        apiBaseUrl: z.string().max(400).nullish(),
+        apiToken: z.string().max(400).nullish(),
+        pollMinutes: z.number().int().min(1).max(120).optional(),
+        active: z.boolean().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "edit");
+    const db = await import("@/lib/transport/db.server");
+    return db.saveGpsDevice(a.companyId, a.userId, {
+      ...data,
+      vehicleId: data.vehicleId ?? null,
+      label: data.label ?? null,
+      apiBaseUrl: data.apiBaseUrl ?? null,
+      apiToken: data.apiToken ?? null,
+    });
+  });
+
+export const deleteTransportGpsDevice = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "edit");
+    const db = await import("@/lib/transport/db.server");
+    await db.deleteGpsDevice(a.companyId, data.id);
+    return { ok: true };
+  });
+
+export const syncTransportGps = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "edit");
+    const db = await import("@/lib/transport/db.server");
+    return db.syncGpsDevices(a.companyId);
+  });
+
+export const recordVehiclePosition = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        vehicleId: uuidString(),
+        deviceId: uuidString().nullish(),
+        lat: z.number().min(-90).max(90),
+        lng: z.number().min(-180).max(180),
+        speedKph: z.number().min(0).max(300).nullish(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "edit");
+    const db = await import("@/lib/transport/db.server");
+    await db.recordPosition(a.companyId, {
+      vehicleId: data.vehicleId,
+      deviceId: data.deviceId ?? null,
+      lat: data.lat,
+      lng: data.lng,
+      speedKph: data.speedKph ?? null,
+      source: "manual",
+    });
+    return { ok: true };
+  });
+
+export const getVehicleTrack = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ vehicleId: uuidString() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    const db = await import("@/lib/transport/db.server");
+    return { track: await db.listTrack(a.companyId, data.vehicleId, 200) };
+  });
+
+// ── Transport audit (Intelligence) ───────────────────────────────────────
+
+export const getTransportAuditRuns = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    const db = await import("@/lib/transport/db.server");
+    const runs = await db.listAuditRuns(a.companyId, 20);
+    return { runs, grants: a.grants };
+  });
+
+export const runTransportAudit = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    return db.runAudit(a.companyId, a.userId, a.name);
   });
