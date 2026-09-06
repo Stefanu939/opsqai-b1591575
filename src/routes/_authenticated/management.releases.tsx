@@ -568,6 +568,12 @@ function ReleaseFileUpload({
 
   const upload = useCallback(
     async (selected: File) => {
+      if (selected.size > MAX_UPLOAD_BYTES) {
+        toast.error(
+          `File is ${(selected.size / 1024 ** 3).toFixed(2)} GB — the maximum per file is 5 GB.`,
+        );
+        return;
+      }
       setUploading(true);
       setProgress(0);
       setUploadedBytes(0);
@@ -633,9 +639,13 @@ function ReleaseFileUpload({
           onChange({ path, name: selected.name, size: selected.size });
           toast.success(`${kind === "installer" ? "Installer" : "Release notes"} uploaded`);
           if (onChecksum && kind === "installer") {
-            setHashing(true);
-            const sum = await sha256Hex(selected);
-            onChecksum(sum);
+            if (selected.size > MAX_CHECKSUM_BYTES) {
+              toast.info("File too large to checksum in the browser — paste the SHA-256 manually.");
+            } else {
+              setHashing(true);
+              const sum = await sha256Hex(selected);
+              onChecksum(sum);
+            }
           }
           return;
         }
