@@ -3,6 +3,7 @@
 // Every section reads and writes the local installation database through the
 // authenticated Transport server functions. Access stays licence-gated at the
 // product level and right-gated per user inside the company.
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldOff } from "lucide-react";
 import { ModulePage } from "@/components/app/module-page";
@@ -13,12 +14,7 @@ import { useLicense } from "@/lib/license";
 import { useT } from "@/i18n";
 import { transportUi } from "@/i18n/pages/transport";
 import { localizeWorkspaceLabel, WORKSPACE_UI } from "@/i18n/pages/product-workspaces";
-import {
-  findWorkspace,
-  resolveEffectiveConfig,
-  workspaceSiblings,
-} from "@/lib/product-architecture";
-import { resolveWorkspaceIcon } from "@/lib/workspace-icons";
+import { findWorkspace, resolveEffectiveConfig } from "@/lib/product-architecture";
 import { OverviewSection } from "@/components/app/transport/overview-section";
 import {
   CarriersSection,
@@ -29,6 +25,7 @@ import {
 import { AuditSection } from "@/components/app/transport/audit-section";
 import { NotesSection } from "@/components/app/transport/notes-section";
 import { MapSection } from "@/components/app/transport/map-section";
+import { IntelligenceSection } from "@/components/app/transport/intelligence-section";
 import { CmrSection } from "@/components/app/transport/cmr-section";
 import { SettingsSection } from "@/components/app/transport/settings-section";
 import {
