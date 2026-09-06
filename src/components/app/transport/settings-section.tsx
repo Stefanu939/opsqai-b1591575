@@ -1,9 +1,10 @@
-// Transport settings: country/language pack, alert windows, map behaviour and
-// the per-user rights an Admin or SuperAdmin grants inside this installation.
+// Transport settings: country/language pack, time and week handling, alert
+// windows (global and per document type), audit rules, map defaults, GPS
+// polling and the per-user rights an Admin or SuperAdmin grants here.
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Settings, ShieldCheck } from "lucide-react";
+import { Globe2, Map as MapIcon, Settings, ShieldCheck } from "lucide-react";
 import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,12 +20,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { saveTransportSettings, setTransportGrant } from "@/lib/transport.functions";
-import { COUNTRY_OPTIONS } from "@/lib/transport/country-packs";
+import { COUNTRY_OPTIONS, countryPack } from "@/lib/transport/country-packs";
 import { TRANSPORT_GRANTS } from "@/lib/transport/types";
 import { useTransportRefresh, useTransportSettings } from "./use-transport";
 import type { transportUi } from "@/i18n/pages/transport";
 
 type Ui = ReturnType<typeof transportUi>;
+
+const TIMEZONES = [
+  "Europe/Bucharest",
+  "Europe/Berlin",
+  "Europe/Vienna",
+  "Europe/Warsaw",
+  "Europe/Paris",
+  "Europe/Madrid",
+  "Europe/London",
+  "UTC",
+];
+
+const DAYS = [1, 2, 3, 4, 5, 6, 7];
 
 export function SettingsSection({ t }: { t: Ui }) {
   const query = useTransportSettings();
@@ -37,11 +51,19 @@ export function SettingsSection({ t }: { t: Ui }) {
     language: "en" as "en" | "de" | "ro",
     units: "metric" as "metric" | "imperial",
     alertWindows: "30,60,90",
+    docAlertWindows: {} as Record<string, number>,
     mapEnabled: true,
-    mapTileUrl: "",
-    geocodeUrl: "",
-    allowExternalLookups: false,
     cmrPrefix: "CMR",
+    timezone: "Europe/Berlin",
+    weekStart: 1,
+    auditDay: 1,
+    auditRequired: true,
+    mapCenterLat: "",
+    mapCenterLng: "",
+    mapZoom: 5,
+    liveTracking: true,
+    gpsPollMinutes: 10,
+    searchProvider: "auto" as "auto" | "osm" | "off",
   });
 
   useEffect(() => {
@@ -52,18 +74,30 @@ export function SettingsSection({ t }: { t: Ui }) {
       language: (s.language as "en" | "de" | "ro") ?? "en",
       units: s.units,
       alertWindows: s.alertWindows.join(","),
+      docAlertWindows: s.docAlertWindows ?? {},
       mapEnabled: s.mapEnabled,
-      mapTileUrl: s.mapTileUrl ?? "",
-      geocodeUrl: s.geocodeUrl ?? "",
-      allowExternalLookups: s.allowExternalLookups,
       cmrPrefix: s.cmrPrefix,
+      timezone: s.timezone,
+      weekStart: s.weekStart,
+      auditDay: s.auditDay,
+      auditRequired: s.auditRequired,
+      mapCenterLat: s.mapCenterLat == null ? "" : String(s.mapCenterLat),
+      mapCenterLng: s.mapCenterLng == null ? "" : String(s.mapCenterLng),
+      mapZoom: s.mapZoom,
+      liveTracking: s.liveTracking,
+      gpsPollMinutes: s.gpsPollMinutes,
+      searchProvider: s.searchProvider,
     });
   }, [query.data?.settings]);
 
   const canEdit = query.data?.grants.includes("settings") ?? false;
   const canManage = query.data?.canManageGrants ?? false;
+  const pack = countryPack(form.country);
+  const lang = form.language;
 
   const submit = () => {
+    const lat = Number(form.mapCenterLat);
+    const lng = Number(form.mapCenterLng);
     void save({
       data: {
         country: form.country,
@@ -73,11 +107,19 @@ export function SettingsSection({ t }: { t: Ui }) {
           .split(",")
           .map((n) => Number(n.trim()))
           .filter((n) => Number.isFinite(n) && n > 0),
+        docAlertWindows: form.docAlertWindows,
         mapEnabled: form.mapEnabled,
-        mapTileUrl: form.mapTileUrl || null,
-        geocodeUrl: form.geocodeUrl || null,
-        allowExternalLookups: form.allowExternalLookups,
         cmrPrefix: form.cmrPrefix,
+        timezone: form.timezone,
+        weekStart: form.weekStart,
+        auditDay: form.auditDay,
+        auditRequired: form.auditRequired,
+        mapCenterLat: Number.isFinite(lat) && form.mapCenterLat !== "" ? lat : null,
+        mapCenterLng: Number.isFinite(lng) && form.mapCenterLng !== "" ? lng : null,
+        mapZoom: form.mapZoom,
+        liveTracking: form.liveTracking,
+        gpsPollMinutes: form.gpsPollMinutes,
+        searchProvider: form.searchProvider,
       },
     })
       .then(() => {
@@ -90,7 +132,7 @@ export function SettingsSection({ t }: { t: Ui }) {
   return (
     <div className="grid gap-4">
       <Panel
-        icon={Settings}
+        icon={Globe2}
         title={t.settings}
         description={t.settingsBody}
         actions={
@@ -103,7 +145,7 @@ export function SettingsSection({ t }: { t: Ui }) {
           )
         }
       >
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           <div>
             <Label className="text-xs">{t.countryPack}</Label>
             <Select
@@ -161,13 +203,42 @@ export function SettingsSection({ t }: { t: Ui }) {
             </Select>
           </div>
           <div>
-            <Label className="text-xs">{t.alertWindows}</Label>
-            <Input
-              className="mt-1"
-              value={form.alertWindows}
+            <Label className="text-xs">{t.timezone}</Label>
+            <Select
+              value={form.timezone}
+              onValueChange={(v) => setForm((f) => ({ ...f, timezone: v }))}
               disabled={!canEdit}
-              onChange={(e) => setForm((f) => ({ ...f, alertWindows: e.target.value }))}
-            />
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEZONES.map((z) => (
+                  <SelectItem key={z} value={z}>
+                    {z}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">{t.weekStart}</Label>
+            <Select
+              value={String(form.weekStart)}
+              onValueChange={(v) => setForm((f) => ({ ...f, weekStart: Number(v) }))}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DAYS.map((d) => (
+                  <SelectItem key={d} value={String(d)}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label className="text-xs">{t.cmrPrefix}</Label>
@@ -178,27 +249,162 @@ export function SettingsSection({ t }: { t: Ui }) {
               onChange={(e) => setForm((f) => ({ ...f, cmrPrefix: e.target.value }))}
             />
           </div>
-          <div>
-            <Label className="text-xs">{t.mapTileUrl}</Label>
+          <div className="sm:col-span-3">
+            <Label className="text-xs">{t.alertWindows}</Label>
             <Input
               className="mt-1"
-              value={form.mapTileUrl}
+              value={form.alertWindows}
               disabled={!canEdit}
-              placeholder="https://tiles.example/{z}/{x}/{y}.png"
-              onChange={(e) => setForm((f) => ({ ...f, mapTileUrl: e.target.value }))}
+              onChange={(e) => setForm((f) => ({ ...f, alertWindows: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <Label className="text-xs">{t.docAlerts}</Label>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            {pack.docTypes.map((d) => (
+              <div key={d.key} className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                  {d.label[lang] ?? d.label.en}
+                </span>
+                <Input
+                  className="h-8 w-20"
+                  type="number"
+                  min={1}
+                  max={365}
+                  disabled={!canEdit}
+                  value={form.docAlertWindows[d.key] ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => {
+                      const next = { ...f.docAlertWindows };
+                      const n = Number(e.target.value);
+                      if (!e.target.value || !Number.isFinite(n) || n <= 0) {
+                        delete next[d.key];
+                      } else {
+                        next[d.key] = Math.min(365, Math.round(n));
+                      }
+                      return { ...f, docAlertWindows: next };
+                    })
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={form.auditRequired}
+              disabled={!canEdit}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, auditRequired: v }))}
+            />
+            <Label className="text-xs">{t.auditRequired}</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs">{t.auditDay}</Label>
+            <Select
+              value={String(form.auditDay)}
+              onValueChange={(v) => setForm((f) => ({ ...f, auditDay: Number(v) }))}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className="h-8 w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DAYS.map((d) => (
+                  <SelectItem key={d} value={String(d)}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel
+        icon={MapIcon}
+        title={t.mapDefaults}
+        description={t.mapBody}
+        actions={
+          canEdit ? (
+            <Button size="sm" onClick={submit}>
+              {t.save}
+            </Button>
+          ) : null
+        }
+      >
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <Label className="text-xs">{`${t.mapCenter} · ${t.latitude}`}</Label>
+            <Input
+              className="mt-1"
+              value={form.mapCenterLat}
+              disabled={!canEdit}
+              placeholder="48.5"
+              onChange={(e) => setForm((f) => ({ ...f, mapCenterLat: e.target.value }))}
             />
           </div>
           <div>
-            <Label className="text-xs">{t.geocodeUrl}</Label>
+            <Label className="text-xs">{`${t.mapCenter} · ${t.longitude}`}</Label>
             <Input
               className="mt-1"
-              value={form.geocodeUrl}
+              value={form.mapCenterLng}
               disabled={!canEdit}
-              placeholder="https://nominatim.example/search?q={q}&format=json&limit=1"
-              onChange={(e) => setForm((f) => ({ ...f, geocodeUrl: e.target.value }))}
+              placeholder="15.5"
+              onChange={(e) => setForm((f) => ({ ...f, mapCenterLng: e.target.value }))}
             />
           </div>
-          <div className="flex items-center gap-6 sm:col-span-2">
+          <div>
+            <Label className="text-xs">{t.mapZoom}</Label>
+            <Input
+              className="mt-1"
+              type="number"
+              min={2}
+              max={18}
+              value={form.mapZoom}
+              disabled={!canEdit}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, mapZoom: Number(e.target.value) || 5 }))
+              }
+            />
+          </div>
+          <div>
+            <Label className="text-xs">{t.searchProvider}</Label>
+            <Select
+              value={form.searchProvider}
+              onValueChange={(v) =>
+                setForm((f) => ({ ...f, searchProvider: v as "auto" | "osm" | "off" }))
+              }
+              disabled={!canEdit}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Auto</SelectItem>
+                <SelectItem value="osm">OpenStreetMap</SelectItem>
+                <SelectItem value="off">{t.close}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">{t.pollMinutes}</Label>
+            <Input
+              className="mt-1"
+              type="number"
+              min={1}
+              max={120}
+              value={form.gpsPollMinutes}
+              disabled={!canEdit}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, gpsPollMinutes: Number(e.target.value) || 10 }))
+              }
+            />
+          </div>
+          <div className="flex items-end gap-6">
             <div className="flex items-center gap-2">
               <Switch
                 checked={form.mapEnabled}
@@ -209,13 +415,11 @@ export function SettingsSection({ t }: { t: Ui }) {
             </div>
             <div className="flex items-center gap-2">
               <Switch
-                checked={form.allowExternalLookups}
+                checked={form.liveTracking}
                 disabled={!canEdit}
-                onCheckedChange={(v) =>
-                  setForm((f) => ({ ...f, allowExternalLookups: v }))
-                }
+                onCheckedChange={(v) => setForm((f) => ({ ...f, liveTracking: v }))}
               />
-              <Label className="text-xs">{t.allowExternal}</Label>
+              <Label className="text-xs">{t.liveTracking}</Label>
             </div>
           </div>
         </div>
