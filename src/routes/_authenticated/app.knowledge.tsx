@@ -81,7 +81,11 @@ import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/app/knowledge")({
+  // Deep link used by AI Chat sources: /app/knowledge?doc=<document id>
+  validateSearch: (s: Record<string, unknown>): { doc?: string } =>
+    typeof s.doc === "string" && s.doc ? { doc: s.doc } : {},
   head: () => ({
+
     meta: [
       { title: "Knowledge Base — OPSQAI" },
       {
