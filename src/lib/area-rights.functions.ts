@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { AREA_ACTIONS } from "@/lib/area-rights";
 import { getActorRoles, getProfileCompany, requireAnyPermission } from "@/lib/authorization";
-import { getAdminProfileRepository, getAreaRightsRepository, getExportRepository } from "@/lib/providers/registry";
+import { getAdminProfileRepository, getAdminRoleRepository, getAreaRightsRepository, getExportRepository } from "@/lib/providers/registry";
 import { uuidString } from "@/lib/zod-uuid";
 
 const rightSchema = z.object({
@@ -20,7 +20,11 @@ async function targetContext(context: { supabase: unknown; userId: string }, use
   const actorCompany = await getProfileCompany(context.supabase, context.userId);
   if (!actor.isPlatformAdmin && actorCompany !== target.companyId) throw new Error("Forbidden: cross-company edit");
   const targetRoles = await getActorRoles(context.supabase, userId);
-  return { companyId: target.companyId, unrestricted: targetRoles.isPlatformOwner || targetRoles.isPlatformAdmin };
+  return {
+    companyId: target.companyId,
+    roles: targetRoles.roles,
+    unrestricted: targetRoles.isPlatformOwner || targetRoles.isPlatformAdmin || targetRoles.roles.includes("superadmin"),
+  };
 }
 
 export const getUserAreaRights = createServerFn({ method: "POST" })
@@ -33,7 +37,21 @@ export const getUserAreaRights = createServerFn({ method: "POST" })
       repo.listCatalog(),
       target.unrestricted ? Promise.resolve([]) : repo.listForUser(target.companyId, data.user_id),
     ]);
-    return { unrestricted: target.unrestricted, catalog, rights };
+    if (target.unrestricted || rights.length > 0) return { unrestricted: target.unrestricted, catalog, rights };
+    const permissionLists = await Promise.all(target.roles.map((role) => getAdminRoleRepository().listPermissionsForRole(role)));
+    const rolePermissions = new Set(permissionLists.flat());
+    return {
+      unrestricted: false,
+      catalog,
+      rights: catalog.map((item) => ({
+        userId: data.user_id,
+        companyId: target.companyId,
+        areaKey: item.areaKey,
+        action: item.action,
+        granted: rolePermissions.has(item.permissionKey),
+        grantedBy: null,
+      })),
+    };
   });
 
 export const setUserAreaRights = createServerFn({ method: "POST" })

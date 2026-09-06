@@ -35,6 +35,8 @@ export function CmrSection({ t }: { t: Ui }) {
   const data = query.data;
   const pack = useMemo(() => countryPack(data?.settings.country), [data?.settings.country]);
   const canEdit = data?.grants.includes("cmr") ?? false;
+  const canCreate = data?.grants.includes("create") ?? false;
+  const canDelete = data?.grants.includes("delete") ?? false;
 
   const options = useMemo(
     () => ({
@@ -90,9 +92,9 @@ export function CmrSection({ t }: { t: Ui }) {
         },
       ]}
       fields={fields}
-      canCreate={canEdit}
+      canCreate={canCreate && canEdit}
       canEdit={canEdit}
-      canDelete={canEdit}
+      canDelete={canDelete && canEdit}
       emptyTitle={t.none}
       emptyBody={t.cmrBody}
       labels={{

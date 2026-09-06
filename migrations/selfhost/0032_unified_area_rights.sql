@@ -4,6 +4,15 @@
 
 BEGIN;
 
+INSERT INTO public.permissions (key, label, category, description) VALUES
+  ('transport.view','View Transport','Transport','Open Transport workspaces and read records'),
+  ('transport.create','Create Transport records','Transport','Create vehicles, drivers, documents and operational records'),
+  ('transport.edit','Edit Transport records','Transport','Change Transport records, checklists and CMR data'),
+  ('transport.delete','Delete Transport records','Transport','Delete Transport records'),
+  ('transport.approve','Approve Transport decisions','Transport','Approve requests and incident decisions'),
+  ('transport.administer','Administer Transport','Transport','Manage Transport settings, rights and exports')
+ON CONFLICT (key) DO UPDATE SET label=EXCLUDED.label, category=EXCLUDED.category, description=EXCLUDED.description;
+
 CREATE TABLE IF NOT EXISTS public.area_permission_map (
   area_key TEXT NOT NULL,
   action TEXT NOT NULL CHECK (action IN ('view','create','edit','delete','approve','administer')),
@@ -56,6 +65,9 @@ INSERT INTO public.area_permission_map (area_key, action, permission_key) VALUES
   ('notifications','view','notifications.read'),('notifications','administer','notifications.manage'),
   ('analytics','view','analytics.view'),('dashboard','view','dashboard.view'),
   ('feedback','create','feedback.submit')
+  ,('transport','view','transport.view'),('transport','create','transport.create'),
+  ('transport','edit','transport.edit'),('transport','delete','transport.delete'),
+  ('transport','approve','transport.approve'),('transport','administer','transport.administer')
 ON CONFLICT DO NOTHING;
 
 -- Bridge the existing Transport-specific matrix into the canonical rights.

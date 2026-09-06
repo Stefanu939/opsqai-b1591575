@@ -563,12 +563,20 @@ export const setTransportGrant = createServerFn({ method: "POST" })
     if (!a.canManageGrants) {
       throw new Error("Forbidden: only an Admin or SuperAdmin can change rights.");
     }
+    const target = await getProfileRepository(context.supabase).findByUserId(data.userId);
+    if (!target?.companyId || target.companyId !== a.companyId) {
+      throw new Error("Forbidden: target user is outside this workspace");
+    }
+    const targetRoles = await import("@/lib/authorization").then(({ getActorRoles }) =>
+      getActorRoles(context.supabase, data.userId),
+    );
+    if (targetRoles.isPlatformOwner || targetRoles.isPlatformAdmin || targetRoles.roles.includes("superadmin")) {
+      throw new Error("Owner and SuperAdmin rights cannot be restricted");
+    }
     const db = await import("@/lib/transport/db.server");
     await db.setGrant(data.userId, data.grant, data.enabled, a.userId);
     const { getAreaRightsRepository, hasAreaRightsRepository } = await import("@/lib/providers/registry");
     if (hasAreaRightsRepository()) {
-      const target = await getProfileRepository(context.supabase).findByUserId(data.userId);
-      if (!target?.companyId || target.companyId !== a.companyId) throw new Error("Forbidden: target user is outside this workspace");
       const repo = getAreaRightsRepository(context.supabase);
       const existing = await repo.listForUser(a.companyId, data.userId);
       const action = data.grant === "settings" || data.grant === "export" ? "administer"
