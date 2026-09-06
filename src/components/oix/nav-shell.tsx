@@ -157,14 +157,12 @@ export function NavShell() {
                 </SheetClose>
               </nav>
               <div className="space-y-4 px-6 pb-6">
-                <div className="flex items-center gap-2" role="group" aria-label={m.a11y.language}>
-                  {(["en", "de", "ro"] as const).map((code) => (
-                    <button key={code} type="button" onClick={() => setLang(code)} aria-pressed={lang === code} className={cn("h-10 flex-1 rounded-sm border border-[var(--oix-gold-line)] text-xs font-semibold uppercase", lang === code && "bg-[var(--oix-cream)] text-[var(--oix-bg-deep)]")}>{code}</button>
-                  ))}
+                <div className="flex items-center gap-2">
                   <button type="button" onClick={toggleTheme} aria-label={m.a11y.theme} className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[var(--oix-gold-line)]">
                     {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   </button>
                 </div>
+
                 <OixButton variant="gold" to="/contact" withArrow className="w-full">{m.cta.proposal}</OixButton>
                 <OixButton variant="ghost" to="/auth" className="w-full">{m.cta.signIn}</OixButton>
               </div>
