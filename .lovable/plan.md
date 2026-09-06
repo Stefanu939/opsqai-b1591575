@@ -13,6 +13,13 @@
 - Verificare pe server, înainte ca răspunsul să ajungă la cursant: dacă întrebarea sau exemplul conține termeni/cifre care nu apar în textul lecției, mesajul se regenerează o dată cu o corecție strictă, iar dacă tot nu e curat se înlocuiește cu o recapitulare din lecție.
 - Aceeași regulă la chestionar: fiecare întrebare, variantă și răspuns corect trebuie să se sprijine pe text din lecție; întrebările nesusținute sunt eliminate, iar dacă rămân prea puține se regenerează.
 
+### A2. Toate întrebările devin Adevărat/Fals (Da/Nu)
+- Chestionarul generează exclusiv întrebări cu două variante: „Adevărat" / „Fals" (în limba aleasă). Nu mai apar variante multiple (A/B/C/D) și nici răspunsuri scrise de mână.
+- Fiecare afirmație trebuie să fie o propoziție care poate fi confirmată sau infirmată direct din textul lecției; jumătate dintre afirmații sunt false prin modificarea unui detaliu din lecție, ca testul să aibă sens.
+- Notarea devine complet automată și fără interpretare de model (nu mai e nevoie de corectarea răspunsurilor libere), deci scorurile sunt stabile și rapide.
+- Întrebările de verificare puse de instructor în chat rămân întrebări deschise scurte, dar dacă preferi și acolo doar Da/Nu, spune-mi și le aliniez.
+
+
 ### B. Română corectă (implicit)
 - Chestionarul trece de la modelul rapid la modelul principal, cu instrucțiuni de limbă explicite și cerință de diacritice complete (ă â î ș ț).
 - Un pas nou de corectură lingvistică: textul generat (chestionar + mesaj instructor) este verificat automat pentru semne clare de română greșită — diacritice lipsă, cuvinte în altă limbă, cratime greșite („sa" vs „să", „ti-" etc.); dacă apar, se cere o rescriere o singură dată.
