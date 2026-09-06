@@ -8,7 +8,6 @@ import {
   BookOpen,
   HelpCircle,
   Users,
-  LogOut,
   Menu,
   X,
   Languages,
@@ -51,7 +50,7 @@ import { resolveWorkspaceIcon } from "@/lib/workspace-icons";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
-  const { signOut, user, companyName, hasPermission, hasAnyPermission } = auth;
+  const { user, companyName, hasPermission, hasAnyPermission } = auth;
   const { t, lang, setLang } = useT();
   const navigate = useNavigate();
   const license = useLicense();
@@ -167,14 +166,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Legacy flat `nav` kept for the mobile bottom-tab bar — primary items only.
   const nav = sections[0]?.items ?? [];
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } finally {
-      setMobileOpen(false);
-      navigate({ to: "/auth", replace: true });
-    }
-  };
 
 
   const linkCls =
