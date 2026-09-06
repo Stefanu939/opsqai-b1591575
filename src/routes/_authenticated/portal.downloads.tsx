@@ -242,56 +242,6 @@ function PortalDownloads() {
         </div>
       )}
 
-
-      {modules.length > 0 && (
-        <section className="mt-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span aria-hidden className="block w-1 h-6 rounded-full bg-[color:var(--gold)]" />
-            <h2 className="text-lg font-display font-semibold">Extra modules</h2>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {modules.map((m) => (
-              <Card key={m.id} className="p-4 flex items-start gap-3">
-                <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
-                  <Package className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium">{m.title}</span>
-                    <Badge variant="outline">{m.category}</Badge>
-                    {m.version && <Badge variant="outline">v{m.version}</Badge>}
-                  </div>
-                  {m.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{m.description}</p>
-                  )}
-                  <Button
-                    size="sm"
-                    className="mt-2"
-                    onClick={async () => {
-                      try {
-                        if (m.file_url.startsWith("portal-download-modules/")) {
-                          const path = m.file_url.slice("portal-download-modules/".length);
-                          const { url } = await signUrl({
-                            data: { bucket: "portal-download-modules", path, expiresIn: 3600 },
-                          });
-                          window.open(url, "_blank", "noopener");
-                        } else {
-                          window.open(m.file_url, "_blank", "noopener");
-                        }
-                      } catch (e) {
-                        toast.error((e as Error).message);
-                      }
-                    }}
-                  >
-                    <DownloadIcon className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-      )}
     </ModulePage>
   );
 }
