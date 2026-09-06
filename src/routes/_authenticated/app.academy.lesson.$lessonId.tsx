@@ -45,6 +45,24 @@ type Q = {
 };
 
 const COMPLETE_MARKER = "[LESSON_COMPLETE]";
+const SECTION_MARKER = /\[SECTION_DONE:([a-z_]+)\]/g;
+
+/** Learning units. Progress is completed units / total units — never time. */
+type UnitKey = "intro" | "concepts" | "examples" | "best_practices" | "summary" | "quiz";
+const UNIT_LABEL: Record<UnitKey, string> = {
+  intro: "Introduction",
+  concepts: "Key concepts",
+  examples: "Practical example",
+  best_practices: "Best practices",
+  summary: "Summary",
+  quiz: "Quiz",
+};
+
+/** Learner asks to jump straight to the quiz (EN / DE / RO). */
+const QUIZ_INTENT =
+  /(start|begin|open|go\s*(to|straight\s*to)?|skip\s*(to|the\s*lesson)?|take)?\s*(the\s*)?(quiz|test|exam|knowledge\s*check)|quiz\s*(now|please|direct)|direct\s*(la|to)\s*(quiz|test)|zum\s*(quiz|test)|quiz\s*starten|test\s*starten|(vreau|hai|mergem|treci|sar(im)?)\s.*(quiz|test)|incep(e|em)\s*(testul|quiz)|începe[m]?\s*(testul|quiz)/i;
+
+type LessonPhase = "LEARNING" | "QUIZ_READY" | "QUIZ_IN_PROGRESS" | "QUIZ_COMPLETED";
 
 const LANG_OPTIONS: { code: string; label: string; short: string }[] = [
   { code: "en", label: "English", short: "EN" },
