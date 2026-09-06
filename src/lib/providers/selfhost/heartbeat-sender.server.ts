@@ -78,7 +78,13 @@ async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayl
     organization_name: cfg.company?.name ?? undefined,
     country: process.env.OPSQAI_COUNTRY ?? undefined,
     primary_language: process.env.OPSQAI_PRIMARY_LANGUAGE ?? undefined,
-    app_version: opts.appVersion ?? process.env.OPSQAI_APP_VERSION ?? undefined,
+    // Always report a version. An installation that reports nothing shows up
+    // as "not verified" in the Customer Portal even though it runs fine.
+    app_version:
+      (opts.appVersion ?? "").trim() ||
+      (process.env.OPSQAI_APP_VERSION ?? "").trim() ||
+      APP_VERSION,
+
     license_status: licenseStatus,
     enabled_modules: modules,
     status: "running" as const,
