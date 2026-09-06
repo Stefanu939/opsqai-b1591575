@@ -163,6 +163,7 @@ function TeacherChat({
   const [quiz, setQuiz] = useState<Q[] | null>(null);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [qIndex, setQIndex] = useState(0);
   const [result, setResult] = useState<any>(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [contextOpen, setContextOpen] = useState(true);
