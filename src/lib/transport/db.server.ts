@@ -93,6 +93,9 @@ const DEFAULT_SETTINGS: TransportSettings = {
   liveTracking: true,
   gpsPollMinutes: 10,
   searchProvider: "auto",
+  auditCadence: "manual",
+  auditOwnerUserId: null,
+  auditReminder: false,
 };
 
 interface SettingsRow {
@@ -113,12 +116,15 @@ interface SettingsRow {
   live_tracking: boolean;
   gps_poll_minutes: number;
   search_provider: string;
+  audit_cadence: string;
+  audit_owner_user_id: string | null;
+  audit_reminder: boolean;
 }
 
 const SETTINGS_SELECT = `country, language, units, alert_windows, doc_alert_windows,
   map_enabled, cmr_prefix, timezone, week_start, audit_day, audit_required,
   map_center_lat, map_center_lng, map_zoom, live_tracking, gps_poll_minutes,
-  search_provider`;
+  search_provider, audit_cadence, audit_owner_user_id, audit_reminder`;
 
 export async function getSettings(companyId: string): Promise<TransportSettings> {
   const row = await one<SettingsRow>(
@@ -148,6 +154,14 @@ export async function getSettings(companyId: string): Promise<TransportSettings>
       row.search_provider === "osm" || row.search_provider === "off"
         ? row.search_provider
         : "auto",
+    auditCadence:
+      row.audit_cadence === "weekly" ||
+      row.audit_cadence === "biweekly" ||
+      row.audit_cadence === "monthly"
+        ? row.audit_cadence
+        : "manual",
+    auditOwnerUserId: row.audit_owner_user_id,
+    auditReminder: row.audit_reminder,
   };
 }
 
@@ -162,8 +176,8 @@ export async function saveSettings(
        (company_id, country, language, units, alert_windows, doc_alert_windows,
         map_enabled, cmr_prefix, timezone, week_start, audit_day, audit_required,
         map_center_lat, map_center_lng, map_zoom, live_tracking, gps_poll_minutes,
-        search_provider)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+        search_provider, audit_cadence, audit_owner_user_id, audit_reminder)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
      ON CONFLICT (company_id) DO UPDATE SET
        country = EXCLUDED.country,
        language = EXCLUDED.language,
@@ -182,6 +196,9 @@ export async function saveSettings(
        live_tracking = EXCLUDED.live_tracking,
        gps_poll_minutes = EXCLUDED.gps_poll_minutes,
        search_provider = EXCLUDED.search_provider,
+       audit_cadence = EXCLUDED.audit_cadence,
+       audit_owner_user_id = EXCLUDED.audit_owner_user_id,
+       audit_reminder = EXCLUDED.audit_reminder,
        updated_at = now()`,
     [
       companyId,
@@ -202,6 +219,9 @@ export async function saveSettings(
       next.liveTracking,
       next.gpsPollMinutes,
       next.searchProvider,
+      next.auditCadence,
+      next.auditOwnerUserId,
+      next.auditReminder,
     ],
   );
   return next;
@@ -653,7 +673,7 @@ export async function deleteChecklistItem(companyId: string, id: string): Promis
 
 export async function listChecks(companyId: string): Promise<WeeklyCheck[]> {
   return q<WeeklyCheck>(
-    `SELECT id, period_start, status, summary, ran_by_name, completed_at, created_at
+    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at
        FROM public.transport_checks
       WHERE company_id = $1
       ORDER BY period_start DESC, created_at DESC
@@ -668,6 +688,7 @@ export async function startCheck(
   userId: string,
   who: string | null,
   periodStart: string,
+  dueOn?: string | null,
 ): Promise<string> {
   const existing = await one<{ id: string }>(
     `SELECT id FROM public.transport_checks
@@ -677,10 +698,13 @@ export async function startCheck(
   );
   if (existing) return existing.id;
 
+  await ensureStarterChecklist(companyId, userId);
+
   const created = await one<{ id: string }>(
-    `INSERT INTO public.transport_checks (company_id, period_start, ran_by, ran_by_name)
-     VALUES ($1,$2,$3,$4) RETURNING id`,
-    [companyId, periodStart, userId, who],
+    `INSERT INTO public.transport_checks
+       (company_id, period_start, due_on, ran_by, ran_by_name)
+     VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+    [companyId, periodStart, dueOn ?? null, userId, who],
   );
   if (!created) throw new Error("Could not start the weekly audit.");
 
@@ -696,7 +720,8 @@ export async function startCheck(
 
 export async function listCheckResults(checkId: string): Promise<CheckResult[]> {
   return q<CheckResult>(
-    `SELECT r.id, r.check_id, r.item_id, r.item_label, r.outcome, r.note, r.checked_at
+    `SELECT r.id, r.check_id, r.item_id, r.item_label, r.outcome, r.note, r.checked_at,
+            r.incident_id, r.request_id
        FROM public.transport_check_results r
       WHERE r.check_id = $1
       ORDER BY r.created_at`,
@@ -732,6 +757,134 @@ export async function completeCheck(
       WHERE id = $1 AND company_id = $2`,
     [checkId, companyId, summary],
   );
+}
+
+/** Editable starter checklist, seeded once when a company has no items yet. */
+const STARTER_CHECKLIST: ReadonlyArray<{
+  label: string;
+  hint: string;
+  scope: ChecklistItem["scope"];
+}> = [
+  {
+    label: "Vehicle inspections (ITP / TUV) valid",
+    hint: "No vehicle inspection expired or expiring inside the alert window.",
+    scope: "vehicle",
+  },
+  {
+    label: "Driver documents valid",
+    hint: "Licences, medical certificates and driver cards are in date.",
+    scope: "driver",
+  },
+  {
+    label: "Vehicle condition and equipment checked",
+    hint: "Tyres, lights, load securing and mandatory equipment present.",
+    scope: "vehicle",
+  },
+  {
+    label: "Open incidents reviewed",
+    hint: "Every open incident has an owner and an agreed action.",
+    scope: "general",
+  },
+  {
+    label: "Carrier documents and insurance valid",
+    hint: "Licences and insurance for subcontracted carriers are current.",
+    scope: "carrier",
+  },
+];
+
+export async function ensureStarterChecklist(
+  companyId: string,
+  userId: string,
+): Promise<number> {
+  const existing = await one<{ n: string }>(
+    `SELECT count(*)::text AS n FROM public.transport_checklist_items WHERE company_id = $1`,
+    [companyId],
+  );
+  if (Number(existing?.n ?? "0") > 0) return 0;
+  let position = 1;
+  for (const item of STARTER_CHECKLIST) {
+    await q(
+      `INSERT INTO public.transport_checklist_items
+         (company_id, label, hint, scope, position, required, active, created_by)
+       VALUES ($1,$2,$3,$4,$5,true,true,$6)`,
+      [companyId, item.label, item.hint, item.scope, position, userId],
+    );
+    position += 1;
+  }
+  return STARTER_CHECKLIST.length;
+}
+
+/** Turn a failed checklist line into an incident or a request, and link it. */
+export async function escalateCheckResult(
+  companyId: string,
+  resultId: string,
+  kind: "incident" | "request",
+  userId: string,
+): Promise<{ id: string; kind: "incident" | "request" }> {
+  const row = await one<{
+    item_label: string;
+    note: string | null;
+    period_start: string;
+    incident_id: string | null;
+    request_id: string | null;
+  }>(
+    `SELECT r.item_label, r.note, c.period_start, r.incident_id, r.request_id
+       FROM public.transport_check_results r
+       JOIN public.transport_checks c ON c.id = r.check_id
+      WHERE r.id = $1 AND c.company_id = $2`,
+    [resultId, companyId],
+  );
+  if (!row) throw new Error("Checklist line not found.");
+  const existing = kind === "incident" ? row.incident_id : row.request_id;
+  if (existing) return { id: existing, kind };
+
+  const period =
+    typeof row.period_start === "string" ? row.period_start.slice(0, 10) : String(row.period_start);
+  const title = `${row.item_label} (audit ${period})`;
+  const description = row.note ?? "Raised from the periodic transport audit.";
+
+  if (kind === "incident") {
+    const created = await createRecord("incidents", companyId, userId, {
+      title,
+      category: "compliance",
+      severity: "medium",
+      status: "reported",
+      description,
+    });
+    await q(
+      `UPDATE public.transport_check_results SET incident_id = $2 WHERE id = $1`,
+      [resultId, created.id],
+    );
+    return { id: created.id, kind };
+  }
+
+  const created = await createRecord("requests", companyId, userId, {
+    title,
+    kind: "exception",
+    priority: "high",
+    status: "open",
+    description,
+  });
+  await q(
+    `UPDATE public.transport_check_results SET request_id = $2 WHERE id = $1`,
+    [resultId, created.id],
+  );
+  return { id: created.id, kind };
+}
+
+/** Everything the compliance report needs for one audit run. */
+export async function getCheckForReport(
+  companyId: string,
+  checkId: string,
+): Promise<{ check: WeeklyCheck; results: CheckResult[] } | null> {
+  const check = await one<WeeklyCheck>(
+    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at
+       FROM public.transport_checks WHERE id = $1 AND company_id = $2`,
+    [checkId, companyId],
+  );
+  if (!check) return null;
+  const results = await listCheckResults(checkId);
+  return { check, results };
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────
@@ -1132,7 +1285,7 @@ export async function counts(companyId: string) {
 
 export async function lastCheck(companyId: string): Promise<WeeklyCheck | null> {
   return one<WeeklyCheck>(
-    `SELECT id, period_start, status, summary, ran_by_name, completed_at, created_at
+    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at
        FROM public.transport_checks WHERE company_id = $1
       ORDER BY created_at DESC LIMIT 1`,
     [companyId],
