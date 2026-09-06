@@ -187,11 +187,61 @@ function PortalDownloads() {
                     </div>
                   </div>
                 )}
+
+                {modules.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-border/60">
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+                      Included in this installation package
+                    </div>
+                    <div className="space-y-1.5">
+                      {modules.map((m) => (
+                        <div
+                          key={m.id}
+                          className="flex items-center justify-between gap-3 flex-wrap py-1"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm truncate">{m.title}</span>
+                            <Badge variant="outline">{m.category}</Badge>
+                            {m.version && <Badge variant="outline">v{m.version}</Badge>}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              try {
+                                if (m.file_url.startsWith("portal-download-modules/")) {
+                                  const path = m.file_url.slice("portal-download-modules/".length);
+                                  const { url } = await signUrl({
+                                    data: {
+                                      bucket: "portal-download-modules",
+                                      path,
+                                      expiresIn: 3600,
+                                    },
+                                  });
+                                  window.open(url, "_blank", "noopener");
+                                } else {
+                                  window.open(m.file_url, "_blank", "noopener");
+                                }
+                              } catch (e) {
+                                toast.error((e as Error).message);
+                              }
+                            }}
+                          >
+                            <DownloadIcon className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Card>
             );
           })}
         </div>
       )}
+
 
       {modules.length > 0 && (
         <section className="mt-10">
