@@ -227,3 +227,42 @@ export function zoneFields(t: Ui): FieldDef[] {
     { key: "description", label: t.description, kind: "textarea" },
   ];
 }
+
+/** Editable CMR fields; country templates only change the printed headings. */
+export function cmrFields(
+  t: Ui,
+  vehicles: Opt[],
+  drivers: Opt[],
+  carriers: Opt[],
+): FieldDef[] {
+  return [
+    { key: "sender_name", label: `${t.sender} — ${t.name}`, kind: "text" },
+    { key: "sender_address", label: `${t.sender} — ${t.address}`, kind: "text" },
+    { key: "consignee_name", label: `${t.consignee} — ${t.name}`, kind: "text" },
+    { key: "consignee_address", label: `${t.consignee} — ${t.address}`, kind: "text" },
+    { key: "carrier_id", label: t.carrier, kind: "select", options: carriers },
+    { key: "carrier_name", label: `${t.carrier} — ${t.name}`, kind: "text" },
+    { key: "carrier_address", label: `${t.carrier} — ${t.address}`, kind: "text" },
+    { key: "successive_carrier", label: t.requirements, kind: "text" },
+    { key: "vehicle_id", label: t.vehicle, kind: "select", options: vehicles },
+    { key: "vehicle_plate", label: t.plate, kind: "text" },
+    { key: "trailer_plate", label: `${t.plate} (2)`, kind: "text" },
+    { key: "driver_id", label: t.driver, kind: "select", options: drivers },
+    { key: "place_of_loading", label: t.location, kind: "text" },
+    { key: "loading_on", label: t.issuedOn, kind: "date" },
+    { key: "place_of_delivery", label: t.delivery, kind: "text" },
+    { key: "delivery_on", label: t.dueOn, kind: "date" },
+    { key: "packages", label: t.goods, kind: "text" },
+    { key: "gross_weight_kg", label: "kg", kind: "number" },
+    { key: "volume_m3", label: "m3", kind: "number" },
+    { key: "instructions", label: t.instructions, kind: "textarea" },
+    { key: "payment_terms", label: t.reference, kind: "text" },
+    { key: "reservations", label: t.reservations, kind: "textarea" },
+    { key: "documents_attached", label: t.documents, kind: "textarea" },
+    { key: "special_agreements", label: t.requirements, kind: "textarea" },
+    { key: "established_in", label: t.location, kind: "text" },
+    { key: "signature_sender", label: `${t.signatures} — ${t.sender}`, kind: "text" },
+    { key: "signature_carrier", label: `${t.signatures} — ${t.carrier}`, kind: "text" },
+    { key: "signature_consignee", label: `${t.signatures} — ${t.consignee}`, kind: "text" },
+  ];
+}
