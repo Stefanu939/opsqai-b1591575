@@ -166,7 +166,65 @@ const EN = {
   draft: "Draft",
   issued: "Issued",
   cancelled: "Cancelled",
+  // Overview & filters
+  period: "Period",
+  last7: "7 days",
+  last30: "30 days",
+  last90: "90 days",
+  trendUp: "rising",
+  trendDown: "falling",
+  trendFlat: "steady",
+  filters: "Filters",
+  depot: "Base location",
+  allValues: "All",
+  actionsNeeded: "Needs action now",
+  miniMap: "Quick map",
+  kpis: "Indicators",
+
+  // Intelligence
+  intelligence: "Transport Intelligence",
+  intelligenceBody: "Run an audit over the transport data and see what needs fixing.",
+  runAudit: "Run the audit",
+  auditScore: "Score",
+  findings: "Findings",
+  noFindings: "Nothing to fix — the register data looks complete.",
+  auditHistory: "Audit history",
+  high: "High",
+  medium: "Medium",
+  low: "Low",
+
+  // Map & GPS
+  searchPlace: "Search a place",
+  searchFleet: "Search the fleet",
+  searchAll: "Search a place, vehicle, driver or carrier",
+  results: "Results",
+  gps: "GPS devices",
+  gpsBody: "Connect vehicles to a telematics provider, or record positions by hand.",
+  provider: "Provider",
+  deviceId: "Device ID",
+  apiBaseUrl: "API URL",
+  apiToken: "API token",
+  pollMinutes: "Sync interval (min)",
+  addDevice: "Add device",
+  syncNow: "Sync now",
+  lastFix: "Last position",
+  noGps: "No GPS device recorded yet.",
+  setPosition: "Set position",
+  showTrack: "Show track",
+
+  // Settings
+  timezone: "Time zone",
+  weekStart: "Week starts on",
+  auditDay: "Audit day",
+  auditRequired: "Weekly audit required",
+  mapDefaults: "Map defaults",
+  mapCenter: "Map centre",
+  mapZoom: "Default zoom",
+  liveTracking: "Live tracking",
+  searchProvider: "Search provider",
+  docAlerts: "Alert window per document type (days)",
 } as const;
+
 
 type Dict = { [K in keyof typeof EN]: string };
 
