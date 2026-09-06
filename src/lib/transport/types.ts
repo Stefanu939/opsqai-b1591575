@@ -219,6 +219,12 @@ export interface ChecklistItem {
   /** Optional measured value captured during each run. */
   value_kind: "none" | "number" | "text";
   value_unit: string | null;
+  /** Accepted range for numeric values; outside it the line becomes an issue. */
+  value_min: number | null;
+  value_max: number | null;
+  /** Generate one line per active vehicle / driver of this item's scope. */
+  per_asset: boolean;
+  template_key: string | null;
 }
 
 export interface WeeklyCheck {
@@ -230,6 +236,10 @@ export interface WeeklyCheck {
   ran_by_name: string | null;
   completed_at: string | null;
   created_at: string;
+  signed_by_name: string | null;
+  signed_at: string | null;
+  approved_by_name: string | null;
+  approved_at: string | null;
 }
 
 export interface CheckResult {
@@ -246,6 +256,37 @@ export interface CheckResult {
   value_unit: string | null;
   value_text: string | null;
   value_number: number | null;
+  value_min: number | null;
+  value_max: number | null;
+  out_of_range: boolean;
+  subject_kind: string | null;
+  subject_id: string | null;
+  subject_label: string | null;
+  evidence: CheckEvidence[];
+}
+
+export interface CheckEvidence {
+  id: string;
+  result_id: string;
+  filename: string;
+  mime: string;
+  size_bytes: number;
+  uploaded_by_name: string | null;
+  created_at: string;
+}
+
+/** One point of the audit trend series (oldest first). */
+export interface AuditTrendPoint {
+  check_id: string;
+  period_start: string;
+  status: string;
+  total: number;
+  ok: number;
+  issues: number;
+  not_applicable: number;
+  pending: number;
+  out_of_range: number;
+  completion: number;
 }
 
 export interface TransportNote {
