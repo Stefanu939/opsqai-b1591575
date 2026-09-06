@@ -7,6 +7,7 @@ import type {
   IKnowledgeGapRepository,
   KnowledgeGapListRow,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 export interface PgKnowledgeGapRepositoryDeps {
   pool: Pool;
@@ -90,10 +91,10 @@ export function createPgKnowledgeGapRepository(
       );
       return rows.map((r) => ({
         ...r,
-        first_seen: new Date(r.first_seen).toISOString(),
-        last_seen: new Date(r.last_seen).toISOString(),
-        updated_at: new Date(r.updated_at).toISOString(),
-        resolution_date: r.resolution_date ? new Date(r.resolution_date).toISOString() : null,
+        first_seen: toIso(r.first_seen),
+        last_seen: toIso(r.last_seen),
+        updated_at: toIso(r.updated_at),
+        resolution_date: r.resolution_date ? toIso(r.resolution_date) : null,
         resolved_document: r.resolved_document_id
           ? { id: r.resolved_document_id, title: r.doc_title ?? "Document", doc_code: r.doc_code }
           : null,

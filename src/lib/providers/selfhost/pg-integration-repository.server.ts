@@ -5,6 +5,7 @@ import type {
   IIntegrationRepository,
   IntegrationRecord,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 export interface PgIntegrationRepositoryDeps {
   pool: Pool;
@@ -24,7 +25,7 @@ const mapRow = (r: Row): IntegrationRecord => ({
   provider: r.provider,
   status: r.status,
   config: (r.config ?? {}) as Record<string, unknown>,
-  connectedAt: r.connected_at ? r.connected_at.toISOString() : null,
+  connectedAt: r.connected_at ? toIso(r.connected_at) : null,
   lastError: r.last_error,
 });
 

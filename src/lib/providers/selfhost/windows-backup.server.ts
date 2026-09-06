@@ -28,6 +28,7 @@ import type {
   IBackupService,
   SnapshotOptions,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 export interface WindowsBackupDeps {
   pool: Pool;
@@ -76,13 +77,13 @@ async function runProcess(
 function rowToSnapshot(r: Record<string, unknown>): BackupSnapshot {
   return {
     id: r.id as string,
-    createdAt: (r.created_at as Date).toISOString(),
+    createdAt: toIso(r.created_at),
     path: r.path as string,
     sizeBytes: Number(r.size_bytes),
     sha256: (r.sha256 as string | null) ?? undefined,
     tag: (r.tag as string | null) ?? undefined,
     kind: (r.kind as string | null) ?? undefined,
-    verifiedAt: r.verified_at ? (r.verified_at as Date).toISOString() : undefined,
+    verifiedAt: r.verified_at ? toIso(r.verified_at) : undefined,
   };
 }
 

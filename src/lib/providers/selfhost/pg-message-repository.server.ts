@@ -2,6 +2,7 @@
 
 import type { Pool } from "pg";
 import type { IMessageRepository, ThreadMessageRecord } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 export interface PgMessageRepositoryDeps {
   pool: Pool;
@@ -39,7 +40,7 @@ export function createPgMessageRepository(deps: PgMessageRepositoryDeps): IMessa
         id: r.id,
         threadId: r.thread_id,
         confidence: r.confidence,
-        createdAt: r.created_at.toISOString(),
+        createdAt: toIso(r.created_at),
       };
     },
     async findLastUserBefore(threadId, beforeCreatedAt) {

@@ -9,6 +9,7 @@ import type {
   IDashboardRepository,
   JsonLike,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 /**
  * Self-Hosted dashboard read models, computed directly from the local
@@ -136,7 +137,7 @@ export function createPgDashboardRepository({ pool }: { pool: Pool }): IDashboar
         code: r.code,
         title: r.title,
         usage: Number(r.hits),
-        updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : null,
+        updatedAt: r.updated_at ? toIso(r.updated_at) : null,
       }));
       return top;
     },
@@ -164,7 +165,7 @@ export function createPgDashboardRepository({ pool }: { pool: Pool }): IDashboar
         title: r.title,
         code: r.doc_code,
         version: r.version,
-        updatedAt: new Date(r.updated_at).toISOString(),
+        updatedAt: toIso(r.updated_at),
         reason:
           new Date(r.updated_at).getTime() < cutoff
             ? "Outdated"
@@ -202,7 +203,7 @@ export function createPgDashboardRepository({ pool }: { pool: Pool }): IDashboar
         warnings: r.warnings,
         critical: r.critical,
         summary: (r.summary ?? {}) as JsonLike,
-        createdAt: new Date(r.created_at).toISOString(),
+        createdAt: toIso(r.created_at),
       };
     },
 
@@ -247,7 +248,7 @@ export function createPgDashboardRepository({ pool }: { pool: Pool }): IDashboar
         [companyId, from, to, unit],
       );
       const out: DashboardActivityRow[] = rows.map((r) => ({
-        bucket: new Date(r.bucket).toISOString(),
+        bucket: toIso(r.bucket),
         questions: Number(r.questions),
         conversations: Number(r.conversations),
         users: Number(r.users),
