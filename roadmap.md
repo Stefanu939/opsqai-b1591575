@@ -23,3 +23,6 @@
 - [x] Repair Transport timestamp isolation and complete permission-aware Overview/Operations controls
 - [x] Simplify Self-Hosted License & Entitlements to status, active rights, and verify/replace
 - [x] Verify Self-Hosted authorization, Transport, licensing, typecheck, build, and boundary checks
+- [x] Grade Academy quizzes by option identity so correct picks score correctly
+- [x] Chat sources open the document inside the Knowledge Base (plus explicit file download)
+- [x] Cut chat answer latency by parallelising thread/profile/history and image reads
