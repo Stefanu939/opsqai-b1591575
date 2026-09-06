@@ -168,7 +168,7 @@ export const getMyInstallStatus = createServerFn({ method: "POST" })
             (lics ?? []).find((x) => x.install_id === install_id)?.company_name ??
             null,
           current_version,
-          installer_version: l?.installer_version ?? null,
+          installer_version: nz(l?.installer_version),
           latest_version: latest,
           behind: Boolean(current_version && latest && current_version !== latest),
           last_heartbeat_at: s?.last_heartbeat_at ?? l?.last_heartbeat_at ?? null,
