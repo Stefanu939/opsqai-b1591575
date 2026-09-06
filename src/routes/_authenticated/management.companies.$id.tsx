@@ -15,6 +15,7 @@ import { listSupportConversations } from "@/lib/support.functions";
 import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.functions";
 import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
 import { SharedAccessPanel } from "@/components/mc/shared-access";
+import { InstallHistoryPanel } from "@/components/mc/install-history";
 import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
