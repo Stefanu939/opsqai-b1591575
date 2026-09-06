@@ -911,13 +911,22 @@ function SourcesPanel({
         <div className="mt-2 flex items-center gap-3">
           <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
           {s.document_id && (
-            <button
-              onClick={() => openDoc(s.document_id)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
-            >
-              <ExternalLink className="h-3 w-3" /> Open document
-            </button>
+            <>
+              <button
+                onClick={() => openDoc(s.document_id)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+              >
+                <ExternalLink className="h-3 w-3" /> Open in Knowledge Base
+              </button>
+              <button
+                onClick={() => void downloadDoc(s.document_id, s.title)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
+              >
+                <Download className="h-3 w-3" /> Download file
+              </button>
+            </>
           )}
+
         </div>
       </div>
     );
