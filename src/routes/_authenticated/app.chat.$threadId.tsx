@@ -791,10 +791,18 @@ function SourcesPanel({
       return s >= 0.25;
     });
 
-  const openDoc = async (documentId?: string) => {
+  // Open the cited document where it lives: the Knowledge Base entry. The old
+  // behaviour created an in-memory blob: URL, which the Windows desktop shell
+  // cannot open ("Get an app to open this 'blob' link").
+  const openDoc = (documentId?: string) => {
     if (!documentId) return;
-    // Streamed through a server fn so the source opens on both Cloud
-    // (object storage) and Self-Hosted (local filesystem).
+    void navigate({ to: "/app/knowledge", search: { doc: documentId } });
+  };
+
+  // Explicit download of the original file (streamed through a server fn so it
+  // works on Cloud object storage and Self-Hosted local storage alike).
+  const downloadDoc = async (documentId?: string, title?: string) => {
+    if (!documentId) return;
     const { getKnowledgeDocumentBlob } = await import("@/lib/kb.functions");
     const blob = await getKnowledgeDocumentBlob({ data: { document_id: documentId } });
     if (!blob) return;
@@ -802,9 +810,15 @@ function SourcesPanel({
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([bytes], { type: blob.content_type }));
-    window.open(url, "_blank");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = blob.file_name || title || "document";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
+
 
   const DocCard = ({
     s,
