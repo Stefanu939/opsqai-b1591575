@@ -20,6 +20,7 @@ import {
   CalendarDays,
   Search,
   ChevronDown,
+  ShieldCheck,
 } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
