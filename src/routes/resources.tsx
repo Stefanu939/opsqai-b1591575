@@ -57,7 +57,7 @@ function ResourcesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ reference: string | null; href: string } | null>(null);
 
-  const fileHref = (s: ResourceSlug) => `/resources/opsqai-${s}-${lang}.pdf`;
+  const fileHref = (s: ResourceSlug) => `/api/public/resources/opsqai-${s}-${lang}.pdf`;
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
