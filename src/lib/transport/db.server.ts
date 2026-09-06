@@ -37,6 +37,8 @@ let pool: Pool | null = null;
 // that correctly expect Date objects).
 function browserSafe<T>(value: T): T {
   if (value instanceof Date) return value.toISOString() as T;
+  // Binary columns (evidence files) must survive untouched.
+  if (value instanceof Uint8Array) return value as T;
   if (Array.isArray(value)) return value.map(browserSafe) as T;
   if (value && typeof value === "object") {
     return Object.fromEntries(
