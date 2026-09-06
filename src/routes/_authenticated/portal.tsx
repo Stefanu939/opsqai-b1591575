@@ -170,15 +170,6 @@ function PortalLayout() {
             </Button>
           </>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSignOut}
-           className="mt-1 w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </Button>
       </div>
     </>
   );
