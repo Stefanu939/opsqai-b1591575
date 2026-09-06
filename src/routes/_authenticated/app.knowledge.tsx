@@ -688,8 +688,10 @@ function KnowledgePage() {
           {visibleDocs.map((d) => (
             <Card
               key={d.id}
-              className={`relative p-4 flex items-start gap-3 transition-all hover:shadow-md ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/30" : ""}`}
+              id={`kb-doc-${d.id}`}
+              className={`relative p-4 flex items-start gap-3 transition-all hover:shadow-md ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/30" : ""} ${focusedDoc === d.id ? "ring-2 ring-primary" : ""}`}
             >
+
               {d.is_critical && d.is_active && (
                 <span
                   aria-hidden
