@@ -87,7 +87,7 @@ export function NavShell() {
         <div className="flex items-center gap-2 shrink-0">
           {/* Language — always visible */}
           <div
-            className="hidden items-center overflow-hidden rounded-sm border border-[var(--oix-gold-line)] sm:flex"
+            className="flex items-center overflow-hidden rounded-sm border border-[var(--oix-gold-line)]"
             role="group"
             aria-label={m.a11y.language}
           >
