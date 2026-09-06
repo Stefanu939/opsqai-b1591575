@@ -54,12 +54,104 @@ const FALLBACKS: Record<AcademyLanguageCode, LocalizedFallback> = {
   uk: { purposeQuestion: (t) => `Яка головна операційна мета уроку «${t}»?`, purposeAnswer: "Відповідь має відображати задокументовану мету уроку.", purposeExplanation: "Відповідь міститься в цілях і підсумку уроку.", procedureQuestion: "Необхідно дотримуватися затвердженої процедури, описаної в уроці.", procedureExplanation: "Урок ґрунтується на затверджених операційних знаннях." },
 };
 
+const FALSE_STATEMENTS: Record<AcademyLanguageCode, { question: string; explanation: string }> = {
+  en: { question: "The procedure in this lesson may be skipped when you are in a hurry.", explanation: "The lesson requires the approved procedure to be followed every time." },
+  de: { question: "Das Verfahren aus dieser Lektion darf bei Zeitdruck übersprungen werden.", explanation: "Die Lektion verlangt, das freigegebene Verfahren jedes Mal einzuhalten." },
+  ro: { question: "Procedura din această lecție poate fi sărită atunci când ești grăbit.", explanation: "Lecția cere ca procedura aprobată să fie respectată de fiecare dată." },
+  fr: { question: "La procédure de cette leçon peut être ignorée en cas d’urgence.", explanation: "La leçon exige que la procédure approuvée soit suivie à chaque fois." },
+  es: { question: "El procedimiento de esta lección puede omitirse cuando hay prisa.", explanation: "La lección exige seguir el procedimiento aprobado siempre." },
+  it: { question: "La procedura di questa lezione può essere saltata quando si ha fretta.", explanation: "La lezione richiede di seguire sempre la procedura approvata." },
+  pt: { question: "O procedimento desta lição pode ser ignorado quando há pressa.", explanation: "A lição exige que o procedimento aprovado seja seguido sempre." },
+  pl: { question: "Procedurę z tej lekcji można pominąć, gdy brakuje czasu.", explanation: "Lekcja wymaga, aby zatwierdzona procedura była stosowana za każdym razem." },
+  uk: { question: "Процедуру з цього уроку можна пропустити, коли бракує часу.", explanation: "Урок вимагає щоразу дотримуватися затвердженої процедури." },
+};
+
+/**
+ * Source-based fallback quiz. Every question is true/false (yes/no) so that
+ * grading is deterministic and never depends on free-text interpretation.
+ */
 export function localizedAcademyQuizFallback(value: unknown, title: string) {
   const code = normalizeAcademyLanguage(value);
   const labels = ACADEMY_LANGUAGES[code];
   const copy = FALLBACKS[code];
+  const wrong = FALSE_STATEMENTS[code];
+  const options = [labels.trueLabel, labels.falseLabel];
+  void title;
   return [
-    { type: "short_answer" as const, question: copy.purposeQuestion(title), correct_answer: copy.purposeAnswer, explanation: copy.purposeExplanation },
-    { type: "true_false" as const, question: copy.procedureQuestion, options: [labels.trueLabel, labels.falseLabel], correct_answer: labels.trueLabel, explanation: copy.procedureExplanation },
+    { type: "true_false" as const, question: copy.procedureQuestion, options, correct_answer: labels.trueLabel, explanation: copy.procedureExplanation },
+    { type: "true_false" as const, question: wrong.question, options, correct_answer: labels.falseLabel, explanation: wrong.explanation },
   ];
+}
+
+/* ------------------- True/False only quiz + language quality ------------------- */
+
+/** The two visible answer options for a true/false (yes/no) question. */
+export function academyTrueFalseOptions(value: unknown): [string, string] {
+  const labels = ACADEMY_LANGUAGES[normalizeAcademyLanguage(value)];
+  return [labels.trueLabel, labels.falseLabel];
+}
+
+const REQUIRED_DIACRITICS: Partial<Record<AcademyLanguageCode, RegExp>> = {
+  ro: /[ăâîșşțţ]/i,
+  pl: /[ąćęłńóśźż]/i,
+};
+
+const STOPWORDS: Record<AcademyLanguageCode, string[]> = {
+  en: ["the", "and", "with", "must", "that", "from", "when", "which", "this"],
+  de: ["der", "die", "das", "und", "muss", "nicht", "werden", "beim", "eine"],
+  ro: ["este", "care", "sunt", "trebuie", "pentru", "lecție", "lectie", "din", "și", "si", "nu", "cu"],
+  fr: ["les", "des", "doit", "pour", "avec", "être", "etre", "dans", "cette"],
+  es: ["los", "las", "debe", "para", "con", "esta", "una", "según", "segun"],
+  it: ["gli", "deve", "per", "con", "della", "questa", "una", "sono"],
+  pt: ["dos", "deve", "para", "com", "esta", "uma", "segundo", "não", "nao"],
+  pl: ["jest", "musi", "dla", "oraz", "nie", "które", "ktore", "przy"],
+  uk: ["що", "має", "для", "не", "або", "цей", "при"],
+};
+
+function stopwordHits(words: string[], list: string[]): number {
+  return words.filter((w) => list.includes(w)).length;
+}
+
+/**
+ * Detects clear language-quality defects in generated Academy text: wrong
+ * script, missing mandatory diacritics (Romanian/Polish), or text written in a
+ * different language than the learner selected. Returns null when the text
+ * looks acceptable.
+ */
+export function academyLanguageQualityIssue(
+  text: string,
+  value: unknown,
+): "script" | "diacritics" | "language" | null {
+  const code = normalizeAcademyLanguage(value);
+  const clean = (text ?? "").trim();
+  if (clean.length < 24) return null;
+  if (hasWrongAcademyScript(clean, code)) return "script";
+
+  const words = clean
+    .toLowerCase()
+    .replace(/[^\p{L}\s]+/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length < 12) return null;
+  const target = stopwordHits(words, STOPWORDS[code]);
+  const rivals = (Object.keys(STOPWORDS) as AcademyLanguageCode[])
+    .filter((c) => c !== code)
+    .map((c) => stopwordHits(words, STOPWORDS[c]));
+  const best = Math.max(0, ...rivals);
+  if (target === 0 && best >= 3) return "language";
+  if (best >= target * 3 && best >= 5) return "language";
+
+  const diacritics = REQUIRED_DIACRITICS[code];
+  if (diacritics && clean.length >= 120 && !diacritics.test(clean)) return "diacritics";
+  return null;
+}
+
+export function academyLanguageCorrection(
+  issue: "script" | "diacritics" | "language",
+  value: unknown,
+): string {
+  const instruction = academyLanguageInstruction(value);
+  if (issue === "diacritics")
+    return `Your previous text was missing the mandatory diacritics. Rewrite everything in ${instruction} with fully correct spelling and all diacritical marks.`;
+  return `Your previous text was not written in the target language. Rewrite everything from scratch exclusively in ${instruction}, with idiomatic, grammatically correct sentences.`;
 }

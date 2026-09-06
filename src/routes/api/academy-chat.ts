@@ -1,9 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  streamText,
+  type UIMessage,
+} from "ai";
 import { resolveChatModel } from "@/lib/ai-provider.server";
 import { getAcademyRepository, getAuthProvider, getProfileRepository } from "@/lib/providers/registry";
-import { academyLanguageInstruction, normalizeAcademyLanguage } from "@/lib/academy-language";
+import {
+  academyLanguageInstruction,
+  academyLanguageQualityIssue,
+  normalizeAcademyLanguage,
+} from "@/lib/academy-language";
+import { checkAcademyGrounding } from "@/lib/academy-grounding";
+
+/** Safe reply built only from the stored lesson, used when generation is rejected. */
+const RECAP_LEAD: Record<string, string> = {
+  en: "Let's stay with what the lesson says. Here is the relevant part:",
+  de: "Bleiben wir bei dem, was die Lektion sagt. Hier ist der relevante Teil:",
+  ro: "Hai să rămânem la ce spune lecția. Iată partea relevantă:",
+  fr: "Restons sur ce que dit la leçon. Voici la partie concernée :",
+  es: "Quedémonos con lo que dice la lección. Esta es la parte relevante:",
+  it: "Restiamo su ciò che dice la lezione. Ecco la parte rilevante:",
+  pt: "Vamos ficar pelo que a lição diz. Esta é a parte relevante:",
+  pl: "Zostańmy przy tym, co mówi lekcja. Oto istotna część:",
+  uk: "Залишимося з тим, що написано в уроці. Ось відповідна частина:",
+};
+
+const FALLBACK_RECAP = (lesson: any, language: string | null) => {
+  const lead = RECAP_LEAD[language ?? "en"] ?? RECAP_LEAD.en;
+  const objectives = (lesson.objectives ?? []).slice(0, 3) as string[];
+  const parts = [
+    `**${lesson.title}**`,
+    objectives.length ? objectives.map((o) => `- ${o}`).join("\n") : "",
+    (lesson.summary as string) || (lesson.explanation as string) || "",
+  ].filter(Boolean);
+  return `${lead}\n\n${parts.join("\n\n")}`.slice(0, 4000);
+};
+
 
 const SYSTEM = (lessonBlock: string, chosenLanguage: string | null) => {
   const normalizedLanguage = chosenLanguage ? normalizeAcademyLanguage(chosenLanguage) : null;
@@ -20,18 +56,23 @@ const SYSTEM = (lessonBlock: string, chosenLanguage: string | null) => {
 
 TEACHING STYLE:
 - Speak warmly and naturally, as if you were sitting next to the learner. Never robotic, never overly casual.
-- Teach progressively: introduce the topic, explain one concept at a time, then give a concrete example.
-- After each concept, ask a brief comprehension check such as "Does that make sense?" or "Want me to go deeper?".
-- If the learner is confused, re-explain differently — simpler words, a new analogy, or a practical scenario.
+- Teach progressively: introduce the topic, explain one concept at a time, then show what the lesson itself says about it.
 - Encourage the learner with short positive remarks ("Great question", "Exactly right", "Good thinking").
 - Use short paragraphs and bullet points so the chat is easy to read on any device. Avoid walls of text.
-- Suggest realistic workplace situations that bring the lesson to life.
 - When the learner is ready, transition smoothly: "Great — let's move on to the next part."
+
+COMPREHENSION CHECKS (ABSOLUTE RULE):
+- You may only ask about content that is literally written in the LESSON CONTENT below.
+- Every comprehension check is a YES/NO question about one statement from the lesson (e.g. "Is it true that ...?" using the lesson's own wording), or the neutral question "Does that make sense?".
+- Never ask about scenarios, tools, numbers, roles, deadlines or situations that the lesson does not mention.
+- Never invent workplace scenarios or examples. Use ONLY the examples written in the lesson; if the lesson has no examples, say so and recap the relevant section instead.
 
 STRICT GROUNDING:
 1. You teach ONE lesson at a time. Use ONLY the LESSON CONTENT below — never the operational knowledge base, never the public internet, never your own prior knowledge.
-2. If the learner asks something outside this lesson, gently say it is outside today's topic and offer to recap the relevant section.
-3. Never invent facts, numbers, names, policies or procedures. Never add or omit any safety information.
+2. The lesson is split into numbered sections below. Every sentence you write must come from one of those sections.
+3. If the learner asks something outside this lesson, gently say it is outside today's topic and offer to recap the relevant section.
+4. Never invent facts, numbers, names, policies or procedures. Never add or omit any safety information. Never state a number that does not appear in the lesson.
+
 
 LANGUAGE (very important):
 - ${langLine}
@@ -115,23 +156,72 @@ export const Route = createFileRoute("/api/academy-chat")({
           if (!lesson) return new Response("Lesson not found", { status: 404 });
 
           const block = [
-            `TITLE: ${lesson.title}`,
-            `OBJECTIVES:\n- ${(lesson.objectives ?? []).join("\n- ")}`,
-            `EXPLANATION:\n${lesson.explanation ?? ""}`,
-            `EXAMPLES:\n${lesson.examples ?? ""}`,
-            `BEST PRACTICES:\n${lesson.best_practices ?? ""}`,
-            `SUMMARY:\n${lesson.summary ?? ""}`,
+            `SECTION 1 — TITLE: ${lesson.title}`,
+            `SECTION 2 — OBJECTIVES:\n- ${(lesson.objectives ?? []).join("\n- ")}`,
+            `SECTION 3 — EXPLANATION:\n${lesson.explanation ?? ""}`,
+            `SECTION 4 — EXAMPLES:\n${lesson.examples ?? ""}`,
+            `SECTION 5 — BEST PRACTICES:\n${lesson.best_practices ?? ""}`,
+            `SECTION 6 — SUMMARY:\n${lesson.summary ?? ""}`,
           ]
             .join("\n\n")
             .slice(0, 16000);
 
-          const result = streamText({
-            model: resolveChatModel("chat"),
-            system: SYSTEM(block, chosen),
-            messages: await convertToModelMessages(body.messages ?? []),
-            temperature: 0.2,
+          const lessonLanguage = normalizeAcademyLanguage(
+            (lesson as { language?: string }).language,
+          );
+          const system = SYSTEM(block, chosen);
+          const convMessages = await convertToModelMessages(body.messages ?? []);
+
+          const generate = async (correction?: string) => {
+            const r = streamText({
+              model: resolveChatModel("chat"),
+              system: correction ? `${system}\n\nCORRECTION REQUIRED: ${correction}` : system,
+              messages: convMessages,
+              temperature: 0.2,
+            });
+            return (await r.text).trim();
+          };
+
+          // The teacher's answer is validated before the learner sees it: an
+          // invented question/number or wrong-language text is regenerated once,
+          // then replaced by a plain recap prompt built from the lesson.
+          const invalid = (text: string) => {
+            const visible = text.replace(/\[(LESSON_COMPLETE|SECTION_DONE:[a-z_]+)\]/g, " ");
+            if (chosen && academyLanguageQualityIssue(visible, chosen)) return true;
+            return !checkAcademyGrounding(visible, block, {
+              checkTerms: chosen ? chosen === lessonLanguage : false,
+              maxNewTerms: 8,
+            }).grounded;
+          };
+
+          let text = "";
+          try {
+            text = await generate();
+            if (invalid(text)) {
+              text = await generate(
+                chosen
+                  ? `Your previous reply was rejected: it used content or numbers that are not in the LESSON CONTENT, or it was not written correctly in ${academyLanguageInstruction(chosen)}. Rewrite it using only sentences traceable to the numbered lesson sections, in fully correct target-language spelling.`
+                  : "Your previous reply was rejected: it used content or numbers that are not in the LESSON CONTENT. Rewrite it using only sentences traceable to the numbered lesson sections.",
+              );
+              if (invalid(text)) text = "";
+            }
+          } catch (error) {
+            console.error("[academy-chat] generation failed", error);
+            text = "";
+          }
+
+          const finalText = text || FALLBACK_RECAP(lesson, chosen);
+          const stream = createUIMessageStream<UIMessage>({
+            originalMessages: body.messages ?? [],
+            execute: ({ writer }) => {
+              writer.write({ type: "start" });
+              writer.write({ type: "text-start", id: "teacher" });
+              writer.write({ type: "text-delta", id: "teacher", delta: finalText });
+              writer.write({ type: "text-end", id: "teacher" });
+            },
           });
-          return result.toUIMessageStreamResponse();
+          return createUIMessageStreamResponse({ stream });
+
         } catch (e) {
           console.error("[academy-chat] internal error", e);
           return new Response("AI service temporarily unavailable.", { status: 500 });

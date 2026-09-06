@@ -19,7 +19,8 @@ describe("Academy language contract", () => {
 
   it("builds a fully localized Romanian fallback quiz", () => {
     const questions = localizedAcademyQuizFallback("ro", "Operațiuni în depozit");
-    expect(questions[0].question).toContain("Care este scopul operațional");
+    expect(questions[0].question).toContain("Procedura aprobată");
+    expect(questions.every((q) => q.type === "true_false")).toBe(true);
     expect(questions[1].options).toEqual(["Adevărat", "Fals"]);
     expect(hasWrongAcademyScript(JSON.stringify(questions), "ro")).toBe(false);
   });

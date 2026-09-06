@@ -11,7 +11,8 @@ import {
 } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 import { uuidString } from "@/lib/zod-uuid";
-import { gradeChoiceAnswer, isUngradeableExpectedAnswer } from "@/lib/academy-grading";
+import { gradeChoiceAnswer, isUngradeableExpectedAnswer, resolveOptionIndex } from "@/lib/academy-grading";
+import { checkAcademyGrounding } from "@/lib/academy-grounding";
 
 import {
   getAcademyRepository,
@@ -20,11 +21,15 @@ import {
   getStorageProvider,
 } from "@/lib/providers/registry";
 import {
+  academyLanguageCorrection,
   academyLanguageInstruction,
+  academyLanguageQualityIssue,
+  academyTrueFalseOptions,
   hasWrongAcademyScript,
   localizedAcademyQuizFallback,
   normalizeAcademyLanguage,
 } from "@/lib/academy-language";
+
 
 const ACADEMY_MODULE = "academy" as const;
 
@@ -709,6 +714,8 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     if (!lesson) throw new Error("Lesson not found");
     const language = normalizeAcademyLanguage(data.language);
     const languageInstruction = academyLanguageInstruction(language);
+    const [trueLabel, falseLabel] = academyTrueFalseOptions(language);
+    const lessonLanguage = normalizeAcademyLanguage((lesson as { language?: string }).language);
     const body = [
       `TITLE: ${lesson.title}`,
       `OBJECTIVES: ${(lesson.objectives ?? []).join(" | ")}`,
@@ -721,37 +728,36 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
       .slice(0, 8000);
 
     const generate = (correction?: string) => generateAiText({
-      role: "chat-fast",
+      role: "chat",
       messages: [
         {
           role: "system",
           content: `You generate concise enterprise training quizzes.
 TARGET LANGUAGE: ${languageInstruction}
 LANGUAGE CONTRACT:
-- Every natural-language word in question, options, correct_answer, and explanation MUST be idiomatic, grammatically correct TARGET LANGUAGE.
+- Every natural-language word in question and explanation MUST be idiomatic, grammatically correct TARGET LANGUAGE, with all diacritical marks spelled correctly.
 - The target language overrides the source lesson language and all languages visible in the source.
 - Never infer the output language from the lesson. Never mix languages.
 - Keep only immutable codes, product names, system names, abbreviations, numbers, units, and legal quotations verbatim.
-- Mentally proofread grammar and language consistency before returning.
-CONTENT CONTRACT: Every answer must come only from the lesson. Translate faithfully; never invent facts or omit safety information.
-ANSWER CONTRACT (critical):
-- "correct_answer" MUST repeat one of the "options" strings VERBATIM. Never answer with a letter ("A"), a number, or a paraphrase.
-- true_false questions MUST provide options in the TARGET LANGUAGE and the correct_answer MUST be exactly one of those two option strings.
-- short_answer questions MUST provide a real expected answer sentence. Never write placeholders such as "See lesson content".
-Mix multiple_choice (4 options), true_false, and short_answer. Return only valid JSON without markdown fences.${correction ? `\nCORRECTION REQUIRED: ${correction}` : ""}`,
+- Silently proofread grammar, spelling and language consistency before returning.
+FORMAT CONTRACT (absolute):
+- EVERY question is a true/false (yes/no) statement. "type" is always "true_false".
+- "options" is always exactly ["${trueLabel}","${falseLabel}"] and "correct_answer" is exactly one of those two strings.
+- Never produce multiple choice questions, lettered options (A/B/C/D), or free-text questions.
+- Write each question as a single declarative STATEMENT the learner can confirm or reject — not as an open question.
+CONTENT CONTRACT (absolute):
+- Every statement must be verifiable directly from the lesson text below. Restate a sentence from the lesson (true) or alter one detail of a lesson sentence so it becomes wrong (false).
+- Never introduce facts, numbers, names, deadlines, tools, policies, or scenarios that are absent from the lesson.
+- Aim for a mix: roughly half true statements and half false statements.
+- The explanation must point to what the lesson actually says.${correction ? `\nCORRECTION REQUIRED: ${correction}` : ""}`,
         },
         {
           role: "user",
-          content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape (correct_answer repeats one option verbatim):\n{"questions":[{"type":"multiple_choice","question":"...","options":["full option one","full option two","full option three","full option four"],"correct_answer":"full option two","explanation":"..."}]}`,
+          content: `Generate exactly ${data.count} true/false statements from this lesson:\n\n${body}\n\nReturn this exact JSON object shape:\n{"questions":[{"type":"true_false","question":"declarative statement from the lesson","options":["${trueLabel}","${falseLabel}"],"correct_answer":"${trueLabel}","explanation":"what the lesson says"}]}`,
         },
 
       ],
     });
-
-    let text = await generate();
-    if (hasWrongAcademyScript(text, language)) {
-      text = await generate("The previous result used the wrong script/language. Regenerate from scratch exclusively in the TARGET LANGUAGE.");
-    }
 
     const startAttempt = async (questions: z.infer<typeof QuestionSchema>[]) => {
       const attempt = await repo.createQuizAttempt({
@@ -764,44 +770,71 @@ Mix multiple_choice (4 options), true_false, and short_answer. Return only valid
       return { attempt_id: attempt.id, questions: clientQuestions };
     };
 
-    try {
-      const parsed = parseJsonObject(text) as any;
-      const mapped = (Array.isArray(parsed.questions) ? parsed.questions : [])
-        .map((q: any) => ({
-          type: ["multiple_choice", "true_false", "short_answer"].includes(q?.type)
-            ? q.type
-            : "short_answer",
-          question: coerceString(q?.question, `What is a key point from ${lesson.title}?`),
-          options: Array.isArray(q?.options)
-            ? q.options
-                .map((option: unknown) => coerceString(option))
-                .filter(Boolean)
-                .slice(0, 4)
-            : undefined,
-          correct_answer: coerceString(q?.correct_answer, "See lesson content"),
+    // Normalizes every candidate to a strict true/false question and drops the
+    // ones that are not verifiable from the lesson text.
+    const buildQuestions = (raw: string): z.infer<typeof QuestionSchema>[] => {
+      const parsed = parseJsonObject(raw) as any;
+      const candidates = (Array.isArray(parsed.questions) ? parsed.questions : []) as any[];
+      const questions: z.infer<typeof QuestionSchema>[] = [];
+      for (const q of candidates) {
+        const statement = coerceString(q?.question).trim();
+        if (!statement) continue;
+        const grounding = checkAcademyGrounding(statement, body, {
+          checkTerms: lessonLanguage === language,
+        });
+        if (!grounding.grounded) continue;
+        const answer = coerceString(q?.correct_answer);
+        const isFalse = resolveOptionIndex(answer, [trueLabel, falseLabel], "true_false") === 1;
+        questions.push({
+          type: "true_false",
+          question: statement,
+          options: [trueLabel, falseLabel],
+          correct_answer: isFalse ? falseLabel : trueLabel,
           explanation: coerceString(q?.explanation, "This answer is based on the lesson content."),
-        }))
-        .slice(0, data.count);
-      const questions = QuizSchema.parse({ questions: mapped }).questions;
-      const combinedText = questions
-        .flatMap((question) => [question.question, ...(question.options ?? []), question.correct_answer, question.explanation])
-        .join(" ");
-      if (hasWrongAcademyScript(combinedText, language)) {
-        throw new Error("Generated quiz did not satisfy the selected language");
+        });
+        if (questions.length >= data.count) break;
       }
+      return questions;
+    };
 
-      // SECURITY: persist the graded questions (including correct_answer)
-      // server-side so submission can be graded against a trusted source
-      // rather than a client-supplied correct_answer field.
-      return await startAttempt(questions);
+    const validate = (questions: z.infer<typeof QuestionSchema>[]) => {
+      if (questions.length < 2) return "too_few" as const;
+      const combined = questions
+        .flatMap((question) => [question.question, question.explanation])
+        .join(" ");
+      const issue = academyLanguageQualityIssue(combined, language);
+      return issue ?? null;
+    };
+
+    let questions: z.infer<typeof QuestionSchema>[] = [];
+    try {
+      questions = buildQuestions(await generate());
+      const problem = validate(questions);
+      if (problem) {
+        const correction =
+          problem === "too_few"
+            ? "Your previous questions were rejected because they were not verifiable from the lesson text. Restate lesson sentences literally."
+            : academyLanguageCorrection(problem, language);
+        questions = buildQuestions(await generate(correction));
+        if (validate(questions)) questions = [];
+      }
     } catch (error) {
-      console.warn("Academy quiz JSON parse failed; using source-based fallback", error);
-      const fallback = QuizSchema.parse({
-        questions: localizedAcademyQuizFallback(language, lesson.title),
-      });
-      return await startAttempt(fallback.questions);
+      console.warn("Academy quiz generation failed; using source-based fallback", error);
+      questions = [];
     }
+
+    if (questions.length < 2) {
+      questions = QuizSchema.parse({
+        questions: localizedAcademyQuizFallback(language, lesson.title),
+      }).questions;
+    }
+
+    // SECURITY: persist the graded questions (including correct_answer)
+    // server-side so submission can be graded against a trusted source
+    // rather than a client-supplied correct_answer field.
+    return await startAttempt(QuizSchema.parse({ questions }).questions);
   });
+
 
 const SubmitSchema = z.object({
   attempt_id: uuidString(),
