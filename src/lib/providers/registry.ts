@@ -59,6 +59,8 @@ import type {
   ICalendarRepository,
   PresenceRepositoryFactory,
   IPresenceRepository,
+  AreaRightsRepositoryFactory,
+  IAreaRightsRepository,
 } from "./interfaces";
 
 interface Registry {
@@ -97,6 +99,7 @@ interface Registry {
   academyFactory?: AcademyRepositoryFactory;
   calendarFactory?: CalendarRepositoryFactory;
   presenceFactory?: PresenceRepositoryFactory;
+  areaRightsFactory?: AreaRightsRepositoryFactory;
 }
 
 
@@ -188,6 +191,12 @@ export function registerExportRepositoryFactory(f: ExportRepositoryFactory): voi
 export function registerAcademyRepositoryFactory(f: AcademyRepositoryFactory): void { registry.academyFactory = f; }
 export function registerCalendarRepositoryFactory(f: CalendarRepositoryFactory): void { registry.calendarFactory = f; }
 export function registerPresenceRepositoryFactory(f: PresenceRepositoryFactory): void { registry.presenceFactory = f; }
+export function registerAreaRightsRepositoryFactory(f: AreaRightsRepositoryFactory): void { registry.areaRightsFactory = f; }
+export function hasAreaRightsRepository(): boolean { return !!registry.areaRightsFactory; }
+export function getAreaRightsRepository(dataCtx: unknown): IAreaRightsRepository {
+  if (!registry.areaRightsFactory) throw new Error("No area rights repository registered");
+  return registry.areaRightsFactory(dataCtx);
+}
 export function hasPresenceRepository(): boolean { return !!registry.presenceFactory; }
 export function getPresenceRepository(dataCtx: unknown): IPresenceRepository {
   if (!registry.presenceFactory) throw new Error("No presence repository factory registered");
@@ -396,5 +405,6 @@ export function __resetProviderRegistryForTests(): void {
   registry.calendarFactory = undefined;
   registry.presenceFactory = undefined;
   registry.moduleAccessFactory = undefined;
+  registry.areaRightsFactory = undefined;
 }
 

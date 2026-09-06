@@ -5,7 +5,7 @@
 // DATABASE_URL, so every entry point fails loudly instead of silently
 // touching Management Center data.
 
-import { Pool, types as pgTypes, type QueryResultRow } from "pg";
+import { Pool, type QueryResultRow } from "pg";
 import type {
   Carrier,
   ChecklistItem,
@@ -28,12 +28,19 @@ import { countryPack } from "./country-packs";
 
 let pool: Pool | null = null;
 
-// Dates and timestamps must reach the browser as plain strings. Without this,
-// node-postgres hands back JavaScript Date objects, which React cannot render
-// (minified error #31) once they cross the server-function boundary.
-const DATE_OIDS = [1082, 1083, 1114, 1184, 1186, 1266];
-for (const oid of DATE_OIDS) {
-  pgTypes.setTypeParser(oid, (value: string) => value);
+// Transport results cross the server-function boundary, so dates must be
+// serializable. Normalize this repository's result values instead of changing
+// node-postgres' process-wide type parsers (which broke unrelated repositories
+// that correctly expect Date objects).
+function browserSafe<T>(value: T): T {
+  if (value instanceof Date) return value.toISOString() as T;
+  if (Array.isArray(value)) return value.map(browserSafe) as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, browserSafe(item)]),
+    ) as T;
+  }
+  return value;
 }
 
 
@@ -54,7 +61,7 @@ async function q<T extends QueryResultRow>(
   params: unknown[] = [],
 ): Promise<T[]> {
   const res = await getPool().query<T>(sql, params);
-  return res.rows;
+  return res.rows.map(browserSafe);
 }
 
 async function one<T extends QueryResultRow>(

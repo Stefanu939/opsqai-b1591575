@@ -19,3 +19,7 @@
 - [x] Remove obsolete Aurora Noir, glass, glow, legacy gold, and excessive-radius presentation patterns
 - [x] Update the current design documentation to make product-wide Graphite Precision authoritative
 - [x] Verify representative and outlier screens on desktop/mobile in light/dark, plus typecheck/build/installer guards
+- [ ] Unify Self-Hosted Owner/SuperAdmin/Admin access and add named-user area rights
+- [ ] Repair Transport timestamp isolation and complete permission-aware Overview/Operations controls
+- [ ] Simplify Self-Hosted License & Entitlements to status, active rights, and verify/replace
+- [ ] Verify Self-Hosted authorization, Transport, licensing, typecheck, build, and boundary checks

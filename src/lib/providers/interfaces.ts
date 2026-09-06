@@ -711,6 +711,26 @@ export interface IModuleAccessRepository {
 }
 
 export type ModuleAccessRepositoryFactory = (dataCtx: unknown) => IModuleAccessRepository;
+export interface AreaRightRecord {
+  userId: string;
+  companyId: string;
+  areaKey: string;
+  action: import("@/lib/area-rights").AreaAction;
+  granted: boolean;
+  grantedBy: string | null;
+}
+export interface AreaPermissionCatalogItem {
+  areaKey: string;
+  action: import("@/lib/area-rights").AreaAction;
+  permissionKey: string;
+}
+export interface IAreaRightsRepository {
+  listForUser(companyId: string, userId: string): Promise<AreaRightRecord[]>;
+  listCatalog(): Promise<AreaPermissionCatalogItem[]>;
+  findByPermission(userId: string, permissionKey: string): Promise<AreaRightRecord | null>;
+  replaceForUser(companyId: string, userId: string, rights: Array<{ area: string; action: import("@/lib/area-rights").AreaAction; granted: boolean }>, grantedBy: string | null): Promise<void>;
+}
+export type AreaRightsRepositoryFactory = (dataCtx: unknown) => IAreaRightsRepository;
 export type FeedbackRepositoryFactory = (dataCtx: unknown) => IFeedbackRepository;
 export type KnowledgeGapRepositoryFactory = (dataCtx: unknown) => IKnowledgeGapRepository;
 export type IntegrationRepositoryFactory = (dataCtx: unknown) => IIntegrationRepository;
