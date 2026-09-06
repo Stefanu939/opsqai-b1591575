@@ -790,6 +790,52 @@ export function AuditSection({ t }: { t: Ui }) {
             </ul>
           </div>
         ) : null}
+
+        {data?.trends?.length ? (
+          <div className="mt-6">
+            <p className="text-xs font-medium text-muted-foreground">{t.trends}</p>
+            <p className="mb-3 text-xs text-muted-foreground">{t.trendsBody}</p>
+            <ul className="space-y-2">
+              {data.trends.map((point) => {
+                const worst = Math.max(
+                  1,
+                  ...data.trends.map((p) => p.issues + p.out_of_range),
+                );
+                const bad = point.issues + point.out_of_range;
+                return (
+                  <li key={point.check_id} className="grid gap-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {day(point.period_start)}
+                      </span>
+                      <span>
+                        {point.issues} {t.issues}
+                        {point.out_of_range
+                          ? ` · ${point.out_of_range} ${t.outOfRange}`
+                          : ""}{" "}
+                        · {point.completion}% {t.completion}
+                      </span>
+                    </div>
+                    <div className="flex h-1.5 gap-1">
+                      <div className="h-full flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-destructive"
+                          style={{ width: `${Math.round((bad / worst) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="h-full flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${point.completion}%` }}
+                        />
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
       </Panel>
     </div>
   );
