@@ -153,24 +153,22 @@ function PortalLayout() {
           );
         })}
       </nav>
-       <div className="rounded-md border border-border bg-secondary/60 p-3">
-        {!isPlatformAdmin && (
-          <>
-            <div className="flex items-start gap-2.5">
-              <IconTile icon={Headphones} size="md" round />
-              <div className="min-w-0">
-                <div className="text-xs font-semibold text-foreground">Need help?</div>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-                  Our support team is here for you.
-                </p>
-              </div>
+      {!isPlatformAdmin && (
+        <div className="rounded-md border border-border bg-secondary/60 p-3">
+          <div className="flex items-start gap-2.5">
+            <IconTile icon={Headphones} size="md" round />
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-foreground">Need help?</div>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                Our support team is here for you.
+              </p>
             </div>
-            <Button asChild variant="outline" size="sm" className="mt-3 w-full">
-              <Link to="/portal/support">Contact support</Link>
-            </Button>
-          </>
-        )}
-      </div>
+          </div>
+          <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+            <Link to="/portal/support">Contact support</Link>
+          </Button>
+        </div>
+      )}
     </>
   );
   return (
