@@ -7,7 +7,6 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Headphones,
   Download,
@@ -76,7 +75,6 @@ function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isPlatformAdmin, user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const visible = NAV.filter((item) => {
     if (item.staffOnly) return isPlatformAdmin;
     if (item.customerOnly) return !isPlatformAdmin;
