@@ -16,6 +16,7 @@ const en = {
   cta: {
     howItWorks: "How it works",
     requestDemo: "Request demo",
+    startPilot: "Start free pilot",
   },
   whoFor: {
     eyebrow: "Who is OPSQAI for",
@@ -196,6 +197,7 @@ const en = {
     body:
       "Talk to OPSQAI about a reference install of the Windows Self-Hosted product. See exactly how governed operational AI runs inside your environment.",
     requestDemo: "Request demo",
+    startPilot: "Start free pilot",
     seeHowItWorks: "See how it works",
     aboutOpsqai: "About OPSQAI",
   },
@@ -223,6 +225,7 @@ const de: HomeCopy = {
   cta: {
     howItWorks: "So funktioniert es",
     requestDemo: "Demo anfragen",
+    startPilot: "Kostenlosen Pilot starten",
   },
   whoFor: {
     eyebrow: "Für wen ist OPSQAI",
@@ -608,6 +611,7 @@ const ro: HomeCopy = {
     body:
       "Discută cu OPSQAI despre o instalare de referință a produsului Windows Self-Hosted. Vezi exact cum rulează AI-ul operațional guvernat în mediul tău.",
     requestDemo: "Solicită demo",
+    startPilot: "Începe pilotul gratuit",
     seeHowItWorks: "Vezi cum funcționează",
     aboutOpsqai: "Despre OPSQAI",
   },
