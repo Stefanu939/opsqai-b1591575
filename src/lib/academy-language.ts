@@ -127,9 +127,6 @@ export function academyLanguageQualityIssue(
   if (clean.length < 24) return null;
   if (hasWrongAcademyScript(clean, code)) return "script";
 
-  const diacritics = REQUIRED_DIACRITICS[code];
-  if (diacritics && clean.length >= 120 && !diacritics.test(clean)) return "diacritics";
-
   const words = clean
     .toLowerCase()
     .replace(/[^\p{L}\s]+/gu, " ")
@@ -143,6 +140,9 @@ export function academyLanguageQualityIssue(
   const best = Math.max(0, ...rivals);
   if (target === 0 && best >= 3) return "language";
   if (best >= target * 3 && best >= 5) return "language";
+
+  const diacritics = REQUIRED_DIACRITICS[code];
+  if (diacritics && clean.length >= 120 && !diacritics.test(clean)) return "diacritics";
   return null;
 }
 
