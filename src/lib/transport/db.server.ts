@@ -685,7 +685,7 @@ export async function addNote(
 
 export async function listChecklistItems(companyId: string): Promise<ChecklistItem[]> {
   return q<ChecklistItem>(
-    `SELECT id, label, hint, scope, position, required, active
+    `SELECT id, label, hint, scope, position, required, active, value_kind, value_unit
        FROM public.transport_checklist_items
       WHERE company_id = $1
       ORDER BY position, created_at`,
@@ -704,12 +704,15 @@ export async function upsertChecklistItem(
     position?: number;
     required?: boolean;
     active?: boolean;
+    valueKind?: ChecklistItem["value_kind"];
+    valueUnit?: string | null;
   },
 ): Promise<void> {
   if (input.id) {
     await q(
       `UPDATE public.transport_checklist_items
-          SET label = $3, hint = $4, scope = $5, position = $6, required = $7, active = $8
+          SET label = $3, hint = $4, scope = $5, position = $6, required = $7, active = $8,
+              value_kind = $9, value_unit = $10
         WHERE id = $1 AND company_id = $2`,
       [
         input.id,
@@ -720,16 +723,19 @@ export async function upsertChecklistItem(
         input.position ?? 0,
         input.required ?? true,
         input.active ?? true,
+        input.valueKind ?? "none",
+        input.valueUnit ?? null,
       ],
     );
     return;
   }
   await q(
     `INSERT INTO public.transport_checklist_items
-       (company_id, label, hint, scope, position, required, active, created_by)
+       (company_id, label, hint, scope, position, required, active, created_by,
+        value_kind, value_unit)
      VALUES ($1,$2,$3,$4,COALESCE($5, (
         SELECT COALESCE(MAX(position),0)+1 FROM public.transport_checklist_items WHERE company_id = $1
-     )),$6,$7,$8)`,
+     )),$6,$7,$8,$9,$10)`,
     [
       companyId,
       input.label,
@@ -739,6 +745,8 @@ export async function upsertChecklistItem(
       input.required ?? true,
       input.active ?? true,
       userId,
+      input.valueKind ?? "none",
+      input.valueUnit ?? null,
     ],
   );
 }
@@ -788,8 +796,9 @@ export async function startCheck(
   if (!created) throw new Error("Could not start the weekly audit.");
 
   await q(
-    `INSERT INTO public.transport_check_results (check_id, item_id, item_label)
-     SELECT $2, id, label FROM public.transport_checklist_items
+    `INSERT INTO public.transport_check_results
+       (check_id, item_id, item_label, value_kind, value_unit)
+     SELECT $2, id, label, value_kind, value_unit FROM public.transport_checklist_items
       WHERE company_id = $1 AND active = true
       ORDER BY position`,
     [companyId, created.id],
@@ -800,7 +809,8 @@ export async function startCheck(
 export async function listCheckResults(checkId: string): Promise<CheckResult[]> {
   return q<CheckResult>(
     `SELECT r.id, r.check_id, r.item_id, r.item_label, r.outcome, r.note, r.checked_at,
-            r.incident_id, r.request_id
+            r.incident_id, r.request_id, r.value_kind, r.value_unit,
+            r.value_text, r.value_number
        FROM public.transport_check_results r
       WHERE r.check_id = $1
       ORDER BY r.created_at`,
@@ -814,14 +824,48 @@ export async function setCheckResult(
   outcome: CheckResult["outcome"],
   note: string | null,
   userId: string,
+  value?: { text?: string | null; number?: number | null },
 ): Promise<void> {
   await q(
     `UPDATE public.transport_check_results r
-        SET outcome = $3, note = $4, checked_by = $5, checked_at = now()
+        SET outcome = $3, note = $4, checked_by = $5, checked_at = now(),
+            value_text = COALESCE($6, r.value_text),
+            value_number = COALESCE($7, r.value_number)
       WHERE r.id = $1
         AND EXISTS (SELECT 1 FROM public.transport_checks c
                      WHERE c.id = r.check_id AND c.company_id = $2)`,
-    [resultId, companyId, outcome, note, userId],
+    [resultId, companyId, outcome, note, userId, value?.text ?? null, value?.number ?? null],
+  );
+}
+
+/** Record only the measured value for a checklist line (keeps the outcome). */
+export async function setCheckResultValue(
+  companyId: string,
+  resultId: string,
+  value: { text?: string | null; number?: number | null },
+  userId: string,
+): Promise<void> {
+  await q(
+    `UPDATE public.transport_check_results r
+        SET value_text = $3, value_number = $4, checked_by = $5, checked_at = now()
+      WHERE r.id = $1
+        AND EXISTS (SELECT 1 FROM public.transport_checks c
+                     WHERE c.id = r.check_id AND c.company_id = $2)`,
+    [resultId, companyId, value.text ?? null, value.number ?? null, userId],
+  );
+}
+
+/** Stop an in-progress run for the period without completing it. */
+export async function cancelCheck(
+  companyId: string,
+  checkId: string,
+  reason: string | null,
+): Promise<void> {
+  await q(
+    `UPDATE public.transport_checks
+        SET status = 'cancelled', summary = COALESCE($3, summary), completed_at = now()
+      WHERE id = $1 AND company_id = $2 AND status = 'in_progress'`,
+    [checkId, companyId, reason],
   );
 }
 

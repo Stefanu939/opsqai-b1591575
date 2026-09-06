@@ -216,6 +216,9 @@ export interface ChecklistItem {
   position: number;
   required: boolean;
   active: boolean;
+  /** Optional measured value captured during each run. */
+  value_kind: "none" | "number" | "text";
+  value_unit: string | null;
 }
 
 export interface WeeklyCheck {
@@ -239,6 +242,10 @@ export interface CheckResult {
   checked_at: string | null;
   incident_id: string | null;
   request_id: string | null;
+  value_kind: "none" | "number" | "text";
+  value_unit: string | null;
+  value_text: string | null;
+  value_number: number | null;
 }
 
 export interface TransportNote {
