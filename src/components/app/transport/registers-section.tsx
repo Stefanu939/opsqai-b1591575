@@ -84,6 +84,8 @@ export function OperationsSection({ t, lang, data }: Props) {
   const { saveRecord, deleteRecord } = useRecordMutations();
   const exportCsv = useCsvExport();
   const canEdit = data.grants.includes("edit");
+  const canCreate = data.grants.includes("create");
+  const canDelete = data.grants.includes("delete");
   const canExport = data.grants.includes("export");
 
   const driverOpts = data.drivers.map((d) => ({ value: d.id, label: d.full_name }));
@@ -110,6 +112,8 @@ export function OperationsSection({ t, lang, data }: Props) {
         description={t.vehicleRegisterBody}
         rows={data.vehicles}
         canEdit={canEdit}
+        canCreate={canCreate}
+        canDelete={canDelete}
         emptyTitle={t.none}
         emptyBody={t.vehicleRegisterBody}
         labels={labels(t)}
@@ -145,6 +149,8 @@ export function OperationsSection({ t, lang, data }: Props) {
         description={t.driverRegisterBody}
         rows={data.drivers}
         canEdit={canEdit}
+        canCreate={canCreate}
+        canDelete={canDelete}
         emptyTitle={t.none}
         emptyBody={t.driverRegisterBody}
         labels={labels(t)}
@@ -178,6 +184,8 @@ export function OperationsSection({ t, lang, data }: Props) {
         description={t.documentRegisterBody}
         rows={data.documents}
         canEdit={canEdit}
+        canCreate={canCreate}
+        canDelete={canDelete}
         emptyTitle={t.none}
         emptyBody={t.documentRegisterBody}
         labels={labels(t)}
@@ -213,6 +221,8 @@ export function CarriersSection({ t, data }: Props) {
       description={t.carrierRegisterBody}
       rows={data.carriers}
       canEdit={data.grants.includes("edit")}
+      canCreate={data.grants.includes("create")}
+      canDelete={data.grants.includes("delete")}
       emptyTitle={t.none}
       emptyBody={t.carrierRegisterBody}
       labels={labels(t)}
@@ -261,6 +271,8 @@ export function IncidentsSection({ t, data }: Props) {
       description={t.incidentRegisterBody}
       rows={data.incidents}
       canEdit={data.grants.includes("edit")}
+      canCreate={data.grants.includes("create")}
+      canDelete={data.grants.includes("delete")}
       emptyTitle={t.none}
       emptyBody={t.incidentRegisterBody}
       labels={labels(t)}
@@ -329,6 +341,8 @@ export function RequestsSection({ t, data }: Props) {
       description={t.requestRegisterBody}
       rows={data.requests}
       canEdit={data.grants.includes("edit")}
+      canCreate={data.grants.includes("create")}
+      canDelete={data.grants.includes("delete")}
       emptyTitle={t.none}
       emptyBody={t.requestRegisterBody}
       labels={labels(t)}

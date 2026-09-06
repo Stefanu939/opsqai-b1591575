@@ -6,7 +6,9 @@
 
 export type TransportGrantKey =
   | "view"
+  | "create"
   | "edit"
+  | "delete"
   | "approve"
   | "checklist"
   | "settings"
@@ -15,7 +17,9 @@ export type TransportGrantKey =
 
 export const TRANSPORT_GRANTS: readonly TransportGrantKey[] = [
   "view",
+  "create",
   "edit",
+  "delete",
   "approve",
   "checklist",
   "settings",

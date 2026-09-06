@@ -260,9 +260,9 @@ export async function listCompanyMembers(
             COALESCE(NULLIF(display_name, ''), email, 'User') AS name,
             email
        FROM public.users
-      WHERE disabled = false
+      WHERE disabled = false AND company_id = $1
       ORDER BY name`,
-    [],
+    [companyId],
   );
 }
 

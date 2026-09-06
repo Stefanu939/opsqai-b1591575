@@ -36,15 +36,14 @@ async function actor(context: Ctx): Promise<Actor> {
   }
   const { getActorRoles } = await import("@/lib/authorization");
   const roles = await getActorRoles(context.supabase, context.userId);
-  const isAdmin =
+  const isUnrestricted =
     roles.isPlatformOwner ||
     roles.isPlatformAdmin ||
-    roles.isCompanyAdmin ||
     roles.roles.includes("superadmin") ||
     roles.roles.includes("workspace_owner");
 
   const stored = await db.listGrants(context.userId);
-  const grants: TransportGrantKey[] = isAdmin
+  const grants: TransportGrantKey[] = isUnrestricted
     ? [...TRANSPORT_GRANTS]
     : stored.length
       ? Array.from(new Set<TransportGrantKey>(["view", ...stored]))
@@ -58,7 +57,7 @@ async function actor(context: Ctx): Promise<Actor> {
       context.claims?.email ||
       "User",
     grants,
-    canManageGrants: isAdmin,
+    canManageGrants: isUnrestricted || stored.includes("settings"),
   };
 }
 
@@ -182,7 +181,7 @@ export const saveTransportRecord = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
-    require(a, "edit");
+    require(a, data.id ? "edit" : "create");
     const db = await import("@/lib/transport/db.server");
     if (data.id) {
       await db.updateRecord(data.register, a.companyId, data.id, data.values);
@@ -198,7 +197,7 @@ export const deleteTransportRecord = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
-    require(a, "edit");
+    require(a, "delete");
     const db = await import("@/lib/transport/db.server");
     await db.deleteRecord(data.register, a.companyId, data.id);
     return { ok: true };
@@ -536,7 +535,7 @@ export const setTransportGrant = createServerFn({ method: "POST" })
     z
       .object({
         userId: uuidString(),
-        grant: z.enum(["view", "edit", "approve", "checklist", "settings", "export", "cmr"]),
+        grant: z.enum(["view", "create", "edit", "delete", "approve", "checklist", "settings", "export", "cmr"]),
         enabled: z.boolean(),
       })
       .parse(input),
