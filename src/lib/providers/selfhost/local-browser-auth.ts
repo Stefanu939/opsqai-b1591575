@@ -201,6 +201,18 @@ export function createLocalBrowserAuthProvider(): IBrowserAuthProvider {
       return toOpsqaiSession(s);
     },
 
+    /**
+     * Force a token rotation. Without this method the bearer attacher's
+     * proactive refresh (`provider.refreshSession?.()`) resolved to
+     * `undefined` on Self-Hosted and signed the user out ~15 minutes after
+     * sign-in, no matter how actively the app was being used.
+     */
+    async refreshSession(): Promise<OpsqaiSession | null> {
+      const s = await ensureFreshSession(true);
+      return toOpsqaiSession(s);
+    },
+
+
     async getUser(): Promise<OpsqaiUser | null> {
       const s = await ensureFreshSession();
       return s?.user ?? null;
