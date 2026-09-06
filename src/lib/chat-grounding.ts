@@ -88,7 +88,7 @@ export function answerLanguageMismatch(text: string, target: string): boolean {
 const SPECULATION_MARKERS = [
   /\b(i (assume|guess|believe|think)|probably|presumably|in general|generally speaking|typically you)\b/i,
   /\b(ich (nehme an|vermute|glaube)|wahrscheinlich|im allgemeinen|normalerweise)\b/i,
-  /\b(presupun|cred c[ăa]|probabil|[îi]n general|de obicei|de regul[ăa])\b/i,
+  /(^|[\s,;:—-])(presupun|cred c[ăa]|probabil|[îiÎI]n general|de obicei|de regul[ăa])\b/i,
   /\b(je suppose|probablement|en g[ée]n[ée]ral|habituellement)\b/i,
   /\b(supongo|probablemente|en general|normalmente)\b/i,
 ];
