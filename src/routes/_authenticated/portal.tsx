@@ -216,8 +216,7 @@ function PortalLayout() {
               helpLinks={[
                 { label: "Downloads", description: "Installer packages and modules", href: "/portal/downloads" },
                 { label: "Subscription", description: "Licenses, plan and entitlements", href: "/portal/subscription" },
-                { label: "Release notes", description: "What changed in the latest builds", href: "/portal/release-notes" },
-                { label: "Documentation", description: "Setup and product guides", href: "/portal/documentation" },
+                { label: "News", description: "Latest product announcements", href: "/portal/news" },
               ]}
             />
           </div>
