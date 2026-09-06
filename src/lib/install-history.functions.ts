@@ -88,13 +88,14 @@ export const getInstallHistory = createServerFn({ method: "POST" })
     return data.install_ids.map((install_id) => {
       const sh = selfhost.get(install_id);
       const li = installs.get(install_id);
-      const current_version = sh?.app_version ?? li?.app_version ?? null;
+      const current_version = nz(sh?.app_version) ?? nz(li?.app_version);
       const downloads = downloadsByInstall.get(install_id) ?? [];
       return {
         install_id,
         organization_name: sh?.organization_name ?? null,
         current_version,
-        installer_version: li?.installer_version ?? null,
+        installer_version: nz(li?.installer_version),
+
         latest_version: latest,
         behind: Boolean(current_version && latest && current_version !== latest),
         last_heartbeat_at: sh?.last_heartbeat_at ?? li?.last_heartbeat_at ?? null,
