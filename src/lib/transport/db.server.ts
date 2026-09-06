@@ -1359,7 +1359,11 @@ export async function escalateCheckResult(
 export async function getCheckForReport(
   companyId: string,
   checkId: string,
-): Promise<{ check: WeeklyCheck; results: CheckResult[] } | null> {
+): Promise<{
+  check: WeeklyCheck;
+  results: CheckResult[];
+  evidence: Array<{ resultId: string; mime: string; bytes: Uint8Array; filename: string }>;
+} | null> {
   const check = await one<WeeklyCheck>(
     `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at,
             signed_by_name, signed_at, approved_by_name, approved_at
@@ -1368,7 +1372,29 @@ export async function getCheckForReport(
   );
   if (!check) return null;
   const results = await listCheckResults(checkId);
-  return { check, results };
+  const files = await q<{
+    result_id: string;
+    filename: string;
+    mime: string;
+    data: Buffer;
+  }>(
+    `SELECT e.result_id, e.filename, e.mime, e.data
+       FROM public.transport_check_evidence e
+       JOIN public.transport_check_results r ON r.id = e.result_id
+      WHERE r.check_id = $1
+      ORDER BY e.created_at`,
+    [checkId],
+  );
+  return {
+    check,
+    results,
+    evidence: files.map((f) => ({
+      resultId: f.result_id,
+      filename: f.filename,
+      mime: f.mime,
+      bytes: new Uint8Array(Buffer.from(f.data)),
+    })),
+  };
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────
