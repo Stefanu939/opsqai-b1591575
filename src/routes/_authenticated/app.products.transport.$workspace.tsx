@@ -86,32 +86,11 @@ function TransportWorkspacePage() {
     );
   }
 
-  const siblings = workspaceSiblings(found.workspace);
-
   return (
     <ModulePage
       eyebrow={`${t.eyebrow} · ${found.product.label}`}
       title={title}
       description={found.workspace.description}
-      tabs={
-        <div className="flex flex-wrap gap-2">
-          {siblings.map((w) => {
-            const Icon = resolveWorkspaceIcon(w.icon);
-            const active = w.key === found.workspace.key;
-            return (
-              <Button key={w.key} asChild size="sm" variant={active ? "default" : "outline"}>
-                <Link
-                  to="/app/products/transport/$workspace"
-                  params={{ workspace: (w.route ?? "").split("/").pop() ?? "" }}
-                >
-                  <Icon className="mr-1.5 size-3.5" />
-                  {localizeWorkspaceLabel(w.route, w.label, lang)}
-                </Link>
-              </Button>
-            );
-          })}
-        </div>
-      }
     >
       <TransportSection slug={slug} lang={lang} t={t} />
     </ModulePage>
@@ -133,6 +112,7 @@ function TransportSection({
   if (slug === "map") return <MapSection t={t} />;
   if (slug === "cmr") return <CmrSection t={t} />;
   if (slug === "settings") return <SettingsSection t={t} />;
+  if (slug === "intelligence") return <IntelligenceSection t={t} />;
   if (slug === "procedures") {
     return (
       <div className="grid gap-4">
@@ -141,21 +121,30 @@ function TransportSection({
       </div>
     );
   }
-  if (slug === "overview" || slug === "intelligence") {
+  if (slug === "overview") {
     return <TransportOverview t={t} />;
   }
   return <TransportRegisters slug={slug} lang={uiLang} t={t} />;
 }
 
 function TransportOverview({ t }: { t: ReturnType<typeof transportUi> }) {
-  const query = useTransportOverview();
+  const [periodDays, setPeriodDays] = useState(30);
+  const query = useTransportOverview(periodDays);
   if (query.isPending) return <Skeleton className="h-72 w-full rounded-lg" />;
   if (query.error) {
     return <EmptyState title={t.none} description={(query.error as Error).message} />;
   }
   if (!query.data) return <EmptyState title={t.none} />;
-  return <OverviewSection t={t} data={query.data} />;
+  return (
+    <OverviewSection
+      t={t}
+      data={query.data}
+      periodDays={periodDays}
+      onPeriodChange={setPeriodDays}
+    />
+  );
 }
+
 
 function TransportRegisters({
   slug,
