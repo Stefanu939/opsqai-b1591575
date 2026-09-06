@@ -8,13 +8,7 @@ import { OixButton } from "@/components/oix/buttons";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useT } from "@/i18n";
 import {
   RESOURCE_SLUGS,
@@ -53,14 +47,36 @@ const inputCls =
 function ResourcesPage() {
   const t = useResourcesCopy();
   const { lang } = useT();
-  const [slug, setSlug] = useState<ResourceSlug>("sop-30-day-checklist");
+  const [picked, setPicked] = useState<ResourceSlug[]>([...RESOURCE_SLUGS]);
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ reference: string | null; href: string } | null>(null);
+  const [result, setResult] = useState<{ reference: string | null; slugs: ResourceSlug[] } | null>(
+    null,
+  );
 
   const fileHref = (s: ResourceSlug) => `/api/public/resources/opsqai-${s}-${lang}.pdf`;
 
+  const toggle = (s: ResourceSlug) =>
+    setPicked((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+
+  const downloadAll = (slugs: ResourceSlug[]) => {
+    slugs.forEach((s, i) => {
+      setTimeout(() => {
+        const a = document.createElement("a");
+        a.href = fileHref(s);
+        a.download = `opsqai-${s}-${lang}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }, i * 400);
+    });
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (picked.length === 0) {
+      toast.error(t.form.none);
+      return;
+    }
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     const payload = {
@@ -68,7 +84,7 @@ function ResourcesPage() {
       email: String(fd.get("email") ?? ""),
       company: String(fd.get("company") ?? ""),
       subject: "other" as const,
-      message: `[Lead magnet: ${slug}] [Language: ${lang}]\n\nRequested a free resource download from /resources.`,
+      message: `[Lead magnets: ${picked.join(", ")}] [Language: ${lang}]\n\nRequested a free resource download from /resources.`,
       website: String(fd.get("website") ?? ""), // honeypot
     };
     try {
@@ -86,7 +102,7 @@ function ResourcesPage() {
         toast.error(json.error ?? t.form.errorGeneric);
         return;
       }
-      setResult({ reference: json.referenceId ?? null, href: fileHref(slug) });
+      setResult({ reference: json.referenceId ?? null, slugs: picked });
       (e.target as HTMLFormElement).reset();
     } catch {
       toast.error(t.form.errorNetwork);
@@ -118,12 +134,12 @@ function ResourcesPage() {
           <div className="space-y-5">
             {RESOURCE_SLUGS.map((s) => {
               const item = t.items[s];
-              const active = s === slug;
+              const active = picked.includes(s);
               return (
                 <button
                   key={s}
                   type="button"
-                  onClick={() => setSlug(s)}
+                  onClick={() => toggle(s)}
                   className={`w-full rounded-sm border p-6 text-left transition-colors ${
                     active
                       ? "border-[var(--oix-gold)]/70 bg-[var(--oix-onyx)]/70"
@@ -173,14 +189,32 @@ function ResourcesPage() {
                     <span className="font-mono text-[var(--oix-gold)]">{result.reference}</span>.
                   </p>
                 ) : null}
-                <a
-                  href={result.href}
-                  download
-                  className="mt-6 inline-flex items-center gap-2 rounded-sm border border-[var(--oix-gold)]/70 px-5 py-3 text-sm font-semibold text-[var(--oix-gold)]"
-                >
-                  <Download className="h-4 w-4" />
-                  {t.form.download}
-                </a>
+                <div className="mt-6 space-y-3">
+                  {result.slugs.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => downloadAll(result.slugs)}
+                      className="inline-flex items-center gap-2 rounded-sm border border-[var(--oix-gold)]/70 px-5 py-3 text-sm font-semibold text-[var(--oix-gold)]"
+                    >
+                      <Download className="h-4 w-4" />
+                      {t.form.downloadAll} ({result.slugs.length})
+                    </button>
+                  ) : null}
+                  <ul className="space-y-2">
+                    {result.slugs.map((s) => (
+                      <li key={s}>
+                        <a
+                          href={fileHref(s)}
+                          download
+                          className="inline-flex items-center gap-2 text-sm text-[var(--oix-cream)]/80 underline underline-offset-4"
+                        >
+                          <Download className="h-3.5 w-3.5 text-[var(--oix-gold)]" />
+                          {t.items[s].title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <div className="mt-6">
                   <OixButton variant="ghost" onClick={() => setResult(null)}>
                     {t.form.another}
@@ -193,20 +227,36 @@ function ResourcesPage() {
                 <div className="oix-display text-xl text-[var(--oix-cream)]">{t.form.title}</div>
                 <p className="text-sm leading-relaxed text-[var(--oix-cream)]/65">{t.form.body}</p>
 
-                <div className="space-y-2">
-                  <Label className="oix-eyebrow text-[10px]">{t.form.pick}</Label>
-                  <Select value={slug} onValueChange={(v) => setSlug(v as ResourceSlug)}>
-                    <SelectTrigger className={inputCls}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RESOURCE_SLUGS.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {t.items[s].title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="oix-eyebrow text-[10px]">{t.form.pick}</Label>
+                    <div className="flex gap-3 text-xs text-[var(--oix-cream)]/60">
+                      <button type="button" onClick={() => setPicked([...RESOURCE_SLUGS])}>
+                        {t.form.selectAll}
+                      </button>
+                      <button type="button" onClick={() => setPicked([])}>
+                        {t.form.clearAll}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {RESOURCE_SLUGS.map((s) => (
+                      <label
+                        key={s}
+                        className="flex cursor-pointer items-start gap-3 text-sm text-[var(--oix-cream)]/80"
+                      >
+                        <Checkbox
+                          checked={picked.includes(s)}
+                          onCheckedChange={() => toggle(s)}
+                          className="mt-0.5 border-[var(--oix-gold-line)]/60 data-[state=checked]:bg-[var(--oix-gold)] data-[state=checked]:text-[var(--oix-onyx)]"
+                        />
+                        {t.items[s].title}
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[var(--oix-cream)]/50">
+                    {picked.length} {t.form.selected}
+                  </p>
                 </div>
 
                 <div className="space-y-2">

@@ -30,6 +30,11 @@ interface ResourcesCopy {
     errorGeneric: string;
     errorNetwork: string;
     pick: string;
+    selectAll: string;
+    clearAll: string;
+    downloadAll: string;
+    selected: string;
+    none: string;
   };
   cta: { title: string; body: string; pilot: string; demo: string };
 }
@@ -84,7 +89,7 @@ export const resourcesCopyEn: ResourcesCopy = {
   form: {
     eyebrow: "Get the files",
     title: "Where should we send it?",
-    body: "Pick a document, enter your email and the download appears immediately.",
+    body: "Pick one or more documents, enter your email once and all downloads appear immediately.",
     nameLabel: "Name",
     emailLabel: "Work email",
     companyLabel: "Company",
@@ -98,7 +103,12 @@ export const resourcesCopyEn: ResourcesCopy = {
     another: "Get another document",
     errorGeneric: "We could not process the request. Please try again.",
     errorNetwork: "Network error. Please try again.",
-    pick: "Document",
+    pick: "Documents",
+    selectAll: "Select all",
+    clearAll: "Clear",
+    downloadAll: "Download all",
+    selected: "selected",
+    none: "Pick at least one document.",
   },
   cta: {
     title: "Prefer to see it working?",
@@ -158,7 +168,7 @@ const de: ResourcesCopy = {
   form: {
     eyebrow: "Dateien erhalten",
     title: "Wohin sollen wir es senden?",
-    body: "Dokument wählen, E-Mail eingeben — der Download erscheint sofort.",
+    body: "Dokumente wählen, E-Mail einmal eingeben — alle Downloads erscheinen sofort.",
     nameLabel: "Name",
     emailLabel: "Geschäftliche E-Mail",
     companyLabel: "Unternehmen",
@@ -172,7 +182,12 @@ const de: ResourcesCopy = {
     another: "Weiteres Dokument erhalten",
     errorGeneric: "Die Anfrage konnte nicht verarbeitet werden. Bitte erneut versuchen.",
     errorNetwork: "Netzwerkfehler. Bitte erneut versuchen.",
-    pick: "Dokument",
+    pick: "Dokumente",
+    selectAll: "Alle auswählen",
+    clearAll: "Zurücksetzen",
+    downloadAll: "Alle herunterladen",
+    selected: "ausgewählt",
+    none: "Bitte mindestens ein Dokument wählen.",
   },
   cta: {
     title: "Lieber live sehen?",
@@ -232,7 +247,7 @@ const ro: ResourcesCopy = {
   form: {
     eyebrow: "Primește fișierele",
     title: "Unde să îl trimitem?",
-    body: "Alege documentul, introdu e-mailul și descărcarea apare imediat.",
+    body: "Alege unul sau mai multe documente, introdu e-mailul o singură dată și primești toate descărcările.",
     nameLabel: "Nume",
     emailLabel: "E-mail de lucru",
     companyLabel: "Companie",
@@ -246,7 +261,12 @@ const ro: ResourcesCopy = {
     another: "Primește alt document",
     errorGeneric: "Nu am putut procesa cererea. Te rugăm să încerci din nou.",
     errorNetwork: "Eroare de rețea. Te rugăm să încerci din nou.",
-    pick: "Document",
+    pick: "Documente",
+    selectAll: "Selectează tot",
+    clearAll: "Golește",
+    downloadAll: "Descarcă tot",
+    selected: "selectate",
+    none: "Alege cel puțin un document.",
   },
   cta: {
     title: "Preferi să vezi produsul la lucru?",
