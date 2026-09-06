@@ -537,6 +537,10 @@ async function sha256Hex(file: File): Promise<string> {
 }
 
 const RESUMABLE_THRESHOLD = 6 * 1024 * 1024;
+// Storage accepts up to 5 GB per object.
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024 * 1024;
+// crypto.subtle needs the whole file in memory; skip auto-checksum above this.
+const MAX_CHECKSUM_BYTES = 512 * 1024 * 1024;
 
 function ReleaseFileUpload({
   version,
