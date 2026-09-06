@@ -30,12 +30,64 @@ export interface TransportSettings {
   language: string;
   units: "metric" | "imperial";
   alertWindows: number[];
+  /** Optional per-document-type alert window in days, keyed by doc type. */
+  docAlertWindows: Record<string, number>;
   mapEnabled: boolean;
-  mapTileUrl: string | null;
-  geocodeUrl: string | null;
-  allowExternalLookups: boolean;
   cmrPrefix: string;
+  timezone: string;
+  /** 1 = Monday … 7 = Sunday */
+  weekStart: number;
+  auditDay: number;
+  auditRequired: boolean;
+  mapCenterLat: number | null;
+  mapCenterLng: number | null;
+  mapZoom: number;
+  liveTracking: boolean;
+  gpsPollMinutes: number;
+  searchProvider: "auto" | "osm" | "off";
 }
+
+export interface TransportGpsDevice {
+  id: string;
+  vehicle_id: string | null;
+  vehicle_plate: string | null;
+  provider: string;
+  device_id: string;
+  label: string | null;
+  api_base_url: string | null;
+  poll_minutes: number;
+  active: boolean;
+  last_sync_at: string | null;
+  last_error: string | null;
+  last_lat: number | null;
+  last_lng: number | null;
+  last_speed_kph: number | null;
+  last_fix_at: string | null;
+}
+
+export interface TransportAuditFinding {
+  key: string;
+  severity: "critical" | "high" | "medium" | "low";
+  area: string;
+  title: string;
+  detail: string;
+  count: number;
+}
+
+export interface TransportAuditRun {
+  id: string;
+  score: number;
+  findings: TransportAuditFinding[];
+  totals: Record<string, number>;
+  ran_by_name: string | null;
+  created_at: string;
+}
+
+export interface TransportTrend {
+  current: number;
+  previous: number;
+}
+
 
 export interface Vehicle {
   id: string;
@@ -286,7 +338,20 @@ export interface TransportOverview {
   alerts: ExpiryAlert[];
   recentIncidents: Incident[];
   openRequests: TransportRequest[];
+  vehicles: Vehicle[];
+  drivers: Driver[];
+  carriers: Carrier[];
+  pins: MapPin[];
+  trends: {
+    incidents: TransportTrend;
+    requests: TransportTrend;
+    approvals: TransportTrend;
+    closedIncidents: TransportTrend;
+  };
+  periodDays: number;
+  lastAudit: TransportAuditRun | null;
   lastCheck: WeeklyCheck | null;
+
   grants: TransportGrantKey[];
   canManageGrants: boolean;
 }

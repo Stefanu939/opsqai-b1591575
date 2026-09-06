@@ -5,7 +5,7 @@
 // DATABASE_URL, so every entry point fails loudly instead of silently
 // touching Management Center data.
 
-import { Pool, type QueryResultRow } from "pg";
+import { Pool, types as pgTypes, type QueryResultRow } from "pg";
 import type {
   Carrier,
   ChecklistItem,
@@ -27,6 +27,15 @@ import type {
 import { countryPack } from "./country-packs";
 
 let pool: Pool | null = null;
+
+// Dates and timestamps must reach the browser as plain strings. Without this,
+// node-postgres hands back JavaScript Date objects, which React cannot render
+// (minified error #31) once they cross the server-function boundary.
+const DATE_OIDS = [1082, 1083, 1114, 1184, 1186, 1266];
+for (const oid of DATE_OIDS) {
+  pgTypes.setTypeParser(oid, (value: string) => value);
+}
+
 
 function getPool(): Pool {
   if (pool) return pool;
@@ -63,11 +72,19 @@ const DEFAULT_SETTINGS: TransportSettings = {
   language: "en",
   units: "metric",
   alertWindows: [30, 60, 90],
+  docAlertWindows: {},
   mapEnabled: true,
-  mapTileUrl: null,
-  geocodeUrl: null,
-  allowExternalLookups: false,
   cmrPrefix: "CMR",
+  timezone: "Europe/Berlin",
+  weekStart: 1,
+  auditDay: 1,
+  auditRequired: true,
+  mapCenterLat: null,
+  mapCenterLng: null,
+  mapZoom: 5,
+  liveTracking: true,
+  gpsPollMinutes: 10,
+  searchProvider: "auto",
 };
 
 interface SettingsRow {
@@ -75,17 +92,29 @@ interface SettingsRow {
   language: string;
   units: string;
   alert_windows: number[] | null;
+  doc_alert_windows: Record<string, number> | null;
   map_enabled: boolean;
-  map_tile_url: string | null;
-  geocode_url: string | null;
-  allow_external_lookups: boolean;
   cmr_prefix: string;
+  timezone: string;
+  week_start: number;
+  audit_day: number;
+  audit_required: boolean;
+  map_center_lat: number | null;
+  map_center_lng: number | null;
+  map_zoom: number;
+  live_tracking: boolean;
+  gps_poll_minutes: number;
+  search_provider: string;
 }
+
+const SETTINGS_SELECT = `country, language, units, alert_windows, doc_alert_windows,
+  map_enabled, cmr_prefix, timezone, week_start, audit_day, audit_required,
+  map_center_lat, map_center_lng, map_zoom, live_tracking, gps_poll_minutes,
+  search_provider`;
 
 export async function getSettings(companyId: string): Promise<TransportSettings> {
   const row = await one<SettingsRow>(
-    `SELECT country, language, units, alert_windows, map_enabled, map_tile_url,
-            geocode_url, allow_external_lookups, cmr_prefix
+    `SELECT ${SETTINGS_SELECT}
        FROM public.transport_settings WHERE company_id = $1`,
     [companyId],
   );
@@ -95,11 +124,22 @@ export async function getSettings(companyId: string): Promise<TransportSettings>
     language: row.language,
     units: row.units === "imperial" ? "imperial" : "metric",
     alertWindows: row.alert_windows ?? [30, 60, 90],
+    docAlertWindows: row.doc_alert_windows ?? {},
     mapEnabled: row.map_enabled,
-    mapTileUrl: row.map_tile_url,
-    geocodeUrl: row.geocode_url,
-    allowExternalLookups: row.allow_external_lookups,
     cmrPrefix: row.cmr_prefix,
+    timezone: row.timezone,
+    weekStart: Number(row.week_start),
+    auditDay: Number(row.audit_day),
+    auditRequired: row.audit_required,
+    mapCenterLat: row.map_center_lat,
+    mapCenterLng: row.map_center_lng,
+    mapZoom: Number(row.map_zoom),
+    liveTracking: row.live_tracking,
+    gpsPollMinutes: Number(row.gps_poll_minutes),
+    searchProvider:
+      row.search_provider === "osm" || row.search_provider === "off"
+        ? row.search_provider
+        : "auto",
   };
 }
 
@@ -111,19 +151,29 @@ export async function saveSettings(
   const next = { ...current, ...patch };
   await q(
     `INSERT INTO public.transport_settings
-       (company_id, country, language, units, alert_windows, map_enabled,
-        map_tile_url, geocode_url, allow_external_lookups, cmr_prefix)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+       (company_id, country, language, units, alert_windows, doc_alert_windows,
+        map_enabled, cmr_prefix, timezone, week_start, audit_day, audit_required,
+        map_center_lat, map_center_lng, map_zoom, live_tracking, gps_poll_minutes,
+        search_provider)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
      ON CONFLICT (company_id) DO UPDATE SET
        country = EXCLUDED.country,
        language = EXCLUDED.language,
        units = EXCLUDED.units,
        alert_windows = EXCLUDED.alert_windows,
+       doc_alert_windows = EXCLUDED.doc_alert_windows,
        map_enabled = EXCLUDED.map_enabled,
-       map_tile_url = EXCLUDED.map_tile_url,
-       geocode_url = EXCLUDED.geocode_url,
-       allow_external_lookups = EXCLUDED.allow_external_lookups,
        cmr_prefix = EXCLUDED.cmr_prefix,
+       timezone = EXCLUDED.timezone,
+       week_start = EXCLUDED.week_start,
+       audit_day = EXCLUDED.audit_day,
+       audit_required = EXCLUDED.audit_required,
+       map_center_lat = EXCLUDED.map_center_lat,
+       map_center_lng = EXCLUDED.map_center_lng,
+       map_zoom = EXCLUDED.map_zoom,
+       live_tracking = EXCLUDED.live_tracking,
+       gps_poll_minutes = EXCLUDED.gps_poll_minutes,
+       search_provider = EXCLUDED.search_provider,
        updated_at = now()`,
     [
       companyId,
@@ -131,15 +181,24 @@ export async function saveSettings(
       next.language,
       next.units,
       next.alertWindows,
+      JSON.stringify(next.docAlertWindows ?? {}),
       next.mapEnabled,
-      next.mapTileUrl,
-      next.geocodeUrl,
-      next.allowExternalLookups,
       next.cmrPrefix,
+      next.timezone,
+      next.weekStart,
+      next.auditDay,
+      next.auditRequired,
+      next.mapCenterLat,
+      next.mapCenterLng,
+      next.mapZoom,
+      next.liveTracking,
+      next.gpsPollMinutes,
+      next.searchProvider,
     ],
   );
   return next;
 }
+
 
 // ── Grants ────────────────────────────────────────────────────────────────
 
@@ -715,65 +774,101 @@ export async function listMapPins(companyId: string): Promise<MapPin[]> {
   return [...vehicles, ...drivers, ...carriers, ...incidents];
 }
 
+export interface PlaceHit {
+  lat: number;
+  lng: number;
+  label: string;
+  source: string;
+}
+
 /**
- * Resolve a free-text location to coordinates. Cached locally; an external
- * lookup only happens when the installation explicitly allows it and
- * configures an endpoint (offline installs stay offline).
+ * Search a free-text location. Local cache first (works offline), then the
+ * public OpenStreetMap search service unless the installation switched the
+ * search provider off.
  */
-export async function geocode(
+export async function searchPlaces(
   companyId: string,
   query: string,
-): Promise<{ lat: number; lng: number; label: string | null; source: string } | null> {
+  limit = 6,
+): Promise<PlaceHit[]> {
   const normalized = query.trim().toLowerCase();
-  if (!normalized) return null;
-  const cached = await one<{
+  if (!normalized) return [];
+
+  const cached = await q<{
     latitude: number;
     longitude: number;
     label: string | null;
     source: string;
   }>(
-    `SELECT latitude, longitude, label, source FROM public.transport_places WHERE query = $1`,
-    [normalized],
+    `SELECT latitude, longitude, label, source
+       FROM public.transport_places
+      WHERE query LIKE '%' || $1 || '%' OR lower(COALESCE(label,'')) LIKE '%' || $1 || '%'
+      ORDER BY pinned DESC, created_at DESC
+      LIMIT $2`,
+    [normalized, limit],
   );
-  if (cached) {
-    return {
-      lat: cached.latitude,
-      lng: cached.longitude,
-      label: cached.label,
-      source: cached.source,
-    };
-  }
+  const local: PlaceHit[] = cached.map((c) => ({
+    lat: Number(c.latitude),
+    lng: Number(c.longitude),
+    label: c.label ?? query,
+    source: c.source,
+  }));
 
   const settings = await getSettings(companyId);
-  if (!settings.allowExternalLookups || !settings.geocodeUrl) return null;
+  if (settings.searchProvider === "off") return local;
 
   try {
-    const url = settings.geocodeUrl.includes("{q}")
-      ? settings.geocodeUrl.replace("{q}", encodeURIComponent(query))
-      : `${settings.geocodeUrl}${settings.geocodeUrl.includes("?") ? "&" : "?"}q=${encodeURIComponent(query)}&format=json&limit=1`;
-    const res = await fetch(url, { headers: { "User-Agent": "OPSQAI-Transport" } });
-    if (!res.ok) return null;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=${limit}&addressdetails=0`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "OPSQAI-Transport", Accept: "application/json" },
+    });
+    if (!res.ok) return local;
     const body = (await res.json()) as Array<{
       lat?: string;
       lon?: string;
       display_name?: string;
     }>;
-    const hit = Array.isArray(body) ? body[0] : null;
-    if (!hit?.lat || !hit?.lon) return null;
-    const lat = Number(hit.lat);
-    const lng = Number(hit.lon);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    await q(
-      `INSERT INTO public.transport_places (company_id, query, label, latitude, longitude, source)
-       VALUES ($1,$2,$3,$4,$5,'geocode')
-       ON CONFLICT (query) DO NOTHING`,
-      [companyId, normalized, hit.display_name ?? query, lat, lng],
-    );
-    return { lat, lng, label: hit.display_name ?? query, source: "geocode" };
+    const remote: PlaceHit[] = [];
+    for (const hit of Array.isArray(body) ? body : []) {
+      const lat = Number(hit.lat);
+      const lng = Number(hit.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+      remote.push({
+        lat,
+        lng,
+        label: hit.display_name ?? query,
+        source: "geocode",
+      });
+    }
+    if (remote[0]) {
+      await q(
+        `INSERT INTO public.transport_places (company_id, query, label, latitude, longitude, source)
+         VALUES ($1,$2,$3,$4,$5,'geocode')
+         ON CONFLICT (query) DO NOTHING`,
+        [companyId, normalized, remote[0].label, remote[0].lat, remote[0].lng],
+      );
+    }
+    const seen = new Set(local.map((l) => `${l.lat.toFixed(4)}:${l.lng.toFixed(4)}`));
+    return [
+      ...local,
+      ...remote.filter(
+        (r) => !seen.has(`${r.lat.toFixed(4)}:${r.lng.toFixed(4)}`),
+      ),
+    ].slice(0, limit * 2);
   } catch {
-    return null;
+    return local;
   }
 }
+
+/** Backwards-compatible single-hit lookup. */
+export async function geocode(
+  companyId: string,
+  query: string,
+): Promise<PlaceHit | null> {
+  const hits = await searchPlaces(companyId, query, 1);
+  return hits[0] ?? null;
+}
+
 
 export async function savePlace(
   companyId: string,
@@ -1034,4 +1129,515 @@ export async function lastCheck(companyId: string): Promise<WeeklyCheck | null> 
       ORDER BY created_at DESC LIMIT 1`,
     [companyId],
   );
+}
+
+// ── GPS / telematics devices ──────────────────────────────────────────────
+
+export interface GpsDevice {
+  id: string;
+  vehicle_id: string | null;
+  vehicle_plate: string | null;
+  provider: string;
+  device_id: string;
+  label: string | null;
+  api_base_url: string | null;
+  poll_minutes: number;
+  active: boolean;
+  last_sync_at: string | null;
+  last_error: string | null;
+  last_lat: number | null;
+  last_lng: number | null;
+  last_speed_kph: number | null;
+  last_fix_at: string | null;
+}
+
+const GPS_SELECT = `d.id, d.vehicle_id, v.plate AS vehicle_plate, d.provider, d.device_id,
+  d.label, d.api_base_url, d.poll_minutes, d.active, d.last_sync_at, d.last_error,
+  d.last_lat, d.last_lng, d.last_speed_kph, d.last_fix_at`;
+
+export async function listGpsDevices(companyId: string): Promise<GpsDevice[]> {
+  return q<GpsDevice>(
+    `SELECT ${GPS_SELECT}
+       FROM public.transport_gps_devices d
+       LEFT JOIN public.transport_vehicles v ON v.id = d.vehicle_id
+      WHERE d.company_id = $1
+      ORDER BY d.active DESC, COALESCE(v.plate, d.device_id)`,
+    [companyId],
+  );
+}
+
+export async function saveGpsDevice(
+  companyId: string,
+  userId: string,
+  input: {
+    id?: string;
+    vehicleId?: string | null;
+    provider: string;
+    deviceId: string;
+    label?: string | null;
+    apiBaseUrl?: string | null;
+    apiToken?: string | null;
+    pollMinutes?: number;
+    active?: boolean;
+  },
+): Promise<{ id: string }> {
+  if (input.id) {
+    await q(
+      `UPDATE public.transport_gps_devices
+          SET vehicle_id = $3, provider = $4, device_id = $5, label = $6,
+              api_base_url = $7,
+              api_token = COALESCE($8, api_token),
+              poll_minutes = $9, active = $10, updated_at = now()
+        WHERE id = $1 AND company_id = $2`,
+      [
+        input.id,
+        companyId,
+        input.vehicleId ?? null,
+        input.provider,
+        input.deviceId,
+        input.label ?? null,
+        input.apiBaseUrl ?? null,
+        input.apiToken || null,
+        input.pollMinutes ?? 10,
+        input.active ?? true,
+      ],
+    );
+    return { id: input.id };
+  }
+  const row = await one<{ id: string }>(
+    `INSERT INTO public.transport_gps_devices
+       (company_id, vehicle_id, provider, device_id, label, api_base_url,
+        api_token, poll_minutes, active, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+     ON CONFLICT (company_id, provider, device_id) DO UPDATE
+       SET vehicle_id = EXCLUDED.vehicle_id, label = EXCLUDED.label,
+           api_base_url = EXCLUDED.api_base_url, updated_at = now()
+     RETURNING id`,
+    [
+      companyId,
+      input.vehicleId ?? null,
+      input.provider,
+      input.deviceId,
+      input.label ?? null,
+      input.apiBaseUrl ?? null,
+      input.apiToken || null,
+      input.pollMinutes ?? 10,
+      input.active ?? true,
+      userId,
+    ],
+  );
+  if (!row) throw new Error("Could not save the GPS device.");
+  return row;
+}
+
+export async function deleteGpsDevice(companyId: string, id: string): Promise<void> {
+  await q(
+    `DELETE FROM public.transport_gps_devices WHERE id = $1 AND company_id = $2`,
+    [id, companyId],
+  );
+}
+
+/** Record a position (manual correction, CSV import or a provider poll). */
+export async function recordPosition(
+  companyId: string,
+  input: {
+    vehicleId: string;
+    deviceId?: string | null;
+    lat: number;
+    lng: number;
+    speedKph?: number | null;
+    heading?: number | null;
+    source?: "manual" | "gps" | "import";
+  },
+): Promise<void> {
+  await q(
+    `INSERT INTO public.transport_positions
+       (company_id, vehicle_id, device_id, latitude, longitude, speed_kph, heading, source)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+    [
+      companyId,
+      input.vehicleId,
+      input.deviceId ?? null,
+      input.lat,
+      input.lng,
+      input.speedKph ?? null,
+      input.heading ?? null,
+      input.source ?? "manual",
+    ],
+  );
+  await q(
+    `UPDATE public.transport_vehicles
+        SET latitude = $3, longitude = $4, updated_at = now()
+      WHERE id = $1 AND company_id = $2`,
+    [input.vehicleId, companyId, input.lat, input.lng],
+  );
+  if (input.deviceId) {
+    await q(
+      `UPDATE public.transport_gps_devices
+          SET last_lat = $3, last_lng = $4, last_speed_kph = $5,
+              last_fix_at = now(), last_sync_at = now(), last_error = NULL,
+              updated_at = now()
+        WHERE id = $1 AND company_id = $2`,
+      [input.deviceId, companyId, input.lat, input.lng, input.speedKph ?? null],
+    );
+  }
+}
+
+export async function listTrack(
+  companyId: string,
+  vehicleId: string,
+  limit = 200,
+): Promise<Array<{ lat: number; lng: number; recorded_at: string; speed_kph: number | null }>> {
+  const rows = await q<{
+    latitude: number;
+    longitude: number;
+    recorded_at: string;
+    speed_kph: number | null;
+  }>(
+    `SELECT latitude, longitude, recorded_at, speed_kph
+       FROM public.transport_positions
+      WHERE company_id = $1 AND vehicle_id = $2
+      ORDER BY recorded_at DESC
+      LIMIT $3`,
+    [companyId, vehicleId, limit],
+  );
+  return rows
+    .map((r) => ({
+      lat: Number(r.latitude),
+      lng: Number(r.longitude),
+      recorded_at: r.recorded_at,
+      speed_kph: r.speed_kph == null ? null : Number(r.speed_kph),
+    }))
+    .reverse();
+}
+
+/**
+ * Poll a telematics provider for the current position of every active device.
+ * Providers expose different shapes, so we read the common fields defensively
+ * and keep the failure on the device instead of breaking the whole sync.
+ */
+export async function syncGpsDevices(
+  companyId: string,
+): Promise<{ updated: number; failed: number }> {
+  const devices = await q<{
+    id: string;
+    vehicle_id: string | null;
+    provider: string;
+    device_id: string;
+    api_base_url: string | null;
+    api_token: string | null;
+  }>(
+    `SELECT id, vehicle_id, provider, device_id, api_base_url, api_token
+       FROM public.transport_gps_devices
+      WHERE company_id = $1 AND active = true AND provider <> 'manual'
+        AND api_base_url IS NOT NULL`,
+    [companyId],
+  );
+
+  let updated = 0;
+  let failed = 0;
+  for (const device of devices) {
+    try {
+      const base = (device.api_base_url ?? "").replace(/\/$/, "");
+      const url = base.includes("{id}")
+        ? base.replace("{id}", encodeURIComponent(device.device_id))
+        : `${base}/${encodeURIComponent(device.device_id)}`;
+      const res = await fetch(url, {
+        headers: device.api_token
+          ? { Authorization: `Bearer ${device.api_token}`, Accept: "application/json" }
+          : { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = (await res.json()) as Record<string, unknown>;
+      const pick = (...keys: string[]): number | null => {
+        for (const k of keys) {
+          const v = body[k] ?? (body["position"] as Record<string, unknown>)?.[k];
+          const n = Number(v);
+          if (Number.isFinite(n)) return n;
+        }
+        return null;
+      };
+      const lat = pick("lat", "latitude");
+      const lng = pick("lng", "lon", "longitude");
+      if (lat == null || lng == null) throw new Error("No position in the response");
+      if (device.vehicle_id) {
+        await recordPosition(companyId, {
+          vehicleId: device.vehicle_id,
+          deviceId: device.id,
+          lat,
+          lng,
+          speedKph: pick("speed", "speed_kph"),
+          source: "gps",
+        });
+      } else {
+        await q(
+          `UPDATE public.transport_gps_devices
+              SET last_lat = $2, last_lng = $3, last_fix_at = now(),
+                  last_sync_at = now(), last_error = NULL, updated_at = now()
+            WHERE id = $1`,
+          [device.id, lat, lng],
+        );
+      }
+      updated += 1;
+    } catch (e) {
+      failed += 1;
+      await q(
+        `UPDATE public.transport_gps_devices
+            SET last_sync_at = now(), last_error = $2, updated_at = now()
+          WHERE id = $1`,
+        [device.id, e instanceof Error ? e.message : "Sync failed"],
+      );
+    }
+  }
+  return { updated, failed };
+}
+
+// ── Transport audit (Intelligence) ────────────────────────────────────────
+
+export interface AuditFinding {
+  key: string;
+  severity: "critical" | "high" | "medium" | "low";
+  area: string;
+  title: string;
+  detail: string;
+  count: number;
+}
+
+export interface AuditRun {
+  id: string;
+  score: number;
+  findings: AuditFinding[];
+  totals: Record<string, number>;
+  ran_by_name: string | null;
+  created_at: string;
+}
+
+export async function runAudit(
+  companyId: string,
+  userId: string,
+  who: string | null,
+): Promise<AuditRun> {
+  const [alerts, vehicles, drivers, carriers, incidents, requests, check, devices] =
+    await Promise.all([
+      expiryAlerts(companyId),
+      listVehicles(companyId),
+      listDrivers(companyId),
+      listCarriers(companyId),
+      listIncidents(companyId),
+      listRequests(companyId),
+      lastCheck(companyId),
+      listGpsDevices(companyId),
+    ]);
+
+  const findings: AuditFinding[] = [];
+  const add = (f: AuditFinding) => {
+    if (f.count > 0) findings.push(f);
+  };
+
+  add({
+    key: "documents_expired",
+    severity: "critical",
+    area: "documents",
+    title: "Expired documents",
+    detail: "Documents past their end date must be renewed before further use.",
+    count: alerts.filter((a) => a.level === "expired").length,
+  });
+  add({
+    key: "documents_critical",
+    severity: "high",
+    area: "documents",
+    title: "Documents expiring within 14 days",
+    detail: "Plan the renewal now to avoid an operational stop.",
+    count: alerts.filter((a) => a.level === "critical").length,
+  });
+  add({
+    key: "vehicles_no_documents",
+    severity: "high",
+    area: "fleet",
+    title: "Vehicles without any document",
+    detail: "Every vehicle should carry at least an inspection and insurance record.",
+    count: vehicles.filter(
+      (v) => !alerts.some((a) => a.ownerKind === "vehicle" && a.ownerId === v.id),
+    ).length,
+  });
+  add({
+    key: "drivers_blocked",
+    severity: "high",
+    area: "drivers",
+    title: "Drivers marked blocked or needing attention",
+    detail: "Review their licence, medical validity and assignment.",
+    count: drivers.filter((d) => d.status === "blocked" || d.status === "attention")
+      .length,
+  });
+  add({
+    key: "carriers_no_requirements",
+    severity: "medium",
+    area: "carriers",
+    title: "Carriers without agreed requirements",
+    detail: "Record insurance, licence and handling requirements per subcontractor.",
+    count: carriers.filter((c) => !c.requirements).length,
+  });
+  add({
+    key: "incidents_open_critical",
+    severity: "critical",
+    area: "incidents",
+    title: "Open critical incidents",
+    detail: "Critical incidents need an agreed action and an owner.",
+    count: incidents.filter(
+      (i) =>
+        i.severity === "critical" && i.status !== "closed" && i.status !== "cancelled",
+    ).length,
+  });
+  add({
+    key: "incidents_no_action",
+    severity: "medium",
+    area: "incidents",
+    title: "Open incidents without an agreed action",
+    detail: "Close the loop: what was decided, by whom and by when.",
+    count: incidents.filter(
+      (i) => !i.action_agreed && i.status !== "closed" && i.status !== "cancelled",
+    ).length,
+  });
+  add({
+    key: "requests_overdue",
+    severity: "high",
+    area: "requests",
+    title: "Requests past their due date",
+    detail: "These requests are still open after the agreed date.",
+    count: requests.filter(
+      (r) =>
+        r.due_on != null &&
+        r.due_on < new Date().toISOString().slice(0, 10) &&
+        (r.status === "open" || r.status === "in_review"),
+    ).length,
+  });
+  add({
+    key: "vehicles_no_position",
+    severity: "low",
+    area: "map",
+    title: "Vehicles without a position",
+    detail: "Add coordinates or connect a GPS device to see them on the map.",
+    count: vehicles.filter((v) => v.latitude == null || v.longitude == null).length,
+  });
+  add({
+    key: "gps_failing",
+    severity: "medium",
+    area: "map",
+    title: "GPS devices reporting an error",
+    detail: "The last synchronisation failed for these devices.",
+    count: devices.filter((d) => d.active && d.last_error).length,
+  });
+  if (!check || check.status !== "completed") {
+    findings.push({
+      key: "audit_not_completed",
+      severity: "medium",
+      area: "procedures",
+      title: "No completed weekly audit",
+      detail: "Run and complete the weekly checklist to close the procedural loop.",
+      count: 1,
+    });
+  }
+
+  const weight = { critical: 12, high: 7, medium: 4, low: 2 } as const;
+  const penalty = findings.reduce(
+    (sum, f) => sum + weight[f.severity] * Math.min(f.count, 5),
+    0,
+  );
+  const score = Math.max(0, Math.min(100, 100 - penalty));
+  const totals = {
+    critical: findings.filter((f) => f.severity === "critical").length,
+    high: findings.filter((f) => f.severity === "high").length,
+    medium: findings.filter((f) => f.severity === "medium").length,
+    low: findings.filter((f) => f.severity === "low").length,
+    vehicles: vehicles.length,
+    drivers: drivers.length,
+    carriers: carriers.length,
+  };
+
+  const row = await one<{ id: string; created_at: string }>(
+    `INSERT INTO public.transport_audit_runs
+       (company_id, score, findings, totals, ran_by, ran_by_name)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, created_at`,
+    [companyId, score, JSON.stringify(findings), JSON.stringify(totals), userId, who],
+  );
+  return {
+    id: row?.id ?? "",
+    score,
+    findings,
+    totals,
+    ran_by_name: who,
+    created_at: row?.created_at ?? new Date().toISOString(),
+  };
+}
+
+export async function listAuditRuns(companyId: string, limit = 20): Promise<AuditRun[]> {
+  const rows = await q<{
+    id: string;
+    score: number;
+    findings: AuditFinding[];
+    totals: Record<string, number>;
+    ran_by_name: string | null;
+    created_at: string;
+  }>(
+    `SELECT id, score, findings, totals, ran_by_name, created_at
+       FROM public.transport_audit_runs
+      WHERE company_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2`,
+    [companyId, limit],
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    score: Number(r.score),
+    findings: r.findings ?? [],
+    totals: r.totals ?? {},
+    ran_by_name: r.ran_by_name,
+    created_at: r.created_at,
+  }));
+}
+
+// ── Overview trends ───────────────────────────────────────────────────────
+
+/** Counts for the last N days plus the previous window, so the UI can show a trend. */
+export async function trends(
+  companyId: string,
+  days: number,
+): Promise<{
+  incidents: { current: number; previous: number };
+  requests: { current: number; previous: number };
+  approvals: { current: number; previous: number };
+  closedIncidents: { current: number; previous: number };
+}> {
+  const row = await one<Record<string, string>>(
+    `WITH win AS (SELECT ($2 || ' days')::interval AS d)
+     SELECT
+       (SELECT count(*) FROM public.transport_incidents, win
+         WHERE company_id = $1 AND created_at >= now() - d) AS inc_cur,
+       (SELECT count(*) FROM public.transport_incidents, win
+         WHERE company_id = $1 AND created_at >= now() - d * 2
+           AND created_at < now() - d) AS inc_prev,
+       (SELECT count(*) FROM public.transport_requests, win
+         WHERE company_id = $1 AND created_at >= now() - d) AS req_cur,
+       (SELECT count(*) FROM public.transport_requests, win
+         WHERE company_id = $1 AND created_at >= now() - d * 2
+           AND created_at < now() - d) AS req_prev,
+       (SELECT count(*) FROM public.transport_requests, win
+         WHERE company_id = $1 AND approved_at >= now() - d) AS app_cur,
+       (SELECT count(*) FROM public.transport_requests, win
+         WHERE company_id = $1 AND approved_at >= now() - d * 2
+           AND approved_at < now() - d) AS app_prev,
+       (SELECT count(*) FROM public.transport_incidents, win
+         WHERE company_id = $1 AND closed_at >= now() - d) AS clo_cur,
+       (SELECT count(*) FROM public.transport_incidents, win
+         WHERE company_id = $1 AND closed_at >= now() - d * 2
+           AND closed_at < now() - d) AS clo_prev`,
+    [companyId, days],
+  );
+  const n = (k: string) => Number(row?.[k] ?? 0);
+  return {
+    incidents: { current: n("inc_cur"), previous: n("inc_prev") },
+    requests: { current: n("req_cur"), previous: n("req_prev") },
+    approvals: { current: n("app_cur"), previous: n("app_prev") },
+    closedIncidents: { current: n("clo_cur"), previous: n("clo_prev") },
+  };
 }
