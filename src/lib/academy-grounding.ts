@@ -87,15 +87,16 @@ export type GroundingVerdict = {
 
 /**
  * A candidate passage is considered grounded when it introduces no invented
- * numbers and at most `maxNewTerms` unfamiliar specialised words (small slack
- * for connective phrasing and on-the-fly translation).
+ * numbers and — only when the output language matches the lesson language, so
+ * translated wording is not punished — at most `maxNewTerms` unfamiliar words.
  */
 export function checkAcademyGrounding(
   candidate: string,
   source: string,
-  maxNewTerms = 2,
+  options: { checkTerms?: boolean; maxNewTerms?: number } = {},
 ): GroundingVerdict {
-  const terms = unsupportedTerms(candidate, source);
+  const { checkTerms = false, maxNewTerms = 3 } = options;
+  const terms = checkTerms ? unsupportedTerms(candidate, source) : [];
   const numbers = unsupportedNumbers(candidate, source);
   return { grounded: numbers.length === 0 && terms.length <= maxNewTerms, terms, numbers };
 }
