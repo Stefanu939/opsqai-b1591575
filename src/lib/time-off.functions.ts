@@ -64,7 +64,9 @@ async function createCalendarEvent(
   const endsAt = day(req.endsOn, true);
   if (!startsAt || !endsAt) return null;
 
+  try {
     if (isSelfHosted()) {
+
       const { getCalendarRepository } = await import("@/lib/providers/registry");
       const repo = getCalendarRepository(context.supabase);
       const res = await repo.upsertEvent({
