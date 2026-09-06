@@ -377,6 +377,19 @@ function TeacherChat({
     }
   };
 
+  /** Route explicit "go to quiz" asks into real Quiz Mode instead of the AI chat. */
+  const handleSend = async (text: string) => {
+    if (!quiz && QUIZ_INTENT.test(text)) {
+      setInput("");
+      await startQuiz();
+      return;
+    }
+    setInput("");
+    void sendMessage({ text });
+  };
+
+
+
   const visibleMessages = messages
     .filter(
       (m) =>
