@@ -21,6 +21,7 @@ import type {
   UserId,
 } from "@/lib/providers/interfaces";
 import { Capability } from "@/lib/platform";
+import { toIso } from "./dates";
 
 const ARGON2ID_OPTIONS = {
   type: argon2.argon2id,
@@ -132,8 +133,8 @@ export function createPgAuthAdminProvider(deps: PgAuthAdminDeps): IAuthAdminProv
       return rows.map((r) => ({
         id: r.id,
         email: r.email ?? "",
-        lastSignInAt: r.last_sign_in_at ? r.last_sign_in_at.toISOString() : null,
-        createdAt: r.created_at.toISOString(),
+        lastSignInAt: r.last_sign_in_at ? toIso(r.last_sign_in_at) : null,
+        createdAt: toIso(r.created_at),
         emailConfirmed: true,
         disabled: !!r.disabled,
         invited: !r.last_sign_in_at,
@@ -157,8 +158,8 @@ export function createPgAuthAdminProvider(deps: PgAuthAdminDeps): IAuthAdminProv
       return {
         id: r.id,
         email: r.email ?? "",
-        lastSignInAt: r.last_sign_in_at ? r.last_sign_in_at.toISOString() : null,
-        createdAt: r.created_at.toISOString(),
+        lastSignInAt: r.last_sign_in_at ? toIso(r.last_sign_in_at) : null,
+        createdAt: toIso(r.created_at),
         emailConfirmed: true,
         disabled: !!r.disabled,
         invited: !r.last_sign_in_at,

@@ -9,6 +9,7 @@ import type {
   TimeOffRecord,
   TimeOffStatus,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 export interface PgPresenceRepositoryDeps {
   pool: Pool;
@@ -41,7 +42,7 @@ function mapPresence(row: PresenceRow): PresenceRecord {
     userId: row.id,
     status: (row.presence_status ?? "available") as PresenceStatus,
     message: row.presence_message,
-    until: row.presence_until ? new Date(row.presence_until).toISOString() : null,
+    until: row.presence_until ? toIso(row.presence_until) : null,
   };
 }
 
@@ -55,9 +56,9 @@ function mapTimeOff(row: TimeOffRow): TimeOffRecord {
     reason: row.reason,
     status: row.status as TimeOffStatus,
     approvedBy: row.approved_by,
-    approvedAt: row.approved_at ? new Date(row.approved_at).toISOString() : null,
+    approvedAt: row.approved_at ? toIso(row.approved_at) : null,
     calendarEventId: row.calendar_event_id,
-    createdAt: new Date(row.created_at).toISOString(),
+    createdAt: toIso(row.created_at),
   };
 }
 

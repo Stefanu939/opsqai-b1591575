@@ -14,6 +14,7 @@ import type {
   KnowledgeVersionAnchor,
   KnowledgeVersionInsert,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 export interface PgKnowledgeRepositoryDeps {
   pool: Pool;
@@ -188,7 +189,7 @@ export function createPgKnowledgeRepository(
       return rows.map((row) => ({
         id: row.id, title: row.title, docCode: row.doc_code, version: row.version,
         section: row.section, page: row.page, departmentId: row.department_id,
-        updatedAt: row.updated_at.toISOString(),
+        updatedAt: toIso(row.updated_at),
       }));
     },
 

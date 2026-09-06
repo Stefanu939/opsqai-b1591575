@@ -12,6 +12,7 @@ import type {
   ProfilePatch,
   ProfileRecord,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 interface Row {
   id: string;
@@ -54,8 +55,8 @@ function mapRow(row: Row, tenantCompanyId: string): ProfileRecord {
     isActive: row.is_active,
     languagePref: row.language_pref,
     dashboardLayout: row.dashboard_layout ?? null,
-    createdAt: row.created_at.toISOString(),
-    updatedAt: row.updated_at.toISOString(),
+    createdAt: toIso(row.created_at),
+    updatedAt: toIso(row.updated_at),
   };
 }
 

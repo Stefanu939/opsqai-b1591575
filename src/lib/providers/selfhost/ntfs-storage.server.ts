@@ -17,6 +17,7 @@ import type {
   StoragePutInput,
 } from "@/lib/providers/interfaces";
 import { Capability } from "@/lib/platform";
+import { toIso } from "./dates";
 
 export interface NtfsStorageDeps {
   /** Absolute Windows path, e.g. `C:\\ProgramData\\OPSQAI\\storage`. */
@@ -82,7 +83,7 @@ export function createNtfsStorageProvider(deps: NtfsStorageDeps): IStorageProvid
       key,
       size: st.size,
       contentType: null,
-      updatedAt: st.mtime.toISOString(),
+      updatedAt: toIso(st.mtime),
     };
   }
 

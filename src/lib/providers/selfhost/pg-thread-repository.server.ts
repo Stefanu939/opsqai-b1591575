@@ -2,6 +2,7 @@
 
 import type { Pool } from "pg";
 import type { IThreadRepository } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 export interface PgThreadRepositoryDeps {
   pool: Pool;
@@ -26,8 +27,8 @@ export function createPgThreadRepository(deps: PgThreadRepositoryDeps): IThreadR
       return {
         id: r.id,
         title: r.title,
-        createdAt: r.created_at.toISOString(),
-        updatedAt: r.updated_at.toISOString(),
+        createdAt: toIso(r.created_at),
+        updatedAt: toIso(r.updated_at),
       };
     },
     async deleteOwned(id, userId) {
@@ -55,8 +56,8 @@ export function createPgThreadRepository(deps: PgThreadRepositoryDeps): IThreadR
       return rows.map((r) => ({
         id: r.id,
         title: r.title,
-        createdAt: r.created_at.toISOString(),
-        updatedAt: r.updated_at.toISOString(),
+        createdAt: toIso(r.created_at),
+        updatedAt: toIso(r.updated_at),
         companyId: r.company_id,
       }));
     },

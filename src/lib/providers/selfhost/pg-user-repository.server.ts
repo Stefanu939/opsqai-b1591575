@@ -15,6 +15,7 @@ import type {
   UserId,
   UserRecord,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 const ARGON2ID_OPTIONS = {
   type: argon2.argon2id,
@@ -34,7 +35,7 @@ function mapRow(row: {
     id: row.id,
     email: row.email ?? "",
     displayName: row.display_name,
-    createdAt: row.created_at.toISOString(),
+    createdAt: toIso(row.created_at),
     disabled: row.disabled,
   };
 }

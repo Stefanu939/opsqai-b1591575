@@ -6,6 +6,7 @@ import type {
   IAiAuditRepository,
   JsonLike,
 } from "@/lib/providers/interfaces";
+import { toIso } from "./dates";
 
 const LOW_CONFIDENCE = 0.55;
 
@@ -18,7 +19,7 @@ export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRep
       }>(`SELECT id, score, maturity, passed, warnings, critical, summary, created_at
             FROM public.ai_audits WHERE company_id=$1 ORDER BY created_at DESC LIMIT $2`,
         [companyId, limit]);
-      return rows.map((r) => ({ ...r, createdAt: r.created_at.toISOString() }));
+      return rows.map((r) => ({ ...r, createdAt: toIso(r.created_at) }));
     },
     async create(input) {
       const { rows } = await pool.query<{ id: string }>(
@@ -55,7 +56,7 @@ export function createPgAiAuditRepository({ pool }: { pool: Pool }): IAiAuditRep
         occurrences: Number(r.occurrences ?? 0),
         status: r.status,
         departmentName: r.department_name,
-        lastSeen: r.last_seen.toISOString(),
+        lastSeen: toIso(r.last_seen),
         confidence: r.confidence == null ? null : Number(r.confidence),
       }));
     },

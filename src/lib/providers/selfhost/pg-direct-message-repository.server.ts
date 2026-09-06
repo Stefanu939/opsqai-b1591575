@@ -1,11 +1,12 @@
 import type { Pool, PoolClient } from "pg";
 import type { DirectMessageRecord, IDirectMessageRepository, JsonLike } from "@/lib/providers/interfaces";
+import { toIso, toIsoOrNull } from "./dates";
 
 function message(row: { id:string; conversation_id:string; sender_id:string; body:string|null;
   attachments: JsonLike[]; created_at:Date; edited_at:Date|null; deleted_at:Date|null }): DirectMessageRecord {
   return { id:row.id, conversationId:row.conversation_id, senderId:row.sender_id, body:row.body,
-    attachments:row.attachments ?? [], createdAt:row.created_at.toISOString(),
-    editedAt:row.edited_at?.toISOString() ?? null, deletedAt:row.deleted_at?.toISOString() ?? null };
+    attachments:row.attachments ?? [], createdAt:toIso(row.created_at),
+    editedAt:toIsoOrNull(row.edited_at), deletedAt:toIsoOrNull(row.deleted_at) };
 }
 async function member(db: Pool | PoolClient, userId: string, conversationId: string) {
   const { rows } = await db.query("SELECT 1 FROM public.direct_conversation_members WHERE user_id=$1 AND conversation_id=$2", [userId, conversationId]);
@@ -41,9 +42,9 @@ export function createPgDirectMessageRepository({ pool }: { pool: Pool }): IDire
        LEFT JOIN public.users p ON p.id=pm.user_id
        LEFT JOIN LATERAL (SELECT * FROM public.direct_messages m WHERE m.conversation_id=c.id ORDER BY m.created_at DESC LIMIT 1) lm ON TRUE
            WHERE me.user_id=$1 ORDER BY c.last_message_at DESC`, [userId]);
-      return rows.map((r) => ({ id:r.id,createdAt:r.created_at.toISOString(),lastMessageAt:r.last_message_at.toISOString(),
+      return rows.map((r) => ({ id:r.id,createdAt:toIso(r.created_at),lastMessageAt:toIso(r.last_message_at),
         peer:r.peer_id?{id:r.peer_id,fullName:r.peer_name ?? r.peer_email ?? "",email:r.peer_email ?? "",avatarUrl:r.peer_avatar,isStaff:false,isColleague:true}:null,
-        lastMessage:r.last_created_at?{body:r.last_body,createdAt:r.last_created_at.toISOString(),senderId:r.last_sender_id ?? "",hasAttachments:r.has_attachments}:null,
+        lastMessage:r.last_created_at?{body:r.last_body,createdAt:toIso(r.last_created_at),senderId:r.last_sender_id ?? "",hasAttachments:r.has_attachments}:null,
         unreadCount:Number(r.unread_count) }));
     },
     async findOrCreate(userId, targetUserId) {

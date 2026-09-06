@@ -25,6 +25,7 @@ import type {
   WeeklyCheck,
 } from "./types";
 import { countryPack } from "./country-packs";
+import { pgDateTypes } from "@/lib/providers/selfhost/pg-types.server";
 
 let pool: Pool | null = null;
 
@@ -52,7 +53,7 @@ function getPool(): Pool {
       "OPSQAI Transport is available on Self-Hosted installations only (no local database configured).",
     );
   }
-  pool = new Pool({ connectionString, max: 5, idleTimeoutMillis: 30_000 });
+  pool = new Pool({ connectionString, types: pgDateTypes, max: 5, idleTimeoutMillis: 30_000 });
   return pool;
 }
 

@@ -3,6 +3,7 @@
 // Realigning pgvector to the probed embedding dimension is a DDL operation, so
 // it runs through the local Postgres connection rather than a repository.
 import { Pool } from "pg";
+import { pgDateTypes } from "@/lib/providers/selfhost/pg-types.server";
 
 let pool: Pool | null = null;
 
@@ -12,7 +13,7 @@ function getPool(): Pool {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not configured for this installation.");
   }
-  pool = new Pool({ connectionString, max: 2, idleTimeoutMillis: 10_000 });
+  pool = new Pool({ connectionString, types: pgDateTypes, max: 2, idleTimeoutMillis: 10_000 });
   return pool;
 }
 
