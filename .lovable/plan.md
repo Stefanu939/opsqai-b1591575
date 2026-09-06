@@ -44,6 +44,20 @@ The company's Admin or SuperAdmin grants Transport rights per person inside thei
 
 Every list (vehicles, drivers, incidents, carriers, requests, expiries, weekly check results) exports to CSV with the currently applied filters, and attached documents can be downloaded. Exports are recorded in the audit log.
 
+## Map (new)
+
+A real, interactive map inside Transport, added as an eighth section ("Transport Map") and also embedded as a panel on Overview and Operations:
+
+- Pins for every place the Transport data already knows: vehicle base/home depot, driver base, carrier addresses and incident locations. Addresses are turned into coordinates once and stored, so the map keeps working without re-lookup.
+- Filters and layers you can switch on and off: vehicles, drivers, carriers, incidents, expiring documents, and status colours (active / attention / blocked).
+- Click a pin to open the record's side panel with its notes, documents and expiries, and jump straight into the full record.
+- Draw or pick operating zones (regions, delivery areas) and see which vehicles, carriers and incidents fall inside; zone assignment is saved on the record.
+- Optional route/distance view between two selected points for planning and dispatch discussions, plus a heat view of where incidents concentrate.
+- Manual pin placement and drag-to-correct for addresses that cannot be resolved automatically, and coordinates included in the CSV export.
+- Language and country follow the Transport settings; measurement units follow the selected country.
+
+Because Self-Hosted installations can run without internet, the map degrades gracefully: when no map service is reachable it shows the same records as a grouped list by zone/city instead of failing, and the settings page states clearly whether map lookups are allowed to leave the installation.
+
 ## Technical notes
 
 - New Self-Hosted migration `migrations/selfhost/0029_transport.sql`: `transport_vehicles`, `transport_drivers`, `transport_documents` (polymorphic owner + type + expiry), `transport_carriers`, `transport_incidents`, `transport_requests`, `transport_notes`, `transport_links` (procedure/KB links), `transport_checklist_items`, `transport_checks`, `transport_check_results`, `transport_settings` (country, language, notification windows), `transport_grants` (per-user rights). Indexed by expiry date and status.
@@ -53,3 +67,5 @@ Every list (vehicles, drivers, incidents, carriers, requests, expiries, weekly c
 - The seven routes stay at `/app/products/transport/<workspace>`, implemented as dedicated components instead of the current generic placeholder; the generic placeholder route remains for all other products so nothing else regresses.
 - Expiry alerts reuse the existing notification pipeline (30/60/90-day windows) and the Self-Hosted scheduled job runner.
 - Verification: typecheck, production build, existing architecture/licensing test suites, plus new unit tests for the compliance packs and grant checks.
+- Map: coordinates, zone polygons and geocode cache stored in `transport_places` / `transport_zones` (part of migration 0029). Tiles and geocoding via the Google Maps Platform connector managed by Lovable (server-side lookups only, cached locally so an offline install keeps working); a self-hosted/offline tile source can be pointed at from Transport settings. New route `/app/products/transport/map` plus a reusable map panel component.
+- New tasks recorded in `roadmap.md` when implementation starts.
