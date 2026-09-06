@@ -534,6 +534,10 @@ function ReleaseFileUpload({
 }) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [uploadedBytes, setUploadedBytes] = useState(0);
+  const [totalBytes, setTotalBytes] = useState(0);
+  const [hashing, setHashing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const accept = kind === "installer" ? ".exe,.msi,.zip" : ".pdf,.md,.txt";
@@ -541,24 +545,69 @@ function ReleaseFileUpload({
   const upload = useCallback(
     async (selected: File) => {
       setUploading(true);
+      setProgress(0);
+      setUploadedBytes(0);
+      setTotalBytes(selected.size);
       try {
         const safeVersion = (version || "draft").replace(/[^a-zA-Z0-9._-]/g, "_");
         const ext = selected.name.includes(".") ? selected.name.split(".").pop() : "";
         const path = `${safeVersion}/${kind}/${Date.now()}.${ext}`;
-        const { error } = await supabase.storage.from("releases").upload(path, selected, {
-          cacheControl: "3600",
-          upsert: false,
+
+        // Upload through XHR so the browser reports real byte progress; the
+        // supabase-js storage client offers no progress callback.
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        const baseUrl = import.meta.env['VITE_SUPABASE_URL'] as string | undefined;
+        const apiKey = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] as string | undefined;
+        if (!token || !baseUrl || !apiKey) throw new Error("Not authenticated");
+
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open(
+            "POST",
+            `${baseUrl}/storage/v1/object/releases/${path.split("/").map(encodeURIComponent).join("/")}`,
+          );
+          xhr.setRequestHeader("authorization", `Bearer ${token}`);
+          xhr.setRequestHeader("apikey", apiKey);
+          xhr.setRequestHeader("x-upsert", "false");
+          xhr.setRequestHeader("cache-control", "3600");
+          xhr.upload.onprogress = (event) => {
+            if (!event.lengthComputable) return;
+            setUploadedBytes(event.loaded);
+            setTotalBytes(event.total);
+            setProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              setProgress(100);
+              resolve();
+              return;
+            }
+            let message = `Upload failed (${xhr.status})`;
+            try {
+              const parsed = JSON.parse(xhr.responseText) as { message?: string; error?: string };
+              message = parsed.message ?? parsed.error ?? message;
+            } catch {
+              /* keep default message */
+            }
+            reject(new Error(message));
+          };
+          xhr.onerror = () => reject(new Error("Network error during upload"));
+          xhr.onabort = () => reject(new Error("Upload cancelled"));
+          xhr.send(selected);
         });
-        if (error) throw error;
+
         onChange({ path, name: selected.name, size: selected.size });
         toast.success(`${kind === "installer" ? "Installer" : "Release notes"} uploaded`);
         if (onChecksum && kind === "installer") {
+          setHashing(true);
           const sum = await sha256Hex(selected);
           onChecksum(sum);
         }
       } catch (e) {
         toast.error(`Upload failed: ${e instanceof Error ? e.message : String(e)}`);
       } finally {
+        setHashing(false);
         setUploading(false);
       }
     },
