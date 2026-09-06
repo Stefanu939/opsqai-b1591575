@@ -148,7 +148,7 @@ export function FleetBoard({
     if (name === "fuel") return t.fuelRegister;
     return t.dutyRegister;
   };
-  const initialValues = (name: RegisterName) =>
+  const initialValues = (name: RegisterName): Record<string, string> =>
     name === "fuel"
       ? { entry_date: day, currency: "EUR" }
       : name === "duty"
