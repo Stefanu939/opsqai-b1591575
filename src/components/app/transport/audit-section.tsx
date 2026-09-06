@@ -505,6 +505,17 @@ export function AuditSection({ t }: { t: Ui }) {
                 </span>
               ) : null}
               {activeCheck?.ran_by_name ? <span>· {activeCheck.ran_by_name}</span> : null}
+              {activeCheck?.signed_by_name ? (
+                <span>
+                  · {t.signed}: {activeCheck.signed_by_name} ({day(activeCheck.signed_at)})
+                </span>
+              ) : null}
+              {activeCheck?.approved_by_name ? (
+                <span>
+                  · {t.approvedBy}: {activeCheck.approved_by_name} (
+                  {day(activeCheck.approved_at)})
+                </span>
+              ) : null}
             </div>
 
             <ul className="divide-y divide-border">
@@ -695,6 +706,26 @@ export function AuditSection({ t }: { t: Ui }) {
               ))}
             </ul>
 
+            {canApprove &&
+            data.activeId &&
+            activeCheck?.status === "completed" &&
+            !activeCheck.approved_by_name ? (
+              <div className="mt-4">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    void run(
+                      approveRun({ data: { checkId: data.activeId as string } }),
+                    ).then(() => toast.success(t.approveAudit))
+                  }
+                >
+                  <BadgeCheck className="mr-1 size-3.5" />
+                  {t.approveAudit}
+                </Button>
+              </div>
+            ) : null}
+
             {canEdit && data.activeId && activeCheck?.status === "in_progress" ? (
               <div className="mt-4 grid gap-2">
                 <Textarea
@@ -718,6 +749,19 @@ export function AuditSection({ t }: { t: Ui }) {
                     }
                   >
                     {t.completeAudit}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!!activeCheck?.signed_by_name}
+                    onClick={() =>
+                      void run(
+                        signRun({ data: { checkId: data.activeId as string } }),
+                      ).then(() => toast.success(t.signed))
+                    }
+                  >
+                    <BadgeCheck className="mr-1 size-3.5" />
+                    {t.sign}
                   </Button>
                 </div>
               </div>
