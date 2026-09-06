@@ -15,6 +15,7 @@ import { Route as SsoSigninRouteImport } from './routes/sso-signin'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SelfHostedRouteImport } from './routes/self-hosted'
 import { Route as SecurityRouteImport } from './routes/security'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductOverviewRouteImport } from './routes/product-overview'
 import { Route as ProductRouteImport } from './routes/product'
@@ -170,6 +171,11 @@ const SelfHostedRoute = SelfHostedRouteImport.update({
 const SecurityRoute = SecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -877,6 +883,7 @@ export interface FileRoutesByFullPath {
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1008,6 +1015,7 @@ export interface FileRoutesByTo {
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1138,6 +1146,7 @@ export interface FileRoutesById {
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1273,6 +1282,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/product-overview'
     | '/reset-password'
+    | '/resources'
     | '/security'
     | '/self-hosted'
     | '/sitemap.xml'
@@ -1404,6 +1414,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/product-overview'
     | '/reset-password'
+    | '/resources'
     | '/security'
     | '/self-hosted'
     | '/sitemap.xml'
@@ -1533,6 +1544,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/product-overview'
     | '/reset-password'
+    | '/resources'
     | '/security'
     | '/self-hosted'
     | '/sitemap.xml'
@@ -1668,6 +1680,7 @@ export interface RootRouteChildren {
   ProductRoute: typeof ProductRoute
   ProductOverviewRoute: typeof ProductOverviewRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ResourcesRoute: typeof ResourcesRoute
   SecurityRoute: typeof SecurityRoute
   SelfHostedRoute: typeof SelfHostedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1753,6 +1766,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -2940,6 +2960,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductRoute: ProductRoute,
   ProductOverviewRoute: ProductOverviewRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ResourcesRoute: ResourcesRoute,
   SecurityRoute: SecurityRoute,
   SelfHostedRoute: SelfHostedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
