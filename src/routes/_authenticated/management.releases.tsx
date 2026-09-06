@@ -576,8 +576,13 @@ function ReleaseFileUpload({
 
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
-        const baseUrl = import.meta.env['VITE_SUPABASE_URL'] as string | undefined;
-        const apiKey = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] as string | undefined;
+        // Read the endpoint/key from the live client at runtime. Referencing
+        // import.meta.env here would inline Cloud values into every bundle,
+        // including the Self-Hosted build (which forbids Cloud surface).
+        const cfg = supabase as unknown as { supabaseUrl?: string; supabaseKey?: string };
+        const baseUrl = cfg.supabaseUrl;
+        const apiKey = cfg.supabaseKey;
+
         if (!token || !baseUrl || !apiKey) throw new Error("Not authenticated");
 
         // Large files go through the resumable (TUS) endpoint so an interrupted
