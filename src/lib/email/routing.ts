@@ -8,6 +8,7 @@
 export type ContactSubject =
   | "general"
   | "demo"
+  | "pilot"
   | "sales"
   | "pricing"
   | "support"
@@ -20,6 +21,7 @@ export type ContactSubject =
 export const CONTACT_SUBJECT_LABELS: Record<ContactSubject, string> = {
   general: "General question",
   demo: "Book a demo",
+  pilot: "Start a pilot",
   sales: "Sales inquiry",
   pricing: "Pricing request",
   support: "Technical support",
@@ -54,6 +56,7 @@ export function routeContactSubject(
     case "privacy":
       return mb.privacy;
     case "demo":
+    case "pilot":
     case "sales":
     case "pricing":
     case "support":
