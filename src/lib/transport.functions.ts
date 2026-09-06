@@ -354,9 +354,10 @@ export const getTransportAudit = createServerFn({ method: "POST" })
       db.listChecks(a.companyId),
     ]);
     const activeId = data.checkId ?? checks[0]?.id ?? null;
-    const [results, settings] = await Promise.all([
+    const [results, settings, trends] = await Promise.all([
       activeId ? db.listCheckResults(activeId) : Promise.resolve([]),
       db.getSettings(a.companyId),
+      db.auditTrends(a.companyId),
     ]);
     return {
       items,
@@ -368,6 +369,8 @@ export const getTransportAudit = createServerFn({ method: "POST" })
       auditReminder: settings.auditReminder,
       auditOwnerUserId: settings.auditOwnerUserId,
       weekStart: settings.weekStart,
+      trends,
+      templates: db.CHECKLIST_TEMPLATES.map((t) => ({ key: t.key, label: t.label })),
     };
   });
 
@@ -385,6 +388,9 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
         active: z.boolean().optional(),
         valueKind: z.enum(["none", "number", "text"]).optional(),
         valueUnit: z.string().max(40).nullish(),
+        valueMin: z.number().nullish(),
+        valueMax: z.number().nullish(),
+        perAsset: z.boolean().optional(),
       })
       .parse(input),
   )
@@ -396,6 +402,8 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
       ...data,
       hint: data.hint ?? null,
       valueUnit: data.valueUnit ?? null,
+      valueMin: data.valueMin ?? null,
+      valueMax: data.valueMax ?? null,
     });
     return { ok: true };
   });
@@ -444,6 +452,102 @@ export const seedTransportChecklist = createServerFn({ method: "POST" })
     const db = await import("@/lib/transport/db.server");
     const added = await db.ensureStarterChecklist(a.companyId, a.userId);
     return { added };
+  });
+
+/** Add a reusable audit template (roadworthiness, cargo safety, tachograph). */
+export const applyChecklistTemplate = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ key: z.string().min(1).max(60) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    const added = await db.applyChecklistTemplate(a.companyId, a.userId, data.key);
+    return { added };
+  });
+
+/** Attach a photo or document to a checklist line (max 8 MB per file). */
+export const uploadCheckEvidence = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        resultId: uuidString(),
+        filename: z.string().min(1).max(200),
+        mime: z.string().min(1).max(120),
+        base64: z.string().min(1),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const bytes = Buffer.from(data.base64, "base64");
+    if (bytes.byteLength === 0) throw new Error("The file is empty.");
+    if (bytes.byteLength > 8 * 1024 * 1024) {
+      throw new Error("Evidence files are limited to 8 MB.");
+    }
+    const db = await import("@/lib/transport/db.server");
+    return db.addCheckEvidence(
+      a.companyId,
+      data.resultId,
+      { filename: data.filename, mime: data.mime, bytes },
+      a.userId,
+      a.name,
+    );
+  });
+
+export const deleteCheckEvidence = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    await db.deleteCheckEvidence(a.companyId, data.id);
+    return { ok: true };
+  });
+
+/** Download one evidence file as base64. */
+export const downloadCheckEvidence = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    const db = await import("@/lib/transport/db.server");
+    const file = await db.getCheckEvidenceFile(a.companyId, data.id);
+    if (!file) throw new Error("Evidence file not found.");
+    return {
+      filename: file.filename,
+      mime: file.mime,
+      base64: file.bytes.toString("base64"),
+    };
+  });
+
+/** Auditor signature; recorded with the signed-in user's name. */
+export const signWeeklyCheck = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ checkId: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    await db.signCheck(a.companyId, data.checkId, a.userId, a.name);
+    return { ok: true };
+  });
+
+/** Approver signature on a completed run (second pair of eyes). */
+export const approveWeeklyCheck = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ checkId: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "approve");
+    const db = await import("@/lib/transport/db.server");
+    await db.approveCheck(a.companyId, data.checkId, a.userId, a.name);
+    return { ok: true };
   });
 
 /** Raise an incident or a request from a failed checklist line. */
