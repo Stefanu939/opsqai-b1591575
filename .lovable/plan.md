@@ -69,3 +69,15 @@ Because Self-Hosted installations can run without internet, the map degrades gra
 - Verification: typecheck, production build, existing architecture/licensing test suites, plus new unit tests for the compliance packs and grant checks.
 - Map: coordinates, zone polygons and geocode cache stored in `transport_places` / `transport_zones` (part of migration 0029). Tiles and geocoding via the Google Maps Platform connector managed by Lovable (server-side lookups only, cached locally so an offline install keeps working); a self-hosted/offline tile source can be pointed at from Transport settings. New route `/app/products/transport/map` plus a reusable map panel component.
 - New tasks recorded in `roadmap.md` when implementation starts.
+
+## CMR (consignment note)
+
+Transport gets a CMR section: create a consignment note from a template that follows the selected country (RO, DE, generic international CMR), with all fields editable before and after issuing.
+
+- Fields pre-fill from existing data where possible: sender/company details, carrier from Carrier Knowledge, vehicle and driver from the registers, plus goods, places and dates of loading/unloading, instructions, reservations and signatures.
+- Numbering series per company (configurable prefix and next number), status (draft, issued, cancelled) and a full change history in the audit log.
+- Export as a printable A4 PDF in the selected language, and as CSV for the list of notes with filters; PDFs are stored with the record so they can be re-downloaded.
+- A CMR can be attached to an incident or a request, and appears on the vehicle/driver/carrier record.
+- Templates live in the same country pack as the compliance rules, so adding another country later is a data change, not a rewrite.
+
+Technical: tables `transport_cmr` and `transport_cmr_series` in migration 0029; PDF generated server-side from the country template; new route `/app/products/transport/cmr` added to the Transport section list.
