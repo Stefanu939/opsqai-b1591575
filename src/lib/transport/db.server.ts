@@ -374,6 +374,30 @@ const COLUMNS = {
     "due_on",
   ],
   zones: ["name", "color", "description", "center_lat", "center_lng", "radius_km"],
+  fuel: [
+    "vehicle_id",
+    "driver_id",
+    "entry_date",
+    "route",
+    "litres",
+    "cost",
+    "currency",
+    "distance_km",
+    "odometer_km",
+    "supplier",
+    "reference",
+    "notes",
+  ],
+  duty: [
+    "driver_id",
+    "duty_date",
+    "duty_kind",
+    "route",
+    "vehicle_id",
+    "shift_start",
+    "shift_end",
+    "notes",
+  ],
 } as const;
 
 export type RegisterName = keyof typeof COLUMNS;
@@ -386,7 +410,10 @@ const TABLE: Record<RegisterName, string> = {
   incidents: "public.transport_incidents",
   requests: "public.transport_requests",
   zones: "public.transport_zones",
+  fuel: "public.transport_fuel_entries",
+  duty: "public.transport_duty_days",
 };
+
 
 function pick(register: RegisterName, values: Record<string, unknown>) {
   const allowed = COLUMNS[register] as readonly string[];
@@ -413,9 +440,17 @@ export async function createRecord(
   const row = await one<{ id: string }>(
     `INSERT INTO ${TABLE[register]} (${all.join(", ")})
      VALUES (${all.map((_, i) => `$${i + 1}`).join(", ")})
+     ${
+       register === "duty"
+         ? `ON CONFLICT (driver_id, duty_date) DO UPDATE SET ${cols
+             .map((c) => `${c} = EXCLUDED.${c}`)
+             .join(", ")}, updated_at = now()`
+         : ""
+     }
      RETURNING id`,
     args,
   );
+
   if (!row) throw new Error("Insert failed");
   return row;
 }
@@ -530,7 +565,51 @@ export async function listRequests(companyId: string): Promise<TransportRequest[
   );
 }
 
+// ── Fleet day: fuel entries and driver duty days ──────────────────────────
+
+export async function listFuelEntries(
+  companyId: string,
+  sinceDays = 90,
+): Promise<import("./types").FuelEntry[]> {
+  return q<import("./types").FuelEntry>(
+    `SELECT f.id, f.vehicle_id, v.plate AS vehicle_plate, f.driver_id,
+            d.full_name AS driver_name, f.entry_date, f.route,
+            f.litres::float8 AS litres, f.cost::float8 AS cost, f.currency,
+            f.distance_km::float8 AS distance_km, f.odometer_km,
+            f.supplier, f.reference, f.notes, f.created_at, f.updated_at
+       FROM public.transport_fuel_entries f
+       LEFT JOIN public.transport_vehicles v ON v.id = f.vehicle_id
+       LEFT JOIN public.transport_drivers d ON d.id = f.driver_id
+      WHERE f.company_id = $1 AND f.archived_at IS NULL
+        AND f.entry_date >= current_date - ($2 || ' days')::interval
+      ORDER BY f.entry_date DESC, f.created_at DESC`,
+    [companyId, sinceDays],
+  );
+}
+
+export async function listDutyDays(
+  companyId: string,
+  fromDays = 0,
+  toDays = 7,
+): Promise<import("./types").DutyDay[]> {
+  return q<import("./types").DutyDay>(
+    `SELECT u.id, u.driver_id, d.full_name AS driver_name, u.duty_date, u.duty_kind,
+            u.route, u.vehicle_id, v.plate AS vehicle_plate,
+            u.shift_start::text AS shift_start, u.shift_end::text AS shift_end,
+            u.notes, u.created_at, u.updated_at
+       FROM public.transport_duty_days u
+       LEFT JOIN public.transport_drivers d ON d.id = u.driver_id
+       LEFT JOIN public.transport_vehicles v ON v.id = u.vehicle_id
+      WHERE u.company_id = $1 AND u.archived_at IS NULL
+        AND u.duty_date >= current_date - ($2 || ' days')::interval
+        AND u.duty_date <= current_date + ($3 || ' days')::interval
+      ORDER BY u.duty_date DESC, d.full_name`,
+    [companyId, fromDays, toDays],
+  );
+}
+
 // ── Approvals ─────────────────────────────────────────────────────────────
+
 
 export async function decideRequest(
   companyId: string,

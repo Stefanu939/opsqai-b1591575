@@ -27,6 +27,7 @@ import {
 import type { transportUi } from "@/i18n/pages/transport";
 import type { TransportOverview, TransportTrend } from "@/lib/transport/types";
 import { useCsvExport } from "./use-transport";
+import { FleetBoard } from "./fleet-board";
 
 const TransportMap = lazy(() => import("./transport-map"));
 
@@ -48,11 +49,13 @@ function trendLabel(t: Ui, trend: TransportTrend): string {
 export function OverviewSection({
   t,
   data,
+  lang,
   periodDays,
   onPeriodChange,
 }: {
   t: Ui;
   data: TransportOverview;
+  lang: "en" | "de" | "ro";
   periodDays: number;
   onPeriodChange: (days: number) => void;
 }) {
@@ -119,6 +122,8 @@ export function OverviewSection({
 
   return (
     <div className="grid gap-4">
+      <FleetBoard t={t} data={data} lang={lang} periodDays={periodDays} />
+
       <Panel
         icon={CalendarCheck}
         title={t.filters}
