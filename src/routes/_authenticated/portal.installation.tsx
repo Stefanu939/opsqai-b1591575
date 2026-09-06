@@ -17,6 +17,7 @@ import {
   KeyRound,
   ShieldCheck,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -52,7 +53,7 @@ function Step({
   index: number;
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   children?: React.ReactNode;
 }) {
   return (
