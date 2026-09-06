@@ -120,23 +120,72 @@ export const Route = createFileRoute("/api/academy-chat")({
           if (!lesson) return new Response("Lesson not found", { status: 404 });
 
           const block = [
-            `TITLE: ${lesson.title}`,
-            `OBJECTIVES:\n- ${(lesson.objectives ?? []).join("\n- ")}`,
-            `EXPLANATION:\n${lesson.explanation ?? ""}`,
-            `EXAMPLES:\n${lesson.examples ?? ""}`,
-            `BEST PRACTICES:\n${lesson.best_practices ?? ""}`,
-            `SUMMARY:\n${lesson.summary ?? ""}`,
+            `SECTION 1 — TITLE: ${lesson.title}`,
+            `SECTION 2 — OBJECTIVES:\n- ${(lesson.objectives ?? []).join("\n- ")}`,
+            `SECTION 3 — EXPLANATION:\n${lesson.explanation ?? ""}`,
+            `SECTION 4 — EXAMPLES:\n${lesson.examples ?? ""}`,
+            `SECTION 5 — BEST PRACTICES:\n${lesson.best_practices ?? ""}`,
+            `SECTION 6 — SUMMARY:\n${lesson.summary ?? ""}`,
           ]
             .join("\n\n")
             .slice(0, 16000);
 
-          const result = streamText({
-            model: resolveChatModel("chat"),
-            system: SYSTEM(block, chosen),
-            messages: await convertToModelMessages(body.messages ?? []),
-            temperature: 0.2,
+          const lessonLanguage = normalizeAcademyLanguage(
+            (lesson as { language?: string }).language,
+          );
+          const system = SYSTEM(block, chosen);
+          const convMessages = await convertToModelMessages(body.messages ?? []);
+
+          const generate = async (correction?: string) => {
+            const r = streamText({
+              model: resolveChatModel("chat"),
+              system: correction ? `${system}\n\nCORRECTION REQUIRED: ${correction}` : system,
+              messages: convMessages,
+              temperature: 0.2,
+            });
+            return (await r.text).trim();
+          };
+
+          // The teacher's answer is validated before the learner sees it: an
+          // invented question/number or wrong-language text is regenerated once,
+          // then replaced by a plain recap prompt built from the lesson.
+          const invalid = (text: string) => {
+            const visible = text.replace(/\[(LESSON_COMPLETE|SECTION_DONE:[a-z_]+)\]/g, " ");
+            if (chosen && academyLanguageQualityIssue(visible, chosen)) return true;
+            return !checkAcademyGrounding(visible, block, {
+              checkTerms: chosen ? chosen === lessonLanguage : false,
+              maxNewTerms: 8,
+            }).grounded;
+          };
+
+          let text = "";
+          try {
+            text = await generate();
+            if (invalid(text)) {
+              text = await generate(
+                chosen
+                  ? `Your previous reply was rejected: it used content or numbers that are not in the LESSON CONTENT, or it was not written correctly in ${academyLanguageInstruction(chosen)}. Rewrite it using only sentences traceable to the numbered lesson sections, in fully correct target-language spelling.`
+                  : "Your previous reply was rejected: it used content or numbers that are not in the LESSON CONTENT. Rewrite it using only sentences traceable to the numbered lesson sections.",
+              );
+              if (invalid(text)) text = "";
+            }
+          } catch (error) {
+            console.error("[academy-chat] generation failed", error);
+            text = "";
+          }
+
+          const finalText = text || FALLBACK_RECAP(lesson, chosen);
+          const stream = createUIMessageStream<UIMessage>({
+            originalMessages: body.messages ?? [],
+            execute: ({ writer }) => {
+              writer.write({ type: "start" });
+              writer.write({ type: "text-start", id: "teacher" });
+              writer.write({ type: "text-delta", id: "teacher", delta: finalText });
+              writer.write({ type: "text-end", id: "teacher" });
+            },
           });
-          return result.toUIMessageStreamResponse();
+          return createUIMessageStreamResponse({ stream });
+
         } catch (e) {
           console.error("[academy-chat] internal error", e);
           return new Response("AI service temporarily unavailable.", { status: 500 });
