@@ -292,7 +292,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const bottomTabs = nav.slice(0, 4);
 
   return (
-     <div className="oq-product oq-app-shell min-h-dvh md:h-dvh md:overflow-hidden flex bg-background">
+     <div data-shell-mode={mode} className="oq-product oq-app-shell min-h-dvh md:h-dvh md:overflow-hidden flex bg-background">
       <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border md:sticky md:top-0 md:h-dvh md:overflow-hidden">
         <SidebarContent />
       </aside>

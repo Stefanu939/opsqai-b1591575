@@ -1067,3 +1067,34 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   border-radius: 0;
   box-shadow: none;
 }
+
+/* Self-Hosted (installed app) readability: Outfit headings + Figtree body, one step larger */
+.oq-app-shell[data-shell-mode="selfhost"] {
+  --font-display-oix: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif-oix: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-body-oix: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.oq-app-shell[data-shell-mode="selfhost"] :where(h1, h2, h3, h4, h5, h6, .font-display, .oix-display, .oix-serif) {
+  font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.oq-app-shell[data-shell-mode="selfhost"] :where(p, li, label, span, div) {
+  font-family: inherit;
+}
+
+.oq-app-shell[data-shell-mode="selfhost"] :where(.text-muted-foreground) {
+  color: color-mix(in oklab, var(--muted-foreground) 82%, var(--foreground));
+}
+
+.oq-app-shell[data-shell-mode="selfhost"] :where(code, pre, .font-mono) {
+  font-family: var(--font-mono);
+}
