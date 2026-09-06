@@ -611,7 +611,7 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
     const db = await import("@/lib/transport/db.server");
     return db.saveSettings(a.companyId, {
       ...data,
-      auditOwnerUserId: data.auditOwnerUserId ?? null,
+      ...("auditOwnerUserId" in data ? { auditOwnerUserId: data.auditOwnerUserId ?? null } : {}),
       mapCenterLat: data.mapCenterLat ?? null,
       mapCenterLng: data.mapCenterLng ?? null,
     });
