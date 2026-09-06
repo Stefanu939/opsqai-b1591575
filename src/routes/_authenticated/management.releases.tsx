@@ -527,6 +527,8 @@ async function sha256Hex(file: File): Promise<string> {
     .join("");
 }
 
+const RESUMABLE_THRESHOLD = 6 * 1024 * 1024;
+
 function ReleaseFileUpload({
   version,
   kind,
@@ -546,6 +548,7 @@ function ReleaseFileUpload({
   const [uploadedBytes, setUploadedBytes] = useState(0);
   const [totalBytes, setTotalBytes] = useState(0);
   const [hashing, setHashing] = useState(false);
+  const [resumable, setResumable] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const accept = kind === "installer" ? ".exe,.msi,.zip" : ".pdf,.md,.txt";
@@ -720,7 +723,7 @@ function ReleaseFileUpload({
         <div className="mt-3 space-y-2 text-left">
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-foreground">
-              {hashing ? "Calculating checksum…" : "Uploading…"}
+              {hashing ? "Calculating checksum…" : resumable ? "Uploading (resumable)…" : "Uploading…"}
             </span>
             <span className="tabular-nums text-muted-foreground">{progress}%</span>
           </div>
@@ -728,6 +731,11 @@ function ReleaseFileUpload({
           <p className="text-[11px] text-muted-foreground tabular-nums">
             {formatBytes(uploadedBytes)} of {formatBytes(totalBytes)}
           </p>
+          {resumable ? (
+            <p className="text-[11px] text-muted-foreground">
+              Large file — the upload continues automatically if the connection drops.
+            </p>
+          ) : null}
         </div>
       ) : (
         <>
