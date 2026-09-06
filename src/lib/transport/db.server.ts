@@ -1140,6 +1140,163 @@ export async function ensureStarterChecklist(
   return STARTER_CHECKLIST.length;
 }
 
+/** Reusable audit templates a company can add on top of its own checklist. */
+export const CHECKLIST_TEMPLATES: ReadonlyArray<{
+  key: string;
+  label: string;
+  items: ReadonlyArray<{
+    label: string;
+    hint: string;
+    scope: ChecklistItem["scope"];
+    perAsset?: boolean;
+    valueKind?: ChecklistItem["value_kind"];
+    valueUnit?: string;
+    valueMin?: number;
+    valueMax?: number;
+  }>;
+}> = [
+  {
+    key: "roadworthiness",
+    label: "Roadworthiness (ITP / TUV)",
+    items: [
+      {
+        label: "Inspection certificate valid",
+        hint: "Certificate present and not expiring inside the alert window.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+      {
+        label: "Tyre tread depth",
+        hint: "Minimum legal tread depth on all axles.",
+        scope: "vehicle",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "mm",
+        valueMin: 1.6,
+        valueMax: 20,
+      },
+      {
+        label: "Brake test result",
+        hint: "Service brake efficiency from the last test.",
+        scope: "vehicle",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "%",
+        valueMin: 50,
+        valueMax: 100,
+      },
+      {
+        label: "Lights and signalling working",
+        hint: "All lamps, indicators and reflectors operational.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+    ],
+  },
+  {
+    key: "cargo_safety",
+    label: "Cargo safety",
+    items: [
+      {
+        label: "Load securing equipment complete",
+        hint: "Straps, bars and mats present and undamaged.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+      {
+        label: "Gross weight within limit",
+        hint: "Loaded weight of the last trip.",
+        scope: "vehicle",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "t",
+        valueMax: 40,
+      },
+      {
+        label: "Dangerous goods documents",
+        hint: "ADR paperwork and equipment where applicable.",
+        scope: "general",
+      },
+      {
+        label: "Temperature log reviewed",
+        hint: "Reefer readings for temperature-controlled loads.",
+        scope: "general",
+        valueKind: "number",
+        valueUnit: "degC",
+        valueMin: -25,
+        valueMax: 8,
+      },
+    ],
+  },
+  {
+    key: "tachograph",
+    label: "Tachograph & driving hours",
+    items: [
+      {
+        label: "Driver card downloaded",
+        hint: "Data downloaded inside the legal interval.",
+        scope: "driver",
+        perAsset: true,
+      },
+      {
+        label: "Driving-time infringements reviewed",
+        hint: "Count of infringements in the period.",
+        scope: "driver",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "count",
+        valueMax: 0,
+      },
+      {
+        label: "Weekly rest respected",
+        hint: "Reduced rests compensated as required.",
+        scope: "driver",
+        perAsset: true,
+      },
+      {
+        label: "Tachograph calibration valid",
+        hint: "Two-year calibration seal in date.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+    ],
+  },
+];
+
+/** Add a template's lines, skipping labels the company already has. */
+export async function applyChecklistTemplate(
+  companyId: string,
+  userId: string,
+  key: string,
+): Promise<number> {
+  const template = CHECKLIST_TEMPLATES.find((t) => t.key === key);
+  if (!template) throw new Error("Unknown checklist template.");
+  const existing = await q<{ label: string }>(
+    `SELECT label FROM public.transport_checklist_items WHERE company_id = $1`,
+    [companyId],
+  );
+  const have = new Set(existing.map((r) => r.label.trim().toLowerCase()));
+  let added = 0;
+  for (const item of template.items) {
+    if (have.has(item.label.trim().toLowerCase())) continue;
+    await upsertChecklistItem(companyId, userId, {
+      label: item.label,
+      hint: item.hint,
+      scope: item.scope,
+      required: true,
+      active: true,
+      perAsset: item.perAsset ?? false,
+      valueKind: item.valueKind ?? "none",
+      valueUnit: item.valueUnit ?? null,
+      valueMin: item.valueMin ?? null,
+      valueMax: item.valueMax ?? null,
+      templateKey: template.key,
+    });
+    added += 1;
+  }
+  return added;
+}
+
 /** Turn a failed checklist line into an incident or a request, and link it. */
 export async function escalateCheckResult(
   companyId: string,
