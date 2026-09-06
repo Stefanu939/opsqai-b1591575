@@ -54,15 +54,35 @@ const FALLBACKS: Record<AcademyLanguageCode, LocalizedFallback> = {
   uk: { purposeQuestion: (t) => `Яка головна операційна мета уроку «${t}»?`, purposeAnswer: "Відповідь має відображати задокументовану мету уроку.", purposeExplanation: "Відповідь міститься в цілях і підсумку уроку.", procedureQuestion: "Необхідно дотримуватися затвердженої процедури, описаної в уроці.", procedureExplanation: "Урок ґрунтується на затверджених операційних знаннях." },
 };
 
+const FALSE_STATEMENTS: Record<AcademyLanguageCode, { question: string; explanation: string }> = {
+  en: { question: "The procedure in this lesson may be skipped when you are in a hurry.", explanation: "The lesson requires the approved procedure to be followed every time." },
+  de: { question: "Das Verfahren aus dieser Lektion darf bei Zeitdruck übersprungen werden.", explanation: "Die Lektion verlangt, das freigegebene Verfahren jedes Mal einzuhalten." },
+  ro: { question: "Procedura din această lecție poate fi sărită atunci când ești grăbit.", explanation: "Lecția cere ca procedura aprobată să fie respectată de fiecare dată." },
+  fr: { question: "La procédure de cette leçon peut être ignorée en cas d’urgence.", explanation: "La leçon exige que la procédure approuvée soit suivie à chaque fois." },
+  es: { question: "El procedimiento de esta lección puede omitirse cuando hay prisa.", explanation: "La lección exige seguir el procedimiento aprobado siempre." },
+  it: { question: "La procedura di questa lezione può essere saltata quando si ha fretta.", explanation: "La lezione richiede di seguire sempre la procedura approvata." },
+  pt: { question: "O procedimento desta lição pode ser ignorado quando há pressa.", explanation: "A lição exige que o procedimento aprovado seja seguido sempre." },
+  pl: { question: "Procedurę z tej lekcji można pominąć, gdy brakuje czasu.", explanation: "Lekcja wymaga, aby zatwierdzona procedura była stosowana za każdym razem." },
+  uk: { question: "Процедуру з цього уроку можна пропустити, коли бракує часу.", explanation: "Урок вимагає щоразу дотримуватися затвердженої процедури." },
+};
+
+/**
+ * Source-based fallback quiz. Every question is true/false (yes/no) so that
+ * grading is deterministic and never depends on free-text interpretation.
+ */
 export function localizedAcademyQuizFallback(value: unknown, title: string) {
   const code = normalizeAcademyLanguage(value);
   const labels = ACADEMY_LANGUAGES[code];
   const copy = FALLBACKS[code];
+  const wrong = FALSE_STATEMENTS[code];
+  const options = [labels.trueLabel, labels.falseLabel];
+  void title;
   return [
-    { type: "short_answer" as const, question: copy.purposeQuestion(title), correct_answer: copy.purposeAnswer, explanation: copy.purposeExplanation },
-    { type: "true_false" as const, question: copy.procedureQuestion, options: [labels.trueLabel, labels.falseLabel], correct_answer: labels.trueLabel, explanation: copy.procedureExplanation },
+    { type: "true_false" as const, question: copy.procedureQuestion, options, correct_answer: labels.trueLabel, explanation: copy.procedureExplanation },
+    { type: "true_false" as const, question: wrong.question, options, correct_answer: labels.falseLabel, explanation: wrong.explanation },
   ];
 }
+
 /* ------------------- True/False only quiz + language quality ------------------- */
 
 /** The two visible answer options for a true/false (yes/no) question. */
