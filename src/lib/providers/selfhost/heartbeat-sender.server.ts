@@ -11,6 +11,7 @@ import { HeartbeatPayloadSchema, type HeartbeatPayload } from "@/lib/selfhost-he
 import { readInstallLicenseForHeartbeat } from "./local-licensing.server";
 import { readSelfHostConfig } from "@/lib/selfhost-config.server";
 import { getLicensingProvider } from "@/lib/providers/registry";
+import { APP_VERSION } from "@/lib/app-version";
 
 export interface HeartbeatLogger {
   info: (msg: string) => void;
