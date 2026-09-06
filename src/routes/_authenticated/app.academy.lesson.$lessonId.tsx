@@ -235,36 +235,61 @@ function TeacherChat({
   const passing = lesson.academy_chapters?.academy_learning_paths?.passing_score ?? 70;
   const pathId =
     lesson.academy_chapters?.path_id ?? lesson.academy_chapters?.academy_learning_paths?.id;
+  // Informational only — the estimate NEVER influences progress.
   const estimated = lesson.estimated_minutes ?? lesson.duration_minutes ?? 8;
   const elapsedMin = Math.floor((Date.now() - start.current) / 60000);
   const remaining = Math.max(estimated - elapsedMin, 1);
 
-  // Detect lesson-complete marker emitted by the AI Teacher.
+  // Learning units that exist for this lesson (quiz is always the last unit).
+  const units = useMemo<UnitKey[]>(() => {
+    const list: UnitKey[] = ["intro"];
+    if (lesson.explanation) list.push("concepts");
+    if (lesson.examples) list.push("examples");
+    if (lesson.best_practices) list.push("best_practices");
+    if (lesson.summary) list.push("summary");
+    list.push("quiz");
+    return list;
+  }, [lesson.explanation, lesson.examples, lesson.best_practices, lesson.summary]);
+
+  // Sections confirmed by the AI Teacher through [SECTION_DONE:<key>] markers.
+  const doneSections = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of messages) {
+      if (m.role !== "assistant") continue;
+      for (const p of (m.parts ?? []) as any[]) {
+        if (p.type !== "text") continue;
+        for (const match of String(p.text).matchAll(SECTION_MARKER)) set.add(match[1]!);
+        if (String(p.text).includes(COMPLETE_MARKER)) {
+          for (const u of units) if (u !== "quiz") set.add(u);
+        }
+      }
+    }
+    return set;
+  }, [messages, units]);
+
   const lessonComplete = useMemo(
-    () =>
-      messages.some(
-        (m) =>
-          m.role === "assistant" &&
-          m.parts?.some?.((p: any) => p.type === "text" && p.text.includes(COMPLETE_MARKER)),
-      ),
-    [messages],
+    () => units.filter((u) => u !== "quiz").every((u) => doneSections.has(u)),
+    [units, doneSections],
   );
 
-  const stripMarker = (text: string) => text.replace(COMPLETE_MARKER, "").trim();
+  const stripMarker = (text: string) =>
+    text.replace(SECTION_MARKER, "").replace(COMPLETE_MARKER, "").trim();
 
-  const progress = Math.min(
-    quiz
-      ? result?.passed
-        ? 100
-        : 90
+  const unitDone = (u: UnitKey) => (u === "quiz" ? Boolean(result?.passed) : doneSections.has(u));
+  const completedUnits = units.filter(unitDone).length;
+  // Deterministic: completed learning units / total units. Time is irrelevant.
+  const progress = Math.round((completedUnits / units.length) * 100);
+
+  const phase: LessonPhase = result
+    ? "QUIZ_COMPLETED"
+    : quiz
+      ? "QUIZ_IN_PROGRESS"
       : lessonComplete
-        ? 80
-        : (elapsedMin / Math.max(estimated, 1)) * 70,
-    100,
-  );
+        ? "QUIZ_READY"
+        : "LEARNING";
 
   const startQuiz = async () => {
-    if (!lessonComplete || quizLoading) return;
+    if (quizLoading) return;
     if (!learnLang) {
       alert(
         "Please pick a language first (top-right selector) so the quiz can be generated in that language.",
@@ -272,6 +297,7 @@ function TeacherChat({
       return;
     }
     setResult(null);
+    setQIndex(0);
     setQuizLoading(true);
     try {
       const q = (await genQuiz({ data: { lesson_id: lessonId, language: learnLang } })) as {
