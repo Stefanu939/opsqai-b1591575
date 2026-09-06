@@ -1,51 +1,91 @@
-# Fix: time-off requests fail in Self-Hosted
+# Two fixes: Self-Hosted time off + Academy progress & quiz
 
-## What is wrong
+## Part 1 — Time off cannot be requested (Self-Hosted)
 
-The Self-Hosted database is missing one field that the time-off feature needs.
-The Holidays dialog tries to save a request and link it to the calendar, but the
-local database table for requests was created without the calendar link column,
-so the save is rejected with `column "calendar_event_id" does not exist`.
+Cause confirmed: the Self-Hosted database table for requests was created without
+the calendar-link field, while the code reads and writes it, so saving fails with
+`column "calendar_event_id" does not exist`. The Cloud database has the field, so
+Cloud is unaffected.
 
-Verified:
-- Cloud database has all 13 fields including `calendar_event_id` — Cloud works.
-- Self-Hosted schema file `0028_presence_time_off.sql` creates the table without
-  `calendar_event_id` (and without `decision_note` handling parity), while the
-  Self-Hosted data layer selects and updates that column.
+Options:
 
-Nothing else about presence, licensing or Transport is involved.
+**A. Minimal repair** — add the missing field (and the decision-note field) in a
+new Self-Hosted migration. Requesting time off works immediately.
 
-## Options
+**B. Repair + complete approval flow (recommended)** — A, plus an approvals inbox
+for company Admin/SuperAdmin (approve, reject with note, cancel), self-approval
+for SuperAdmins, calendar event created on approval and removed on
+rejection/cancel, and an overlap warning for colliding periods.
 
-Pick one; all three keep Cloud, Portal, Management Center and licensing untouched.
+**C. B + team absence view** — company-wide absence list and month strip, with
+CSV export of approved periods.
 
-**Option A — Minimal repair (fast)**
-New Self-Hosted migration `0031` that adds the missing `calendar_event_id`
-column (plus `decision_note` if absent). Requesting time off starts working
-immediately; approved periods appear in the calendar as already coded.
+## Part 2 — Academy: progress and quiz architecture
 
-**Option B — Repair + approval flow made complete (recommended)**
-Option A, plus:
-- Approvals inbox for company Admin/SuperAdmin inside Self-Hosted (approve,
-  reject with a note, cancel), matching Cloud behaviour.
-- Admins/SuperAdmins can approve their own requests (as in Cloud).
-- On approval a calendar event is created; on rejection/cancel it is removed.
-- Overlap warning when the requested period collides with an existing approved
-  period of the same person.
+Confirmed in the code today:
+- The progress bar is computed from elapsed time versus estimated minutes
+  (`elapsedMin / estimated * 70`), which is exactly what must stop.
+- The quiz engine already keeps correct answers server-side: generated answers
+  are stored with the attempt and stripped before reaching the browser, and
+  grading happens server-side. The leak seen in the screenshots comes from the
+  AI Teacher writing its own quiz with an answer key inside the lesson chat.
+- `Pass 70%` already reads the course/company passing score, but it sits next to
+  the progress bar, so it looks like a progress figure.
 
-**Option C — Option B + team absence view**
-Adds a company-wide absence overview (list + month strip) so the team can see
-who is out and when, with CSV export of approved periods.
+### Progress model options
+
+**P1. Deterministic learning units (recommended)**
+Progress = completed units / total units, each unit equal. Units are the lesson
+sections actually walked through (Introduction, Key Concepts, Practical Example,
+Best Practices, Summary — whichever the lesson has) plus the quiz as the final
+unit. Time never influences it. Estimated duration is shown separately as an
+informational line, never inside the progress card.
+
+**P2. Weighted units**
+Same as P1, but the quiz carries a configurable weight (for example lesson 60% /
+quiz 40%) set per course in Academy settings.
+
+**P3. Checklist progress**
+P1 plus a visible checklist of units with tick marks, so the learner sees exactly
+which unit moved the bar; each unit is marked complete when the AI Teacher
+confirms that section and the learner acknowledges it.
+
+### Quiz mode options
+
+**Q1. Separate quiz screen with explicit state machine (recommended)**
+Explicit states `LEARNING → QUIZ_READY → QUIZ_IN_PROGRESS → QUIZ_COMPLETED`.
+The AI Teacher is instructed never to produce quiz questions, options, answer
+keys, or checkbox answer lists; if the learner asks for the quiz ("start quiz",
+"go to the quiz", "skip to test", including German and Romanian phrasings), the
+lesson chat hands over and the interactive quiz opens immediately — skipping the
+lesson is allowed. One question at a time, selectable options, explicit Submit,
+validation and score only after submission, threshold shown as the quiz pass
+mark, result written back as the final progress unit.
+
+**Q2. Q1 with a question list**
+All questions on one page with selectable options and a single Submit at the end,
+plus a progress strip showing answered/unanswered.
+
+**Q3. Q1 plus exam controls (most enterprise)**
+Q1, plus optional timer per attempt, attempt limits and retake cooldown from
+Academy settings, per-question review with explanations after submission, and an
+attempt history with score and pass/fail per try.
 
 ## Technical notes
 
-- Add `migrations/selfhost/0031_time_off_calendar_link.sql`:
-  `ALTER TABLE public.time_off_requests ADD COLUMN IF NOT EXISTS calendar_event_id uuid`,
-  `... decision_note text`, plus an index on `(company_id, status, starts_on)`.
-- No change needed in `pg-presence-repository.server.ts` for Option A; the code
-  already expects the column.
-- Options B/C extend the existing presence server functions and reuse the
-  Self-Hosted calendar tables from `0026_calendar.sql`; no schema change beyond
-  the migration above except an optional status index.
-- Verification: run typecheck/build and confirm the migration list stays
-  sequential; Self-Hosted only, no Cloud migration.
+- Self-Hosted migration `0031`: `ALTER TABLE public.time_off_requests ADD COLUMN
+  IF NOT EXISTS calendar_event_id uuid`, `... decision_note text`, plus an index
+  on `(company_id, status, starts_on)`. Self-Hosted only; no Cloud migration.
+- Academy progress: replace the elapsed-time formula in
+  `app.academy.lesson.$lessonId.tsx` with a unit-completion reducer; keep the
+  remaining-minutes label outside the progress card; keep `Pass N%` labelled as
+  the quiz threshold.
+- Quiz separation: add explicit lesson state, an intent matcher for "go to quiz"
+  in EN/DE/RO, and prompt rules in `src/routes/api/academy-chat.ts` forbidding
+  question/answer-key output; keep the existing `generateAcademyQuiz` /
+  `submitAcademyQuiz` server grading untouched, since correct answers already
+  never reach the browser before submission.
+- Options P2/P3 and Q3 add fields to existing Academy settings; no new tables.
+- Verification: typecheck, build, existing Academy language tests, and a manual
+  pass where the bar only moves on unit completion and asking for the quiz opens
+  the interactive quiz.
