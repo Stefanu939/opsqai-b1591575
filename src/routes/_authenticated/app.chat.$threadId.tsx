@@ -21,6 +21,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   ExternalLink,
+  Download,
   Phone,
   Mail,
   UserCheck,
