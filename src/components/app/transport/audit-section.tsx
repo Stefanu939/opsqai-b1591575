@@ -6,6 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  BadgeCheck,
+  Camera,
   CalendarCheck,
   Download,
   FileWarning,
@@ -29,7 +31,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  applyChecklistTemplate,
+  approveWeeklyCheck,
   cancelWeeklyCheck,
+  deleteCheckEvidence,
+  downloadCheckEvidence,
   completeWeeklyCheck,
   deleteChecklistItem,
   escalateCheckResult,
@@ -39,7 +45,9 @@ import {
   seedTransportChecklist,
   setCheckResult,
   setCheckResultValue,
+  signWeeklyCheck,
   startWeeklyCheck,
+  uploadCheckEvidence,
 } from "@/lib/transport.functions";
 import { useTransportAudit, useTransportRefresh } from "./use-transport";
 import { downloadBase64 } from "./download";
@@ -121,6 +129,10 @@ export function AuditSection({ t }: { t: Ui }) {
   const [newItem, setNewItem] = useState("");
   const [newKind, setNewKind] = useState<ValueKind>("none");
   const [newUnit, setNewUnit] = useState("");
+  const [newMin, setNewMin] = useState("");
+  const [newMax, setNewMax] = useState("");
+  const [newPerAsset, setNewPerAsset] = useState(false);
+  const [template, setTemplate] = useState("");
   const [values, setValues] = useState<Record<string, string>>({});
   const [summary, setSummary] = useState("");
 
@@ -133,6 +145,12 @@ export function AuditSection({ t }: { t: Ui }) {
   const escalate = useServerFn(escalateCheckResult);
   const saveValue = useServerFn(setCheckResultValue);
   const cancelRun = useServerFn(cancelWeeklyCheck);
+  const addTemplate = useServerFn(applyChecklistTemplate);
+  const addEvidence = useServerFn(uploadCheckEvidence);
+  const removeEvidence = useServerFn(deleteCheckEvidence);
+  const getEvidence = useServerFn(downloadCheckEvidence);
+  const signRun = useServerFn(signWeeklyCheck);
+  const approveRun = useServerFn(approveWeeklyCheck);
   const report = useServerFn(renderAuditReportBase64);
   const saveSettings = useServerFn(saveTransportSettings);
 
@@ -144,6 +162,33 @@ export function AuditSection({ t }: { t: Ui }) {
   const canEdit = data?.grants.includes("checklist") ?? false;
   const canExport = data?.grants.includes("export") ?? false;
   const canSchedule = data?.grants.includes("settings") ?? false;
+  const canApprove = data?.grants.includes("approve") ?? false;
+
+  const pickEvidence = (resultId: string) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*,application/pdf";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = String(reader.result ?? "").split(",")[1] ?? "";
+        void run(
+          addEvidence({
+            data: {
+              resultId,
+              filename: file.name,
+              mime: file.type || "application/octet-stream",
+              base64,
+            },
+          }),
+        ).then(() => toast.success(t.evidenceAdded));
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
 
   const period = currentPeriodStart(cadence);
   const activeCheck = data?.checks.find((c) => c.id === data.activeId) ?? null;
@@ -218,12 +263,18 @@ export function AuditSection({ t }: { t: Ui }) {
                       label: newItem.trim(),
                       valueKind: newKind,
                       valueUnit: newUnit.trim() || null,
+                      valueMin: newKind === "number" && newMin !== "" ? Number(newMin) : null,
+                      valueMax: newKind === "number" && newMax !== "" ? Number(newMax) : null,
+                      perAsset: newPerAsset,
                     },
                   }),
                 ).then(() => {
                   setNewItem("");
                   setNewUnit("");
                   setNewKind("none");
+                  setNewMin("");
+                  setNewMax("");
+                  setNewPerAsset(false);
                 });
               }}
             >
@@ -252,6 +303,60 @@ export function AuditSection({ t }: { t: Ui }) {
                   onChange={(e) => setNewUnit(e.target.value)}
                 />
               )}
+              {newKind === "number" ? (
+                <>
+                  <Input
+                    className="h-8 w-24 text-xs"
+                    type="number"
+                    value={newMin}
+                    placeholder={t.valueMin}
+                    onChange={(e) => setNewMin(e.target.value)}
+                  />
+                  <Input
+                    className="h-8 w-24 text-xs"
+                    type="number"
+                    value={newMax}
+                    placeholder={t.valueMax}
+                    onChange={(e) => setNewMax(e.target.value)}
+                  />
+                </>
+              ) : null}
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="size-3.5 accent-current"
+                  checked={newPerAsset}
+                  onChange={(e) => setNewPerAsset(e.target.checked)}
+                />
+                {t.perAsset}
+              </label>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+              <Select value={template} onValueChange={setTemplate}>
+                <SelectTrigger className="h-8 w-56 text-xs">
+                  <SelectValue placeholder={t.templates} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(data?.templates ?? []).map((tpl) => (
+                    <SelectItem key={tpl.key} value={tpl.key}>
+                      {tpl.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!template}
+                onClick={() =>
+                  void run(addTemplate({ data: { key: template } })).then(() =>
+                    toast.success(t.templateAdded),
+                  )
+                }
+              >
+                <Plus className="mr-1 size-3.5" />
+                {t.add}
+              </Button>
             </div>
           </div>
         ) : null}
@@ -271,8 +376,13 @@ export function AuditSection({ t }: { t: Ui }) {
                     {item.value_kind && item.value_kind !== "none"
                       ? ` · ${t.valueLabel}: ${
                           item.value_kind === "number" ? t.valueNumber : t.valueText
-                        }${item.value_unit ? ` (${item.value_unit})` : ""}`
+                        }${item.value_unit ? ` (${item.value_unit})` : ""}${
+                          item.value_min !== null || item.value_max !== null
+                            ? ` ${item.value_min ?? "—"}…${item.value_max ?? "—"}`
+                            : ""
+                        }`
                       : ""}
+                    {item.per_asset ? ` · ${t.perAsset}` : ""}
                   </p>
                 </div>
                 {canEdit ? (
@@ -395,13 +505,64 @@ export function AuditSection({ t }: { t: Ui }) {
                 </span>
               ) : null}
               {activeCheck?.ran_by_name ? <span>· {activeCheck.ran_by_name}</span> : null}
+              {activeCheck?.signed_by_name ? (
+                <span>
+                  · {t.signed}: {activeCheck.signed_by_name} ({day(activeCheck.signed_at)})
+                </span>
+              ) : null}
+              {activeCheck?.approved_by_name ? (
+                <span>
+                  · {t.approvedBy}: {activeCheck.approved_by_name} (
+                  {day(activeCheck.approved_at)})
+                </span>
+              ) : null}
             </div>
 
             <ul className="divide-y divide-border">
               {data.results.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{r.item_label}</p>
+                    <p className="text-sm font-medium">
+                      {r.item_label}
+                      {r.subject_label ? (
+                        <span className="text-muted-foreground"> — {r.subject_label}</span>
+                      ) : null}
+                    </p>
+                    {r.out_of_range ? (
+                      <Badge variant="destructive" className="mt-1">
+                        {t.outOfRange}
+                      </Badge>
+                    ) : null}
+                    {r.evidence.length ? (
+                      <ul className="mt-1 flex flex-wrap gap-2">
+                        {r.evidence.map((f) => (
+                          <li key={f.id} className="flex items-center gap-1 text-xs">
+                            <button
+                              type="button"
+                              className="underline-offset-2 hover:underline"
+                              onClick={() =>
+                                void getEvidence({ data: { id: f.id } })
+                                  .then((res) => downloadBase64(res.filename, res.base64))
+                                  .catch((e: Error) => toast.error(e.message))
+                              }
+                            >
+                              {f.filename}
+                            </button>
+                            {canEdit ? (
+                              <button
+                                type="button"
+                                className="text-muted-foreground hover:text-destructive"
+                                onClick={() =>
+                                  void run(removeEvidence({ data: { id: f.id } }))
+                                }
+                              >
+                                <Trash2 className="size-3" />
+                              </button>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                     {r.note ? (
                       <p className="text-xs text-muted-foreground">{r.note}</p>
                     ) : null}
@@ -461,6 +622,14 @@ export function AuditSection({ t }: { t: Ui }) {
                     <Badge variant="outline">{r.outcome}</Badge>
                     {canEdit ? (
                       <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => pickEvidence(r.id)}
+                        >
+                          <Camera className="mr-1 size-3.5" />
+                          {t.addEvidence}
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -537,6 +706,26 @@ export function AuditSection({ t }: { t: Ui }) {
               ))}
             </ul>
 
+            {canApprove &&
+            data.activeId &&
+            activeCheck?.status === "completed" &&
+            !activeCheck.approved_by_name ? (
+              <div className="mt-4">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    void run(
+                      approveRun({ data: { checkId: data.activeId as string } }),
+                    ).then(() => toast.success(t.approveAudit))
+                  }
+                >
+                  <BadgeCheck className="mr-1 size-3.5" />
+                  {t.approveAudit}
+                </Button>
+              </div>
+            ) : null}
+
             {canEdit && data.activeId && activeCheck?.status === "in_progress" ? (
               <div className="mt-4 grid gap-2">
                 <Textarea
@@ -560,6 +749,19 @@ export function AuditSection({ t }: { t: Ui }) {
                     }
                   >
                     {t.completeAudit}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!!activeCheck?.signed_by_name}
+                    onClick={() =>
+                      void run(
+                        signRun({ data: { checkId: data.activeId as string } }),
+                      ).then(() => toast.success(t.signed))
+                    }
+                  >
+                    <BadgeCheck className="mr-1 size-3.5" />
+                    {t.sign}
                   </Button>
                 </div>
               </div>
@@ -585,6 +787,52 @@ export function AuditSection({ t }: { t: Ui }) {
                   </button>
                 </li>
               ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {data?.trends?.length ? (
+          <div className="mt-6">
+            <p className="text-xs font-medium text-muted-foreground">{t.trends}</p>
+            <p className="mb-3 text-xs text-muted-foreground">{t.trendsBody}</p>
+            <ul className="space-y-2">
+              {data.trends.map((point) => {
+                const worst = Math.max(
+                  1,
+                  ...data.trends.map((p) => p.issues + p.out_of_range),
+                );
+                const bad = point.issues + point.out_of_range;
+                return (
+                  <li key={point.check_id} className="grid gap-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {day(point.period_start)}
+                      </span>
+                      <span>
+                        {point.issues} {t.issues}
+                        {point.out_of_range
+                          ? ` · ${point.out_of_range} ${t.outOfRange}`
+                          : ""}{" "}
+                        · {point.completion}% {t.completion}
+                      </span>
+                    </div>
+                    <div className="flex h-1.5 gap-1">
+                      <div className="h-full flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-destructive"
+                          style={{ width: `${Math.round((bad / worst) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="h-full flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${point.completion}%` }}
+                        />
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ) : null}

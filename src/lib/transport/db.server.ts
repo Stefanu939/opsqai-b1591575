@@ -8,6 +8,8 @@
 import { Pool, type QueryResultRow } from "pg";
 import type {
   Carrier,
+  AuditTrendPoint,
+  CheckEvidence,
   ChecklistItem,
   CheckResult,
   CmrRecord,
@@ -35,6 +37,8 @@ let pool: Pool | null = null;
 // that correctly expect Date objects).
 function browserSafe<T>(value: T): T {
   if (value instanceof Date) return value.toISOString() as T;
+  // Binary columns (evidence files) must survive untouched.
+  if (value instanceof Uint8Array) return value as T;
   if (Array.isArray(value)) return value.map(browserSafe) as T;
   if (value && typeof value === "object") {
     return Object.fromEntries(
@@ -685,7 +689,8 @@ export async function addNote(
 
 export async function listChecklistItems(companyId: string): Promise<ChecklistItem[]> {
   return q<ChecklistItem>(
-    `SELECT id, label, hint, scope, position, required, active, value_kind, value_unit
+    `SELECT id, label, hint, scope, position, required, active, value_kind, value_unit,
+            value_min, value_max, per_asset, template_key
        FROM public.transport_checklist_items
       WHERE company_id = $1
       ORDER BY position, created_at`,
@@ -706,13 +711,18 @@ export async function upsertChecklistItem(
     active?: boolean;
     valueKind?: ChecklistItem["value_kind"];
     valueUnit?: string | null;
+    valueMin?: number | null;
+    valueMax?: number | null;
+    perAsset?: boolean;
+    templateKey?: string | null;
   },
 ): Promise<void> {
   if (input.id) {
     await q(
       `UPDATE public.transport_checklist_items
           SET label = $3, hint = $4, scope = $5, position = $6, required = $7, active = $8,
-              value_kind = $9, value_unit = $10
+              value_kind = $9, value_unit = $10, value_min = $11, value_max = $12,
+              per_asset = $13
         WHERE id = $1 AND company_id = $2`,
       [
         input.id,
@@ -725,6 +735,9 @@ export async function upsertChecklistItem(
         input.active ?? true,
         input.valueKind ?? "none",
         input.valueUnit ?? null,
+        input.valueMin ?? null,
+        input.valueMax ?? null,
+        input.perAsset ?? false,
       ],
     );
     return;
@@ -732,10 +745,10 @@ export async function upsertChecklistItem(
   await q(
     `INSERT INTO public.transport_checklist_items
        (company_id, label, hint, scope, position, required, active, created_by,
-        value_kind, value_unit)
+        value_kind, value_unit, value_min, value_max, per_asset, template_key)
      VALUES ($1,$2,$3,$4,COALESCE($5, (
         SELECT COALESCE(MAX(position),0)+1 FROM public.transport_checklist_items WHERE company_id = $1
-     )),$6,$7,$8,$9,$10)`,
+     )),$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
     [
       companyId,
       input.label,
@@ -747,6 +760,10 @@ export async function upsertChecklistItem(
       userId,
       input.valueKind ?? "none",
       input.valueUnit ?? null,
+      input.valueMin ?? null,
+      input.valueMax ?? null,
+      input.perAsset ?? false,
+      input.templateKey ?? null,
     ],
   );
 }
@@ -760,7 +777,8 @@ export async function deleteChecklistItem(companyId: string, id: string): Promis
 
 export async function listChecks(companyId: string): Promise<WeeklyCheck[]> {
   return q<WeeklyCheck>(
-    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at
+    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at,
+            signed_by_name, signed_at, approved_by_name, approved_at
        FROM public.transport_checks
       WHERE company_id = $1
       ORDER BY period_start DESC, created_at DESC
@@ -795,27 +813,169 @@ export async function startCheck(
   );
   if (!created) throw new Error("Could not start the weekly audit.");
 
+  // Plain lines: one per checklist item.
   await q(
     `INSERT INTO public.transport_check_results
-       (check_id, item_id, item_label, value_kind, value_unit)
-     SELECT $2, id, label, value_kind, value_unit FROM public.transport_checklist_items
-      WHERE company_id = $1 AND active = true
+       (check_id, item_id, item_label, value_kind, value_unit, value_min, value_max)
+     SELECT $2, id, label, value_kind, value_unit, value_min, value_max
+       FROM public.transport_checklist_items
+      WHERE company_id = $1 AND active = true AND per_asset = false
       ORDER BY position`,
+    [companyId, created.id],
+  );
+
+  // Per-asset lines: one per active vehicle / driver in the item's scope.
+  await q(
+    `INSERT INTO public.transport_check_results
+       (check_id, item_id, item_label, value_kind, value_unit, value_min, value_max,
+        subject_kind, subject_id, subject_label)
+     SELECT $2, i.id, i.label, i.value_kind, i.value_unit, i.value_min, i.value_max,
+            'vehicle', v.id, v.plate
+       FROM public.transport_checklist_items i
+       JOIN public.transport_vehicles v
+         ON v.company_id IS NOT DISTINCT FROM i.company_id
+        AND v.archived_at IS NULL AND v.status <> 'inactive'
+      WHERE i.company_id = $1 AND i.active = true AND i.per_asset = true AND i.scope = 'vehicle'
+      ORDER BY i.position, v.plate`,
+    [companyId, created.id],
+  );
+  await q(
+    `INSERT INTO public.transport_check_results
+       (check_id, item_id, item_label, value_kind, value_unit, value_min, value_max,
+        subject_kind, subject_id, subject_label)
+     SELECT $2, i.id, i.label, i.value_kind, i.value_unit, i.value_min, i.value_max,
+            'driver', d.id, d.full_name
+       FROM public.transport_checklist_items i
+       JOIN public.transport_drivers d
+         ON d.company_id IS NOT DISTINCT FROM i.company_id
+        AND d.archived_at IS NULL AND d.status <> 'inactive'
+      WHERE i.company_id = $1 AND i.active = true AND i.per_asset = true AND i.scope = 'driver'
+      ORDER BY i.position, d.full_name`,
     [companyId, created.id],
   );
   return created.id;
 }
 
 export async function listCheckResults(checkId: string): Promise<CheckResult[]> {
-  return q<CheckResult>(
+  const rows = await q<Omit<CheckResult, "evidence">>(
     `SELECT r.id, r.check_id, r.item_id, r.item_label, r.outcome, r.note, r.checked_at,
             r.incident_id, r.request_id, r.value_kind, r.value_unit,
-            r.value_text, r.value_number
+            r.value_text, r.value_number, r.value_min, r.value_max, r.out_of_range,
+            r.subject_kind, r.subject_id, r.subject_label
        FROM public.transport_check_results r
       WHERE r.check_id = $1
       ORDER BY r.created_at`,
     [checkId],
   );
+  const evidence = await listCheckEvidence(checkId);
+  return rows.map((row) => ({
+    ...row,
+    evidence: evidence.filter((e) => e.result_id === row.id),
+  }));
+}
+
+/** Evidence metadata for every line of a run (never the bytes). */
+export async function listCheckEvidence(checkId: string): Promise<CheckEvidence[]> {
+  return q<CheckEvidence>(
+    `SELECT e.id, e.result_id, e.filename, e.mime, e.size_bytes,
+            e.uploaded_by_name, e.created_at
+       FROM public.transport_check_evidence e
+       JOIN public.transport_check_results r ON r.id = e.result_id
+      WHERE r.check_id = $1
+      ORDER BY e.created_at`,
+    [checkId],
+  );
+}
+
+export async function addCheckEvidence(
+  companyId: string,
+  resultId: string,
+  file: { filename: string; mime: string; bytes: Buffer },
+  userId: string,
+  who: string | null,
+): Promise<{ id: string }> {
+  const owned = await one<{ id: string }>(
+    `SELECT r.id FROM public.transport_check_results r
+       JOIN public.transport_checks c ON c.id = r.check_id
+      WHERE r.id = $1 AND c.company_id = $2`,
+    [resultId, companyId],
+  );
+  if (!owned) throw new Error("Checklist line not found.");
+  const created = await one<{ id: string }>(
+    `INSERT INTO public.transport_check_evidence
+       (company_id, result_id, filename, mime, size_bytes, data, uploaded_by, uploaded_by_name)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+    [
+      companyId,
+      resultId,
+      file.filename,
+      file.mime,
+      file.bytes.byteLength,
+      file.bytes,
+      userId,
+      who,
+    ],
+  );
+  if (!created) throw new Error("Could not store the evidence file.");
+  return { id: created.id };
+}
+
+export async function deleteCheckEvidence(
+  companyId: string,
+  evidenceId: string,
+): Promise<void> {
+  await q(
+    `DELETE FROM public.transport_check_evidence e
+      WHERE e.id = $1
+        AND EXISTS (SELECT 1 FROM public.transport_check_results r
+                      JOIN public.transport_checks c ON c.id = r.check_id
+                     WHERE r.id = e.result_id AND c.company_id = $2)`,
+    [evidenceId, companyId],
+  );
+}
+
+/** Evidence bytes, for download or PDF embedding. */
+export async function getCheckEvidenceFile(
+  companyId: string,
+  evidenceId: string,
+): Promise<{ filename: string; mime: string; bytes: Buffer } | null> {
+  const row = await one<{ filename: string; mime: string; data: Buffer }>(
+    `SELECT e.filename, e.mime, e.data
+       FROM public.transport_check_evidence e
+       JOIN public.transport_check_results r ON r.id = e.result_id
+       JOIN public.transport_checks c ON c.id = r.check_id
+      WHERE e.id = $1 AND c.company_id = $2`,
+    [evidenceId, companyId],
+  );
+  if (!row) return null;
+  return { filename: row.filename, mime: row.mime, bytes: Buffer.from(row.data) };
+}
+
+/** Aggregated audit history for trend charts (oldest first). */
+export async function auditTrends(
+  companyId: string,
+  limit = 12,
+): Promise<AuditTrendPoint[]> {
+  const rows = await q<AuditTrendPoint>(
+    `SELECT c.id AS check_id, c.period_start, c.status,
+            count(r.id)::int AS total,
+            count(r.id) FILTER (WHERE r.outcome = 'ok')::int AS ok,
+            count(r.id) FILTER (WHERE r.outcome = 'issue')::int AS issues,
+            count(r.id) FILTER (WHERE r.outcome = 'not_applicable')::int AS not_applicable,
+            count(r.id) FILTER (WHERE r.outcome = 'pending')::int AS pending,
+            count(r.id) FILTER (WHERE r.out_of_range)::int AS out_of_range,
+            CASE WHEN count(r.id) = 0 THEN 0
+                 ELSE round(100.0 * count(r.id) FILTER (WHERE r.outcome <> 'pending')
+                            / count(r.id))::int END AS completion
+       FROM public.transport_checks c
+       LEFT JOIN public.transport_check_results r ON r.check_id = c.id
+      WHERE c.company_id = $1
+      GROUP BY c.id, c.period_start, c.status
+      ORDER BY c.period_start DESC
+      LIMIT $2`,
+    [companyId, limit],
+  );
+  return rows.reverse();
 }
 
 export async function setCheckResult(
@@ -845,13 +1005,58 @@ export async function setCheckResultValue(
   value: { text?: string | null; number?: number | null },
   userId: string,
 ): Promise<void> {
+  // Out-of-range numeric readings fail the line automatically, so an audit
+  // cannot be closed with a measured value outside the accepted limits.
   await q(
     `UPDATE public.transport_check_results r
-        SET value_text = $3, value_number = $4, checked_by = $5, checked_at = now()
+        SET value_text = $3, value_number = $4, checked_by = $5, checked_at = now(),
+            out_of_range = (
+              $4::double precision IS NOT NULL
+              AND ((r.value_min IS NOT NULL AND $4::double precision < r.value_min)
+                OR (r.value_max IS NOT NULL AND $4::double precision > r.value_max))
+            ),
+            outcome = CASE
+              WHEN $4::double precision IS NOT NULL
+               AND ((r.value_min IS NOT NULL AND $4::double precision < r.value_min)
+                 OR (r.value_max IS NOT NULL AND $4::double precision > r.value_max))
+              THEN 'issue'
+              WHEN r.outcome = 'pending' AND ($3 IS NOT NULL OR $4::double precision IS NOT NULL)
+              THEN 'ok'
+              ELSE r.outcome END
       WHERE r.id = $1
         AND EXISTS (SELECT 1 FROM public.transport_checks c
                      WHERE c.id = r.check_id AND c.company_id = $2)`,
     [resultId, companyId, value.text ?? null, value.number ?? null, userId],
+  );
+}
+
+/** Auditor signature at closure (who performed the audit). */
+export async function signCheck(
+  companyId: string,
+  checkId: string,
+  userId: string,
+  who: string | null,
+): Promise<void> {
+  await q(
+    `UPDATE public.transport_checks
+        SET signed_by = $3, signed_by_name = $4, signed_at = now()
+      WHERE id = $1 AND company_id = $2`,
+    [checkId, companyId, userId, who],
+  );
+}
+
+/** Approver signature (second pair of eyes) on a completed audit. */
+export async function approveCheck(
+  companyId: string,
+  checkId: string,
+  userId: string,
+  who: string | null,
+): Promise<void> {
+  await q(
+    `UPDATE public.transport_checks
+        SET approved_by = $3, approved_by_name = $4, approved_at = now()
+      WHERE id = $1 AND company_id = $2 AND status = 'completed'`,
+    [checkId, companyId, userId, who],
   );
 }
 
@@ -937,6 +1142,163 @@ export async function ensureStarterChecklist(
   return STARTER_CHECKLIST.length;
 }
 
+/** Reusable audit templates a company can add on top of its own checklist. */
+export const CHECKLIST_TEMPLATES: ReadonlyArray<{
+  key: string;
+  label: string;
+  items: ReadonlyArray<{
+    label: string;
+    hint: string;
+    scope: ChecklistItem["scope"];
+    perAsset?: boolean;
+    valueKind?: ChecklistItem["value_kind"];
+    valueUnit?: string;
+    valueMin?: number;
+    valueMax?: number;
+  }>;
+}> = [
+  {
+    key: "roadworthiness",
+    label: "Roadworthiness (ITP / TUV)",
+    items: [
+      {
+        label: "Inspection certificate valid",
+        hint: "Certificate present and not expiring inside the alert window.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+      {
+        label: "Tyre tread depth",
+        hint: "Minimum legal tread depth on all axles.",
+        scope: "vehicle",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "mm",
+        valueMin: 1.6,
+        valueMax: 20,
+      },
+      {
+        label: "Brake test result",
+        hint: "Service brake efficiency from the last test.",
+        scope: "vehicle",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "%",
+        valueMin: 50,
+        valueMax: 100,
+      },
+      {
+        label: "Lights and signalling working",
+        hint: "All lamps, indicators and reflectors operational.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+    ],
+  },
+  {
+    key: "cargo_safety",
+    label: "Cargo safety",
+    items: [
+      {
+        label: "Load securing equipment complete",
+        hint: "Straps, bars and mats present and undamaged.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+      {
+        label: "Gross weight within limit",
+        hint: "Loaded weight of the last trip.",
+        scope: "vehicle",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "t",
+        valueMax: 40,
+      },
+      {
+        label: "Dangerous goods documents",
+        hint: "ADR paperwork and equipment where applicable.",
+        scope: "general",
+      },
+      {
+        label: "Temperature log reviewed",
+        hint: "Reefer readings for temperature-controlled loads.",
+        scope: "general",
+        valueKind: "number",
+        valueUnit: "degC",
+        valueMin: -25,
+        valueMax: 8,
+      },
+    ],
+  },
+  {
+    key: "tachograph",
+    label: "Tachograph & driving hours",
+    items: [
+      {
+        label: "Driver card downloaded",
+        hint: "Data downloaded inside the legal interval.",
+        scope: "driver",
+        perAsset: true,
+      },
+      {
+        label: "Driving-time infringements reviewed",
+        hint: "Count of infringements in the period.",
+        scope: "driver",
+        perAsset: true,
+        valueKind: "number",
+        valueUnit: "count",
+        valueMax: 0,
+      },
+      {
+        label: "Weekly rest respected",
+        hint: "Reduced rests compensated as required.",
+        scope: "driver",
+        perAsset: true,
+      },
+      {
+        label: "Tachograph calibration valid",
+        hint: "Two-year calibration seal in date.",
+        scope: "vehicle",
+        perAsset: true,
+      },
+    ],
+  },
+];
+
+/** Add a template's lines, skipping labels the company already has. */
+export async function applyChecklistTemplate(
+  companyId: string,
+  userId: string,
+  key: string,
+): Promise<number> {
+  const template = CHECKLIST_TEMPLATES.find((t) => t.key === key);
+  if (!template) throw new Error("Unknown checklist template.");
+  const existing = await q<{ label: string }>(
+    `SELECT label FROM public.transport_checklist_items WHERE company_id = $1`,
+    [companyId],
+  );
+  const have = new Set(existing.map((r) => r.label.trim().toLowerCase()));
+  let added = 0;
+  for (const item of template.items) {
+    if (have.has(item.label.trim().toLowerCase())) continue;
+    await upsertChecklistItem(companyId, userId, {
+      label: item.label,
+      hint: item.hint,
+      scope: item.scope,
+      required: true,
+      active: true,
+      perAsset: item.perAsset ?? false,
+      valueKind: item.valueKind ?? "none",
+      valueUnit: item.valueUnit ?? null,
+      valueMin: item.valueMin ?? null,
+      valueMax: item.valueMax ?? null,
+      templateKey: template.key,
+    });
+    added += 1;
+  }
+  return added;
+}
+
 /** Turn a failed checklist line into an incident or a request, and link it. */
 export async function escalateCheckResult(
   companyId: string,
@@ -999,15 +1361,42 @@ export async function escalateCheckResult(
 export async function getCheckForReport(
   companyId: string,
   checkId: string,
-): Promise<{ check: WeeklyCheck; results: CheckResult[] } | null> {
+): Promise<{
+  check: WeeklyCheck;
+  results: CheckResult[];
+  evidence: Array<{ resultId: string; mime: string; bytes: Uint8Array; filename: string }>;
+} | null> {
   const check = await one<WeeklyCheck>(
-    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at
+    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at,
+            signed_by_name, signed_at, approved_by_name, approved_at
        FROM public.transport_checks WHERE id = $1 AND company_id = $2`,
     [checkId, companyId],
   );
   if (!check) return null;
   const results = await listCheckResults(checkId);
-  return { check, results };
+  const files = await q<{
+    result_id: string;
+    filename: string;
+    mime: string;
+    data: Buffer;
+  }>(
+    `SELECT e.result_id, e.filename, e.mime, e.data
+       FROM public.transport_check_evidence e
+       JOIN public.transport_check_results r ON r.id = e.result_id
+      WHERE r.check_id = $1
+      ORDER BY e.created_at`,
+    [checkId],
+  );
+  return {
+    check,
+    results,
+    evidence: files.map((f) => ({
+      resultId: f.result_id,
+      filename: f.filename,
+      mime: f.mime,
+      bytes: new Uint8Array(Buffer.from(f.data)),
+    })),
+  };
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────
@@ -1408,7 +1797,8 @@ export async function counts(companyId: string) {
 
 export async function lastCheck(companyId: string): Promise<WeeklyCheck | null> {
   return one<WeeklyCheck>(
-    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at
+    `SELECT id, period_start, due_on, status, summary, ran_by_name, completed_at, created_at,
+            signed_by_name, signed_at, approved_by_name, approved_at
        FROM public.transport_checks WHERE company_id = $1
       ORDER BY created_at DESC LIMIT 1`,
     [companyId],
