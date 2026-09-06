@@ -172,13 +172,39 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       :groundedSystemPrompt(context,answerLanguage,firstName);
 
   const modelMessages=await prepareMessagesForModel(messages,identity.userId);
-  const result=streamText({model:resolveChatModel("chat"),system,messages:await convertToModelMessages(modelMessages)});
-  return result.toUIMessageStreamResponse({originalMessages:messages,messageMetadata:({part})=>part.type==="start"?metadata(isGreeting?"greeting":isCapability?"capability":"kb"):undefined,onFinish:async({messages:finished})=>{
+  const mode:"greeting"|"capability"|"kb"=isGreeting?"greeting":isCapability?"capability":"kb";
+  const convMessages=await convertToModelMessages(modelMessages);
+  // The answer is validated before the user ever sees it: a wrong-language or
+  // speculative answer is regenerated once, then replaced by the refusal.
+  const generate=async(correction?:string)=>{
+    const r=streamText({model:resolveChatModel("chat"),system:correction?`${system}\n\n${correction}`:system,messages:convMessages});
+    return (await r.text).trim();
+  };
+  const invalid=(text:string)=>answerLanguageMismatch(text,answerLanguage)||(mode==="kb"&&answerSpeculates(text));
+
+  let blocked=false;
+  let finalText="";
+  const stream=createUIMessageStream<UIMessage>({originalMessages:messages,onFinish:async({messages:finished})=>{
     await persist(finished);
-    if(isGreeting||isCapability)return;
-    const answerText=textOf([...finished].reverse().find((m)=>m.role==="assistant"));
-    const signal=detectGapSignal({sources,confidence,grounded,answerText});
+    if(mode!=="kb")return;
+    const signal=blocked?{isGap:true,reason:"low_confidence"} as const:detectGapSignal({sources,confidence,grounded,answerText:finalText});
     if(signal.isGap)await recordAutoKnowledgeGap(dataCtx,{companyId,question:query,departmentId:profile?.departmentId??null,createdBy:identity.userId,confidence,sourceThreadId:body.threadId as string,sourceMessageId:null,reason:signal.reason});
+  },execute:async({writer})=>{
+    let text="";
+    try{
+      text=await generate();
+      if(invalid(text)){
+        text=await generate(`CORRECTION — your previous answer was rejected. It was not written in ${answerLanguage}, or it speculated beyond the COMPANY KNOWLEDGE. Rewrite it strictly in ${answerLanguage}, using only the evidence given above. If that evidence does not answer the question, reply ONLY that the information is not in the company knowledge base.`);
+      }
+    }catch(error){console.error("[chat:generate]",error);}
+    blocked=!text||invalid(text);
+    finalText=blocked?refusalText(query,answerLanguage):text;
+    writer.write({type:"start",messageMetadata:metadata(blocked&&mode==="kb"?"gap":mode)});
+    writer.write({type:"text-start",id:"answer"});
+    writer.write({type:"text-delta",id:"answer",delta:finalText});
+    writer.write({type:"text-end",id:"answer"});
   }});
+  return createUIMessageStreamResponse({stream});
+
 
 }}}});
