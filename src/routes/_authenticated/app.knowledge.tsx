@@ -407,6 +407,29 @@ function KnowledgePage() {
     }
   };
 
+  // Deep link from AI Chat sources: reveal, scroll to and highlight the document.
+  useEffect(() => {
+    if (!focusDocId) return;
+    const target = docs.find((d) => d.id === focusDocId);
+    if (!target) return;
+    setCategoryFilter("all");
+    setFreshness("all");
+    setSearch("");
+    if (!target.is_active) setShowInactive(true);
+    setFocusedDoc(focusDocId);
+    const raf = requestAnimationFrame(() => {
+      document
+        .getElementById(`kb-doc-${focusDocId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const timer = setTimeout(() => setFocusedDoc(null), 6000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [focusDocId, docs]);
+
+
   // Business metrics rail — every stat answers a concrete KB question.
   const totalActive = docs.filter((d) => d.is_active).length;
   const criticalCount = docs.filter((d) => d.is_critical && d.is_active).length;
