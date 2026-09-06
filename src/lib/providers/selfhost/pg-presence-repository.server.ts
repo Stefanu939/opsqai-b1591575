@@ -9,7 +9,7 @@ import type {
   TimeOffRecord,
   TimeOffStatus,
 } from "@/lib/providers/interfaces";
-import { toIso } from "./dates";
+import { toIso, toDateOnly } from "./dates";
 
 export interface PgPresenceRepositoryDeps {
   pool: Pool;
@@ -27,8 +27,8 @@ interface TimeOffRow {
   id: string;
   user_id: string;
   company_id: string | null;
-  starts_on: string;
-  ends_on: string;
+  starts_on: string | Date;
+  ends_on: string | Date;
   reason: string | null;
   status: string;
   approved_by: string | null;
@@ -51,8 +51,8 @@ function mapTimeOff(row: TimeOffRow): TimeOffRecord {
     id: row.id,
     userId: row.user_id,
     companyId: row.company_id,
-    startsOn: String(row.starts_on).slice(0, 10),
-    endsOn: String(row.ends_on).slice(0, 10),
+    startsOn: toDateOnly(row.starts_on),
+    endsOn: toDateOnly(row.ends_on),
     reason: row.reason,
     status: row.status as TimeOffStatus,
     approvedBy: row.approved_by,
