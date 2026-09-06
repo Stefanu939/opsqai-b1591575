@@ -23,7 +23,7 @@ import {
   ChevronLeft,
   ListChecks,
   BookOpenCheck,
-  Lock,
+  Circle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lessonId")({
@@ -45,6 +45,24 @@ type Q = {
 };
 
 const COMPLETE_MARKER = "[LESSON_COMPLETE]";
+const SECTION_MARKER = /\[SECTION_DONE:([a-z_]+)\]/g;
+
+/** Learning units. Progress is completed units / total units — never time. */
+type UnitKey = "intro" | "concepts" | "examples" | "best_practices" | "summary" | "quiz";
+const UNIT_LABEL: Record<UnitKey, string> = {
+  intro: "Introduction",
+  concepts: "Key concepts",
+  examples: "Practical example",
+  best_practices: "Best practices",
+  summary: "Summary",
+  quiz: "Quiz",
+};
+
+/** Learner asks to jump straight to the quiz (EN / DE / RO). */
+const QUIZ_INTENT =
+  /(start|begin|open|go\s*(to|straight\s*to)?|skip\s*(to|the\s*lesson)?|take)?\s*(the\s*)?(quiz|test|exam|knowledge\s*check)|quiz\s*(now|please|direct)|direct\s*(la|to)\s*(quiz|test)|zum\s*(quiz|test)|quiz\s*starten|test\s*starten|(vreau|hai|mergem|treci|sar(im)?)\s.*(quiz|test)|incep(e|em)\s*(testul|quiz)|începe[m]?\s*(testul|quiz)/i;
+
+type LessonPhase = "LEARNING" | "QUIZ_READY" | "QUIZ_IN_PROGRESS" | "QUIZ_COMPLETED";
 
 const LANG_OPTIONS: { code: string; label: string; short: string }[] = [
   { code: "en", label: "English", short: "EN" },
@@ -145,6 +163,7 @@ function TeacherChat({
   const [quiz, setQuiz] = useState<Q[] | null>(null);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [qIndex, setQIndex] = useState(0);
   const [result, setResult] = useState<any>(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [contextOpen, setContextOpen] = useState(true);
@@ -217,36 +236,61 @@ function TeacherChat({
   const passing = lesson.academy_chapters?.academy_learning_paths?.passing_score ?? 70;
   const pathId =
     lesson.academy_chapters?.path_id ?? lesson.academy_chapters?.academy_learning_paths?.id;
+  // Informational only — the estimate NEVER influences progress.
   const estimated = lesson.estimated_minutes ?? lesson.duration_minutes ?? 8;
   const elapsedMin = Math.floor((Date.now() - start.current) / 60000);
   const remaining = Math.max(estimated - elapsedMin, 1);
 
-  // Detect lesson-complete marker emitted by the AI Teacher.
+  // Learning units that exist for this lesson (quiz is always the last unit).
+  const units = useMemo<UnitKey[]>(() => {
+    const list: UnitKey[] = ["intro"];
+    if (lesson.explanation) list.push("concepts");
+    if (lesson.examples) list.push("examples");
+    if (lesson.best_practices) list.push("best_practices");
+    if (lesson.summary) list.push("summary");
+    list.push("quiz");
+    return list;
+  }, [lesson.explanation, lesson.examples, lesson.best_practices, lesson.summary]);
+
+  // Sections confirmed by the AI Teacher through [SECTION_DONE:<key>] markers.
+  const doneSections = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of messages) {
+      if (m.role !== "assistant") continue;
+      for (const p of (m.parts ?? []) as any[]) {
+        if (p.type !== "text") continue;
+        for (const match of String(p.text).matchAll(SECTION_MARKER)) set.add(match[1]!);
+        if (String(p.text).includes(COMPLETE_MARKER)) {
+          for (const u of units) if (u !== "quiz") set.add(u);
+        }
+      }
+    }
+    return set;
+  }, [messages, units]);
+
   const lessonComplete = useMemo(
-    () =>
-      messages.some(
-        (m) =>
-          m.role === "assistant" &&
-          m.parts?.some?.((p: any) => p.type === "text" && p.text.includes(COMPLETE_MARKER)),
-      ),
-    [messages],
+    () => units.filter((u) => u !== "quiz").every((u) => doneSections.has(u)),
+    [units, doneSections],
   );
 
-  const stripMarker = (text: string) => text.replace(COMPLETE_MARKER, "").trim();
+  const stripMarker = (text: string) =>
+    text.replace(SECTION_MARKER, "").replace(COMPLETE_MARKER, "").trim();
 
-  const progress = Math.min(
-    quiz
-      ? result?.passed
-        ? 100
-        : 90
+  const unitDone = (u: UnitKey) => (u === "quiz" ? Boolean(result?.passed) : doneSections.has(u));
+  const completedUnits = units.filter(unitDone).length;
+  // Deterministic: completed learning units / total units. Time is irrelevant.
+  const progress = Math.round((completedUnits / units.length) * 100);
+
+  const phase: LessonPhase = result
+    ? "QUIZ_COMPLETED"
+    : quiz
+      ? "QUIZ_IN_PROGRESS"
       : lessonComplete
-        ? 80
-        : (elapsedMin / Math.max(estimated, 1)) * 70,
-    100,
-  );
+        ? "QUIZ_READY"
+        : "LEARNING";
 
   const startQuiz = async () => {
-    if (!lessonComplete || quizLoading) return;
+    if (quizLoading) return;
     if (!learnLang) {
       alert(
         "Please pick a language first (top-right selector) so the quiz can be generated in that language.",
@@ -254,6 +298,7 @@ function TeacherChat({
       return;
     }
     setResult(null);
+    setQIndex(0);
     setQuizLoading(true);
     try {
       const q = (await genQuiz({ data: { lesson_id: lessonId, language: learnLang } })) as {
@@ -331,6 +376,19 @@ function TeacherChat({
       alert(e?.message ?? "Could not submit the quiz.");
     }
   };
+
+  /** Route explicit "go to quiz" asks into real Quiz Mode instead of the AI chat. */
+  const handleSend = async (text: string) => {
+    if (!quiz && QUIZ_INTENT.test(text)) {
+      setInput("");
+      await startQuiz();
+      return;
+    }
+    setInput("");
+    void sendMessage({ text });
+  };
+
+
 
   const visibleMessages = messages
     .filter(
@@ -484,12 +542,26 @@ function TeacherChat({
               {quiz && (
                 <div className="flex justify-start">
                   <Card className="w-full max-w-[92%] p-4 space-y-4 border-primary/30">
-                    <div className="font-medium flex items-center gap-2 text-sm">
-                      <ListChecks className="h-4 w-4 text-primary" /> Quick check — let's see what
-                      stuck
+                    <div className="font-medium flex items-center justify-between gap-2 text-sm">
+                      <span className="inline-flex items-center gap-2">
+                        <ListChecks className="h-4 w-4 text-primary" /> Quiz
+                      </span>
+                      <span className="text-[11px] font-normal text-muted-foreground">
+                        {result
+                          ? "Review"
+                          : `Question ${Math.min(qIndex + 1, quiz.length)} of ${quiz.length} · pass mark ${passing}%`}
+                      </span>
                     </div>
                     {quiz.map((q, i) => (
-                      <div key={i} className="space-y-2 border-b last:border-0 pb-3 last:pb-0">
+                      <div
+                        key={i}
+                        className={
+                          !result && i !== qIndex
+                            ? "hidden"
+                            : "space-y-2 border-b last:border-0 pb-3 last:pb-0"
+                        }
+                      >
+
                         <div className="text-sm font-medium">
                           {i + 1}. {q.question}
                         </div>
@@ -570,9 +642,33 @@ function TeacherChat({
                       </div>
                     ))}
                     {!result ? (
-                      <Button onClick={finishQuiz} disabled={answers.some((a) => !a)} size="sm">
-                        Submit answers
-                      </Button>
+                      <div className="flex items-center justify-between gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={qIndex === 0}
+                          onClick={() => setQIndex((i) => Math.max(0, i - 1))}
+                        >
+                          Back
+                        </Button>
+                        {qIndex < quiz.length - 1 ? (
+                          <Button
+                            size="sm"
+                            disabled={!answers[qIndex]}
+                            onClick={() => setQIndex((i) => Math.min(quiz.length - 1, i + 1))}
+                          >
+                            Next question
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={finishQuiz}
+                            disabled={answers.some((a) => !a)}
+                            size="sm"
+                          >
+                            Submit answers
+                          </Button>
+                        )}
+                      </div>
                     ) : (
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <Badge
@@ -619,8 +715,7 @@ function TeacherChat({
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       if (!input.trim() || status === "streaming") return;
-                      void sendMessage({ text: input.trim() });
-                      setInput("");
+                      void handleSend(input.trim());
                     }
                   }}
                   placeholder="Reply to your AI Teacher…"
@@ -633,8 +728,7 @@ function TeacherChat({
                   disabled={!input.trim() || status === "streaming"}
                   onClick={() => {
                     if (!input.trim()) return;
-                    void sendMessage({ text: input.trim() });
-                    setInput("");
+                    void handleSend(input.trim());
                   }}
                 >
                   <ArrowUp className="h-4 w-4" />
@@ -645,21 +739,24 @@ function TeacherChat({
                   <Sparkles className="h-3 w-3 text-primary" /> Grounded only in this lesson — no
                   outside information.
                 </div>
-                {!quiz &&
-                  (lessonComplete ? (
-                    <button
-                      onClick={startQuiz}
-                      disabled={quizLoading}
-                      className="text-[11.5px] font-medium text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      {quizLoading ? <RotateCw className="h-3.5 w-3.5 animate-spin" /> : <BookOpenCheck className="h-3.5 w-3.5" />}
-                      {quizLoading ? "Preparing quiz…" : "I'm ready for the quiz"}
-                    </button>
-                  ) : (
-                    <span className="text-[11.5px] text-muted-foreground inline-flex items-center gap-1">
-                      <Lock className="h-3 w-3" /> Quiz unlocks after the lesson is complete
-                    </span>
-                  ))}
+                {!quiz && (
+                  <button
+                    onClick={startQuiz}
+                    disabled={quizLoading}
+                    className="text-[11.5px] font-medium text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    {quizLoading ? (
+                      <RotateCw className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <BookOpenCheck className="h-3.5 w-3.5" />
+                    )}
+                    {quizLoading
+                      ? "Preparing quiz…"
+                      : lessonComplete
+                        ? "I'm ready for the quiz"
+                        : "Go straight to the quiz"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -688,15 +785,32 @@ function TeacherChat({
               </div>
 
               <div className="rounded-lg border border-border bg-background p-3">
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1">
-                  Progress
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1 flex items-center justify-between">
+                  <span>Progress</span>
+                  <span className="font-normal normal-case tracking-normal">
+                    {completedUnits}/{units.length} units · {progress}%
+                  </span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                   <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
                 </div>
+                <ul className="mt-2 space-y-1">
+                  {units.map((u) => (
+                    <li key={u} className="flex items-center gap-2 text-[11.5px]">
+                      {unitDone(u) ? (
+                        <CheckCircle2 className="h-3 w-3 text-success" />
+                      ) : (
+                        <Circle className="h-3 w-3 text-muted-foreground/60" />
+                      )}
+                      <span className={unitDone(u) ? "" : "text-muted-foreground"}>
+                        {UNIT_LABEL[u]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
                 <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span>~{remaining} min remaining</span>
-                  <span>Pass {passing}%</span>
+                  <span>~{remaining} min remaining (estimate only)</span>
+                  <span>Quiz pass mark {passing}%</span>
                 </div>
               </div>
 
