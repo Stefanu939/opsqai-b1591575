@@ -734,12 +734,17 @@ LANGUAGE CONTRACT:
 - Keep only immutable codes, product names, system names, abbreviations, numbers, units, and legal quotations verbatim.
 - Mentally proofread grammar and language consistency before returning.
 CONTENT CONTRACT: Every answer must come only from the lesson. Translate faithfully; never invent facts or omit safety information.
+ANSWER CONTRACT (critical):
+- "correct_answer" MUST repeat one of the "options" strings VERBATIM. Never answer with a letter ("A"), a number, or a paraphrase.
+- true_false questions MUST provide options in the TARGET LANGUAGE and the correct_answer MUST be exactly one of those two option strings.
+- short_answer questions MUST provide a real expected answer sentence. Never write placeholders such as "See lesson content".
 Mix multiple_choice (4 options), true_false, and short_answer. Return only valid JSON without markdown fences.${correction ? `\nCORRECTION REQUIRED: ${correction}` : ""}`,
         },
         {
           role: "user",
-          content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape:\n{"questions":[{"type":"multiple_choice","question":"...","options":["A","B","C","D"],"correct_answer":"A","explanation":"..."}]}`,
+          content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape (correct_answer repeats one option verbatim):\n{"questions":[{"type":"multiple_choice","question":"...","options":["full option one","full option two","full option three","full option four"],"correct_answer":"full option two","explanation":"..."}]}`,
         },
+
       ],
     });
 
