@@ -15,6 +15,7 @@ import { Route as SsoSigninRouteImport } from './routes/sso-signin'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SelfHostedRouteImport } from './routes/self-hosted'
 import { Route as SecurityRouteImport } from './routes/security'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductOverviewRouteImport } from './routes/product-overview'
 import { Route as ProductRouteImport } from './routes/product'
@@ -35,9 +36,11 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SolutionsIndexRouteImport } from './routes/solutions.index'
 import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as SolutionsVerticalRouteImport } from './routes/solutions.$vertical'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalResponsibleAiRouteImport } from './routes/legal/responsible-ai'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
@@ -170,6 +173,11 @@ const SecurityRoute = SecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -269,6 +277,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SolutionsIndexRoute = SolutionsIndexRouteImport.update({
+  id: '/solutions/',
+  path: '/solutions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentationIndexRoute = DocumentationIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -282,6 +295,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
   id: '/verify/$code',
   path: '/verify/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsVerticalRoute = SolutionsVerticalRouteImport.update({
+  id: '/solutions/$vertical',
+  path: '/solutions/$vertical',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
@@ -865,6 +883,7 @@ export interface FileRoutesByFullPath {
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -895,9 +914,11 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
+  '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -994,6 +1015,7 @@ export interface FileRoutesByTo {
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1021,9 +1043,11 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog': typeof BlogIndexRoute
   '/documentation': typeof DocumentationIndexRoute
+  '/solutions': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1122,6 +1146,7 @@ export interface FileRoutesById {
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/resources': typeof ResourcesRoute
   '/security': typeof SecurityRoute
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1152,9 +1177,11 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/responsible-ai': typeof LegalResponsibleAiRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/solutions/$vertical': typeof SolutionsVerticalRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
+  '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1255,6 +1282,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/product-overview'
     | '/reset-password'
+    | '/resources'
     | '/security'
     | '/self-hosted'
     | '/sitemap.xml'
@@ -1285,9 +1313,11 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
     | '/documentation/'
+    | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -1384,6 +1414,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/product-overview'
     | '/reset-password'
+    | '/resources'
     | '/security'
     | '/self-hosted'
     | '/sitemap.xml'
@@ -1411,9 +1442,11 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog'
     | '/documentation'
+    | '/solutions'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -1511,6 +1544,7 @@ export interface FileRouteTypes {
     | '/product'
     | '/product-overview'
     | '/reset-password'
+    | '/resources'
     | '/security'
     | '/self-hosted'
     | '/sitemap.xml'
@@ -1541,9 +1575,11 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/responsible-ai'
     | '/legal/terms'
+    | '/solutions/$vertical'
     | '/verify/$code'
     | '/blog/'
     | '/documentation/'
+    | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/app/audit'
@@ -1644,6 +1680,7 @@ export interface RootRouteChildren {
   ProductRoute: typeof ProductRoute
   ProductOverviewRoute: typeof ProductOverviewRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ResourcesRoute: typeof ResourcesRoute
   SecurityRoute: typeof SecurityRoute
   SelfHostedRoute: typeof SelfHostedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1658,7 +1695,9 @@ export interface RootRouteChildren {
   ApiInternalChatRoute: typeof ApiInternalChatRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
+  SolutionsVerticalRoute: typeof SolutionsVerticalRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  SolutionsIndexRoute: typeof SolutionsIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiAuthPasswordResetConfirmRoute: typeof ApiAuthPasswordResetConfirmRoute
@@ -1727,6 +1766,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1869,6 +1915,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/solutions/': {
+      id: '/solutions/'
+      path: '/solutions'
+      fullPath: '/solutions/'
+      preLoaderRoute: typeof SolutionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documentation/': {
       id: '/documentation/'
       path: '/'
@@ -1888,6 +1941,13 @@ declare module '@tanstack/react-router' {
       path: '/verify/$code'
       fullPath: '/verify/$code'
       preLoaderRoute: typeof VerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/$vertical': {
+      id: '/solutions/$vertical'
+      path: '/solutions/$vertical'
+      fullPath: '/solutions/$vertical'
+      preLoaderRoute: typeof SolutionsVerticalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/terms': {
@@ -2900,6 +2960,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductRoute: ProductRoute,
   ProductOverviewRoute: ProductOverviewRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ResourcesRoute: ResourcesRoute,
   SecurityRoute: SecurityRoute,
   SelfHostedRoute: SelfHostedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -2915,7 +2976,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInternalChatRoute: ApiInternalChatRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
+  SolutionsVerticalRoute: SolutionsVerticalRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  SolutionsIndexRoute: SolutionsIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiAuthPasswordResetConfirmRoute: ApiAuthPasswordResetConfirmRoute,

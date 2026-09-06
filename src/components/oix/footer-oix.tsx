@@ -11,6 +11,7 @@ export function FooterOix() {
       heading: m.footer.platform,
       items: [
         { label: m.nav.product, to: "/product" },
+        { label: m.nav.solutions, to: "/solutions" },
         { label: m.nav.overview, to: "/product-overview" },
         { label: m.nav.modules, to: "/modules" },
         { label: m.nav.selfHosted, to: "/self-hosted" },
@@ -31,6 +32,7 @@ export function FooterOix() {
       items: [
         { label: m.nav.documentation, to: "/documentation" },
         { label: m.nav.pricing, to: "/pricing" },
+        { label: m.nav.resourcesNav, to: "/resources" },
       ],
     },
     {
