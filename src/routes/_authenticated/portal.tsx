@@ -65,8 +65,6 @@ const NAV: readonly NavItem[] = [
   { to: "/portal/downloads", label: "Downloads", icon: Download, customerOnly: true },
   { to: "/portal/subscription", label: "Subscription", icon: FileText, customerOnly: true },
   { to: "/portal/support", label: "Support", icon: MessagesSquare, customerOnly: true },
-  { to: "/portal/release-notes", label: "Release notes", icon: Package, customerOnly: true },
-  { to: "/portal/documentation", label: "Documentation", icon: BookOpen },
   { to: "/portal/admin", label: "Admin", icon: Shield, staffOnly: true },
 ];
 
