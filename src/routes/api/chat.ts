@@ -3,7 +3,7 @@ import { convertToModelMessages, createUIMessageStream, createUIMessageStreamRes
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
 import { resolveChatModel, resolveEmbedOne, hasAiCapability } from "@/lib/ai-provider.server";
 import { getStorageProvider } from "@/lib/providers/registry";
-import { detectGapSignal, detectLanguage, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources, resolveAnswerLanguage } from "@/lib/chat-grounding";
+import { answerLanguageMismatch, answerSpeculates, detectGapSignal, detectLanguage, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources, resolveAnswerLanguage } from "@/lib/chat-grounding";
 import { recordAutoKnowledgeGap } from "@/lib/knowledge-gap-auto.server";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
