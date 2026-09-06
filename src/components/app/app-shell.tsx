@@ -52,7 +52,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const { user, companyName, hasPermission, hasAnyPermission } = auth;
   const { t, lang, setLang } = useT();
-  const navigate = useNavigate();
   const license = useLicense();
   const { canSeeModule } = useMyModuleAccess();
   // A nav item shows only when the install is licensed for the module AND the
