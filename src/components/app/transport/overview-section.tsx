@@ -1,5 +1,4 @@
 // Transport overview: fleet counts, expiry alerts, open work and audit state.
-import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
   CalendarCheck,
@@ -146,16 +145,6 @@ export function OverviewSection({ t, data }: { t: Ui; data: TransportOverview })
         ) : (
           <p className="text-sm text-muted-foreground">{t.noAudit}</p>
         )}
-        <div className="mt-3">
-          <Button asChild size="sm" variant="outline">
-            <Link
-              to="/app/products/transport/$workspace"
-              params={{ workspace: "procedures" }}
-            >
-              {t.checklist}
-            </Link>
-          </Button>
-        </div>
       </Panel>
     </div>
   );

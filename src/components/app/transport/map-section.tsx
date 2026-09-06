@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ClientOnly } from "@tanstack/react-router";
 import { geocodeTransportPlace } from "@/lib/transport.functions";
 import { useTransportMapData, useTransportRegisters } from "./use-transport";
 import type { transportUi } from "@/i18n/pages/transport";
@@ -102,7 +101,6 @@ export function MapSection({ t }: { t: Ui }) {
         {pins.length === 0 ? (
           <EmptyState title={t.noCoordinates} description={t.mapBody} />
         ) : (
-          <ClientOnly fallback={<div className="h-[520px] rounded-lg border border-border" />}>
             <Suspense fallback={<div className="h-[520px] rounded-lg border border-border" />}>
               <TransportMap
                 pins={pins}
@@ -111,7 +109,6 @@ export function MapSection({ t }: { t: Ui }) {
                 heat={heat}
               />
             </Suspense>
-          </ClientOnly>
         )}
       </Panel>
 
