@@ -656,6 +656,16 @@ html:not(.dark) .oix-shell [class*="-z-10"] > div[style] {
   --oix-shadow-card: 0 20px 50px -36px #000;
 }
 
+/* Portaled overlays (mobile nav sheet, dialogs) rendered inside the
+   marketing scope must keep fixed positioning — the base .oix-shell rules
+   above set position: relative / min-height: 100vh for page shells, which
+   would push a Radix panel off-screen and leave only the overlay visible. */
+.oix-shell:where([role="dialog"]) {
+  position: fixed;
+  min-height: 0;
+  isolation: auto;
+}
+
 .oix-shell :where([data-slot="card"]) {
   border-radius: 0.25rem;
   border-color: var(--oix-gold-line);
