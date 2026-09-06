@@ -9,6 +9,13 @@ import { requirePlatformAdmin } from "@/lib/authorization";
 import { getCloudSupabase } from "@/lib/providers/not-available";
 import { assertInstallInScope } from "@/lib/mc-scope.server";
 
+/** Older installations report an empty string — treat that as "not reported". */
+function nz(v: string | null | undefined): string | null {
+  const s = (v ?? "").trim();
+  return s.length > 0 ? s : null;
+}
+
+
 export interface InstallHistoryDownload {
   id: string;
   actor_email: string | null;
@@ -88,13 +95,14 @@ export const getInstallHistory = createServerFn({ method: "POST" })
     return data.install_ids.map((install_id) => {
       const sh = selfhost.get(install_id);
       const li = installs.get(install_id);
-      const current_version = sh?.app_version ?? li?.app_version ?? null;
+      const current_version = nz(sh?.app_version) ?? nz(li?.app_version);
       const downloads = downloadsByInstall.get(install_id) ?? [];
       return {
         install_id,
         organization_name: sh?.organization_name ?? null,
         current_version,
-        installer_version: li?.installer_version ?? null,
+        installer_version: nz(li?.installer_version),
+
         latest_version: latest,
         behind: Boolean(current_version && latest && current_version !== latest),
         last_heartbeat_at: sh?.last_heartbeat_at ?? li?.last_heartbeat_at ?? null,
@@ -160,7 +168,7 @@ export const getMyInstallStatus = createServerFn({ method: "POST" })
       installs: ids.map((install_id) => {
         const s = sh.get(install_id);
         const l = li.get(install_id);
-        const current_version = s?.app_version ?? l?.app_version ?? null;
+        const current_version = nz(s?.app_version) ?? nz(l?.app_version);
         return {
           install_id,
           company_name:
@@ -168,7 +176,7 @@ export const getMyInstallStatus = createServerFn({ method: "POST" })
             (lics ?? []).find((x) => x.install_id === install_id)?.company_name ??
             null,
           current_version,
-          installer_version: l?.installer_version ?? null,
+          installer_version: nz(l?.installer_version),
           latest_version: latest,
           behind: Boolean(current_version && latest && current_version !== latest),
           last_heartbeat_at: s?.last_heartbeat_at ?? l?.last_heartbeat_at ?? null,
