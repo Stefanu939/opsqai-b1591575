@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  answerLanguageMismatch,
+  answerSpeculates,
   detectLanguage,
   groundedSystemPrompt,
   passesGrounding,
@@ -45,5 +47,38 @@ describe("grounded prompt", () => {
     expect(p).toContain("Romanian (română) (code: ro)");
     expect(p).toMatch(/ONLY source of truth/);
     expect(p).toContain("SOP-1");
+  });
+});
+
+describe("answer validation", () => {
+  it("rejects an answer that drifted to another script", () => {
+    expect(answerLanguageMismatch("Descărcarea marfei se procesează 遵循以下步骤：记录以下信息", "ro")).toBe(true);
+  });
+
+  it("rejects an answer written in the wrong Latin language", () => {
+    expect(
+      answerLanguageMismatch(
+        "Das Fahrzeug muss vor der Abfahrt geprüft werden und der Fahrer ist dafür verantwortlich, dass alle Dokumente vorliegen.",
+        "ro",
+      ),
+    ).toBe(true);
+  });
+
+  it("accepts an answer in the requested language", () => {
+    expect(
+      answerLanguageMismatch(
+        "Descărcarea mărfii se face conform SOP-12: se verifică documentele și se confirmă recepția în sistem.",
+        "ro",
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects speculative answers", () => {
+    expect(answerSpeculates("În general, poți contacta coordonatorul de dock.")).toBe(true);
+    expect(answerSpeculates("Urmează pașii 1-3 din SOP-12.")).toBe(false);
+  });
+
+  it("needs strong evidence, not a loose FAQ word match", () => {
+    expect(passesGrounding([{ type: "faq", confidence: "medium" }], 0.1)).toBe(false);
   });
 });
