@@ -158,7 +158,6 @@ const EN = {
   addLine: "Add line",
   sender: "Sender",
   consignee: "Consignee",
-  loading: "Loading",
   delivery: "Delivery",
   instructions: "Instructions",
   reservations: "Reservations",
