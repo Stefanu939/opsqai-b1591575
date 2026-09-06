@@ -49,6 +49,34 @@ simpler check is wanted. Most work of the three.
   fresh set — today both paths can silently mix answer formats.
 - Score line states the pass mark as the quiz threshold, unchanged.
 
+## Also in this round: "Open document" and chat waiting time
+
+**Open document (confirmed cause)** — the sources panel downloads the file through a
+server function and opens it as an in-memory `blob:` link
+(`src/routes/_authenticated/app.chat.$threadId.tsx:794-807`). The Windows desktop
+shell has no app registered for `blob:` links, hence "Get an app to open this 'blob'
+link". There is also no Knowledge Base document page today — only `/app/knowledge`.
+
+Fix: the button navigates into the Knowledge Base and opens that document
+(`/app/knowledge?doc=<id>`), with the existing document preview/details panel opened
+and the entry highlighted in the list. Downloading the original file stays available
+as a separate explicit "Download file" action, saved through the normal download path
+instead of a `blob:` window, so it works inside the desktop shell.
+
+**Waiting time (confirmed contributors)** in `src/routes/api/chat.ts`:
+- up to 3 cited images are read from storage and inlined as base64 into the prompt
+  (lines 104-127) — this is the single largest cost and it blocks the first token;
+- retrieval asks for 12 chunks and then fetches all document metadata before
+  streaming (lines 90-103);
+- thread listing loads up to 500 threads just to validate one id (line 69).
+
+Fix: validate the thread with a direct single-row lookup, narrow retrieval and run the
+metadata/FAQ work concurrently, and stop inlining images into the prompt — cited
+images are attached to the answer for display only, resolved after the stream starts.
+The visible effect is that text starts appearing quickly instead of after a long
+pause. Grounding rules, refusal behaviour and citations stay exactly as they are.
+
+
 ## Technical notes
 
 - `QuestionSchema` gains `correct_index: number | null` alongside `correct_answer`;
