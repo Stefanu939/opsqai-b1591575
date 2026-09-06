@@ -179,3 +179,40 @@ export const getMyInstallStatus = createServerFn({ method: "POST" })
       }),
     };
   });
+
+/** Customer-facing download log: what was downloaded, when, which version. */
+export interface MyDownloadLogRow {
+  id: string;
+  install_id: string;
+  kind: string;
+  version: string | null;
+  actor_email: string | null;
+  created_at: string;
+}
+
+export const getMyDownloadLog = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }): Promise<MyDownloadLogRow[]> => {
+    const email = (context.claims as { email?: string } | undefined)?.email ?? null;
+    if (!email) return [];
+
+    const { getCloudSupabaseAdmin } = await import("@/lib/providers/not-available");
+    const admin = await getCloudSupabaseAdmin("portal");
+
+    const { data: lics } = await admin
+      .from("licenses")
+      .select("install_id")
+      .eq("contact_email", email)
+      .eq("kind", "install");
+    const ids = Array.from(new Set((lics ?? []).map((l) => l.install_id)));
+    if (ids.length === 0) return [];
+
+    const { data } = await admin
+      .from("installation_package_downloads")
+      .select("id, install_id, kind, version, actor_email, created_at")
+      .in("install_id", ids)
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    return (data ?? []) as MyDownloadLogRow[];
+  });

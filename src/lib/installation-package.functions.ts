@@ -361,3 +361,119 @@ export const setTechnicalContactEmail = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ─── Current release package (customer portal) ───────────────────────────
+//
+// Customers download the installer package that OPSQAI staff uploaded in
+// Management Center → Releases (channel `stable`, marked as current). The
+// per-install generated ZIP above stays available for staff, but the portal
+// always serves the published release so a freshly created install never hits
+// `package_not_generated`.
+
+async function assertOwnInstall(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  install_id: string,
+  email: string,
+) {
+  const { data: lic } = await admin
+    .from("licenses")
+    .select("install_id")
+    .eq("install_id", install_id)
+    .eq("kind", "install")
+    .eq("contact_email", email)
+    .maybeSingle();
+  if (!lic) throw new Error("forbidden");
+}
+
+export const getMyCurrentReleaseInfo = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async () => {
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
+    const { data } = await supabaseAdmin
+      .from("license_releases")
+      .select("version, checksum, package_storage_path, published_at")
+      .eq("channel", "stable")
+      .eq("is_current", true)
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const row = data as
+      | { version: string; checksum: string | null; package_storage_path: string | null; published_at: string | null }
+      | null;
+    return {
+      version: row?.version ?? null,
+      checksum: row?.checksum ?? null,
+      published_at: row?.published_at ?? null,
+      available: Boolean(row?.package_storage_path),
+    };
+  });
+
+export const getMyCurrentReleaseDownloadUrl = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
+  .handler(async ({ data, context }) => {
+    const email = (context.claims as { email?: string } | undefined)?.email ?? null;
+    if (!email) throw new Error("unauthenticated");
+
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
+    await assertOwnInstall(supabaseAdmin, data.install_id, email);
+
+    const { data: rel } = await supabaseAdmin
+      .from("license_releases")
+      .select("version, package_storage_path, checksum")
+      .eq("channel", "stable")
+      .eq("is_current", true)
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const release = rel as
+      | { version: string; package_storage_path: string | null; checksum: string | null }
+      | null;
+    if (!release?.package_storage_path) throw new Error("no_release_package_uploaded");
+
+    const fileName = release.package_storage_path.split("/").pop() ?? "opsqai-installer";
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("releases")
+      .createSignedUrl(release.package_storage_path, 24 * 60 * 60, { download: fileName });
+    if (error || !signed?.signedUrl) throw new Error(`sign_failed:${error?.message ?? "unknown"}`);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    await supabaseAdmin.from("installation_package_downloads").insert({
+      install_id: data.install_id,
+      actor_user_id: context.userId,
+      actor_email: email,
+      actor_role: "customer",
+      signed_url_expires_at: expiresAt,
+      storage_path: release.package_storage_path,
+      kind: "package",
+      version: release.version,
+    });
+
+    return {
+      signed_url: signed.signedUrl,
+      expires_at: expiresAt,
+      version: release.version,
+      checksum: release.checksum,
+      file_name: fileName,
+    };
+  });
+
+export const logMyActivationKeyDownload = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ install_id: InstallIdSchema }).parse(d))
+  .handler(async ({ data, context }) => {
+    const email = (context.claims as { email?: string } | undefined)?.email ?? null;
+    if (!email) throw new Error("unauthenticated");
+    const supabaseAdmin = await getCloudSupabaseAdmin("installation-package");
+    await assertOwnInstall(supabaseAdmin, data.install_id, email);
+    await supabaseAdmin.from("installation_package_downloads").insert({
+      install_id: data.install_id,
+      actor_user_id: context.userId,
+      actor_email: email,
+      actor_role: "customer",
+      storage_path: null,
+      kind: "activation_key",
+    });
+    return { ok: true };
+  });

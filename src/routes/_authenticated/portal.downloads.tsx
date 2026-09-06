@@ -1,247 +1,149 @@
 import { ModulePage } from "@/components/app/module-page";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  getMyPortalOverview,
-  downloadMyActivationBundle,
-  downloadMyModuleLicense,
-} from "@/lib/portal.functions";
-import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
-import { listDownloadModulesPublic, signPortalStoragePath } from "@/lib/portal-admin.functions";
+import { getMyInstallStatus, getMyDownloadLog } from "@/lib/install-history.functions";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, FileArchive, Inbox, Download as DownloadIcon } from "lucide-react";
-import { toast } from "sonner";
+import { AlertTriangle, CheckCircle2, FileArchive, History, Inbox, KeyRound } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/portal/downloads")({
   component: PortalDownloads,
+  head: () => ({
+    meta: [
+      { title: "Download history — OPSQAI Customer Portal" },
+      {
+        name: "description",
+        content:
+          "History of the OPSQAI installation packages and activation keys downloaded for your installations, with the version currently running.",
+      },
+      { property: "og:title", content: "Download history — OPSQAI Customer Portal" },
+      {
+        property: "og:description",
+        content: "See which OPSQAI versions were downloaded and what your installation runs today.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function PortalDownloads() {
-  const overview = useServerFn(getMyPortalOverview);
-  const download = useServerFn(downloadMyActivationBundle);
-  const downloadModule = useServerFn(downloadMyModuleLicense);
-  const downloadZip = useServerFn(getMyInstallationPackageDownloadUrl);
-  const listModules = useServerFn(listDownloadModulesPublic);
-  const signUrl = useServerFn(signPortalStoragePath);
-  const { data } = useQuery({
-    queryKey: ["portal-overview"],
-    queryFn: () => overview({ data: {} } as never),
+  const statusFn = useServerFn(getMyInstallStatus);
+  const logFn = useServerFn(getMyDownloadLog);
+
+  const { data: status, isLoading } = useQuery({
+    queryKey: ["my-install-status"],
+    queryFn: () => statusFn({ data: {} } as never),
+    retry: false,
   });
-  const { data: modules = [] } = useQuery({
-    queryKey: ["portal-modules-public"],
-    queryFn: () => listModules({ data: {} } as never),
+  const { data: log = [] } = useQuery({
+    queryKey: ["my-download-log"],
+    queryFn: () => logFn({ data: {} } as never),
+    retry: false,
   });
 
-  async function downloadBundle(install_id: string) {
-    try {
-      const bundle = await download({ data: { install_id } });
-      const jwt = (bundle as { jwt?: string }).jwt;
-      if (!jwt) throw new Error("Activation bundle JWT missing");
-      const blob = new Blob([jwt], { type: "application/jwt" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `opsqai-activation-${install_id}.jwt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Activation bundle downloaded");
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
-  }
-
-  async function downloadModuleLic(install_id: string, module_key: string) {
-    try {
-      const bundle = await downloadModule({ data: { install_id, module_key } });
-      const token = bundle?.module_tokens?.[0]?.signed_token;
-      if (!token) throw new Error("License token missing from bundle");
-      const blob = new Blob([token], { type: "application/jwt" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `opsqai-module-${module_key}-${install_id}.jwt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success(`License for "${module_key}" downloaded`);
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
-  }
-
-  async function downloadPackage(install_id: string) {
-    try {
-      const res = await downloadZip({ data: { install_id } });
-      window.open(res.signed_url, "_blank", "noopener");
-      toast.success("Download link opened (valid for 24 hours)");
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
-  }
-
-  const installs = data?.installs ?? [];
+  const installs = status?.installs ?? [];
 
   return (
     <ModulePage
       eyebrow="Customer portal"
-      title="Downloads"
-      description="Installation packages and offline activation bundles for the installations tied to your account. Package downloads issue a signed URL valid for 24 hours; every download is logged."
+      title="Download history"
+      description="A record of every installation package and activation key downloaded for your installations. Downloads themselves happen on the Installation page."
     >
-      {installs.length === 0 ? (
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading your history…</p>
+      ) : installs.length === 0 ? (
         <EmptyState
           icon={Inbox}
           title="No installations tied to your account"
-          description="Downloads become available once an OPSQAI installation is linked to your email."
+          description="History appears once an OPSQAI installation is linked to your email."
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-6">
           {installs.map((inst) => {
-            const disabled = !inst.install_license || inst.install_license.revoked;
+            const rows = log.filter((r) => r.install_id === inst.install_id);
             return (
-              <Card key={inst.install_id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-10 w-10 rounded-lg bg-[var(--gold-soft)] border border-[var(--gold-line)] flex items-center justify-center shrink-0">
-                      <FileArchive className="h-5 w-5 text-[color:var(--gold)]" />
-                    </div>
+              <section key={inst.install_id} className="space-y-3">
+                <Card className="p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="font-mono text-sm truncate">{inst.install_id}</div>
-                      <div className="text-xs text-muted-foreground">{inst.company_name}</div>
+                      <div className="font-mono text-sm">{inst.install_id}</div>
+                      {inst.company_name ? (
+                        <div className="text-xs text-muted-foreground">{inst.company_name}</div>
+                      ) : null}
                     </div>
+                    {inst.behind ? (
+                      <Badge variant="destructive" className="gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Runs v{inst.current_version} — v{inst.latest_version} available
+                      </Badge>
+                    ) : inst.current_version ? (
+                      <Badge variant="outline" className="gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Up to date (v{inst.current_version})
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">Version not reported yet</Badge>
+                    )}
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => downloadPackage(inst.install_id)}
-                      disabled={disabled}
-                    >
-                      <FileArchive className="h-4 w-4 mr-1" /> Installation package
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadBundle(inst.install_id)}
-                      disabled={disabled}
-                    >
-                      <Package className="h-4 w-4 mr-1" /> Activation bundle
-                    </Button>
-                  </div>
-                </div>
+                  {inst.behind ? (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Get the newer version from the{" "}
+                      <Link
+                        to="/portal/installation"
+                        className="underline underline-offset-4 hover:no-underline"
+                      >
+                        Installation page
+                      </Link>
+                      .
+                    </p>
+                  ) : null}
+                </Card>
 
-                {inst.module_licenses.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-border/60">
-                    <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
-                      Module licenses
-                    </div>
-                    <div className="space-y-1.5">
-                      {inst.module_licenses.map((ml) => {
-                        const expired = ml.expires_at
-                          ? new Date(ml.expires_at).getTime() < Date.now()
-                          : false;
-                        return (
-                          <div
-                            key={ml.module_key}
-                            className="flex items-center justify-between gap-3 flex-wrap py-1"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <Package className="h-4 w-4 text-muted-foreground shrink-0" />
-                              <span className="font-mono text-sm truncate">{ml.module_key}</span>
-                              {ml.expires_at && (
-                                <span className="text-xs text-muted-foreground">
-                                  expires {ml.expires_at.slice(0, 10)}
-                                </span>
-                              )}
-                              {ml.suspended && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-amber-600 border-amber-500/40"
-                                >
-                                  suspended
-                                </Badge>
-                              )}
-                              {expired && !ml.suspended && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-destructive border-destructive/40"
-                                >
-                                  expired
-                                </Badge>
-                              )}
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => downloadModuleLic(inst.install_id, ml.module_key)}
-                              disabled={ml.revoked}
-                            >
-                              <DownloadIcon className="h-4 w-4 mr-1" />
-                              Download license
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {modules.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-border/60">
-                    <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
-                      Included in this installation package
-                    </div>
-                    <div className="space-y-1.5">
-                      {modules.map((m) => (
-                        <div
-                          key={m.id}
-                          className="flex items-center justify-between gap-3 flex-wrap py-1"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Package className="h-4 w-4 text-muted-foreground shrink-0" />
-                            <span className="text-sm truncate">{m.title}</span>
-                            <Badge variant="outline">{m.category}</Badge>
-                            {m.version && <Badge variant="outline">v{m.version}</Badge>}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={async () => {
-                              try {
-                                if (m.file_url.startsWith("portal-download-modules/")) {
-                                  const path = m.file_url.slice("portal-download-modules/".length);
-                                  const { url } = await signUrl({
-                                    data: {
-                                      bucket: "portal-download-modules",
-                                      path,
-                                      expiresIn: 3600,
-                                    },
-                                  });
-                                  window.open(url, "_blank", "noopener");
-                                } else {
-                                  window.open(m.file_url, "_blank", "noopener");
-                                }
-                              } catch (e) {
-                                toast.error((e as Error).message);
-                              }
-                            }}
-                          >
-                            <DownloadIcon className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
+                {rows.length === 0 ? (
+                  <EmptyState
+                    icon={History}
+                    title="Nothing downloaded yet"
+                    description="Each download made from the Installation page is listed here."
+                  />
+                ) : (
+                  <Card className="divide-y divide-border/60">
+                    {rows.map((r) => (
+                      <div
+                        key={r.id}
+                        className="flex flex-wrap items-center justify-between gap-3 p-3"
+                      >
+                        <div className="flex min-w-0 items-center gap-2">
+                          {r.kind === "activation_key" ? (
+                            <KeyRound className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          ) : (
+                            <FileArchive className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          )}
+                          <span className="text-sm">
+                            {r.kind === "activation_key" ? "Activation key" : "Installation package"}
+                          </span>
+                          {r.version ? <Badge variant="outline">v{r.version}</Badge> : null}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                          {r.actor_email ? <span>{r.actor_email}</span> : null}
+                          <span className="tabular-nums">
+                            {new Date(r.created_at).toLocaleString()} ·{" "}
+                            {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </Card>
                 )}
-              </Card>
+              </section>
             );
           })}
         </div>
       )}
-
     </ModulePage>
   );
 }

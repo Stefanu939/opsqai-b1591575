@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ModulePage } from "@/components/app/module-page";
 import { Card } from "@/components/ui/card";
@@ -8,7 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getMyInstallStatus } from "@/lib/install-history.functions";
 import { downloadMyActivationBundle } from "@/lib/portal.functions";
-import { getMyInstallationPackageDownloadUrl } from "@/lib/installation-package.functions";
+import {
+  getMyCurrentReleaseDownloadUrl,
+  getMyCurrentReleaseInfo,
+  logMyActivationKeyDownload,
+} from "@/lib/installation-package.functions";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -77,8 +81,11 @@ function Step({
 
 function PortalInstallation() {
   const status = useServerFn(getMyInstallStatus);
-  const downloadPkg = useServerFn(getMyInstallationPackageDownloadUrl);
+  const downloadPkg = useServerFn(getMyCurrentReleaseDownloadUrl);
+  const releaseInfoFn = useServerFn(getMyCurrentReleaseInfo);
   const downloadBundle = useServerFn(downloadMyActivationBundle);
+  const logKey = useServerFn(logMyActivationKeyDownload);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["my-install-status"],
@@ -86,11 +93,19 @@ function PortalInstallation() {
     retry: false,
   });
 
+  const { data: release } = useQuery({
+    queryKey: ["my-current-release"],
+    queryFn: () => releaseInfoFn({ data: {} } as never),
+    retry: false,
+  });
+
   async function onPackage(install_id: string) {
     try {
       const res = await downloadPkg({ data: { install_id } });
       window.open(res.signed_url, "_blank", "noopener");
-      toast.success("Download link opened (valid for 24 hours)");
+      toast.success(`Downloading OPSQAI v${res.version} (link valid 24 hours)`);
+      void queryClient.invalidateQueries({ queryKey: ["my-download-log"] });
+      void queryClient.invalidateQueries({ queryKey: ["my-install-status"] });
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -107,7 +122,9 @@ function PortalInstallation() {
       a.download = `opsqai-activation-${install_id}.jwt`;
       a.click();
       URL.revokeObjectURL(url);
+      await logKey({ data: { install_id } }).catch(() => undefined);
       toast.success("Activation key downloaded");
+      void queryClient.invalidateQueries({ queryKey: ["my-download-log"] });
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -162,8 +179,13 @@ function PortalInstallation() {
                 description="A signed download link valid for 24 hours. Run the installer on the Windows machine that will host OPSQAI."
               >
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button size="sm" onClick={() => onPackage(inst.install_id)}>
-                    <FileArchive className="mr-1 h-4 w-4" /> Download package
+                  <Button
+                    size="sm"
+                    onClick={() => onPackage(inst.install_id)}
+                    disabled={!release?.available}
+                  >
+                    <FileArchive className="mr-1 h-4 w-4" />
+                    {release?.version ? `Download OPSQAI v${release.version}` : "Download package"}
                   </Button>
                   <span className="text-xs text-muted-foreground">
                     {inst.last_download_at
@@ -171,6 +193,21 @@ function PortalInstallation() {
                       : "Not downloaded yet"}
                   </span>
                 </div>
+                {release?.available ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Current published version: v{release.version}
+                    {release.checksum ? (
+                      <>
+                        {" · "}SHA256 <code className="font-mono">{release.checksum}</code>
+                      </>
+                    ) : null}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No installation package is published yet. OPSQAI will notify you as soon as the
+                    current version is available.
+                  </p>
+                )}
               </Step>
 
               <Step

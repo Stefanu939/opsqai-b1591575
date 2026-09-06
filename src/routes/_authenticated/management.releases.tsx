@@ -148,9 +148,18 @@ function ReleasesPage() {
       key: "version",
       header: "Version",
       render: (r) => (
-        <div className="flex items-center gap-2">
-          <span className="font-mono font-medium">{r.version}</span>
-          {r.is_current && <Badge>Current</Badge>}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-mono font-medium">{r.version}</span>
+            {r.is_current && <Badge>Current</Badge>}
+          </div>
+          {r.is_current && r.channel === "stable" ? (
+            <p className="text-[11px] text-muted-foreground">
+              {r.package_storage_path
+                ? "Customers download this package from their Installation page"
+                : "No package uploaded — customers cannot download yet"}
+            </p>
+          ) : null}
         </div>
       ),
     },
