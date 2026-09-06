@@ -10,6 +10,7 @@ import {
   FileWarning,
   Handshake,
   Inbox,
+  Fuel,
   Truck,
   UsersRound,
   X,
@@ -21,6 +22,8 @@ import {
   carrierFields,
   documentFields,
   driverFields,
+  dutyFields,
+  fuelFields,
   incidentFields,
   requestFields,
   vehicleFields,
@@ -32,6 +35,8 @@ import type { transportUi } from "@/i18n/pages/transport";
 import type {
   Carrier,
   Driver,
+  DutyDay,
+  FuelEntry,
   Incident,
   TransportDocument,
   TransportRequest,
@@ -48,6 +53,8 @@ export interface RegistersData {
   documents: TransportDocument[];
   incidents: Incident[];
   requests: TransportRequest[];
+  fuel: FuelEntry[];
+  duty: DutyDay[];
   settings: { country: string; language: string };
   grants: TransportGrantKey[];
 }
@@ -207,8 +214,88 @@ export function OperationsSection({ t, lang, data }: Props) {
         }
         onDelete={(id) => deleteRecord.mutateAsync({ register: "documents", id })}
       />
+
+      <RegisterTable<DutyDay>
+        icon={UsersRound}
+        title={t.dutyRegister}
+        description={t.dutyRegisterBody}
+        rows={data.duty}
+        canEdit={canEdit}
+        canCreate={canCreate}
+        canDelete={canDelete}
+        emptyTitle={t.none}
+        emptyBody={t.dutyRegisterBody}
+        labels={labels(t)}
+        onExport={canExport ? () => void exportCsv("duty") : undefined}
+        columns={[
+          { key: "duty_date", label: t.date, render: (r) => r.duty_date.slice(0, 10) },
+          { key: "driver_name", label: t.driver, render: (r) => r.driver_name ?? "—" },
+          { key: "duty_kind", label: t.dutyKind, render: (r) => dutyKindLabel(t, r.duty_kind) },
+          { key: "route", label: t.route, render: (r) => r.route ?? "—" },
+          { key: "vehicle_plate", label: t.vehicle, render: (r) => r.vehicle_plate ?? "—" },
+          {
+            key: "shift",
+            label: t.shiftStart,
+            render: (r) =>
+              [r.shift_start?.slice(0, 5), r.shift_end?.slice(0, 5)]
+                .filter(Boolean)
+                .join(" – ") || "—",
+          },
+        ]}
+        fields={dutyFields(t, driverOpts, vehicleOpts, lang)}
+        onSave={(values, id) => saveRecord.mutateAsync({ register: "duty", id, values })}
+        onDelete={(id) => deleteRecord.mutateAsync({ register: "duty", id })}
+      />
+
+      <RegisterTable<FuelEntry>
+        icon={Fuel}
+        title={t.fuelRegister}
+        description={t.fuelRegisterBody}
+        rows={data.fuel}
+        canEdit={canEdit}
+        canCreate={canCreate}
+        canDelete={canDelete}
+        emptyTitle={t.noFuel}
+        emptyBody={t.fuelRegisterBody}
+        labels={labels(t)}
+        onExport={canExport ? () => void exportCsv("fuel") : undefined}
+        columns={[
+          { key: "entry_date", label: t.date, render: (r) => r.entry_date.slice(0, 10) },
+          { key: "vehicle_plate", label: t.vehicle, render: (r) => r.vehicle_plate ?? "—" },
+          { key: "driver_name", label: t.driver, render: (r) => r.driver_name ?? "—" },
+          { key: "route", label: t.route, render: (r) => r.route ?? "—" },
+          {
+            key: "litres",
+            label: t.litres,
+            render: (r) => (r.litres == null ? "—" : r.litres.toFixed(2)),
+          },
+          {
+            key: "cost",
+            label: t.cost,
+            render: (r) =>
+              r.cost == null ? "—" : `${r.cost.toFixed(2)} ${r.currency}`,
+          },
+          {
+            key: "distance_km",
+            label: t.distanceKm,
+            render: (r) => (r.distance_km == null ? "—" : r.distance_km.toFixed(0)),
+          },
+        ]}
+        fields={fuelFields(t, vehicleOpts, driverOpts)}
+        onSave={(values, id) => saveRecord.mutateAsync({ register: "fuel", id, values })}
+        onDelete={(id) => deleteRecord.mutateAsync({ register: "fuel", id })}
+      />
     </div>
   );
+}
+
+function dutyKindLabel(t: Ui, kind: DutyDay["duty_kind"]): string {
+  if (kind === "work") return t.dutyWork;
+  if (kind === "off") return t.dutyOff;
+  if (kind === "leave") return t.dutyLeave;
+  if (kind === "sick") return t.dutySick;
+  if (kind === "training") return t.dutyTraining;
+  return t.dutyStandby;
 }
 
 export function CarriersSection({ t, data }: Props) {

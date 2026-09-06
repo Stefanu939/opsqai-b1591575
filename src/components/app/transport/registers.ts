@@ -10,7 +10,9 @@ export type RegisterName =
   | "documents"
   | "incidents"
   | "requests"
-  | "zones";
+  | "zones"
+  | "fuel"
+  | "duty";
 
 type Ui = ReturnType<typeof transportUi>;
 type Opt = { value: string; label: string };
@@ -225,6 +227,54 @@ export function zoneFields(t: Ui): FieldDef[] {
     { key: "center_lng", label: t.longitude, kind: "number" },
     { key: "radius_km", label: "Radius (km)", kind: "number" },
     { key: "description", label: t.description, kind: "textarea" },
+  ];
+}
+
+export function fuelFields(t: Ui, vehicles: Opt[], drivers: Opt[]): FieldDef[] {
+  return [
+    { key: "entry_date", label: t.date, kind: "date", required: true },
+    { key: "vehicle_id", label: t.vehicle, kind: "select", options: vehicles },
+    { key: "driver_id", label: t.driver, kind: "select", options: drivers },
+    { key: "route", label: t.route, kind: "text" },
+    { key: "litres", label: t.litres, kind: "number" },
+    { key: "cost", label: t.cost, kind: "number" },
+    { key: "currency", label: t.currency, kind: "text", placeholder: "EUR" },
+    { key: "distance_km", label: t.distanceKm, kind: "number" },
+    { key: "odometer_km", label: t.odometer, kind: "number" },
+    { key: "supplier", label: t.supplier, kind: "text" },
+    { key: "reference", label: t.reference, kind: "text" },
+    { key: "notes", label: t.notes, kind: "textarea" },
+  ];
+}
+
+export function dutyFields(
+  t: Ui,
+  drivers: Opt[],
+  vehicles: Opt[],
+  lang: "en" | "de" | "ro",
+): FieldDef[] {
+  const kinds: Record<string, Record<"en" | "de" | "ro", string>> = {
+    work: { en: "Working", de: "Im Dienst", ro: "Lucreaza" },
+    off: { en: "Day off", de: "Frei", ro: "Liber" },
+    leave: { en: "Leave", de: "Urlaub", ro: "Concediu" },
+    sick: { en: "Sick", de: "Krank", ro: "Medical" },
+    training: { en: "Training", de: "Schulung", ro: "Instruire" },
+    standby: { en: "Standby", de: "Bereitschaft", ro: "Rezerva" },
+  };
+  return [
+    { key: "duty_date", label: t.date, kind: "date", required: true },
+    { key: "driver_id", label: t.driver, kind: "select", options: drivers, required: true },
+    {
+      key: "duty_kind",
+      label: t.dutyKind,
+      kind: "select",
+      options: Object.entries(kinds).map(([value, l]) => ({ value, label: l[lang] })),
+    },
+    { key: "route", label: t.route, kind: "text" },
+    { key: "vehicle_id", label: t.vehicle, kind: "select", options: vehicles },
+    { key: "shift_start", label: t.shiftStart, kind: "text", placeholder: "07:00" },
+    { key: "shift_end", label: t.shiftEnd, kind: "text", placeholder: "16:00" },
+    { key: "notes", label: t.notes, kind: "textarea" },
   ];
 }
 

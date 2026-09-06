@@ -93,6 +93,8 @@ const REGISTERS = [
   "incidents",
   "requests",
   "zones",
+  "fuel",
+  "duty",
 ] as const;
 
 const registerEnum = z.enum(REGISTERS);
@@ -124,6 +126,8 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       pins,
       trendData,
       auditRuns,
+      fuel,
+      duty,
     ] = await Promise.all([
       db.getSettings(a.companyId),
       db.counts(a.companyId),
@@ -137,6 +141,8 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       db.listMapPins(a.companyId),
       db.trends(a.companyId, periodDays),
       db.listAuditRuns(a.companyId, 1),
+      db.listFuelEntries(a.companyId, periodDays * 2),
+      db.listDutyDays(a.companyId, 1, 7),
     ]);
     return {
       settings,
@@ -154,6 +160,8 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       periodDays,
       lastAudit: auditRuns[0] ?? null,
       lastCheck: check,
+      fuel,
+      duty,
       grants: a.grants,
       canManageGrants: a.canManageGrants,
     };
@@ -167,16 +175,27 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/transport/db.server");
-    const [vehicles, drivers, carriers, documents, incidents, requests, settings] =
-      await Promise.all([
-        db.listVehicles(a.companyId),
-        db.listDrivers(a.companyId),
-        db.listCarriers(a.companyId),
-        db.listDocuments(a.companyId),
-        db.listIncidents(a.companyId),
-        db.listRequests(a.companyId),
-        db.getSettings(a.companyId),
-      ]);
+    const [
+      vehicles,
+      drivers,
+      carriers,
+      documents,
+      incidents,
+      requests,
+      settings,
+      fuel,
+      duty,
+    ] = await Promise.all([
+      db.listVehicles(a.companyId),
+      db.listDrivers(a.companyId),
+      db.listCarriers(a.companyId),
+      db.listDocuments(a.companyId),
+      db.listIncidents(a.companyId),
+      db.listRequests(a.companyId),
+      db.getSettings(a.companyId),
+      db.listFuelEntries(a.companyId, 180),
+      db.listDutyDays(a.companyId, 30, 30),
+    ]);
     return {
       vehicles,
       drivers,
@@ -185,6 +204,8 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
       incidents,
       requests,
       settings,
+      fuel,
+      duty,
       grants: a.grants,
       canManageGrants: a.canManageGrants,
     };
@@ -763,6 +784,8 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
           "requests",
           "cmr",
           "alerts",
+          "fuel",
+          "duty",
         ]),
       })
       .parse(input),
@@ -789,6 +812,10 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
           return db.listCmr(a.companyId);
         case "alerts":
           return db.expiryAlerts(a.companyId);
+        case "fuel":
+          return db.listFuelEntries(a.companyId, 365);
+        case "duty":
+          return db.listDutyDays(a.companyId, 365, 30);
       }
     })();
     return {

@@ -113,7 +113,9 @@ export function useCsvExport() {
       | "incidents"
       | "requests"
       | "cmr"
-      | "alerts",
+      | "alerts"
+      | "fuel"
+      | "duty",
   ) => {
     try {
       const res = await fn({ data: { dataset } });

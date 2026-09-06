@@ -119,12 +119,18 @@ function TransportSection({
     );
   }
   if (slug === "overview") {
-    return <TransportOverview t={t} />;
+    return <TransportOverview t={t} lang={uiLang} />;
   }
   return <TransportRegisters slug={slug} lang={uiLang} t={t} />;
 }
 
-function TransportOverview({ t }: { t: ReturnType<typeof transportUi> }) {
+function TransportOverview({
+  t,
+  lang,
+}: {
+  t: ReturnType<typeof transportUi>;
+  lang: "en" | "de" | "ro";
+}) {
   const [periodDays, setPeriodDays] = useState(30);
   const query = useTransportOverview(periodDays);
   if (query.isPending) return <Skeleton className="h-72 w-full rounded-lg" />;
@@ -135,6 +141,7 @@ function TransportOverview({ t }: { t: ReturnType<typeof transportUi> }) {
   return (
     <OverviewSection
       t={t}
+      lang={lang}
       data={query.data}
       periodDays={periodDays}
       onPeriodChange={setPeriodDays}

@@ -335,7 +335,46 @@ export interface ExpiryAlert {
   level: "expired" | "critical" | "warning" | "watch";
 }
 
+export interface FuelEntry {
+  id: string;
+  vehicle_id: string | null;
+  vehicle_plate: string | null;
+  driver_id: string | null;
+  driver_name: string | null;
+  entry_date: string;
+  route: string | null;
+  litres: number | null;
+  cost: number | null;
+  currency: string;
+  distance_km: number | null;
+  odometer_km: number | null;
+  supplier: string | null;
+  reference: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DutyKind = "work" | "off" | "leave" | "sick" | "training" | "standby";
+
+export interface DutyDay {
+  id: string;
+  driver_id: string;
+  driver_name: string | null;
+  duty_date: string;
+  duty_kind: DutyKind;
+  route: string | null;
+  vehicle_id: string | null;
+  vehicle_plate: string | null;
+  shift_start: string | null;
+  shift_end: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TransportOverview {
+
   settings: TransportSettings;
   counts: {
     vehicles: number;
@@ -362,6 +401,11 @@ export interface TransportOverview {
   periodDays: number;
   lastAudit: TransportAuditRun | null;
   lastCheck: WeeklyCheck | null;
+  /** Manually captured fuel entries for the selected period. */
+  fuel: FuelEntry[];
+  /** Driver duty days from yesterday to a week ahead. */
+  duty: DutyDay[];
+
 
   grants: TransportGrantKey[];
   canManageGrants: boolean;
