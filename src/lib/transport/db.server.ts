@@ -191,12 +191,12 @@ export async function listCompanyMembers(
 ): Promise<Array<{ id: string; name: string; email: string | null }>> {
   return q<{ id: string; name: string; email: string | null }>(
     `SELECT id,
-            COALESCE(NULLIF(full_name, ''), email, 'User') AS name,
+            COALESCE(NULLIF(display_name, ''), email, 'User') AS name,
             email
-       FROM public.profiles
-      WHERE company_id = $1
+       FROM public.users
+      WHERE disabled = false
       ORDER BY name`,
-    [companyId],
+    [],
   );
 }
 

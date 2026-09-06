@@ -1,4 +1,4 @@
-// Self-Hosted IPresenceRepository — presence fields on public.profiles and
+// Self-Hosted IPresenceRepository — presence fields on public.users and
 // public.time_off_requests (migration 0028_presence_time_off.sql).
 
 import type { Pool } from "pg";
@@ -74,7 +74,7 @@ export function createPgPresenceRepository(
     async getPresence(userId) {
       const { rows } = await pool.query<PresenceRow>(
         `SELECT id, presence_status, presence_message, presence_until
-           FROM public.profiles WHERE id = $1`,
+           FROM public.users WHERE id = $1`,
         [userId],
       );
       return rows[0] ? mapPresence(rows[0]) : null;
@@ -82,14 +82,14 @@ export function createPgPresenceRepository(
 
     async setPresence(userId, patch) {
       const { rows } = await pool.query<PresenceRow>(
-        `UPDATE public.profiles
+        `UPDATE public.users
             SET presence_status = $2, presence_message = $3, presence_until = $4,
                 updated_at = now()
           WHERE id = $1
         RETURNING id, presence_status, presence_message, presence_until`,
         [userId, patch.status, patch.message, patch.until],
       );
-      if (!rows[0]) throw new Error("Profile not found");
+      if (!rows[0]) throw new Error("User not found");
       return mapPresence(rows[0]);
     },
 
@@ -97,7 +97,7 @@ export function createPgPresenceRepository(
       if (userIds.length === 0) return [];
       const { rows } = await pool.query<PresenceRow>(
         `SELECT id, presence_status, presence_message, presence_until
-           FROM public.profiles WHERE id = ANY($1::uuid[])`,
+           FROM public.users WHERE id = ANY($1::uuid[])`,
         [userIds],
       );
       return rows.map(mapPresence);
