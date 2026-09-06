@@ -29,15 +29,77 @@ export function relevantSources<T extends GroundingSource>(sources: T[]): T[] {
 
 /**
  * Evidence is sufficient when either a retrieved document chunk clears the
- * similarity threshold or at least one FAQ matched with medium/high score.
+ * similarity threshold or a FAQ matched with high confidence. Medium/low FAQ
+ * word-overlap is NOT enough on its own — it used to let the model answer
+ * from loosely related titles.
  */
 export function passesGrounding(sources: GroundingSource[], confidence: number): boolean {
   if (!sources.length) return false;
-  if (confidence >= MIN_DOC_SIMILARITY) return true;
   if (sources.some((s) => s.type === "document" && (s.similarity ?? 0) >= MIN_DOC_SIMILARITY))
     return true;
-  return sources.some((s) => s.type === "faq" && (s.confidence === "high" || s.confidence === "medium"));
+  if (sources.some((s) => s.type === "faq" && s.confidence === "high")) return true;
+  return confidence >= MIN_DOC_SIMILARITY;
 }
+
+/** Scripts that can never appear in an answer written in a Latin-script language. */
+const NON_LATIN_SCRIPT =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Devanagari}\p{Script=Thai}\p{Script=Greek}]/u;
+
+const STOPWORD_SETS: Record<string, RegExp> = {
+  en: /\b(the|and|is|are|you|must|should|with|from|this|that|not|for)\b/gi,
+  de: /\b(und|ist|sind|nicht|muss|müssen|wird|werden|der|die|das|für|mit|auf|bei)\b/gi,
+  ro: /\b(și|si|este|sunt|nu|trebuie|pentru|care|dacă|daca|din|cu|la|să|sa)\b/gi,
+  fr: /\b(et|est|sont|pas|doit|pour|avec|dans|les|des|une|que)\b/gi,
+  es: /\b(y|es|son|no|debe|para|con|los|las|una|que|del)\b/gi,
+  it: /\b(e|è|sono|non|deve|per|con|gli|una|che|del|nella)\b/gi,
+  nl: /\b(en|is|zijn|niet|moet|voor|met|het|de|een|dat)\b/gi,
+};
+
+/** How many stopwords of each supported language the text contains. */
+export function languageScores(text: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [lang, re] of Object.entries(STOPWORD_SETS)) {
+    out[lang] = (text.match(re) ?? []).length;
+  }
+  return out;
+}
+
+/**
+ * True when the produced answer is clearly NOT in the requested language —
+ * either it uses a non-Latin script at all, or another language's stopwords
+ * dominate while the target language is essentially absent.
+ */
+export function answerLanguageMismatch(text: string, target: string): boolean {
+  const body = (text ?? "").trim();
+  if (!body) return false;
+  if (NON_LATIN_SCRIPT.test(body)) return true;
+  if (body.length < 60) return false;
+  const scores = languageScores(body);
+  const targetScore = scores[target] ?? 0;
+  const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  if (!best) return false;
+  return best[0] !== target && best[1] >= 4 && targetScore <= 1;
+}
+
+/**
+ * Speculative / advisory openers the grounded prompt forbids. When the model
+ * produces one of these it is reasoning from general knowledge, not evidence.
+ */
+const SPECULATION_MARKERS = [
+  /\b(i (assume|guess|believe|think)|probably|presumably|in general|generally speaking|typically you)\b/i,
+  /\b(ich (nehme an|vermute|glaube)|wahrscheinlich|im allgemeinen|normalerweise)\b/i,
+  /(^|[\s,;:—-])(presupun|cred c[ăa]|probabil|[îiÎI]n general|de obicei|de regul[ăa])\b/i,
+  /\b(je suppose|probablement|en g[ée]n[ée]ral|habituellement)\b/i,
+  /\b(supongo|probablemente|en general|normalmente)\b/i,
+];
+
+/** True when the answer speculates instead of quoting company knowledge. */
+export function answerSpeculates(text: string): boolean {
+  const body = (text ?? "").trim();
+  if (!body) return false;
+  return SPECULATION_MARKERS.some((re) => re.test(body));
+}
+
 
 const REFUSALS: Record<string, string> = {
   en: "I could not find this information in your company knowledge base. Add or upload the relevant SOP, document or FAQ and ask me again — I only answer from your own documented knowledge.",
