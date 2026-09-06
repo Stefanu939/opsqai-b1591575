@@ -6,7 +6,7 @@ import { OixButton } from "./buttons";
 import { LogoMark } from "@/components/brand/logo";
 import { useT } from "@/i18n";
 import { useMarketing } from "@/i18n/marketing";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 export function NavShell() {
