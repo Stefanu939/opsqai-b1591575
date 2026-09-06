@@ -12,6 +12,7 @@ import {
   ListChecks,
   Plus,
   Send,
+  Square,
   Trash2,
 } from "lucide-react";
 import { Panel } from "@/components/ui/panel";
@@ -28,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  cancelWeeklyCheck,
   completeWeeklyCheck,
   deleteChecklistItem,
   escalateCheckResult,
@@ -36,6 +38,7 @@ import {
   saveTransportSettings,
   seedTransportChecklist,
   setCheckResult,
+  setCheckResultValue,
   startWeeklyCheck,
 } from "@/lib/transport.functions";
 import { useTransportAudit, useTransportRefresh } from "./use-transport";
@@ -44,6 +47,7 @@ import type { transportUi } from "@/i18n/pages/transport";
 
 type Ui = ReturnType<typeof transportUi>;
 type Cadence = "manual" | "weekly" | "biweekly" | "monthly";
+type ValueKind = "none" | "number" | "text";
 
 const DAY = 86_400_000;
 
@@ -115,6 +119,9 @@ export function AuditSection({ t }: { t: Ui }) {
   const audit = useTransportAudit(activeId);
   const refresh = useTransportRefresh();
   const [newItem, setNewItem] = useState("");
+  const [newKind, setNewKind] = useState<ValueKind>("none");
+  const [newUnit, setNewUnit] = useState("");
+  const [values, setValues] = useState<Record<string, string>>({});
   const [summary, setSummary] = useState("");
 
   const saveItem = useServerFn(saveChecklistItem);
@@ -124,6 +131,8 @@ export function AuditSection({ t }: { t: Ui }) {
   const complete = useServerFn(completeWeeklyCheck);
   const seed = useServerFn(seedTransportChecklist);
   const escalate = useServerFn(escalateCheckResult);
+  const saveValue = useServerFn(setCheckResultValue);
+  const cancelRun = useServerFn(cancelWeeklyCheck);
   const report = useServerFn(renderAuditReportBase64);
   const saveSettings = useServerFn(saveTransportSettings);
 
@@ -193,7 +202,7 @@ export function AuditSection({ t }: { t: Ui }) {
         }
       >
         {canEdit ? (
-          <div className="mb-3 flex gap-2">
+          <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_auto]">
             <Input
               value={newItem}
               placeholder={t.item}
@@ -203,14 +212,47 @@ export function AuditSection({ t }: { t: Ui }) {
               size="sm"
               disabled={!newItem.trim()}
               onClick={() => {
-                void run(saveItem({ data: { label: newItem.trim() } })).then(() =>
-                  setNewItem(""),
-                );
+                void run(
+                  saveItem({
+                    data: {
+                      label: newItem.trim(),
+                      valueKind: newKind,
+                      valueUnit: newUnit.trim() || null,
+                    },
+                  }),
+                ).then(() => {
+                  setNewItem("");
+                  setNewUnit("");
+                  setNewKind("none");
+                });
               }}
             >
               <Plus className="mr-1 size-3.5" />
               {t.add}
             </Button>
+            <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+              <Select
+                value={newKind}
+                onValueChange={(v) => setNewKind(v as ValueKind)}
+              >
+                <SelectTrigger className="h-8 w-40 text-xs">
+                  <SelectValue placeholder={t.valueKind} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t.valueNone}</SelectItem>
+                  <SelectItem value="number">{t.valueNumber}</SelectItem>
+                  <SelectItem value="text">{t.valueText}</SelectItem>
+                </SelectContent>
+              </Select>
+              {newKind === "none" ? null : (
+                <Input
+                  className="h-8 w-40 text-xs"
+                  value={newUnit}
+                  placeholder={t.valueUnit}
+                  onChange={(e) => setNewUnit(e.target.value)}
+                />
+              )}
+            </div>
           </div>
         ) : null}
 
@@ -226,6 +268,11 @@ export function AuditSection({ t }: { t: Ui }) {
                     {item.hint ? `${item.hint} · ` : ""}
                     {item.scope}
                     {item.required ? ` · ${t.required}` : ""}
+                    {item.value_kind && item.value_kind !== "none"
+                      ? ` · ${t.valueLabel}: ${
+                          item.value_kind === "number" ? t.valueNumber : t.valueText
+                        }${item.value_unit ? ` (${item.value_unit})` : ""}`
+                      : ""}
                   </p>
                 </div>
                 {canEdit ? (
@@ -295,6 +342,25 @@ export function AuditSection({ t }: { t: Ui }) {
                 {t.exportReport}
               </Button>
             ) : null}
+            {canEdit && activeCheck?.status === "in_progress" ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  void run(
+                    cancelRun({
+                      data: {
+                        checkId: activeCheck.id,
+                        reason: summary || null,
+                      },
+                    }),
+                  ).then(() => toast.success(t.auditStopped))
+                }
+              >
+                <Square className="mr-1 size-3.5" />
+                {t.stopAudit}
+              </Button>
+            ) : null}
             {canEdit ? (
               <Button
                 size="sm"
@@ -348,6 +414,50 @@ export function AuditSection({ t }: { t: Ui }) {
                     ) : null}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
+                    {r.value_kind !== "none" ? (
+                      <span className="flex items-center gap-1">
+                        <Input
+                          className="h-8 w-28 text-xs"
+                          type={r.value_kind === "number" ? "number" : "text"}
+                          placeholder={r.value_unit ?? t.valueLabel}
+                          disabled={!canEdit}
+                          value={
+                            values[r.id] ??
+                            (r.value_kind === "number"
+                              ? r.value_number === null
+                                ? ""
+                                : String(r.value_number)
+                              : (r.value_text ?? ""))
+                          }
+                          onChange={(e) =>
+                            setValues((prev) => ({ ...prev, [r.id]: e.target.value }))
+                          }
+                        />
+                        {canEdit ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              const raw = values[r.id] ?? "";
+                              void run(
+                                saveValue({
+                                  data: {
+                                    resultId: r.id,
+                                    valueText: r.value_kind === "text" ? raw || null : null,
+                                    valueNumber:
+                                      r.value_kind === "number" && raw !== ""
+                                        ? Number(raw)
+                                        : null,
+                                  },
+                                }),
+                              );
+                            }}
+                          >
+                            {t.saveValue}
+                          </Button>
+                        ) : null}
+                      </span>
+                    ) : null}
                     <Badge variant="outline">{r.outcome}</Badge>
                     {canEdit ? (
                       <>
