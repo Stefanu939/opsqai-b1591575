@@ -151,7 +151,10 @@ function KnowledgePage() {
     isManager ||
     hasAnyPermission("knowledge.manage", "sop.create", "sop.edit", "sop.publish", "sop.delete");
 
+  const { doc: focusDocId } = Route.useSearch();
+  const [focusedDoc, setFocusedDoc] = useState<string | null>(focusDocId ?? null);
   const [docs, setDocs] = useState<Doc[]>([]);
+
   const [showInactive, setShowInactive] = useState(false);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
