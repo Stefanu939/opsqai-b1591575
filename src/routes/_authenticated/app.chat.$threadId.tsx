@@ -815,7 +815,7 @@ function SourcesPanel({
     const url = URL.createObjectURL(new Blob([bytes], { type: blob.content_type }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = blob.file_name || title || "document";
+    a.download = title || "document";
     document.body.appendChild(a);
     a.click();
     a.remove();
