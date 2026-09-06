@@ -406,6 +406,7 @@ const de: HomeCopy = {
     body:
       "Sprechen Sie mit OPSQAI über eine Referenzinstallation des Windows-Self-Hosted-Produkts. Sehen Sie genau, wie governance-fähige operative KI innerhalb Ihrer Umgebung läuft.",
     requestDemo: "Demo anfragen",
+    startPilot: "Kostenlosen Pilot starten",
     seeHowItWorks: "So funktioniert es",
     aboutOpsqai: "Über OPSQAI",
   },
@@ -431,6 +432,7 @@ const ro: HomeCopy = {
   cta: {
     howItWorks: "Cum funcționează",
     requestDemo: "Solicită demo",
+    startPilot: "Începe pilotul gratuit",
   },
   whoFor: {
     eyebrow: "Pentru cine este OPSQAI",
