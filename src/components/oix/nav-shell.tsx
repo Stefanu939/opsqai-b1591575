@@ -98,11 +98,12 @@ export function NavShell() {
                 onClick={() => setLang(code)}
                 aria-pressed={lang === code}
                 className={cn(
-                  "px-2.5 py-1.5 text-xs font-semibold uppercase transition-colors",
+                  "px-2 py-1.5 text-[11px] font-semibold uppercase transition-colors sm:px-2.5 sm:text-xs",
                   lang === code
                     ? "bg-[var(--oix-cream)] text-[var(--oix-bg-deep)]"
                     : "text-[var(--oix-cream-dim)] hover:bg-[var(--oix-gold)]/10 hover:text-[var(--oix-cream)]",
                 )}
+
               >
                 {code}
               </button>
