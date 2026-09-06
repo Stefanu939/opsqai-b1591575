@@ -13,12 +13,9 @@ import {
   Download,
   FileText,
   MessagesSquare,
-  Package,
   Home,
-  BookOpen,
   Shield,
   Newspaper,
-  LogOut,
   Menu,
   X,
   CalendarDays,
@@ -77,7 +74,7 @@ function initials(email: string | null | undefined) {
 
 function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isPlatformAdmin, signOut, user } = useAuth();
+  const { isPlatformAdmin, user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const visible = NAV.filter((item) => {
@@ -96,12 +93,6 @@ function PortalLayout() {
   useEffect(() => {
     setMobileOpen(false);
   }, [path]);
-  const handleSignOut = async () => {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await signOut();
-    navigate({ to: "/auth", search: { audience: "portal" }, replace: true });
-  };
   const SidebarInner = (
     <>
       <div className="flex items-center gap-2.5 px-2 py-4">
