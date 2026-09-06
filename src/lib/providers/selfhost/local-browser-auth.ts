@@ -144,11 +144,14 @@ export function createLocalBrowserAuthProvider(): IBrowserAuthProvider {
     });
   }
 
-  async function ensureFreshSession(): Promise<StoredSession | null> {
-    const stored = readStored();
-    if (!stored) return null;
-    // Refresh 60s before expiry.
-    if (stored.expiresAt * 1000 - Date.now() > 60_000) return stored;
+  // Single-flight rotation guard. The server rotates refresh tokens and
+  // rejects a reused one, so two parallel refreshes (two tabs, or two
+  // server-fn calls firing at once) used to kill the session. Everything
+  // now waits on one in-flight refresh, and a rejection re-reads storage
+  // first: another tab may already have written a fresh session.
+  let inflight: Promise<StoredSession | null> | null = null;
+
+  async function rotate(stored: StoredSession): Promise<StoredSession | null> {
     try {
       const refreshed = await postJson<AuthResponse>("/api/auth/refresh", {
         refreshToken: stored.refreshToken,
@@ -159,12 +162,35 @@ export function createLocalBrowserAuthProvider(): IBrowserAuthProvider {
       broadcast("TOKEN_REFRESHED");
       return next;
     } catch {
+      const current = readStored();
+      if (
+        current &&
+        current.refreshToken !== stored.refreshToken &&
+        current.expiresAt * 1000 - Date.now() > 5_000
+      ) {
+        // Another tab rotated successfully — keep that session.
+        return current;
+      }
       writeStored(null);
       emit("SIGNED_OUT", null);
       broadcast("SIGNED_OUT");
       return null;
     }
   }
+
+  async function ensureFreshSession(force = false): Promise<StoredSession | null> {
+    const stored = readStored();
+    if (!stored) return null;
+    // Refresh 60s before expiry.
+    if (!force && stored.expiresAt * 1000 - Date.now() > 60_000) return stored;
+    if (!inflight) {
+      inflight = rotate(stored).finally(() => {
+        inflight = null;
+      });
+    }
+    return inflight;
+  }
+
 
   return {
     capability: Capability.Authentication,
