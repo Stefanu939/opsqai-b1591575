@@ -2060,9 +2060,11 @@ export type Database = {
           id: string
           install_id: string
           ip_address: string | null
+          kind: string
           signed_url_expires_at: string | null
           storage_path: string | null
           user_agent: string | null
+          version: string | null
         }
         Insert: {
           actor_email?: string | null
@@ -2072,9 +2074,11 @@ export type Database = {
           id?: string
           install_id: string
           ip_address?: string | null
+          kind?: string
           signed_url_expires_at?: string | null
           storage_path?: string | null
           user_agent?: string | null
+          version?: string | null
         }
         Update: {
           actor_email?: string | null
@@ -2084,9 +2088,11 @@ export type Database = {
           id?: string
           install_id?: string
           ip_address?: string | null
+          kind?: string
           signed_url_expires_at?: string | null
           storage_path?: string | null
           user_agent?: string | null
+          version?: string | null
         }
         Relationships: [
           {
