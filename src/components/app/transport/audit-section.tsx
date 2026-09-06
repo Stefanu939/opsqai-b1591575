@@ -470,8 +470,7 @@ export function AuditSection({ t }: { t: Ui }) {
                     }`}
                     onClick={() => setActiveId(c.id)}
                   >
-                    {day(c.period_start)} ·{" "}
-                    {c.status === "completed" ? t.closeAudit : c.status}
+                    {day(c.period_start)} · {c.status}
                     {c.ran_by_name ? ` · ${c.ran_by_name}` : ""}
                   </button>
                 </li>
