@@ -139,18 +139,6 @@ export function ManagementShell({ children }: { children: ReactNode }) {
             <div className="truncate text-[11px] text-muted-foreground">{user?.email}</div>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-           className="mt-2 w-full justify-start text-muted-foreground hover:text-foreground"
-          onClick={async () => {
-            await signOut();
-            navigate({ to: "/auth", search: { audience: "mc" }, replace: true });
-          }}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign out
-        </Button>
       </div>
     </aside>
   );
