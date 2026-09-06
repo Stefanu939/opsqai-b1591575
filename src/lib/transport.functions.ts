@@ -7,7 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
-import { uuidString() } from "@/lib/zod-uuid";
+import { uuidString } from "@/lib/zod-uuid";
 import { getProfileRepository } from "@/lib/providers/registry";
 import {
   TRANSPORT_GRANTS,
