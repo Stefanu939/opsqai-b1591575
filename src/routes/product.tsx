@@ -60,7 +60,10 @@ function ProductPage() {
               {m.product.intro}
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <OixButton to="/contact" variant="gold" withArrow>
+              <OixButton to="/pilot" variant="gold" withArrow>
+                {m.cta.startPilot}
+              </OixButton>
+              <OixButton to="/contact" variant="ghost">
                 {m.cta.contactSales}
               </OixButton>
               <OixButton to="/self-hosted" variant="ghost">
@@ -147,7 +150,10 @@ function ProductPage() {
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-[var(--oix-cream-dim)]">{m.product.ctaBody}</p>
         <div className="mt-9 flex justify-center gap-3">
-          <OixButton to="/contact" variant="gold" withArrow>
+          <OixButton to="/pilot" variant="gold" withArrow>
+            {m.cta.startPilot}
+          </OixButton>
+          <OixButton to="/contact" variant="ghost">
             {m.cta.proposal}
           </OixButton>
           <OixButton to="/pricing" variant="ghost">

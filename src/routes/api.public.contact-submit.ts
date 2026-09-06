@@ -17,6 +17,7 @@ const BodySchema = z.object({
   subject: z.enum([
     "general",
     "demo",
+    "pilot",
     "sales",
     "pricing",
     "support",

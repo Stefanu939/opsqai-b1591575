@@ -179,11 +179,14 @@ function Hero() {
           </p>
 
           <div className="mt-10 flex flex-wrap gap-3">
-            <OixButton to="/self-hosted" variant="gold" withArrow>
-              {t.cta.howItWorks}
+            <OixButton to="/pilot" variant="gold" withArrow>
+              {t.cta.startPilot}
             </OixButton>
             <OixButton to="/contact" variant="ghost">
               {t.cta.requestDemo}
+            </OixButton>
+            <OixButton to="/self-hosted" variant="ghost">
+              {t.cta.howItWorks}
             </OixButton>
           </div>
         </div>
@@ -517,10 +520,13 @@ function FinalCTA() {
         {t.body}
       </p>
       <div className="mt-8 flex flex-wrap gap-3 justify-center">
-        <Button asChild size="lg">
-          <Link to="/contact">{t.requestDemo}</Link>
+        <Button asChild size="lg" className="bg-[var(--oix-gold)] text-[var(--oix-primary-ink)] hover:bg-[var(--oix-gold-strong)]">
+          <Link to="/pilot">{t.startPilot}</Link>
         </Button>
         <Button asChild size="lg" variant="outline">
+          <Link to="/contact">{t.requestDemo}</Link>
+        </Button>
+        <Button asChild size="lg" variant="ghost">
           <Link to="/self-hosted">{t.seeHowItWorks}</Link>
         </Button>
         <Button asChild size="lg" variant="ghost">

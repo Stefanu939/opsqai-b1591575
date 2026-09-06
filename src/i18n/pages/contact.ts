@@ -10,6 +10,7 @@ const en = {
   subjectOptions: {
     general: "General question",
     demo: "Book a demo",
+    pilot: "Start a 30-day pilot",
     sales: "Sales inquiry",
     pricing: "Pricing request",
     support: "Technical support",
@@ -58,6 +59,7 @@ const de: Copy = {
   subjectOptions: {
     general: "Allgemeine Frage",
     demo: "Demo vereinbaren",
+    pilot: "30-Tage-Pilot starten",
     sales: "Vertriebsanfrage",
     pricing: "Preisanfrage",
     support: "Technischer Support",
@@ -103,6 +105,7 @@ const ro: Copy = {
   subjectOptions: {
     general: "Întrebare generală",
     demo: "Programează un demo",
+    pilot: "Începe un pilot de 30 de zile",
     sales: "Solicitare comercială",
     pricing: "Solicitare ofertă de preț",
     support: "Suport tehnic",

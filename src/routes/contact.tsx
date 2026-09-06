@@ -27,6 +27,7 @@ const SearchSchema = z.object({
     .enum([
       "general",
       "demo",
+      "pilot",
       "sales",
       "pricing",
       "support",
