@@ -785,15 +785,32 @@ function TeacherChat({
               </div>
 
               <div className="rounded-lg border border-border bg-background p-3">
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1">
-                  Progress
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1 flex items-center justify-between">
+                  <span>Progress</span>
+                  <span className="font-normal normal-case tracking-normal">
+                    {completedUnits}/{units.length} units · {progress}%
+                  </span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                   <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
                 </div>
+                <ul className="mt-2 space-y-1">
+                  {units.map((u) => (
+                    <li key={u} className="flex items-center gap-2 text-[11.5px]">
+                      {unitDone(u) ? (
+                        <CheckCircle2 className="h-3 w-3 text-success" />
+                      ) : (
+                        <Circle className="h-3 w-3 text-muted-foreground/60" />
+                      )}
+                      <span className={unitDone(u) ? "" : "text-muted-foreground"}>
+                        {UNIT_LABEL[u]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
                 <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span>~{remaining} min remaining</span>
-                  <span>Pass {passing}%</span>
+                  <span>~{remaining} min remaining (estimate only)</span>
+                  <span>Quiz pass mark {passing}%</span>
                 </div>
               </div>
 
