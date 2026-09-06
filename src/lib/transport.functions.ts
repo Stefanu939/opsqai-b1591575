@@ -144,7 +144,7 @@ export const saveTransportRecord = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
     z
-      .object({ register: registerEnum, id: uuidString.optional(), values })
+      .object({ register: registerEnum, id: uuidString().optional(), values })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -161,7 +161,7 @@ export const saveTransportRecord = createServerFn({ method: "POST" })
 export const deleteTransportRecord = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z.object({ register: registerEnum, id: uuidString }).parse(input),
+    z.object({ register: registerEnum, id: uuidString() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -178,7 +178,7 @@ export const decideTransportRequest = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        id: uuidString,
+        id: uuidString(),
         decision: z.enum(["approved", "rejected", "closed"]),
         note: z.string().max(2000).nullish(),
       })
@@ -203,7 +203,7 @@ export const decideTransportIncident = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        id: uuidString,
+        id: uuidString(),
         status: z.enum(["reported", "in_review", "action_agreed", "closed", "cancelled"]),
         actionAgreed: z.string().max(4000).nullish(),
       })
@@ -238,7 +238,7 @@ const ownerKind = z.enum([
 export const listTransportNotes = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z.object({ ownerKind, ownerId: uuidString }).parse(input),
+    z.object({ ownerKind, ownerId: uuidString() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -250,7 +250,7 @@ export const addTransportNote = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
     z
-      .object({ ownerKind, ownerId: uuidString, body: z.string().min(1).max(4000) })
+      .object({ ownerKind, ownerId: uuidString(), body: z.string().min(1).max(4000) })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -273,7 +273,7 @@ export const addTransportNote = createServerFn({ method: "POST" })
 export const getTransportAudit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z.object({ checkId: uuidString.nullish() }).parse(input ?? {}),
+    z.object({ checkId: uuidString().nullish() }).parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -292,7 +292,7 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        id: uuidString.optional(),
+        id: uuidString().optional(),
         label: z.string().min(1).max(300),
         hint: z.string().max(1000).nullish(),
         scope: z.enum(["general", "vehicle", "driver", "carrier"]).optional(),
@@ -315,7 +315,7 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
 
 export const deleteChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "checklist");
@@ -344,7 +344,7 @@ export const setCheckResult = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        resultId: uuidString,
+        resultId: uuidString(),
         outcome: z.enum(["pending", "ok", "issue", "not_applicable"]),
         note: z.string().max(2000).nullish(),
       })
@@ -368,7 +368,7 @@ export const completeWeeklyCheck = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
     z
-      .object({ checkId: uuidString, summary: z.string().max(4000).nullish() })
+      .object({ checkId: uuidString(), summary: z.string().max(4000).nullish() })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -479,7 +479,7 @@ export const setTransportGrant = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        userId: uuidString,
+        userId: uuidString(),
         grant: z.enum(["view", "edit", "approve", "checklist", "settings", "export", "cmr"]),
         enabled: z.boolean(),
       })
@@ -515,7 +515,7 @@ export const listCmrNotes = createServerFn({ method: "POST" })
 export const saveCmrNote = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z.object({ id: uuidString.optional(), values }).parse(input),
+    z.object({ id: uuidString().optional(), values }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -530,7 +530,7 @@ export const saveCmrNote = createServerFn({ method: "POST" })
 
 export const issueCmrNote = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "cmr");
@@ -540,7 +540,7 @@ export const issueCmrNote = createServerFn({ method: "POST" })
 
 export const cancelCmrNote = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "cmr");
@@ -552,7 +552,7 @@ export const cancelCmrNote = createServerFn({ method: "POST" })
 /** Consignment note as a base64 PDF, so the browser can download it directly. */
 export const renderCmrPdfBase64 = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "cmr");
@@ -627,6 +627,6 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
     })();
     return {
       filename: `transport-${data.dataset}-${new Date().toISOString().slice(0, 10)}.csv`,
-      csv: csv(rows as Array<Record<string, unknown>>),
+      csv: csv(rows as unknown as Array<Record<string, unknown>>),
     };
   });

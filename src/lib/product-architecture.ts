@@ -808,6 +808,40 @@ export const PRODUCT_WORKSPACES: readonly ProductWorkspace[] = [
     coreCapabilities: ["chat", "audit_log"],
     status: "implemented",
   },
+  {
+    key: "transport_map",
+    product: "opsqai_transport",
+    label: "Map",
+    description: "Vehicles, drivers, carriers and open incidents on one map.",
+    icon: "MapPin",
+    route: "/app/products/transport/map",
+    capabilities: ["fleet_workspace"],
+    coreCapabilities: ["reports", "workspace_health"],
+    status: "implemented",
+  },
+  {
+    key: "transport_cmr",
+    product: "opsqai_transport",
+    label: "CMR",
+    description: "Country-aware consignment notes, editable with PDF and CSV export.",
+    icon: "FileText",
+    route: "/app/products/transport/cmr",
+    capabilities: ["fleet_workspace"],
+    coreCapabilities: ["enterprise_export", "audit_log"],
+    status: "implemented",
+  },
+  {
+    key: "transport_settings",
+    product: "opsqai_transport",
+    label: "Transport Settings",
+    description: "Country and language pack, alert windows, map and per-user rights.",
+    icon: "Settings",
+    route: "/app/products/transport/settings",
+    capabilities: ["fleet_workspace"],
+    coreCapabilities: ["compliance_center", "multi_language"],
+    status: "implemented",
+  },
+
 
   // ── OPSQAI HR ──────────────────────────────────────────────────
   {

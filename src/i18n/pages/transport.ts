@@ -158,7 +158,6 @@ const EN = {
   addLine: "Add line",
   sender: "Sender",
   consignee: "Consignee",
-  loading: "Loading",
   delivery: "Delivery",
   instructions: "Instructions",
   reservations: "Reservations",
@@ -169,7 +168,7 @@ const EN = {
   cancelled: "Cancelled",
 } as const;
 
-type Dict = typeof EN;
+type Dict = { [K in keyof typeof EN]: string };
 
 const DE: Dict = {
   ...EN,
