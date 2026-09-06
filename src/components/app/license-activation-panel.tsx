@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
-import { FileUp, History, KeyRound, ShieldCheck, Upload } from "lucide-react";
+import { FileUp, KeyRound, ShieldCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
 import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   importActivationBundle,
   importActivationToken,
-  listActivatedLicenses,
   previewActivationToken,
 } from "@/lib/license-activation.functions";
 
@@ -39,18 +37,12 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
   const preview = useServerFn(previewActivationToken);
   const importToken = useServerFn(importActivationToken);
   const importBundle = useServerFn(importActivationBundle);
-  const listHistory = useServerFn(listActivatedLicenses);
 
   const [value, setValue] = useState("");
   const [checking, setChecking] = useState(false);
   const [applying, setApplying] = useState(false);
   const [info, setInfo] = useState<Preview | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const history = useQuery({
-    queryKey: ["license-activation-history"],
-    queryFn: () => listHistory({} as never),
-  });
 
   async function onFile(file: File | undefined) {
     if (!file) return;
@@ -105,7 +97,6 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
       }
       setValue("");
       setInfo(null);
-      void history.refetch();
       onActivated?.();
       // Entitlements are resolved server-side at load; reload to apply them.
       window.setTimeout(() => window.location.reload(), 900);
@@ -124,8 +115,8 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
 
   return (
     <Panel
-      title="Add a license"
-      description="Paste the module license, installation license or activation bundle issued by OPSQAI. Works fully offline."
+      title="Verify or replace license"
+      description="Paste a signed JWT or import an offline activation bundle. Verification happens before anything is applied."
       icon={KeyRound}
       glass
     >
@@ -195,59 +186,8 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
           onClick={() => void activate()}
         >
           <Upload className="mr-1 h-4 w-4" />
-          Activate on this install
+          Replace license on this install
         </Button>
-      </div>
-
-      <div className="mt-5 border-t border-border pt-4">
-        <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-          <History className="h-3.5 w-3.5" />
-          Activation history
-        </div>
-        {history.isLoading ? (
-          <p className="text-xs text-muted-foreground">Loading…</p>
-        ) : (history.data ?? []).length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            No license has been activated on this install yet.
-          </p>
-        ) : (
-          <ul className="space-y-1.5">
-            {(history.data ?? []).map((row) => (
-              <li
-                key={row.id}
-                className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/10 px-3 py-2 text-[11px]"
-              >
-                <Badge variant="outline" className="text-[10px]">
-                  {row.kind === "module" ? `module · ${row.module_key}` : "installation"}
-                </Badge>
-                {row.revoked ? (
-                  <Badge variant="destructive" className="text-[10px]">
-                    revoked
-                  </Badge>
-                ) : row.suspended ? (
-                  <Badge variant="secondary" className="text-[10px]">
-                    suspended
-                  </Badge>
-                ) : (
-                  <Badge className="text-[10px]">active</Badge>
-                )}
-                {row.company_name && (
-                  <span className="text-muted-foreground">{row.company_name}</span>
-                )}
-                {row.expires_at && (
-                  <span className="text-muted-foreground">
-                    expires {new Date(row.expires_at).toLocaleDateString()}
-                  </span>
-                )}
-                {row.validated_at && (
-                  <span className="ml-auto text-muted-foreground">
-                    activated {new Date(row.validated_at).toLocaleString()}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </Panel>
   );
