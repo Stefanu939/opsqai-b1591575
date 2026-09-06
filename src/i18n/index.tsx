@@ -495,16 +495,13 @@ const Ctx = createContext<LangCtx | null>(null);
 const isLang = (v: unknown): v is Lang => v === "en" || v === "de" || v === "ro";
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  const [lang, setLangState] = useState<Lang>("de");
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("lang") : null;
     if (isLang(stored)) setLangState(stored);
-    else if (typeof navigator !== "undefined") {
-      const nav = navigator.language.slice(0, 2).toLowerCase();
-      if (isLang(nav)) setLangState(nav);
-    }
   }, []);
+
 
   const setLang = (l: Lang) => {
     setLangState(l);
