@@ -445,7 +445,7 @@ function PortalHome() {
                     : "Release announcements will show up here."}
                 </p>
                 <Link
-                  to="/portal/release-notes"
+                  to="/portal/news"
                   className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--gold)] hover:underline"
                 >
                   See what's new
