@@ -49,10 +49,24 @@ async function createCalendarEvent(
   req: TimeOffRecord,
   who: string,
 ): Promise<string | null> {
-  const startsAt = new Date(`${req.startsOn}T00:00:00.000Z`).toISOString();
-  const endsAt = new Date(`${req.endsOn}T23:59:59.000Z`).toISOString();
+  const day = (value: string, endOfDay: boolean): string | null => {
+    const iso = /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : null;
+    if (!iso) {
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return null;
+      return endOfDay
+        ? new Date(`${parsed.toISOString().slice(0, 10)}T23:59:59.000Z`).toISOString()
+        : new Date(`${parsed.toISOString().slice(0, 10)}T00:00:00.000Z`).toISOString();
+    }
+    return new Date(`${iso}T${endOfDay ? "23:59:59" : "00:00:00"}.000Z`).toISOString();
+  };
+  const startsAt = day(req.startsOn, false);
+  const endsAt = day(req.endsOn, true);
+  if (!startsAt || !endsAt) return null;
+
   try {
     if (isSelfHosted()) {
+
       const { getCalendarRepository } = await import("@/lib/providers/registry");
       const repo = getCalendarRepository(context.supabase);
       const res = await repo.upsertEvent({

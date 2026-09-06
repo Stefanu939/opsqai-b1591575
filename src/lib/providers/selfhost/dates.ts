@@ -22,3 +22,26 @@ export function toIsoOrNull(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
   return toIso(value);
 }
+
+/**
+ * Convert a database `date` value (Date object, "YYYY-MM-DD" text or epoch)
+ * into a calendar day string "YYYY-MM-DD". node-postgres decodes `date`
+ * columns into Date objects, so `String(row.starts_on).slice(0, 10)` would
+ * produce "Wed Oct 14" and any later Date parsing would fail.
+ */
+export function toDateOnly(value: unknown): string {
+  if (value instanceof Date) {
+    const y = value.getUTCFullYear();
+    const m = String(value.getUTCMonth() + 1).padStart(2, "0");
+    const d = String(value.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  if (typeof value === "string") {
+    if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return toDateOnly(parsed);
+    return value.slice(0, 10);
+  }
+  if (typeof value === "number") return toDateOnly(new Date(value));
+  return "";
+}
