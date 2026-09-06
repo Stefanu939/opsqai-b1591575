@@ -1,6 +1,6 @@
 {
   "_comment": "SHA-256 pins for third-party binaries downloaded by build.ps1. Environment variables (OPSQAI_7ZR_SHA256, OPSQAI_OLLAMA_SHA256) override these values. Ollama pins are keyed by release tag; add a tag here to make Release builds fail on an unexpected download.",
-  "sevenZr": "56b8cc9f4971cef253644fafe54063ed7fdca551d4dee0f8c6baa81b855acd72",
+  "sevenZr": "ad4c82fadcbdf93c03b4fc440f300509c7d60c5c2f4d183e35d9d70d6957037d",
   "ollama": {
     "v0.5.7": null
   }
