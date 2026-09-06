@@ -78,6 +78,7 @@ import { createLocalAuthProvider } from "./local-auth.server";
 import { createNtfsStorageProvider } from "./ntfs-storage.server";
 import { createSmtpNotificationProvider } from "./smtp-notification.server";
 import { createLocalLicensingProvider } from "./local-licensing.server";
+import { pgDateTypes } from "./pg-types.server";
 import { startHeartbeatSender, DEFAULT_MC_BASE_URL } from "./heartbeat-sender.server";
 import { createWindowsBackupService } from "./windows-backup.server";
 import { createLocalTelemetrySink } from "./local-telemetry.server";
@@ -176,6 +177,7 @@ export async function bootstrapSelfHosted(): Promise<void> {
 
   const pool = new Pool({
     connectionString: env.DATABASE_URL,
+    types: pgDateTypes,
     max: 10,
     idleTimeoutMillis: 30_000,
   });
