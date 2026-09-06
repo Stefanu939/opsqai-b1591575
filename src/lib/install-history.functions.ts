@@ -9,6 +9,13 @@ import { requirePlatformAdmin } from "@/lib/authorization";
 import { getCloudSupabase } from "@/lib/providers/not-available";
 import { assertInstallInScope } from "@/lib/mc-scope.server";
 
+/** Older installations report an empty string — treat that as "not reported". */
+function nz(v: string | null | undefined): string | null {
+  const s = (v ?? "").trim();
+  return s.length > 0 ? s : null;
+}
+
+
 export interface InstallHistoryDownload {
   id: string;
   actor_email: string | null;
