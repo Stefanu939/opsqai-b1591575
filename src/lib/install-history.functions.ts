@@ -160,7 +160,7 @@ export const getMyInstallStatus = createServerFn({ method: "POST" })
       installs: ids.map((install_id) => {
         const s = sh.get(install_id);
         const l = li.get(install_id);
-        const current_version = s?.app_version ?? l?.app_version ?? null;
+        const current_version = nz(s?.app_version) ?? nz(l?.app_version);
         return {
           install_id,
           company_name:
