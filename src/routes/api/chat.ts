@@ -109,7 +109,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       context=strong.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
     }catch(error){console.error("[chat:retrieval]",error);}
   }
-  let images:ImageRef[]=[];
+  const images:ImageRef[]=[];
   try{
     const docSources=sources.filter((s)=>s.type==="document"&&s.document_id);
     const byDoc=new Map<string,number[]>();
@@ -120,24 +120,27 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       arr.push(idx);
       byDoc.set(s.document_id as string,arr);
     }
-    const storage=getStorageProvider();
-    for(const [docId,idxs] of byDoc){
-      if(images.length>=3)break;
-      const rows=await getKnowledgeRepository(dataCtx).getImagesForChunks(docId,idxs);
-      for(const row of rows.filter((r)=>r.approved)){
-        if(images.length>=3)break;
+    if(byDoc.size){
+      const storage=getStorageProvider();
+      // Look up the cited images for every document at once, then read at most
+      // three files concurrently instead of serially.
+      const rowLists=await Promise.all(Array.from(byDoc,([docId,idxs])=>
+        getKnowledgeRepository(dataCtx).getImagesForChunks(docId,idxs).catch((error)=>{console.error("[chat:image-rows]",error);return [];}),
+      ));
+      const wanted=rowLists.flat().filter((r)=>r.approved).slice(0,3);
+      const loaded=await Promise.all(wanted.map(async(row)=>{
         try{
           const bytes=await storage.get(KNOWLEDGE_IMAGES_BUCKET,row.storage_path);
-          images.push({id:row.id,document_id:row.document_id,caption:row.caption,data_url:`data:${row.mime_type};base64,${bytesToB64(bytes)}`});
-        }catch(error){console.error("[chat:image-cite]",error);}
-      }
+          return {id:row.id,document_id:row.document_id,caption:row.caption,data_url:`data:${row.mime_type};base64,${bytesToB64(bytes)}`} as ImageRef;
+        }catch(error){console.error("[chat:image-cite]",error);return null;}
+      }));
+      for(const image of loaded)if(image)images.push(image);
     }
   }catch(error){console.error("[chat:image-gather]",error);}
   const userTexts=messages.filter((m)=>m.role==="user").map((m)=>textOf(m));
   const answerLanguage=resolveAnswerLanguage(userTexts,body.language);
   const grounded=passesGrounding(sources,confidence)||(isFollowup&&Boolean(context));
-  const messageRepo=getMessageRepository(dataCtx);
-  const existing=await messageRepo.listByThread(body.threadId);
+
   const persist=async(finished:UIMessage[])=>{
     const fresh=finished.slice(existing.length);
     await messageRepo.insertMany(fresh.map((m)=>({threadId:body.threadId as string,userId:identity.userId,companyId,role:m.role,content:textOf(m).slice(0,100000),parts:JSON.parse(JSON.stringify(m.parts)) as JsonLike,sources:m.role==="assistant"?JSON.parse(JSON.stringify(sources)) as JsonLike:null,confidence:m.role==="assistant"?confidence:null})));
