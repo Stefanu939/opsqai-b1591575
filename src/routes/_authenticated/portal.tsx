@@ -204,6 +204,7 @@ function PortalLayout() {
               profilePath="/portal/profile"
               roleLabel={user?.email?.split("@")[1] ?? "OPSQAI"}
               supportHref="/portal/support"
+              staffTools={isPlatformAdmin}
               helpLinks={[
                 { label: "Downloads", description: "Installer packages and modules", href: "/portal/downloads" },
                 { label: "Subscription", description: "Licenses, plan and entitlements", href: "/portal/subscription" },

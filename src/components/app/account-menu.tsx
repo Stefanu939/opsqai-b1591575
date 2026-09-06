@@ -95,6 +95,11 @@ export interface AccountMenuProps {
   helpLinks: HelpLink[];
   /** Cloud surfaces show a support shortcut; Self-Hosted stays local. */
   supportHref?: string | undefined;
+  /**
+   * Staff tools (presence status, holidays/time-off requests) are employee
+   * features. Customer Portal users get a plain account menu without them.
+   */
+  staffTools?: boolean;
   className?: string;
 }
 
@@ -130,6 +135,7 @@ export function AccountMenu({
   roleLabel,
   helpLinks,
   supportHref,
+  staffTools = true,
   className,
 }: AccountMenuProps) {
   const { user, signOut, session, loading, isPlatformAdmin } = useAuth();
@@ -157,7 +163,7 @@ export function AccountMenu({
   const presence = useQuery({
     queryKey: ["presence", "me", user?.id],
     queryFn: () => getMyPresence(),
-    enabled,
+    enabled: enabled && staffTools,
     retry: false,
     staleTime: 30_000,
   });
@@ -184,9 +190,11 @@ export function AccountMenu({
               <span className="grid h-8 w-8 place-items-center rounded-sm bg-primary text-[11px] font-semibold text-primary-foreground">
                 {initials}
               </span>
-              <span className="absolute -bottom-0.5 -right-0.5">
-                <PresenceDot status={status} />
-              </span>
+              {staffTools ? (
+                <span className="absolute -bottom-0.5 -right-0.5">
+                  <PresenceDot status={status} />
+                </span>
+              ) : null}
             </span>
             <span className="hidden min-w-0 flex-col leading-tight sm:flex">
               <span className="truncate text-xs font-semibold text-foreground">
@@ -205,24 +213,30 @@ export function AccountMenu({
             <div className="truncate text-xs font-normal text-muted-foreground">
               {user?.email}
             </div>
-            <div className="flex items-center gap-2 pt-1 text-xs font-normal text-muted-foreground">
-              <PresenceDot status={status} />
-              <span>{PRESENCE_META[status].label}</span>
-              {presence.data?.message ? (
-                <span className="truncate">— {presence.data.message}</span>
-              ) : null}
-            </div>
+            {staffTools ? (
+              <div className="flex items-center gap-2 pt-1 text-xs font-normal text-muted-foreground">
+                <PresenceDot status={status} />
+                <span>{PRESENCE_META[status].label}</span>
+                {presence.data?.message ? (
+                  <span className="truncate">— {presence.data.message}</span>
+                ) : null}
+              </div>
+            ) : null}
             <div className="text-[11px] font-normal text-muted-foreground">{roleLabel}</div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setTimeout(() => setStatusOpen(true), 0)}>
-            <CircleUser className="mr-2 h-4 w-4" />
-            Set status
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setTimeout(() => setHolidaysOpen(true), 0)}>
-            <Palmtree className="mr-2 h-4 w-4" />
-            Holidays
-          </DropdownMenuItem>
+          {staffTools ? (
+            <>
+              <DropdownMenuItem onSelect={() => setTimeout(() => setStatusOpen(true), 0)}>
+                <CircleUser className="mr-2 h-4 w-4" />
+                Set status
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTimeout(() => setHolidaysOpen(true), 0)}>
+                <Palmtree className="mr-2 h-4 w-4" />
+                Holidays
+              </DropdownMenuItem>
+            </>
+          ) : null}
           <DropdownMenuItem
             onSelect={() => {
               void navigate({ to: profilePath as never });
@@ -269,15 +283,19 @@ export function AccountMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <StatusDialog
-        open={statusOpen}
-        onOpenChange={setStatusOpen}
-        current={{
-          status,
-          message: presence.data?.message ?? null,
-        }}
-      />
-      <HolidaysDialog open={holidaysOpen} onOpenChange={setHolidaysOpen} />
+      {staffTools ? (
+        <>
+          <StatusDialog
+            open={statusOpen}
+            onOpenChange={setStatusOpen}
+            current={{
+              status,
+              message: presence.data?.message ?? null,
+            }}
+          />
+          <HolidaysDialog open={holidaysOpen} onOpenChange={setHolidaysOpen} />
+        </>
+      ) : null}
       <HelpSheet
         open={helpOpen}
         onOpenChange={setHelpOpen}
