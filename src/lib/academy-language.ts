@@ -63,3 +63,75 @@ export function localizedAcademyQuizFallback(value: unknown, title: string) {
     { type: "true_false" as const, question: copy.procedureQuestion, options: [labels.trueLabel, labels.falseLabel], correct_answer: labels.trueLabel, explanation: copy.procedureExplanation },
   ];
 }
+/* ------------------- True/False only quiz + language quality ------------------- */
+
+/** The two visible answer options for a true/false (yes/no) question. */
+export function academyTrueFalseOptions(value: unknown): [string, string] {
+  const labels = ACADEMY_LANGUAGES[normalizeAcademyLanguage(value)];
+  return [labels.trueLabel, labels.falseLabel];
+}
+
+const REQUIRED_DIACRITICS: Partial<Record<AcademyLanguageCode, RegExp>> = {
+  ro: /[ăâîșşțţ]/i,
+  pl: /[ąćęłńóśźż]/i,
+};
+
+const STOPWORDS: Record<AcademyLanguageCode, string[]> = {
+  en: ["the", "and", "with", "must", "that", "from", "when", "which", "this"],
+  de: ["der", "die", "das", "und", "muss", "nicht", "werden", "beim", "eine"],
+  ro: ["este", "care", "sunt", "trebuie", "pentru", "lecție", "lectie", "din", "și", "si", "nu", "cu"],
+  fr: ["les", "des", "doit", "pour", "avec", "être", "etre", "dans", "cette"],
+  es: ["los", "las", "debe", "para", "con", "esta", "una", "según", "segun"],
+  it: ["gli", "deve", "per", "con", "della", "questa", "una", "sono"],
+  pt: ["dos", "deve", "para", "com", "esta", "uma", "segundo", "não", "nao"],
+  pl: ["jest", "musi", "dla", "oraz", "nie", "które", "ktore", "przy"],
+  uk: ["що", "має", "для", "не", "або", "цей", "при"],
+};
+
+function stopwordHits(words: string[], list: string[]): number {
+  return words.filter((w) => list.includes(w)).length;
+}
+
+/**
+ * Detects clear language-quality defects in generated Academy text: wrong
+ * script, missing mandatory diacritics (Romanian/Polish), or text written in a
+ * different language than the learner selected. Returns null when the text
+ * looks acceptable.
+ */
+export function academyLanguageQualityIssue(
+  text: string,
+  value: unknown,
+): "script" | "diacritics" | "language" | null {
+  const code = normalizeAcademyLanguage(value);
+  const clean = (text ?? "").trim();
+  if (clean.length < 24) return null;
+  if (hasWrongAcademyScript(clean, code)) return "script";
+
+  const diacritics = REQUIRED_DIACRITICS[code];
+  if (diacritics && clean.length >= 120 && !diacritics.test(clean)) return "diacritics";
+
+  const words = clean
+    .toLowerCase()
+    .replace(/[^\p{L}\s]+/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length < 12) return null;
+  const target = stopwordHits(words, STOPWORDS[code]);
+  const rivals = (Object.keys(STOPWORDS) as AcademyLanguageCode[])
+    .filter((c) => c !== code)
+    .map((c) => stopwordHits(words, STOPWORDS[c]));
+  const best = Math.max(0, ...rivals);
+  if (target === 0 && best >= 3) return "language";
+  if (best >= target * 3 && best >= 5) return "language";
+  return null;
+}
+
+export function academyLanguageCorrection(
+  issue: "script" | "diacritics" | "language",
+  value: unknown,
+): string {
+  const instruction = academyLanguageInstruction(value);
+  if (issue === "diacritics")
+    return `Your previous text was missing the mandatory diacritics. Rewrite everything in ${instruction} with fully correct spelling and all diacritical marks.`;
+  return `Your previous text was not written in the target language. Rewrite everything from scratch exclusively in ${instruction}, with idiomatic, grammatically correct sentences.`;
+}
