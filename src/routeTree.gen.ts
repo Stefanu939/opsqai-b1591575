@@ -19,6 +19,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductOverviewRouteImport } from './routes/product-overview'
 import { Route as ProductRouteImport } from './routes/product'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PilotRouteImport } from './routes/pilot'
 import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as HealthRouteImport } from './routes/health'
@@ -190,6 +191,11 @@ const ProductRoute = ProductRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PilotRoute = PilotRouteImport.update({
+  id: '/pilot',
+  path: '/pilot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ModulesRoute = ModulesRouteImport.update({
@@ -874,6 +880,7 @@ export interface FileRoutesByFullPath {
   '/health': typeof HealthRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/pilot': typeof PilotRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1005,6 +1012,7 @@ export interface FileRoutesByTo {
   '/health': typeof HealthRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/pilot': typeof PilotRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1135,6 +1143,7 @@ export interface FileRoutesById {
   '/health': typeof HealthRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
+  '/pilot': typeof PilotRoute
   '/pricing': typeof PricingRoute
   '/product': typeof ProductRoute
   '/product-overview': typeof ProductOverviewRoute
@@ -1270,6 +1279,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/mcp'
     | '/modules'
+    | '/pilot'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -1401,6 +1411,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/mcp'
     | '/modules'
+    | '/pilot'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -1530,6 +1541,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/mcp'
     | '/modules'
+    | '/pilot'
     | '/pricing'
     | '/product'
     | '/product-overview'
@@ -1665,6 +1677,7 @@ export interface RootRouteChildren {
   HealthRoute: typeof HealthRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
+  PilotRoute: typeof PilotRoute
   PricingRoute: typeof PricingRoute
   ProductRoute: typeof ProductRoute
   ProductOverviewRoute: typeof ProductOverviewRoute
@@ -1783,6 +1796,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pilot': {
+      id: '/pilot'
+      path: '/pilot'
+      fullPath: '/pilot'
+      preLoaderRoute: typeof PilotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/modules': {
@@ -2937,6 +2957,7 @@ const rootRouteChildren: RootRouteChildren = {
   HealthRoute: HealthRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
+  PilotRoute: PilotRoute,
   PricingRoute: PricingRoute,
   ProductRoute: ProductRoute,
   ProductOverviewRoute: ProductOverviewRoute,
