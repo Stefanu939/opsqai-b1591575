@@ -16,7 +16,7 @@ import {
   hasAreaRightsRepository,
 } from "@/lib/providers/registry";
 
-const PLATFORM_ROLES = new Set(["platform_owner", "platform_admin"]);
+const PLATFORM_ROLES = new Set(["platform_owner", "platform_admin", "superadmin"]);
 
 export function roleNames(rows: Array<{ role: string }> | null | undefined) {
   return (rows ?? []).map((r) => r.role);

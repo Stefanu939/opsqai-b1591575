@@ -36,18 +36,35 @@ async function actor(context: Ctx): Promise<Actor> {
   }
   const { getActorRoles } = await import("@/lib/authorization");
   const roles = await getActorRoles(context.supabase, context.userId);
-  const isAdmin =
+  const isUnrestricted =
     roles.isPlatformOwner ||
     roles.isPlatformAdmin ||
-    roles.isCompanyAdmin ||
     roles.roles.includes("superadmin") ||
     roles.roles.includes("workspace_owner");
 
   const stored = await db.listGrants(context.userId);
-  const grants: TransportGrantKey[] = isAdmin
+  const areaRights = await import("@/lib/providers/registry").then(({ getAreaRightsRepository, hasAreaRightsRepository }) =>
+    hasAreaRightsRepository()
+      ? getAreaRightsRepository(context.supabase).listForUser(companyId, context.userId)
+      : Promise.resolve([]),
+  );
+  const transportRights = areaRights.filter((right) => right.areaKey === "transport");
+  const canonical = transportRights.filter((right) => right.granted).flatMap((right): TransportGrantKey[] => {
+    switch (right.action) {
+      case "view": return ["view"];
+      case "create": return ["create"];
+      case "edit": return ["edit", "checklist", "cmr"];
+      case "delete": return ["delete"];
+      case "approve": return ["approve"];
+      case "administer": return ["settings", "export"];
+    }
+  });
+  const grants: TransportGrantKey[] = isUnrestricted
     ? [...TRANSPORT_GRANTS]
-    : stored.length
-      ? Array.from(new Set<TransportGrantKey>(["view", ...stored]))
+    : transportRights.length
+      ? Array.from(new Set<TransportGrantKey>(canonical))
+      : stored.length
+        ? Array.from(new Set<TransportGrantKey>(["view", ...stored]))
       : ["view"];
 
   return {
@@ -58,7 +75,7 @@ async function actor(context: Ctx): Promise<Actor> {
       context.claims?.email ||
       "User",
     grants,
-    canManageGrants: isAdmin,
+    canManageGrants: isUnrestricted || grants.includes("settings"),
   };
 }
 
@@ -182,7 +199,7 @@ export const saveTransportRecord = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
-    require(a, "edit");
+    require(a, data.id ? "edit" : "create");
     const db = await import("@/lib/transport/db.server");
     if (data.id) {
       await db.updateRecord(data.register, a.companyId, data.id, data.values);
@@ -198,7 +215,7 @@ export const deleteTransportRecord = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
-    require(a, "edit");
+    require(a, "delete");
     const db = await import("@/lib/transport/db.server");
     await db.deleteRecord(data.register, a.companyId, data.id);
     return { ok: true };
@@ -536,7 +553,7 @@ export const setTransportGrant = createServerFn({ method: "POST" })
     z
       .object({
         userId: uuidString(),
-        grant: z.enum(["view", "edit", "approve", "checklist", "settings", "export", "cmr"]),
+        grant: z.enum(["view", "create", "edit", "delete", "approve", "checklist", "settings", "export", "cmr"]),
         enabled: z.boolean(),
       })
       .parse(input),
@@ -546,8 +563,30 @@ export const setTransportGrant = createServerFn({ method: "POST" })
     if (!a.canManageGrants) {
       throw new Error("Forbidden: only an Admin or SuperAdmin can change rights.");
     }
+    const target = await getProfileRepository(context.supabase).findByUserId(data.userId);
+    if (!target?.companyId || target.companyId !== a.companyId) {
+      throw new Error("Forbidden: target user is outside this workspace");
+    }
+    const targetRoles = await import("@/lib/authorization").then(({ getActorRoles }) =>
+      getActorRoles(context.supabase, data.userId),
+    );
+    if (targetRoles.isPlatformOwner || targetRoles.isPlatformAdmin || targetRoles.roles.includes("superadmin")) {
+      throw new Error("Owner and SuperAdmin rights cannot be restricted");
+    }
     const db = await import("@/lib/transport/db.server");
     await db.setGrant(data.userId, data.grant, data.enabled, a.userId);
+    const { getAreaRightsRepository, hasAreaRightsRepository } = await import("@/lib/providers/registry");
+    if (hasAreaRightsRepository()) {
+      const repo = getAreaRightsRepository(context.supabase);
+      const existing = await repo.listForUser(a.companyId, data.userId);
+      const action = data.grant === "settings" || data.grant === "export" ? "administer"
+        : data.grant === "checklist" || data.grant === "cmr" ? "edit" : data.grant;
+      const next = existing
+        .filter((right) => !(right.areaKey === "transport" && right.action === action))
+        .map((right) => ({ area: right.areaKey, action: right.action, granted: right.granted }));
+      next.push({ area: "transport", action, granted: data.enabled });
+      await repo.replaceForUser(a.companyId, data.userId, next, a.userId);
+    }
     return { ok: true };
   });
 

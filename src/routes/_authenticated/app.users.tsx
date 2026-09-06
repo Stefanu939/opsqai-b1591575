@@ -21,6 +21,9 @@ import {
   setUserModuleAccess,
 } from "@/lib/module-access.functions";
 import { ModuleAccessPicker, presetModulesFor } from "@/components/users/module-access-picker";
+import { AreaRightsPicker } from "@/components/users/area-rights-picker";
+import { getUserAreaRights, setUserAreaRights } from "@/lib/area-rights.functions";
+import type { AreaRightChoice, AreaAction } from "@/lib/area-rights";
 import { normalizeAppRole } from "@/lib/module-access";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAvatarUrl, initialsOf } from "@/lib/avatar";
@@ -110,6 +113,8 @@ function UsersPage() {
   const licensedFn = useServerFn(listLicensedModules);
   const setModulesFn = useServerFn(setUserModuleAccess);
   const getModulesFn = useServerFn(getUserModuleAccess);
+  const getRightsFn = useServerFn(getUserAreaRights);
+  const setRightsFn = useServerFn(setUserAreaRights);
   const qc = useQueryClient();
   const selfHosted = getClientDeploymentMode() === "selfhost";
 
@@ -192,6 +197,7 @@ function UsersPage() {
   const [pwOpen, setPwOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [editModules, setEditModules] = useState<string[]>([]);
+  const [editRights, setEditRights] = useState<AreaRightChoice[]>([]);
 
   const detailAccess = useQuery({
     queryKey: ["user-module-access", detailUser?.id],
@@ -217,6 +223,29 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const detailRights = useQuery({
+    queryKey: ["user-area-rights", detailUser?.id],
+    enabled: selfHosted && !!detailUser,
+    queryFn: async () => {
+      const result = await getRightsFn({ data: { user_id: detailUser!.id } }) as {
+        unrestricted: boolean;
+        catalog: Array<{ areaKey: string; action: AreaAction; permissionKey: string }>;
+        rights: Array<{ areaKey: string; action: AreaAction; granted: boolean }>;
+      };
+      setEditRights(result.rights.map((right) => ({ area: right.areaKey, action: right.action, granted: right.granted })));
+      return result;
+    },
+  });
+
+  const saveRights = useMutation({
+    mutationFn: () => setRightsFn({ data: { user_id: detailUser!.id, rights: editRights } }),
+    onSuccess: () => {
+      toast.success("Functional rights updated");
+      qc.invalidateQueries({ queryKey: ["user-area-rights", detailUser?.id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const openDetail = (r: UserRow) => {
     setDetailUser(r);
     setEditFirst(r.first_name ?? "");
@@ -226,6 +255,7 @@ function UsersPage() {
     setEditRole(r.roles?.[0] ?? "employee");
     setNewEmail(r.email);
     setEditModules([]);
+    setEditRights([]);
   };
 
   const saveEdit = useMutation({
@@ -690,6 +720,28 @@ function UsersPage() {
                     </Button>
                   </div>
                 </div>
+
+                {selfHosted ? (
+                  <div className="border-t pt-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <Label>Functional rights</Label>
+                      {detailRights.data?.unrestricted ? null : (
+                        <Button size="sm" onClick={() => saveRights.mutate()} disabled={saveRights.isPending || detailRights.isLoading}>
+                          {saveRights.isPending ? "Saving…" : "Save rights"}
+                        </Button>
+                      )}
+                    </div>
+                    {detailRights.isLoading ? <div className="text-sm text-muted-foreground">Loading rights…</div> : (
+                      <AreaRightsPicker
+                        catalog={detailRights.data?.catalog ?? []}
+                        value={editRights}
+                        onChange={setEditRights}
+                        unrestricted={detailRights.data?.unrestricted}
+                        disabled={saveRights.isPending}
+                      />
+                    )}
+                  </div>
+                ) : null}
 
                 <div className="border-t pt-4">
                   <div className="flex items-center justify-between gap-2">

@@ -41,7 +41,9 @@ export interface RegisterTableProps<T extends { id: string }> {
   rows: T[];
   columns: ColumnDef<T>[];
   fields: FieldDef[];
+  canCreate: boolean;
   canEdit: boolean;
+  canDelete: boolean;
   emptyTitle: string;
   emptyBody?: string;
   labels: {
@@ -85,6 +87,8 @@ export function RegisterTable<T extends { id: string }>({
   columns,
   fields,
   canEdit,
+  canCreate,
+  canDelete,
   emptyTitle,
   emptyBody,
   labels,
@@ -135,7 +139,7 @@ export function RegisterTable<T extends { id: string }>({
               {labels.export}
             </Button>
           ) : null}
-          {canEdit ? (
+          {canCreate ? (
             <Button size="sm" onClick={() => start(null)}>
               <Plus className="mr-1.5 size-3.5" />
               {labels.add}
@@ -176,7 +180,7 @@ export function RegisterTable<T extends { id: string }>({
                         <Pencil className="size-3.5" />
                       </Button>
                     ) : null}
-                    {canEdit && onDelete ? (
+                    {canDelete && onDelete ? (
                       <Button
                         size="icon"
                         variant="ghost"

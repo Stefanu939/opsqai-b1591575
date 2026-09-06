@@ -37,7 +37,7 @@ async function requireAdminOrPlatform(supabase: unknown, userId: string) {
 
 
 function isSuperadminRole(role: string): boolean {
-  return LEGACY_ROLE_MAP[role] === "superadmin";
+  return role === "platform_owner" || role === "platform_admin" || role === "superadmin";
 }
 
 /**
