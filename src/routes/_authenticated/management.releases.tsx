@@ -527,6 +527,8 @@ async function sha256Hex(file: File): Promise<string> {
     .join("");
 }
 
+const RESUMABLE_THRESHOLD = 6 * 1024 * 1024;
+
 function ReleaseFileUpload({
   version,
   kind,
@@ -546,6 +548,7 @@ function ReleaseFileUpload({
   const [uploadedBytes, setUploadedBytes] = useState(0);
   const [totalBytes, setTotalBytes] = useState(0);
   const [hashing, setHashing] = useState(false);
+  const [resumable, setResumable] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const accept = kind === "installer" ? ".exe,.msi,.zip" : ".pdf,.md,.txt";
@@ -556,18 +559,68 @@ function ReleaseFileUpload({
       setProgress(0);
       setUploadedBytes(0);
       setTotalBytes(selected.size);
+      setResumable(false);
       try {
         const safeVersion = (version || "draft").replace(/[^a-zA-Z0-9._-]/g, "_");
         const ext = selected.name.includes(".") ? selected.name.split(".").pop() : "";
         const path = `${safeVersion}/${kind}/${Date.now()}.${ext}`;
 
-        // Upload through XHR so the browser reports real byte progress; the
-        // supabase-js storage client offers no progress callback.
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
         const baseUrl = import.meta.env['VITE_SUPABASE_URL'] as string | undefined;
         const apiKey = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] as string | undefined;
         if (!token || !baseUrl || !apiKey) throw new Error("Not authenticated");
+
+        // Large files go through the resumable (TUS) endpoint so an interrupted
+        // connection continues from the last confirmed chunk instead of
+        // restarting. Small files use a single request.
+        if (selected.size > RESUMABLE_THRESHOLD) {
+          setResumable(true);
+          const { Upload } = await import("tus-js-client");
+          await new Promise<void>((resolve, reject) => {
+            const tus = new Upload(selected, {
+              endpoint: `${baseUrl}/storage/v1/upload/resumable`,
+              retryDelays: [0, 1000, 3000, 6000, 12000, 24000],
+              headers: {
+                authorization: `Bearer ${token}`,
+                apikey: apiKey,
+                "x-upsert": "false",
+              },
+              uploadDataDuringCreation: true,
+              removeFingerprintOnSuccess: true,
+              chunkSize: 6 * 1024 * 1024,
+              metadata: {
+                bucketName: "releases",
+                objectName: path,
+                contentType: selected.type || "application/octet-stream",
+                cacheControl: "3600",
+              },
+              onProgress: (sent, total) => {
+                setUploadedBytes(sent);
+                setTotalBytes(total);
+                setProgress(Math.min(100, Math.round((sent / total) * 100)));
+              },
+              onSuccess: () => {
+                setProgress(100);
+                resolve();
+              },
+              onError: (error) => reject(error instanceof Error ? error : new Error(String(error))),
+            });
+            void tus.findPreviousUploads().then((previous) => {
+              if (previous[0]) tus.resumeFromPreviousUpload(previous[0]);
+              tus.start();
+            });
+          });
+
+          onChange({ path, name: selected.name, size: selected.size });
+          toast.success(`${kind === "installer" ? "Installer" : "Release notes"} uploaded`);
+          if (onChecksum && kind === "installer") {
+            setHashing(true);
+            const sum = await sha256Hex(selected);
+            onChecksum(sum);
+          }
+          return;
+        }
 
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
@@ -670,7 +723,7 @@ function ReleaseFileUpload({
         <div className="mt-3 space-y-2 text-left">
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-foreground">
-              {hashing ? "Calculating checksum…" : "Uploading…"}
+              {hashing ? "Calculating checksum…" : resumable ? "Uploading (resumable)…" : "Uploading…"}
             </span>
             <span className="tabular-nums text-muted-foreground">{progress}%</span>
           </div>
@@ -678,6 +731,11 @@ function ReleaseFileUpload({
           <p className="text-[11px] text-muted-foreground tabular-nums">
             {formatBytes(uploadedBytes)} of {formatBytes(totalBytes)}
           </p>
+          {resumable ? (
+            <p className="text-[11px] text-muted-foreground">
+              Large file — the upload continues automatically if the connection drops.
+            </p>
+          ) : null}
         </div>
       ) : (
         <>

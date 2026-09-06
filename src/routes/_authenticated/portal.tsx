@@ -20,6 +20,7 @@ import {
   CalendarDays,
   Search,
   ChevronDown,
+  ShieldCheck,
 } from "lucide-react";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAuth } from "@/lib/auth-context";
@@ -58,6 +59,7 @@ const NAV: readonly NavItem[] = [
   { to: "/portal/calendar", label: "Calendar", icon: CalendarDays, customerOnly: true },
   { to: "/portal/news", label: "News", icon: Newspaper, customerOnly: true },
 
+  { to: "/portal/installation", label: "Installation", icon: ShieldCheck, customerOnly: true },
   { to: "/portal/downloads", label: "Downloads", icon: Download, customerOnly: true },
   { to: "/portal/subscription", label: "Subscription", icon: FileText, customerOnly: true },
   { to: "/portal/support", label: "Support", icon: MessagesSquare, customerOnly: true },

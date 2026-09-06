@@ -15,6 +15,7 @@ import { listSupportConversations } from "@/lib/support.functions";
 import { listCustomerProfiles, upsertCustomerContract } from "@/lib/mc-admin.functions";
 import { ManageCustomerDialog } from "@/components/app/manage-customer-dialog";
 import { SharedAccessPanel } from "@/components/mc/shared-access";
+import { InstallHistoryPanel } from "@/components/mc/install-history";
 import { ModulePage } from "@/components/app/module-page";
 import { StatCard } from "@/components/ui/stat-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -257,14 +258,17 @@ function CompanyDetailPage() {
           <ProductsTab companyId={company.id} />
         </TabsContent>
 
-        <TabsContent value="installations">
-
+        <TabsContent value="installations" className="space-y-4">
           <InstallationsTable
             installs={installs}
             loading={licensesQ.isLoading}
             onDownload={(installId) => downloadMut.mutate(installId)}
             downloading={downloadMut.isPending ? downloadMut.variables : null}
           />
+          <div>
+            <h3 className="mb-2 text-sm font-medium">Installation history</h3>
+            <InstallHistoryPanel installIds={installs.map((l) => l.install_id)} />
+          </div>
         </TabsContent>
 
         <TabsContent value="licenses" className="space-y-3">

@@ -4296,6 +4296,7 @@ export type Database = {
       cron_mark_outdated_knowledge: { Args: never; Returns: undefined }
       cron_notify_install_health: { Args: never; Returns: number }
       cron_notify_license_expiry: { Args: never; Returns: number }
+      cron_notify_outdated_installs: { Args: never; Returns: number }
       cron_quarterly_knowledge_report: { Args: never; Returns: undefined }
       current_company_id: { Args: never; Returns: string }
       customer_health: { Args: { p_company: string }; Returns: Json }
