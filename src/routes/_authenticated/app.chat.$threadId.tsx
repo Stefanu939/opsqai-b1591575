@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { classifyChatError, chatErrorMessage, isChatStalled } from "@/lib/chat-reliability";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
@@ -21,6 +21,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   ExternalLink,
+  Download,
   Phone,
   Mail,
   UserCheck,
@@ -778,7 +779,9 @@ function SourcesPanel({
   answerBucket: ConfBucket;
   T: (k: string) => string;
 }) {
+  const navigate = useNavigate();
   const docs = sources.filter((s) => s.type === "document");
+
   const faqs = sources.filter((s) => s.type === "faq");
   const primary = docs.find((d) => d.primary) ?? docs[0];
   const primarySim = typeof primary?.similarity === "number" ? primary.similarity : 0;
@@ -791,10 +794,18 @@ function SourcesPanel({
       return s >= 0.25;
     });
 
-  const openDoc = async (documentId?: string) => {
+  // Open the cited document where it lives: the Knowledge Base entry. The old
+  // behaviour created an in-memory blob: URL, which the Windows desktop shell
+  // cannot open ("Get an app to open this 'blob' link").
+  const openDoc = (documentId?: string) => {
     if (!documentId) return;
-    // Streamed through a server fn so the source opens on both Cloud
-    // (object storage) and Self-Hosted (local filesystem).
+    void navigate({ to: "/app/knowledge", search: { doc: documentId } });
+  };
+
+  // Explicit download of the original file (streamed through a server fn so it
+  // works on Cloud object storage and Self-Hosted local storage alike).
+  const downloadDoc = async (documentId?: string, title?: string) => {
+    if (!documentId) return;
     const { getKnowledgeDocumentBlob } = await import("@/lib/kb.functions");
     const blob = await getKnowledgeDocumentBlob({ data: { document_id: documentId } });
     if (!blob) return;
@@ -802,9 +813,15 @@ function SourcesPanel({
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([bytes], { type: blob.content_type }));
-    window.open(url, "_blank");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = title || "document";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
+
 
   const DocCard = ({
     s,
@@ -895,13 +912,22 @@ function SourcesPanel({
         <div className="mt-2 flex items-center gap-3">
           <CopyButton text={s.excerpt} label={T("copy") || "Copy"} />
           {s.document_id && (
-            <button
-              onClick={() => openDoc(s.document_id)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
-            >
-              <ExternalLink className="h-3 w-3" /> Open document
-            </button>
+            <>
+              <button
+                onClick={() => openDoc(s.document_id)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+              >
+                <ExternalLink className="h-3 w-3" /> Open in Knowledge Base
+              </button>
+              <button
+                onClick={() => void downloadDoc(s.document_id, s.title)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
+              >
+                <Download className="h-3 w-3" /> Download file
+              </button>
+            </>
           )}
+
         </div>
       </div>
     );

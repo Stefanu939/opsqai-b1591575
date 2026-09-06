@@ -11,6 +11,8 @@ import {
 } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 import { uuidString } from "@/lib/zod-uuid";
+import { gradeChoiceAnswer, isUngradeableExpectedAnswer } from "@/lib/academy-grading";
+
 import {
   getAcademyRepository,
   getKnowledgeRepository,
@@ -732,12 +734,17 @@ LANGUAGE CONTRACT:
 - Keep only immutable codes, product names, system names, abbreviations, numbers, units, and legal quotations verbatim.
 - Mentally proofread grammar and language consistency before returning.
 CONTENT CONTRACT: Every answer must come only from the lesson. Translate faithfully; never invent facts or omit safety information.
+ANSWER CONTRACT (critical):
+- "correct_answer" MUST repeat one of the "options" strings VERBATIM. Never answer with a letter ("A"), a number, or a paraphrase.
+- true_false questions MUST provide options in the TARGET LANGUAGE and the correct_answer MUST be exactly one of those two option strings.
+- short_answer questions MUST provide a real expected answer sentence. Never write placeholders such as "See lesson content".
 Mix multiple_choice (4 options), true_false, and short_answer. Return only valid JSON without markdown fences.${correction ? `\nCORRECTION REQUIRED: ${correction}` : ""}`,
         },
         {
           role: "user",
-          content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape:\n{"questions":[{"type":"multiple_choice","question":"...","options":["A","B","C","D"],"correct_answer":"A","explanation":"..."}]}`,
+          content: `Generate exactly ${data.count} questions from this lesson:\n\n${body}\n\nReturn this exact JSON object shape (correct_answer repeats one option verbatim):\n{"questions":[{"type":"multiple_choice","question":"...","options":["full option one","full option two","full option three","full option four"],"correct_answer":"full option two","explanation":"..."}]}`,
         },
+
       ],
     });
 
@@ -834,15 +841,34 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
       70;
 
 
-    // Grade using stored, trusted correct_answer values.
-    const results: Array<{ correct: boolean; explanation: string; correct_answer: string }> = [];
+    // Grade using stored, trusted correct answers, resolved to option indices so
+    // a stored letter ("A") or English true/false never mismatches localized
+    // option text. Ungradeable questions are excluded from the score.
+    const results: Array<{
+      correct: boolean;
+      scored: boolean;
+      explanation: string;
+      correct_answer: string;
+    }> = [];
 
     for (let i = 0; i < parsedQuestions.length; i++) {
       const q: StoredQuestion = parsedQuestions[i];
       const a = (data.answers[i] ?? "").trim();
       if (q.type === "multiple_choice" || q.type === "true_false") {
-        const correct = a.toLowerCase() === q.correct_answer.trim().toLowerCase();
-        results.push({ correct, explanation: q.explanation, correct_answer: q.correct_answer });
+        const graded = gradeChoiceAnswer(a, q.correct_answer, q.options ?? [], q.type);
+        results.push({
+          correct: graded.correct,
+          scored: graded.scored,
+          explanation: q.explanation,
+          correct_answer: graded.correctAnswerText || q.correct_answer,
+        });
+      } else if (isUngradeableExpectedAnswer(q.correct_answer)) {
+        results.push({
+          correct: false,
+          scored: false,
+          explanation: q.explanation,
+          correct_answer: "",
+        });
       } else {
         const text = await generateAiText({
           role: "chat",
@@ -858,12 +884,21 @@ export const submitAcademyQuiz = createServerFn({ method: "POST" })
           ],
         });
         const correct = /^yes/i.test(text.trim());
-        results.push({ correct, explanation: q.explanation, correct_answer: q.correct_answer });
+        results.push({
+          correct,
+          scored: true,
+          explanation: q.explanation,
+          correct_answer: q.correct_answer,
+        });
       }
     }
-    const correctCount = results.filter((r) => r.correct).length;
-    const score = Math.round((correctCount / results.length) * 100);
-    const passed = score >= passingScore;
+    const scoredResults = results.filter((r) => r.scored);
+    const correctCount = scoredResults.filter((r) => r.correct).length;
+    const score = scoredResults.length
+      ? Math.round((correctCount / scoredResults.length) * 100)
+      : 0;
+    const passed = scoredResults.length > 0 && score >= passingScore;
+
 
     // Finalize the pending attempt row rather than inserting a new one.
     await repo.gradeQuizAttempt(attempt.id, {

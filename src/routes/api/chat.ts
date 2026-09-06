@@ -66,12 +66,20 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
 
   const dataCtx=await getAuthProvider().getDataContext(header.slice(7));
   const threads=getThreadRepository(dataCtx);
-  const thread=(await threads.listForUser(identity.userId,{limit:500})).find((item)=>item.id===body.threadId);
+  // Thread ownership + profile + existing history are independent reads: run them
+  // together so the first token is not delayed by three sequential round trips.
+  const messageRepo=getMessageRepository(dataCtx);
+  const [threadList,profile,existing]=await Promise.all([
+    threads.listForUser(identity.userId,{limit:200}),
+    getProfileRepository(dataCtx).findByUserId(identity.userId),
+    messageRepo.listByThread(body.threadId),
+  ]);
+  const thread=threadList.find((item)=>item.id===body.threadId);
   if(!thread)return new Response("Thread not found",{status:404});
-  const profile=await getProfileRepository(dataCtx).findByUserId(identity.userId);
   const companyId=thread.companyId||profile?.companyId;
   if(!companyId)return new Response("Company not found",{status:400});
   const firstName=firstNameFrom(profile?.fullName,identity.email);
+
 
   const query=textOf([...messages].reverse().find((m)=>m.role==="user"));
   const isGreeting=greeting.test(query);
@@ -101,7 +109,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       context=strong.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
     }catch(error){console.error("[chat:retrieval]",error);}
   }
-  let images:ImageRef[]=[];
+  const images:ImageRef[]=[];
   try{
     const docSources=sources.filter((s)=>s.type==="document"&&s.document_id);
     const byDoc=new Map<string,number[]>();
@@ -112,24 +120,27 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       arr.push(idx);
       byDoc.set(s.document_id as string,arr);
     }
-    const storage=getStorageProvider();
-    for(const [docId,idxs] of byDoc){
-      if(images.length>=3)break;
-      const rows=await getKnowledgeRepository(dataCtx).getImagesForChunks(docId,idxs);
-      for(const row of rows.filter((r)=>r.approved)){
-        if(images.length>=3)break;
+    if(byDoc.size){
+      const storage=getStorageProvider();
+      // Look up the cited images for every document at once, then read at most
+      // three files concurrently instead of serially.
+      const rowLists=await Promise.all(Array.from(byDoc,([docId,idxs])=>
+        getKnowledgeRepository(dataCtx).getImagesForChunks(docId,idxs).catch((error)=>{console.error("[chat:image-rows]",error);return [];}),
+      ));
+      const wanted=rowLists.flat().filter((r)=>r.approved).slice(0,3);
+      const loaded=await Promise.all(wanted.map(async(row)=>{
         try{
           const bytes=await storage.get(KNOWLEDGE_IMAGES_BUCKET,row.storage_path);
-          images.push({id:row.id,document_id:row.document_id,caption:row.caption,data_url:`data:${row.mime_type};base64,${bytesToB64(bytes)}`});
-        }catch(error){console.error("[chat:image-cite]",error);}
-      }
+          return {id:row.id,document_id:row.document_id,caption:row.caption,data_url:`data:${row.mime_type};base64,${bytesToB64(bytes)}`} as ImageRef;
+        }catch(error){console.error("[chat:image-cite]",error);return null;}
+      }));
+      for(const image of loaded)if(image)images.push(image);
     }
   }catch(error){console.error("[chat:image-gather]",error);}
   const userTexts=messages.filter((m)=>m.role==="user").map((m)=>textOf(m));
   const answerLanguage=resolveAnswerLanguage(userTexts,body.language);
   const grounded=passesGrounding(sources,confidence)||(isFollowup&&Boolean(context));
-  const messageRepo=getMessageRepository(dataCtx);
-  const existing=await messageRepo.listByThread(body.threadId);
+
   const persist=async(finished:UIMessage[])=>{
     const fresh=finished.slice(existing.length);
     await messageRepo.insertMany(fresh.map((m)=>({threadId:body.threadId as string,userId:identity.userId,companyId,role:m.role,content:textOf(m).slice(0,100000),parts:JSON.parse(JSON.stringify(m.parts)) as JsonLike,sources:m.role==="assistant"?JSON.parse(JSON.stringify(sources)) as JsonLike:null,confidence:m.role==="assistant"?confidence:null})));

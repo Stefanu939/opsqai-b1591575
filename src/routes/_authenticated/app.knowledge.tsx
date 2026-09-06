@@ -81,7 +81,11 @@ import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
 export const Route = createFileRoute("/_authenticated/app/knowledge")({
+  // Deep link used by AI Chat sources: /app/knowledge?doc=<document id>
+  validateSearch: (s: Record<string, unknown>): { doc?: string } =>
+    typeof s.doc === "string" && s.doc ? { doc: s.doc } : {},
   head: () => ({
+
     meta: [
       { title: "Knowledge Base — OPSQAI" },
       {
@@ -147,7 +151,10 @@ function KnowledgePage() {
     isManager ||
     hasAnyPermission("knowledge.manage", "sop.create", "sop.edit", "sop.publish", "sop.delete");
 
+  const { doc: focusDocId } = Route.useSearch();
+  const [focusedDoc, setFocusedDoc] = useState<string | null>(focusDocId ?? null);
   const [docs, setDocs] = useState<Doc[]>([]);
+
   const [showInactive, setShowInactive] = useState(false);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -399,6 +406,29 @@ function KnowledgePage() {
       toast.error(String(e));
     }
   };
+
+  // Deep link from AI Chat sources: reveal, scroll to and highlight the document.
+  useEffect(() => {
+    if (!focusDocId) return;
+    const target = docs.find((d) => d.id === focusDocId);
+    if (!target) return;
+    setCategoryFilter("all");
+    setFreshness("all");
+    setSearch("");
+    if (!target.is_active) setShowInactive(true);
+    setFocusedDoc(focusDocId);
+    const raf = requestAnimationFrame(() => {
+      document
+        .getElementById(`kb-doc-${focusDocId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const timer = setTimeout(() => setFocusedDoc(null), 6000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [focusDocId, docs]);
+
 
   // Business metrics rail — every stat answers a concrete KB question.
   const totalActive = docs.filter((d) => d.is_active).length;
@@ -658,8 +688,10 @@ function KnowledgePage() {
           {visibleDocs.map((d) => (
             <Card
               key={d.id}
-              className={`relative p-4 flex items-start gap-3 transition-all hover:shadow-md ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/30" : ""}`}
+              id={`kb-doc-${d.id}`}
+              className={`relative p-4 flex items-start gap-3 transition-all hover:shadow-md ${!d.is_active ? "opacity-60" : ""} ${d.is_critical ? "border-[var(--gold-line)] bg-[var(--gold-soft)]/30" : ""} ${focusedDoc === d.id ? "ring-2 ring-primary" : ""}`}
             >
+
               {d.is_critical && d.is_active && (
                 <span
                   aria-hidden

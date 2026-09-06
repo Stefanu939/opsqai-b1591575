@@ -622,23 +622,36 @@ function TeacherChat({
                         )}
                         {result && (
                           <div
-                            className={`text-xs flex items-start gap-2 ${result.results[i].correct ? "text-success" : "text-destructive"}`}
+                            className={`text-xs flex items-start gap-2 ${
+                              result.results[i].scored === false
+                                ? "text-muted-foreground"
+                                : result.results[i].correct
+                                  ? "text-success"
+                                  : "text-destructive"
+                            }`}
                           >
-                            {result.results[i].correct ? (
+                            {result.results[i].scored === false ? (
+                              <Circle className="h-3 w-3 mt-0.5" />
+                            ) : result.results[i].correct ? (
                               <CheckCircle2 className="h-3 w-3 mt-0.5" />
                             ) : (
                               <XCircle className="h-3 w-3 mt-0.5" />
                             )}
                             <span>
-                              {result.results[i].explanation}{" "}
-                              {!result.results[i].correct && (
-                                <span className="text-muted-foreground">
-                                  · Correct: {result.results[i].correct_answer}
-                                </span>
-                              )}
+                              {result.results[i].scored === false
+                                ? "Not scored — this question had no reliable answer key."
+                                : result.results[i].explanation}{" "}
+                              {result.results[i].scored !== false &&
+                                !result.results[i].correct &&
+                                result.results[i].correct_answer && (
+                                  <span className="text-muted-foreground">
+                                    · Correct: {result.results[i].correct_answer}
+                                  </span>
+                                )}
                             </span>
                           </div>
                         )}
+
                       </div>
                     ))}
                     {!result ? (
