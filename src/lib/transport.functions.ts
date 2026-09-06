@@ -333,8 +333,21 @@ export const getTransportAudit = createServerFn({ method: "POST" })
       db.listChecks(a.companyId),
     ]);
     const activeId = data.checkId ?? checks[0]?.id ?? null;
-    const results = activeId ? await db.listCheckResults(activeId) : [];
-    return { items, checks, activeId, results, grants: a.grants };
+    const [results, settings] = await Promise.all([
+      activeId ? db.listCheckResults(activeId) : Promise.resolve([]),
+      db.getSettings(a.companyId),
+    ]);
+    return {
+      items,
+      checks,
+      activeId,
+      results,
+      grants: a.grants,
+      cadence: settings.auditCadence,
+      auditReminder: settings.auditReminder,
+      auditOwnerUserId: settings.auditOwnerUserId,
+      weekStart: settings.weekStart,
+    };
   });
 
 export const saveChecklistItem = createServerFn({ method: "POST" })
@@ -378,15 +391,69 @@ export const startWeeklyCheck = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
     z
-      .object({ periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) })
+      .object({
+        periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        dueOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+      })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "checklist");
     const db = await import("@/lib/transport/db.server");
-    const id = await db.startCheck(a.companyId, a.userId, a.name, data.periodStart);
+    const id = await db.startCheck(
+      a.companyId,
+      a.userId,
+      a.name,
+      data.periodStart,
+      data.dueOn ?? null,
+    );
     return { id };
+  });
+
+/** Seed the editable starter checklist when a company has no items yet. */
+export const seedTransportChecklist = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    const added = await db.ensureStarterChecklist(a.companyId, a.userId);
+    return { added };
+  });
+
+/** Raise an incident or a request from a failed checklist line. */
+export const escalateCheckResult = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ resultId: uuidString(), kind: z.enum(["incident", "request"]) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    return db.escalateCheckResult(a.companyId, data.resultId, data.kind, a.userId);
+  });
+
+/** Audit run as a base64 PDF, for compliance filing. */
+export const renderAuditReportBase64 = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ checkId: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "export");
+    const db = await import("@/lib/transport/db.server");
+    const bundle = await db.getCheckForReport(a.companyId, data.checkId);
+    if (!bundle) throw new Error("Audit run not found.");
+    const { renderAuditReportPdf } = await import("@/lib/transport/audit-pdf.server");
+    const bytes = await renderAuditReportPdf(bundle);
+    const period = String(bundle.check.period_start).slice(0, 10);
+    return {
+      filename: `transport-audit-${period}.pdf`,
+      base64: Buffer.from(bytes).toString("base64"),
+    };
   });
 
 export const setCheckResult = createServerFn({ method: "POST" })
@@ -526,6 +593,9 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
         weekStart: z.number().int().min(1).max(7).optional(),
         auditDay: z.number().int().min(1).max(7).optional(),
         auditRequired: z.boolean().optional(),
+        auditCadence: z.enum(["manual", "weekly", "biweekly", "monthly"]).optional(),
+        auditOwnerUserId: uuidString().nullish(),
+        auditReminder: z.boolean().optional(),
         mapCenterLat: z.number().min(-90).max(90).nullish(),
         mapCenterLng: z.number().min(-180).max(180).nullish(),
         mapZoom: z.number().int().min(2).max(18).optional(),
@@ -541,6 +611,7 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
     const db = await import("@/lib/transport/db.server");
     return db.saveSettings(a.companyId, {
       ...data,
+      ...("auditOwnerUserId" in data ? { auditOwnerUserId: data.auditOwnerUserId ?? null } : {}),
       mapCenterLat: data.mapCenterLat ?? null,
       mapCenterLng: data.mapCenterLng ?? null,
     });
