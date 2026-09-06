@@ -627,6 +627,6 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
     })();
     return {
       filename: `transport-${data.dataset}-${new Date().toISOString().slice(0, 10)}.csv`,
-      csv: csv(rows as Array<Record<string, unknown>>),
+      csv: csv(rows as unknown as Array<Record<string, unknown>>),
     };
   });
