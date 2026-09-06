@@ -17,16 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { usePilotCopy } from "@/i18n/pages/pilot";
+import { usePilotCopy, pilotCopyEn } from "@/i18n/pages/pilot";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pilot")({
-  head: () => {
-    const t = usePilotCopy();
-    return pageHead({
-      title: t.meta.title,
-      description: t.meta.description,
+  head: () =>
+    pageHead({
+      title: pilotCopyEn.meta.title,
+      description: pilotCopyEn.meta.description,
       path: "/pilot",
       keywords:
         "OPSQAI pilot, free trial operational AI, Windows self-hosted AI pilot, logistics AI pilot, HR AI pilot, Romania, Germany",
@@ -40,9 +39,9 @@ export const Route = createFileRoute("/pilot")({
           { name: "Pilot Program", path: "/pilot" },
         ]),
       ],
-    });
-  },
+    }),
   component: PilotPage,
+
 });
 
 const inputCls =
