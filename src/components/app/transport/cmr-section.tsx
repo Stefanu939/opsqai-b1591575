@@ -35,7 +35,6 @@ export function CmrSection({ t }: { t: Ui }) {
   const data = query.data;
   const pack = useMemo(() => countryPack(data?.settings.country), [data?.settings.country]);
   const canEdit = data?.grants.includes("cmr") ?? false;
-  const lang = (data?.settings.language as "en" | "de" | "ro") ?? "en";
 
   const options = useMemo(
     () => ({
@@ -68,7 +67,7 @@ export function CmrSection({ t }: { t: Ui }) {
   return (
     <RegisterTable<CmrRecord>
       icon={FileText}
-      title={`${t.cmr} — ${pack.label[lang]}`}
+      title={`${t.cmr} — ${pack.label}`}
       description={t.cmrBody}
       rows={data?.records ?? []}
       columns={[
@@ -103,7 +102,9 @@ export function CmrSection({ t }: { t: Ui }) {
         export: t.export,
         actions: t.actions,
       }}
-      onSave={(values, id) => save({ data: id ? { id, values } : { values } })}
+      onSave={(values, id) =>
+        save({ data: id ? { id, values } : { values } }).then(() => refresh())
+      }
       onExport={() => void exportCsv("cmr")}
       rowActions={(row) => (
         <>

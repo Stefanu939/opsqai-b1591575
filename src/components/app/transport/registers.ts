@@ -15,7 +15,7 @@ export type RegisterName =
 type Ui = ReturnType<typeof transportUi>;
 type Opt = { value: string; label: string };
 
-const STATUS = (t: Ui): Opt[] => [
+const STATUS = (): Opt[] => [
   { value: "active", label: "Active" },
   { value: "attention", label: "Attention" },
   { value: "blocked", label: "Blocked" },
@@ -55,7 +55,7 @@ export function vehicleFields(t: Ui, drivers: Opt[]): FieldDef[] {
     { key: "latitude", label: t.latitude, kind: "number" },
     { key: "longitude", label: t.longitude, kind: "number" },
     { key: "assigned_driver_id", label: t.driver, kind: "select", options: drivers },
-    { key: "status", label: t.status, kind: "select", options: STATUS(t) },
+    { key: "status", label: t.status, kind: "select", options: STATUS() },
     { key: "notes", label: t.notes, kind: "textarea" },
   ];
 }
@@ -71,7 +71,7 @@ export function driverFields(t: Ui, vehicles: Opt[]): FieldDef[] {
     { key: "latitude", label: t.latitude, kind: "number" },
     { key: "longitude", label: t.longitude, kind: "number" },
     { key: "assigned_vehicle_id", label: t.vehicle, kind: "select", options: vehicles },
-    { key: "status", label: t.status, kind: "select", options: STATUS(t) },
+    { key: "status", label: t.status, kind: "select", options: STATUS() },
     { key: "notes", label: t.notes, kind: "textarea" },
   ];
 }
@@ -89,7 +89,7 @@ export function carrierFields(t: Ui): FieldDef[] {
     { key: "latitude", label: t.latitude, kind: "number" },
     { key: "longitude", label: t.longitude, kind: "number" },
     { key: "rating", label: t.rating, kind: "number" },
-    { key: "status", label: t.status, kind: "select", options: STATUS(t) },
+    { key: "status", label: t.status, kind: "select", options: STATUS() },
     { key: "requirements", label: t.requirements, kind: "textarea" },
     { key: "handling_rules", label: t.handlingRules, kind: "textarea" },
     { key: "notes", label: t.notes, kind: "textarea" },
