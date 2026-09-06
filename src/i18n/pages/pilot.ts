@@ -1,7 +1,7 @@
 // Copy for the public pilot program page.
 import { useT } from "@/i18n";
 
-const en = {
+export const pilotCopyEn = {
   meta: {
     title: "Pilot Program — OPSQAI · 30 Days Free Windows Self-Hosted Trial",
     description:
@@ -53,7 +53,7 @@ const en = {
   },
 };
 
-type PilotCopy = typeof en;
+type PilotCopy = typeof pilotCopyEn;
 
 const de: PilotCopy = {
   meta: {
@@ -161,5 +161,5 @@ const ro: PilotCopy = {
 
 export function usePilotCopy(): PilotCopy {
   const { lang } = useT();
-  return lang === "de" ? de : lang === "ro" ? ro : en;
+  return lang === "de" ? de : lang === "ro" ? ro : pilotCopyEn;
 }
