@@ -6,7 +6,7 @@ import { OixButton } from "./buttons";
 import { LogoMark } from "@/components/brand/logo";
 import { useT } from "@/i18n";
 import { useMarketing } from "@/i18n/marketing";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 export function NavShell() {
@@ -144,10 +144,16 @@ export function NavShell() {
               </SheetHeader>
               <nav className="flex flex-col px-6 py-6" aria-label="Mobile navigation">
                 {links.map((link) => (
-                  <Link key={link.to} to={link.to} className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{link.label}</Link>
+                  <SheetClose asChild key={link.to}>
+                    <Link to={link.to} className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{link.label}</Link>
+                  </SheetClose>
                 ))}
-                <Link to="/documentation" className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{m.nav.documentation}</Link>
-                <Link to="/blog" className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{m.nav.blog}</Link>
+                <SheetClose asChild>
+                  <Link to="/documentation" className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{m.nav.documentation}</Link>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Link to="/blog" className="border-b border-[var(--oix-gold-line)] py-4 text-base font-medium text-[var(--oix-cream)]">{m.nav.blog}</Link>
+                </SheetClose>
               </nav>
               <div className="space-y-4 px-6 pb-6">
                 <div className="flex items-center gap-2" role="group" aria-label={m.a11y.language}>
