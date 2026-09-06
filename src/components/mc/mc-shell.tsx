@@ -10,7 +10,6 @@ import {
   Bell,
   Menu,
   X,
-  LogOut,
   ShieldCheck,
   CalendarDays,
 
@@ -65,7 +64,7 @@ const SECTIONS: Section[] = [
 ];
 
 export function ManagementShell({ children }: { children: ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
