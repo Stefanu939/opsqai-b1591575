@@ -35,6 +35,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as LegalRouteRouteImport } from './routes/legal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SolutionsIndexRouteImport } from './routes/solutions.index'
 import { Route as DocumentationIndexRouteImport } from './routes/documentation.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
@@ -267,6 +268,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsIndexRoute = SolutionsIndexRouteImport.update({
+  id: '/solutions/',
+  path: '/solutions/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentationIndexRoute = DocumentationIndexRouteImport.update({
@@ -898,6 +904,7 @@ export interface FileRoutesByFullPath {
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
+  '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1024,6 +1031,7 @@ export interface FileRoutesByTo {
   '/verify/$code': typeof VerifyCodeRoute
   '/blog': typeof BlogIndexRoute
   '/documentation': typeof DocumentationIndexRoute
+  '/solutions': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1155,6 +1163,7 @@ export interface FileRoutesById {
   '/verify/$code': typeof VerifyCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/documentation/': typeof DocumentationIndexRoute
+  '/solutions/': typeof SolutionsIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/app/audit': typeof AuthenticatedAppAuditRoute
@@ -1288,6 +1297,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/blog/'
     | '/documentation/'
+    | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -1414,6 +1424,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/blog'
     | '/documentation'
+    | '/solutions'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/app/audit'
@@ -1544,6 +1555,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/blog/'
     | '/documentation/'
+    | '/solutions/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/app/audit'
@@ -1659,6 +1671,7 @@ export interface RootRouteChildren {
   ApiTtsRoute: typeof ApiTtsRoute
   ApiWorkspaceChatRoute: typeof ApiWorkspaceChatRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  SolutionsIndexRoute: typeof SolutionsIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiAuthPasswordResetConfirmRoute: typeof ApiAuthPasswordResetConfirmRoute
@@ -1867,6 +1880,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/': {
+      id: '/solutions/'
+      path: '/solutions'
+      fullPath: '/solutions/'
+      preLoaderRoute: typeof SolutionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documentation/': {
@@ -2916,6 +2936,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTtsRoute: ApiTtsRoute,
   ApiWorkspaceChatRoute: ApiWorkspaceChatRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  SolutionsIndexRoute: SolutionsIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiAuthPasswordResetConfirmRoute: ApiAuthPasswordResetConfirmRoute,
