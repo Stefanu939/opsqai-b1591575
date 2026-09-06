@@ -383,6 +383,8 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
         position: z.number().int().min(0).optional(),
         required: z.boolean().optional(),
         active: z.boolean().optional(),
+        valueKind: z.enum(["none", "number", "text"]).optional(),
+        valueUnit: z.string().max(40).nullish(),
       })
       .parse(input),
   )
@@ -393,6 +395,7 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
     await db.upsertChecklistItem(a.companyId, a.userId, {
       ...data,
       hint: data.hint ?? null,
+      valueUnit: data.valueUnit ?? null,
     });
     return { ok: true };
   });
