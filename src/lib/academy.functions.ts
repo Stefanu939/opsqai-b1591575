@@ -11,7 +11,8 @@ import {
 } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 import { uuidString } from "@/lib/zod-uuid";
-import { gradeChoiceAnswer, isUngradeableExpectedAnswer } from "@/lib/academy-grading";
+import { gradeChoiceAnswer, isUngradeableExpectedAnswer, resolveOptionIndex } from "@/lib/academy-grading";
+import { checkAcademyGrounding } from "@/lib/academy-grounding";
 
 import {
   getAcademyRepository,
@@ -20,11 +21,15 @@ import {
   getStorageProvider,
 } from "@/lib/providers/registry";
 import {
+  academyLanguageCorrection,
   academyLanguageInstruction,
+  academyLanguageQualityIssue,
+  academyTrueFalseOptions,
   hasWrongAcademyScript,
   localizedAcademyQuizFallback,
   normalizeAcademyLanguage,
 } from "@/lib/academy-language";
+
 
 const ACADEMY_MODULE = "academy" as const;
 
