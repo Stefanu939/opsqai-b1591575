@@ -66,9 +66,7 @@ export interface ResolveAccessibleModulesInput {
 /**
  * Resolve the modules a given user may access.
  *
- * - `superadmin` and `admin` always get every licensed module (they manage
- *   the workspace and must never be locked out of a module by an accidental
- *   missing grant).
+ * - `superadmin` always gets every licensed module. Admin is configurable.
  * - Other roles use the explicit grant list when present, otherwise fall
  *   back to the role preset.
  * - The result is always intersected with `licensedModules` — a per-user
@@ -78,7 +76,7 @@ export function resolveAccessibleModules(input: ResolveAccessibleModulesInput): 
   const role = normalizeAppRole(input.role);
   const licensedSet = new Set(input.licensedModules);
 
-  if (role === "superadmin" || role === "admin") {
+  if (role === "superadmin") {
     return ALL_MODULE_KEYS.filter((m) => licensedSet.has(m));
   }
 

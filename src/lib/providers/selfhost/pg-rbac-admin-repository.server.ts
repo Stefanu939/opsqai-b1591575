@@ -44,6 +44,11 @@ export function createPgRbacAdminRepository({ pool }: { pool: Pool }): IRbacAdmi
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
+        const protectedRole = await client.query<{ is_protected: boolean }>(
+          "SELECT is_protected FROM public.roles WHERE key=$1 FOR UPDATE", [key],
+        );
+        if (!protectedRole.rows[0]) throw new Error("Role not found");
+        if (protectedRole.rows[0].is_protected) throw new Error("Protected roles cannot be edited");
         await client.query(
           "UPDATE public.roles SET name=$2, description=$3, updated_at=NOW() WHERE key=$1",
           [key, input.name, input.description ?? null],

@@ -38,6 +38,7 @@ import { createPgDirectMessageRepository } from "./pg-direct-message-repository.
 import { createPgAiAuditRepository } from "./pg-ai-audit-repository.server";
 import { pgComplianceRepositoryFactory } from "./pg-compliance-repository.server";
 import { pgModuleAccessRepositoryFactory } from "./pg-module-access-repository.server";
+import { createPgAreaRightsRepository } from "./pg-area-rights-repository.server";
 import { createPgDashboardRepository } from "./pg-dashboard-repository.server";
 import { createPgExportRepository } from "./pg-export-repository.server";
 import { createPgCalendarRepository } from "./pg-calendar-repository.server";
@@ -70,6 +71,7 @@ import {
   registerAcademyRepositoryFactory,
   registerCalendarRepositoryFactory,
   registerPresenceRepositoryFactory,
+  registerAreaRightsRepositoryFactory,
 } from "@/lib/providers/registry";
 
 import { createLocalAuthProvider } from "./local-auth.server";
@@ -333,6 +335,7 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerAiAuditRepositoryFactory(() => createPgAiAuditRepository({ pool }));
   registerComplianceRepositoryFactory(pgComplianceRepositoryFactory({ pool }));
   registerModuleAccessRepositoryFactory(pgModuleAccessRepositoryFactory({ pool }));
+  registerAreaRightsRepositoryFactory(() => createPgAreaRightsRepository({ pool }));
   registerDashboardRepositoryFactory(() => createPgDashboardRepository({ pool }));
   const exportRepo = createPgExportRepository({
     pool,

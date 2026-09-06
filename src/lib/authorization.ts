@@ -12,6 +12,8 @@ import {
   getAdminCompanyRepository,
   getProfileRepository,
   getRoleRepository,
+  getAreaRightsRepository,
+  hasAreaRightsRepository,
 } from "@/lib/providers/registry";
 
 const PLATFORM_ROLES = new Set(["platform_owner", "platform_admin"]);
@@ -44,8 +46,15 @@ export async function hasPermission(
     repo.isPlatformOwner(context.userId),
     repo.hasPermission(context.userId, permission),
   ]);
-  // Platform Owner is the installation owner and bypasses all permission checks.
-  return isOwner || has;
+  // Owner and platform-level SuperAdmins are permanent full-access roles.
+  const roles = await repo.listRolesForUser(context.userId);
+  if (isOwner || roles.some((role) => role === "platform_admin" || role === "superadmin")) return true;
+  // Self-Hosted named-user rights override the role default for a mapped action.
+  if (hasAreaRightsRepository()) {
+    const explicit = await getAreaRightsRepository(context.supabase).findByPermission(context.userId, permission);
+    if (explicit) return explicit.granted;
+  }
+  return has;
 }
 
 export async function requirePermission(
