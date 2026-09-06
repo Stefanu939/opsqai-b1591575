@@ -23,7 +23,7 @@ import {
   ChevronLeft,
   ListChecks,
   BookOpenCheck,
-  Lock,
+  Circle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/academy/lesson/$lessonId")({
