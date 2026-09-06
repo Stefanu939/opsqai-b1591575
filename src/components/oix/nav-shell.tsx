@@ -87,7 +87,7 @@ export function NavShell() {
         <div className="flex items-center gap-2 shrink-0">
           {/* Language — always visible */}
           <div
-            className="hidden items-center overflow-hidden rounded-sm border border-[var(--oix-gold-line)] sm:flex"
+            className="flex items-center overflow-hidden rounded-sm border border-[var(--oix-gold-line)]"
             role="group"
             aria-label={m.a11y.language}
           >
@@ -98,11 +98,12 @@ export function NavShell() {
                 onClick={() => setLang(code)}
                 aria-pressed={lang === code}
                 className={cn(
-                  "px-2.5 py-1.5 text-xs font-semibold uppercase transition-colors",
+                  "px-2 py-1.5 text-[11px] font-semibold uppercase transition-colors sm:px-2.5 sm:text-xs",
                   lang === code
                     ? "bg-[var(--oix-cream)] text-[var(--oix-bg-deep)]"
                     : "text-[var(--oix-cream-dim)] hover:bg-[var(--oix-gold)]/10 hover:text-[var(--oix-cream)]",
                 )}
+
               >
                 {code}
               </button>
@@ -156,14 +157,12 @@ export function NavShell() {
                 </SheetClose>
               </nav>
               <div className="space-y-4 px-6 pb-6">
-                <div className="flex items-center gap-2" role="group" aria-label={m.a11y.language}>
-                  {(["en", "de", "ro"] as const).map((code) => (
-                    <button key={code} type="button" onClick={() => setLang(code)} aria-pressed={lang === code} className={cn("h-10 flex-1 rounded-sm border border-[var(--oix-gold-line)] text-xs font-semibold uppercase", lang === code && "bg-[var(--oix-cream)] text-[var(--oix-bg-deep)]")}>{code}</button>
-                  ))}
+                <div className="flex items-center gap-2">
                   <button type="button" onClick={toggleTheme} aria-label={m.a11y.theme} className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-[var(--oix-gold-line)]">
                     {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   </button>
                 </div>
+
                 <OixButton variant="gold" to="/contact" withArrow className="w-full">{m.cta.proposal}</OixButton>
                 <OixButton variant="ghost" to="/auth" className="w-full">{m.cta.signIn}</OixButton>
               </div>
