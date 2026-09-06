@@ -4606,6 +4606,7 @@ export type Database = {
         | "privacy"
         | "partnership"
         | "other"
+        | "pilot"
       message_role: "user" | "assistant" | "system"
       sso_config_status: "draft" | "pending_review" | "active" | "rejected"
       sso_idp_type:
@@ -4785,6 +4786,7 @@ export const Constants = {
         "privacy",
         "partnership",
         "other",
+        "pilot",
       ],
       message_role: ["user", "assistant", "system"],
       sso_config_status: ["draft", "pending_review", "active", "rejected"],
