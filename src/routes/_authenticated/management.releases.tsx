@@ -38,6 +38,14 @@ import { Rocket, Plus, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
+
+function formatBytes(bytes: number): string {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  const i = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+}
 
 export const Route = createFileRoute("/_authenticated/management/releases")({
   head: () => ({ meta: [{ title: "Releases — Management Center" }] }),
