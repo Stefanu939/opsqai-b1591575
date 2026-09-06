@@ -383,6 +383,8 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
         position: z.number().int().min(0).optional(),
         required: z.boolean().optional(),
         active: z.boolean().optional(),
+        valueKind: z.enum(["none", "number", "text"]).optional(),
+        valueUnit: z.string().max(40).nullish(),
       })
       .parse(input),
   )
@@ -393,6 +395,7 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
     await db.upsertChecklistItem(a.companyId, a.userId, {
       ...data,
       hint: data.hint ?? null,
+      valueUnit: data.valueUnit ?? null,
     });
     return { ok: true };
   });
@@ -485,6 +488,8 @@ export const setCheckResult = createServerFn({ method: "POST" })
         resultId: uuidString(),
         outcome: z.enum(["pending", "ok", "issue", "not_applicable"]),
         note: z.string().max(2000).nullish(),
+        valueText: z.string().max(500).nullish(),
+        valueNumber: z.number().finite().nullish(),
       })
       .parse(input),
   )
@@ -498,7 +503,49 @@ export const setCheckResult = createServerFn({ method: "POST" })
       data.outcome,
       data.note ?? null,
       a.userId,
+      { text: data.valueText ?? null, number: data.valueNumber ?? null },
     );
+    return { ok: true };
+  });
+
+/** Record only the measured value of a checklist line during a run. */
+export const setCheckResultValue = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        resultId: uuidString(),
+        valueText: z.string().max(500).nullish(),
+        valueNumber: z.number().finite().nullish(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    await db.setCheckResultValue(
+      a.companyId,
+      data.resultId,
+      { text: data.valueText ?? null, number: data.valueNumber ?? null },
+      a.userId,
+    );
+    return { ok: true };
+  });
+
+/** Stop the run for the current period without completing it. */
+export const cancelWeeklyCheck = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ checkId: uuidString(), reason: z.string().max(2000).nullish() })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "checklist");
+    const db = await import("@/lib/transport/db.server");
+    await db.cancelCheck(a.companyId, data.checkId, data.reason ?? null);
     return { ok: true };
   });
 

@@ -140,6 +140,16 @@ export async function renderAuditReportPdf(input: {
     text(OUTCOME_LABEL[result.outcome], M, 9, true);
     text(result.item_label, M + 70, 9.5);
     y -= 13;
+    if (result.value_kind !== "none") {
+      const raw =
+        result.value_kind === "number"
+          ? result.value_number === null
+            ? null
+            : String(result.value_number)
+          : result.value_text;
+      const unit = result.value_unit ? ` ${result.value_unit}` : "";
+      wrap(`Value: ${raw === null || raw === "" ? "-" : `${raw}${unit}`}`, M + 70, W - 70, 8.5);
+    }
     if (result.note) wrap(`Note: ${result.note}`, M + 70, W - 70, 8.5);
     const links: string[] = [];
     if (result.incident_id) links.push(`Incident ${result.incident_id.slice(0, 8)}`);
