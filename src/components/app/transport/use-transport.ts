@@ -16,14 +16,15 @@ import {
 import { downloadText } from "./download";
 import type { RegisterName } from "./registers";
 
-export function useTransportOverview() {
+export function useTransportOverview(periodDays = 30) {
   const fn = useServerFn(getTransportOverview);
   return useQuery({
-    queryKey: ["transport", "overview"],
-    queryFn: () => fn(),
+    queryKey: ["transport", "overview", periodDays],
+    queryFn: () => fn({ data: { periodDays } }),
     retry: false,
   });
 }
+
 
 export function useTransportRegisters() {
   const fn = useServerFn(getTransportRegisters);
