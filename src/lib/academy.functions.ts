@@ -11,6 +11,8 @@ import {
 } from "@/lib/authorization";
 import { assertModuleForCompany } from "@/lib/license-enforcement.server";
 import { uuidString } from "@/lib/zod-uuid";
+import { gradeChoiceAnswer, isUngradeableExpectedAnswer } from "@/lib/academy-grading";
+
 import {
   getAcademyRepository,
   getKnowledgeRepository,
