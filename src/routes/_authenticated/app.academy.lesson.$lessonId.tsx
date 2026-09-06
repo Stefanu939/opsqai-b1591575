@@ -702,8 +702,7 @@ function TeacherChat({
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       if (!input.trim() || status === "streaming") return;
-                      void sendMessage({ text: input.trim() });
-                      setInput("");
+                      void handleSend(input.trim());
                     }
                   }}
                   placeholder="Reply to your AI Teacher…"
@@ -716,8 +715,7 @@ function TeacherChat({
                   disabled={!input.trim() || status === "streaming"}
                   onClick={() => {
                     if (!input.trim()) return;
-                    void sendMessage({ text: input.trim() });
-                    setInput("");
+                    void handleSend(input.trim());
                   }}
                 >
                   <ArrowUp className="h-4 w-4" />
@@ -728,21 +726,24 @@ function TeacherChat({
                   <Sparkles className="h-3 w-3 text-primary" /> Grounded only in this lesson — no
                   outside information.
                 </div>
-                {!quiz &&
-                  (lessonComplete ? (
-                    <button
-                      onClick={startQuiz}
-                      disabled={quizLoading}
-                      className="text-[11.5px] font-medium text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      {quizLoading ? <RotateCw className="h-3.5 w-3.5 animate-spin" /> : <BookOpenCheck className="h-3.5 w-3.5" />}
-                      {quizLoading ? "Preparing quiz…" : "I'm ready for the quiz"}
-                    </button>
-                  ) : (
-                    <span className="text-[11.5px] text-muted-foreground inline-flex items-center gap-1">
-                      <Lock className="h-3 w-3" /> Quiz unlocks after the lesson is complete
-                    </span>
-                  ))}
+                {!quiz && (
+                  <button
+                    onClick={startQuiz}
+                    disabled={quizLoading}
+                    className="text-[11.5px] font-medium text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    {quizLoading ? (
+                      <RotateCw className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <BookOpenCheck className="h-3.5 w-3.5" />
+                    )}
+                    {quizLoading
+                      ? "Preparing quiz…"
+                      : lessonComplete
+                        ? "I'm ready for the quiz"
+                        : "Go straight to the quiz"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
