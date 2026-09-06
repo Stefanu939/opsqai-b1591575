@@ -41,6 +41,7 @@ import { AccountMenu } from "@/components/app/account-menu";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
+import { IdleSessionGuard } from "@/components/app/idle-session-guard";
 import { useLicense, hasModule } from "@/lib/license";
 import type { ModuleKey } from "@/lib/license-modules";
 import { buildAppNavigation, type NavEntry } from "@/lib/app-navigation";
@@ -338,6 +339,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="md:contents">
           <SubscriptionStatusBanner />
+          <IdleSessionGuard />
+
           
           
         </div>
