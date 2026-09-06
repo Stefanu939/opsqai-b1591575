@@ -37,6 +37,8 @@ export async function renderAuditReportPdf(input: {
   check: WeeklyCheck;
   results: CheckResult[];
   companyName?: string | null;
+  /** Optional evidence images, embedded under the line they belong to. */
+  evidence?: Array<{ resultId: string; mime: string; bytes: Uint8Array; filename: string }>;
 }): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
@@ -119,6 +121,18 @@ export async function renderAuditReportPdf(input: {
     ["Completed", day(input.check.completed_at)],
     ["Performed by", input.check.ran_by_name ?? "-"],
     [
+      "Auditor signature",
+      input.check.signed_by_name
+        ? `${input.check.signed_by_name} · ${day(input.check.signed_at)}`
+        : "-",
+    ],
+    [
+      "Approved by",
+      input.check.approved_by_name
+        ? `${input.check.approved_by_name} · ${day(input.check.approved_at)}`
+        : "-",
+    ],
+    [
       "Result",
       `${counts.ok} OK · ${counts.issue} issues · ${counts.na} N/A · ${counts.pending} pending`,
     ],
@@ -138,7 +152,13 @@ export async function renderAuditReportPdf(input: {
   for (const result of input.results) {
     newPageIfNeeded(30);
     text(OUTCOME_LABEL[result.outcome], M, 9, true);
-    text(result.item_label, M + 70, 9.5);
+    text(
+      result.subject_label
+        ? `${result.item_label} — ${result.subject_label}`
+        : result.item_label,
+      M + 70,
+      9.5,
+    );
     y -= 13;
     if (result.value_kind !== "none") {
       const raw =
@@ -148,7 +168,17 @@ export async function renderAuditReportPdf(input: {
             : String(result.value_number)
           : result.value_text;
       const unit = result.value_unit ? ` ${result.value_unit}` : "";
-      wrap(`Value: ${raw === null || raw === "" ? "-" : `${raw}${unit}`}`, M + 70, W - 70, 8.5);
+      const limits =
+        result.value_min !== null || result.value_max !== null
+          ? ` (limits ${result.value_min ?? "-"} … ${result.value_max ?? "-"})`
+          : "";
+      const flag = result.out_of_range ? " OUT OF RANGE" : "";
+      wrap(
+        `Value: ${raw === null || raw === "" ? "-" : `${raw}${unit}`}${limits}${flag}`,
+        M + 70,
+        W - 70,
+        8.5,
+      );
     }
     if (result.note) wrap(`Note: ${result.note}`, M + 70, W - 70, 8.5);
     const links: string[] = [];
@@ -158,6 +188,37 @@ export async function renderAuditReportPdf(input: {
       newPageIfNeeded(14);
       text(links.join(" · "), M + 70, 8.5, false, muted);
       y -= 12;
+    }
+
+    // Evidence: embed images inline, list other files by name.
+    for (const file of input.evidence ?? []) {
+      if (file.resultId !== result.id) continue;
+      const isPng = file.mime.includes("png");
+      const isJpg = file.mime.includes("jpeg") || file.mime.includes("jpg");
+      if (!isPng && !isJpg) {
+        newPageIfNeeded(14);
+        text(`Evidence: ${file.filename}`, M + 70, 8.5, false, muted);
+        y -= 12;
+        continue;
+      }
+      try {
+        const image = isPng ? await doc.embedPng(file.bytes) : await doc.embedJpg(file.bytes);
+        const maxW = 200;
+        const scale = Math.min(1, maxW / image.width);
+        const w = image.width * scale;
+        const h = image.height * scale;
+        newPageIfNeeded(h + 16);
+        y -= h;
+        page.drawImage(image, { x: M + 70, y, width: w, height: h });
+        y -= 6;
+        newPageIfNeeded(14);
+        text(file.filename, M + 70, 8, false, muted);
+        y -= 12;
+      } catch {
+        newPageIfNeeded(14);
+        text(`Evidence: ${file.filename}`, M + 70, 8.5, false, muted);
+        y -= 12;
+      }
     }
     y -= 4;
   }
