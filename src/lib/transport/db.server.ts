@@ -1413,7 +1413,7 @@ export async function listMapPins(companyId: string): Promise<MapPin[]> {
   const [vehicles, drivers, carriers, incidents] = await Promise.all([
     q<MapPin>(
       `SELECT id, 'vehicle'::text AS kind, plate AS label, base_location AS sub,
-              latitude AS lat, longitude AS lng, status
+              latitude AS lat, longitude AS lng, status, kind AS vehicle_kind
          FROM public.transport_vehicles
         WHERE company_id = $1 AND archived_at IS NULL
           AND latitude IS NOT NULL AND longitude IS NOT NULL`,
