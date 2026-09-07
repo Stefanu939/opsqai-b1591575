@@ -87,6 +87,8 @@ function require(a: Actor, grant: TransportGrantKey): void {
 
 const REGISTERS = [
   "vehicles",
+  "trailers",
+  "couplings",
   "drivers",
   "carriers",
   "documents",
@@ -121,6 +123,8 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       requests,
       check,
       vehicles,
+      trailers,
+      couplings,
       drivers,
       carriers,
       pins,
@@ -136,6 +140,8 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       db.listRequests(a.companyId),
       db.lastCheck(a.companyId),
       db.listVehicles(a.companyId),
+      db.listTrailers(a.companyId),
+      db.listCouplings(a.companyId, 14, 30),
       db.listDrivers(a.companyId),
       db.listCarriers(a.companyId),
       db.listMapPins(a.companyId),
@@ -153,6 +159,8 @@ export const getTransportOverview = createServerFn({ method: "POST" })
         .filter((r) => r.status === "open" || r.status === "in_review")
         .slice(0, 25),
       vehicles,
+      trailers,
+      couplings,
       drivers,
       carriers,
       pins,
@@ -177,6 +185,8 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
     const db = await import("@/lib/transport/db.server");
     const [
       vehicles,
+      trailers,
+      couplings,
       drivers,
       carriers,
       documents,
@@ -187,6 +197,8 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
       duty,
     ] = await Promise.all([
       db.listVehicles(a.companyId),
+      db.listTrailers(a.companyId),
+      db.listCouplings(a.companyId, 60, 60),
       db.listDrivers(a.companyId),
       db.listCarriers(a.companyId),
       db.listDocuments(a.companyId),
@@ -198,6 +210,8 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
     ]);
     return {
       vehicles,
+      trailers,
+      couplings,
       drivers,
       carriers,
       documents,
@@ -928,6 +942,8 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
       .object({
         dataset: z.enum([
           "vehicles",
+          "trailers",
+          "couplings",
           "drivers",
           "carriers",
           "documents",
@@ -949,6 +965,10 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
       switch (data.dataset) {
         case "vehicles":
           return db.listVehicles(a.companyId);
+        case "trailers":
+          return db.listTrailers(a.companyId);
+        case "couplings":
+          return db.listCouplings(a.companyId, 365, 365);
         case "drivers":
           return db.listDrivers(a.companyId);
         case "carriers":
@@ -972,6 +992,59 @@ export const exportTransportCsv = createServerFn({ method: "POST" })
     return {
       filename: `transport-${data.dataset}-${new Date().toISOString().slice(0, 10)}.csv`,
       csv: csv(rows as unknown as Array<Record<string, unknown>>),
+    };
+  });
+
+// ── Coupling sheet export (Excel / PDF) ──────────────────────────────────
+
+export const exportCouplingSheet = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        format: z.enum(["xlsx", "pdf"]),
+        from: z.string().optional(),
+        to: z.string().optional(),
+        labels: z.object({
+          title: z.string(),
+          date: z.string(),
+          vehicle: z.string(),
+          trailer: z.string(),
+          driver: z.string(),
+          route: z.string(),
+          status: z.string(),
+          notes: z.string(),
+          generated: z.string(),
+        }),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "export");
+    const db = await import("@/lib/transport/db.server");
+    const all = await db.listCouplings(a.companyId, 3650, 3650);
+    const from = data.from ?? null;
+    const to = data.to ?? null;
+    const rows = all.filter(
+      (c) => (!from || c.coupling_date >= from) && (!to || c.coupling_date <= to),
+    );
+    const mod = await import("@/lib/transport/coupling-export.server");
+    const bytes =
+      data.format === "xlsx"
+        ? await mod.renderCouplingXlsx(rows, data.labels)
+        : await mod.renderCouplingPdf(rows, data.labels);
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    const stamp = new Date().toISOString().slice(0, 10);
+    return {
+      filename: `transport-sets-${stamp}.${data.format}`,
+      mime:
+        data.format === "xlsx"
+          ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          : "application/pdf",
+      base64: btoa(binary),
+      count: rows.length,
     };
   });
 

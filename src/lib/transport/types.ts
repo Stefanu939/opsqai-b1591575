@@ -154,9 +154,47 @@ export interface Carrier {
   updated_at: string;
 }
 
+export interface Trailer {
+  id: string;
+  plate: string;
+  kind: string;
+  make: string | null;
+  model: string | null;
+  vin: string | null;
+  ownership: string;
+  payload_kg: number | null;
+  volume_m3: number | null;
+  axles: number | null;
+  base_location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  assigned_vehicle_id: string | null;
+  status: RecordStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** One saved set: truck + trailer + driver for a given day. */
+export interface Coupling {
+  id: string;
+  coupling_date: string;
+  vehicle_id: string | null;
+  vehicle_plate: string | null;
+  trailer_id: string | null;
+  trailer_plate: string | null;
+  driver_id: string | null;
+  driver_name: string | null;
+  route: string | null;
+  status: "planned" | "active" | "done" | "cancelled";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TransportDocument {
   id: string;
-  owner_kind: "vehicle" | "driver" | "carrier";
+  owner_kind: "vehicle" | "trailer" | "driver" | "carrier";
   owner_id: string;
   doc_type: string;
   label: string | null;
@@ -310,7 +348,7 @@ export interface MapZone {
 
 export interface MapPin {
   id: string;
-  kind: "vehicle" | "driver" | "carrier" | "incident";
+  kind: "vehicle" | "trailer" | "driver" | "carrier" | "incident";
   label: string;
   sub: string | null;
   lat: number;
@@ -375,7 +413,7 @@ export interface CmrRecord {
 
 export interface ExpiryAlert {
   documentId: string;
-  ownerKind: "vehicle" | "driver" | "carrier";
+  ownerKind: "vehicle" | "trailer" | "driver" | "carrier";
   ownerId: string;
   ownerLabel: string;
   docType: string;
@@ -428,6 +466,7 @@ export interface TransportOverview {
   settings: TransportSettings;
   counts: {
     vehicles: number;
+    trailers: number;
     drivers: number;
     carriers: number;
     openIncidents: number;
@@ -439,6 +478,8 @@ export interface TransportOverview {
   recentIncidents: Incident[];
   openRequests: TransportRequest[];
   vehicles: Vehicle[];
+  trailers: Trailer[];
+  couplings: Coupling[];
   drivers: Driver[];
   carriers: Carrier[];
   pins: MapPin[];

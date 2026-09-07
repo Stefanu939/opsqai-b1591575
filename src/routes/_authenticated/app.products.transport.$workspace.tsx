@@ -22,6 +22,7 @@ import {
   OperationsSection,
   RequestsSection,
 } from "@/components/app/transport/registers-section";
+import { CouplingBoard } from "@/components/app/transport/coupling-board";
 import { AuditSection } from "@/components/app/transport/audit-section";
 import { NotesSection } from "@/components/app/transport/notes-section";
 import { MapSection } from "@/components/app/transport/map-section";
@@ -167,6 +168,7 @@ function TransportRegisters({
   const data = query.data;
   if (!data) return <EmptyState title={t.none} />;
 
+  if (slug === "coupling") return <CouplingBoard t={t} lang={lang} data={data} />;
   if (slug === "carriers") return <CarriersSection t={t} lang={lang} data={data} />;
   if (slug === "incidents") return <IncidentsSection t={t} lang={lang} data={data} />;
   if (slug === "requests") return <RequestsSection t={t} lang={lang} data={data} />;

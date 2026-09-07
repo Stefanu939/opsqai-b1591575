@@ -754,6 +754,17 @@ export const PRODUCT_WORKSPACES: readonly ProductWorkspace[] = [
     status: "implemented",
   },
   {
+    key: "transport_coupling",
+    product: "opsqai_transport",
+    label: "Coupling",
+    description: "Truck + trailer + driver sets, built by drag and drop and exportable.",
+    icon: "Link2",
+    route: "/app/products/transport/coupling",
+    capabilities: ["fleet_workspace"],
+    coreCapabilities: ["reports", "enterprise_export"],
+    status: "implemented",
+  },
+  {
     key: "transport_procedures",
     product: "opsqai_transport",
     label: "Procedures",

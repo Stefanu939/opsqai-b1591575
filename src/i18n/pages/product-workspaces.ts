@@ -11,6 +11,7 @@ const KINDS = {
   overview: { en: "Overview", de: "Überblick", ro: "Prezentare generală" },
   operations: { en: "Operations", de: "Betrieb", ro: "Operațiuni" },
   "sop-library": { en: "SOP Library", de: "SOP-Bibliothek", ro: "Bibliotecă SOP" },
+  coupling: { en: "Coupling", de: "Kopplung", ro: "Combinații" },
   procedures: { en: "Procedures", de: "Prozesse", ro: "Proceduri" },
   "team-knowledge": { en: "Team Knowledge", de: "Team-Wissen", ro: "Cunoștințe de echipă" },
   knowledge: { en: "Knowledge", de: "Wissen", ro: "Cunoștințe" },

@@ -13,6 +13,7 @@ import type { DutyDay, FuelEntry, TransportOverview } from "@/lib/transport/type
 import { RecordDialog } from "./record-dialog";
 import {
   driverFields,
+  trailerFields,
   dutyFields,
   fuelFields,
   vehicleFields,
@@ -138,12 +139,14 @@ export function FleetBoard({
 
   const dialogFields = (name: RegisterName) => {
     if (name === "vehicles") return vehicleFields(t, driverOpts);
+    if (name === "trailers") return trailerFields(t, vehicleOpts, lang);
     if (name === "drivers") return driverFields(t, vehicleOpts);
     if (name === "fuel") return fuelFields(t, vehicleOpts, driverOpts);
     return dutyFields(t, driverOpts, vehicleOpts, lang);
   };
   const dialogTitle = (name: RegisterName) => {
     if (name === "vehicles") return t.vehicleRegister;
+    if (name === "trailers") return t.trailerRegister;
     if (name === "drivers") return t.driverRegister;
     if (name === "fuel") return t.fuelRegister;
     return t.dutyRegister;
@@ -177,6 +180,10 @@ export function FleetBoard({
                   <Plus className="mr-1.5 size-3.5" />
                   {t.vehicle}
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setDialog("trailers")}>
+                  <Plus className="mr-1.5 size-3.5" />
+                  {t.trailer}
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => setDialog("drivers")}>
                   <Plus className="mr-1.5 size-3.5" />
                   {t.driver}
@@ -194,12 +201,18 @@ export function FleetBoard({
           </div>
         }
       >
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <StatCard
             icon={Truck}
             label={t.vehiclesInService}
             value={String(data.vehicles.length)}
             hint={`${inService} ${t.inService}`}
+          />
+          <StatCard
+            icon={Truck}
+            label={t.trailers}
+            value={String(data.trailers.length)}
+            hint={`${data.trailers.filter((x) => x.status === "active").length} ${t.inService}`}
           />
           <StatCard
             icon={UsersRound}

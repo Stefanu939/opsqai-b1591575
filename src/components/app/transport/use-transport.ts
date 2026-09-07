@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   deleteTransportRecord,
+  exportCouplingSheet,
   exportTransportCsv,
   getTransportAudit,
   getTransportMap,
@@ -13,7 +14,7 @@ import {
   listCmrNotes,
   saveTransportRecord,
 } from "@/lib/transport.functions";
-import { downloadText } from "./download";
+import { downloadBase64, downloadText } from "./download";
 import type { RegisterName } from "./registers";
 
 export function useTransportOverview(periodDays = 30) {
@@ -107,6 +108,8 @@ export function useCsvExport() {
   return async (
     dataset:
       | "vehicles"
+      | "trailers"
+      | "couplings"
       | "drivers"
       | "carriers"
       | "documents"
@@ -124,6 +127,39 @@ export function useCsvExport() {
         return;
       }
       downloadText(res.filename, res.csv);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Export failed");
+    }
+  };
+}
+
+/** Excel / PDF export of the saved truck + trailer + driver sets. */
+export function useCouplingExport() {
+  const fn = useServerFn(exportCouplingSheet);
+  return async (input: {
+    format: "xlsx" | "pdf";
+    from?: string;
+    to?: string;
+    labels: {
+      title: string;
+      date: string;
+      vehicle: string;
+      trailer: string;
+      driver: string;
+      route: string;
+      status: string;
+      notes: string;
+      generated: string;
+    };
+    emptyMessage: string;
+  }) => {
+    try {
+      const res = await fn({ data: input });
+      if (!res.count) {
+        toast.info(input.emptyMessage);
+        return;
+      }
+      downloadBase64(res.filename, res.base64, res.mime);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Export failed");
     }
