@@ -83,35 +83,91 @@ export const Route = createFileRoute("/api/public/v1/updates/check")({
           return json({ update: null, reason: "maintenance_expired" });
         }
 
-        const { data: releases } = await supabaseAdmin
-          .from("installer_releases")
-          .select(
-            "version, tag_name, channel, notes, min_version, package_storage_path, zip_url, zip_size_bytes, exe_sha256, exe_size_bytes, published_at, is_published",
-          )
-          .eq("channel", body.channel)
-          .eq("is_published", true)
-          .order("published_at", { ascending: false })
-          .limit(20);
+        // The Management Center "Releases" page is the source of truth: a
+        // published row here is what every installation may download. Legacy
+        // GitHub-registered rows in installer_releases are merged in, so old
+        // installations keep discovering the versions they already knew.
+        const [{ data: mcReleases }, { data: legacyReleases }] = await Promise.all([
+          supabaseAdmin
+            .from("license_releases")
+            .select(
+              "version, channel, min_supported, package_storage_path, docker_image, checksum, published_at",
+            )
+            .eq("channel", body.channel)
+            .order("published_at", { ascending: false })
+            .limit(20),
+          supabaseAdmin
+            .from("installer_releases")
+            .select(
+              "version, tag_name, channel, notes, min_version, package_storage_path, zip_url, zip_size_bytes, exe_sha256, exe_size_bytes, published_at, is_published",
+            )
+            .eq("channel", body.channel)
+            .eq("is_published", true)
+            .order("published_at", { ascending: false })
+            .limit(20),
+        ]);
 
-        const candidate = (releases ?? [])
+        interface Candidate {
+          version: string;
+          channel: string;
+          notes: string;
+          minVersion: string | null;
+          storagePath: string | null;
+          directUrl: string | null;
+          sha256: string | null;
+          size: number | null;
+          tagName: string | null;
+          publishedAt: string | null;
+        }
+
+        const isHttpUrl = (v: string | null | undefined) =>
+          typeof v === "string" && /^https?:\/\//i.test(v);
+
+        const candidates: Candidate[] = [
+          ...(mcReleases ?? []).map((r) => ({
+            version: r.version,
+            channel: r.channel ?? body.channel,
+            notes: "",
+            minVersion: r.min_supported ?? null,
+            storagePath: r.package_storage_path ?? null,
+            directUrl: isHttpUrl(r.docker_image) ? r.docker_image : null,
+            sha256: r.checksum ?? null,
+            size: null,
+            tagName: null,
+            publishedAt: r.published_at ?? null,
+          })),
+          ...(legacyReleases ?? []).map((r) => ({
+            version: r.version,
+            channel: r.channel ?? body.channel,
+            notes: r.notes ?? "",
+            minVersion: r.min_version ?? null,
+            storagePath: r.package_storage_path ?? null,
+            directUrl: isHttpUrl(r.zip_url) ? r.zip_url : null,
+            sha256: r.exe_sha256 ?? null,
+            size: r.exe_size_bytes ?? r.zip_size_bytes ?? null,
+            tagName: r.tag_name ?? null,
+            publishedAt: r.published_at ?? null,
+          })),
+        ].filter((r) => Boolean(r.storagePath) || Boolean(r.directUrl));
+
+        const candidate = candidates
           .filter((r) => isNewerVersion(r.version, body.current_version))
-          .filter((r) => satisfiesMinVersion(body.current_version, r.min_version ?? null))
+          .filter((r) => satisfiesMinVersion(body.current_version, r.minVersion))
           .sort((a, b) => (isNewerVersion(a.version, b.version) ? -1 : 1))[0];
 
         if (!candidate) return json({ update: null, reason: "up_to_date" });
 
-        let url = candidate.zip_url ?? "";
+        let url = candidate.directUrl ?? "";
         let artifact: "exe" | "zip" = /\.exe$/i.test(url) ? "exe" : "zip";
-        let size = candidate.zip_size_bytes ?? null;
+        const size = candidate.size;
 
-        if (candidate.package_storage_path) {
+        if (candidate.storagePath) {
           const signed = await supabaseAdmin.storage
             .from("releases")
-            .createSignedUrl(candidate.package_storage_path, 60 * 60);
+            .createSignedUrl(candidate.storagePath, 60 * 60);
           if (signed.data?.signedUrl) {
             url = signed.data.signedUrl;
-            artifact = /\.exe$/i.test(candidate.package_storage_path) ? "exe" : "zip";
-            size = candidate.exe_size_bytes ?? size;
+            artifact = /\.exe$/i.test(candidate.storagePath) ? "exe" : "zip";
           }
         }
         if (!url) return json({ update: null, reason: "no_artifact" });
@@ -121,11 +177,11 @@ export const Route = createFileRoute("/api/public/v1/updates/check")({
         const { token, payload } = await signUpdateDescriptor({
           install_id: body.installation_id,
           version: candidate.version,
-          channel: candidate.channel ?? body.channel,
-          sha256: candidate.exe_sha256 ?? null,
+          channel: candidate.channel,
+          sha256: candidate.sha256,
           url,
           size,
-          notes: candidate.notes ?? "",
+          notes: candidate.notes,
           issued_at: now,
           expires_at: now + 55 * 60,
         });
@@ -139,8 +195,8 @@ export const Route = createFileRoute("/api/public/v1/updates/check")({
             sha256: payload.sha256,
             size: payload.size,
             artifact,
-            tag_name: candidate.tag_name ?? null,
-            published_at: candidate.published_at ?? null,
+            tag_name: candidate.tagName,
+            published_at: candidate.publishedAt,
             descriptor: token,
           },
         });
