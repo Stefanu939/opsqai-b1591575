@@ -1,6 +1,6 @@
 // Transport registers: vehicles, drivers, documents, carriers, incidents and
 // requests. Every register is optional — an empty register simply stays empty.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ import { docTypeLabel } from "@/lib/transport/country-packs";
 import type { transportUi } from "@/i18n/pages/transport";
 import type {
   Carrier,
+  ExpiryAlert,
   Coupling,
   Trailer,
   Driver,
@@ -62,6 +63,7 @@ export interface RegistersData {
   duty: DutyDay[];
   settings: { country: string; language: string };
   grants: TransportGrantKey[];
+  alerts?: ExpiryAlert[];
 }
 
 interface Props {
@@ -92,7 +94,76 @@ function statusBadge(status: string) {
   return <Badge variant={variant}>{status}</Badge>;
 }
 
+/** Worst document state per asset, so every register can show a semaphore. */
+function useAssetLights(alerts: ExpiryAlert[] | undefined) {
+  return useMemo(() => {
+    const rank: Record<string, number> = { watch: 1, warning: 2, critical: 3, expired: 4 };
+    const map = new Map<string, "watch" | "warning" | "critical" | "expired">();
+    for (const a of alerts ?? []) {
+      const prev = map.get(a.ownerId);
+      if (!prev || (rank[a.level] ?? 0) > (rank[prev] ?? 0)) map.set(a.ownerId, a.level);
+    }
+    return map;
+  }, [alerts]);
+}
+
+function StatusLight({
+  t,
+  level,
+}: {
+  t: Ui;
+  level: "watch" | "warning" | "critical" | "expired" | undefined;
+}) {
+  if (!level) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="size-2.5 rounded-full bg-muted-foreground/40" />
+        {t.lightNone}
+      </span>
+    );
+  }
+  const critical = level === "expired" || level === "critical";
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs">
+      <span
+        className={
+          critical
+            ? "size-2.5 rounded-full bg-destructive"
+            : level === "warning"
+              ? "size-2.5 rounded-full bg-amber-500"
+              : "size-2.5 rounded-full bg-primary/60"
+        }
+      />
+      <span className={critical ? "text-destructive" : "text-muted-foreground"}>
+        {critical ? t.lightCrit : level === "warning" ? t.lightWarn : t.lightOk}
+      </span>
+    </span>
+  );
+}
+
 export function OperationsSection({ t, lang, data }: Props) {
+  const lights = useAssetLights(data.alerts);
+  const [onlyProblems, setOnlyProblems] = useState(false);
+  const hasProblem = (id: string) => {
+    const l = lights.get(id);
+    return l === "expired" || l === "critical" || l === "warning";
+  };
+  const problemFilter = <T extends { id: string }>(rows: T[]) =>
+    onlyProblems ? rows.filter((r) => hasProblem(r.id)) : rows;
+  const problemToggle = (
+    <Button
+      size="sm"
+      variant={onlyProblems ? "default" : "outline"}
+      onClick={() => setOnlyProblems((v) => !v)}
+    >
+      {t.onlyProblems}
+    </Button>
+  );
+  const lightColumn = {
+    key: "__light",
+    label: t.statusLight,
+    render: (r: { id: string }) => <StatusLight t={t} level={lights.get(r.id)} />,
+  };
   const { saveRecord, deleteRecord } = useRecordMutations();
   const exportPdf = usePdfExport();
   const canEdit = data.grants.includes("edit");
@@ -125,7 +196,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         icon={Truck}
         title={t.vehicleRegister}
         description={t.vehicleRegisterBody}
-        rows={data.vehicles}
+        rows={problemFilter(data.vehicles)}
         canEdit={canEdit}
         canCreate={canCreate}
         canDelete={canDelete}
@@ -150,7 +221,9 @@ export function OperationsSection({ t, lang, data }: Props) {
               data.drivers.find((d) => d.id === r.assigned_driver_id)?.full_name ?? "—",
           },
           { key: "status", label: t.status, render: (r) => statusBadge(r.status) },
+          lightColumn,
         ]}
+        extraActions={problemToggle}
         fields={vehicleFields(t, driverOpts)}
         onSave={(values, id) => saveRecord.mutateAsync({ register: "vehicles", id, values })}
         onDelete={(id) => deleteRecord.mutateAsync({ register: "vehicles", id })}
@@ -160,7 +233,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         icon={Truck}
         title={t.trailerRegister}
         description={t.trailerRegisterBody}
-        rows={data.trailers}
+        rows={problemFilter(data.trailers)}
         canEdit={canEdit}
         canCreate={canCreate}
         canDelete={canDelete}
@@ -180,7 +253,9 @@ export function OperationsSection({ t, lang, data }: Props) {
             render: (r) => data.vehicles.find((v) => v.id === r.assigned_vehicle_id)?.plate ?? "—",
           },
           { key: "status", label: t.status, render: (r) => statusBadge(r.status) },
+          lightColumn,
         ]}
+        extraActions={problemToggle}
         fields={trailerFields(t, vehicleOpts, lang)}
         onSave={(values, id) => saveRecord.mutateAsync({ register: "trailers", id, values })}
         onDelete={(id) => deleteRecord.mutateAsync({ register: "trailers", id })}
@@ -190,7 +265,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         icon={UsersRound}
         title={t.driverRegister}
         description={t.driverRegisterBody}
-        rows={data.drivers}
+        rows={problemFilter(data.drivers)}
         canEdit={canEdit}
         canCreate={canCreate}
         canDelete={canDelete}
@@ -212,7 +287,9 @@ export function OperationsSection({ t, lang, data }: Props) {
             render: (r) => data.vehicles.find((v) => v.id === r.assigned_vehicle_id)?.plate ?? "—",
           },
           { key: "status", label: t.status, render: (r) => statusBadge(r.status) },
+          lightColumn,
         ]}
+        extraActions={problemToggle}
         fields={driverFields(t, vehicleOpts)}
         onSave={(values, id) => saveRecord.mutateAsync({ register: "drivers", id, values })}
         onDelete={(id) => deleteRecord.mutateAsync({ register: "drivers", id })}

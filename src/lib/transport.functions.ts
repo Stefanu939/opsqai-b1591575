@@ -137,6 +137,7 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       auditRuns,
       fuel,
       duty,
+      riskActions,
     ] = await Promise.all([
       db.getSettings(a.companyId),
       db.counts(a.companyId),
@@ -154,11 +155,13 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       db.listAuditRuns(a.companyId, 1),
       db.listFuelEntries(a.companyId, periodDays * 2),
       db.listDutyDays(a.companyId, 1, 7),
+      db.listRiskActions(a.companyId).catch(() => []),
     ]);
     const overview: TransportOverview = {
       settings,
       counts: c,
-      alerts: alerts.slice(0, 50),
+      alerts: alerts.slice(0, 200),
+      riskActions,
       recentIncidents: incidents.slice(0, 25),
       openRequests: requests
         .filter((r) => r.status === "open" || r.status === "in_review")
@@ -179,7 +182,7 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       canManageGrants: a.canManageGrants,
     };
 
-    await riskDigest(a, { alerts, incidents, requests, check });
+    await riskDigest(a, { alerts, incidents, requests, check, settings });
 
     return overview;
   });
@@ -196,6 +199,12 @@ async function riskDigest(
     incidents: { severity: string; status: string }[];
     requests: { due_on: string | null; status: string }[];
     check: { status: string; due_on?: string | null } | null;
+    settings?: {
+      digestEnabled: boolean;
+      digestHour: number;
+      digestEmails: string | null;
+      digestWebhookUrl: string | null;
+    };
   },
 ): Promise<void> {
   try {
@@ -266,6 +275,47 @@ async function riskDigest(
         );
       }
     }
+
+    // Morning briefing: once per day, from the configured hour onwards.
+    const s = input.settings;
+    if (s?.digestEnabled && new Date().getHours() >= (s.digestHour ?? 7)) {
+      const already = await mod
+        .listLocalNotifications(a.companyId, a.userId, 5)
+        .catch(() => [] as { kind: string; created_at: string }[]);
+      const sentToday = already.some(
+        (n) =>
+          n.kind === "transport.digest.sent" &&
+          String(n.created_at).slice(0, 10) === today,
+      );
+      if (!sentToday) {
+        const now = [
+          expired.length ? { label: "Expired documents", count: expired.length } : null,
+          critical.length ? { label: "Documents expiring soon", count: critical.length } : null,
+          criticalIncidents.length
+            ? { label: "Open critical incidents", count: criticalIncidents.length }
+            : null,
+        ].filter((x): x is { label: string; count: number } => x !== null);
+        const plan = overdue.length
+          ? [{ label: "Requests past their due date", count: overdue.length }]
+          : [];
+        const { sendTransportDigest } = await import("@/lib/transport/digest.server");
+        const res = await sendTransportDigest({
+          companyId: a.companyId,
+          title: "OPSQAI Transport — morning briefing",
+          now,
+          plan,
+          emails: s.digestEmails,
+          webhookUrl: s.digestWebhookUrl,
+        });
+        if (res.sent) {
+          await emit(
+            "transport.digest.sent",
+            "Morning briefing sent",
+            `${res.emailed} recipient(s)${res.posted ? " + webhook" : ""}.`,
+          );
+        }
+      }
+    }
   } catch {
     // A digest must never break the overview.
   }
@@ -290,6 +340,7 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
       settings,
       fuel,
       duty,
+      alerts,
     ] = await Promise.all([
       db.listVehicles(a.companyId),
       db.listTrailers(a.companyId),
@@ -302,6 +353,7 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
       db.getSettings(a.companyId),
       db.listFuelEntries(a.companyId, 180),
       db.listDutyDays(a.companyId, 30, 30),
+      db.expiryAlerts(a.companyId),
     ]);
     return {
       vehicles,
@@ -315,6 +367,7 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
       settings,
       fuel,
       duty,
+      alerts,
       grants: a.grants,
       canManageGrants: a.canManageGrants,
     };
@@ -885,6 +938,10 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
         liveTracking: z.boolean().optional(),
         gpsPollMinutes: z.number().int().min(1).max(120).optional(),
         searchProvider: z.enum(["auto", "osm", "off"]).optional(),
+        digestEnabled: z.boolean().optional(),
+        digestHour: z.number().int().min(0).max(23).optional(),
+        digestEmails: z.string().max(500).nullish(),
+        digestWebhookUrl: z.string().max(500).nullish(),
       })
       .parse(input),
   )
@@ -1316,4 +1373,128 @@ export const runTransportAudit = createServerFn({ method: "POST" })
     require(a, "checklist");
     const db = await import("@/lib/transport/db.server");
     return db.runAudit(a.companyId, a.userId, a.name);
+  });
+
+// ── Risk ownership (owner + due date + history) ───────────────────────────
+
+export const getTransportRiskActions = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "view");
+    const db = await import("@/lib/transport/db.server");
+    const [actions, events] = await Promise.all([
+      db.listRiskActions(a.companyId),
+      db.listRiskActionEvents(a.companyId, 80),
+    ]);
+    return { actions, events, grants: a.grants };
+  });
+
+export const saveTransportRiskAction = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: uuidString().nullish(),
+        riskKey: z.string().min(1).max(80),
+        subject: z.string().max(200).nullish(),
+        ownerName: z.string().max(120).nullish(),
+        dueOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullish(),
+        note: z.string().max(1000).nullish(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "edit");
+    const db = await import("@/lib/transport/db.server");
+    const action = await db.saveRiskAction(a.companyId, a.name, {
+      id: data.id ?? null,
+      riskKey: data.riskKey,
+      subject: data.subject ?? null,
+      ownerName: data.ownerName ?? null,
+      dueOn: data.dueOn ?? null,
+      note: data.note ?? null,
+    });
+    return { action };
+  });
+
+export const closeTransportRiskAction = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "edit");
+    const db = await import("@/lib/transport/db.server");
+    await db.closeRiskAction(a.companyId, a.name, data.id);
+    return { ok: true };
+  });
+
+// ── Fleet status (one page) ───────────────────────────────────────────────
+
+export const exportFleetStatusPdf = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        title: z.string().max(120),
+        subtitle: z.string().max(200),
+        footer: z.string().max(80),
+        kpis: z.array(z.object({ label: z.string().max(60), value: z.string().max(40) })).max(12),
+        lanes: z
+          .array(
+            z.object({
+              title: z.string().max(80),
+              tone: z.enum(["critical", "plan"]),
+              items: z
+                .array(z.object({ label: z.string().max(160), value: z.string().max(40) }))
+                .max(40),
+            }),
+          )
+          .max(4),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "export");
+    const { renderFleetStatusPdf } = await import("@/lib/transport/fleet-status-pdf.server");
+    const bytes = await renderFleetStatusPdf(data);
+    return {
+      filename: `fleet-status-${new Date().toISOString().slice(0, 10)}.pdf`,
+      base64: Buffer.from(bytes).toString("base64"),
+      count: data.lanes.reduce((s, l) => s + l.items.length, 0) + data.kpis.length,
+    };
+  });
+
+// ── Morning briefing ─────────────────────────────────────────────────────
+
+export const sendTransportDigestNow = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        title: z.string().max(120),
+        now: z.array(z.object({ label: z.string().max(160), count: z.number().finite() })).max(40),
+        plan: z.array(z.object({ label: z.string().max(160), count: z.number().finite() })).max(40),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "settings");
+    const db = await import("@/lib/transport/db.server");
+    const settings = await db.getSettings(a.companyId);
+    const { sendTransportDigest } = await import("@/lib/transport/digest.server");
+    return sendTransportDigest({
+      companyId: a.companyId,
+      title: data.title,
+      now: data.now,
+      plan: data.plan,
+      emails: settings.digestEmails,
+      webhookUrl: settings.digestWebhookUrl,
+    });
   });

@@ -16,6 +16,8 @@ import {
   runTransportAudit,
 } from "@/lib/transport.functions";
 import { downloadBase64 } from "./download";
+import { TrendsPanel } from "./trends-panel";
+import { useTransportOverview } from "./use-transport";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { TransportAuditRun } from "@/lib/transport/types";
 
@@ -29,6 +31,7 @@ const SEVERITY: Record<string, "destructive" | "secondary" | "outline"> = {
 };
 
 export function IntelligenceSection({ t }: { t: Ui }) {
+  const overview = useTransportOverview(30);
   const listFn = useServerFn(getTransportAuditRuns);
   const run = useServerFn(runTransportAudit);
   const exportFindings = useServerFn(exportTransportFindingsPdf);
@@ -57,6 +60,7 @@ export function IntelligenceSection({ t }: { t: Ui }) {
 
   return (
     <div className="grid gap-4">
+      {overview.data ? <TrendsPanel t={t} data={overview.data} /> : null}
       <Panel
         icon={BrainCircuit}
         title={t.intelligence}

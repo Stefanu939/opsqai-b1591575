@@ -64,6 +64,10 @@ export function SettingsSection({ t }: { t: Ui }) {
     liveTracking: true,
     gpsPollMinutes: 10,
     searchProvider: "auto" as "auto" | "osm" | "off",
+    digestEnabled: false,
+    digestHour: 7,
+    digestEmails: "",
+    digestWebhookUrl: "",
   });
 
   useEffect(() => {
@@ -87,6 +91,10 @@ export function SettingsSection({ t }: { t: Ui }) {
       liveTracking: s.liveTracking,
       gpsPollMinutes: s.gpsPollMinutes,
       searchProvider: s.searchProvider,
+      digestEnabled: s.digestEnabled,
+      digestHour: s.digestHour,
+      digestEmails: s.digestEmails ?? "",
+      digestWebhookUrl: s.digestWebhookUrl ?? "",
     });
   }, [query.data?.settings]);
 
@@ -108,6 +116,10 @@ export function SettingsSection({ t }: { t: Ui }) {
           .map((n) => Number(n.trim()))
           .filter((n) => Number.isFinite(n) && n > 0),
         docAlertWindows: form.docAlertWindows,
+        digestEnabled: form.digestEnabled,
+        digestHour: form.digestHour,
+        digestEmails: form.digestEmails.trim() || null,
+        digestWebhookUrl: form.digestWebhookUrl.trim() || null,
         mapEnabled: form.mapEnabled,
         cmrPrefix: form.cmrPrefix,
         timezone: form.timezone,
@@ -286,6 +298,56 @@ export function SettingsSection({ t }: { t: Ui }) {
                 />
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-xl border border-border p-3">
+          <p className="text-sm font-semibold">{t.digest}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t.digestBody}</p>
+          <div className="mt-3 flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={form.digestEnabled}
+                disabled={!canEdit}
+                onCheckedChange={(v) => setForm((f) => ({ ...f, digestEnabled: v }))}
+              />
+              <Label className="text-xs">{t.digestEnabled}</Label>
+            </div>
+            <div>
+              <Label className="text-xs">{t.digestHour}</Label>
+              <Input
+                className="mt-1 h-8 w-20"
+                type="number"
+                min={0}
+                max={23}
+                disabled={!canEdit}
+                value={form.digestHour}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    digestHour: Math.max(0, Math.min(23, Math.round(Number(e.target.value) || 0))),
+                  }))
+                }
+              />
+            </div>
+            <div className="min-w-[16rem] flex-1">
+              <Label className="text-xs">{t.digestEmails}</Label>
+              <Input
+                className="mt-1 h-8"
+                disabled={!canEdit}
+                value={form.digestEmails}
+                onChange={(e) => setForm((f) => ({ ...f, digestEmails: e.target.value }))}
+              />
+            </div>
+            <div className="min-w-[16rem] flex-1">
+              <Label className="text-xs">{t.digestWebhook}</Label>
+              <Input
+                className="mt-1 h-8"
+                disabled={!canEdit}
+                value={form.digestWebhookUrl}
+                onChange={(e) => setForm((f) => ({ ...f, digestWebhookUrl: e.target.value }))}
+              />
+            </div>
           </div>
         </div>
 

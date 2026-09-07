@@ -1,13 +1,16 @@
-// Transport overview: KPI cards with trend, period and register filters,
-// action cards for what needs attention now, a mini-map and CSV exports.
+// Transport overview — deliberately short: risk first, then the fleet day,
+// then what expires when, then the map. Trends and charts live in
+// Intelligence so this page stays a decision surface, not a report.
 import { useMemo, useState } from "react";
 import { lazy, Suspense } from "react";
 import {
   AlertTriangle,
   CalendarCheck,
   FileWarning,
+  FileText,
   Handshake,
   Inbox,
+  Mail,
   MapPin as PinIcon,
   Truck,
   UsersRound,
@@ -25,10 +28,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { transportUi } from "@/i18n/pages/transport";
-import type { TransportOverview, TransportTrend } from "@/lib/transport/types";
-import { usePdfExport } from "./use-transport";
+import type { TransportOverview } from "@/lib/transport/types";
+import { useFleetStatusExport, usePdfExport, useSendDigest } from "./use-transport";
 import { FleetBoard } from "./fleet-board";
-import { RiskBand } from "./risk-band";
+import { RiskBand, buildRiskLanes } from "./risk-band";
+import { ExpiryTimeline } from "./expiry-timeline";
 
 const TransportMap = lazy(() => import("./transport-map"));
 
@@ -40,12 +44,6 @@ const LEVEL_VARIANT: Record<string, "destructive" | "secondary" | "outline"> = {
   warning: "secondary",
   watch: "outline",
 };
-
-function trendLabel(t: Ui, trend: TransportTrend): string {
-  const delta = trend.current - trend.previous;
-  const word = delta > 0 ? t.trendUp : delta < 0 ? t.trendDown : t.trendFlat;
-  return `${delta > 0 ? "+" : ""}${delta} · ${word}`;
-}
 
 export function OverviewSection({
   t,
@@ -61,6 +59,8 @@ export function OverviewSection({
   onPeriodChange: (days: number) => void;
 }) {
   const exportPdf = usePdfExport();
+  const exportFleetStatus = useFleetStatusExport();
+  const sendDigest = useSendDigest();
   const c = data.counts;
 
   const [depot, setDepot] = useState("all");
@@ -108,123 +108,137 @@ export function OverviewSection({
     return data.pins.filter((p) => p.kind !== "vehicle" || vehicleIdsInDepot.has(p.id));
   }, [data.pins, vehicleIdsInDepot]);
 
+  const lanes = useMemo(() => buildRiskLanes(t, data), [t, data]);
+
+  const runFleetStatus = () =>
+    void exportFleetStatus({
+      title: t.fleetStatus,
+      subtitle: `${t.eyebrow} · ${new Date().toLocaleDateString()}`,
+      footer: t.fleetStatusBody,
+      kpis: [
+        { label: t.vehicles, value: String(c.vehicles) },
+        { label: t.drivers, value: String(c.drivers) },
+        { label: t.carriers, value: String(c.carriers) },
+        { label: t.documents, value: String(c.documents) },
+      ],
+      lanes: [
+        {
+          title: t.riskNow,
+          tone: "critical",
+          items: lanes.now.map((i) => ({ label: i.label, value: String(i.count) })),
+        },
+        {
+          title: t.riskPlan,
+          tone: "plan",
+          items: lanes.plan.map((i) => ({ label: i.label, value: String(i.count) })),
+        },
+      ],
+    });
+
+  const runDigest = () =>
+    void sendDigest(
+      {
+        title: t.digest,
+        now: lanes.now.map((i) => ({ label: i.label, count: i.count })),
+        plan: lanes.plan.map((i) => ({ label: i.label, count: i.count })),
+      },
+      { sent: t.digestSent, nothing: t.digestNothing, failed: t.digestFailed },
+    );
+
   return (
     <div className="grid gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Select value={String(periodDays)} onValueChange={(v) => onPeriodChange(Number(v))}>
+            <SelectTrigger className="h-8 w-32">
+              <SelectValue placeholder={t.period} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">{t.last7}</SelectItem>
+              <SelectItem value="30">{t.last30}</SelectItem>
+              <SelectItem value="90">{t.last90}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={depot} onValueChange={setDepot}>
+            <SelectTrigger className="h-8 w-40">
+              <SelectValue placeholder={t.depot} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{`${t.depot}: ${t.allValues}`}</SelectItem>
+              {depots.map((d) => (
+                <SelectItem key={d} value={d}>
+                  {d}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={carrier} onValueChange={setCarrier}>
+            <SelectTrigger className="h-8 w-44">
+              <SelectValue placeholder={t.carrier} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{`${t.carrier}: ${t.allValues}`}</SelectItem>
+              {data.carriers.map((x) => (
+                <SelectItem key={x.id} value={x.id}>
+                  {x.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={severity} onValueChange={setSeverity}>
+            <SelectTrigger className="h-8 w-36">
+              <SelectValue placeholder={t.severity} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{`${t.severity}: ${t.allValues}`}</SelectItem>
+              <SelectItem value="critical">{t.critical}</SelectItem>
+              <SelectItem value="expired">{t.expired}</SelectItem>
+              <SelectItem value="warning">{t.warning}</SelectItem>
+              <SelectItem value="watch">{t.watch}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {data.grants.includes("export") ? (
+            <Button size="sm" variant="outline" onClick={runFleetStatus}>
+              <FileText className="mr-1.5 size-4" />
+              {t.fleetStatus}
+            </Button>
+          ) : null}
+          {data.grants.includes("settings") ? (
+            <Button size="sm" variant="outline" onClick={runDigest}>
+              <Mail className="mr-1.5 size-4" />
+              {t.sendNow}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
       <RiskBand t={t} data={data} />
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard icon={Truck} label={t.vehicles} value={String(c.vehicles)} />
+        <StatCard icon={UsersRound} label={t.drivers} value={String(c.drivers)} />
+        <StatCard icon={Handshake} label={t.carriers} value={String(c.carriers)} />
+        <StatCard icon={FileWarning} label={t.documents} value={String(c.documents)} />
+      </div>
 
       <FleetBoard t={t} data={data} lang={lang} periodDays={periodDays} />
 
+      <ExpiryTimeline t={t} alerts={alerts} lang={lang} />
+
       <Panel
-        icon={CalendarCheck}
-        title={t.filters}
+        icon={FileWarning}
+        title={t.expiring}
+        description={t.expiringBody}
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Select value={String(periodDays)} onValueChange={(v) => onPeriodChange(Number(v))}>
-              <SelectTrigger className="h-8 w-32">
-                <SelectValue placeholder={t.period} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">{t.last7}</SelectItem>
-                <SelectItem value="30">{t.last30}</SelectItem>
-                <SelectItem value="90">{t.last90}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={depot} onValueChange={setDepot}>
-              <SelectTrigger className="h-8 w-40">
-                <SelectValue placeholder={t.depot} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{`${t.depot}: ${t.allValues}`}</SelectItem>
-                {depots.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={carrier} onValueChange={setCarrier}>
-              <SelectTrigger className="h-8 w-44">
-                <SelectValue placeholder={t.carrier} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{`${t.carrier}: ${t.allValues}`}</SelectItem>
-                {data.carriers.map((x) => (
-                  <SelectItem key={x.id} value={x.id}>
-                    {x.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={severity} onValueChange={setSeverity}>
-              <SelectTrigger className="h-8 w-36">
-                <SelectValue placeholder={t.severity} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{`${t.severity}: ${t.allValues}`}</SelectItem>
-                <SelectItem value="critical">{t.critical}</SelectItem>
-                <SelectItem value="expired">{t.expired}</SelectItem>
-                <SelectItem value="warning">{t.warning}</SelectItem>
-                <SelectItem value="watch">{t.watch}</SelectItem>
-              </SelectContent>
-            </Select>
-            {data.grants.includes("export") ? (
-              <Button size="sm" variant="outline" onClick={() => void exportPdf("alerts")}>
-                {t.export}
-              </Button>
-            ) : null}
-          </div>
+          data.grants.includes("export") ? (
+            <Button size="sm" variant="outline" onClick={() => void exportPdf("alerts")}>
+              {t.export}
+            </Button>
+          ) : null
         }
       >
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard icon={Truck} label={t.vehicles} value={String(c.vehicles)} />
-          <StatCard icon={UsersRound} label={t.drivers} value={String(c.drivers)} />
-          <StatCard icon={Handshake} label={t.carriers} value={String(c.carriers)} />
-          <StatCard icon={FileWarning} label={t.documents} value={String(c.documents)} />
-          <StatCard
-            icon={AlertTriangle}
-            label={`${t.openIncidents} · ${periodDays}d`}
-            value={String(c.openIncidents)}
-            hint={trendLabel(t, data.trends.incidents)}
-          />
-          <StatCard
-            icon={Inbox}
-            label={`${t.openRequests} · ${periodDays}d`}
-            value={String(c.openRequests)}
-            hint={trendLabel(t, data.trends.requests)}
-          />
-          <StatCard
-            icon={Inbox}
-            label={t.pendingApprovals}
-            value={String(c.pendingApprovals)}
-            hint={trendLabel(t, data.trends.approvals)}
-          />
-          <StatCard
-            icon={CalendarCheck}
-            label={t.auditScore}
-            value={data.lastAudit ? `${data.lastAudit.score}/100` : "—"}
-            hint={
-              data.lastAudit ? new Date(data.lastAudit.created_at).toLocaleDateString() : t.noAudit
-            }
-          />
-        </div>
-      </Panel>
-
-      <Panel icon={PinIcon} title={t.miniMap}>
-        {pins.length === 0 ? (
-          <EmptyState title={t.noCoordinates} description={t.mapBody} />
-        ) : (
-          <Suspense fallback={<div className="h-64 rounded-lg border border-border" />}>
-            <TransportMap
-              pins={pins}
-              zones={[]}
-              zoom={data.settings.mapZoom}
-              className="h-64 w-full rounded-lg border border-border"
-            />
-          </Suspense>
-        )}
-      </Panel>
-
-      <Panel icon={FileWarning} title={t.expiring} description={t.expiringBody}>
         {alerts.length === 0 ? (
           <EmptyState title={t.none} description={t.expiringBody} />
         ) : (
@@ -254,6 +268,21 @@ export function OverviewSection({
               </li>
             ))}
           </ul>
+        )}
+      </Panel>
+
+      <Panel icon={PinIcon} title={t.miniMap}>
+        {pins.length === 0 ? (
+          <EmptyState title={t.noCoordinates} description={t.mapBody} />
+        ) : (
+          <Suspense fallback={<div className="h-64 rounded-lg border border-border" />}>
+            <TransportMap
+              pins={pins}
+              zones={[]}
+              zoom={data.settings.mapZoom}
+              className="h-64 w-full rounded-lg border border-border"
+            />
+          </Suspense>
         )}
       </Panel>
 
