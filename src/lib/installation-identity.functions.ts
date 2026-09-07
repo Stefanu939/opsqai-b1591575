@@ -1,6 +1,7 @@
 // Self-Hosted installation hygiene: which company owns this installation,
 // whether the active licence still matches, and how many platform owners exist.
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 
