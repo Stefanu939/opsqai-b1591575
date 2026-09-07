@@ -28,6 +28,7 @@ import { normalizeAppRole } from "@/lib/module-access";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
 import { useAvatarUrl, initialsOf } from "@/lib/avatar";
 import { ModulePage } from "@/components/app/module-page";
+import { InstallationHygienePanel } from "@/components/app/installation-hygiene-panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import emptyTeamIllustration from "@/assets/empty-team.png";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -582,6 +583,8 @@ function UsersPage() {
         </Dialog>
       }
     >
+      {selfHosted && <InstallationHygienePanel />}
+
       {rows.length === 0 && !list.isLoading ? (
         <EmptyState
           illustration={emptyTeamIllustration}

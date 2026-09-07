@@ -247,14 +247,22 @@ SectionEnd
 Var KEEP_DATA
 
 Function un.onInit
-  StrCpy $KEEP_DATA "1"
+  ; Removing the data is the DEFAULT. Leaving a company's database, uploads and
+  ; accounts behind is what allowed a later installation for a different
+  ; company to inherit them, so keeping data is now an explicit opt-in for
+  ; operators who are about to reinstall for the SAME company.
+  StrCpy $KEEP_DATA "0"
   IfSilent skip_prompt 0
-  MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Keep OPSQAI application data (database, uploaded files, configuration) in %ProgramData%\OPSQAI?$\r$\n$\r$\nChoose 'No' to permanently delete everything." \
-    IDYES keep IDNO nuke
+  MessageBox MB_YESNO|MB_ICONEXCLAMATION \
+    "Delete all OPSQAI application data (database, uploaded files, configuration) in %ProgramData%\OPSQAI?$\r$\n$\r$\nRecommended. Back up first if you still need this company's data.$\r$\n$\r$\nChoose 'No' ONLY if you will reinstall for the SAME company on this machine." \
+    IDYES nuke IDNO keep
   keep:
-    StrCpy $KEEP_DATA "1"
-    Goto skip_prompt
+    MessageBox MB_YESNO|MB_ICONEXCLAMATION \
+      "Keeping the data means the next installation on this machine starts inside this company's database and accounts.$\r$\n$\r$\nKeep the data anyway?" \
+      IDYES keep_confirmed IDNO nuke
+    keep_confirmed:
+      StrCpy $KEEP_DATA "1"
+      Goto skip_prompt
   nuke:
     StrCpy $KEEP_DATA "0"
   skip_prompt:

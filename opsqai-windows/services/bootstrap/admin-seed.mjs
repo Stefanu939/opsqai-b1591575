@@ -91,14 +91,26 @@ try {
   );
   const userId = up.rows[0].id;
 
-  // The setup account is the protected installation owner. It receives
-  // every permission and cannot be demoted through normal member flows.
+  // The setup account is the protected installation owner — but ONLY when the
+  // installation has no owner yet. Re-running the installer against a data
+  // directory that already belongs to a company must never mint a second
+  // owner (that is how a reused machine ended up with three owners); the new
+  // account gets `admin` instead and the existing owner can promote it.
+  const owner = await client.query(
+    `SELECT user_id FROM public.user_roles WHERE role = 'platform_owner' LIMIT 1`,
+  );
+  const ownerElsewhere = owner.rows.length > 0 && owner.rows[0].user_id !== userId;
   await client.query(
     `INSERT INTO public.user_roles (user_id, role)
-     VALUES ($1, 'platform_owner')
+     VALUES ($1, $2)
      ON CONFLICT (user_id, role) DO NOTHING`,
-    [userId],
+    [userId, ownerElsewhere ? "admin" : "platform_owner"],
   );
+  if (ownerElsewhere) {
+    console.warn(
+      "[admin-seed] this installation already has an owner — the setup account was created as 'admin'",
+    );
+  }
 
   await client.query("COMMIT");
   console.log(

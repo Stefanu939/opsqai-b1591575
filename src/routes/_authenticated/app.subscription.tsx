@@ -13,6 +13,7 @@ import { Check, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ModulePage } from "@/components/app/module-page";
 import { LicenseActivationPanel } from "@/components/app/license-activation-panel";
+import { InstallationHygienePanel } from "@/components/app/installation-hygiene-panel";
 
 export const Route = createFileRoute("/_authenticated/app/subscription")({
   head: () => ({ meta: [{ title: "License & Entitlements — OPSQAI" }] }),
@@ -44,6 +45,7 @@ function SubscriptionPage() {
           : "The Core platform is always included. Products and add-ons are enabled by OPSQAI through a signed license."
       }
     >
+      {selfhost && <InstallationHygienePanel />}
       {selfhost && <LicenseActivationPanel />}
 
       <section>
