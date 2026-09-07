@@ -64,11 +64,7 @@ export function vehicleFields(t: Ui, drivers: Opt[]): FieldDef[] {
   ];
 }
 
-export function trailerFields(
-  t: Ui,
-  vehicles: Opt[],
-  lang: "en" | "de" | "ro",
-): FieldDef[] {
+export function trailerFields(t: Ui, vehicles: Opt[], lang: "en" | "de" | "ro"): FieldDef[] {
   const kinds: Record<string, Record<"en" | "de" | "ro", string>> = {
     curtain: { en: "Curtain-sider", de: "Planenauflieger", ro: "Prelata" },
     reefer: { en: "Refrigerated", de: "Kuhlauflieger", ro: "Frigorific" },
@@ -359,12 +355,7 @@ export function dutyFields(
 }
 
 /** Editable CMR fields; country templates only change the printed headings. */
-export function cmrFields(
-  t: Ui,
-  vehicles: Opt[],
-  drivers: Opt[],
-  carriers: Opt[],
-): FieldDef[] {
+export function cmrFields(t: Ui, vehicles: Opt[], drivers: Opt[], carriers: Opt[]): FieldDef[] {
   return [
     { key: "sender_name", label: `${t.sender} — ${t.name}`, kind: "text" },
     { key: "sender_address", label: `${t.sender} — ${t.address}`, kind: "text" },

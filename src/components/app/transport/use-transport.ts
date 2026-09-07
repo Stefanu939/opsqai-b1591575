@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   deleteTransportRecord,
   exportCouplingSheet,
-  exportTransportCsv,
+  exportTransportPdf,
   getTransportAudit,
   getTransportMap,
   getTransportOverview,
@@ -14,7 +14,7 @@ import {
   listCmrNotes,
   saveTransportRecord,
 } from "@/lib/transport.functions";
-import { downloadBase64, downloadText } from "./download";
+import { downloadBase64 } from "./download";
 import type { RegisterName } from "./registers";
 
 export function useTransportOverview(periodDays = 30) {
@@ -25,7 +25,6 @@ export function useTransportOverview(periodDays = 30) {
     retry: false,
   });
 }
-
 
 export function useTransportRegisters() {
   const fn = useServerFn(getTransportRegisters);
@@ -84,18 +83,14 @@ export function useRecordMutations() {
   const refresh = useTransportRefresh();
 
   const saveRecord = useMutation({
-    mutationFn: (input: {
-      register: RegisterName;
-      id?: string;
-      values: Record<string, unknown>;
-    }) => save({ data: input }),
+    mutationFn: (input: { register: RegisterName; id?: string; values: Record<string, unknown> }) =>
+      save({ data: input }),
     onSuccess: () => refresh(),
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteRecord = useMutation({
-    mutationFn: (input: { register: RegisterName; id: string }) =>
-      remove({ data: input }),
+    mutationFn: (input: { register: RegisterName; id: string }) => remove({ data: input }),
     onSuccess: () => refresh(),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -103,8 +98,8 @@ export function useRecordMutations() {
   return { saveRecord, deleteRecord };
 }
 
-export function useCsvExport() {
-  const fn = useServerFn(exportTransportCsv);
+export function usePdfExport() {
+  const fn = useServerFn(exportTransportPdf);
   return async (
     dataset:
       | "vehicles"
@@ -119,25 +114,25 @@ export function useCsvExport() {
       | "alerts"
       | "fuel"
       | "duty",
+    title?: string,
   ) => {
     try {
-      const res = await fn({ data: { dataset } });
-      if (!res.csv) {
+      const res = await fn({ data: { dataset, title } });
+      if (!res.count) {
         toast.info("Nothing to export yet.");
         return;
       }
-      downloadText(res.filename, res.csv);
+      downloadBase64(res.filename, res.base64);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Export failed");
     }
   };
 }
 
-/** Excel / PDF export of the saved truck + trailer + driver sets. */
+/** PDF export of the saved truck + trailer + driver sets. */
 export function useCouplingExport() {
   const fn = useServerFn(exportCouplingSheet);
   return async (input: {
-    format: "xlsx" | "pdf";
     from?: string;
     to?: string;
     labels: {

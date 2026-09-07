@@ -1,7 +1,7 @@
 // OPSQAI Transport — coupling sheet exports (server only).
 //
-// One row per saved set (truck + trailer + driver). Excel via SheetJS and A4
-// PDF via pdf-lib; both are pure JavaScript, so the Self-Hosted Node runtime
+// One row per saved set (truck + trailer + driver). A4 landscape PDF via
+// pdf-lib (pure JavaScript), so the Self-Hosted Node runtime
 // and the cloud build behave identically.
 
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
@@ -48,36 +48,6 @@ function row(c: Coupling): (string | number)[] {
   ];
 }
 
-export async function renderCouplingXlsx(
-  couplings: Coupling[],
-  labels: CouplingExportLabels,
-): Promise<Uint8Array> {
-  const XLSX = await import("xlsx");
-  const header = [
-    labels.date,
-    labels.vehicle,
-    labels.trailer,
-    labels.driver,
-    labels.route,
-    labels.status,
-    labels.notes,
-  ];
-  const sheet = XLSX.utils.aoa_to_sheet([header, ...couplings.map(row)]);
-  sheet["!cols"] = [
-    { wch: 12 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 24 },
-    { wch: 28 },
-    { wch: 12 },
-    { wch: 40 },
-  ];
-  const book = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(book, sheet, labels.title.slice(0, 28) || "Sets");
-  const out = XLSX.write(book, { bookType: "xlsx", type: "array" }) as ArrayBuffer;
-  return new Uint8Array(out);
-}
-
 export async function renderCouplingPdf(
   couplings: Coupling[],
   labels: CouplingExportLabels,
@@ -110,10 +80,13 @@ export async function renderCouplingPdf(
   const header = () => {
     page.drawText(ascii(labels.title), { x: M, y: y - 14, size: 15, font: bold, color: ink });
     y -= 22;
-    page.drawText(
-      ascii(`${companyName ?? ""}${companyName ? " · " : ""}${labels.generated}`),
-      { x: M, y: y - 10, size: 9, font, color: muted },
-    );
+    page.drawText(ascii(`${companyName ?? ""}${companyName ? " · " : ""}${labels.generated}`), {
+      x: M,
+      y: y - 10,
+      size: 9,
+      font,
+      color: muted,
+    });
     y -= 26;
     let x = M;
     for (const c of cols) {

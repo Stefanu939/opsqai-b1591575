@@ -106,16 +106,10 @@ export function FleetBoard({
     () => data.duty.filter((d) => d.duty_date.slice(0, 10) === day),
     [data.duty, day],
   );
-  const working = dutyToday.filter(
-    (d) => d.duty_kind === "work" || d.duty_kind === "standby",
-  );
-  const off = dutyToday.filter(
-    (d) => d.duty_kind !== "work" && d.duty_kind !== "standby",
-  );
+  const working = dutyToday.filter((d) => d.duty_kind === "work" || d.duty_kind === "standby");
+  const off = dutyToday.filter((d) => d.duty_kind !== "work" && d.duty_kind !== "standby");
   const planned = new Set(dutyToday.map((d) => d.driver_id));
-  const unplanned = data.drivers.filter(
-    (d) => d.status === "active" && !planned.has(d.id),
-  );
+  const unplanned = data.drivers.filter((d) => d.status === "active" && !planned.has(d.id));
 
   const fuel = useMemo(() => fuelStats(data.fuel, periodDays), [data.fuel, periodDays]);
 
@@ -258,9 +252,7 @@ export function FleetBoard({
                     </p>
                   </div>
                   <Badge variant={LEVEL_VARIANT[a.level] ?? "outline"}>
-                    {a.level === "expired"
-                      ? t.expired
-                      : `${a.daysLeft} ${t.daysLeft}`}
+                    {a.level === "expired" ? t.expired : `${a.daysLeft} ${t.daysLeft}`}
                   </Badge>
                 </li>
               ))}
@@ -275,10 +267,7 @@ export function FleetBoard({
             ) : (
               <ul className="divide-y divide-border">
                 {[...working, ...off].map((d) => (
-                  <li
-                    key={d.id}
-                    className="flex items-center justify-between gap-2 py-2 text-sm"
-                  >
+                  <li key={d.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                     <div className="min-w-0">
                       <p className="truncate font-medium">{d.driver_name ?? "—"}</p>
                       <p className="truncate text-xs text-muted-foreground">
@@ -299,10 +288,7 @@ export function FleetBoard({
                   </li>
                 ))}
                 {unplanned.slice(0, 5).map((d) => (
-                  <li
-                    key={d.id}
-                    className="flex items-center justify-between gap-2 py-2 text-sm"
-                  >
+                  <li key={d.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                     <span className="truncate">{d.full_name}</span>
                     <span className="text-xs text-muted-foreground">{t.unassigned}</span>
                   </li>
@@ -320,9 +306,7 @@ export function FleetBoard({
                   <li key={route}>
                     <div className="flex items-center justify-between text-sm">
                       <span className="truncate">{route}</span>
-                      <span className="font-medium tabular-nums">
-                        {money(cost, fuel.currency)}
-                      </span>
+                      <span className="font-medium tabular-nums">{money(cost, fuel.currency)}</span>
                     </div>
                     <div className="mt-1 h-1.5 w-full rounded-full bg-muted">
                       <div
@@ -348,9 +332,7 @@ export function FleetBoard({
           fields={dialogFields(dialog)}
           initial={initialValues(dialog)}
           labels={{ save: t.save, cancel: t.cancel }}
-          onSave={(values) =>
-            saveRecord.mutateAsync({ register: dialog, values })
-          }
+          onSave={(values) => saveRecord.mutateAsync({ register: dialog, values })}
         />
       ) : null}
     </div>

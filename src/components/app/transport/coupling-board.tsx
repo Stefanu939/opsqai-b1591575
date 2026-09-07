@@ -2,9 +2,9 @@
 //
 // Drag a truck, a trailer and a driver into a set. Each set is one saved row in
 // the local coupling register for the selected day, and the whole table can be
-// exported to Excel or PDF.
+// exported to PDF.
 import { useMemo, useState } from "react";
-import { FileSpreadsheet, FileText, Link2Off, Plus, Search, Trash2, Truck, UsersRound } from "lucide-react";
+import { FileText, Link2Off, Plus, Search, Trash2, Truck, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -200,9 +200,7 @@ export function CouplingBoard({ t, lang, data }: Props) {
                 canDelete={canDelete}
                 onDrop={(kind, id) => assign(c.id, kind, id)}
                 onClear={(kind) => clearSlot(c.id, kind)}
-                onDelete={() =>
-                  void deleteRecord.mutateAsync({ register: "couplings", id: c.id })
-                }
+                onDelete={() => void deleteRecord.mutateAsync({ register: "couplings", id: c.id })}
               />
             ))}
             {canCreate ? (
@@ -248,40 +246,21 @@ export function CouplingBoard({ t, lang, data }: Props) {
                 />
               </div>
               {canExport ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      void exportSheet({
-                        format: "xlsx",
-                        from,
-                        to,
-                        labels,
-                        emptyMessage: t.nothingToExport,
-                      })
-                    }
-                  >
-                    <FileSpreadsheet className="mr-2 h-4 w-4" />
-                    {t.exportExcel}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      void exportSheet({
-                        format: "pdf",
-                        from,
-                        to,
-                        labels,
-                        emptyMessage: t.nothingToExport,
-                      })
-                    }
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    {t.exportPdf}
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    void exportSheet({
+                      from,
+                      to,
+                      labels,
+                      emptyMessage: t.nothingToExport,
+                    })
+                  }
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t.exportPdf}
+                </Button>
               ) : null}
             </div>
           </div>
@@ -291,9 +270,7 @@ export function CouplingBoard({ t, lang, data }: Props) {
             icon={Truck}
             title={t.sets}
             description={t.setsBody}
-            rows={data.couplings.filter(
-              (c) => c.coupling_date >= from && c.coupling_date <= to,
-            )}
+            rows={data.couplings.filter((c) => c.coupling_date >= from && c.coupling_date <= to)}
             canEdit={canEdit}
             canCreate={canCreate}
             canDelete={canDelete}

@@ -168,9 +168,7 @@ export function RegisterTable<T extends { id: string }>({
                     <TableCell key={c.key} className="align-top text-sm">
                       {c.render
                         ? c.render(row)
-                        : String(
-                            (row as unknown as Record<string, unknown>)[c.key] ?? "—",
-                          )}
+                        : String((row as unknown as Record<string, unknown>)[c.key] ?? "—")}
                     </TableCell>
                   ))}
                   <TableCell className="text-right whitespace-nowrap">
@@ -181,11 +179,7 @@ export function RegisterTable<T extends { id: string }>({
                       </Button>
                     ) : null}
                     {canDelete && onDelete ? (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => void onDelete(row.id)}
-                      >
+                      <Button size="icon" variant="ghost" onClick={() => void onDelete(row.id)}>
                         <Trash2 className="size-3.5" />
                       </Button>
                     ) : null}
@@ -213,9 +207,7 @@ export function RegisterTable<T extends { id: string }>({
                     rows={3}
                     value={values[f.key] ?? ""}
                     placeholder={f.placeholder}
-                    onChange={(e) =>
-                      setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                    }
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                   />
                 ) : f.kind === "select" ? (
                   <Select
@@ -250,9 +242,7 @@ export function RegisterTable<T extends { id: string }>({
                     }
                     value={values[f.key] ?? ""}
                     placeholder={f.placeholder}
-                    onChange={(e) =>
-                      setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                    }
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                   />
                 )}
               </div>

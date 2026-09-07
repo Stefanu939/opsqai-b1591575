@@ -16,7 +16,7 @@ import { countryPack } from "@/lib/transport/country-packs";
 import { cmrFields } from "./registers";
 import { RegisterTable } from "./register-table";
 import { downloadBase64 } from "./download";
-import { useCmrNotes, useCsvExport, useTransportRefresh } from "./use-transport";
+import { useCmrNotes, usePdfExport, useTransportRefresh } from "./use-transport";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { CmrRecord } from "@/lib/transport/types";
 
@@ -25,7 +25,7 @@ type Ui = ReturnType<typeof transportUi>;
 export function CmrSection({ t }: { t: Ui }) {
   const query = useCmrNotes();
   const refresh = useTransportRefresh();
-  const exportCsv = useCsvExport();
+  const exportPdf = usePdfExport();
   const save = useServerFn(saveCmrNote);
   const issue = useServerFn(issueCmrNote);
   const cancel = useServerFn(cancelCmrNote);
@@ -109,7 +109,7 @@ export function CmrSection({ t }: { t: Ui }) {
       onSave={(values, id) =>
         save({ data: id ? { id, values } : { values } }).then(() => refresh())
       }
-      onExport={() => void exportCsv("cmr")}
+      onExport={() => void exportPdf("cmr")}
       rowActions={(row) => (
         <>
           <Button

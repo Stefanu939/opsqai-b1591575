@@ -13,7 +13,8 @@ const EN = {
   axles: "Axles",
   coupling: "Coupling",
   couplingBoard: "Coupling board",
-  couplingBoardBody: "Drag a truck, a trailer and a driver into a set. Sets are saved for the selected day.",
+  couplingBoardBody:
+    "Drag a truck, a trailer and a driver into a set. Sets are saved for the selected day.",
   sets: "Sets",
   setsBody: "Every saved combination, ready to export.",
   newSet: "New set",
@@ -23,7 +24,16 @@ const EN = {
   inUse: "In use",
   removeFromSet: "Remove",
   saveSet: "Save set",
-  exportExcel: "Excel export",
+  startAuditNow: "Start audit",
+  openCurrentRun: "Open current run",
+  auditTargets: "Audit targets",
+  auditTargetsBody:
+    "Leave empty to audit every active vehicle and driver, or pick exactly who to audit.",
+  allVehicles: "All vehicles",
+  allDrivers: "All drivers",
+  notifications: "Notifications",
+  notificationsEmpty: "Nothing new.",
+  markAllRead: "Mark all read",
   exportPdf: "PDF export",
   setsSheet: "Transport sets",
   generatedOn: "Generated",
@@ -283,7 +293,8 @@ const EN = {
   noGps: "No GPS device recorded yet.",
   setPosition: "Set position",
   positionVehicle: "Position a vehicle",
-  positionBody: "Pick the vehicle, then set its place by clicking the map, pasting coordinates, or searching an address.",
+  positionBody:
+    "Pick the vehicle, then set its place by clicking the map, pasting coordinates, or searching an address.",
   pickOnMap: "Click on the map",
   pickOnMapOn: "Click the map now…",
   coordinates: "Coordinates or Google Maps link",
@@ -350,7 +361,6 @@ const EN = {
   dutyStandby: "Standby",
 } as const;
 
-
 type Dict = { [K in keyof typeof EN]: string };
 
 const DE: Dict = {
@@ -365,7 +375,8 @@ const DE: Dict = {
   axles: "Achsen",
   coupling: "Kopplung",
   couplingBoard: "Kopplungsboard",
-  couplingBoardBody: "Zugmaschine, Auflieger und Fahrer in ein Set ziehen. Sets werden für den gewählten Tag gespeichert.",
+  couplingBoardBody:
+    "Zugmaschine, Auflieger und Fahrer in ein Set ziehen. Sets werden für den gewählten Tag gespeichert.",
   sets: "Sets",
   setsBody: "Alle gespeicherten Kombinationen, exportbereit.",
   newSet: "Neues Set",
@@ -375,7 +386,16 @@ const DE: Dict = {
   inUse: "Im Einsatz",
   removeFromSet: "Entfernen",
   saveSet: "Set speichern",
-  exportExcel: "Excel-Export",
+  startAuditNow: "Audit starten",
+  openCurrentRun: "Aktuellen Lauf öffnen",
+  auditTargets: "Prüfumfang",
+  auditTargetsBody:
+    "Leer lassen, um alle aktiven Fahrzeuge und Fahrer zu prüfen, oder gezielt auswählen.",
+  allVehicles: "Alle Fahrzeuge",
+  allDrivers: "Alle Fahrer",
+  notifications: "Benachrichtigungen",
+  notificationsEmpty: "Nichts Neues.",
+  markAllRead: "Alle als gelesen markieren",
   exportPdf: "PDF-Export",
   setsSheet: "Transport-Sets",
   generatedOn: "Erstellt",
@@ -505,7 +525,8 @@ const DE: Dict = {
   approveAudit: "Audit genehmigen",
   approvedBy: "Genehmigt von",
   trends: "Trends",
-  trendsBody: "Mängel, Messwerte außerhalb des Bereichs und Fertigstellung über die letzten Zeiträume.",
+  trendsBody:
+    "Mängel, Messwerte außerhalb des Bereichs und Fertigstellung über die letzten Zeiträume.",
   issues: "Mängel",
   completion: "Fertigstellung",
   completeAudit: "Prüfung abschließen",
@@ -615,7 +636,8 @@ const DE: Dict = {
   noGps: "Keine GPS-Geräte erfasst.",
   setPosition: "Position setzen",
   positionVehicle: "Fahrzeug positionieren",
-  positionBody: "Fahrzeug wählen und Position per Klick auf die Karte, Koordinaten oder Adresssuche festlegen.",
+  positionBody:
+    "Fahrzeug wählen und Position per Klick auf die Karte, Koordinaten oder Adresssuche festlegen.",
   pickOnMap: "Auf der Karte klicken",
   pickOnMapOn: "Jetzt auf die Karte klicken…",
   coordinates: "Koordinaten oder Google-Maps-Link",
@@ -678,7 +700,6 @@ const DE: Dict = {
   dutyStandby: "Bereitschaft",
 };
 
-
 const RO: Dict = {
   ...EN,
   // Remorci și combinații
@@ -691,7 +712,8 @@ const RO: Dict = {
   axles: "Axe",
   coupling: "Combinații",
   couplingBoard: "Panou de combinare",
-  couplingBoardBody: "Trage un camion, o remorcă și un șofer într-un set. Seturile se salvează pentru ziua selectată.",
+  couplingBoardBody:
+    "Trage un camion, o remorcă și un șofer într-un set. Seturile se salvează pentru ziua selectată.",
   sets: "Seturi",
   setsBody: "Toate combinațiile salvate, pregătite pentru export.",
   newSet: "Set nou",
@@ -701,7 +723,16 @@ const RO: Dict = {
   inUse: "În folosință",
   removeFromSet: "Scoate",
   saveSet: "Salvează setul",
-  exportExcel: "Export Excel",
+  startAuditNow: "Începe auditul",
+  openCurrentRun: "Deschide auditul curent",
+  auditTargets: "Ținta auditului",
+  auditTargetsBody:
+    "Lasă gol pentru a audita toate vehiculele și șoferii activi sau alege exact pe cine vrei să auditezi.",
+  allVehicles: "Toate vehiculele",
+  allDrivers: "Toți șoferii",
+  notifications: "Notificări",
+  notificationsEmpty: "Nimic nou.",
+  markAllRead: "Marchează toate ca citite",
   exportPdf: "Export PDF",
   setsSheet: "Seturi transport",
   generatedOn: "Generat",
@@ -943,13 +974,15 @@ const RO: Dict = {
   noGps: "Nu există dispozitive GPS.",
   setPosition: "Setează poziția",
   positionVehicle: "Poziționează un vehicul",
-  positionBody: "Alege vehiculul, apoi setează locația printr-un clic pe hartă, lipind coordonate sau căutând o adresă.",
+  positionBody:
+    "Alege vehiculul, apoi setează locația printr-un clic pe hartă, lipind coordonate sau căutând o adresă.",
   pickOnMap: "Dă clic pe hartă",
   pickOnMapOn: "Dă clic pe hartă acum…",
   coordinates: "Coordonate sau link Google Maps",
   useCoordinates: "Folosește aceste coordonate",
   useThisPlace: "Folosește această locație",
-  badCoordinates: "Nu am putut citi coordonatele. Folosește 48.5, 15.5 sau lipește un link Google Maps.",
+  badCoordinates:
+    "Nu am putut citi coordonatele. Folosește 48.5, 15.5 sau lipește un link Google Maps.",
   chooseVehicleFirst: "Alege mai întâi un vehicul.",
   positionSaved: "Poziție salvată",
   showTrack: "Arată traseul",
@@ -1006,7 +1039,6 @@ const RO: Dict = {
   dutyTraining: "Instruire",
   dutyStandby: "Rezervă",
 };
-
 
 export const TRANSPORT_UI: Record<TLang, Dict> = { en: EN, de: DE, ro: RO };
 

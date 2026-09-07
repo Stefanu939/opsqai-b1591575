@@ -1,12 +1,6 @@
 // Shared form/table descriptors for the Transport registers.
 
-export type FieldKind =
-  | "text"
-  | "number"
-  | "date"
-  | "datetime"
-  | "textarea"
-  | "select";
+export type FieldKind = "text" | "number" | "date" | "datetime" | "textarea" | "select";
 
 export interface FieldDef {
   key: string;
