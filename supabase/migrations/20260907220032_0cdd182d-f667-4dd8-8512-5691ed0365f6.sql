@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.crm_intake_contact() FROM PUBLIC, anon, authenticated;
