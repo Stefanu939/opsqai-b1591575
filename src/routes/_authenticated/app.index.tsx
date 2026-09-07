@@ -32,6 +32,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ManagementOverview } from "@/components/dashboard/management-overview";
+import { ControlCenter } from "@/components/dashboard/control-center";
 import { UpcomingCard } from "@/components/calendar/upcoming-card";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
@@ -338,6 +339,8 @@ function DashboardWidgets() {
       <DashboardFilters value={filters} onChange={update} />
 
       <ManagementOverview />
+
+      <ControlCenter />
 
       <UpcomingCard scope="platform" to="/app/calendar" />
 
