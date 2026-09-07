@@ -108,6 +108,8 @@ export function useCsvExport() {
   return async (
     dataset:
       | "vehicles"
+      | "trailers"
+      | "couplings"
       | "drivers"
       | "carriers"
       | "documents"

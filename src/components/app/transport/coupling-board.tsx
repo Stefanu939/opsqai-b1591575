@@ -129,7 +129,7 @@ export function CouplingBoard({ t, lang, data }: Props) {
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="text-xs text-muted-foreground">{t.search}</Label>
+                <Label className="text-xs text-muted-foreground">{t.searchAssets}</Label>
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
