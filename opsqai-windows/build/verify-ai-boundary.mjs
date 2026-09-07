@@ -30,6 +30,7 @@ export const ALLOWED_PREFIXES = [
   // Lovable platform email endpoints: LOVABLE_API_KEY here is caller auth
   // for the platform email API, not AI inference.
   "src/routes/lovable/",
+  "src/lib/email-templates/",
   // Cloud legal / marketing / documentation copy (text, not calls).
   "src/lib/customer-templates.ts",
   "src/lib/opsqai-facts.ts",
