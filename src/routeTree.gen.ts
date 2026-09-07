@@ -130,6 +130,9 @@ import { Route as ApiPublicCalendarTokenRouteImport } from './routes/api/public/
 import { Route as AuthenticatedPortalNewsSlugRouteImport } from './routes/_authenticated/portal.news.$slug'
 import { Route as AuthenticatedPortalAdminDownloadsRouteImport } from './routes/_authenticated/portal.admin.downloads'
 import { Route as AuthenticatedManagementTeamUserIdRouteImport } from './routes/_authenticated/management.team.$userId'
+import { Route as AuthenticatedManagementCrmReportsRouteImport } from './routes/_authenticated/management.crm.reports'
+import { Route as AuthenticatedManagementCrmActivitiesRouteImport } from './routes/_authenticated/management.crm.activities'
+import { Route as AuthenticatedManagementCrmLeadIdRouteImport } from './routes/_authenticated/management.crm.$leadId'
 import { Route as AuthenticatedManagementCompaniesIdRouteImport } from './routes/_authenticated/management.companies.$id'
 import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app.chat.$threadId'
 import { Route as AuthenticatedAppAcademyTeacherRouteImport } from './routes/_authenticated/app.academy.teacher'
@@ -793,6 +796,24 @@ const AuthenticatedManagementTeamUserIdRoute =
     path: '/$userId',
     getParentRoute: () => AuthenticatedManagementTeamRoute,
   } as any)
+const AuthenticatedManagementCrmReportsRoute =
+  AuthenticatedManagementCrmReportsRouteImport.update({
+    id: '/crm/reports',
+    path: '/crm/reports',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
+const AuthenticatedManagementCrmActivitiesRoute =
+  AuthenticatedManagementCrmActivitiesRouteImport.update({
+    id: '/crm/activities',
+    path: '/crm/activities',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
+const AuthenticatedManagementCrmLeadIdRoute =
+  AuthenticatedManagementCrmLeadIdRouteImport.update({
+    id: '/crm/$leadId',
+    path: '/crm/$leadId',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedManagementCompaniesIdRoute =
   AuthenticatedManagementCompaniesIdRouteImport.update({
     id: '/$id',
@@ -1004,6 +1025,9 @@ export interface FileRoutesByFullPath {
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/management/crm/$leadId': typeof AuthenticatedManagementCrmLeadIdRoute
+  '/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
+  '/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
@@ -1135,6 +1159,9 @@ export interface FileRoutesByTo {
   '/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/management/crm/$leadId': typeof AuthenticatedManagementCrmLeadIdRoute
+  '/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
+  '/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
@@ -1275,6 +1302,9 @@ export interface FileRoutesById {
   '/_authenticated/app/academy/teacher': typeof AuthenticatedAppAcademyTeacherRoute
   '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
   '/_authenticated/management/companies/$id': typeof AuthenticatedManagementCompaniesIdRoute
+  '/_authenticated/management/crm/$leadId': typeof AuthenticatedManagementCrmLeadIdRoute
+  '/_authenticated/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
+  '/_authenticated/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/_authenticated/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
   '/_authenticated/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/_authenticated/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
@@ -1415,6 +1445,9 @@ export interface FileRouteTypes {
     | '/app/academy/teacher'
     | '/app/chat/$threadId'
     | '/management/companies/$id'
+    | '/management/crm/$leadId'
+    | '/management/crm/activities'
+    | '/management/crm/reports'
     | '/management/team/$userId'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
@@ -1546,6 +1579,9 @@ export interface FileRouteTypes {
     | '/app/academy/teacher'
     | '/app/chat/$threadId'
     | '/management/companies/$id'
+    | '/management/crm/$leadId'
+    | '/management/crm/activities'
+    | '/management/crm/reports'
     | '/management/team/$userId'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
@@ -1685,6 +1721,9 @@ export interface FileRouteTypes {
     | '/_authenticated/app/academy/teacher'
     | '/_authenticated/app/chat/$threadId'
     | '/_authenticated/management/companies/$id'
+    | '/_authenticated/management/crm/$leadId'
+    | '/_authenticated/management/crm/activities'
+    | '/_authenticated/management/crm/reports'
     | '/_authenticated/management/team/$userId'
     | '/_authenticated/portal/admin/downloads'
     | '/_authenticated/portal/news/$slug'
@@ -2625,6 +2664,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementTeamUserIdRouteImport
       parentRoute: typeof AuthenticatedManagementTeamRoute
     }
+    '/_authenticated/management/crm/reports': {
+      id: '/_authenticated/management/crm/reports'
+      path: '/crm/reports'
+      fullPath: '/management/crm/reports'
+      preLoaderRoute: typeof AuthenticatedManagementCrmReportsRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
+    '/_authenticated/management/crm/activities': {
+      id: '/_authenticated/management/crm/activities'
+      path: '/crm/activities'
+      fullPath: '/management/crm/activities'
+      preLoaderRoute: typeof AuthenticatedManagementCrmActivitiesRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
+    '/_authenticated/management/crm/$leadId': {
+      id: '/_authenticated/management/crm/$leadId'
+      path: '/crm/$leadId'
+      fullPath: '/management/crm/$leadId'
+      preLoaderRoute: typeof AuthenticatedManagementCrmLeadIdRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/companies/$id': {
       id: '/_authenticated/management/companies/$id'
       path: '/$id'
@@ -2862,6 +2922,9 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
   AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRouteWithChildren
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
+  AuthenticatedManagementCrmLeadIdRoute: typeof AuthenticatedManagementCrmLeadIdRoute
+  AuthenticatedManagementCrmActivitiesRoute: typeof AuthenticatedManagementCrmActivitiesRoute
+  AuthenticatedManagementCrmReportsRoute: typeof AuthenticatedManagementCrmReportsRoute
   AuthenticatedManagementCrmIndexRoute: typeof AuthenticatedManagementCrmIndexRoute
 }
 
@@ -2885,6 +2948,12 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementTeamRoute:
       AuthenticatedManagementTeamRouteWithChildren,
     AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
+    AuthenticatedManagementCrmLeadIdRoute:
+      AuthenticatedManagementCrmLeadIdRoute,
+    AuthenticatedManagementCrmActivitiesRoute:
+      AuthenticatedManagementCrmActivitiesRoute,
+    AuthenticatedManagementCrmReportsRoute:
+      AuthenticatedManagementCrmReportsRoute,
     AuthenticatedManagementCrmIndexRoute: AuthenticatedManagementCrmIndexRoute,
   }
 
