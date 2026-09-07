@@ -64,3 +64,25 @@ Upload the signed `manifest.json` **after** the artifact is reachable at
 
 Rotating the key while a fraction of the fleet still trusts the old key
 will make those clients stop updating until a human runs the installer.
+
+## Update source: Management Center first, signed CDN manifest as fallback
+
+Since the Management Center became the release registry, the updater no longer
+depends on the CDN manifest:
+
+1. The application performs a licensed update check against
+   `POST /api/public/v1/updates/check` on the Management Center. The answer
+   contains an Ed25519-signed descriptor (same license key the installation
+   already pins) with version, notes, SHA-256 and a short-lived download URL.
+   The verified descriptor is written to
+   `%ProgramData%\OPSQAI\updates\available.json`.
+2. This service reads `available.json` first, downloads the artifact, verifies
+   its SHA-256 and stages it. Automatic installs still happen inside the
+   configured maintenance window; `%ProgramData%\OPSQAI\updates\command.json`
+   (written by the Updates page) triggers an immediate download or install.
+3. When no descriptor exists — air-gapped or Management-Center-less
+   installations — the legacy signed manifest at `cfg.updates.manifestUrl` is
+   used exactly as before.
+
+Only releases marked as published in the Management Center are offered, and a
+release without a SHA-256 checksum cannot be published.
