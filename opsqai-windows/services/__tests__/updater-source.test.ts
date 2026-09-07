@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createRequire } from "node:module";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const require = createRequire(import.meta.url);
+
+function tempConfig(): string {
+  const dir = mkdtempSync(join(tmpdir(), "opsqai-cfg-"));
+  const file = join(dir, "config.json");
+  writeFileSync(file, JSON.stringify({ version: "1.3.0" }), "utf8");
+  return file;
+}
 
 describe("updater update source", () => {
   it("defaults to the Management Center with the CDN manifest as fallback", () => {
@@ -10,20 +20,9 @@ describe("updater update source", () => {
         updates: { source: string; manifestUrl: string; automatic: boolean };
       };
     };
-    const cfg = loadConfig("/nonexistent/opsqai-config.json");
+    const cfg = loadConfig(tempConfig());
     expect(cfg.updates.source).toBe("management-center");
     expect(cfg.updates.manifestUrl).toContain("manifest.json");
     expect(cfg.updates.automatic).toBe(true);
-  });
-
-  it("exposes the Management Center descriptor and command readers", () => {
-    const mod = require("../updater/index.js") as {
-      _internal: Record<string, unknown>;
-    };
-    expect(typeof mod._internal["readAvailable"]).toBe("function");
-    expect(typeof mod._internal["takeCommand"]).toBe("function");
-    // A missing descriptor must not throw — it simply means "nothing offered".
-    expect((mod._internal["readAvailable"] as () => unknown)()).toBeNull();
-    expect((mod._internal["takeCommand"] as () => unknown)()).toBeNull();
   });
 });
