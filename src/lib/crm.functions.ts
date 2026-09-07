@@ -122,6 +122,11 @@ async function logEvent(
     .insert({ lead_id: leadId, kind, detail, actor_user_id: actorUserId });
 }
 
+/**
+ * CRM changes are audited on the lead's own timeline (`crm_lead_events`),
+ * which is the record staff actually read. `audit_log` is company-scoped
+ * and mandatory-question shaped, so it is not a fit for pre-customer leads.
+ */
 async function audit(
   admin: Awaited<ReturnType<typeof getCloudSupabaseAdmin>>,
   userId: string,
@@ -129,14 +134,11 @@ async function audit(
   resource: string,
   payload: Record<string, unknown>,
 ) {
-  await admin.from("audit_log").insert({
-    user_id: userId,
-    module: "crm",
-    action,
-    resource,
-    payload,
-    severity: "info",
-    success: true,
+  await admin.from("crm_lead_events").insert({
+    lead_id: resource,
+    kind: "audit",
+    detail: `${action} ${JSON.stringify(payload)}`.slice(0, 500),
+    actor_user_id: userId,
   });
 }
 
