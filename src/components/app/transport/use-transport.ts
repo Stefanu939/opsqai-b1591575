@@ -4,7 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   deleteTransportRecord,
+  closeTransportRiskAction,
   exportCouplingSheet,
+  exportFleetStatusPdf,
   exportTransportPdf,
   getTransportAudit,
   getTransportMap,
@@ -13,6 +15,8 @@ import {
   getTransportSettings,
   listCmrNotes,
   saveTransportRecord,
+  saveTransportRiskAction,
+  sendTransportDigestNow,
 } from "@/lib/transport.functions";
 import { downloadBase64 } from "./download";
 import type { RegisterName } from "./registers";
@@ -157,6 +161,79 @@ export function useCouplingExport() {
       downloadBase64(res.filename, res.base64, res.mime);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Export failed");
+    }
+  };
+}
+
+/** Owner + due date assignments for the risk lanes. */
+export function useRiskActionMutations() {
+  const save = useServerFn(saveTransportRiskAction);
+  const close = useServerFn(closeTransportRiskAction);
+  const refresh = useTransportRefresh();
+
+  const assign = useMutation({
+    mutationFn: (input: {
+      id?: string | null;
+      riskKey: string;
+      subject?: string | null;
+      ownerName?: string | null;
+      dueOn?: string | null;
+      note?: string | null;
+    }) => save({ data: input }),
+    onSuccess: () => refresh(),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const markDone = useMutation({
+    mutationFn: (id: string) => close({ data: { id } }),
+    onSuccess: () => refresh(),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return { assign, markDone };
+}
+
+/** One-page fleet status PDF for the weekly meeting. */
+export function useFleetStatusExport() {
+  const fn = useServerFn(exportFleetStatusPdf);
+  return async (input: {
+    title: string;
+    subtitle: string;
+    footer: string;
+    kpis: { label: string; value: string }[];
+    lanes: {
+      title: string;
+      tone: "critical" | "plan";
+      items: { label: string; value: string }[];
+    }[];
+  }) => {
+    try {
+      const res = await fn({ data: input });
+      downloadBase64(res.filename, res.base64);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Export failed");
+    }
+  };
+}
+
+/** Send the morning briefing immediately (settings right required). */
+export function useSendDigest() {
+  const fn = useServerFn(sendTransportDigestNow);
+  return async (
+    input: {
+      title: string;
+      now: { label: string; count: number }[];
+      plan: { label: string; count: number }[];
+    },
+    labels: { sent: string; nothing: string; failed: string },
+  ) => {
+    try {
+      const res = await fn({ data: input });
+      if (res.reason === "nothing") toast.info(labels.nothing);
+      else if (res.sent) toast.success(labels.sent);
+      else toast.error(labels.failed);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : labels.failed);
     }
   };
 }

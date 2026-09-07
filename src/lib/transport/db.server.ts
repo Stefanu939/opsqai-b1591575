@@ -18,6 +18,8 @@ import type {
   Incident,
   MapPin,
   MapZone,
+  RiskAction,
+  RiskActionEvent,
   TransportDocument,
   TransportGrantKey,
   TransportNote,
@@ -96,6 +98,10 @@ const DEFAULT_SETTINGS: TransportSettings = {
   auditCadence: "manual",
   auditOwnerUserId: null,
   auditReminder: false,
+  digestEnabled: false,
+  digestHour: 7,
+  digestEmails: null,
+  digestWebhookUrl: null,
 };
 
 interface SettingsRow {
@@ -119,12 +125,17 @@ interface SettingsRow {
   audit_cadence: string;
   audit_owner_user_id: string | null;
   audit_reminder: boolean;
+  digest_enabled: boolean;
+  digest_hour: number;
+  digest_emails: string | null;
+  digest_webhook_url: string | null;
 }
 
 const SETTINGS_SELECT = `country, language, units, alert_windows, doc_alert_windows,
   map_enabled, cmr_prefix, timezone, week_start, audit_day, audit_required,
   map_center_lat, map_center_lng, map_zoom, live_tracking, gps_poll_minutes,
-  search_provider, audit_cadence, audit_owner_user_id, audit_reminder`;
+  search_provider, audit_cadence, audit_owner_user_id, audit_reminder,
+  digest_enabled, digest_hour, digest_emails, digest_webhook_url`;
 
 export async function getSettings(companyId: string): Promise<TransportSettings> {
   const row = await one<SettingsRow>(
@@ -160,6 +171,10 @@ export async function getSettings(companyId: string): Promise<TransportSettings>
         : "manual",
     auditOwnerUserId: row.audit_owner_user_id,
     auditReminder: row.audit_reminder,
+    digestEnabled: Boolean(row.digest_enabled),
+    digestHour: Number(row.digest_hour ?? 7),
+    digestEmails: row.digest_emails,
+    digestWebhookUrl: row.digest_webhook_url,
   };
 }
 
@@ -174,8 +189,10 @@ export async function saveSettings(
        (company_id, country, language, units, alert_windows, doc_alert_windows,
         map_enabled, cmr_prefix, timezone, week_start, audit_day, audit_required,
         map_center_lat, map_center_lng, map_zoom, live_tracking, gps_poll_minutes,
-        search_provider, audit_cadence, audit_owner_user_id, audit_reminder)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+        search_provider, audit_cadence, audit_owner_user_id, audit_reminder,
+        digest_enabled, digest_hour, digest_emails, digest_webhook_url)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,
+             $22,$23,$24,$25)
      ON CONFLICT (company_id) DO UPDATE SET
        country = EXCLUDED.country,
        language = EXCLUDED.language,
@@ -197,6 +214,10 @@ export async function saveSettings(
        audit_cadence = EXCLUDED.audit_cadence,
        audit_owner_user_id = EXCLUDED.audit_owner_user_id,
        audit_reminder = EXCLUDED.audit_reminder,
+       digest_enabled = EXCLUDED.digest_enabled,
+       digest_hour = EXCLUDED.digest_hour,
+       digest_emails = EXCLUDED.digest_emails,
+       digest_webhook_url = EXCLUDED.digest_webhook_url,
        updated_at = now()`,
     [
       companyId,
@@ -220,6 +241,10 @@ export async function saveSettings(
       next.auditCadence,
       next.auditOwnerUserId,
       next.auditReminder,
+      next.digestEnabled,
+      next.digestHour,
+      next.digestEmails,
+      next.digestWebhookUrl,
     ],
   );
   return next;
@@ -1742,11 +1767,26 @@ export async function cancelCmr(companyId: string, id: string): Promise<void> {
   );
 }
 
+/**
+ * Per-document-type thresholds: the configured window is the "warning" horizon
+ * and a third of it (max 14 days) becomes "critical". Without a configuration
+ * the defaults stay 14 / 30 days.
+ */
+function alertLevel(daysLeft: number, window?: number): ExpiryAlert["level"] {
+  const warn = window && window > 0 ? window : 30;
+  const crit = Math.max(1, Math.min(14, Math.round(warn / 3)));
+  if (daysLeft < 0) return "expired";
+  if (daysLeft <= crit) return "critical";
+  if (daysLeft <= warn) return "warning";
+  return "watch";
+}
+
 // ── Expiry alerts ─────────────────────────────────────────────────────────
 
 export async function expiryAlerts(companyId: string): Promise<ExpiryAlert[]> {
   const settings = await getSettings(companyId);
-  const horizon = Math.max(...settings.alertWindows, 30);
+  const perType = settings.docAlertWindows ?? {};
+  const horizon = Math.max(...settings.alertWindows, ...Object.values(perType), 90);
   const rows = await q<{
     document_id: string;
     owner_kind: ExpiryAlert["ownerKind"];
@@ -1789,14 +1829,7 @@ export async function expiryAlerts(companyId: string): Promise<ExpiryAlert[]> {
       r.doc_label ?? pack.docTypes.find((d) => d.key === r.doc_type)?.label.en ?? r.doc_type,
     expiresOn: r.expires_on,
     daysLeft: Number(r.days_left),
-    level:
-      Number(r.days_left) < 0
-        ? "expired"
-        : Number(r.days_left) <= 14
-          ? "critical"
-          : Number(r.days_left) <= 30
-            ? "warning"
-            : "watch",
+    level: alertLevel(Number(r.days_left), perType[r.doc_type]),
   }));
 }
 
@@ -2348,4 +2381,119 @@ export async function trends(
     approvals: { current: n("app_cur"), previous: n("app_prev") },
     closedIncidents: { current: n("clo_cur"), previous: n("clo_prev") },
   };
+}
+
+
+// ── Risk ownership (owner + due date + history) ───────────────────────────
+
+export async function listRiskActions(companyId: string): Promise<RiskAction[]> {
+  return q<RiskAction>(
+    `SELECT id, risk_key, subject, owner_user_id, owner_name,
+            to_char(due_on, 'YYYY-MM-DD') AS due_on, status, note,
+            created_by_name, created_at, updated_at, closed_at
+       FROM public.transport_risk_actions
+      WHERE company_id = $1
+      ORDER BY status, due_on NULLS LAST, created_at DESC`,
+    [companyId],
+  ) as unknown as Promise<RiskAction[]>;
+}
+
+async function logRiskEvent(
+  companyId: string,
+  actionId: string,
+  event: string,
+  detail: string | null,
+  actorName: string | null,
+): Promise<void> {
+  await q(
+    `INSERT INTO public.transport_risk_action_events
+       (action_id, company_id, event, detail, actor_name)
+     VALUES ($1,$2,$3,$4,$5)`,
+    [actionId, companyId, event, detail, actorName],
+  );
+}
+
+export async function saveRiskAction(
+  companyId: string,
+  actorName: string,
+  input: {
+    id?: string | null;
+    riskKey: string;
+    subject?: string | null;
+    ownerUserId?: string | null;
+    ownerName?: string | null;
+    dueOn?: string | null;
+    note?: string | null;
+  },
+): Promise<RiskAction | null> {
+  const detail = [input.ownerName, input.dueOn].filter(Boolean).join(" · ") || null;
+  if (input.id) {
+    const row = await one<{ id: string }>(
+      `UPDATE public.transport_risk_actions
+          SET subject = $3, owner_user_id = $4, owner_name = $5, due_on = $6,
+              note = $7, updated_at = now()
+        WHERE id = $1 AND company_id = $2
+        RETURNING id`,
+      [
+        input.id,
+        companyId,
+        input.subject ?? null,
+        input.ownerUserId ?? null,
+        input.ownerName ?? null,
+        input.dueOn ?? null,
+        input.note ?? null,
+      ],
+    );
+    if (row) await logRiskEvent(companyId, row.id, "updated", detail, actorName);
+  } else {
+    const row = await one<{ id: string }>(
+      `INSERT INTO public.transport_risk_actions
+         (company_id, risk_key, subject, owner_user_id, owner_name, due_on, note, created_by_name)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       RETURNING id`,
+      [
+        companyId,
+        input.riskKey,
+        input.subject ?? null,
+        input.ownerUserId ?? null,
+        input.ownerName ?? null,
+        input.dueOn ?? null,
+        input.note ?? null,
+        actorName,
+      ],
+    );
+    if (row) await logRiskEvent(companyId, row.id, "assigned", detail, actorName);
+  }
+  const rows = await listRiskActions(companyId);
+  return rows.find((r) => r.risk_key === input.riskKey && r.status === "open") ?? null;
+}
+
+export async function closeRiskAction(
+  companyId: string,
+  actorName: string,
+  id: string,
+): Promise<void> {
+  const row = await one<{ id: string }>(
+    `UPDATE public.transport_risk_actions
+        SET status = 'done', closed_at = now(), updated_at = now()
+      WHERE id = $1 AND company_id = $2
+      RETURNING id`,
+    [id, companyId],
+  );
+  if (row) await logRiskEvent(companyId, row.id, "done", null, actorName);
+}
+
+export async function listRiskActionEvents(
+  companyId: string,
+  limit = 60,
+): Promise<RiskActionEvent[]> {
+  return q<RiskActionEvent>(
+    `SELECT e.id, e.action_id, a.risk_key, e.event, e.detail, e.actor_name, e.created_at
+       FROM public.transport_risk_action_events e
+       JOIN public.transport_risk_actions a ON a.id = e.action_id
+      WHERE e.company_id = $1
+      ORDER BY e.created_at DESC
+      LIMIT $2`,
+    [companyId, limit],
+  ) as unknown as Promise<RiskActionEvent[]>;
 }

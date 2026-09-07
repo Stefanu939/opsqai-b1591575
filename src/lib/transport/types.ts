@@ -53,6 +53,38 @@ export interface TransportSettings {
   auditCadence: "manual" | "weekly" | "biweekly" | "monthly";
   auditOwnerUserId: string | null;
   auditReminder: boolean;
+  /** Morning briefing of the critical lane (email + optional webhook). */
+  digestEnabled: boolean;
+  /** Local hour (0–23) from which the briefing may be sent. */
+  digestHour: number;
+  digestEmails: string | null;
+  digestWebhookUrl: string | null;
+}
+
+/** An owner + due date attached to one risk line of the overview. */
+export interface RiskAction {
+  id: string;
+  risk_key: string;
+  subject: string | null;
+  owner_user_id: string | null;
+  owner_name: string | null;
+  due_on: string | null;
+  status: "open" | "done";
+  note: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+}
+
+export interface RiskActionEvent {
+  id: string;
+  action_id: string;
+  risk_key: string;
+  event: string;
+  detail: string | null;
+  actor_name: string | null;
+  created_at: string;
 }
 
 export interface TransportGpsDevice {
@@ -475,6 +507,8 @@ export interface TransportOverview {
     documents: number;
   };
   alerts: ExpiryAlert[];
+  /** Owners and due dates assigned to risk lines. */
+  riskActions: RiskAction[];
   recentIncidents: Incident[];
   openRequests: TransportRequest[];
   vehicles: Vehicle[];
