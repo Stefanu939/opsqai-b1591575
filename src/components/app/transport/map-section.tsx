@@ -40,6 +40,35 @@ const KINDS: Array<MapPin["kind"]> = ["vehicle", "driver", "carrier", "incident"
 
 const PROVIDERS = ["manual", "tcomm", "webfleet", "wialon", "traccar", "other"] as const;
 
+/**
+ * Read a latitude/longitude out of typed text or a pasted Google Maps link
+ * ("48.5, 15.5", "@48.5,15.5,12z", "?q=48.5,15.5", "!3d48.5!4d15.5").
+ */
+export function parseCoordinates(input: string): { lat: number; lng: number } | null {
+  const text = input.trim();
+  if (!text) return null;
+  const patterns = [
+    /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/,
+    /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/,
+    /[?&]q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/,
+    /^(-?\d+(?:[.,]\d+)?)[;,\s]+(-?\d+(?:[.,]\d+)?)$/,
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (!m) continue;
+    const lat = Number(String(m[1]).replace(",", "."));
+    const lng = Number(String(m[2]).replace(",", "."));
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    )
+      return { lat, lng };
+  }
+  return null;
+}
+
 export function MapSection({ t }: { t: Ui }) {
   const map = useTransportMapData();
   const refresh = useTransportRefresh();
@@ -67,6 +96,8 @@ export function MapSection({ t }: { t: Ui }) {
   const [track, setTrack] = useState<Array<{ lat: number; lng: number }>>([]);
   const [picked, setPicked] = useState<{ lat: number; lng: number } | null>(null);
   const [target, setTarget] = useState<string>("");
+  const [pickMode, setPickMode] = useState(false);
+  const [coordText, setCoordText] = useState("");
   const [device, setDevice] = useState({
     provider: "manual" as (typeof PROVIDERS)[number],
     deviceId: "",
