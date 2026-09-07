@@ -30,6 +30,16 @@ const KINDS = {
   settings: { en: "Settings", de: "Einstellungen", ro: "Setări" },
   employees: { en: "Employees", de: "Mitarbeiter", ro: "Angajați" },
   tasks: { en: "HR Tasks", de: "HR-Aufgaben", ro: "Sarcini HR" },
+  documents: { en: "Contracts & Documents", de: "Verträge & Dokumente", ro: "Contracte și documente" },
+  lifecycle: {
+    en: "Onboarding & Offboarding",
+    de: "Onboarding & Offboarding",
+    ro: "Integrare și plecare",
+  },
+  equipment: { en: "Equipment", de: "Ausstattung", ro: "Echipamente" },
+  screening: { en: "Candidate Screening", de: "Bewerber-Screening", ro: "Evaluare candidați" },
+  analytics: { en: "Analytics & Alerts", de: "Analysen & Hinweise", ro: "Analize și alerte" },
+
 
 } as const;
 
