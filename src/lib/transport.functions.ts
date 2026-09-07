@@ -1067,6 +1067,18 @@ export const saveCmrNote = createServerFn({ method: "POST" })
     return db.createCmr(a.companyId, a.userId, data.values);
   });
 
+export const duplicateCmrNote = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: uuidString(), draftName: z.string().min(1).max(120) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "cmr");
+    const db = await import("@/lib/transport/db.server");
+    return db.duplicateCmr(a.companyId, a.userId, data.id, data.draftName.trim());
+  });
+
 export const issueCmrNote = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))

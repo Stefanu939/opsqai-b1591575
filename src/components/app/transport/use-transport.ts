@@ -225,13 +225,24 @@ export function useSendDigest() {
       now: { label: string; count: number }[];
       plan: { label: string; count: number }[];
     },
-    labels: { sent: string; nothing: string; failed: string },
+    labels: {
+      sent: string;
+      nothing: string;
+      failed: string;
+      noRecipients?: string;
+      smtpMissing?: string;
+    },
   ) => {
     try {
       const res = await fn({ data: input });
       if (res.reason === "nothing") toast.info(labels.nothing);
       else if (res.sent) toast.success(labels.sent);
-      else toast.error(labels.failed);
+      else if (res.reason === "no_recipients")
+        toast.error(labels.noRecipients ?? labels.failed);
+      else if (res.reason && /not configured|no notification|smtp/i.test(res.reason))
+        toast.error(labels.smtpMissing ?? labels.failed);
+      else
+        toast.error(res.reason ? `${labels.failed} (${res.reason})` : labels.failed);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : labels.failed);
     }

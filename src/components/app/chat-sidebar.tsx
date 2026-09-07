@@ -89,9 +89,9 @@ export function ChatSidebar() {
     if (
       !(await confirmAction({
         title:
-          lang === "de" ? "Diese Unterhaltung löschen?" : "Delete this conversation?",
-        confirmLabel: lang === "de" ? "Löschen" : "Delete",
-        cancelLabel: lang === "de" ? "Abbrechen" : "Cancel",
+          lang === "de" ? "Diese Unterhaltung löschen?" : lang === "ro" ? "Ștergi această conversație?" : "Delete this conversation?",
+        confirmLabel: lang === "de" ? "Löschen" : lang === "ro" ? "Șterge" : "Delete",
+        cancelLabel: lang === "de" ? "Abbrechen" : lang === "ro" ? "Anulează" : "Cancel",
       }))
     )
       return;
@@ -125,22 +125,24 @@ export function ChatSidebar() {
   };
 
   const labels = {
-    today: lang === "de" ? "Heute"  : "Today",
-    week: lang === "de" ? "Diese Woche"  : "This week",
-    month: lang === "de" ? "Diesen Monat"  : "This month",
-    older: lang === "de" ? "Älter"  : "Older",
+    today: lang === "de" ? "Heute" : lang === "ro" ? "Astăzi" : "Today",
+    week: lang === "de" ? "Diese Woche" : lang === "ro" ? "Săptămâna aceasta" : "This week",
+    month: lang === "de" ? "Diesen Monat" : lang === "ro" ? "Luna aceasta" : "This month",
+    older: lang === "de" ? "Älter" : lang === "ro" ? "Mai vechi" : "Older",
     search:
       lang === "de"
         ? "Unterhaltungen suchen…"
-        
+        : lang === "ro"
+          ? "Caută în conversații…"
           : "Search conversations…",
-    newChat: lang === "de" ? "Neue Unterhaltung"  : "New chat",
+    newChat: lang === "de" ? "Neue Unterhaltung" : lang === "ro" ? "Conversație nouă" : "New chat",
     empty:
       lang === "de"
         ? "Noch keine Unterhaltungen"
-        
+        : lang === "ro"
+          ? "Nicio conversație încă"
           : "No conversations yet",
-    history: lang === "de" ? "Verlauf"  : "History",
+    history: lang === "de" ? "Verlauf" : lang === "ro" ? "Istoric" : "History",
   };
 
   return (

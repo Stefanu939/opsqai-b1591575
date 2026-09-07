@@ -142,7 +142,13 @@ export function OverviewSection({
         now: lanes.now.map((i) => ({ label: i.label, count: i.count })),
         plan: lanes.plan.map((i) => ({ label: i.label, count: i.count })),
       },
-      { sent: t.digestSent, nothing: t.digestNothing, failed: t.digestFailed },
+      {
+        sent: t.digestSent,
+        nothing: t.digestNothing,
+        failed: t.digestFailed,
+        noRecipients: t.digestNoRecipients,
+        smtpMissing: t.digestSmtpMissing,
+      },
     );
 
   return (

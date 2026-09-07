@@ -1623,6 +1623,7 @@ export async function savePlace(
 // ── CMR ───────────────────────────────────────────────────────────────────
 
 const CMR_COLUMNS = [
+  "draft_name",
   "country",
   "language",
   "sender_name",
@@ -1658,7 +1659,7 @@ const CMR_COLUMNS = [
   "signature_consignee",
 ];
 
-const CMR_SELECT = `id, number, country, language, status, sender_name, sender_address,
+const CMR_SELECT = `id, number, draft_name, country, language, status, sender_name, sender_address,
   consignee_name, consignee_address, carrier_id, carrier_name, carrier_address,
   successive_carrier, vehicle_id, vehicle_plate, trailer_plate, driver_id, driver_name,
   place_of_loading, loading_on, place_of_delivery, delivery_on, goods, packages,
@@ -1721,6 +1722,28 @@ export async function updateCmr(
       WHERE id = $1 AND company_id = $2 AND status <> 'cancelled'`,
     [id, companyId, ...params],
   );
+}
+
+/**
+ * Copy an existing note into a fresh draft under a new human name. Numbers,
+ * issue timestamps and signatures are intentionally not carried over.
+ */
+export async function duplicateCmr(
+  companyId: string,
+  userId: string,
+  id: string,
+  draftName: string,
+): Promise<{ id: string }> {
+  const source = await getCmr(companyId, id);
+  if (!source) throw new Error("Consignment note not found.");
+  const values: Record<string, unknown> = {};
+  for (const col of CMR_COLUMNS) {
+    if (col === "draft_name") continue;
+    const value = (source as unknown as Record<string, unknown>)[col];
+    if (value !== undefined && value !== null) values[col] = value;
+  }
+  values["draft_name"] = draftName;
+  return createCmr(companyId, userId, values);
 }
 
 /** Allocate the next number in the local series and mark the note as issued. */

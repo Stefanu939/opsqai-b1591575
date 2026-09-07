@@ -10,6 +10,7 @@ import { Paperclip, Mic, ArrowUp, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { EmojiPicker } from "@/components/app/chat/emoji-picker";
 import { firstNameFrom } from "@/lib/chat-grounding";
+import { DocumentCompare } from "@/components/app/chat/document-compare";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({ component: ChatWelcome });
 
@@ -90,7 +91,11 @@ function ChatWelcome() {
           {greet(name, lang)}
         </h1>
         <p className="mt-3 text-base text-muted-foreground">
-          {lang === "de" ? "Wie kann ich heute helfen?" : "How can I help you today?"}
+          {lang === "de"
+            ? "Wie kann ich heute helfen?"
+            : lang === "ro"
+              ? "Cu ce te pot ajuta astăzi?"
+              : "How can I help you today?"}
         </p>
 
         <div className="mt-10 rounded-lg border border-border bg-card shadow-xs p-2 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-colors">
@@ -99,7 +104,9 @@ function ChatWelcome() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKey}
-            placeholder={lang === "de" ? "Stelle eine Frage…" : "Ask anything…"}
+            placeholder={
+              lang === "de" ? "Stelle eine Frage…" : lang === "ro" ? "Întreabă orice…" : "Ask anything…"
+            }
             rows={2}
             className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px] min-h-[64px] placeholder:text-muted-foreground/60"
           />
@@ -132,12 +139,18 @@ function ChatWelcome() {
               onClick={submit}
               disabled={!text.trim() || busy}
               size="icon"
-              aria-label={lang === "de" ? "Frage senden" : "Send question"}
+              aria-label={
+                lang === "de" ? "Frage senden" : lang === "ro" ? "Trimite întrebarea" : "Send question"
+              }
               className="h-9 w-9 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 disabled:opacity-40"
             >
               <ArrowUp className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <DocumentCompare />
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
@@ -155,7 +168,9 @@ function ChatWelcome() {
         <p className="mt-8 text-[11px] text-muted-foreground/70">
           {lang === "de"
             ? "Frühere Unterhaltungen findest du in der Seitenleiste."
-            : "Past conversations are listed in the sidebar."}
+            : lang === "ro"
+              ? "Conversațiile anterioare apar în bara laterală."
+              : "Past conversations are listed in the sidebar."}
         </p>
       </div>
     </div>
