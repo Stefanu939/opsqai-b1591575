@@ -28,6 +28,8 @@ const KINDS = {
   map: { en: "Map", de: "Karte", ro: "Hartă" },
   cmr: { en: "CMR", de: "CMR", ro: "CMR" },
   settings: { en: "Settings", de: "Einstellungen", ro: "Setări" },
+  employees: { en: "Employees", de: "Mitarbeiter", ro: "Angajați" },
+  tasks: { en: "HR Tasks", de: "HR-Aufgaben", ro: "Sarcini HR" },
 
 } as const;
 
