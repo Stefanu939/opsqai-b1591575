@@ -55,7 +55,7 @@ export const syncInstallerReleasesFromGithub = createServerFn({ method: "POST" }
   });
 
 const SaveInput = z.object({
-  id: uuidString.optional(),
+  id: uuidString().optional(),
   version: z.string().min(1).max(64),
   tag_name: z.string().max(120).optional().nullable(),
   channel: z.enum(["stable", "beta"]).default("stable"),
@@ -91,11 +91,11 @@ export const saveInstallerRelease = createServerFn({ method: "POST" })
 
     const row = {
       version: data.version,
-      tag_name: data.tag_name ?? null,
+      tag_name: data.tag_name ?? undefined,
       channel: data.channel,
       notes: data.notes ?? null,
       min_version: data.min_version ?? null,
-      zip_url: data.zip_url ?? null,
+      zip_url: data.zip_url ?? undefined,
       exe_sha256: data.exe_sha256 ? data.exe_sha256.toLowerCase() : null,
       package_storage_path: data.package_storage_path ?? null,
       is_published: data.is_published,
@@ -111,7 +111,7 @@ export const saveInstallerRelease = createServerFn({ method: "POST" })
 export const setInstallerReleasePublished = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) =>
-    z.object({ id: uuidString, is_published: z.boolean() }).parse(d),
+    z.object({ id: uuidString(), is_published: z.boolean() }).parse(d),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     await requirePlatformAdmin(context);
