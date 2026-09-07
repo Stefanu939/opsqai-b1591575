@@ -117,6 +117,7 @@ import { Route as AuthenticatedAppAuditRouteImport } from './routes/_authenticat
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedPortalAdminIndexRouteImport } from './routes/_authenticated/portal.admin.index'
+import { Route as AuthenticatedManagementCrmIndexRouteImport } from './routes/_authenticated/management.crm.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppAcademyIndexRouteImport } from './routes/_authenticated/app.academy.index'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -720,6 +721,12 @@ const AuthenticatedPortalAdminIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPortalAdminRoute,
   } as any)
+const AuthenticatedManagementCrmIndexRoute =
+  AuthenticatedManagementCrmIndexRouteImport.update({
+    id: '/crm/',
+    path: '/crm/',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
     id: '/',
@@ -1009,6 +1016,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/management/crm/': typeof AuthenticatedManagementCrmIndexRoute
   '/portal/admin/': typeof AuthenticatedPortalAdminIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1139,6 +1147,7 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/app/academy': typeof AuthenticatedAppAcademyIndexRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
+  '/management/crm': typeof AuthenticatedManagementCrmIndexRoute
   '/portal/admin': typeof AuthenticatedPortalAdminIndexRoute
   '/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1278,6 +1287,7 @@ export interface FileRoutesById {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/_authenticated/app/academy/': typeof AuthenticatedAppAcademyIndexRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/_authenticated/management/crm/': typeof AuthenticatedManagementCrmIndexRoute
   '/_authenticated/portal/admin/': typeof AuthenticatedPortalAdminIndexRoute
   '/_authenticated/app/academy/lesson/$lessonId': typeof AuthenticatedAppAcademyLessonLessonIdRoute
   '/_authenticated/app/academy/path/$pathId': typeof AuthenticatedAppAcademyPathPathIdRoute
@@ -1417,6 +1427,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/app/academy/'
     | '/app/chat/'
+    | '/management/crm/'
     | '/portal/admin/'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
@@ -1547,6 +1558,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/app/academy'
     | '/app/chat'
+    | '/management/crm'
     | '/portal/admin'
     | '/app/academy/lesson/$lessonId'
     | '/app/academy/path/$pathId'
@@ -1685,6 +1697,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/_authenticated/app/academy/'
     | '/_authenticated/app/chat/'
+    | '/_authenticated/management/crm/'
     | '/_authenticated/portal/admin/'
     | '/_authenticated/app/academy/lesson/$lessonId'
     | '/_authenticated/app/academy/path/$pathId'
@@ -2521,6 +2534,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalAdminIndexRouteImport
       parentRoute: typeof AuthenticatedPortalAdminRoute
     }
+    '/_authenticated/management/crm/': {
+      id: '/_authenticated/management/crm/'
+      path: '/crm'
+      fullPath: '/management/crm/'
+      preLoaderRoute: typeof AuthenticatedManagementCrmIndexRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
       path: '/'
@@ -2842,6 +2862,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
   AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRouteWithChildren
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
+  AuthenticatedManagementCrmIndexRoute: typeof AuthenticatedManagementCrmIndexRoute
 }
 
 const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren =
@@ -2864,6 +2885,7 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementTeamRoute:
       AuthenticatedManagementTeamRouteWithChildren,
     AuthenticatedManagementIndexRoute: AuthenticatedManagementIndexRoute,
+    AuthenticatedManagementCrmIndexRoute: AuthenticatedManagementCrmIndexRoute,
   }
 
 const AuthenticatedManagementRouteWithChildren =
