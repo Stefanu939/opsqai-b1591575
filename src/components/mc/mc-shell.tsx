@@ -12,6 +12,7 @@ import {
   X,
   ShieldCheck,
   CalendarDays,
+  Handshake,
 
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -38,6 +39,7 @@ const SECTIONS: Section[] = [
   {
     title: "Customers",
     items: [
+      { to: "/management/crm", label: "CRM", icon: Handshake },
       { to: "/management/customers", label: "Customers", icon: Users },
       { to: "/management/installations", label: "Installations", icon: Radio },
       { to: "/management/licenses", label: "Licenses", icon: KeyRound },
