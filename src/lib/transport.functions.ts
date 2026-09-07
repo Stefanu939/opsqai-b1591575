@@ -192,6 +192,20 @@ export const getTransportOverview = createServerFn({ method: "POST" })
  * overdue audits, overdue requests and open critical incidents. One entry per
  * kind per day, so it reads like a morning briefing instead of a stream.
  */
+/** Current hour in the company's configured timezone, falling back to server time. */
+function localHour(timezone?: string): number {
+  if (!timezone) return new Date().getHours();
+  try {
+    return Number(
+      new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: timezone }).format(
+        new Date(),
+      ),
+    );
+  } catch {
+    return new Date().getHours();
+  }
+}
+
 async function riskDigest(
   a: Actor,
   input: {
@@ -204,6 +218,7 @@ async function riskDigest(
       digestHour: number;
       digestEmails: string | null;
       digestWebhookUrl: string | null;
+      timezone?: string;
     };
   },
 ): Promise<void> {
@@ -278,7 +293,7 @@ async function riskDigest(
 
     // Morning briefing: once per day, from the configured hour onwards.
     const s = input.settings;
-    if (s?.digestEnabled && new Date().getHours() >= (s.digestHour ?? 7)) {
+    if (s?.digestEnabled && localHour(s.timezone) >= (s.digestHour ?? 7)) {
       const already = await mod
         .listLocalNotifications(a.companyId, a.userId, 5)
         .catch(() => [] as { kind: string; created_at: string }[]);
