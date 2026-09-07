@@ -36,7 +36,7 @@
 - [x] CMR: salvare date ca draft cu nume editabil
 
 ## OPSQAI HR (plan 2026-09-07)
-- [ ] Faza 1 — Employee Core (EMP ID, listă+filtre, Employee 360°, timeline, hr_tasks, permisiuni)
+- [x] Faza 1 — Employee Core (EMP ID, listă+filtre, Employee 360°, timeline, hr_tasks, permisiuni, export CSV/PDF, setări + date de referință)
 - [ ] Faza 2 — Contracte & documente (template engine, per țară DE/RO, aprobare umană)
 - [ ] Faza 3 — Onboarding pe poziție
 - [ ] Faza 4 — Offboarding
