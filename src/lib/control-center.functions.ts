@@ -228,3 +228,54 @@ export const getControlCenter = createServerFn({ method: "GET" })
       generatedAt: nowIso,
     };
   });
+
+/**
+ * One-page A4 "Operational overview" PDF built from the same read model the
+ * dashboard shows, returned as base64 so the browser can download it.
+ */
+export const exportControlCenterPdf = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const data = await (getControlCenter as unknown as () => Promise<ControlCenterData>)();
+    void context;
+    const { generatePdf } = await import("@/lib/generators/pdf.server");
+
+    const rows = (items: ControlCenterItem[]) =>
+      items.map((i) => [
+        i.severity.toUpperCase(),
+        i.title,
+        i.detail ?? "",
+        i.date ? new Date(i.date).toISOString().slice(0, 10) : "",
+      ]);
+    const headers = ["Level", "Item", "Detail", "Date"];
+    const blocks: Parameters<typeof generatePdf>[0]["blocks"] = [
+      {
+        type: "kpis",
+        items: [
+          { label: "Critical", value: String(data.counts.critical) },
+          { label: "Warning", value: String(data.counts.warning) },
+          { label: "Informational", value: String(data.counts.info) },
+        ],
+      },
+    ];
+    const push = (heading: string, items: ControlCenterItem[]) => {
+      blocks.push({ type: "h2", text: heading });
+      if (items.length === 0) blocks.push({ type: "p", text: "Nothing to report." });
+      else blocks.push({ type: "table", headers, rows: rows(items) });
+    };
+    push("Deadlines", data.deadlines);
+    push("Safety and incidents", data.safety);
+    push("People away", data.absences);
+    push("Upcoming events", data.events);
+    push("Latest audits", data.audits);
+
+    const bytes = await generatePdf({
+      title: "Operational overview",
+      subtitle: new Date(data.generatedAt).toLocaleString("en-GB"),
+      blocks,
+      meta: { documentType: "Operational overview", brand: "OPSQAI" },
+    });
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    return { filename: `opsqai-overview-${data.generatedAt.slice(0, 10)}.pdf`, base64: btoa(binary) };
+  });
