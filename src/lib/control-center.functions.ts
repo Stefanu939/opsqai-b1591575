@@ -43,11 +43,9 @@ function daysUntil(iso: string | null): number | null {
   return Math.round((new Date(iso).getTime() - Date.now()) / dayMs);
 }
 
-export const getControlCenter = createServerFn({ method: "GET" })
-  .middleware([requireAuth])
-  .handler(async ({ context }): Promise<ControlCenterData> => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sb = context.supabase as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function buildControlCenter(sb: any): Promise<ControlCenterData> {
+  {
     const nowIso = new Date().toISOString();
     const horizonIso = new Date(Date.now() + 60 * dayMs).toISOString();
     const todayDate = nowIso.slice(0, 10);
@@ -227,7 +225,15 @@ export const getControlCenter = createServerFn({ method: "GET" })
       },
       generatedAt: nowIso,
     };
-  });
+  }
+}
+
+export const getControlCenter = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .handler(async ({ context }): Promise<ControlCenterData> =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    buildControlCenter(context.supabase as any),
+  );
 
 /**
  * One-page A4 "Operational overview" PDF built from the same read model the
@@ -236,8 +242,8 @@ export const getControlCenter = createServerFn({ method: "GET" })
 export const exportControlCenterPdf = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const data = await (getControlCenter as unknown as () => Promise<ControlCenterData>)();
-    void context;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await buildControlCenter(context.supabase as any);
     const { generatePdf } = await import("@/lib/generators/pdf.server");
 
     const rows = (items: ControlCenterItem[]) =>
