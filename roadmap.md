@@ -34,3 +34,13 @@
 - [x] Traduceri reale RO/EN/DE în tot Self-Hosted (nu doar comutator)
 - [x] Transport Overview: trimitere email (digest) nu funcționează corect
 - [x] CMR: salvare date ca draft cu nume editabil
+
+## OPSQAI HR (plan 2026-09-07)
+- [ ] Faza 1 — Employee Core (EMP ID, listă+filtre, Employee 360°, timeline, hr_tasks, permisiuni)
+- [ ] Faza 2 — Contracte & documente (template engine, per țară DE/RO, aprobare umană)
+- [ ] Faza 3 — Onboarding pe poziție
+- [ ] Faza 4 — Offboarding
+- [ ] Faza 5 — Assets & pachete predefinite
+- [ ] Faza 6 — Incidente, avertismente, retenție, audit
+- [ ] Faza 7 — HR Intelligence (AI Assistant, Candidate Intelligence: Job Profiles, CV screening, scor cu evidence, blind screening, shortlist → hire)
+- [ ] Faza 8 — HR Analytics & AI Alerts
