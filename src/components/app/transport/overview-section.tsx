@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { TransportOverview, TransportTrend } from "@/lib/transport/types";
-import { useCsvExport } from "./use-transport";
+import { usePdfExport } from "./use-transport";
 import { FleetBoard } from "./fleet-board";
 
 const TransportMap = lazy(() => import("./transport-map"));
@@ -59,7 +59,7 @@ export function OverviewSection({
   periodDays: number;
   onPeriodChange: (days: number) => void;
 }) {
-  const exportCsv = useCsvExport();
+  const exportPdf = usePdfExport();
   const c = data.counts;
 
   const [depot, setDepot] = useState("all");
@@ -181,7 +181,7 @@ export function OverviewSection({
               </SelectContent>
             </Select>
             {data.grants.includes("export") ? (
-              <Button size="sm" variant="outline" onClick={() => void exportCsv("alerts")}>
+              <Button size="sm" variant="outline" onClick={() => void exportPdf("alerts")}>
                 {t.export}
               </Button>
             ) : null}
@@ -308,7 +308,7 @@ export function OverviewSection({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => void exportCsv("incidents")}
+                onClick={() => void exportPdf("incidents")}
               >
                 {t.export}
               </Button>
@@ -344,7 +344,7 @@ export function OverviewSection({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => void exportCsv("requests")}
+                onClick={() => void exportPdf("requests")}
               >
                 {t.export}
               </Button>

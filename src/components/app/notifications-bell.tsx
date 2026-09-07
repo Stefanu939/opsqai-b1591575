@@ -14,6 +14,11 @@ import {
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { flushMyCriticalAlertEmails } from "@/lib/critical-alerts.functions";
+import {
+  listLocalNotificationsFn,
+  markAllLocalNotificationsReadFn,
+  markLocalNotificationReadFn,
+} from "@/lib/selfhost-notifications.functions";
 import { cloudFeaturesEnabled, getCloudBrowserDb } from "@/lib/cloud-client";
 import { isMcActivity } from "@/lib/activity-center";
 import { useAuth } from "@/lib/auth-context";
@@ -64,13 +69,28 @@ export function NotificationsBell() {
   const [items, setItems] = useState<Notif[]>([]);
   const [tab, setTab] = useState<"unread" | "all">("unread");
   const [busy, setBusy] = useState(false);
-  // `notifications` is a Cloud table. Self-Hosted has no notification
-  // inbox yet, so the bell is simply not rendered there.
+  // `notifications` is a Cloud table. Self-Hosted keeps its own local inbox
+  // in the installation database, read through server functions.
   const enabled = cloudFeaturesEnabled();
+  const localMode = !enabled;
+  const [localAvailable, setLocalAvailable] = useState(false);
+  const listLocal = useServerFn(listLocalNotificationsFn);
+  const readLocal = useServerFn(markLocalNotificationReadFn);
+  const readAllLocal = useServerFn(markAllLocalNotificationsReadFn);
   const userId = user?.id ?? null;
 
   const load = useCallback(async () => {
     if (!userId) return;
+    if (localMode) {
+      try {
+        const res = await listLocal();
+        setLocalAvailable(res.available);
+        setItems(res.items as Notif[]);
+      } catch {
+        setLocalAvailable(false);
+      }
+      return;
+    }
     const db = await getCloudBrowserDb();
     if (!db) return;
     // Platform admins can read every row through RLS, so the recipient
@@ -83,7 +103,7 @@ export function NotificationsBell() {
       .order("created_at", { ascending: false })
       .limit(50);
     setItems((data ?? []) as Notif[]);
-  }, [userId]);
+  }, [userId, localMode, listLocal]);
 
   useEffect(() => {
     if (!userId || !enabled) return;
@@ -114,6 +134,13 @@ export function NotificationsBell() {
       channel?.unsubscribe();
     };
   }, [userId, enabled, load]);
+
+  useEffect(() => {
+    if (!userId || !localMode) return;
+    void load();
+    const timer = setInterval(() => void load(), 45000);
+    return () => clearInterval(timer);
+  }, [userId, localMode, load]);
 
   // Critical alerts also go out by email, once each. Fire-and-forget: the
   // server stamps `emailed_at`, so repeated mounts never duplicate a send.
@@ -181,6 +208,11 @@ export function NotificationsBell() {
     setItems((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)),
     );
+    if (localMode) {
+      await readLocal({ data: { id } }).catch(() => undefined);
+      void load();
+      return;
+    }
     const db = await getCloudBrowserDb();
     if (!db) return;
     await db
@@ -195,6 +227,12 @@ export function NotificationsBell() {
     if (!ids.length || busy) return;
     setBusy(true);
     setItems((prev) => prev.map((n) => (n.read_at ? n : { ...n, read_at: new Date().toISOString() })));
+    if (localMode) {
+      await readAllLocal().catch(() => undefined);
+      setBusy(false);
+      void load();
+      return;
+    }
     const db = await getCloudBrowserDb();
     if (db) {
       await db
@@ -208,6 +246,10 @@ export function NotificationsBell() {
 
   const remove = async (id: string) => {
     setItems((prev) => prev.filter((n) => n.id !== id));
+    if (localMode) {
+      await readLocal({ data: { id } }).catch(() => undefined);
+      return;
+    }
     const db = await getCloudBrowserDb();
     if (!db) return;
     await db.from("notifications").delete().eq("id", id);
@@ -229,7 +271,7 @@ export function NotificationsBell() {
     }
   };
 
-  if (!enabled) return null;
+  if (!enabled && !localAvailable) return null;
 
   return (
     <DropdownMenu>

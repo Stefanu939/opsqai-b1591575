@@ -10,8 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getTransportAuditRuns, runTransportAudit } from "@/lib/transport.functions";
-import { downloadText } from "./download";
+import {
+  exportTransportFindingsPdf,
+  getTransportAuditRuns,
+  runTransportAudit,
+} from "@/lib/transport.functions";
+import { downloadBase64 } from "./download";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { TransportAuditRun } from "@/lib/transport/types";
 
@@ -27,6 +31,7 @@ const SEVERITY: Record<string, "destructive" | "secondary" | "outline"> = {
 export function IntelligenceSection({ t }: { t: Ui }) {
   const listFn = useServerFn(getTransportAuditRuns);
   const run = useServerFn(runTransportAudit);
+  const exportFindings = useServerFn(exportTransportFindingsPdf);
   const [busy, setBusy] = useState(false);
   const [current, setCurrent] = useState<TransportAuditRun | null>(null);
 
@@ -63,17 +68,21 @@ export function IntelligenceSection({ t }: { t: Ui }) {
                 size="sm"
                 variant="outline"
                 onClick={() =>
-                  downloadText(
-                    `transport-audit-${active.created_at.slice(0, 10)}.csv`,
-                    [
-                      "severity,area,title,count,detail",
-                      ...active.findings.map((f) =>
-                        [f.severity, f.area, f.title, f.count, f.detail]
-                          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-                          .join(","),
-                      ),
-                    ].join("\n"),
-                  )
+                  void exportFindings({
+                    data: {
+                      title: t.intelligence,
+                      generatedLabel: t.export,
+                      findings: active.findings.map((f) => ({
+                        severity: f.severity,
+                        area: f.area,
+                        title: f.title,
+                        count: f.count,
+                        detail: f.detail,
+                      })),
+                    },
+                  })
+                    .then((res) => downloadBase64(res.filename, res.base64))
+                    .catch((e: Error) => toast.error(e.message))
                 }
               >
                 {t.export}

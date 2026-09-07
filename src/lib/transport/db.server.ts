@@ -854,12 +854,18 @@ export async function listChecks(companyId: string): Promise<WeeklyCheck[]> {
 }
 
 /** Start (or reuse) the audit run for the given week and seed its results. */
+export interface CheckTargets {
+  vehicleIds?: string[] | null;
+  driverIds?: string[] | null;
+}
+
 export async function startCheck(
   companyId: string,
   userId: string,
   who: string | null,
   periodStart: string,
   dueOn?: string | null,
+  targets?: CheckTargets,
 ): Promise<string> {
   const existing = await one<{ id: string }>(
     `SELECT id FROM public.transport_checks
@@ -902,8 +908,9 @@ export async function startCheck(
          ON v.company_id IS NOT DISTINCT FROM i.company_id
         AND v.archived_at IS NULL AND v.status <> 'inactive'
       WHERE i.company_id = $1 AND i.active = true AND i.per_asset = true AND i.scope = 'vehicle'
+        AND ($3::uuid[] IS NULL OR v.id = ANY($3::uuid[]))
       ORDER BY i.position, v.plate`,
-    [companyId, created.id],
+    [companyId, created.id, targets?.vehicleIds?.length ? targets.vehicleIds : null],
   );
   await q(
     `INSERT INTO public.transport_check_results
@@ -916,8 +923,9 @@ export async function startCheck(
          ON d.company_id IS NOT DISTINCT FROM i.company_id
         AND d.archived_at IS NULL AND d.status <> 'inactive'
       WHERE i.company_id = $1 AND i.active = true AND i.per_asset = true AND i.scope = 'driver'
+        AND ($3::uuid[] IS NULL OR d.id = ANY($3::uuid[]))
       ORDER BY i.position, d.full_name`,
-    [companyId, created.id],
+    [companyId, created.id, targets?.driverIds?.length ? targets.driverIds : null],
   );
   return created.id;
 }

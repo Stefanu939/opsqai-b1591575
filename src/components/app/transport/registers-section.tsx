@@ -29,7 +29,7 @@ import {
   trailerFields,
   vehicleFields,
 } from "./registers";
-import { useCsvExport, useRecordMutations, useTransportRefresh } from "./use-transport";
+import { usePdfExport, useRecordMutations, useTransportRefresh } from "./use-transport";
 import { decideTransportIncident, decideTransportRequest } from "@/lib/transport.functions";
 import { docTypeLabel } from "@/lib/transport/country-packs";
 import type { transportUi } from "@/i18n/pages/transport";
@@ -94,7 +94,7 @@ function statusBadge(status: string) {
 
 export function OperationsSection({ t, lang, data }: Props) {
   const { saveRecord, deleteRecord } = useRecordMutations();
-  const exportCsv = useCsvExport();
+  const exportPdf = usePdfExport();
   const canEdit = data.grants.includes("edit");
   const canCreate = data.grants.includes("create");
   const canDelete = data.grants.includes("delete");
@@ -132,7 +132,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         emptyTitle={t.none}
         emptyBody={t.vehicleRegisterBody}
         labels={labels(t)}
-        onExport={canExport ? () => void exportCsv("vehicles") : undefined}
+        onExport={canExport ? () => void exportPdf("vehicles") : undefined}
         columns={[
           { key: "plate", label: t.plate },
           { key: "kind", label: t.kind },
@@ -169,7 +169,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         emptyTitle={t.none}
         emptyBody={t.trailerRegisterBody}
         labels={labels(t)}
-        onExport={canExport ? () => void exportCsv("trailers") : undefined}
+        onExport={canExport ? () => void exportPdf("trailers") : undefined}
         columns={[
           { key: "plate", label: t.plate },
           { key: "kind", label: t.kind },
@@ -202,7 +202,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         emptyTitle={t.none}
         emptyBody={t.driverRegisterBody}
         labels={labels(t)}
-        onExport={canExport ? () => void exportCsv("drivers") : undefined}
+        onExport={canExport ? () => void exportPdf("drivers") : undefined}
         columns={[
           { key: "full_name", label: t.fullName },
           { key: "phone", label: t.phone, render: (r) => r.phone ?? "—" },
@@ -237,7 +237,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         emptyTitle={t.none}
         emptyBody={t.documentRegisterBody}
         labels={labels(t)}
-        onExport={canExport ? () => void exportCsv("documents") : undefined}
+        onExport={canExport ? () => void exportPdf("documents") : undefined}
         columns={[
           { key: "owner", label: t.owner, render: ownerLabel },
           {
@@ -267,7 +267,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         emptyTitle={t.none}
         emptyBody={t.dutyRegisterBody}
         labels={labels(t)}
-        onExport={canExport ? () => void exportCsv("duty") : undefined}
+        onExport={canExport ? () => void exportPdf("duty") : undefined}
         columns={[
           { key: "duty_date", label: t.date, render: (r) => r.duty_date.slice(0, 10) },
           { key: "driver_name", label: t.driver, render: (r) => r.driver_name ?? "—" },
@@ -299,7 +299,7 @@ export function OperationsSection({ t, lang, data }: Props) {
         emptyTitle={t.noFuel}
         emptyBody={t.fuelRegisterBody}
         labels={labels(t)}
-        onExport={canExport ? () => void exportCsv("fuel") : undefined}
+        onExport={canExport ? () => void exportPdf("fuel") : undefined}
         columns={[
           { key: "entry_date", label: t.date, render: (r) => r.entry_date.slice(0, 10) },
           { key: "vehicle_plate", label: t.vehicle, render: (r) => r.vehicle_plate ?? "—" },
@@ -341,7 +341,7 @@ function dutyKindLabel(t: Ui, kind: DutyDay["duty_kind"]): string {
 
 export function CarriersSection({ t, data }: Props) {
   const { saveRecord, deleteRecord } = useRecordMutations();
-  const exportCsv = useCsvExport();
+  const exportPdf = usePdfExport();
   return (
     <RegisterTable<Carrier>
       icon={Handshake}
@@ -354,7 +354,7 @@ export function CarriersSection({ t, data }: Props) {
       emptyTitle={t.none}
       emptyBody={t.carrierRegisterBody}
       labels={labels(t)}
-      onExport={data.grants.includes("export") ? () => void exportCsv("carriers") : undefined}
+      onExport={data.grants.includes("export") ? () => void exportPdf("carriers") : undefined}
       columns={[
         { key: "name", label: t.name },
         { key: "country", label: t.country, render: (r) => r.country ?? "—" },
@@ -372,7 +372,7 @@ export function CarriersSection({ t, data }: Props) {
 
 export function IncidentsSection({ t, data }: Props) {
   const { saveRecord, deleteRecord } = useRecordMutations();
-  const exportCsv = useCsvExport();
+  const exportPdf = usePdfExport();
   const refresh = useTransportRefresh();
   const decideFn = useServerFn(decideTransportIncident);
   const decide = useMutation({
@@ -404,7 +404,7 @@ export function IncidentsSection({ t, data }: Props) {
       emptyTitle={t.none}
       emptyBody={t.incidentRegisterBody}
       labels={labels(t)}
-      onExport={data.grants.includes("export") ? () => void exportCsv("incidents") : undefined}
+      onExport={data.grants.includes("export") ? () => void exportPdf("incidents") : undefined}
       columns={[
         { key: "title", label: t.title },
         { key: "category", label: t.category },
@@ -451,7 +451,7 @@ export function IncidentsSection({ t, data }: Props) {
 
 export function RequestsSection({ t, data }: Props) {
   const { saveRecord, deleteRecord } = useRecordMutations();
-  const exportCsv = useCsvExport();
+  const exportPdf = usePdfExport();
   const refresh = useTransportRefresh();
   const decideFn = useServerFn(decideTransportRequest);
   const decide = useMutation({
@@ -474,7 +474,7 @@ export function RequestsSection({ t, data }: Props) {
       emptyTitle={t.none}
       emptyBody={t.requestRegisterBody}
       labels={labels(t)}
-      onExport={data.grants.includes("export") ? () => void exportCsv("requests") : undefined}
+      onExport={data.grants.includes("export") ? () => void exportPdf("requests") : undefined}
       columns={[
         { key: "title", label: t.title },
         { key: "kind", label: t.kind },

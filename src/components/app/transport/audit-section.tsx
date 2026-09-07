@@ -49,7 +49,7 @@ import {
   startWeeklyCheck,
   uploadCheckEvidence,
 } from "@/lib/transport.functions";
-import { useTransportAudit, useTransportRefresh } from "./use-transport";
+import { useTransportAudit, useTransportRefresh, useTransportRegisters } from "./use-transport";
 import { downloadBase64 } from "./download";
 import type { transportUi } from "@/i18n/pages/transport";
 
@@ -134,6 +134,10 @@ export function AuditSection({ t }: { t: Ui }) {
   const [newPerAsset, setNewPerAsset] = useState(false);
   const [template, setTemplate] = useState("");
   const [values, setValues] = useState<Record<string, string>>({});
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [targetVehicles, setTargetVehicles] = useState<string[]>([]);
+  const [targetDrivers, setTargetDrivers] = useState<string[]>([]);
+  const registers = useTransportRegisters();
   const [summary, setSummary] = useState("");
 
   const saveItem = useServerFn(saveChecklistItem);
@@ -204,8 +208,15 @@ export function AuditSection({ t }: { t: Ui }) {
   }, [cadence, data?.checks]);
 
   const startRun = useMutation({
-    mutationFn: () =>
-      start({ data: { periodStart: period, dueOn: dueFor(period, cadence) } }),
+    mutationFn: (input: { date: string }) =>
+      start({
+        data: {
+          periodStart: input.date,
+          dueOn: cadence === "manual" ? input.date : dueFor(period, cadence),
+          vehicleIds: targetVehicles,
+          driverIds: targetDrivers,
+        },
+      }),
     onSuccess: (res) => {
       setActiveId(res.id);
       refresh();
@@ -472,23 +483,73 @@ export function AuditSection({ t }: { t: Ui }) {
               </Button>
             ) : null}
             {canEdit ? (
-              <Button
-                size="sm"
-                disabled={startRun.isPending}
-                onClick={() => {
-                  if (currentRun) {
-                    setActiveId(currentRun.id);
-                    return;
-                  }
-                  startRun.mutate();
-                }}
-              >
-                {t.startAudit}
-              </Button>
+              <>
+                <Input
+                  type="date"
+                  className="h-8 w-40 text-xs"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  disabled={startRun.isPending || !startDate}
+                  onClick={() => startRun.mutate({ date: startDate })}
+                >
+                  {t.startAuditNow}
+                </Button>
+                {currentRun && currentRun.id !== data?.activeId ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setActiveId(currentRun.id)}
+                  >
+                    {t.openCurrentRun}
+                  </Button>
+                ) : null}
+              </>
             ) : null}
           </div>
         }
       >
+        {canEdit ? (
+          <div className="mb-3 grid gap-2 rounded-lg border border-border p-3">
+            <p className="text-xs font-medium text-muted-foreground">{t.auditTargets}</p>
+            <p className="text-xs text-muted-foreground">{t.auditTargetsBody}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <MultiPicker
+                label={t.vehicles}
+                allLabel={t.allVehicles}
+                options={(registers.data?.vehicles ?? []).map((v) => ({
+                  id: v.id,
+                  label: v.plate,
+                }))}
+                selected={targetVehicles}
+                onToggle={(id) =>
+                  setTargetVehicles((prev) =>
+                    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+                  )
+                }
+                onClear={() => setTargetVehicles([])}
+              />
+              <MultiPicker
+                label={t.drivers}
+                allLabel={t.allDrivers}
+                options={(registers.data?.drivers ?? []).map((d) => ({
+                  id: d.id,
+                  label: d.full_name,
+                }))}
+                selected={targetDrivers}
+                onToggle={(id) =>
+                  setTargetDrivers((prev) =>
+                    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+                  )
+                }
+                onClear={() => setTargetDrivers([])}
+              />
+            </div>
+          </div>
+        ) : null}
+
         {!data?.results.length ? (
           <EmptyState
             title={currentRun ? t.auditNotStarted : t.noAudit}
@@ -837,6 +898,55 @@ export function AuditSection({ t }: { t: Ui }) {
           </div>
         ) : null}
       </Panel>
+    </div>
+  );
+}
+
+/** Compact multi-select used to aim an audit at chosen vehicles or drivers. */
+function MultiPicker({
+  label,
+  allLabel,
+  options,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  label: string;
+  allLabel: string;
+  options: Array<{ id: string; label: string }>;
+  selected: string[];
+  onToggle: (id: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="grid gap-1">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium">{label}</span>
+        <button
+          type="button"
+          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+          onClick={onClear}
+        >
+          {allLabel}
+        </button>
+      </div>
+      <div className="max-h-28 overflow-y-auto rounded-md border border-border p-1.5">
+        {options.length === 0 ? (
+          <p className="text-xs text-muted-foreground">—</p>
+        ) : (
+          options.map((o) => (
+            <label key={o.id} className="flex items-center gap-1.5 py-0.5 text-xs">
+              <input
+                type="checkbox"
+                className="size-3.5 accent-current"
+                checked={selected.includes(o.id)}
+                onChange={() => onToggle(o.id)}
+              />
+              {o.label}
+            </label>
+          ))
+        )}
+      </div>
     </div>
   );
 }
