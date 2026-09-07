@@ -75,9 +75,7 @@ export function OverviewSection({
 
   const vehicleIdsInDepot = useMemo(() => {
     if (depot === "all") return null;
-    return new Set(
-      data.vehicles.filter((v) => v.base_location === depot).map((v) => v.id),
-    );
+    return new Set(data.vehicles.filter((v) => v.base_location === depot).map((v) => v.id));
   }, [depot, data.vehicles]);
 
   const alerts = useMemo(() => {
@@ -105,9 +103,7 @@ export function OverviewSection({
   );
 
   const today = new Date().toISOString().slice(0, 10);
-  const overdueRequests = data.openRequests.filter(
-    (r) => r.due_on != null && r.due_on < today,
-  );
+  const overdueRequests = data.openRequests.filter((r) => r.due_on != null && r.due_on < today);
   const expired = data.alerts.filter((a) => a.level === "expired");
   const criticalIncidents = data.recentIncidents.filter(
     (i) => i.severity === "critical" && i.status !== "closed" && i.status !== "cancelled",
@@ -115,9 +111,7 @@ export function OverviewSection({
 
   const pins = useMemo(() => {
     if (!vehicleIdsInDepot) return data.pins;
-    return data.pins.filter(
-      (p) => p.kind !== "vehicle" || vehicleIdsInDepot.has(p.id),
-    );
+    return data.pins.filter((p) => p.kind !== "vehicle" || vehicleIdsInDepot.has(p.id));
   }, [data.pins, vehicleIdsInDepot]);
 
   return (
@@ -129,10 +123,7 @@ export function OverviewSection({
         title={t.filters}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Select
-              value={String(periodDays)}
-              onValueChange={(v) => onPeriodChange(Number(v))}
-            >
+            <Select value={String(periodDays)} onValueChange={(v) => onPeriodChange(Number(v))}>
               <SelectTrigger className="h-8 w-32">
                 <SelectValue placeholder={t.period} />
               </SelectTrigger>
@@ -216,9 +207,7 @@ export function OverviewSection({
             label={t.auditScore}
             value={data.lastAudit ? `${data.lastAudit.score}/100` : "—"}
             hint={
-              data.lastAudit
-                ? new Date(data.lastAudit.created_at).toLocaleDateString()
-                : t.noAudit
+              data.lastAudit ? new Date(data.lastAudit.created_at).toLocaleDateString() : t.noAudit
             }
           />
         </div>
@@ -229,9 +218,7 @@ export function OverviewSection({
           <ul className="space-y-1 text-sm">
             <li className="flex items-center justify-between">
               <span>{t.expired}</span>
-              <Badge variant={expired.length ? "destructive" : "outline"}>
-                {expired.length}
-              </Badge>
+              <Badge variant={expired.length ? "destructive" : "outline"}>{expired.length}</Badge>
             </li>
             <li className="flex items-center justify-between">
               <span>{t.critical}</span>
@@ -252,9 +239,7 @@ export function OverviewSection({
           {pins.length === 0 ? (
             <EmptyState title={t.noCoordinates} description={t.mapBody} />
           ) : (
-            <Suspense
-              fallback={<div className="h-64 rounded-lg border border-border" />}
-            >
+            <Suspense fallback={<div className="h-64 rounded-lg border border-border" />}>
               <TransportMap
                 pins={pins}
                 zones={[]}
@@ -305,11 +290,7 @@ export function OverviewSection({
           title={t.recentIncidents}
           actions={
             data.grants.includes("export") ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => void exportPdf("incidents")}
-              >
+              <Button size="sm" variant="outline" onClick={() => void exportPdf("incidents")}>
                 {t.export}
               </Button>
             ) : null
@@ -341,11 +322,7 @@ export function OverviewSection({
           title={t.openRequests}
           actions={
             data.grants.includes("export") ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => void exportPdf("requests")}
-              >
+              <Button size="sm" variant="outline" onClick={() => void exportPdf("requests")}>
                 {t.export}
               </Button>
             ) : null

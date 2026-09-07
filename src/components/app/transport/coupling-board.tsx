@@ -200,9 +200,7 @@ export function CouplingBoard({ t, lang, data }: Props) {
                 canDelete={canDelete}
                 onDrop={(kind, id) => assign(c.id, kind, id)}
                 onClear={(kind) => clearSlot(c.id, kind)}
-                onDelete={() =>
-                  void deleteRecord.mutateAsync({ register: "couplings", id: c.id })
-                }
+                onDelete={() => void deleteRecord.mutateAsync({ register: "couplings", id: c.id })}
               />
             ))}
             {canCreate ? (
@@ -272,9 +270,7 @@ export function CouplingBoard({ t, lang, data }: Props) {
             icon={Truck}
             title={t.sets}
             description={t.setsBody}
-            rows={data.couplings.filter(
-              (c) => c.coupling_date >= from && c.coupling_date <= to,
-            )}
+            rows={data.couplings.filter((c) => c.coupling_date >= from && c.coupling_date <= to)}
             canEdit={canEdit}
             canCreate={canCreate}
             canDelete={canDelete}

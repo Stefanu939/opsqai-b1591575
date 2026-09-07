@@ -48,7 +48,6 @@ function row(c: Coupling): (string | number)[] {
   ];
 }
 
-
 export async function renderCouplingPdf(
   couplings: Coupling[],
   labels: CouplingExportLabels,
@@ -81,10 +80,13 @@ export async function renderCouplingPdf(
   const header = () => {
     page.drawText(ascii(labels.title), { x: M, y: y - 14, size: 15, font: bold, color: ink });
     y -= 22;
-    page.drawText(
-      ascii(`${companyName ?? ""}${companyName ? " · " : ""}${labels.generated}`),
-      { x: M, y: y - 10, size: 9, font, color: muted },
-    );
+    page.drawText(ascii(`${companyName ?? ""}${companyName ? " · " : ""}${labels.generated}`), {
+      x: M,
+      y: y - 10,
+      size: 9,
+      font,
+      color: muted,
+    });
     y -= 26;
     let x = M;
     for (const c of cols) {

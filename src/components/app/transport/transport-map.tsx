@@ -27,7 +27,7 @@ const GLYPHS: Record<string, string> = {
 };
 
 function vehicleSvg(kind: string | null | undefined, color: string) {
-  const glyph = GLYPHS[(kind ?? "truck").toLowerCase()] ?? GLYPHS['truck'];
+  const glyph = GLYPHS[(kind ?? "truck").toLowerCase()] ?? GLYPHS["truck"];
   return `<div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:${color};box-shadow:0 1px 4px rgba(0,0,0,.35);border:2px solid #fff">
     <svg viewBox="0 0 22 18" width="18" height="18" fill="#fff">${glyph}</svg>
   </div>`;
@@ -45,7 +45,6 @@ export interface TransportMapProps {
   onPick?: (lat: number, lng: number) => void;
   className?: string;
 }
-
 
 export default function TransportMap({
   pins,
@@ -136,9 +135,7 @@ export default function TransportMap({
                 className: "opsqai-vehicle-pin",
                 html: vehicleSvg(
                   pin.vehicle_kind,
-                  pin.status === "inactive" || pin.status === "archived"
-                    ? "#64748b"
-                    : color,
+                  pin.status === "inactive" || pin.status === "archived" ? "#64748b" : color,
                 ),
                 iconSize: [30, 30],
                 iconAnchor: [15, 15],
@@ -178,9 +175,6 @@ export default function TransportMap({
   }, [pins, zones, heat, track, focus, onSelect]);
 
   return (
-    <div
-      ref={holder}
-      className={className ?? "h-[560px] w-full rounded-lg border border-border"}
-    />
+    <div ref={holder} className={className ?? "h-[560px] w-full rounded-lg border border-border"} />
   );
 }

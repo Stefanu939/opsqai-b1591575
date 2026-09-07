@@ -48,7 +48,6 @@ function browserSafe<T>(value: T): T {
   return value;
 }
 
-
 function getPool(): Pool {
   if (pool) return pool;
   const connectionString = process.env.DATABASE_URL;
@@ -61,10 +60,7 @@ function getPool(): Pool {
   return pool;
 }
 
-async function q<T extends QueryResultRow>(
-  sql: string,
-  params: unknown[] = [],
-): Promise<T[]> {
+async function q<T extends QueryResultRow>(sql: string, params: unknown[] = []): Promise<T[]> {
   const res = await getPool().query<T>(sql, params);
   return res.rows.map(browserSafe);
 }
@@ -155,9 +151,7 @@ export async function getSettings(companyId: string): Promise<TransportSettings>
     liveTracking: row.live_tracking,
     gpsPollMinutes: Number(row.gps_poll_minutes),
     searchProvider:
-      row.search_provider === "osm" || row.search_provider === "off"
-        ? row.search_provider
-        : "auto",
+      row.search_provider === "osm" || row.search_provider === "off" ? row.search_provider : "auto",
     auditCadence:
       row.audit_cadence === "weekly" ||
       row.audit_cadence === "biweekly" ||
@@ -231,7 +225,6 @@ export async function saveSettings(
   return next;
 }
 
-
 // ── Grants ────────────────────────────────────────────────────────────────
 
 export async function listGrants(userId: string): Promise<TransportGrantKey[]> {
@@ -270,10 +263,10 @@ export async function setGrant(
       [userId, key, grantedBy],
     );
   } else {
-    await q(
-      `DELETE FROM public.transport_grants WHERE user_id = $1 AND grant_key = $2`,
-      [userId, key],
-    );
+    await q(`DELETE FROM public.transport_grants WHERE user_id = $1 AND grant_key = $2`, [
+      userId,
+      key,
+    ]);
   }
 }
 
@@ -326,15 +319,7 @@ const COLUMNS = {
     "status",
     "notes",
   ],
-  couplings: [
-    "coupling_date",
-    "vehicle_id",
-    "trailer_id",
-    "driver_id",
-    "route",
-    "status",
-    "notes",
-  ],
+  couplings: ["coupling_date", "vehicle_id", "trailer_id", "driver_id", "route", "status", "notes"],
   drivers: [
     "full_name",
     "phone",
@@ -446,7 +431,6 @@ const TABLE: Record<RegisterName, string> = {
   duty: "public.transport_duty_days",
 };
 
-
 function pick(register: RegisterName, values: Record<string, unknown>) {
   const allowed = COLUMNS[register] as readonly string[];
   const cols: string[] = [];
@@ -508,10 +492,7 @@ export async function deleteRecord(
   companyId: string,
   id: string,
 ): Promise<void> {
-  await q(`DELETE FROM ${TABLE[register]} WHERE id = $1 AND company_id = $2`, [
-    id,
-    companyId,
-  ]);
+  await q(`DELETE FROM ${TABLE[register]} WHERE id = $1 AND company_id = $2`, [id, companyId]);
 }
 
 export async function listVehicles(companyId: string): Promise<Vehicle[]> {
@@ -525,9 +506,7 @@ export async function listVehicles(companyId: string): Promise<Vehicle[]> {
   );
 }
 
-export async function listTrailers(
-  companyId: string,
-): Promise<import("./types").Trailer[]> {
+export async function listTrailers(companyId: string): Promise<import("./types").Trailer[]> {
   return q<import("./types").Trailer>(
     `SELECT id, plate, kind, make, model, vin, ownership,
             payload_kg::float8 AS payload_kg, volume_m3::float8 AS volume_m3, axles,
@@ -679,7 +658,6 @@ export async function listDutyDays(
 }
 
 // ── Approvals ─────────────────────────────────────────────────────────────
-
 
 export async function decideRequest(
   companyId: string,
@@ -835,10 +813,10 @@ export async function upsertChecklistItem(
 }
 
 export async function deleteChecklistItem(companyId: string, id: string): Promise<void> {
-  await q(
-    `DELETE FROM public.transport_checklist_items WHERE id = $1 AND company_id = $2`,
-    [id, companyId],
-  );
+  await q(`DELETE FROM public.transport_checklist_items WHERE id = $1 AND company_id = $2`, [
+    id,
+    companyId,
+  ]);
 }
 
 export async function listChecks(companyId: string): Promise<WeeklyCheck[]> {
@@ -979,25 +957,13 @@ export async function addCheckEvidence(
     `INSERT INTO public.transport_check_evidence
        (company_id, result_id, filename, mime, size_bytes, data, uploaded_by, uploaded_by_name)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
-    [
-      companyId,
-      resultId,
-      file.filename,
-      file.mime,
-      file.bytes.byteLength,
-      file.bytes,
-      userId,
-      who,
-    ],
+    [companyId, resultId, file.filename, file.mime, file.bytes.byteLength, file.bytes, userId, who],
   );
   if (!created) throw new Error("Could not store the evidence file.");
   return { id: created.id };
 }
 
-export async function deleteCheckEvidence(
-  companyId: string,
-  evidenceId: string,
-): Promise<void> {
+export async function deleteCheckEvidence(companyId: string, evidenceId: string): Promise<void> {
   await q(
     `DELETE FROM public.transport_check_evidence e
       WHERE e.id = $1
@@ -1026,10 +992,7 @@ export async function getCheckEvidenceFile(
 }
 
 /** Aggregated audit history for trend charts (oldest first). */
-export async function auditTrends(
-  companyId: string,
-  limit = 12,
-): Promise<AuditTrendPoint[]> {
+export async function auditTrends(companyId: string, limit = 12): Promise<AuditTrendPoint[]> {
   const rows = await q<AuditTrendPoint>(
     `SELECT c.id AS check_id, c.period_start, c.status,
             count(r.id)::int AS total,
@@ -1194,10 +1157,7 @@ const STARTER_CHECKLIST: ReadonlyArray<{
   },
 ];
 
-export async function ensureStarterChecklist(
-  companyId: string,
-  userId: string,
-): Promise<number> {
+export async function ensureStarterChecklist(companyId: string, userId: string): Promise<number> {
   const existing = await one<{ n: string }>(
     `SELECT count(*)::text AS n FROM public.transport_checklist_items WHERE company_id = $1`,
     [companyId],
@@ -1410,10 +1370,10 @@ export async function escalateCheckResult(
       status: "reported",
       description,
     });
-    await q(
-      `UPDATE public.transport_check_results SET incident_id = $2 WHERE id = $1`,
-      [resultId, created.id],
-    );
+    await q(`UPDATE public.transport_check_results SET incident_id = $2 WHERE id = $1`, [
+      resultId,
+      created.id,
+    ]);
     return { id: created.id, kind };
   }
 
@@ -1424,10 +1384,10 @@ export async function escalateCheckResult(
     status: "open",
     description,
   });
-  await q(
-    `UPDATE public.transport_check_results SET request_id = $2 WHERE id = $1`,
-    [resultId, created.id],
-  );
+  await q(`UPDATE public.transport_check_results SET request_id = $2 WHERE id = $1`, [
+    resultId,
+    created.id,
+  ]);
   return { id: created.id, kind };
 }
 
@@ -1606,9 +1566,7 @@ export async function searchPlaces(
     const seen = new Set(local.map((l) => `${l.lat.toFixed(4)}:${l.lng.toFixed(4)}`));
     return [
       ...local,
-      ...remote.filter(
-        (r) => !seen.has(`${r.lat.toFixed(4)}:${r.lng.toFixed(4)}`),
-      ),
+      ...remote.filter((r) => !seen.has(`${r.lat.toFixed(4)}:${r.lng.toFixed(4)}`)),
     ].slice(0, limit * 2);
   } catch {
     return local;
@@ -1616,14 +1574,10 @@ export async function searchPlaces(
 }
 
 /** Backwards-compatible single-hit lookup. */
-export async function geocode(
-  companyId: string,
-  query: string,
-): Promise<PlaceHit | null> {
+export async function geocode(companyId: string, query: string): Promise<PlaceHit | null> {
   const hits = await searchPlaces(companyId, query, 1);
   return hits[0] ?? null;
 }
-
 
 export async function savePlace(
   companyId: string,
@@ -1832,9 +1786,7 @@ export async function expiryAlerts(companyId: string): Promise<ExpiryAlert[]> {
     ownerLabel: r.owner_label ?? "—",
     docType: r.doc_type,
     docLabel:
-      r.doc_label ??
-      pack.docTypes.find((d) => d.key === r.doc_type)?.label.en ??
-      r.doc_type,
+      r.doc_label ?? pack.docTypes.find((d) => d.key === r.doc_type)?.label.en ?? r.doc_type,
     expiresOn: r.expires_on,
     daysLeft: Number(r.days_left),
     level:
@@ -1992,10 +1944,10 @@ export async function saveGpsDevice(
 }
 
 export async function deleteGpsDevice(companyId: string, id: string): Promise<void> {
-  await q(
-    `DELETE FROM public.transport_gps_devices WHERE id = $1 AND company_id = $2`,
-    [id, companyId],
-  );
+  await q(`DELETE FROM public.transport_gps_devices WHERE id = $1 AND company_id = $2`, [
+    id,
+    companyId,
+  ]);
 }
 
 /** Record a position (manual correction, CSV import or a provider poll). */
@@ -2227,8 +2179,7 @@ export async function runAudit(
     area: "drivers",
     title: "Drivers marked blocked or needing attention",
     detail: "Review their licence, medical validity and assignment.",
-    count: drivers.filter((d) => d.status === "blocked" || d.status === "attention")
-      .length,
+    count: drivers.filter((d) => d.status === "blocked" || d.status === "attention").length,
   });
   add({
     key: "carriers_no_requirements",
@@ -2245,8 +2196,7 @@ export async function runAudit(
     title: "Open critical incidents",
     detail: "Critical incidents need an agreed action and an owner.",
     count: incidents.filter(
-      (i) =>
-        i.severity === "critical" && i.status !== "closed" && i.status !== "cancelled",
+      (i) => i.severity === "critical" && i.status !== "closed" && i.status !== "cancelled",
     ).length,
   });
   add({
@@ -2300,10 +2250,7 @@ export async function runAudit(
   }
 
   const weight = { critical: 12, high: 7, medium: 4, low: 2 } as const;
-  const penalty = findings.reduce(
-    (sum, f) => sum + weight[f.severity] * Math.min(f.count, 5),
-    0,
-  );
+  const penalty = findings.reduce((sum, f) => sum + weight[f.severity] * Math.min(f.count, 5), 0);
   const score = Math.max(0, Math.min(100, 100 - penalty));
   const totals = {
     critical: findings.filter((f) => f.severity === "critical").length,

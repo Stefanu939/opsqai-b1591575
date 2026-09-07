@@ -26,7 +26,6 @@ export function useTransportOverview(periodDays = 30) {
   });
 }
 
-
 export function useTransportRegisters() {
   const fn = useServerFn(getTransportRegisters);
   return useQuery({
@@ -84,18 +83,14 @@ export function useRecordMutations() {
   const refresh = useTransportRefresh();
 
   const saveRecord = useMutation({
-    mutationFn: (input: {
-      register: RegisterName;
-      id?: string;
-      values: Record<string, unknown>;
-    }) => save({ data: input }),
+    mutationFn: (input: { register: RegisterName; id?: string; values: Record<string, unknown> }) =>
+      save({ data: input }),
     onSuccess: () => refresh(),
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteRecord = useMutation({
-    mutationFn: (input: { register: RegisterName; id: string }) =>
-      remove({ data: input }),
+    mutationFn: (input: { register: RegisterName; id: string }) => remove({ data: input }),
     onSuccess: () => refresh(),
     onError: (e: Error) => toast.error(e.message),
   });

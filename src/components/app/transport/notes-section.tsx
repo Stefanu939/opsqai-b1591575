@@ -34,14 +34,10 @@ export function NotesSection({ t }: { t: Ui }) {
   const owners = useMemo(() => {
     const d = registers.data;
     if (!d) return [] as Array<{ value: string; label: string }>;
-    if (ownerKind === "vehicle")
-      return d.vehicles.map((v) => ({ value: v.id, label: v.plate }));
-    if (ownerKind === "driver")
-      return d.drivers.map((v) => ({ value: v.id, label: v.full_name }));
-    if (ownerKind === "carrier")
-      return d.carriers.map((v) => ({ value: v.id, label: v.name }));
-    if (ownerKind === "incident")
-      return d.incidents.map((v) => ({ value: v.id, label: v.title }));
+    if (ownerKind === "vehicle") return d.vehicles.map((v) => ({ value: v.id, label: v.plate }));
+    if (ownerKind === "driver") return d.drivers.map((v) => ({ value: v.id, label: v.full_name }));
+    if (ownerKind === "carrier") return d.carriers.map((v) => ({ value: v.id, label: v.name }));
+    if (ownerKind === "incident") return d.incidents.map((v) => ({ value: v.id, label: v.title }));
     return d.requests.map((v) => ({ value: v.id, label: v.title }));
   }, [registers.data, ownerKind]);
 

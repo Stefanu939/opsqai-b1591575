@@ -113,13 +113,16 @@ export async function renderTablePdf(input: TablePdfInput): Promise<Uint8Array> 
   }
 
   const last = doc.getPages()[doc.getPageCount() - 1]!;
-  last.drawText(ascii(`${input.generatedLabel} ${new Date().toISOString().slice(0, 16).replace("T", " ")}`), {
-    x: MARGIN,
-    y: MARGIN - 12,
-    size: 7,
-    font,
-    color: rgb(0.55, 0.57, 0.62),
-  });
+  last.drawText(
+    ascii(`${input.generatedLabel} ${new Date().toISOString().slice(0, 16).replace("T", " ")}`),
+    {
+      x: MARGIN,
+      y: MARGIN - 12,
+      size: 7,
+      font,
+      color: rgb(0.55, 0.57, 0.62),
+    },
+  );
 
   return doc.save();
 }

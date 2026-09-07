@@ -27,9 +27,7 @@ interface Actor {
 
 async function actor(context: Ctx): Promise<Actor> {
   const db = await import("@/lib/transport/db.server");
-  const profile = await getProfileRepository(context.supabase).findByUserId(
-    context.userId,
-  );
+  const profile = await getProfileRepository(context.supabase).findByUserId(context.userId);
   const companyId = profile?.companyId ?? null;
   if (!companyId) {
     throw new Error("No workspace is linked to this account.");
@@ -43,29 +41,38 @@ async function actor(context: Ctx): Promise<Actor> {
     roles.roles.includes("workspace_owner");
 
   const stored = await db.listGrants(context.userId);
-  const areaRights = await import("@/lib/providers/registry").then(({ getAreaRightsRepository, hasAreaRightsRepository }) =>
-    hasAreaRightsRepository()
-      ? getAreaRightsRepository(context.supabase).listForUser(companyId, context.userId)
-      : Promise.resolve([]),
+  const areaRights = await import("@/lib/providers/registry").then(
+    ({ getAreaRightsRepository, hasAreaRightsRepository }) =>
+      hasAreaRightsRepository()
+        ? getAreaRightsRepository(context.supabase).listForUser(companyId, context.userId)
+        : Promise.resolve([]),
   );
   const transportRights = areaRights.filter((right) => right.areaKey === "transport");
-  const canonical = transportRights.filter((right) => right.granted).flatMap((right): TransportGrantKey[] => {
-    switch (right.action) {
-      case "view": return ["view"];
-      case "create": return ["create"];
-      case "edit": return ["edit", "checklist", "cmr"];
-      case "delete": return ["delete"];
-      case "approve": return ["approve"];
-      case "administer": return ["settings", "export"];
-    }
-  });
+  const canonical = transportRights
+    .filter((right) => right.granted)
+    .flatMap((right): TransportGrantKey[] => {
+      switch (right.action) {
+        case "view":
+          return ["view"];
+        case "create":
+          return ["create"];
+        case "edit":
+          return ["edit", "checklist", "cmr"];
+        case "delete":
+          return ["delete"];
+        case "approve":
+          return ["approve"];
+        case "administer":
+          return ["settings", "export"];
+      }
+    });
   const grants: TransportGrantKey[] = isUnrestricted
     ? [...TRANSPORT_GRANTS]
     : transportRights.length
       ? Array.from(new Set<TransportGrantKey>(canonical))
       : stored.length
         ? Array.from(new Set<TransportGrantKey>(["view", ...stored]))
-      : ["view"];
+        : ["view"];
 
   return {
     userId: context.userId,
@@ -107,9 +114,7 @@ const values = z.record(z.string(), z.unknown());
 export const getTransportOverview = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ periodDays: z.number().int().min(7).max(365).optional() })
-      .parse(input ?? {}),
+    z.object({ periodDays: z.number().int().min(7).max(365).optional() }).parse(input ?? {}),
   )
   .handler(async ({ data, context }): Promise<TransportOverview> => {
     const a = await actor(context as Ctx);
@@ -175,7 +180,6 @@ export const getTransportOverview = createServerFn({ method: "POST" })
     };
   });
 
-
 // ── Registers ────────────────────────────────────────────────────────────
 
 export const getTransportRegisters = createServerFn({ method: "POST" })
@@ -225,7 +229,6 @@ export const getTransportRegisters = createServerFn({ method: "POST" })
     };
   });
 
-
 /** Fire-and-forget notification for everyone in the caller's company. */
 async function notifyCompany(
   a: Actor,
@@ -239,9 +242,7 @@ async function notifyCompany(
 export const saveTransportRecord = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ register: registerEnum, id: uuidString().optional(), values })
-      .parse(input),
+    z.object({ register: registerEnum, id: uuidString().optional(), values }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -303,13 +304,7 @@ export const decideTransportRequest = createServerFn({ method: "POST" })
     const a = await actor(context as Ctx);
     require(a, "approve");
     const db = await import("@/lib/transport/db.server");
-    await db.decideRequest(
-      a.companyId,
-      data.id,
-      data.decision,
-      a.userId,
-      data.note ?? null,
-    );
+    await db.decideRequest(a.companyId, data.id, data.decision, a.userId, data.note ?? null);
     return { ok: true };
   });
 
@@ -328,33 +323,17 @@ export const decideTransportIncident = createServerFn({ method: "POST" })
     const a = await actor(context as Ctx);
     require(a, "approve");
     const db = await import("@/lib/transport/db.server");
-    await db.decideIncident(
-      a.companyId,
-      data.id,
-      data.status,
-      a.userId,
-      data.actionAgreed ?? null,
-    );
+    await db.decideIncident(a.companyId, data.id, data.status, a.userId, data.actionAgreed ?? null);
     return { ok: true };
   });
 
 // ── Notes ────────────────────────────────────────────────────────────────
 
-const ownerKind = z.enum([
-  "vehicle",
-  "driver",
-  "carrier",
-  "incident",
-  "request",
-  "check",
-  "cmr",
-]);
+const ownerKind = z.enum(["vehicle", "driver", "carrier", "incident", "request", "check", "cmr"]);
 
 export const listTransportNotes = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ ownerKind, ownerId: uuidString() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ ownerKind, ownerId: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/transport/db.server");
@@ -364,22 +343,13 @@ export const listTransportNotes = createServerFn({ method: "POST" })
 export const addTransportNote = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ ownerKind, ownerId: uuidString(), body: z.string().min(1).max(4000) })
-      .parse(input),
+    z.object({ ownerKind, ownerId: uuidString(), body: z.string().min(1).max(4000) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "edit");
     const db = await import("@/lib/transport/db.server");
-    await db.addNote(
-      a.companyId,
-      data.ownerKind,
-      data.ownerId,
-      data.body,
-      a.userId,
-      a.name,
-    );
+    await db.addNote(a.companyId, data.ownerKind, data.ownerId, data.body, a.userId, a.name);
     return { ok: true };
   });
 
@@ -469,7 +439,10 @@ export const startWeeklyCheck = createServerFn({ method: "POST" })
     z
       .object({
         periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        dueOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+        dueOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullish(),
         vehicleIds: z.array(uuidString()).max(200).optional(),
         driverIds: z.array(uuidString()).max(200).optional(),
       })
@@ -507,9 +480,7 @@ export const seedTransportChecklist = createServerFn({ method: "POST" })
 /** Add a reusable audit template (roadworthiness, cargo safety, tachograph). */
 export const applyChecklistTemplate = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ key: z.string().min(1).max(60) }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ key: z.string().min(1).max(60) }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "checklist");
@@ -604,9 +575,7 @@ export const approveWeeklyCheck = createServerFn({ method: "POST" })
 export const escalateCheckResult = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ resultId: uuidString(), kind: z.enum(["incident", "request"]) })
-      .parse(input),
+    z.object({ resultId: uuidString(), kind: z.enum(["incident", "request"]) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -665,14 +634,10 @@ export const setCheckResult = createServerFn({ method: "POST" })
     const a = await actor(context as Ctx);
     require(a, "checklist");
     const db = await import("@/lib/transport/db.server");
-    await db.setCheckResult(
-      a.companyId,
-      data.resultId,
-      data.outcome,
-      data.note ?? null,
-      a.userId,
-      { text: data.valueText ?? null, number: data.valueNumber ?? null },
-    );
+    await db.setCheckResult(a.companyId, data.resultId, data.outcome, data.note ?? null, a.userId, {
+      text: data.valueText ?? null,
+      number: data.valueNumber ?? null,
+    });
     return { ok: true };
   });
 
@@ -705,9 +670,7 @@ export const setCheckResultValue = createServerFn({ method: "POST" })
 export const cancelWeeklyCheck = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ checkId: uuidString(), reason: z.string().max(2000).nullish() })
-      .parse(input),
+    z.object({ checkId: uuidString(), reason: z.string().max(2000).nullish() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -720,9 +683,7 @@ export const cancelWeeklyCheck = createServerFn({ method: "POST" })
 export const completeWeeklyCheck = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ checkId: uuidString(), summary: z.string().max(4000).nullish() })
-      .parse(input),
+    z.object({ checkId: uuidString(), summary: z.string().max(4000).nullish() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
@@ -752,9 +713,7 @@ export const getTransportMap = createServerFn({ method: "POST" })
 
 export const searchTransportPlaces = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ query: z.string().min(2).max(300) }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ query: z.string().min(2).max(300) }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/transport/db.server");
@@ -763,15 +722,12 @@ export const searchTransportPlaces = createServerFn({ method: "POST" })
 
 export const geocodeTransportPlace = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ query: z.string().min(2).max(300) }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ query: z.string().min(2).max(300) }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/transport/db.server");
     return { hit: await db.geocode(a.companyId, data.query) };
   });
-
 
 export const saveTransportPlace = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -853,14 +809,23 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
     });
   });
 
-
 export const setTransportGrant = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         userId: uuidString(),
-        grant: z.enum(["view", "create", "edit", "delete", "approve", "checklist", "settings", "export", "cmr"]),
+        grant: z.enum([
+          "view",
+          "create",
+          "edit",
+          "delete",
+          "approve",
+          "checklist",
+          "settings",
+          "export",
+          "cmr",
+        ]),
         enabled: z.boolean(),
       })
       .parse(input),
@@ -877,17 +842,26 @@ export const setTransportGrant = createServerFn({ method: "POST" })
     const targetRoles = await import("@/lib/authorization").then(({ getActorRoles }) =>
       getActorRoles(context.supabase, data.userId),
     );
-    if (targetRoles.isPlatformOwner || targetRoles.isPlatformAdmin || targetRoles.roles.includes("superadmin")) {
+    if (
+      targetRoles.isPlatformOwner ||
+      targetRoles.isPlatformAdmin ||
+      targetRoles.roles.includes("superadmin")
+    ) {
       throw new Error("Owner and SuperAdmin rights cannot be restricted");
     }
     const db = await import("@/lib/transport/db.server");
     await db.setGrant(data.userId, data.grant, data.enabled, a.userId);
-    const { getAreaRightsRepository, hasAreaRightsRepository } = await import("@/lib/providers/registry");
+    const { getAreaRightsRepository, hasAreaRightsRepository } =
+      await import("@/lib/providers/registry");
     if (hasAreaRightsRepository()) {
       const repo = getAreaRightsRepository(context.supabase);
       const existing = await repo.listForUser(a.companyId, data.userId);
-      const action = data.grant === "settings" || data.grant === "export" ? "administer"
-        : data.grant === "checklist" || data.grant === "cmr" ? "edit" : data.grant;
+      const action =
+        data.grant === "settings" || data.grant === "export"
+          ? "administer"
+          : data.grant === "checklist" || data.grant === "cmr"
+            ? "edit"
+            : data.grant;
       const next = existing
         .filter((right) => !(right.areaKey === "transport" && right.action === action))
         .map((right) => ({ area: right.areaKey, action: right.action, granted: right.granted }));
@@ -972,7 +946,8 @@ export const renderCmrPdfBase64 = createServerFn({ method: "POST" })
 // ── Register PDF export ──────────────────────────────────────────────────
 
 /** Columns worth printing: skip identifiers and internal bookkeeping. */
-const HIDDEN_COLUMNS = /(^id$|_id$|^company_id$|^created_at$|^updated_at$|^archived_at$|^raw$|^evidence$)/;
+const HIDDEN_COLUMNS =
+  /(^id$|_id$|^company_id$|^created_at$|^updated_at$|^archived_at$|^raw$|^evidence$)/;
 
 export const exportTransportPdf = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -1049,7 +1024,6 @@ export const exportTransportPdf = createServerFn({ method: "POST" })
       count: list.length,
     };
   });
-
 
 export const exportTransportFindingsPdf = createServerFn({ method: "POST" })
   .middleware([requireAuth])
@@ -1131,7 +1105,6 @@ export const exportCouplingSheet = createServerFn({ method: "POST" })
       count: rows.length,
     };
   });
-
 
 // ── GPS / telematics ─────────────────────────────────────────────────────
 
@@ -1227,9 +1200,7 @@ export const recordVehiclePosition = createServerFn({ method: "POST" })
 
 export const getVehicleTrack = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ vehicleId: uuidString() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ vehicleId: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/transport/db.server");

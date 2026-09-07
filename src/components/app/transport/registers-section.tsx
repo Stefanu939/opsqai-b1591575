@@ -152,9 +152,7 @@ export function OperationsSection({ t, lang, data }: Props) {
           { key: "status", label: t.status, render: (r) => statusBadge(r.status) },
         ]}
         fields={vehicleFields(t, driverOpts)}
-        onSave={(values, id) =>
-          saveRecord.mutateAsync({ register: "vehicles", id, values })
-        }
+        onSave={(values, id) => saveRecord.mutateAsync({ register: "vehicles", id, values })}
         onDelete={(id) => deleteRecord.mutateAsync({ register: "vehicles", id })}
       />
 
@@ -179,15 +177,12 @@ export function OperationsSection({ t, lang, data }: Props) {
           {
             key: "assigned_vehicle_id",
             label: t.vehicle,
-            render: (r) =>
-              data.vehicles.find((v) => v.id === r.assigned_vehicle_id)?.plate ?? "—",
+            render: (r) => data.vehicles.find((v) => v.id === r.assigned_vehicle_id)?.plate ?? "—",
           },
           { key: "status", label: t.status, render: (r) => statusBadge(r.status) },
         ]}
         fields={trailerFields(t, vehicleOpts, lang)}
-        onSave={(values, id) =>
-          saveRecord.mutateAsync({ register: "trailers", id, values })
-        }
+        onSave={(values, id) => saveRecord.mutateAsync({ register: "trailers", id, values })}
         onDelete={(id) => deleteRecord.mutateAsync({ register: "trailers", id })}
       />
 
@@ -214,15 +209,12 @@ export function OperationsSection({ t, lang, data }: Props) {
           {
             key: "assigned_vehicle_id",
             label: t.vehicle,
-            render: (r) =>
-              data.vehicles.find((v) => v.id === r.assigned_vehicle_id)?.plate ?? "—",
+            render: (r) => data.vehicles.find((v) => v.id === r.assigned_vehicle_id)?.plate ?? "—",
           },
           { key: "status", label: t.status, render: (r) => statusBadge(r.status) },
         ]}
         fields={driverFields(t, vehicleOpts)}
-        onSave={(values, id) =>
-          saveRecord.mutateAsync({ register: "drivers", id, values })
-        }
+        onSave={(values, id) => saveRecord.mutateAsync({ register: "drivers", id, values })}
         onDelete={(id) => deleteRecord.mutateAsync({ register: "drivers", id })}
       />
 
@@ -250,9 +242,7 @@ export function OperationsSection({ t, lang, data }: Props) {
           { key: "expires_on", label: t.expiresOn, render: (r) => r.expires_on ?? "—" },
         ]}
         fields={documentFields(t, data.settings.country, lang, ownerOpts)}
-        onSave={(values, id) =>
-          saveRecord.mutateAsync({ register: "documents", id, values })
-        }
+        onSave={(values, id) => saveRecord.mutateAsync({ register: "documents", id, values })}
         onDelete={(id) => deleteRecord.mutateAsync({ register: "documents", id })}
       />
 
@@ -278,9 +268,8 @@ export function OperationsSection({ t, lang, data }: Props) {
             key: "shift",
             label: t.shiftStart,
             render: (r) =>
-              [r.shift_start?.slice(0, 5), r.shift_end?.slice(0, 5)]
-                .filter(Boolean)
-                .join(" – ") || "—",
+              [r.shift_start?.slice(0, 5), r.shift_end?.slice(0, 5)].filter(Boolean).join(" – ") ||
+              "—",
           },
         ]}
         fields={dutyFields(t, driverOpts, vehicleOpts, lang)}
@@ -313,8 +302,7 @@ export function OperationsSection({ t, lang, data }: Props) {
           {
             key: "cost",
             label: t.cost,
-            render: (r) =>
-              r.cost == null ? "—" : `${r.cost.toFixed(2)} ${r.currency}`,
+            render: (r) => (r.cost == null ? "—" : `${r.cost.toFixed(2)} ${r.currency}`),
           },
           {
             key: "distance_km",
@@ -376,8 +364,7 @@ export function IncidentsSection({ t, data }: Props) {
   const refresh = useTransportRefresh();
   const decideFn = useServerFn(decideTransportIncident);
   const decide = useMutation({
-    mutationFn: (input: { id: string; status: Incident["status"] }) =>
-      decideFn({ data: input }),
+    mutationFn: (input: { id: string; status: Incident["status"] }) => decideFn({ data: input }),
     onSuccess: () => refresh(),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -409,7 +396,11 @@ export function IncidentsSection({ t, data }: Props) {
         { key: "title", label: t.title },
         { key: "category", label: t.category },
         { key: "severity", label: t.severity, render: (r) => statusBadge(r.severity) },
-        { key: "status", label: t.status, render: (r) => <Badge variant="outline">{r.status}</Badge> },
+        {
+          key: "status",
+          label: t.status,
+          render: (r) => <Badge variant="outline">{r.status}</Badge>,
+        },
         {
           key: "occurred_at",
           label: t.occurredAt,
@@ -479,7 +470,11 @@ export function RequestsSection({ t, data }: Props) {
         { key: "title", label: t.title },
         { key: "kind", label: t.kind },
         { key: "priority", label: t.priority, render: (r) => statusBadge(r.priority) },
-        { key: "status", label: t.status, render: (r) => <Badge variant="outline">{r.status}</Badge> },
+        {
+          key: "status",
+          label: t.status,
+          render: (r) => <Badge variant="outline">{r.status}</Badge>,
+        },
         { key: "due_on", label: t.dueOn, render: (r) => r.due_on ?? "—" },
         {
           key: "decision_note",

@@ -170,9 +170,7 @@ export function IntelligenceSection({ t }: { t: Ui }) {
                   {new Date(r.created_at).toLocaleString()}
                   {r.ran_by_name ? ` · ${r.ran_by_name}` : ""}
                 </button>
-                <Badge variant={r.score >= 80 ? "outline" : "destructive"}>
-                  {r.score}/100
-                </Badge>
+                <Badge variant={r.score >= 80 ? "outline" : "destructive"}>{r.score}/100</Badge>
               </li>
             ))}
           </ul>

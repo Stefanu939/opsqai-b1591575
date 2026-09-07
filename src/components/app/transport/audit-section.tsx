@@ -96,11 +96,7 @@ function dueFor(periodStart: string, cadence: Cadence): string | null {
 }
 
 /** Expected period starts (most recent first) that have no completed run. */
-function missedPeriods(
-  cadence: Cadence,
-  done: ReadonlySet<string>,
-  lookback = 6,
-): string[] {
+function missedPeriods(cadence: Cadence, done: ReadonlySet<string>, lookback = 6): string[] {
   if (cadence === "manual") return [];
   const out: string[] = [];
   const current = currentPeriodStart(cadence);
@@ -200,9 +196,7 @@ export function AuditSection({ t }: { t: Ui }) {
 
   const missed = useMemo(() => {
     const done = new Set(
-      (data?.checks ?? [])
-        .filter((c) => c.status === "completed")
-        .map((c) => day(c.period_start)),
+      (data?.checks ?? []).filter((c) => c.status === "completed").map((c) => day(c.period_start)),
     );
     return missedPeriods(cadence, done);
   }, [cadence, data?.checks]);
@@ -248,9 +242,7 @@ export function AuditSection({ t }: { t: Ui }) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() =>
-                void run(seed()).then(() => toast.success(t.seedChecklist))
-              }
+              onClick={() => void run(seed()).then(() => toast.success(t.seedChecklist))}
             >
               {t.seedChecklist}
             </Button>
@@ -293,10 +285,7 @@ export function AuditSection({ t }: { t: Ui }) {
               {t.add}
             </Button>
             <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
-              <Select
-                value={newKind}
-                onValueChange={(v) => setNewKind(v as ValueKind)}
-              >
+              <Select value={newKind} onValueChange={(v) => setNewKind(v as ValueKind)}>
                 <SelectTrigger className="h-8 w-40 text-xs">
                   <SelectValue placeholder={t.valueKind} />
                 </SelectTrigger>
@@ -411,9 +400,7 @@ export function AuditSection({ t }: { t: Ui }) {
         )}
 
         <div className="mt-4 border-t border-border pt-3">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">
-            {t.auditScheduleLabel}
-          </p>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">{t.auditScheduleLabel}</p>
           <div className="flex flex-wrap items-center gap-2">
             <Select
               value={cadence}
@@ -498,11 +485,7 @@ export function AuditSection({ t }: { t: Ui }) {
                   {t.startAuditNow}
                 </Button>
                 {currentRun && currentRun.id !== data?.activeId ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setActiveId(currentRun.id)}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => setActiveId(currentRun.id)}>
                     {t.openCurrentRun}
                   </Button>
                 ) : null}
@@ -573,8 +556,7 @@ export function AuditSection({ t }: { t: Ui }) {
               ) : null}
               {activeCheck?.approved_by_name ? (
                 <span>
-                  · {t.approvedBy}: {activeCheck.approved_by_name} (
-                  {day(activeCheck.approved_at)})
+                  · {t.approvedBy}: {activeCheck.approved_by_name} ({day(activeCheck.approved_at)})
                 </span>
               ) : null}
             </div>
@@ -613,9 +595,7 @@ export function AuditSection({ t }: { t: Ui }) {
                               <button
                                 type="button"
                                 className="text-muted-foreground hover:text-destructive"
-                                onClick={() =>
-                                  void run(removeEvidence({ data: { id: f.id } }))
-                                }
+                                onClick={() => void run(removeEvidence({ data: { id: f.id } }))}
                               >
                                 <Trash2 className="size-3" />
                               </button>
@@ -624,9 +604,7 @@ export function AuditSection({ t }: { t: Ui }) {
                         ))}
                       </ul>
                     ) : null}
-                    {r.note ? (
-                      <p className="text-xs text-muted-foreground">{r.note}</p>
-                    ) : null}
+                    {r.note ? <p className="text-xs text-muted-foreground">{r.note}</p> : null}
                     {r.incident_id || r.request_id ? (
                       <p className="mt-1 text-xs text-muted-foreground">
                         {r.incident_id ? t.linkedIncident : ""}
@@ -667,9 +645,7 @@ export function AuditSection({ t }: { t: Ui }) {
                                     resultId: r.id,
                                     valueText: r.value_kind === "text" ? raw || null : null,
                                     valueNumber:
-                                      r.value_kind === "number" && raw !== ""
-                                        ? Number(raw)
-                                        : null,
+                                      r.value_kind === "number" && raw !== "" ? Number(raw) : null,
                                   },
                                 }),
                               );
@@ -683,11 +659,7 @@ export function AuditSection({ t }: { t: Ui }) {
                     <Badge variant="outline">{r.outcome}</Badge>
                     {canEdit ? (
                       <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => pickEvidence(r.id)}
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => pickEvidence(r.id)}>
                           <Camera className="mr-1 size-3.5" />
                           {t.addEvidence}
                         </Button>
@@ -695,9 +667,7 @@ export function AuditSection({ t }: { t: Ui }) {
                           size="sm"
                           variant="ghost"
                           onClick={() =>
-                            void run(
-                              setResult({ data: { resultId: r.id, outcome: "ok" } }),
-                            )
+                            void run(setResult({ data: { resultId: r.id, outcome: "ok" } }))
                           }
                         >
                           {t.outcomeOk}
@@ -706,9 +676,7 @@ export function AuditSection({ t }: { t: Ui }) {
                           size="sm"
                           variant="ghost"
                           onClick={() =>
-                            void run(
-                              setResult({ data: { resultId: r.id, outcome: "issue" } }),
-                            )
+                            void run(setResult({ data: { resultId: r.id, outcome: "issue" } }))
                           }
                         >
                           {t.outcomeIssue}
@@ -776,9 +744,9 @@ export function AuditSection({ t }: { t: Ui }) {
                   size="sm"
                   variant="outline"
                   onClick={() =>
-                    void run(
-                      approveRun({ data: { checkId: data.activeId as string } }),
-                    ).then(() => toast.success(t.approveAudit))
+                    void run(approveRun({ data: { checkId: data.activeId as string } })).then(() =>
+                      toast.success(t.approveAudit),
+                    )
                   }
                 >
                   <BadgeCheck className="mr-1 size-3.5" />
@@ -816,9 +784,9 @@ export function AuditSection({ t }: { t: Ui }) {
                     variant="outline"
                     disabled={!!activeCheck?.signed_by_name}
                     onClick={() =>
-                      void run(
-                        signRun({ data: { checkId: data.activeId as string } }),
-                      ).then(() => toast.success(t.signed))
+                      void run(signRun({ data: { checkId: data.activeId as string } })).then(() =>
+                        toast.success(t.signed),
+                      )
                     }
                   >
                     <BadgeCheck className="mr-1 size-3.5" />
@@ -858,23 +826,17 @@ export function AuditSection({ t }: { t: Ui }) {
             <p className="mb-3 text-xs text-muted-foreground">{t.trendsBody}</p>
             <ul className="space-y-2">
               {data.trends.map((point) => {
-                const worst = Math.max(
-                  1,
-                  ...data.trends.map((p) => p.issues + p.out_of_range),
-                );
+                const worst = Math.max(1, ...data.trends.map((p) => p.issues + p.out_of_range));
                 const bad = point.issues + point.out_of_range;
                 return (
                   <li key={point.check_id} className="grid gap-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">
-                        {day(point.period_start)}
-                      </span>
+                      <span className="text-muted-foreground">{day(point.period_start)}</span>
                       <span>
                         {point.issues} {t.issues}
                         {point.out_of_range
                           ? ` · ${point.out_of_range} ${t.outOfRange}`
-                          : ""}{" "}
-                        · {point.completion}% {t.completion}
+                          : ""} · {point.completion}% {t.completion}
                       </span>
                     </div>
                     <div className="flex h-1.5 gap-1">

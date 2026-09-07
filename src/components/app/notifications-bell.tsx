@@ -226,7 +226,9 @@ export function NotificationsBell() {
     const ids = scoped.filter((n) => !n.read_at).map((n) => n.id);
     if (!ids.length || busy) return;
     setBusy(true);
-    setItems((prev) => prev.map((n) => (n.read_at ? n : { ...n, read_at: new Date().toISOString() })));
+    setItems((prev) =>
+      prev.map((n) => (n.read_at ? n : { ...n, read_at: new Date().toISOString() })),
+    );
     if (localMode) {
       await readAllLocal().catch(() => undefined);
       setBusy(false);

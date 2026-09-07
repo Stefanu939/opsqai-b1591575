@@ -169,9 +169,7 @@ export function SettingsSection({ t }: { t: Ui }) {
             <Label className="text-xs">{t.language}</Label>
             <Select
               value={form.language}
-              onValueChange={(v) =>
-                setForm((f) => ({ ...f, language: v as "en" | "de" | "ro" }))
-              }
+              onValueChange={(v) => setForm((f) => ({ ...f, language: v as "en" | "de" | "ro" }))}
               disabled={!canEdit}
             >
               <SelectTrigger className="mt-1">
@@ -188,9 +186,7 @@ export function SettingsSection({ t }: { t: Ui }) {
             <Label className="text-xs">{t.units}</Label>
             <Select
               value={form.units}
-              onValueChange={(v) =>
-                setForm((f) => ({ ...f, units: v as "metric" | "imperial" }))
-              }
+              onValueChange={(v) => setForm((f) => ({ ...f, units: v as "metric" | "imperial" }))}
               disabled={!canEdit}
             >
               <SelectTrigger className="mt-1">
@@ -366,9 +362,7 @@ export function SettingsSection({ t }: { t: Ui }) {
               max={18}
               value={form.mapZoom}
               disabled={!canEdit}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, mapZoom: Number(e.target.value) || 5 }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, mapZoom: Number(e.target.value) || 5 }))}
             />
           </div>
           <div>
@@ -445,16 +439,13 @@ export function SettingsSection({ t }: { t: Ui }) {
               </thead>
               <tbody>
                 {query.data.members.map((m) => {
-                  const own =
-                    query.data?.memberGrants.find((x) => x.userId === m.id)?.grants ?? [];
+                  const own = query.data?.memberGrants.find((x) => x.userId === m.id)?.grants ?? [];
                   return (
                     <tr key={m.id} className="border-t border-border">
                       <td className="py-2">
                         {m.name}
                         {m.email ? (
-                          <span className="ml-1 text-xs text-muted-foreground">
-                            {m.email}
-                          </span>
+                          <span className="ml-1 text-xs text-muted-foreground">{m.email}</span>
                         ) : null}
                       </td>
                       {TRANSPORT_GRANTS.map((g) => (

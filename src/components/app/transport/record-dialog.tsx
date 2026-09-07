@@ -75,10 +75,7 @@ export function RecordDialog({
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           {fields.map((f) => (
-            <div
-              key={f.key}
-              className={f.full || f.kind === "textarea" ? "sm:col-span-2" : ""}
-            >
+            <div key={f.key} className={f.full || f.kind === "textarea" ? "sm:col-span-2" : ""}>
               <Label className="text-xs">{f.label}</Label>
               {f.kind === "textarea" ? (
                 <Textarea

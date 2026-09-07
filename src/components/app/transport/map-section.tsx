@@ -58,12 +58,7 @@ export function parseCoordinates(input: string): { lat: number; lng: number } | 
     if (!m) continue;
     const lat = Number(String(m[1]).replace(",", "."));
     const lng = Number(String(m[2]).replace(",", "."));
-    if (
-      Number.isFinite(lat) &&
-      Number.isFinite(lng) &&
-      Math.abs(lat) <= 90 &&
-      Math.abs(lng) <= 180
-    )
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180)
       return { lat, lng };
   }
   return null;
@@ -87,12 +82,8 @@ export function MapSection({ t }: { t: Ui }) {
   });
   const [heat, setHeat] = useState(false);
   const [query, setQuery] = useState("");
-  const [focus, setFocus] = useState<{ lat: number; lng: number; label?: string } | null>(
-    null,
-  );
-  const [places, setPlaces] = useState<
-    Array<{ lat: number; lng: number; label: string }>
-  >([]);
+  const [focus, setFocus] = useState<{ lat: number; lng: number; label?: string } | null>(null);
+  const [places, setPlaces] = useState<Array<{ lat: number; lng: number; label: string }>>([]);
   const [track, setTrack] = useState<Array<{ lat: number; lng: number }>>([]);
   const [picked, setPicked] = useState<{ lat: number; lng: number } | null>(null);
   const [target, setTarget] = useState<string>("");
@@ -120,9 +111,7 @@ export function MapSection({ t }: { t: Ui }) {
     if (term.length < 2) return [];
     return (map.data?.pins ?? [])
       .filter(
-        (p) =>
-          p.label.toLowerCase().includes(term) ||
-          (p.sub ?? "").toLowerCase().includes(term),
+        (p) => p.label.toLowerCase().includes(term) || (p.sub ?? "").toLowerCase().includes(term),
       )
       .slice(0, 8);
   }, [query, map.data?.pins]);
@@ -259,16 +248,11 @@ export function MapSection({ t }: { t: Ui }) {
                 <p className="mb-1 text-xs text-muted-foreground">{t.results}</p>
                 <ul className="space-y-1">
                   {places.map((p) => (
-                    <li
-                      key={`${p.lat}-${p.lng}-${p.label}`}
-                      className="flex items-center gap-1"
-                    >
+                    <li key={`${p.lat}-${p.lng}-${p.label}`} className="flex items-center gap-1">
                       <button
                         type="button"
                         className="flex-1 truncate rounded px-1 py-0.5 text-left text-sm hover:bg-muted"
-                        onClick={() =>
-                          setFocus({ lat: p.lat, lng: p.lng, label: p.label })
-                        }
+                        onClick={() => setFocus({ lat: p.lat, lng: p.lng, label: p.label })}
                       >
                         {p.label}
                       </button>
@@ -343,9 +327,7 @@ export function MapSection({ t }: { t: Ui }) {
           </Button>
         </div>
 
-        <Suspense
-          fallback={<div className="h-[560px] rounded-lg border border-border" />}
-        >
+        <Suspense fallback={<div className="h-[560px] rounded-lg border border-border" />}>
           <TransportMap
             pins={pins}
             zones={map.data?.zones ?? []}
