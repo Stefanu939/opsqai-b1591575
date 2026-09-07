@@ -62,13 +62,13 @@ export function HrOverviewSection({ t, data }: { t: HrUi; data: HrOverview }) {
           <p className="text-sm text-muted-foreground">{t.noneBody}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button asChild size="sm">
-              <Link to="/app/products/hr/employees">
+              <Link to="/app/products/hr/$workspace" params={{ workspace: "employees" }}>
                 <UserPlus className="mr-1.5 size-4" />
                 {t.newEmployee}
               </Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link to="/app/products/hr/employees">
+              <Link to="/app/products/hr/$workspace" params={{ workspace: "employees" }}>
                 {t.employeeList}
                 <ArrowRight className="ml-1.5 size-4" />
               </Link>
@@ -96,7 +96,7 @@ export function HrOverviewSection({ t, data }: { t: HrUi; data: HrOverview }) {
           )}
           <div className="mt-3">
             <Button asChild size="sm" variant="outline">
-              <Link to="/app/products/hr/tasks">{t.tasks}</Link>
+              <Link to="/app/products/hr/$workspace" params={{ workspace: "tasks" }}>{t.tasks}</Link>
             </Button>
           </div>
         </Panel>
