@@ -317,6 +317,8 @@ export interface MapPin {
   lng: number;
   severity?: string | null;
   status?: string | null;
+  /** For vehicle pins: truck / van / trailer / car — drives the map icon. */
+  vehicle_kind?: string | null;
 }
 
 export interface CmrGoodsLine {

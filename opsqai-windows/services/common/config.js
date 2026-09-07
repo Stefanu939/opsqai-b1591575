@@ -48,6 +48,10 @@ function loadConfig(p = DEFAULT_PATH) {
     channel: "stable",
     manifestUrl: "https://updates.opsqai.de/channel/stable/manifest.json",
   };
+  // Automatic installation inside a nightly maintenance window (local time).
+  raw.updates.automatic ??= true;
+  raw.updates.windowStartHour ??= 2;
+  raw.updates.windowEndHour ??= 4;
   return raw;
 }
 

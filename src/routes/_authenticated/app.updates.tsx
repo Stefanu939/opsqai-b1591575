@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { ModulePage } from "@/components/app/module-page";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
@@ -8,7 +11,23 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Package, ExternalLink, History } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Panel } from "@/components/ui/panel";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  dismissSelfHostUpdateNotice,
+  getSelfHostUpdateStatus,
+  setSelfHostUpdatePolicy,
+} from "@/lib/selfhost-updates.functions";
+import { Download, Package, ExternalLink, History, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/updates")({
   head: () => ({ meta: [{ title: "Updates — OPSQAI" }] }),
@@ -31,6 +50,168 @@ function fmtBytes(n: number | null | undefined) {
   if (!n) return "—";
   const mb = n / 1024 / 1024;
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(n / 1024).toFixed(0)} KB`;
+}
+
+
+function AutoUpdatePanel() {
+  const load = useServerFn(getSelfHostUpdateStatus);
+  const save = useServerFn(setSelfHostUpdatePolicy);
+  const dismiss = useServerFn(dismissSelfHostUpdateNotice);
+  const status = useQuery({
+    queryKey: ["selfhost-update-status"],
+    queryFn: () => load(),
+    refetchInterval: 60_000,
+  });
+  const [draft, setDraft] = useState<{
+    automatic: boolean;
+    channel: "stable" | "beta";
+    windowStartHour: number;
+    windowEndHour: number;
+  } | null>(null);
+
+  if (!status.data?.selfHosted) return null;
+  const s = status.data;
+  const p = draft ?? {
+    automatic: s.policy.automatic,
+    channel: (s.policy.channel === "beta" ? "beta" : "stable") as "stable" | "beta",
+    windowStartHour: s.policy.windowStartHour,
+    windowEndHour: s.policy.windowEndHour,
+  };
+  const set = (patch: Partial<typeof p>) => setDraft({ ...p, ...patch });
+
+  return (
+    <Panel
+      icon={RefreshCw}
+      title="Automatic updates"
+      description="New signed releases are downloaded, verified and installed on their own during the nightly maintenance window. A backup is taken first and the previous version is restored automatically if anything fails."
+      actions={
+        <Button size="sm" variant="outline" onClick={() => void status.refetch()}>
+          Refresh
+        </Button>
+      }
+    >
+      {s.notice && s.notice.outcome !== "staged" ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border p-3">
+          <Badge variant={s.notice.outcome === "success" ? "default" : "destructive"}>
+            {s.notice.outcome === "success" ? "Updated" : s.notice.outcome}
+          </Badge>
+          <span className="text-sm">
+            {s.notice.version ? `v${s.notice.version}` : ""} ·{" "}
+            {new Date(s.notice.at).toLocaleString()}
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="ml-auto"
+            onClick={() => {
+              void dismiss().then(() => status.refetch());
+            }}
+          >
+            Dismiss
+          </Button>
+        </div>
+      ) : null}
+
+      <div className="grid gap-3 sm:grid-cols-4 sm:items-end">
+        <div className="flex items-center gap-2">
+          <Switch
+            id="auto-updates"
+            checked={p.automatic}
+            onCheckedChange={(v) => set({ automatic: v })}
+          />
+          <Label htmlFor="auto-updates" className="text-sm">
+            Install automatically
+          </Label>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground">Release channel</Label>
+          <Select
+            value={p.channel}
+            onValueChange={(v) => set({ channel: v as "stable" | "beta" })}
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="stable">Stable</SelectItem>
+              <SelectItem value="beta">Beta</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground">
+            Maintenance window (local time)
+          </Label>
+          <div className="flex items-center gap-2">
+            <Input
+              className="h-9"
+              type="number"
+              min={0}
+              max={23}
+              value={p.windowStartHour}
+              onChange={(e) => set({ windowStartHour: Number(e.target.value) })}
+            />
+            <span className="text-sm text-muted-foreground">–</span>
+            <Input
+              className="h-9"
+              type="number"
+              min={0}
+              max={23}
+              value={p.windowEndHour}
+              onChange={(e) => set({ windowEndHour: Number(e.target.value) })}
+            />
+          </div>
+        </div>
+        <Button
+          size="sm"
+          onClick={() => {
+            void save({ data: p })
+              .then(() => {
+                toast.success("Update settings saved");
+                setDraft(null);
+                void status.refetch();
+              })
+              .catch((e: Error) => toast.error(e.message));
+          }}
+        >
+          Save
+        </Button>
+      </div>
+
+      <div className="mt-4 grid gap-1 text-xs text-muted-foreground">
+        <span>Installed version: v{s.currentVersion}</span>
+        <span>
+          Last check:{" "}
+          {s.lastCheck ? new Date(s.lastCheck).toLocaleString() : "not yet"}
+        </span>
+        <span>
+          Ready to install:{" "}
+          {s.staged ? `v${s.staged.version}` : "nothing waiting — you are current"}
+        </span>
+      </div>
+
+      {s.history.length ? (
+        <ul className="mt-4 divide-y divide-border text-sm">
+          {s.history.map((h, i) => (
+            <li key={`${h.started_at ?? i}`} className="flex flex-wrap gap-2 py-2">
+              <Badge variant={h.outcome === "success" ? "outline" : "destructive"}>
+                {h.outcome ?? "—"}
+              </Badge>
+              <span>
+                v{h.from_version ?? "?"} → v{h.to_version ?? "?"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {h.finished_at ? new Date(h.finished_at).toLocaleString() : ""}
+              </span>
+              {h.failed_step ? (
+                <span className="text-xs text-destructive">{h.failed_step}</span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </Panel>
+  );
 }
 
 function UpdatesPage() {
@@ -65,6 +246,8 @@ function UpdatesPage() {
       title="Updates"
       description="Installer releases published for your OPSQAI installation. Signed ZIP + SHA-256 for every version."
     >
+      <AutoUpdatePanel />
+
       <BentoGrid>
         <BentoItem span={4} index={0}>
           <MetricTile label="Installed version" value={installed} icon={Package} />

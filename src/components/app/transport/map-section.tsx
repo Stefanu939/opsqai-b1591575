@@ -40,6 +40,35 @@ const KINDS: Array<MapPin["kind"]> = ["vehicle", "driver", "carrier", "incident"
 
 const PROVIDERS = ["manual", "tcomm", "webfleet", "wialon", "traccar", "other"] as const;
 
+/**
+ * Read a latitude/longitude out of typed text or a pasted Google Maps link
+ * ("48.5, 15.5", "@48.5,15.5,12z", "?q=48.5,15.5", "!3d48.5!4d15.5").
+ */
+export function parseCoordinates(input: string): { lat: number; lng: number } | null {
+  const text = input.trim();
+  if (!text) return null;
+  const patterns = [
+    /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/,
+    /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/,
+    /[?&]q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/,
+    /^(-?\d+(?:[.,]\d+)?)[;,\s]+(-?\d+(?:[.,]\d+)?)$/,
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (!m) continue;
+    const lat = Number(String(m[1]).replace(",", "."));
+    const lng = Number(String(m[2]).replace(",", "."));
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    )
+      return { lat, lng };
+  }
+  return null;
+}
+
 export function MapSection({ t }: { t: Ui }) {
   const map = useTransportMapData();
   const refresh = useTransportRefresh();
@@ -67,6 +96,8 @@ export function MapSection({ t }: { t: Ui }) {
   const [track, setTrack] = useState<Array<{ lat: number; lng: number }>>([]);
   const [picked, setPicked] = useState<{ lat: number; lng: number } | null>(null);
   const [target, setTarget] = useState<string>("");
+  const [pickMode, setPickMode] = useState(false);
+  const [coordText, setCoordText] = useState("");
   const [device, setDevice] = useState({
     provider: "manual" as (typeof PROVIDERS)[number],
     deviceId: "",
@@ -120,6 +151,23 @@ export function MapSection({ t }: { t: Ui }) {
         const first = res.hits[0];
         if (first) setFocus({ lat: first.lat, lng: first.lng, label: first.label });
         else if (!fleetHits.length) toast.info(t.none);
+      })
+      .catch((e: Error) => toast.error(e.message));
+  };
+
+  const savePosition = (lat: number, lng: number) => {
+    if (!target) {
+      toast.error(t.chooseVehicleFirst);
+      return;
+    }
+    void position({ data: { vehicleId: target, lat, lng } })
+      .then(() => {
+        toast.success(t.positionSaved);
+        setPicked(null);
+        setPickMode(false);
+        setCoordText("");
+        setFocus({ lat, lng });
+        refresh();
       })
       .catch((e: Error) => toast.error(e.message));
   };
@@ -211,16 +259,29 @@ export function MapSection({ t }: { t: Ui }) {
                 <p className="mb-1 text-xs text-muted-foreground">{t.results}</p>
                 <ul className="space-y-1">
                   {places.map((p) => (
-                    <li key={`${p.lat}-${p.lng}-${p.label}`}>
+                    <li
+                      key={`${p.lat}-${p.lng}-${p.label}`}
+                      className="flex items-center gap-1"
+                    >
                       <button
                         type="button"
-                        className="w-full truncate rounded px-1 py-0.5 text-left text-sm hover:bg-muted"
+                        className="flex-1 truncate rounded px-1 py-0.5 text-left text-sm hover:bg-muted"
                         onClick={() =>
                           setFocus({ lat: p.lat, lng: p.lng, label: p.label })
                         }
                       >
                         {p.label}
                       </button>
+                      {target ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 shrink-0 text-xs"
+                          onClick={() => savePosition(p.lat, p.lng)}
+                        >
+                          {t.useThisPlace}
+                        </Button>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -228,6 +289,59 @@ export function MapSection({ t }: { t: Ui }) {
             ) : null}
           </div>
         ) : null}
+
+        <div className="mb-3 grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[minmax(0,14rem)_auto_minmax(0,1fr)_auto] sm:items-center">
+          <div className="sm:col-span-4">
+            <p className="text-sm font-medium">{t.positionVehicle}</p>
+            <p className="text-xs text-muted-foreground">{t.positionBody}</p>
+          </div>
+          <Select value={target} onValueChange={setTarget}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder={t.vehicle} />
+            </SelectTrigger>
+            <SelectContent>
+              {vehicles.map((v) => (
+                <SelectItem key={v.id} value={v.id}>
+                  {v.plate}
+                  {v.kind ? ` · ${v.kind}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            variant={pickMode ? "default" : "outline"}
+            disabled={!target}
+            onClick={() => setPickMode((m) => !m)}
+          >
+            <PinIcon className="mr-1.5 size-3.5" />
+            {pickMode ? t.pickOnMapOn : t.pickOnMap}
+          </Button>
+          <Input
+            className="h-9"
+            value={coordText}
+            placeholder={t.coordinates}
+            onChange={(e) => setCoordText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              const c = parseCoordinates(coordText);
+              if (!c) return toast.error(t.badCoordinates);
+              savePosition(c.lat, c.lng);
+            }}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!target || !coordText.trim()}
+            onClick={() => {
+              const c = parseCoordinates(coordText);
+              if (!c) return toast.error(t.badCoordinates);
+              savePosition(c.lat, c.lng);
+            }}
+          >
+            {t.useCoordinates}
+          </Button>
+        </div>
 
         <Suspense
           fallback={<div className="h-[560px] rounded-lg border border-border" />}
@@ -244,7 +358,10 @@ export function MapSection({ t }: { t: Ui }) {
             zoom={settings?.mapZoom ?? 5}
             focus={focus}
             track={track}
-            onPick={(lat, lng) => setPicked({ lat, lng })}
+            onPick={(lat, lng) => {
+              if (pickMode && target) savePosition(lat, lng);
+              else setPicked({ lat, lng });
+            }}
           />
         </Suspense>
 

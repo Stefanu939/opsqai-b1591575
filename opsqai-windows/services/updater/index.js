@@ -13,10 +13,15 @@
 //   - Artifact itself must be Authenticode-signed by our EV cert; that
 //     check is delegated to Windows when the user launches the MSI.
 //
-// The updater NEVER auto-applies. It only stages. The Service Manager
-// utility (or the admin) triggers the apply step during a maintenance
-// window. This keeps the update flow auditable and prevents surprise
-// restarts on a running production system.
+// Applying: the updater stages every release, and — when the installation
+// enables automatic updates (config.updates.automatic, default true) — it
+// applies the staged release itself inside the configured nightly
+// maintenance window (config.updates.windowStartHour/windowEndHour,
+// default 02:00–04:00 local time). apply.js snapshots, installs, migrates,
+// health-probes and rolls back on failure; the outcome is written to
+// %ProgramData%\OPSQAI\updates\notice.json so the application can tell the
+// operator what happened. Outside the window, or with automatic updates
+// switched off, the release simply stays staged for a manual apply.
 
 "use strict";
 const fs = require("fs");
@@ -26,7 +31,9 @@ const crypto = require("crypto");
 const { loadConfig, programData, programFiles } = require("../common/config");
 
 const cfg = loadConfig();
-const POLL_MS = 6 * 60 * 60 * 1000; // 6h
+const POLL_MS = 30 * 60 * 1000; // 30 min — needed to catch the maintenance window
+const NOTICE = programData("updates", "notice.json");
+const APPLY_LOCK = programData("updates", "apply.lock");
 const STAGE_DIR = programData("updates", "staged");
 const STATE = programData("updates", "state.json");
 const PUBKEY = programFiles("updater", "pubkey.pem");
@@ -131,6 +138,65 @@ function verifyManifest(manifest) {
   if (!ok) throw new Error("manifest signature invalid");
 }
 
+function autoPolicy() {
+  const u = cfg.updates || {};
+  return {
+    automatic: u.automatic !== false,
+    startHour: Number.isFinite(+u.windowStartHour) ? +u.windowStartHour : 2,
+    endHour: Number.isFinite(+u.windowEndHour) ? +u.windowEndHour : 4,
+  };
+}
+
+function inWindow(policy, now = new Date()) {
+  const h = now.getHours();
+  const { startHour: a, endHour: b } = policy;
+  return a <= b ? h >= a && h < b : h >= a || h < b; // window may wrap midnight
+}
+
+function writeNotice(notice) {
+  try {
+    fs.mkdirSync(path.dirname(NOTICE), { recursive: true });
+    fs.writeFileSync(NOTICE, JSON.stringify(notice, null, 2));
+  } catch (e) {
+    warn(`cannot write notice: ${e.message}`);
+  }
+}
+
+/** Run apply.js in-process; it owns snapshots, rollback and history. */
+async function applyStaged(state) {
+  if (fs.existsSync(APPLY_LOCK)) {
+    log("an apply is already running — skipping");
+    return;
+  }
+  const version = state.lastStaged?.version;
+  log(`maintenance window: applying ${version} automatically`);
+  writeNotice({
+    at: new Date().toISOString(),
+    version,
+    outcome: "running",
+    automatic: true,
+  });
+  let outcome = "success";
+  try {
+    const apply = require("./apply");
+    await apply.main();
+    if (process.exitCode && process.exitCode !== 0) outcome = "failed";
+  } catch (e) {
+    warn(`automatic apply failed: ${e.message}`);
+    outcome = "failed";
+  }
+  process.exitCode = 0;
+  writeNotice({
+    at: new Date().toISOString(),
+    version,
+    outcome,
+    automatic: true,
+    fromVersion: CURRENT_VERSION,
+  });
+  state.lastApply = { version, outcome, at: new Date().toISOString() };
+  saveState(state);
+}
+
 function isNewer(remote, current) {
   const p = (v) => v.split(/[.\-+]/).map((x) => (isNaN(+x) ? x : +x));
   const a = p(remote),
@@ -179,13 +245,36 @@ async function pollOnce() {
       stagedAt: new Date().toISOString(),
       notes: rel.notes || "",
     };
-    log(`staged ${rel.version} -> ${dest} (apply via Service Manager)`);
+    log(`staged ${rel.version} -> ${dest}`);
+    writeNotice({
+      at: new Date().toISOString(),
+      version: rel.version,
+      outcome: "staged",
+      notes: rel.notes || "",
+      automatic: autoPolicy().automatic,
+    });
   } catch (e) {
     warn(`poll failed: ${e.message}`);
   }
   saveState(state);
+
+  // Automatic installation inside the maintenance window.
+  const policy = autoPolicy();
+  if (
+    policy.automatic &&
+    state.lastStaged &&
+    isNewer(state.lastStaged.version, CURRENT_VERSION) &&
+    state.lastApply?.version !== state.lastStaged.version &&
+    inWindow(policy)
+  ) {
+    await applyStaged(state);
+  }
 }
 
-pollOnce();
-setInterval(pollOnce, POLL_MS);
+module.exports = { _internal: { autoPolicy, inWindow, isNewer } };
+
+if (require.main === module) {
+  pollOnce();
+  setInterval(pollOnce, POLL_MS);
+}
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => process.exit(0));
