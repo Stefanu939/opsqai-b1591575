@@ -10,7 +10,7 @@ import { resolveChatModel } from "@/lib/ai-provider.server";
 import type { HrCandidateEvidence, HrCriterion } from "./types-ext";
 
 export interface CvAnalysis {
-  extracted: Record<string, unknown>;
+  extracted: Record<string, string>;
   evidence: HrCandidateEvidence[];
   score: number;
 }
@@ -96,10 +96,14 @@ ${text}`;
     };
   });
 
-  const summary =
+  const rawSummary =
     parsed["summary"] && typeof parsed["summary"] === "object"
       ? (parsed["summary"] as Record<string, unknown>)
       : {};
+  const summary: Record<string, string> = {};
+  for (const [k, v] of Object.entries(rawSummary)) {
+    summary[k] = Array.isArray(v) ? v.map(String).join(", ") : String(v ?? "UNKNOWN");
+  }
 
   return { extracted: summary, evidence, score: scoreFromEvidence(criteria, evidence) };
 }

@@ -107,7 +107,7 @@ export interface HrCandidate {
   source: string | null;
   cv_filename: string | null;
   has_cv: boolean;
-  extracted: Record<string, unknown>;
+  extracted: Record<string, string>;
   evidence: HrCandidateEvidence[];
   score: number | null;
   status: "new" | "screened" | "shortlisted" | "rejected" | "hired";

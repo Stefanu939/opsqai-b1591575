@@ -513,7 +513,7 @@ export async function createCandidate(
 export async function saveCandidateAnalysis(
   companyId: string,
   id: string,
-  analysis: { extracted: Record<string, unknown>; evidence: unknown[]; score: number },
+  analysis: { extracted: Record<string, string>; evidence: unknown[]; score: number },
 ) {
   await q(
     `UPDATE public.hr_candidates

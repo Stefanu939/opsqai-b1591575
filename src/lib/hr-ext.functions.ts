@@ -219,9 +219,9 @@ export const downloadHrDocument = createServerFn({ method: "POST" })
     const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
     const pdf = await renderTablePdf({
       title: doc.title,
-      subtitle: null,
-      columns: [{ key: "line", label: "" }],
-      rows: (doc.body ?? "").split(/\n/).map((line) => ({ line })),
+      headers: [""],
+      rows: (doc.body ?? "").split(/\n/).map((line) => [line]),
+      generatedLabel: `Generated ${new Date().toISOString().slice(0, 10)}`,
     });
     return {
       filename: `${doc.title.replace(/[^\w.-]+/g, "_")}.pdf`,
@@ -585,7 +585,9 @@ export const uploadHrCandidateCv = createServerFn({ method: "POST" })
     const bytes = Buffer.from(data.base64, "base64");
     if (bytes.byteLength > 12 * 1024 * 1024) throw new Error("The file is larger than 12 MB.");
     const { extractText } = await import("@/lib/doc-processing.server");
-    const cvText = (await extractText(bytes, data.filename, data.mime)).trim();
+    const cvText = (
+      await extractText(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer, data.filename, data.mime)
+    ).trim();
     if (cvText.length < 120) {
       throw new Error("No readable text was found in this CV. Upload a text-based PDF or DOCX.");
     }
@@ -725,23 +727,21 @@ export const exportHrAnalyticsPdf = createServerFn({ method: "POST" })
     const db = await ext();
     const [an, al] = await Promise.all([db.analytics(a.companyId), db.alerts(a.companyId)]);
     const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
-    const rows = [
-      { k: "Average tenure (months)", v: String(an.averageTenureMonths) },
-      { k: "Turnover 12m (%)", v: String(an.turnover12m) },
-      { k: "Incidents 12m", v: String(an.incidents12m) },
-      { k: "Equipment assigned", v: String(an.assetsAssigned) },
-      { k: "Equipment available", v: String(an.assetsAvailable) },
-      ...an.headcountByDepartment.map((d) => ({ k: `Headcount · ${d.label}`, v: String(d.value) })),
-      ...al.slice(0, 30).map((x) => ({ k: `${x.level.toUpperCase()} · ${x.title}`, v: x.detail })),
+    const rows: unknown[][] = [
+      ["Average tenure (months)", String(an.averageTenureMonths)],
+      ["Turnover 12m (%)", String(an.turnover12m)],
+      ["Incidents 12m", String(an.incidents12m)],
+      ["Equipment assigned", String(an.assetsAssigned)],
+      ["Equipment available", String(an.assetsAvailable)],
+      ...an.headcountByDepartment.map((d) => [`Headcount - ${d.label}`, String(d.value)]),
+      ...al.slice(0, 30).map((x) => [`${x.level.toUpperCase()} - ${x.title}`, x.detail]),
     ];
     const pdf = await renderTablePdf({
       title: "HR report",
       subtitle: new Date().toISOString().slice(0, 10),
-      columns: [
-        { key: "k", label: "Indicator" },
-        { key: "v", label: "Value" },
-      ],
+      headers: ["Indicator", "Value"],
       rows,
+      generatedLabel: `Generated ${new Date().toISOString().slice(0, 10)}`,
     });
     return {
       filename: `hr-report-${new Date().toISOString().slice(0, 10)}.pdf`,
