@@ -101,9 +101,16 @@ export const saveInstallerRelease = createServerFn({ method: "POST" })
       is_published: data.is_published,
     };
 
-    const { error } = data.id
-      ? await db.from("installer_releases").update(row).eq("id", data.id)
-      : await db.from("installer_releases").upsert(row, { onConflict: "version" });
+    let error: { message: string } | null = null;
+    if (data.id) {
+      ({ error } = await db.from("installer_releases").update(row).eq("id", data.id));
+    } else {
+      if (!row.zip_url) throw new Error("A download URL is required for a new release.");
+      ({ error } = await db.from("installer_releases").upsert(
+        { ...row, zip_url: row.zip_url, tag_name: row.tag_name ?? data.version },
+        { onConflict: "version" },
+      ));
+    }
     if (error) throw new Error(error.message);
     return { ok: true };
   });
