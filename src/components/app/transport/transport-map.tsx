@@ -16,6 +16,23 @@ const COLORS: Record<string, string> = {
   incident: "#dc2626",
 };
 
+// Inline glyphs so a vehicle reads as a vehicle at a glance, offline too.
+const GLYPHS: Record<string, string> = {
+  truck:
+    '<path d="M1 6h11v7H1z"/><path d="M12 8h4l3 3v2h-7z"/><circle cx="5" cy="15" r="2"/><circle cx="15" cy="15" r="2"/>',
+  trailer:
+    '<path d="M1 6h13v7H1z"/><path d="M14 10h5v3h-5z"/><circle cx="6" cy="15" r="2"/><circle cx="11" cy="15" r="2"/>',
+  van: '<path d="M2 7h9v6H2z"/><path d="M11 8h3l3 3v2h-6z"/><circle cx="6" cy="15" r="1.8"/><circle cx="14" cy="15" r="1.8"/>',
+  car: '<path d="M3 12l2-4h9l2 4z"/><path d="M2 12h17v2H2z"/><circle cx="6" cy="15" r="1.7"/><circle cx="15" cy="15" r="1.7"/>',
+};
+
+function vehicleSvg(kind: string | null | undefined, color: string) {
+  const glyph = GLYPHS[(kind ?? "truck").toLowerCase()] ?? GLYPHS['truck'];
+  return `<div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:${color};box-shadow:0 1px 4px rgba(0,0,0,.35);border:2px solid #fff">
+    <svg viewBox="0 0 22 18" width="18" height="18" fill="#fff">${glyph}</svg>
+  </div>`;
+}
+
 export interface TransportMapProps {
   pins: MapPin[];
   zones: MapZone[];
@@ -28,6 +45,7 @@ export interface TransportMapProps {
   onPick?: (lat: number, lng: number) => void;
   className?: string;
 }
+
 
 export default function TransportMap({
   pins,
