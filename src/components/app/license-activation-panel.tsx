@@ -103,11 +103,18 @@ export function LicenseActivationPanel({ onActivated }: { onActivated?: () => vo
 
     } catch (e) {
       const msg = (e as Error).message || "Activation failed";
-      toast.error(
-        msg.includes("import_denied")
-          ? `License rejected: ${msg.split(":").slice(1).join(":") || "invalid signature"}`
-          : msg,
-      );
+      if (msg.includes("license_belongs_to_other_company")) {
+        toast.error(
+          "This license belongs to a different company. The data on this server belongs to another customer — run a clean installation for a new company.",
+          { duration: 10_000 },
+        );
+      } else {
+        toast.error(
+          msg.includes("import_denied")
+            ? `License rejected: ${msg.split(":").slice(1).join(":") || "invalid signature"}`
+            : msg,
+        );
+      }
     } finally {
       setApplying(false);
     }
