@@ -37,10 +37,10 @@
 
 ## OPSQAI HR (plan 2026-09-07)
 - [x] Faza 1 — Employee Core (EMP ID, listă+filtre, Employee 360°, timeline, hr_tasks, permisiuni, export CSV/PDF, setări + date de referință)
-- [ ] Faza 2 — Contracte & documente (template engine, per țară DE/RO, aprobare umană)
-- [ ] Faza 3 — Onboarding pe poziție
-- [ ] Faza 4 — Offboarding
-- [ ] Faza 5 — Assets & pachete predefinite
-- [ ] Faza 6 — Incidente, avertismente, retenție, audit
-- [ ] Faza 7 — HR Intelligence (AI Assistant, Candidate Intelligence: Job Profiles, CV screening, scor cu evidence, blind screening, shortlist → hire)
-- [ ] Faza 8 — HR Analytics & AI Alerts
+- [x] Faza 2 — Contracte & documente (template engine, per țară DE/RO, aprobare umană)
+- [x] Faza 3 — Onboarding pe poziție
+- [x] Faza 4 — Offboarding
+- [x] Faza 5 — Assets & pachete predefinite
+- [x] Faza 6 — Incidente, avertismente, retenție, audit
+- [x] Faza 7 — HR Intelligence (AI Assistant, Candidate Intelligence: Job Profiles, CV screening, scor cu evidence, blind screening, shortlist → hire)
+- [x] Faza 8 — HR Analytics & AI Alerts

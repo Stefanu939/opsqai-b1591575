@@ -18,6 +18,13 @@ import { EmployeesSection } from "@/components/app/hr/employees-section";
 import { TasksSection } from "@/components/app/hr/tasks-section";
 import { HrSettingsSection } from "@/components/app/hr/settings-section";
 import { useHrOverview } from "@/components/app/hr/use-hr";
+import { DocumentsSection } from "@/components/app/hr/documents-section";
+import { LifecycleSection } from "@/components/app/hr/lifecycle-section";
+import { EquipmentSection } from "@/components/app/hr/equipment-section";
+import { IncidentsSection } from "@/components/app/hr/incidents-section";
+import { ScreeningSection } from "@/components/app/hr/screening-section";
+import { HrAnalyticsSection } from "@/components/app/hr/analytics-section";
+import { hrExtUi } from "@/i18n/pages/hr-ext";
 
 export const Route = createFileRoute("/_authenticated/app/products/hr/$workspace")({
   component: HrWorkspacePage,
@@ -71,15 +78,29 @@ function HrWorkspacePage() {
       title={title}
       description={found.workspace.description}
     >
-      <HrSection slug={slug} t={t} />
+      <HrSection slug={slug} t={t} x={hrExtUi(lang)} />
     </ModulePage>
   );
 }
 
-function HrSection({ slug, t }: { slug: string; t: ReturnType<typeof hrUi> }) {
+function HrSection({
+  slug,
+  t,
+  x,
+}: {
+  slug: string;
+  t: ReturnType<typeof hrUi>;
+  x: ReturnType<typeof hrExtUi>;
+}) {
   if (slug === "employees") return <EmployeesSection t={t} />;
   if (slug === "tasks") return <TasksSection t={t} />;
   if (slug === "settings") return <HrSettingsSection t={t} />;
+  if (slug === "documents") return <DocumentsSection t={x} />;
+  if (slug === "lifecycle") return <LifecycleSection t={x} />;
+  if (slug === "equipment") return <EquipmentSection t={x} />;
+  if (slug === "incidents") return <IncidentsSection t={x} />;
+  if (slug === "screening") return <ScreeningSection t={x} />;
+  if (slug === "analytics") return <HrAnalyticsSection t={x} />;
   if (slug === "overview") return <HrOverview t={t} />;
   // Workspaces delivered in the next HR phases.
   return <EmptyState title={t.comingSoon} description={t.notLicensedBody} />;
