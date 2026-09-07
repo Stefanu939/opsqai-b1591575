@@ -65,3 +65,30 @@ export const getInstallationLockState = createServerFn({ method: "POST" })
       ownerCompany: owner.companyName,
     };
   });
+
+/**
+ * Downgrade an extra owner account to `admin`. Refuses to touch the caller's
+ * own account and never leaves the installation without an owner.
+ */
+export const demoteInstallationOwner = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ userId: z.string().min(1) }).parse(d))
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Self-Hosted installations only");
+    if (data.userId === context.userId) throw new Error("You cannot change your own owner role");
+
+    const { installationHygiene } = await import("@/lib/selfhost-tenant-binding.server");
+    const report = await installationHygiene();
+    if (report.ownerCount <= 1) throw new Error("An installation must keep one owner");
+    if (report.owners[0]?.id === data.userId) {
+      throw new Error("The first owner of this installation cannot be changed here");
+    }
+
+    const { getRoleRepository } = await import("@/lib/providers/registry");
+    const repo = getRoleRepository(context.supabase);
+    await repo.removeRole(data.userId, "platform_owner");
+    await repo.addRole(data.userId, "admin");
+    return { ok: true };
+  });
