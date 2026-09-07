@@ -582,6 +582,8 @@ function UsersPage() {
         </Dialog>
       }
     >
+      {selfHosted && <InstallationHygienePanel />}
+
       {rows.length === 0 && !list.isLoading ? (
         <EmptyState
           illustration={emptyTeamIllustration}
