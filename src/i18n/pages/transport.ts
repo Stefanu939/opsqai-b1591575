@@ -354,6 +354,7 @@ const EN = {
 type Dict = { [K in keyof typeof EN]: string };
 
 const DE: Dict = {
+  ...EN,
   // Auflieger & Kopplung
   trailer: "Auflieger",
   trailers: "Auflieger",
@@ -384,7 +385,6 @@ const DE: Dict = {
   nothingToExport: "Es gibt noch nichts zu exportieren.",
   exported: "Export bereit",
 
-  ...EN,
   eyebrow: "OPSQAI Transport",
   add: "Hinzufügen",
   edit: "Bearbeiten",
@@ -680,6 +680,7 @@ const DE: Dict = {
 
 
 const RO: Dict = {
+  ...EN,
   // Remorci și combinații
   trailer: "Remorcă",
   trailers: "Remorci",
@@ -710,7 +711,6 @@ const RO: Dict = {
   nothingToExport: "Nu există încă nimic de exportat.",
   exported: "Export pregătit",
 
-  ...EN,
   add: "Adaugă",
   edit: "Editează",
   save: "Salvează",
