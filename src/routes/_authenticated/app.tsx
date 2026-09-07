@@ -25,12 +25,12 @@ export const Route = createFileRoute("/_authenticated/app")({
     // the licence on disk belongs to a different one (data folder copied to
     // another machine, or a foreign licence dropped in), nobody sees data —
     // only the licence screen.
-    if (!location.pathname.startsWith("/app/platform/license")) {
+    if (!location.pathname.startsWith("/app/subscription")) {
       try {
         const { getInstallationLockState } = await import("@/lib/installation-identity.functions");
         const state = await getInstallationLockState();
         if (state.locked) {
-          throw redirect({ to: "/app/platform/license-activation" });
+          throw redirect({ to: "/app/subscription" });
         }
       } catch (error) {
         if (error && typeof error === "object" && "to" in error) throw error;
