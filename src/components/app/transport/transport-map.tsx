@@ -130,13 +130,27 @@ export default function TransportMap({
             fillOpacity: 0.25,
             weight: 1,
           })
-        : L.circleMarker([pin.lat, pin.lng], {
-            radius: pin.kind === "incident" ? 9 : 7,
-            color,
-            fillColor: color,
-            fillOpacity: 0.85,
-            weight: 2,
-          });
+        : pin.kind === "vehicle"
+          ? L.marker([pin.lat, pin.lng], {
+              icon: L.divIcon({
+                className: "opsqai-vehicle-pin",
+                html: vehicleSvg(
+                  pin.vehicle_kind,
+                  pin.status === "inactive" || pin.status === "archived"
+                    ? "#64748b"
+                    : color,
+                ),
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+              }),
+            })
+          : L.circleMarker([pin.lat, pin.lng], {
+              radius: pin.kind === "incident" ? 9 : 7,
+              color,
+              fillColor: color,
+              fillOpacity: 0.85,
+              weight: 2,
+            });
       marker
         .bindTooltip(`${pin.label}${pin.sub ? ` — ${pin.sub}` : ""}`)
         .on("click", () => onSelect?.(pin))
