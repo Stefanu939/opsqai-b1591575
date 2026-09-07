@@ -5,6 +5,8 @@ import type { transportUi } from "@/i18n/pages/transport";
 
 export type RegisterName =
   | "vehicles"
+  | "trailers"
+  | "couplings"
   | "drivers"
   | "carriers"
   | "documents"
@@ -62,6 +64,83 @@ export function vehicleFields(t: Ui, drivers: Opt[]): FieldDef[] {
   ];
 }
 
+export function trailerFields(
+  t: Ui,
+  vehicles: Opt[],
+  lang: "en" | "de" | "ro",
+): FieldDef[] {
+  const kinds: Record<string, Record<"en" | "de" | "ro", string>> = {
+    curtain: { en: "Curtain-sider", de: "Planenauflieger", ro: "Prelata" },
+    reefer: { en: "Refrigerated", de: "Kuhlauflieger", ro: "Frigorific" },
+    tanker: { en: "Tanker", de: "Tankauflieger", ro: "Cisterna" },
+    flatbed: { en: "Flatbed", de: "Plateau", ro: "Platforma" },
+    box: { en: "Box", de: "Kofferauflieger", ro: "Furgon" },
+    tipper: { en: "Tipper", de: "Kipper", ro: "Basculanta" },
+    container: { en: "Container chassis", de: "Containerchassis", ro: "Portcontainer" },
+  };
+  return [
+    { key: "plate", label: t.plate, kind: "text", required: true },
+    {
+      key: "kind",
+      label: t.kind,
+      kind: "select",
+      options: Object.entries(kinds).map(([value, l]) => ({ value, label: l[lang] })),
+    },
+    { key: "make", label: t.make, kind: "text" },
+    { key: "model", label: t.model, kind: "text" },
+    { key: "vin", label: t.vin, kind: "text" },
+    {
+      key: "ownership",
+      label: t.ownership,
+      kind: "select",
+      options: [
+        { value: "owned", label: "Owned" },
+        { value: "leased", label: "Leased" },
+        { value: "rented", label: "Rented" },
+        { value: "subcontracted", label: "Subcontracted" },
+      ],
+    },
+    { key: "payload_kg", label: t.payloadKg, kind: "number" },
+    { key: "volume_m3", label: t.volumeM3, kind: "number" },
+    { key: "axles", label: t.axles, kind: "number" },
+    { key: "base_location", label: t.baseLocation, kind: "text" },
+    { key: "latitude", label: t.latitude, kind: "number" },
+    { key: "longitude", label: t.longitude, kind: "number" },
+    { key: "assigned_vehicle_id", label: t.vehicle, kind: "select", options: vehicles },
+    { key: "status", label: t.status, kind: "select", options: STATUS() },
+    { key: "notes", label: t.notes, kind: "textarea" },
+  ];
+}
+
+export function couplingFields(
+  t: Ui,
+  vehicles: Opt[],
+  trailers: Opt[],
+  drivers: Opt[],
+  lang: "en" | "de" | "ro",
+): FieldDef[] {
+  const states: Record<string, Record<"en" | "de" | "ro", string>> = {
+    planned: { en: "Planned", de: "Geplant", ro: "Planificat" },
+    active: { en: "Active", de: "Aktiv", ro: "Activ" },
+    done: { en: "Done", de: "Erledigt", ro: "Finalizat" },
+    cancelled: { en: "Cancelled", de: "Storniert", ro: "Anulat" },
+  };
+  return [
+    { key: "coupling_date", label: t.date, kind: "date", required: true },
+    { key: "vehicle_id", label: t.vehicle, kind: "select", options: vehicles },
+    { key: "trailer_id", label: t.trailer, kind: "select", options: trailers },
+    { key: "driver_id", label: t.driver, kind: "select", options: drivers },
+    { key: "route", label: t.route, kind: "text" },
+    {
+      key: "status",
+      label: t.status,
+      kind: "select",
+      options: Object.entries(states).map(([value, l]) => ({ value, label: l[lang] })),
+    },
+    { key: "notes", label: t.notes, kind: "textarea" },
+  ];
+}
+
 export function driverFields(t: Ui, vehicles: Opt[]): FieldDef[] {
   return [
     { key: "full_name", label: t.fullName, kind: "text", required: true },
@@ -112,6 +191,7 @@ export function documentFields(
       kind: "select",
       options: [
         { value: "vehicle", label: t.vehicle },
+        { value: "trailer", label: t.trailer },
         { value: "driver", label: t.driver },
         { value: "carrier", label: t.carrier },
       ],

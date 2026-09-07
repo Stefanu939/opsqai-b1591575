@@ -26,6 +26,7 @@ import {
   fuelFields,
   incidentFields,
   requestFields,
+  trailerFields,
   vehicleFields,
 } from "./registers";
 import { useCsvExport, useRecordMutations, useTransportRefresh } from "./use-transport";
@@ -34,6 +35,8 @@ import { docTypeLabel } from "@/lib/transport/country-packs";
 import type { transportUi } from "@/i18n/pages/transport";
 import type {
   Carrier,
+  Coupling,
+  Trailer,
   Driver,
   DutyDay,
   FuelEntry,
@@ -48,6 +51,8 @@ type Ui = ReturnType<typeof transportUi>;
 
 export interface RegistersData {
   vehicles: Vehicle[];
+  trailers: Trailer[];
+  couplings: Coupling[];
   drivers: Driver[];
   carriers: Carrier[];
   documents: TransportDocument[];
@@ -99,6 +104,7 @@ export function OperationsSection({ t, lang, data }: Props) {
   const vehicleOpts = data.vehicles.map((v) => ({ value: v.id, label: v.plate }));
   const ownerOpts = [
     ...data.vehicles.map((v) => ({ value: v.id, label: `${t.vehicle}: ${v.plate}` })),
+    ...data.trailers.map((v) => ({ value: v.id, label: `${t.trailer}: ${v.plate}` })),
     ...data.drivers.map((d) => ({ value: d.id, label: `${t.driver}: ${d.full_name}` })),
     ...data.carriers.map((c) => ({ value: c.id, label: `${t.carrier}: ${c.name}` })),
   ];
@@ -106,6 +112,8 @@ export function OperationsSection({ t, lang, data }: Props) {
   const ownerLabel = (doc: TransportDocument) => {
     if (doc.owner_kind === "vehicle")
       return data.vehicles.find((v) => v.id === doc.owner_id)?.plate ?? "—";
+    if (doc.owner_kind === "trailer")
+      return data.trailers.find((v) => v.id === doc.owner_id)?.plate ?? "—";
     if (doc.owner_kind === "driver")
       return data.drivers.find((d) => d.id === doc.owner_id)?.full_name ?? "—";
     return data.carriers.find((c) => c.id === doc.owner_id)?.name ?? "—";
@@ -148,6 +156,39 @@ export function OperationsSection({ t, lang, data }: Props) {
           saveRecord.mutateAsync({ register: "vehicles", id, values })
         }
         onDelete={(id) => deleteRecord.mutateAsync({ register: "vehicles", id })}
+      />
+
+      <RegisterTable<Trailer>
+        icon={Truck}
+        title={t.trailerRegister}
+        description={t.trailerRegisterBody}
+        rows={data.trailers}
+        canEdit={canEdit}
+        canCreate={canCreate}
+        canDelete={canDelete}
+        emptyTitle={t.none}
+        emptyBody={t.trailerRegisterBody}
+        labels={labels(t)}
+        onExport={canExport ? () => void exportCsv("trailers") : undefined}
+        columns={[
+          { key: "plate", label: t.plate },
+          { key: "kind", label: t.kind },
+          { key: "payload_kg", label: t.payloadKg, render: (r) => r.payload_kg ?? "—" },
+          { key: "volume_m3", label: t.volumeM3, render: (r) => r.volume_m3 ?? "—" },
+          { key: "base_location", label: t.baseLocation, render: (r) => r.base_location ?? "—" },
+          {
+            key: "assigned_vehicle_id",
+            label: t.vehicle,
+            render: (r) =>
+              data.vehicles.find((v) => v.id === r.assigned_vehicle_id)?.plate ?? "—",
+          },
+          { key: "status", label: t.status, render: (r) => statusBadge(r.status) },
+        ]}
+        fields={trailerFields(t, vehicleOpts, lang)}
+        onSave={(values, id) =>
+          saveRecord.mutateAsync({ register: "trailers", id, values })
+        }
+        onDelete={(id) => deleteRecord.mutateAsync({ register: "trailers", id })}
       />
 
       <RegisterTable<Driver>

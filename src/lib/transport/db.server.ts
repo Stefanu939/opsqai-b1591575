@@ -309,6 +309,32 @@ const COLUMNS = {
     "status",
     "notes",
   ],
+  trailers: [
+    "plate",
+    "kind",
+    "make",
+    "model",
+    "vin",
+    "ownership",
+    "payload_kg",
+    "volume_m3",
+    "axles",
+    "base_location",
+    "latitude",
+    "longitude",
+    "assigned_vehicle_id",
+    "status",
+    "notes",
+  ],
+  couplings: [
+    "coupling_date",
+    "vehicle_id",
+    "trailer_id",
+    "driver_id",
+    "route",
+    "status",
+    "notes",
+  ],
   drivers: [
     "full_name",
     "phone",
@@ -408,6 +434,8 @@ export type RegisterName = keyof typeof COLUMNS;
 
 const TABLE: Record<RegisterName, string> = {
   vehicles: "public.transport_vehicles",
+  trailers: "public.transport_trailers",
+  couplings: "public.transport_couplings",
   drivers: "public.transport_drivers",
   carriers: "public.transport_carriers",
   documents: "public.transport_documents",
@@ -494,6 +522,44 @@ export async function listVehicles(companyId: string): Promise<Vehicle[]> {
       WHERE company_id = $1 AND archived_at IS NULL
       ORDER BY plate`,
     [companyId],
+  );
+}
+
+export async function listTrailers(
+  companyId: string,
+): Promise<import("./types").Trailer[]> {
+  return q<import("./types").Trailer>(
+    `SELECT id, plate, kind, make, model, vin, ownership,
+            payload_kg::float8 AS payload_kg, volume_m3::float8 AS volume_m3, axles,
+            base_location, latitude, longitude, assigned_vehicle_id, status, notes,
+            created_at, updated_at
+       FROM public.transport_trailers
+      WHERE company_id = $1 AND archived_at IS NULL
+      ORDER BY plate`,
+    [companyId],
+  );
+}
+
+export async function listCouplings(
+  companyId: string,
+  fromDays = 30,
+  toDays = 30,
+): Promise<import("./types").Coupling[]> {
+  return q<import("./types").Coupling>(
+    `SELECT c.id, to_char(c.coupling_date, 'YYYY-MM-DD') AS coupling_date,
+            c.vehicle_id, v.plate AS vehicle_plate,
+            c.trailer_id, tr.plate AS trailer_plate,
+            c.driver_id, d.full_name AS driver_name,
+            c.route, c.status, c.notes, c.created_at, c.updated_at
+       FROM public.transport_couplings c
+       LEFT JOIN public.transport_vehicles v ON v.id = c.vehicle_id
+       LEFT JOIN public.transport_trailers tr ON tr.id = c.trailer_id
+       LEFT JOIN public.transport_drivers d ON d.id = c.driver_id
+      WHERE c.company_id = $1 AND c.archived_at IS NULL
+        AND c.coupling_date >= current_date - ($2 || ' days')::interval
+        AND c.coupling_date <= current_date + ($3 || ' days')::interval
+      ORDER BY c.coupling_date DESC, v.plate NULLS LAST`,
+    [companyId, fromDays, toDays],
   );
 }
 
@@ -1410,11 +1476,19 @@ export async function listZones(companyId: string): Promise<MapZone[]> {
 }
 
 export async function listMapPins(companyId: string): Promise<MapPin[]> {
-  const [vehicles, drivers, carriers, incidents] = await Promise.all([
+  const [vehicles, trailers, drivers, carriers, incidents] = await Promise.all([
     q<MapPin>(
       `SELECT id, 'vehicle'::text AS kind, plate AS label, base_location AS sub,
               latitude AS lat, longitude AS lng, status, kind AS vehicle_kind
          FROM public.transport_vehicles
+        WHERE company_id = $1 AND archived_at IS NULL
+          AND latitude IS NOT NULL AND longitude IS NOT NULL`,
+      [companyId],
+    ),
+    q<MapPin>(
+      `SELECT id, 'trailer'::text AS kind, plate AS label, base_location AS sub,
+              latitude AS lat, longitude AS lng, status, 'trailer'::text AS vehicle_kind
+         FROM public.transport_trailers
         WHERE company_id = $1 AND archived_at IS NULL
           AND latitude IS NOT NULL AND longitude IS NOT NULL`,
       [companyId],
@@ -1444,7 +1518,7 @@ export async function listMapPins(companyId: string): Promise<MapPin[]> {
       [companyId],
     ),
   ]);
-  return [...vehicles, ...drivers, ...carriers, ...incidents];
+  return [...vehicles, ...trailers, ...drivers, ...carriers, ...incidents];
 }
 
 export interface PlaceHit {
@@ -1722,13 +1796,15 @@ export async function expiryAlerts(companyId: string): Promise<ExpiryAlert[]> {
     days_left: number;
   }>(
     `SELECT d.id AS document_id, d.owner_kind, d.owner_id,
-            COALESCE(v.plate, dr.full_name, c.name) AS owner_label,
+            COALESCE(v.plate, tr.plate, dr.full_name, c.name) AS owner_label,
             d.doc_type, d.label AS doc_label,
             to_char(d.expires_on, 'YYYY-MM-DD') AS expires_on,
             (d.expires_on - CURRENT_DATE) AS days_left
        FROM public.transport_documents d
        LEFT JOIN public.transport_vehicles v
               ON d.owner_kind = 'vehicle' AND v.id = d.owner_id
+       LEFT JOIN public.transport_trailers tr
+              ON d.owner_kind = 'trailer' AND tr.id = d.owner_id
        LEFT JOIN public.transport_drivers dr
               ON d.owner_kind = 'driver' AND dr.id = d.owner_id
        LEFT JOIN public.transport_carriers c
@@ -1767,6 +1843,7 @@ export async function expiryAlerts(companyId: string): Promise<ExpiryAlert[]> {
 export async function counts(companyId: string) {
   const row = await one<{
     vehicles: string;
+    trailers: string;
     drivers: string;
     carriers: string;
     open_incidents: string;
@@ -1776,6 +1853,7 @@ export async function counts(companyId: string) {
   }>(
     `SELECT
        (SELECT count(*) FROM public.transport_vehicles WHERE company_id = $1 AND archived_at IS NULL) AS vehicles,
+       (SELECT count(*) FROM public.transport_trailers WHERE company_id = $1 AND archived_at IS NULL) AS trailers,
        (SELECT count(*) FROM public.transport_drivers WHERE company_id = $1 AND archived_at IS NULL) AS drivers,
        (SELECT count(*) FROM public.transport_carriers WHERE company_id = $1 AND archived_at IS NULL) AS carriers,
        (SELECT count(*) FROM public.transport_incidents WHERE company_id = $1 AND status NOT IN ('closed','cancelled')) AS open_incidents,
@@ -1786,6 +1864,7 @@ export async function counts(companyId: string) {
   );
   return {
     vehicles: Number(row?.vehicles ?? 0),
+    trailers: Number(row?.trailers ?? 0),
     drivers: Number(row?.drivers ?? 0),
     carriers: Number(row?.carriers ?? 0),
     openIncidents: Number(row?.open_incidents ?? 0),
