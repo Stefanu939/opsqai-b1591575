@@ -404,6 +404,8 @@ export interface CmrGoodsLine {
 export interface CmrRecord {
   id: string;
   number: string | null;
+  /** Human name for a working draft, editable until the note is issued. */
+  draft_name: string | null;
   country: string;
   language: string;
   status: "draft" | "issued" | "cancelled";

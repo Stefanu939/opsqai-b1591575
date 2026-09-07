@@ -357,6 +357,7 @@ export function dutyFields(
 /** Editable CMR fields; country templates only change the printed headings. */
 export function cmrFields(t: Ui, vehicles: Opt[], drivers: Opt[], carriers: Opt[]): FieldDef[] {
   return [
+    { key: "draft_name", label: t.draftName, kind: "text" },
     { key: "sender_name", label: `${t.sender} — ${t.name}`, kind: "text" },
     { key: "sender_address", label: `${t.sender} — ${t.address}`, kind: "text" },
     { key: "consignee_name", label: `${t.consignee} — ${t.name}`, kind: "text" },

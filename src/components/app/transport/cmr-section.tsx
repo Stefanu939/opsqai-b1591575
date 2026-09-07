@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Ban, Download, FileText, Stamp } from "lucide-react";
+import { Ban, Copy, Download, FileText, Stamp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   cancelCmrNote,
+  duplicateCmrNote,
   issueCmrNote,
   renderCmrPdfBase64,
   saveCmrNote,
@@ -20,6 +21,7 @@ import { useCmrNotes, usePdfExport, useTransportRefresh } from "./use-transport"
 import type { transportUi } from "@/i18n/pages/transport";
 import type { CmrRecord } from "@/lib/transport/types";
 
+
 type Ui = ReturnType<typeof transportUi>;
 
 export function CmrSection({ t }: { t: Ui }) {
@@ -29,6 +31,7 @@ export function CmrSection({ t }: { t: Ui }) {
   const save = useServerFn(saveCmrNote);
   const issue = useServerFn(issueCmrNote);
   const cancel = useServerFn(cancelCmrNote);
+  const duplicate = useServerFn(duplicateCmrNote);
   const pdf = useServerFn(renderCmrPdfBase64);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -73,7 +76,12 @@ export function CmrSection({ t }: { t: Ui }) {
       description={t.cmrBody}
       rows={data?.records ?? []}
       columns={[
-        { key: "number", label: t.number, render: (r) => r.number ?? "—" },
+        {
+          key: "number",
+          label: t.number,
+          render: (r) => r.number ?? r.draft_name ?? "—",
+        },
+        { key: "draft_name", label: t.draftName, render: (r) => r.draft_name ?? "—" },
         {
           key: "status",
           label: t.status,
@@ -121,6 +129,25 @@ export function CmrSection({ t }: { t: Ui }) {
             <Download className="mr-1 size-3.5" />
             {t.downloadPdf}
           </Button>
+          {canEdit && canCreate ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() =>
+                void guard(
+                  duplicate({
+                    data: {
+                      id: row.id,
+                      draftName: `${row.draft_name ?? row.number ?? t.cmr} (${t.draft})`,
+                    },
+                  }).then(() => toast.success(t.duplicated)),
+                )
+              }
+            >
+              <Copy className="mr-1 size-3.5" />
+              {t.duplicateDraft}
+            </Button>
+          ) : null}
           {canEdit && row.status === "draft" ? (
             <Button
               size="sm"

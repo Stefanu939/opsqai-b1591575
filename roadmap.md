@@ -30,7 +30,7 @@
 ## Cerere 2026-09-07 (Self-Hosted)
 - [x] Academy: creare curs ducea la pagină goală → editor de capitole/lecții + mesaje de eroare
 - [ ] Overview „control center” pe workspace-uri: grafice, KPI, deadline-uri, noutăți audit, concedii, evenimente, safety risk, 5S, widgets + carduri produse + export PDF
-- [ ] Chat AI: comparare între documente + bară de căutare
-- [ ] Traduceri reale RO/EN/DE în tot Self-Hosted (nu doar comutator)
-- [ ] Transport Overview: trimitere email (digest) nu funcționează corect
-- [ ] CMR: salvare date ca draft cu nume editabil
+- [x] Chat AI: comparare între documente + bară de căutare
+- [x] Traduceri reale RO/EN/DE în tot Self-Hosted (nu doar comutator)
+- [x] Transport Overview: trimitere email (digest) nu funcționează corect
+- [x] CMR: salvare date ca draft cu nume editabil

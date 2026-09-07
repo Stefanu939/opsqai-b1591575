@@ -144,23 +144,48 @@ function AcademyHome() {
 
   const chips: Array<{ label: string; mode: "next" | "previous" | "courses" }> = [
     {
-      label: lang === "de" ? "Training fortsetzen" : "Continue my training",
+      label:
+        lang === "de"
+          ? "Training fortsetzen"
+          : lang === "ro"
+            ? "Continuă instruirea"
+            : "Continue my training",
       mode: "next",
     },
     {
-      label: lang === "de" ? "Heutige Lektion starten" : "Start today's lesson",
+      label:
+        lang === "de"
+          ? "Heutige Lektion starten"
+          : lang === "ro"
+            ? "Începe lecția de azi"
+            : "Start today's lesson",
       mode: "next",
     },
     {
-      label: lang === "de" ? "Letztes Kapitel fortsetzen" : "Resume last chapter",
+      label:
+        lang === "de"
+          ? "Letztes Kapitel fortsetzen"
+          : lang === "ro"
+            ? "Reia ultimul capitol"
+            : "Resume last chapter",
       mode: "next",
     },
     {
-      label: lang === "de" ? "Vorherige Lektion ansehen" : "Review previous lesson",
+      label:
+        lang === "de"
+          ? "Vorherige Lektion ansehen"
+          : lang === "ro"
+            ? "Revezi lecția anterioară"
+            : "Review previous lesson",
       mode: "previous",
     },
     {
-      label: lang === "de" ? "Zum heutigen Thema fragen" : "Ask about today's topic",
+      label:
+        lang === "de"
+          ? "Zum heutigen Thema fragen"
+          : lang === "ro"
+            ? "Întreabă despre tema de azi"
+            : "Ask about today's topic",
       mode: "next",
     },
   ];
@@ -179,12 +204,16 @@ function AcademyHome() {
           <p className="mt-3 text-muted-foreground max-w-lg mx-auto">
             {lang === "de"
               ? "Ich bin dein KI-Trainingsassistent. Ich begleite dich Schritt für Schritt durch dein Onboarding und deine Weiterbildung."
-              : "I'm your AI Training Assistant. I'll guide you through your onboarding and training journey step by step."}
+              : lang === "ro"
+                ? "Sunt asistentul tău de instruire. Te ghidez pas cu pas prin integrare și prin cursurile tale."
+                : "I'm your AI Training Assistant. I'll guide you through your onboarding and training journey step by step."}
           </p>
           <p className="mt-4 text-sm text-muted-foreground">
             {lang === "de"
               ? "Was möchtest du heute lernen?"
-              : "What would you like to learn today?"}
+              : lang === "ro"
+                ? "Ce vrei să înveți astăzi?"
+                : "What would you like to learn today?"}
           </p>
 
           <div className="mt-6 rounded-2xl border border-border bg-card shadow-lg p-2 focus-within:ring-2 focus-within:ring-primary/30 transition-shadow text-left">
@@ -193,7 +222,13 @@ function AcademyHome() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={onKey}
-              placeholder={lang === "de" ? "Frag den KI-Trainer…" : "Ask your AI teacher anything…"}
+              placeholder={
+                lang === "de"
+                  ? "Frag den KI-Trainer…"
+                  : lang === "ro"
+                    ? "Întreabă orice trainerul AI…"
+                    : "Ask your AI teacher anything…"
+              }
               rows={2}
               className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-[15px] min-h-[60px]"
             />
