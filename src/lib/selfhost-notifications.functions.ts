@@ -33,7 +33,9 @@ export const markLocalNotificationReadFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const mod = await import("@/lib/selfhost-notifications.server");
     if (!mod.localInboxAvailable()) return { ok: false };
-    await mod.markLocalNotificationRead(data.id, (context as Ctx).userId);
+    const s = await scope(context as Ctx);
+    if (!s) return { ok: false };
+    await mod.markLocalNotificationRead(data.id, s.userId, s.companyId);
     return { ok: true };
   });
 

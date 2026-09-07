@@ -28,6 +28,7 @@ import type { transportUi } from "@/i18n/pages/transport";
 import type { TransportOverview, TransportTrend } from "@/lib/transport/types";
 import { usePdfExport } from "./use-transport";
 import { FleetBoard } from "./fleet-board";
+import { RiskBand } from "./risk-band";
 
 const TransportMap = lazy(() => import("./transport-map"));
 
@@ -102,13 +103,6 @@ export function OverviewSection({
     [data.recentIncidents, severity, carrier, vehicleIdsInDepot],
   );
 
-  const today = new Date().toISOString().slice(0, 10);
-  const overdueRequests = data.openRequests.filter((r) => r.due_on != null && r.due_on < today);
-  const expired = data.alerts.filter((a) => a.level === "expired");
-  const criticalIncidents = data.recentIncidents.filter(
-    (i) => i.severity === "critical" && i.status !== "closed" && i.status !== "cancelled",
-  );
-
   const pins = useMemo(() => {
     if (!vehicleIdsInDepot) return data.pins;
     return data.pins.filter((p) => p.kind !== "vehicle" || vehicleIdsInDepot.has(p.id));
@@ -116,6 +110,8 @@ export function OverviewSection({
 
   return (
     <div className="grid gap-4">
+      <RiskBand t={t} data={data} />
+
       <FleetBoard t={t} data={data} lang={lang} periodDays={periodDays} />
 
       <Panel
@@ -213,43 +209,20 @@ export function OverviewSection({
         </div>
       </Panel>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Panel icon={FileWarning} title={t.actionsNeeded}>
-          <ul className="space-y-1 text-sm">
-            <li className="flex items-center justify-between">
-              <span>{t.expired}</span>
-              <Badge variant={expired.length ? "destructive" : "outline"}>{expired.length}</Badge>
-            </li>
-            <li className="flex items-center justify-between">
-              <span>{t.critical}</span>
-              <Badge variant={criticalIncidents.length ? "destructive" : "outline"}>
-                {criticalIncidents.length}
-              </Badge>
-            </li>
-            <li className="flex items-center justify-between">
-              <span>{t.dueOn}</span>
-              <Badge variant={overdueRequests.length ? "secondary" : "outline"}>
-                {overdueRequests.length}
-              </Badge>
-            </li>
-          </ul>
-        </Panel>
-
-        <Panel icon={PinIcon} title={t.miniMap} className="sm:col-span-2">
-          {pins.length === 0 ? (
-            <EmptyState title={t.noCoordinates} description={t.mapBody} />
-          ) : (
-            <Suspense fallback={<div className="h-64 rounded-lg border border-border" />}>
-              <TransportMap
-                pins={pins}
-                zones={[]}
-                zoom={data.settings.mapZoom}
-                className="h-64 w-full rounded-lg border border-border"
-              />
-            </Suspense>
-          )}
-        </Panel>
-      </div>
+      <Panel icon={PinIcon} title={t.miniMap}>
+        {pins.length === 0 ? (
+          <EmptyState title={t.noCoordinates} description={t.mapBody} />
+        ) : (
+          <Suspense fallback={<div className="h-64 rounded-lg border border-border" />}>
+            <TransportMap
+              pins={pins}
+              zones={[]}
+              zoom={data.settings.mapZoom}
+              className="h-64 w-full rounded-lg border border-border"
+            />
+          </Suspense>
+        )}
+      </Panel>
 
       <Panel icon={FileWarning} title={t.expiring} description={t.expiringBody}>
         {alerts.length === 0 ? (
