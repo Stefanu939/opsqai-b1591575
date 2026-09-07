@@ -155,7 +155,7 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       db.listFuelEntries(a.companyId, periodDays * 2),
       db.listDutyDays(a.companyId, 1, 7),
     ]);
-    return {
+    const overview: TransportOverview = {
       settings,
       counts: c,
       alerts: alerts.slice(0, 50),
@@ -178,7 +178,98 @@ export const getTransportOverview = createServerFn({ method: "POST" })
       grants: a.grants,
       canManageGrants: a.canManageGrants,
     };
+
+    await riskDigest(a, { alerts, incidents, requests, check });
+
+    return overview;
   });
+
+/**
+ * Daily risk digest into the local inbox: expired / soon-expiring documents,
+ * overdue audits, overdue requests and open critical incidents. One entry per
+ * kind per day, so it reads like a morning briefing instead of a stream.
+ */
+async function riskDigest(
+  a: Actor,
+  input: {
+    alerts: { level: string; ownerLabel: string; docLabel: string; daysLeft: number }[];
+    incidents: { severity: string; status: string }[];
+    requests: { due_on: string | null; status: string }[];
+    check: { status: string; due_on?: string | null } | null;
+  },
+): Promise<void> {
+  try {
+    const mod = await import("@/lib/selfhost-notifications.server");
+    if (!mod.localInboxAvailable()) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const link = "/app/products/transport/overview";
+    const expired = input.alerts.filter((x) => x.level === "expired");
+    const critical = input.alerts.filter((x) => x.level === "critical");
+    const criticalIncidents = input.incidents.filter(
+      (i) => i.severity === "critical" && i.status !== "closed" && i.status !== "cancelled",
+    );
+    const overdue = input.requests.filter(
+      (r) =>
+        r.due_on != null && r.due_on < today && (r.status === "open" || r.status === "in_review"),
+    );
+
+    const emit = (kind: string, title: string, body: string) =>
+      mod.emitLocalNotificationOnceToday({
+        companyId: a.companyId,
+        kind,
+        category: "transport",
+        title,
+        body,
+        link,
+      });
+
+    if (expired.length) {
+      await emit(
+        "transport.documents.expired",
+        `${expired.length} expired transport document(s)`,
+        expired
+          .slice(0, 5)
+          .map((x) => `${x.ownerLabel} · ${x.docLabel}`)
+          .join("; "),
+      );
+    }
+    if (critical.length) {
+      await emit(
+        "transport.documents.expiring",
+        `${critical.length} document(s) expiring within 14 days`,
+        critical
+          .slice(0, 5)
+          .map((x) => `${x.ownerLabel} · ${x.docLabel} · ${x.daysLeft}d`)
+          .join("; "),
+      );
+    }
+    if (criticalIncidents.length) {
+      await emit(
+        "transport.incidents.critical",
+        `${criticalIncidents.length} open critical incident(s)`,
+        "Agree an action and an owner for each one.",
+      );
+    }
+    if (overdue.length) {
+      await emit(
+        "transport.requests.overdue",
+        `${overdue.length} request(s) past their due date`,
+        "Still open after the agreed date.",
+      );
+    }
+    if (input.check && input.check.status !== "completed" && input.check.due_on) {
+      if (input.check.due_on < today) {
+        await emit(
+          "transport.audit.overdue",
+          "Transport audit past its due date",
+          `Due on ${input.check.due_on}.`,
+        );
+      }
+    }
+  } catch {
+    // A digest must never break the overview.
+  }
+}
 
 // ── Registers ────────────────────────────────────────────────────────────
 

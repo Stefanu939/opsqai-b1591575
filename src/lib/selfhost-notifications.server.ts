@@ -113,11 +113,19 @@ export async function listLocalNotifications(
   }
 }
 
-export async function markLocalNotificationRead(id: string, userId: string): Promise<void> {
+export async function markLocalNotificationRead(
+  id: string,
+  userId: string,
+  companyId: string,
+): Promise<void> {
+  // Company + recipient scoped: a stray id from another tenant is ignored.
   await q(
     `INSERT INTO public.app_notification_reads (notification_id, user_id)
-     VALUES ($1,$2) ON CONFLICT DO NOTHING`,
-    [id, userId],
+     SELECT n.id, $2 FROM public.app_notifications n
+      WHERE n.id = $1 AND n.company_id = $3
+        AND (n.user_id IS NULL OR n.user_id = $2)
+     ON CONFLICT DO NOTHING`,
+    [id, userId, companyId],
   );
 }
 
@@ -132,4 +140,32 @@ export async function markAllLocalNotificationsRead(
      ON CONFLICT DO NOTHING`,
     [companyId, userId],
   );
+}
+
+/**
+ * Record an event at most once per day per kind for a company. Used by the
+ * daily risk digest (expiring documents, overdue audits) so opening the
+ * overview does not flood the inbox.
+ */
+export async function emitLocalNotificationOnceToday(input: {
+  companyId: string;
+  kind: string;
+  category?: string;
+  title: string;
+  body?: string | null;
+  link?: string | null;
+}): Promise<void> {
+  try {
+    const rows = await q<{ id: string }>(
+      `SELECT id FROM public.app_notifications
+        WHERE company_id = $1 AND kind = $2
+          AND created_at >= date_trunc('day', now())
+        LIMIT 1`,
+      [input.companyId, input.kind],
+    );
+    if (rows.length) return;
+  } catch {
+    return;
+  }
+  await emitLocalNotification(input);
 }
