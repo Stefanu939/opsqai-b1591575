@@ -52,6 +52,10 @@ async function one<T extends QueryResultRow>(sql: string, params: unknown[] = []
   return rows[0] ?? null;
 }
 
+/** Shared query helpers for the HR extension modules (same pool, same scope). */
+export const hrQuery = q;
+export const hrQueryOne = one;
+
 // ── Settings ──────────────────────────────────────────────────────────────
 
 export async function getSettings(companyId: string): Promise<HrSettings> {
