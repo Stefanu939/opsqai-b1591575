@@ -182,3 +182,47 @@ export async function resolveLatestInstaller(): Promise<ResolvedInstaller | null
 export function clearInstallerCache() {
   cache.clear();
 }
+
+/**
+ * Metadata-only GitHub sync for the Management Center.
+ *
+ * Registers the newest GitHub release in `installer_releases` without
+ * downloading the ZIP, so staff can review it and decide when to publish it
+ * to Self-Hosted installations. Publishing stays an explicit human step.
+ */
+export async function syncLatestReleaseMetadata(): Promise<{
+  version: string;
+  tag_name: string;
+  zip_url: string;
+  zip_size_bytes: number;
+  published_at: string;
+} | null> {
+  const release = await fetchLatestReleaseMeta(repoSlug());
+  if (!release || release.draft) return null;
+  const asset = pickInstallerAsset(release);
+  if (!asset) return null;
+
+  const version = versionFromTag(release.tag_name);
+  const row = {
+    version,
+    tag_name: release.tag_name,
+    zip_url: asset.browser_download_url,
+    zip_size_bytes: asset.size,
+    published_at: release.published_at,
+    channel: release.prerelease ? "beta" : "stable",
+  };
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
+    .from("installer_releases")
+    .upsert(row, { onConflict: "version" });
+  if (error) throw new Error(error.message);
+
+  return {
+    version,
+    tag_name: release.tag_name,
+    zip_url: asset.browser_download_url,
+    zip_size_bytes: asset.size,
+    published_at: release.published_at,
+  };
+}
