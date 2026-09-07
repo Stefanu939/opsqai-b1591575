@@ -18,7 +18,6 @@ import { EmployeesSection } from "@/components/app/hr/employees-section";
 import { TasksSection } from "@/components/app/hr/tasks-section";
 import { HrSettingsSection } from "@/components/app/hr/settings-section";
 import { useHrOverview } from "@/components/app/hr/use-hr";
-import { ProductWorkspaceFallback } from "@/components/app/product-workspace-fallback";
 
 export const Route = createFileRoute("/_authenticated/app/products/hr/$workspace")({
   component: HrWorkspacePage,
@@ -82,8 +81,8 @@ function HrSection({ slug, t }: { slug: string; t: ReturnType<typeof hrUi> }) {
   if (slug === "tasks") return <TasksSection t={t} />;
   if (slug === "settings") return <HrSettingsSection t={t} />;
   if (slug === "overview") return <HrOverview t={t} />;
-  // Workspaces delivered by shared Core surfaces (policies, knowledge, training…).
-  return <ProductWorkspaceFallback product="hr" workspace={slug} />;
+  // Workspaces delivered in the next HR phases.
+  return <EmptyState title={t.comingSoon} description={t.notLicensedBody} />;
 }
 
 function HrOverview({ t }: { t: ReturnType<typeof hrUi> }) {
