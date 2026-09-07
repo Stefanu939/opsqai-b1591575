@@ -157,7 +157,7 @@ export function ControlCenter() {
   const download = async () => {
     setBusy(true);
     try {
-      const res = await exportPdf({ data: {} });
+      const res = await exportPdf();
       const bytes = Uint8Array.from(atob(res.base64), (ch) => ch.charCodeAt(0));
       const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
       const a = document.createElement("a");
