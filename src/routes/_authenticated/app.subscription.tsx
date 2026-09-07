@@ -44,6 +44,7 @@ function SubscriptionPage() {
           : "The Core platform is always included. Products and add-ons are enabled by OPSQAI through a signed license."
       }
     >
+      {selfhost && <InstallationHygienePanel />}
       {selfhost && <LicenseActivationPanel />}
 
       <section>
