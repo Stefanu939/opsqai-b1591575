@@ -419,10 +419,54 @@ function buildBootstrapArgs(config, extraFlags = []) {
   return args.concat(extraFlags);
 }
 
+// Existing installation data on this machine (database / config left behind by
+// a previous install). Reusing it for another company is what leaked one
+// customer's users and records into the next install, so the operator must
+// choose explicitly.
+function existingInstallation() {
+  const root = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI");
+  const cfg = path.join(root, "config", "config.json");
+  if (!fs.existsSync(cfg)) return null;
+  try {
+    const prior = JSON.parse(fs.readFileSync(cfg, "utf8").replace(/^\uFEFF/, ""));
+    return { installId: prior.installId || null, company: prior.company?.name || null };
+  } catch {
+    return { installId: null, company: null };
+  }
+}
+
+/** Ask "continue this installation" vs "clean install for a new company". */
+function resolveDataMode() {
+  const prior = existingInstallation();
+  if (!prior) return "continue";
+  const answer = dialog.showMessageBoxSync(win, {
+    type: "warning",
+    noLink: true,
+    title: "Existing OPSQAI data found",
+    message: prior.company
+      ? `This machine already holds OPSQAI data for "${prior.company}".`
+      : "This machine already holds OPSQAI data from a previous installation.",
+    detail:
+      "Continue: keep the existing database, files and accounts (same company — upgrade or repair).\n\n" +
+      "Clean install: archive the previous data and start empty for a new company. Nothing from the previous company is carried over.",
+    buttons: ["Continue existing installation", "Clean install for a new company", "Cancel"],
+    defaultId: 0,
+    cancelId: 2,
+  });
+  if (answer === 2) return null;
+  return answer === 1 ? "fresh" : "continue";
+}
+
 function runBootstrap(event, config, extraFlags = []) {
-  win.__installing = true;
-  const args = buildBootstrapArgs(config, extraFlags);
   const send = (line) => event.sender.send("wizard:install-log", line);
+  const dataMode = config.dataMode || resolveDataMode();
+  if (!dataMode) {
+    send("> installation cancelled (no data mode chosen)");
+    return Promise.resolve({ code: 1 });
+  }
+  win.__installing = true;
+  const args = buildBootstrapArgs(config, [...extraFlags, "--data-mode", dataMode]);
+  send(`> data mode: ${dataMode}`);
   send(`> Launching bootstrap: ${nodeExe}${extraFlags.length ? " " + extraFlags.join(" ") : ""}`);
 
   if (!fs.existsSync(nodeExe) || !fs.existsSync(bootstrap)) {

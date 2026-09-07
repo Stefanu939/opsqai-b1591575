@@ -134,6 +134,30 @@ export async function previewSelfHostLicense(
   };
 }
 
+/**
+ * The installation licence currently stored on disk (company identity only).
+ * Returns null when no valid installation licence is present.
+ */
+export async function activeInstallLicense(): Promise<
+  { install_id: string | null; customer: string | null } | null
+> {
+  try {
+    const raw = (await readFile(licenseFilePath(), "utf8")).trim();
+    if (!raw) return null;
+    const key = await publicKey();
+    let claims = verifyCompactToken(raw, key) as Claims;
+    if (isActivationBundlePayload(claims) && claims.install_token) {
+      claims = verifyCompactToken(claims.install_token, key) as Claims;
+    }
+    return {
+      install_id: claims.install_id ?? null,
+      customer: claims.customer ?? claims.company_name ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Verify and persist a license on this installation. */
 export async function activateSelfHostLicense(
   token: string,
@@ -155,8 +179,18 @@ export async function activateSelfHostLicense(
     return { ok: true, kind: "module", module: pre.module };
   }
 
+  // An installation licence carries the customer identity: it may never move
+  // this installation's data to a different company.
+  const { checkLicenseOwner, bindInstallationOwner } = await import(
+    "@/lib/selfhost-tenant-binding.server"
+  );
+  const identity = { install_id: pre.install_id ?? null, customer: pre.customer ?? null };
+  const owner = await checkLicenseOwner(identity);
+  if (!owner.ok) throw new Error(`import_denied:${owner.reason}`);
+
   // Installation token or full activation bundle replaces the license file.
   await writeFile(file, token.trim(), "utf8");
+  await bindInstallationOwner(identity);
   return { ok: true, kind: pre.kind, modules: pre.modules };
 }
 

@@ -225,6 +225,50 @@ try {
   console.warn(`[bootstrap] could not read prior config: ${e.message}`);
 }
 
+// --- Data mode: continue an existing installation, or start clean ---------
+// `--data-mode fresh` means "this machine is being installed for a DIFFERENT
+// company": the previous database, uploads, licence and install identity are
+// archived (never silently reused), and a brand new installId is minted.
+// `continue` (the default, used by upgrades and retries) keeps everything.
+const dataMode = (arg("data-mode", "continue") || "continue").toLowerCase();
+if (!["continue", "fresh"].includes(dataMode)) {
+  console.error("[bootstrap] --data-mode must be 'continue' or 'fresh'");
+  process.exit(2);
+}
+if (dataMode === "fresh" && priorInstallId) {
+  const stamp = new Date().toISOString().replace(/[-:T]/g, "").replace(/\..+$/, "");
+  const archiveRoot = programData("archive", `install-${priorInstallId}-${stamp}`);
+  log(`data-mode=fresh — archiving previous installation to ${archiveRoot}`);
+  for (const svc of ["OpsqaiUpdater", "OpsqaiCaddy", "OpsqaiWorker", "OpsqaiPlatform", "OpsqaiDatabase"]) {
+    spawnSync("sc", ["stop", svc], { stdio: "ignore" });
+  }
+  spawnSync("cmd", ["/c", "ping", "127.0.0.1", "-n", "4", ">nul"]);
+  fs.mkdirSync(archiveRoot, { recursive: true });
+  for (const rel of [
+    ["data", "pgsql"],
+    ["data", "storage"],
+    ["config", "config.json"],
+    ["config", "license.opsqai"],
+    ["config", "license.opsqai.modules.json"],
+  ]) {
+    const from = programData(...rel);
+    if (!fs.existsSync(from)) continue;
+    const to = path.join(archiveRoot, rel.join("-"));
+    try {
+      fs.renameSync(from, to);
+      log(`archived ${from} -> ${to}`);
+    } catch (e) {
+      console.error(`[bootstrap] cannot archive ${from}: ${e.message}`);
+      process.exit(2);
+    }
+  }
+  // Nothing from the previous company may be inherited.
+  priorInstallId = "";
+  priorEmbeddedPassword = "";
+}
+
+
+
 // ONE canonical persisted installId. An upgrade / re-run must never mint a new
 // one (licences and every seeded row are keyed on it); a fresh install gets a
 // UUID. An explicitly passed --install-id only wins on a fresh install.
