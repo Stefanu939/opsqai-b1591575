@@ -50,6 +50,9 @@ function loadConfig(p = DEFAULT_PATH) {
   };
   // Automatic installation inside a nightly maintenance window (local time).
   raw.updates.automatic ??= true;
+  // Management Center is the source of truth for releases; the CDN manifest
+  // above stays as fallback for isolated installations.
+  raw.updates.source ??= "management-center";
   raw.updates.windowStartHour ??= 2;
   raw.updates.windowEndHour ??= 4;
   return raw;

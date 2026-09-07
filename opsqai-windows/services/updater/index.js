@@ -36,6 +36,8 @@ const NOTICE = programData("updates", "notice.json");
 const APPLY_LOCK = programData("updates", "apply.lock");
 const STAGE_DIR = programData("updates", "staged");
 const STATE = programData("updates", "state.json");
+const AVAILABLE = programData("updates", "available.json");
+const COMMAND = programData("updates", "command.json");
 const PUBKEY = programFiles("updater", "pubkey.pem");
 
 const CURRENT_VERSION = cfg.version || "1.0.0";
@@ -210,9 +212,88 @@ function isNewer(remote, current) {
   return false;
 }
 
+/** Management Center descriptor written by the application after a verified
+ * update check. Preferred over the legacy CDN manifest; the app already
+ * verified its Ed25519 signature against the pinned license key. */
+function readAvailable() {
+  try {
+    const v = JSON.parse(fs.readFileSync(AVAILABLE, "utf8"));
+    if (!v || !v.version || !v.url) return null;
+    return v;
+  } catch {
+    return null;
+  }
+}
+
+/** Manual instruction from the application (Download / Install now). */
+function takeCommand() {
+  try {
+    const c = JSON.parse(fs.readFileSync(COMMAND, "utf8"));
+    fs.unlinkSync(COMMAND);
+    return c && c.action ? c : null;
+  } catch {
+    return null;
+  }
+}
+
+async function stageRelease(state, rel, source) {
+  if (!isNewer(rel.version, CURRENT_VERSION)) {
+    log(`up to date (current ${CURRENT_VERSION}, latest ${rel.version})`);
+    return false;
+  }
+  if (state.lastStaged?.version === rel.version && fs.existsSync(state.lastStaged.path || "")) {
+    log(`${rel.version} already staged at ${state.lastStaged.path}`);
+    return true;
+  }
+  const ext = rel.artifact === "zip" ? "zip" : "exe";
+  const dest = path.join(STAGE_DIR, `OPSQAI-Setup-${rel.version}.${ext}`);
+  log(`downloading ${rel.version} (${source})`);
+  await download(rel.url, dest, rel.sha256);
+  state.lastStaged = {
+    version: rel.version,
+    path: dest,
+    artifact: ext,
+    source,
+    stagedAt: new Date().toISOString(),
+    notes: rel.notes || "",
+  };
+  log(`staged ${rel.version} -> ${dest}`);
+  writeNotice({
+    at: new Date().toISOString(),
+    version: rel.version,
+    outcome: "staged",
+    notes: rel.notes || "",
+    automatic: autoPolicy().automatic,
+  });
+  return true;
+}
+
 async function pollOnce() {
   const state = loadState();
   state.lastCheck = new Date().toISOString();
+  const command = takeCommand();
+
+  // 1) Management Center (source of truth).
+  const mc = readAvailable();
+  if (mc) {
+    try {
+      await stageRelease(state, mc, "management-center");
+      saveState(state);
+      const policy = autoPolicy();
+      const shouldApply =
+        state.lastStaged &&
+        isNewer(state.lastStaged.version, CURRENT_VERSION) &&
+        state.lastStaged.artifact !== "zip" &&
+        state.lastApply?.version !== state.lastStaged.version &&
+        (command?.action === "install" || (policy.automatic && inWindow(policy)));
+      if (shouldApply) await applyStaged(state);
+      return;
+    } catch (e) {
+      warn(`management center update failed: ${e.message}; falling back to manifest`);
+    }
+  }
+
+  // 2) Legacy signed CDN manifest (isolated installations).
   try {
     const manifest = await fetchJson(cfg.updates.manifestUrl);
     verifyManifest(manifest);
@@ -261,17 +342,17 @@ async function pollOnce() {
   // Automatic installation inside the maintenance window.
   const policy = autoPolicy();
   if (
-    policy.automatic &&
+    (policy.automatic || command?.action === "install") &&
     state.lastStaged &&
     isNewer(state.lastStaged.version, CURRENT_VERSION) &&
     state.lastApply?.version !== state.lastStaged.version &&
-    inWindow(policy)
+    (command?.action === "install" || inWindow(policy))
   ) {
     await applyStaged(state);
   }
 }
 
-module.exports = { _internal: { autoPolicy, inWindow, isNewer } };
+module.exports = { _internal: { autoPolicy, inWindow, isNewer, readAvailable, takeCommand } };
 
 if (require.main === module) {
   pollOnce();

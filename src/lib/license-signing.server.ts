@@ -247,6 +247,42 @@ export async function signModuleLicense(
   return { token: signPayloadWithKey(payload, privatePem), keyId, payload };
 }
 
+/**
+ * Update descriptor for the Self-Hosted auto-updater.
+ *
+ * Signed with the same Ed25519 license key an installation already pins, so
+ * the installation can prove the update metadata (version, artifact hash,
+ * download URL) really came from OPSQAI and was not injected by whatever
+ * network sits between it and the Management Center.
+ */
+export interface UpdateDescriptorPayload {
+  license_version: 1;
+  kind: "update";
+  key_id: string;
+  install_id: string;
+  version: string;
+  channel: string;
+  sha256: string | null;
+  url: string;
+  size: number | null;
+  notes: string;
+  issued_at: number;
+  expires_at: number;
+}
+
+export async function signUpdateDescriptor(
+  input: Omit<UpdateDescriptorPayload, "license_version" | "kind" | "key_id">,
+): Promise<{ token: string; keyId: string; payload: UpdateDescriptorPayload }> {
+  const { privatePem, keyId } = await getActiveSigningKey();
+  const payload: UpdateDescriptorPayload = {
+    license_version: 1,
+    kind: "update",
+    key_id: keyId,
+    ...input,
+  };
+  return { token: signPayloadWithKey(payload, privatePem), keyId, payload };
+}
+
 // ─── New typed verification (Phase 0) ───────────────────────────────────
 
 export type VerifyReason =

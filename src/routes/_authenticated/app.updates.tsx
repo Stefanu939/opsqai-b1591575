@@ -23,8 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  checkSelfHostUpdateNow,
   dismissSelfHostUpdateNotice,
   getSelfHostUpdateStatus,
+  runSelfHostUpdateAction,
   setSelfHostUpdatePolicy,
 } from "@/lib/selfhost-updates.functions";
 import { Download, Package, ExternalLink, History, RefreshCw } from "lucide-react";
@@ -57,6 +59,9 @@ function AutoUpdatePanel() {
   const load = useServerFn(getSelfHostUpdateStatus);
   const save = useServerFn(setSelfHostUpdatePolicy);
   const dismiss = useServerFn(dismissSelfHostUpdateNotice);
+  const checkNow = useServerFn(checkSelfHostUpdateNow);
+  const runAction = useServerFn(runSelfHostUpdateAction);
+  const [busy, setBusy] = useState<"check" | "download" | "install" | null>(null);
   const status = useQuery({
     queryKey: ["selfhost-update-status"],
     queryFn: () => load(),
@@ -85,9 +90,33 @@ function AutoUpdatePanel() {
       title="Automatic updates"
       description="New signed releases are downloaded, verified and installed on their own during the nightly maintenance window. A backup is taken first and the previous version is restored automatically if anything fails."
       actions={
-        <Button size="sm" variant="outline" onClick={() => void status.refetch()}>
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy !== null}
+            onClick={() => {
+              setBusy("check");
+              void checkNow()
+                .then((r) => {
+                  if (r.ok) toast.success(`Version ${r.version} is available`);
+                  else if (r.reason === "up_to_date")
+                    toast.success("You are already on the newest version");
+                  else toast.error(`Update check failed: ${r.reason ?? "unknown"}`);
+                })
+                .catch((e: Error) => toast.error(e.message))
+                .finally(() => {
+                  setBusy(null);
+                  void status.refetch();
+                });
+            }}
+          >
+            {busy === "check" ? "Checking…" : "Check for updates"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => void status.refetch()}>
+            Refresh
+          </Button>
+        </div>
       }
     >
       {s.notice && s.notice.outcome !== "staged" ? (
@@ -109,6 +138,66 @@ function AutoUpdatePanel() {
           >
             Dismiss
           </Button>
+        </div>
+      ) : null}
+
+      {s.available ? (
+        <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge>Available</Badge>
+            <span className="font-display text-base font-semibold">v{s.available.version}</span>
+            <span className="text-xs text-muted-foreground">
+              {s.available.channel} · found {new Date(s.available.discoveredAt).toLocaleString()}
+            </span>
+            <div className="ml-auto flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={busy !== null}
+                onClick={() => {
+                  setBusy("download");
+                  void runAction({ data: { action: "download", version: s.available!.version } })
+                    .then(() => toast.success("Download started in the background"))
+                    .catch((e: Error) => toast.error(e.message))
+                    .finally(() => {
+                      setBusy(null);
+                      void status.refetch();
+                    });
+                }}
+              >
+                Download now
+              </Button>
+              <Button
+                size="sm"
+                disabled={busy !== null || s.available.artifact === "zip"}
+                onClick={() => {
+                  setBusy("install");
+                  void runAction({ data: { action: "install", version: s.available!.version } })
+                    .then(() =>
+                      toast.success("Installation scheduled — a backup is taken first"),
+                    )
+                    .catch((e: Error) => toast.error(e.message))
+                    .finally(() => {
+                      setBusy(null);
+                      void status.refetch();
+                    });
+                }}
+              >
+                Install now
+              </Button>
+            </div>
+          </div>
+          {s.available.notes ? (
+            <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
+              {s.available.notes}
+            </p>
+          ) : null}
+          {s.available.artifact === "zip" ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              This release is published as an archive, so it is downloaded for you but installed
+              manually.
+            </p>
+          ) : null}
         </div>
       ) : null}
 

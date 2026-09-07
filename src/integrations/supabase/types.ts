@@ -2106,11 +2106,16 @@ export type Database = {
       }
       installer_releases: {
         Row: {
+          channel: string
           created_at: string
           exe_sha256: string | null
           exe_size_bytes: number | null
           id: string
           is_active: boolean
+          is_published: boolean
+          min_version: string | null
+          notes: string | null
+          package_storage_path: string | null
           published_at: string
           tag_name: string
           updated_at: string
@@ -2119,11 +2124,16 @@ export type Database = {
           zip_url: string
         }
         Insert: {
+          channel?: string
           created_at?: string
           exe_sha256?: string | null
           exe_size_bytes?: number | null
           id?: string
           is_active?: boolean
+          is_published?: boolean
+          min_version?: string | null
+          notes?: string | null
+          package_storage_path?: string | null
           published_at?: string
           tag_name: string
           updated_at?: string
@@ -2132,11 +2142,16 @@ export type Database = {
           zip_url: string
         }
         Update: {
+          channel?: string
           created_at?: string
           exe_sha256?: string | null
           exe_size_bytes?: number | null
           id?: string
           is_active?: boolean
+          is_published?: boolean
+          min_version?: string | null
+          notes?: string | null
+          package_storage_path?: string | null
           published_at?: string
           tag_name?: string
           updated_at?: string

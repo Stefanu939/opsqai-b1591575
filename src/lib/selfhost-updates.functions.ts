@@ -24,6 +24,15 @@ export interface SelfHostUpdateStatus {
   policy: SelfHostUpdatePolicy;
   lastCheck: string | null;
   staged: { version: string; stagedAt: string | null; notes: string } | null;
+  /** Newest release the Management Center offers for this installation. */
+  available: {
+    version: string;
+    channel: string;
+    notes: string;
+    artifact: "exe" | "zip";
+    url: string;
+    discoveredAt: string;
+  } | null;
   notice: {
     at: string;
     version: string | null;
@@ -53,6 +62,7 @@ const EMPTY: SelfHostUpdateStatus = {
   policy: DEFAULT_POLICY,
   lastCheck: null,
   staged: null,
+  available: null,
   notice: null,
   history: [],
 };
@@ -128,6 +138,9 @@ export const getSelfHostUpdateStatus = createServerFn({ method: "POST" })
       history = [];
     }
 
+    const { readAvailableUpdate } = await import("@/lib/providers/selfhost/update-discovery.server");
+    const avail = await readAvailableUpdate().catch(() => null);
+
     return {
       selfHosted: true,
       currentVersion: APP_VERSION,
@@ -138,6 +151,16 @@ export const getSelfHostUpdateStatus = createServerFn({ method: "POST" })
             version: state.lastStaged.version,
             stagedAt: state.lastStaged.stagedAt ?? null,
             notes: state.lastStaged.notes ?? "",
+          }
+        : null,
+      available: avail
+        ? {
+            version: avail.version,
+            channel: avail.channel,
+            notes: avail.notes,
+            artifact: avail.artifact,
+            url: avail.url,
+            discoveredAt: avail.discoveredAt,
           }
         : null,
       notice: notice ?? null,
@@ -190,5 +213,46 @@ export const dismissSelfHostUpdateNotice = createServerFn({ method: "POST" })
         /* nothing to clear */
       }
     }
+    return { ok: true };
+  });
+
+/** Ask the Management Center right now whether a newer release exists. */
+export const checkSelfHostUpdateNow = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(
+    async ({
+      context,
+    }): Promise<{ ok: boolean; version?: string; notes?: string; reason?: string }> => {
+      await requirePlatformAdmin(context);
+      const { isSelfHosted } = await import("@/lib/platform/mode");
+      if (!isSelfHosted()) throw new Error("Updates apply to Self-Hosted only.");
+      const { readSelfHostConfig } = await import("@/lib/selfhost-config.server");
+      const policy = policyFrom(readSelfHostConfig()["updates"] as Record<string, unknown>);
+      const { checkForUpdateFromMc } = await import(
+        "@/lib/providers/selfhost/update-discovery.server"
+      );
+      const result = await checkForUpdateFromMc(policy.channel === "beta" ? "beta" : "stable");
+      if (!result.ok) return { ok: false, reason: result.reason };
+      return { ok: true, version: result.update.version, notes: result.update.notes };
+    },
+  );
+
+/** Manual download / installation trigger picked up by the updater service. */
+export const runSelfHostUpdateAction = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ action: z.enum(["download", "install"]), version: z.string().optional() }).parse(
+      input,
+    ),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: boolean }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Updates apply to Self-Hosted only.");
+    const { writeUpdateCommand } = await import(
+      "@/lib/providers/selfhost/update-discovery.server"
+    );
+    const ok = await writeUpdateCommand(data.action, data.version);
+    if (!ok) throw new Error("Could not reach the local update folder.");
     return { ok: true };
   });

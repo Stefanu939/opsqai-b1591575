@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { WindowsReleasesPanel } from "@/components/mc/windows-releases-panel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState, useCallback, type ChangeEvent, type DragEvent } from "react";
@@ -303,6 +304,10 @@ function ReleasesPage() {
           description: "Publish your first release to make it available to installations.",
         }}
       />
+
+      <div className="mt-6">
+        <WindowsReleasesPanel />
+      </div>
     </ModulePage>
   );
 }
