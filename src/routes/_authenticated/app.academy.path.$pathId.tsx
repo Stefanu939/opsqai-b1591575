@@ -149,7 +149,7 @@ function PathPage() {
           path_id: pathId,
           title: chapterDraft.title.trim(),
           summary: chapterDraft.summary.trim() || null,
-          order_index: chapterDraft.id ? undefined as any : (data?.chapters?.length ?? 0),
+          order_index: chapterDraft.id ? 0 : (data?.chapters?.length ?? 0),
         },
       });
       notifySaved("Chapter");
@@ -352,10 +352,10 @@ function PathPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() =>
-                      setChapterDraft({ id: ch.id, title: ch.title, summary: ch.summary ?? "" }) ||
-                      setChapterOpen(true)
-                    }
+                    onClick={() => {
+                      setChapterDraft({ id: ch.id, title: ch.title, summary: ch.summary ?? "" });
+                      setChapterOpen(true);
+                    }}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
