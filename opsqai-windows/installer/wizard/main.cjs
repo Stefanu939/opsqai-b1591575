@@ -343,6 +343,7 @@ ipcMain.handle("wizard:testDatabase", async (_e, cfg) => {
   const database = String(cfg?.database || "").trim();
   const user = String(cfg?.user || "").trim();
   const password = String(cfg?.password || "");
+  const sslmode = String(cfg?.sslmode || "prefer");
   if (!host || !database || !user) {
     return { ok: false, error: "Host, database and user are required" };
   }
@@ -353,24 +354,104 @@ ipcMain.handle("wizard:testDatabase", async (_e, cfg) => {
   } catch (e) {
     return { ok: false, error: `pg driver not bundled: ${e.message}` };
   }
+  const ssl =
+    sslmode === "disable"
+      ? false
+      : sslmode === "require"
+        ? { rejectUnauthorized: false }
+        : undefined; // "prefer" — let pg negotiate
   const client = new Client({
     host,
     port,
     database,
     user,
     password,
-    ssl: cfg?.ssl ? { rejectUnauthorized: false } : false,
+    ssl,
     connectionTimeoutMillis: 8_000,
     statement_timeout: 5_000,
   });
+  const friendly = (e) => {
+    const code = e?.code || "";
+    const msg = e?.message || String(e);
+    if (code === "ECONNREFUSED")
+      return `Server unreachable at ${host}:${port} (connection refused). Check the host, the port and the firewall.`;
+    if (code === "ETIMEDOUT" || code === "ESOCKETTIMEDOUT" || /timeout/i.test(msg))
+      return `No answer from ${host}:${port} within 8s. Check the network path and that PostgreSQL listens on this interface.`;
+    if (code === "ENOTFOUND" || code === "EAI_AGAIN")
+      return `Host name "${host}" could not be resolved. Check for typos or use the server IP address.`;
+    if (code === "28P01")
+      return "Authentication failed — wrong username or password.";
+    if (code === "3D000")
+      return `Database "${database}" does not exist on this server. Create it first or choose another name.`;
+    if (code === "28000")
+      return `User "${user}" is not allowed to connect. Ask your database administrator to grant CONNECT on "${database}".`;
+    if (/no pg_hba\.conf entry/i.test(msg))
+      return "The server rejected this workstation (pg_hba.conf). Ask your database administrator to allow this host with scram-sha-256.";
+    if (/SSL|ssl/i.test(msg))
+      return `SSL/TLS problem: ${msg}. Try "Require" if the server enforces encryption, or "Disable" on a trusted internal network.`;
+    return msg;
+  };
   try {
     await client.connect();
-    const r = await client.query("select version() as v");
+    const versionRes = await client.query("show server_version");
+    const serverVersion = String(versionRes.rows?.[0]?.server_version || "");
+    const major = parseInt(serverVersion.split(".")[0], 10);
+    if (Number.isFinite(major) && major < 15) {
+      await client.end().catch(() => {});
+      return {
+        ok: false,
+        error: `PostgreSQL ${serverVersion} is too old — OPSQAI needs PostgreSQL 15 or newer on the company server.`,
+      };
+    }
+    let pgvector = null;
+    try {
+      const ext = await client.query(
+        "select extversion from pg_extension where extname = 'vector'",
+      );
+      pgvector = ext.rows?.[0]?.extversion || null;
+    } catch {}
+    if (!pgvector) {
+      // Check availability separately: present-but-not-created only needs CREATE EXTENSION rights.
+      let available = false;
+      try {
+        const av = await client.query(
+          "select 1 from pg_available_extensions where name = 'vector'",
+        );
+        available = (av.rowCount || 0) > 0;
+      } catch {}
+      await client.end().catch(() => {});
+      return {
+        ok: false,
+        error: available
+          ? 'pgvector is installed on the server but not enabled in this database. Run: CREATE EXTENSION vector; — or give the user permission to create extensions (the installer will then enable it).'
+          : "pgvector is not installed on this server. Install the pgvector package (>= 0.5) before continuing.",
+      };
+    }
+    // Rights probe: the OPSQAI login must be able to create tables in this database.
+    try {
+      await client.query(
+        "create table if not exists public.opsqai_setup_probe(id int primary key); drop table if exists public.opsqai_setup_probe",
+      );
+    } catch {
+      await client.end().catch(() => {});
+      return {
+        ok: false,
+        error: `User "${user}" cannot create tables in "${database}". Grant CREATE/USAGE on schema public (or make the user the database owner).`,
+      };
+    }
+    const sslRes = await client.query("select ssl from pg_stat_ssl where pid = pg_backend_pid()").catch(() => null);
+    const sslOn = Boolean(sslRes?.rows?.[0]?.ssl);
     await client.end().catch(() => {});
-    return { ok: true, version: r.rows?.[0]?.v ?? "connected" };
+    if (sslmode === "require" && !sslOn) {
+      return {
+        ok: false,
+        error: 'Connection is not encrypted although "Require" was selected. Enable SSL on the PostgreSQL server or choose another mode.',
+      };
+    }
+    return { ok: true, version: `PostgreSQL ${serverVersion}`, pgvector, ssl: sslOn };
   } catch (e) {
     try { await client.end(); } catch {}
-    return { ok: false, error: e.message || String(e) };
+    return { ok: false, error: friendly(e) };
   }
 });
 
