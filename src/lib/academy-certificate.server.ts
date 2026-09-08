@@ -28,10 +28,11 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
   const existingPath = cert.pdf_path ?? null;
 
   // 2) Read details for the certificate body.
-  const [pathResult, company, profile] = await Promise.all([
+  const [pathResult, company, profile, settings] = await Promise.all([
     academyRepo.getLearningPath(opts.pathId),
     getCompanyRepository(context).findById(opts.companyId),
     getProfileRepository(context).findByUserId(opts.userId),
+    academyRepo.getSettings(opts.companyId).catch(() => null),
   ]);
 
   const recipient = profile?.fullName ?? "Learner";
@@ -39,12 +40,35 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
   const department = pathResult?.path.department_name ?? "";
   const companyName = company?.name ?? "OPSQAI";
 
+  const template = (settings?.certificate_template ?? {}) as Record<string, any>;
+  const signatureName = typeof template.signatureName === "string" ? template.signatureName : "";
+  const signatureRole = typeof template.signatureRole === "string" ? template.signatureRole : "";
+
+  async function loadBrandingImage(key: unknown): Promise<Uint8Array | null> {
+    if (typeof key !== "string" || !key) return null;
+    try {
+      return await getStorageProvider().get(BUCKET, key);
+    } catch {
+      return null;
+    }
+  }
+  const [logoBytes, signatureBytes] = await Promise.all([
+    loadBrandingImage(template.logoKey),
+    loadBrandingImage(template.signatureKey),
+  ]);
+
   // 3) Build PDF (A4 landscape).
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib/es/index.js");
   const QRCode = (await import("qrcode")).default;
 
-  const verifyUrl = `https://opsqai.de/verify/${code}`;
+  const verifyBase = (
+    (typeof template.verifyBaseUrl === "string" && template.verifyBaseUrl) ||
+    process.env["APP_URL"] ||
+    "https://opsqai.de"
+  ).replace(/\/+$/, "");
+  const verifyUrl = `${verifyBase}/verify/${code}`;
   const qrPng = await QRCode.toBuffer(verifyUrl, { width: 220, margin: 1 });
+
 
   const pdf = await PDFDocument.create();
   pdf.setTitle(`OPSQAI Certificate · ${courseName}`);
