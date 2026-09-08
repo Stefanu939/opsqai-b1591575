@@ -111,7 +111,9 @@ export const getHrOverview = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<HrOverview> => {
     const a = await actor(context as Ctx);
     const db = await import("@/lib/hr/db.server");
-    const [settings, counts, actionRequired, tasks, departments, positions, locations] =
+    const ext = await import("@/lib/hr/db-ext.server");
+    const ws = await import("@/lib/hr/db-ws.server");
+    const [settings, counts, actionRequired, tasks, departments, positions, locations, pipeline, alerts, wsSignals, ovSignals, recentEvents] =
       await Promise.all([
         db.getSettings(a.companyId),
         db.counts(a.companyId),
@@ -120,15 +122,56 @@ export const getHrOverview = createServerFn({ method: "POST" })
         db.listRefs(a.companyId, "departments"),
         db.listRefs(a.companyId, "positions"),
         db.listRefs(a.companyId, "locations"),
+        db.pipeline(a.companyId),
+        ext.alerts(a.companyId),
+        ws.workspaceSignals(a.companyId),
+        db.overviewSignals(a.companyId),
+        db.recentEvents(a.companyId),
       ]);
     return {
       settings,
       grants: a.grants,
       counts,
       actionRequired,
-      tasks: tasks.slice(0, 12),
+      tasks: tasks.slice(0, 20),
       refs: { departments, positions, locations },
+      pipeline,
+      alerts: alerts.slice(0, 40),
+      signals: { ...wsSignals, ...ovSignals },
+      recentEvents,
     };
+  });
+
+export const exportHrOverviewPdf = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    need(a, "export");
+    const db = await import("@/lib/hr/db.server");
+    const ext = await import("@/lib/hr/db-ext.server");
+    const [counts, act, tasks, pipeline, alerts] = await Promise.all([
+      db.counts(a.companyId),
+      db.actionRequired(a.companyId),
+      db.listTasks(a.companyId, { openOnly: true }),
+      db.pipeline(a.companyId),
+      ext.alerts(a.companyId),
+    ]);
+    const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
+    const rows: unknown[][] = [
+      ["Headcount", `${counts.total} total · ${counts.active} active · ${counts.onboarding} onboarding · ${counts.offboarding} offboarding · ${counts.leave} on leave`, ""],
+      ["New hires 30d", String(counts.newHires30d), ""],
+      ["Action required", `${act.contractsExpiring} contracts expiring · ${act.overdueTasks} overdue · ${act.openTasks} open tasks · ${act.missingData} incomplete records`, ""],
+      ...pipeline.map((p) => [`${p.kind} · ${p.employee_no}`, `${p.name} — ${p.done}/${p.total} done, ${p.overdue} overdue`, p.next_task ? `next: ${p.next_task} (${p.next_due ?? "—"})` : ""]),
+      ...alerts.slice(0, 40).map((al) => [`ALERT ${al.level}`, al.title, al.detail]),
+      ...tasks.slice(0, 60).map((t) => [`TASK ${t.status}`, `${t.employee_no ?? "—"} · ${t.title}`, `${t.team ?? "—"} · due ${t.due_date ?? "—"} · ${t.priority}`]),
+    ];
+    const pdf = await renderTablePdf({
+      title: "HR overview",
+      headers: ["Item", "Detail", "Note"],
+      rows,
+      generatedLabel: `Generated ${new Date().toISOString().slice(0, 10)} · ${a.name}`,
+    });
+    return { filename: "hr-overview.pdf", mime: "application/pdf", base64: Buffer.from(pdf).toString("base64") };
   });
 
 // ── Employees ────────────────────────────────────────────────────────────
@@ -271,10 +314,19 @@ export const saveHrTask = createServerFn({ method: "POST" })
         id: uuidString().optional(),
         employee_id: uuidString().nullable().optional(),
         title: z.string().trim().min(1).max(200),
+        description: z.string().trim().max(6000).nullable().optional(),
         category: z.string().trim().max(60).optional(),
         team: z.string().trim().max(60).nullable().optional(),
         assigned_to: z.string().trim().max(120).nullable().optional(),
         due_date: dateish,
+        priority: z.enum(["low", "normal", "high"]).optional(),
+        steps: z
+          .array(z.object({ title: z.string().trim().min(1).max(200), done: z.boolean() }))
+          .max(40)
+          .optional(),
+        document_id: uuidString().nullable().optional(),
+        document_key: z.string().trim().max(60).nullable().optional(),
+        resolution: z.string().trim().max(4000).nullable().optional(),
         status: z.enum(["pending", "in_progress", "done", "cancelled"]).optional(),
       })
       .parse(input),
@@ -283,14 +335,59 @@ export const saveHrTask = createServerFn({ method: "POST" })
     const a = await actor(context as Ctx);
     need(a, data.id ? "edit" : "create");
     const db = await import("@/lib/hr/db.server");
-    await db.saveTask(a.companyId, data);
+    const id = await db.saveTask(a.companyId, { ...data, completed_by: a.name });
     if (data.employee_id && !data.id) {
       await db.addEvent(a.companyId, data.employee_id, "task", `Task created: ${data.title}`, a.name);
     }
+    if (data.employee_id && data.id && data.status === "done") {
+      await db.addEvent(a.companyId, data.employee_id, "task", `Task completed: ${data.title}`, a.name);
+    }
     await db.audit(a.companyId, data.employee_id ?? null, { id: a.userId, name: a.name }, "task.save", {
       title: data.title,
+      status: data.status ?? "pending",
     });
-    return { ok: true };
+    return { ok: true, id };
+  });
+
+/** Export the task queue (or one task with its steps and resolution) as PDF. */
+export const exportHrTasksPdf = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: uuidString().optional(), openOnly: z.boolean().optional() }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    need(a, "export");
+    const db = await import("@/lib/hr/db.server");
+    const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
+    const generatedLabel = `Generated ${new Date().toISOString().slice(0, 10)} · ${a.name}`;
+    if (data.id) {
+      const t = await db.getTask(a.companyId, data.id);
+      if (!t) throw new Error("Task not found.");
+      const rows: unknown[][] = [
+        ["Employee", [t.employee_no, t.employee_name].filter(Boolean).join(" · ") || "—"],
+        ["Category", t.category],
+        ["Team / owner", [t.team, t.assigned_to].filter(Boolean).join(" · ") || "—"],
+        ["Due", t.due_date ?? "—"],
+        ["Priority", t.priority],
+        ["Status", t.status],
+        ["Description", t.description ?? "—"],
+        ...t.steps.map((s, i) => [`Step ${i + 1}`, `${s.done ? "[x]" : "[ ]"} ${s.title}`]),
+        ["Document", t.document_title ? `${t.document_title} (${t.document_status ?? "—"})` : "—"],
+        ["Resolution", t.resolution ?? "—"],
+        ["Completed", t.completed_at ? `${t.completed_at.slice(0, 10)} · ${t.completed_by ?? ""}` : "—"],
+      ];
+      const pdf = await renderTablePdf({ title: `HR task — ${t.title}`, headers: ["Field", "Value"], rows, generatedLabel });
+      return { filename: `hr-task-${t.id.slice(0, 8)}.pdf`, mime: "application/pdf", base64: Buffer.from(pdf).toString("base64") };
+    }
+    const tasks = await db.listTasks(a.companyId, { openOnly: data.openOnly ?? true });
+    const pdf = await renderTablePdf({
+      title: "HR tasks",
+      headers: ["Employee", "Task", "Category", "Team", "Due", "Priority", "Status"],
+      rows: tasks.map((t) => [t.employee_no ?? "—", t.title, t.category, t.team ?? "—", t.due_date ?? "—", t.priority, t.status]),
+      generatedLabel,
+    });
+    return { filename: "hr-tasks.pdf", mime: "application/pdf", base64: Buffer.from(pdf).toString("base64") };
   });
 
 export const deleteHrTask = createServerFn({ method: "POST" })
@@ -315,6 +412,17 @@ export const saveHrSettings = createServerFn({ method: "POST" })
         employee_prefix: z.string().trim().min(2).max(6).optional(),
         blind_screening: z.boolean().optional(),
         retention_months_after_exit: z.number().int().min(0).max(120).optional(),
+        default_language: z.enum(["en", "de", "ro"]).optional(),
+        probation_months: z.number().int().min(0).max(24).optional(),
+        notice_weeks: z.number().int().min(0).max(52).optional(),
+        vacation_days: z.number().int().min(0).max(60).optional(),
+        weekly_hours: z.number().min(1).max(60).optional(),
+        contract_alert_days: z.number().int().min(1).max(365).optional(),
+        document_alert_days: z.number().int().min(1).max(365).optional(),
+        auto_onboarding: z.boolean().optional(),
+        company_legal_name: z.string().trim().max(200).nullable().optional(),
+        company_address: z.string().trim().max(400).nullable().optional(),
+        company_signatory: z.string().trim().max(200).nullable().optional(),
       })
       .parse(input),
   )

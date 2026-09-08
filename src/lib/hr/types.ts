@@ -22,6 +22,17 @@ export interface HrSettings {
   employee_prefix: string;
   blind_screening: boolean;
   retention_months_after_exit: number;
+  default_language: string;
+  probation_months: number;
+  notice_weeks: number;
+  vacation_days: number;
+  weekly_hours: number;
+  contract_alert_days: number;
+  document_alert_days: number;
+  auto_onboarding: boolean;
+  company_legal_name: string | null;
+  company_address: string | null;
+  company_signatory: string | null;
 }
 
 export interface HrRef {
@@ -56,15 +67,33 @@ export interface HrEmployee {
   updated_at: string;
 }
 
+export interface HrTaskStep {
+  title: string;
+  done: boolean;
+}
+
+export type HrTaskPriority = "low" | "normal" | "high";
+
 export interface HrTask {
   id: string;
   employee_id: string | null;
   employee_no: string | null;
+  employee_name: string | null;
   title: string;
+  description: string | null;
   category: string;
   team: string | null;
   assigned_to: string | null;
   due_date: string | null;
+  priority: HrTaskPriority;
+  steps: HrTaskStep[];
+  document_id: string | null;
+  document_key: string | null;
+  document_title: string | null;
+  document_status: string | null;
+  resolution: string | null;
+  completed_at: string | null;
+  completed_by: string | null;
   status: "pending" | "in_progress" | "done" | "cancelled";
   created_at: string;
 }
@@ -106,6 +135,40 @@ export interface HrOverview {
   };
   tasks: HrTask[];
   refs: { departments: HrRef[]; positions: HrRef[]; locations: HrRef[] };
+  /** Onboarding / offboarding progress per employee (from lifecycle tasks). */
+  pipeline: HrPipelineRow[];
+  /** Derived alerts (expiries, overdue, incomplete records). */
+  alerts: Array<{ id: string; level: "critical" | "warning" | "info"; title: string; detail: string; employeeId?: string | null }>;
+  /** Signals from the other HR workspaces. */
+  signals: {
+    openRequests: number;
+    policiesPendingAck: number;
+    trainingsExpired: number;
+    trainingsPlanned: number;
+    complianceOpen: number;
+    complianceOverdue: number;
+    positionChanges90d: number;
+    candidatesNew: number;
+    candidatesShortlisted: number;
+    documentsDraft: number;
+    documentsReview: number;
+    documentsExpiring: number;
+    incidents30d: number;
+  };
+  recentEvents: Array<{ id: string; employee_no: string; kind: string; message: string; actor: string | null; created_at: string }>;
+}
+
+export interface HrPipelineRow {
+  employee_id: string;
+  employee_no: string;
+  name: string;
+  kind: "onboarding" | "offboarding";
+  anchor_date: string | null;
+  total: number;
+  done: number;
+  overdue: number;
+  next_task: string | null;
+  next_due: string | null;
 }
 
 /** Country-aware contract types (Phase 2 generates documents from these). */
