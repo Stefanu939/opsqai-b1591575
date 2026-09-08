@@ -132,6 +132,7 @@ async function fetchLatestReleaseFromPublicPage(repo: string): Promise<GithubRel
     draft: false,
     prerelease: /(?:beta|alpha|rc)/i.test(tag),
     published_at: new Date().toISOString(),
+    synthetic_date: true,
     assets: [{ name: href.split("/").pop() ?? "OPSQAI-Setup.zip", size: 0, browser_download_url: zipUrl, content_type: "application/zip" }],
   };
 }
