@@ -1344,7 +1344,7 @@ export const getCertificateBranding = createServerFn({ method: "POST" })
     const companyId = await companyForRead(context, data.company_id ?? null);
     const repo = getAcademyRepository(context);
     const row = await repo.getSettings(companyId);
-    const tpl = ((row?.certificate_template ?? {}) as Record<string, any>) ?? {};
+    const tpl = (row?.certificate_template ?? {}) as Record<string, any>;
     return {
       company_id: companyId,
       signatureName: typeof tpl.signatureName === "string" ? tpl.signatureName : "",
@@ -1377,7 +1377,7 @@ export const saveCertificateBranding = createServerFn({ method: "POST" })
     const companyId = await companyForWrite(context, data.company_id);
     const repo = getAcademyRepository(context);
     const current = await repo.getSettings(companyId);
-    const tpl = { ...(((current?.certificate_template ?? {}) as Record<string, any>) ?? {}) };
+    const tpl = { ...((current?.certificate_template ?? {}) as Record<string, any>) };
 
     async function store(kind: "logo" | "signature", base64: string) {
       const bytes = decodeBase64Image(base64);
