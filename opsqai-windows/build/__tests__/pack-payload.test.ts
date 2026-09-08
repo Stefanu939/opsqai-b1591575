@@ -489,5 +489,7 @@ describe("pack-payload CLI entrypoint", () => {
     expect(result.stdout).toContain("app.7z");
 
     rmSync(tmp, { recursive: true, force: true });
-  });
+    // Spawns a real Node child process; the default 5s budget is too tight on
+    // loaded CI machines.
+  }, 60_000);
 });
