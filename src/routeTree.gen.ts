@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WindowsOnlyRouteImport } from './routes/windows-only'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as StudyRouteImport } from './routes/study'
 import { Route as SsoSigninRouteImport } from './routes/sso-signin'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SelfHostedRouteImport } from './routes/self-hosted'
@@ -70,6 +71,8 @@ import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
+import { Route as ApiPublicStudySubmitRouteImport } from './routes/api.public.study-submit'
+import { Route as ApiPublicStudyContactRouteImport } from './routes/api.public.study-contact'
 import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicMetricsRouteImport } from './routes/api/public/metrics'
@@ -93,6 +96,7 @@ import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authe
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedManagementTeamRouteImport } from './routes/_authenticated/management.team'
 import { Route as AuthenticatedManagementSupportRouteImport } from './routes/_authenticated/management.support'
+import { Route as AuthenticatedManagementStudyRouteImport } from './routes/_authenticated/management.study'
 import { Route as AuthenticatedManagementSelfhostFleetRouteImport } from './routes/_authenticated/management.selfhost-fleet'
 import { Route as AuthenticatedManagementReleasesRouteImport } from './routes/_authenticated/management.releases'
 import { Route as AuthenticatedManagementProfileRouteImport } from './routes/_authenticated/management.profile'
@@ -159,6 +163,11 @@ const WindowsOnlyRoute = WindowsOnlyRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudyRoute = StudyRouteImport.update({
+  id: '/study',
+  path: '/study',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SsoSigninRoute = SsoSigninRouteImport.update({
@@ -462,6 +471,16 @@ const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   path: '/lovable/email/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicStudySubmitRoute = ApiPublicStudySubmitRouteImport.update({
+  id: '/api/public/study-submit',
+  path: '/api/public/study-submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStudyContactRoute = ApiPublicStudyContactRouteImport.update({
+  id: '/api/public/study-contact',
+  path: '/api/public/study-contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSelfhostHeartbeatRoute =
   ApiPublicSelfhostHeartbeatRouteImport.update({
     id: '/api/public/selfhost-heartbeat',
@@ -587,6 +606,12 @@ const AuthenticatedManagementSupportRoute =
   AuthenticatedManagementSupportRouteImport.update({
     id: '/support',
     path: '/support',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
+const AuthenticatedManagementStudyRoute =
+  AuthenticatedManagementStudyRouteImport.update({
+    id: '/study',
+    path: '/study',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
 const AuthenticatedManagementSelfhostFleetRoute =
@@ -942,6 +967,7 @@ export interface FileRoutesByFullPath {
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/study': typeof StudyRoute
   '/support': typeof SupportRoute
   '/windows-only': typeof WindowsOnlyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -997,6 +1023,7 @@ export interface FileRoutesByFullPath {
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
+  '/management/study': typeof AuthenticatedManagementStudyRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
@@ -1020,6 +1047,8 @@ export interface FileRoutesByFullPath {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/study-contact': typeof ApiPublicStudyContactRoute
+  '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/management/': typeof AuthenticatedManagementIndexRoute
@@ -1082,6 +1111,7 @@ export interface FileRoutesByTo {
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/study': typeof StudyRoute
   '/support': typeof SupportRoute
   '/windows-only': typeof WindowsOnlyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -1133,6 +1163,7 @@ export interface FileRoutesByTo {
   '/management/profile': typeof AuthenticatedManagementProfileRoute
   '/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
+  '/management/study': typeof AuthenticatedManagementStudyRoute
   '/management/support': typeof AuthenticatedManagementSupportRoute
   '/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
@@ -1155,6 +1186,8 @@ export interface FileRoutesByTo {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/study-contact': typeof ApiPublicStudyContactRoute
+  '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/management': typeof AuthenticatedManagementIndexRoute
@@ -1221,6 +1254,7 @@ export interface FileRoutesById {
   '/self-hosted': typeof SelfHostedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sso-signin': typeof SsoSigninRoute
+  '/study': typeof StudyRoute
   '/support': typeof SupportRoute
   '/windows-only': typeof WindowsOnlyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -1276,6 +1310,7 @@ export interface FileRoutesById {
   '/_authenticated/management/profile': typeof AuthenticatedManagementProfileRoute
   '/_authenticated/management/releases': typeof AuthenticatedManagementReleasesRoute
   '/_authenticated/management/selfhost-fleet': typeof AuthenticatedManagementSelfhostFleetRoute
+  '/_authenticated/management/study': typeof AuthenticatedManagementStudyRoute
   '/_authenticated/management/support': typeof AuthenticatedManagementSupportRoute
   '/_authenticated/management/team': typeof AuthenticatedManagementTeamRouteWithChildren
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRouteWithChildren
@@ -1299,6 +1334,8 @@ export interface FileRoutesById {
   '/api/public/metrics': typeof ApiPublicMetricsRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
+  '/api/public/study-contact': typeof ApiPublicStudyContactRoute
+  '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/management/': typeof AuthenticatedManagementIndexRoute
@@ -1365,6 +1402,7 @@ export interface FileRouteTypes {
     | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/study'
     | '/support'
     | '/windows-only'
     | '/.mcp/list-tools'
@@ -1420,6 +1458,7 @@ export interface FileRouteTypes {
     | '/management/profile'
     | '/management/releases'
     | '/management/selfhost-fleet'
+    | '/management/study'
     | '/management/support'
     | '/management/team'
     | '/portal/admin'
@@ -1443,6 +1482,8 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/study-contact'
+    | '/api/public/study-submit'
     | '/lovable/email/events'
     | '/app/'
     | '/management/'
@@ -1505,6 +1546,7 @@ export interface FileRouteTypes {
     | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/study'
     | '/support'
     | '/windows-only'
     | '/.mcp/list-tools'
@@ -1556,6 +1598,7 @@ export interface FileRouteTypes {
     | '/management/profile'
     | '/management/releases'
     | '/management/selfhost-fleet'
+    | '/management/study'
     | '/management/support'
     | '/management/team'
     | '/portal/calendar'
@@ -1578,6 +1621,8 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/study-contact'
+    | '/api/public/study-submit'
     | '/lovable/email/events'
     | '/app'
     | '/management'
@@ -1643,6 +1688,7 @@ export interface FileRouteTypes {
     | '/self-hosted'
     | '/sitemap.xml'
     | '/sso-signin'
+    | '/study'
     | '/support'
     | '/windows-only'
     | '/.mcp/list-tools'
@@ -1698,6 +1744,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/profile'
     | '/_authenticated/management/releases'
     | '/_authenticated/management/selfhost-fleet'
+    | '/_authenticated/management/study'
     | '/_authenticated/management/support'
     | '/_authenticated/management/team'
     | '/_authenticated/portal/admin'
@@ -1721,6 +1768,8 @@ export interface FileRouteTypes {
     | '/api/public/metrics'
     | '/api/public/ready'
     | '/api/public/selfhost-heartbeat'
+    | '/api/public/study-contact'
+    | '/api/public/study-submit'
     | '/lovable/email/events'
     | '/_authenticated/app/'
     | '/_authenticated/management/'
@@ -1787,6 +1836,7 @@ export interface RootRouteChildren {
   SelfHostedRoute: typeof SelfHostedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SsoSigninRoute: typeof SsoSigninRoute
+  StudyRoute: typeof StudyRoute
   SupportRoute: typeof SupportRoute
   WindowsOnlyRoute: typeof WindowsOnlyRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -1815,6 +1865,8 @@ export interface RootRouteChildren {
   ApiPublicMetricsRoute: typeof ApiPublicMetricsRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
+  ApiPublicStudyContactRoute: typeof ApiPublicStudyContactRoute
+  ApiPublicStudySubmitRoute: typeof ApiPublicStudySubmitRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiPublicCalendarTokenRoute: typeof ApiPublicCalendarTokenRoute
   ApiPublicResourcesFileRoute: typeof ApiPublicResourcesFileRoute
@@ -1842,6 +1894,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/study': {
+      id: '/study'
+      path: '/study'
+      fullPath: '/study'
+      preLoaderRoute: typeof StudyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sso-signin': {
@@ -2257,6 +2316,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/study-submit': {
+      id: '/api/public/study-submit'
+      path: '/api/public/study-submit'
+      fullPath: '/api/public/study-submit'
+      preLoaderRoute: typeof ApiPublicStudySubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/study-contact': {
+      id: '/api/public/study-contact'
+      path: '/api/public/study-contact'
+      fullPath: '/api/public/study-contact'
+      preLoaderRoute: typeof ApiPublicStudyContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/selfhost-heartbeat': {
       id: '/api/public/selfhost-heartbeat'
       path: '/api/public/selfhost-heartbeat'
@@ -2416,6 +2489,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/management/support'
       preLoaderRoute: typeof AuthenticatedManagementSupportRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
+    '/_authenticated/management/study': {
+      id: '/_authenticated/management/study'
+      path: '/study'
+      fullPath: '/management/study'
+      preLoaderRoute: typeof AuthenticatedManagementStudyRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
     '/_authenticated/management/selfhost-fleet': {
@@ -2939,6 +3019,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementProfileRoute: typeof AuthenticatedManagementProfileRoute
   AuthenticatedManagementReleasesRoute: typeof AuthenticatedManagementReleasesRoute
   AuthenticatedManagementSelfhostFleetRoute: typeof AuthenticatedManagementSelfhostFleetRoute
+  AuthenticatedManagementStudyRoute: typeof AuthenticatedManagementStudyRoute
   AuthenticatedManagementSupportRoute: typeof AuthenticatedManagementSupportRoute
   AuthenticatedManagementTeamRoute: typeof AuthenticatedManagementTeamRouteWithChildren
   AuthenticatedManagementIndexRoute: typeof AuthenticatedManagementIndexRoute
@@ -2964,6 +3045,7 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
     AuthenticatedManagementReleasesRoute: AuthenticatedManagementReleasesRoute,
     AuthenticatedManagementSelfhostFleetRoute:
       AuthenticatedManagementSelfhostFleetRoute,
+    AuthenticatedManagementStudyRoute: AuthenticatedManagementStudyRoute,
     AuthenticatedManagementSupportRoute: AuthenticatedManagementSupportRoute,
     AuthenticatedManagementTeamRoute:
       AuthenticatedManagementTeamRouteWithChildren,
@@ -3140,6 +3222,7 @@ const rootRouteChildren: RootRouteChildren = {
   SelfHostedRoute: SelfHostedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SsoSigninRoute: SsoSigninRoute,
+  StudyRoute: StudyRoute,
   SupportRoute: SupportRoute,
   WindowsOnlyRoute: WindowsOnlyRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
@@ -3169,6 +3252,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMetricsRoute: ApiPublicMetricsRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
+  ApiPublicStudyContactRoute: ApiPublicStudyContactRoute,
+  ApiPublicStudySubmitRoute: ApiPublicStudySubmitRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiPublicCalendarTokenRoute: ApiPublicCalendarTokenRoute,
   ApiPublicResourcesFileRoute: ApiPublicResourcesFileRoute,
