@@ -446,7 +446,7 @@ export function DocumentDialog({
           mime: file.type || "application/pdf",
           base64,
           validUntil: null,
-          signedFor: id,
+          attachToDocumentId: id,
         },
       })
         .then(() => load({ data: { id } }))
