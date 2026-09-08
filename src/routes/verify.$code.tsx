@@ -20,7 +20,7 @@ type VerifyResult = {
   certificateCode: string;
 };
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CODE_RE = /^[0-9a-fA-F-]{8,64}$/;
 
 function VerifyPage() {
   const { code } = useParams({ from: Route.id });
@@ -29,29 +29,39 @@ function VerifyPage() {
 
   useEffect(() => {
     void (async () => {
-      if (!UUID_RE.test(code)) {
+      if (!CODE_RE.test(code)) {
         setState("missing");
         return;
       }
-      const { data, error } = await supabase.rpc("academy_verify_certificate", { _code: code });
-      if (error || !data) {
+      let result: VerifyResult | null = null;
+      try {
+        const res = await fetch(`/api/public/verify-certificate?code=${encodeURIComponent(code)}`);
+        if (res.ok) {
+          const body = (await res.json()) as { found?: boolean; certificate?: VerifyResult };
+          if (body.found && body.certificate) result = body.certificate;
+        }
+      } catch {
+        result = null;
+      }
+      if (!result) {
+        // Cloud fallback (direct RPC) for older certificates.
+        try {
+          const { data } = await supabase.rpc("academy_verify_certificate", { _code: code });
+          const r = data as VerifyResult | null;
+          if (r?.certificateCode) result = r;
+        } catch {
+          result = null;
+        }
+      }
+      if (!result) {
         setState("missing");
         return;
       }
-      const r = data as VerifyResult;
-      if (!r.certificateCode) {
-        setState("missing");
-        return;
-      }
-      if (!r.valid) {
-        setCert(r);
-        setState("revoked");
-        return;
-      }
-      setCert(r);
-      setState("ok");
+      setCert(result);
+      setState(result.valid ? "ok" : "revoked");
     })();
   }, [code]);
+
 
   return (
     <div className="min-h-dvh grid place-items-center bg-background p-6">

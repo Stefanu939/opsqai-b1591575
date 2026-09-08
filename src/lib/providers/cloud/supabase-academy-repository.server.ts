@@ -588,6 +588,14 @@ export function createSupabaseAcademyRepository(client: AnyClient): IAcademyRepo
       if (error) throw new Error(error.message);
     },
 
+    async saveCertificateTemplate(companyId: string, template: unknown) {
+      const { error } = await client.from("academy_settings").upsert(
+        { company_id: companyId, certificate_template: template as never },
+        { onConflict: "company_id" },
+      );
+      if (error) throw new Error(error.message);
+    },
+
     async resolveTargets(input: AcademyResolveTargetsInput) {
       const { data, error } = await client.rpc("academy_resolve_targets", {
         _company_id: input.companyId,

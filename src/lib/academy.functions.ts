@@ -1320,3 +1320,114 @@ export const saveAcademySettings = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/* --------------- Certificate branding (logo + signature) -------------- */
+
+const BRANDING_BUCKET = "academy-certificates";
+const MAX_BRANDING_BYTES = 1_500_000;
+
+function decodeBase64Image(base64: string): Uint8Array {
+  const clean = base64.includes(",") ? base64.slice(base64.indexOf(",") + 1) : base64;
+  const binary = atob(clean);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+export const getCertificateBranding = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: uuidString().optional().nullable() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
+    const companyId = await companyForRead(context, data.company_id ?? null);
+    const repo = getAcademyRepository(context);
+    const row = await repo.getSettings(companyId);
+    const tpl = (row?.certificate_template ?? {}) as Record<string, any>;
+    return {
+      company_id: companyId,
+      signatureName: typeof tpl.signatureName === "string" ? tpl.signatureName : "",
+      signatureRole: typeof tpl.signatureRole === "string" ? tpl.signatureRole : "",
+      hasLogo: typeof tpl.logoKey === "string" && tpl.logoKey.length > 0,
+      hasSignature: typeof tpl.signatureKey === "string" && tpl.signatureKey.length > 0,
+      verifyBaseUrl: typeof tpl.verifyBaseUrl === "string" ? tpl.verifyBaseUrl : "",
+    };
+  });
+
+export const saveCertificateBranding = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        company_id: uuidString().optional().nullable(),
+        signatureName: z.string().trim().max(120).optional(),
+        signatureRole: z.string().trim().max(120).optional(),
+        verifyBaseUrl: z.string().trim().max(300).optional(),
+        logoBase64: z.string().max(3_000_000).optional().nullable(),
+        signatureBase64: z.string().max(3_000_000).optional().nullable(),
+        removeLogo: z.boolean().optional(),
+        removeSignature: z.boolean().optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
+    await requirePermission(context, "academy.manage");
+    const companyId = await companyForWrite(context, data.company_id);
+    const repo = getAcademyRepository(context);
+    const current = await repo.getSettings(companyId);
+    const tpl = { ...((current?.certificate_template ?? {}) as Record<string, any>) };
+
+    async function store(kind: "logo" | "signature", base64: string) {
+      const bytes = decodeBase64Image(base64);
+      if (bytes.length === 0) throw new Error("Empty image");
+      if (bytes.length > MAX_BRANDING_BYTES) throw new Error("Image too large (max 1.5 MB)");
+      const key = `${companyId}/branding/${kind}-${Date.now()}.img`;
+      await getStorageProvider().put({
+        bucket: BRANDING_BUCKET,
+        key,
+        body: bytes,
+        contentType: "application/octet-stream",
+      });
+      return key;
+    }
+
+    if (data.logoBase64) tpl.logoKey = await store("logo", data.logoBase64);
+    if (data.removeLogo) delete tpl.logoKey;
+    if (data.signatureBase64) tpl.signatureKey = await store("signature", data.signatureBase64);
+    if (data.removeSignature) delete tpl.signatureKey;
+    if (data.signatureName !== undefined) tpl.signatureName = data.signatureName;
+    if (data.signatureRole !== undefined) tpl.signatureRole = data.signatureRole;
+    if (data.verifyBaseUrl !== undefined) {
+      const base = data.verifyBaseUrl.replace(/\/+$/, "");
+      if (base && !/^https?:\/\//i.test(base)) throw new Error("Verification URL must start with http(s)://");
+      if (base) tpl.verifyBaseUrl = base;
+      else delete tpl.verifyBaseUrl;
+    }
+
+    await repo.saveCertificateTemplate(companyId, tpl as never);
+    return { ok: true };
+  });
+
+/** Rebuild a certificate PDF so it picks up the current logo, signature and verify URL. */
+export const regenerateCertificatePdf = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
+    await requirePermission(context, "academy.manage");
+    const repo = getAcademyRepository(context);
+    const cert = await repo.getCertificate(data.id);
+    if (!cert) throw new Error("Not found");
+    await companyForWrite(context, cert.company_id);
+    const { issueAcademyCertificate } = await import("@/lib/academy-certificate.server");
+    const result = await issueAcademyCertificate(context, {
+      enrollmentId: cert.enrollment_id,
+      pathId: cert.path_id,
+      userId: cert.user_id,
+      companyId: cert.company_id,
+      finalScore: cert.final_score,
+    });
+    return { ok: true, id: result.id };
+  });

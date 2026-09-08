@@ -618,6 +618,15 @@ export function createPgAcademyRepository(deps: PgAcademyRepositoryDeps): IAcade
       );
     },
 
+    async saveCertificateTemplate(companyId: string, template: unknown) {
+      await pool.query(
+        `INSERT INTO public.academy_settings (company_id, certificate_template)
+         VALUES ($1, $2::jsonb)
+         ON CONFLICT (company_id) DO UPDATE SET certificate_template = EXCLUDED.certificate_template`,
+        [companyId, JSON.stringify(template ?? {})],
+      );
+    },
+
     async resolveTargets(input: AcademyResolveTargetsInput) {
       if (input.entireCompany) {
         const { rows } = await pool.query<{ id: string }>(
