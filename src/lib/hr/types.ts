@@ -156,6 +156,12 @@ export interface HrOverview {
     incidents30d: number;
   };
   recentEvents: Array<{ id: string; employee_no: string; kind: string; message: string; actor: string | null; created_at: string }>;
+  /**
+   * Non-fatal problems collected while building the overview (for example an
+   * installation whose database migrations are behind). The screen renders
+   * everything that did load and lists these instead of going blank.
+   */
+  warnings: string[];
 }
 
 export interface HrPipelineRow {

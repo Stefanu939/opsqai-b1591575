@@ -20,7 +20,10 @@ import { deleteHrRef, saveHrRef, saveHrSettings } from "@/lib/hr.functions";
 import type { HrCountry, HrRef, HrSettings } from "@/lib/hr/types";
 import type { HrWsUi } from "@/i18n/pages/hr-ws";
 import type { HrUi } from "@/i18n/pages/hr";
+import { useT } from "@/i18n";
 import { useHrOverview, useHrRefresh } from "./use-hr";
+import { HrFailure, HrLoading, HrWarnings } from "./query-state";
+import { hrRetryLabel, hrWarningsTitle } from "./state-labels";
 
 const COUNTRIES: Array<{ value: HrCountry; label: string }> = [
   { value: "de", label: "Deutschland (DE)" },
@@ -29,6 +32,7 @@ const COUNTRIES: Array<{ value: HrCountry; label: string }> = [
 ];
 
 export function HrSettingsSection({ t, w }: { t: HrUi; w?: HrWsUi }) {
+  const { lang } = useT();
   const query = useHrOverview();
   const refresh = useHrRefresh();
   const saveSettings = useServerFn(saveHrSettings);
@@ -38,9 +42,16 @@ export function HrSettingsSection({ t, w }: { t: HrUi; w?: HrWsUi }) {
     if (query.data?.settings.employee_prefix) setPrefix(query.data.settings.employee_prefix);
   }, [query.data?.settings.employee_prefix]);
 
-  if (query.isPending) return <Skeleton className="h-72 w-full rounded-lg" />;
+  if (query.isPending) return <HrLoading label={`${t.referenceData}…`} />;
   if (query.error) {
-    return <EmptyState title={t.referenceData} description={(query.error as Error).message} />;
+    return (
+      <HrFailure
+        title={t.referenceData}
+        message={(query.error as Error).message}
+        retryLabel={hrRetryLabel(lang)}
+        onRetry={() => void query.refetch()}
+      />
+    );
   }
   const data = query.data;
   if (!data) return <EmptyState title={t.referenceData} />;

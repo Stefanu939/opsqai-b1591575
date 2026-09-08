@@ -113,20 +113,43 @@ export const getHrOverview = createServerFn({ method: "POST" })
     const db = await import("@/lib/hr/db.server");
     const ext = await import("@/lib/hr/db-ext.server");
     const ws = await import("@/lib/hr/db-ws.server");
-    const [settings, counts, actionRequired, tasks, departments, positions, locations, pipeline, alerts, wsSignals, ovSignals, recentEvents] =
+
+    // Every block is guarded: an installation that has not applied the latest
+    // HR migrations must still render the overview instead of a blank screen.
+    const warnings: string[] = [];
+    const safe = async <T>(label: string, run: () => Promise<T>, fallback: T): Promise<T> => {
+      try {
+        return await run();
+      } catch (error) {
+        warnings.push(`${label}: ${(error as Error).message}`);
+        return fallback;
+      }
+    };
+
+    const settings = await db.getSettings(a.companyId);
+    const [counts, actionRequired, tasks, departments, positions, locations, pipeline, alerts, wsSignals, ovSignals, recentEvents] =
       await Promise.all([
-        db.getSettings(a.companyId),
-        db.counts(a.companyId),
-        db.actionRequired(a.companyId),
-        db.listTasks(a.companyId, { openOnly: true }),
-        db.listRefs(a.companyId, "departments"),
-        db.listRefs(a.companyId, "positions"),
-        db.listRefs(a.companyId, "locations"),
-        db.pipeline(a.companyId),
-        ext.alerts(a.companyId),
-        ws.workspaceSignals(a.companyId),
-        db.overviewSignals(a.companyId),
-        db.recentEvents(a.companyId),
+        safe("headcount", () => db.counts(a.companyId), {
+          total: 0, active: 0, onboarding: 0, offboarding: 0, leave: 0, newHires30d: 0, leaving: 0,
+        }),
+        safe("action required", () => db.actionRequired(a.companyId), {
+          contractsExpiring: 0, openTasks: 0, overdueTasks: 0, missingData: 0,
+        }),
+        safe("tasks", () => db.listTasks(a.companyId, { openOnly: true }), []),
+        safe("departments", () => db.listRefs(a.companyId, "departments"), []),
+        safe("positions", () => db.listRefs(a.companyId, "positions"), []),
+        safe("locations", () => db.listRefs(a.companyId, "locations"), []),
+        safe("lifecycle pipeline", () => db.pipeline(a.companyId), []),
+        safe("alerts", () => ext.alerts(a.companyId), []),
+        safe("workspace signals", () => ws.workspaceSignals(a.companyId), {
+          openRequests: 0, policiesPendingAck: 0, trainingsExpired: 0, trainingsPlanned: 0,
+          complianceOpen: 0, complianceOverdue: 0, positionChanges90d: 0,
+        }),
+        safe("overview signals", () => db.overviewSignals(a.companyId), {
+          candidatesNew: 0, candidatesShortlisted: 0, documentsDraft: 0, documentsReview: 0,
+          documentsExpiring: 0, incidents30d: 0,
+        }),
+        safe("recent activity", () => db.recentEvents(a.companyId), []),
       ]);
     return {
       settings,
@@ -139,6 +162,7 @@ export const getHrOverview = createServerFn({ method: "POST" })
       alerts: alerts.slice(0, 40),
       signals: { ...wsSignals, ...ovSignals },
       recentEvents,
+      warnings,
     };
   });
 
