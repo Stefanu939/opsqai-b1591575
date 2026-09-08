@@ -71,6 +71,7 @@ import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedManagementIndexRouteImport } from './routes/_authenticated/management.index'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
+import { Route as ApiPublicVerifyCertificateRouteImport } from './routes/api/public/verify-certificate'
 import { Route as ApiPublicStudySubmitRouteImport } from './routes/api.public.study-submit'
 import { Route as ApiPublicStudyContactRouteImport } from './routes/api.public.study-contact'
 import { Route as ApiPublicSelfhostHeartbeatRouteImport } from './routes/api/public/selfhost-heartbeat'
@@ -471,6 +472,12 @@ const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   path: '/lovable/email/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicVerifyCertificateRoute =
+  ApiPublicVerifyCertificateRouteImport.update({
+    id: '/api/public/verify-certificate',
+    path: '/api/public/verify-certificate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicStudySubmitRoute = ApiPublicStudySubmitRouteImport.update({
   id: '/api/public/study-submit',
   path: '/api/public/study-submit',
@@ -1049,6 +1056,7 @@ export interface FileRoutesByFullPath {
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
+  '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/management/': typeof AuthenticatedManagementIndexRoute
@@ -1188,6 +1196,7 @@ export interface FileRoutesByTo {
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
+  '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/management': typeof AuthenticatedManagementIndexRoute
@@ -1336,6 +1345,7 @@ export interface FileRoutesById {
   '/api/public/selfhost-heartbeat': typeof ApiPublicSelfhostHeartbeatRoute
   '/api/public/study-contact': typeof ApiPublicStudyContactRoute
   '/api/public/study-submit': typeof ApiPublicStudySubmitRoute
+  '/api/public/verify-certificate': typeof ApiPublicVerifyCertificateRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/management/': typeof AuthenticatedManagementIndexRoute
@@ -1484,6 +1494,7 @@ export interface FileRouteTypes {
     | '/api/public/selfhost-heartbeat'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
+    | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app/'
     | '/management/'
@@ -1623,6 +1634,7 @@ export interface FileRouteTypes {
     | '/api/public/selfhost-heartbeat'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
+    | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/app'
     | '/management'
@@ -1770,6 +1782,7 @@ export interface FileRouteTypes {
     | '/api/public/selfhost-heartbeat'
     | '/api/public/study-contact'
     | '/api/public/study-submit'
+    | '/api/public/verify-certificate'
     | '/lovable/email/events'
     | '/_authenticated/app/'
     | '/_authenticated/management/'
@@ -1867,6 +1880,7 @@ export interface RootRouteChildren {
   ApiPublicSelfhostHeartbeatRoute: typeof ApiPublicSelfhostHeartbeatRoute
   ApiPublicStudyContactRoute: typeof ApiPublicStudyContactRoute
   ApiPublicStudySubmitRoute: typeof ApiPublicStudySubmitRoute
+  ApiPublicVerifyCertificateRoute: typeof ApiPublicVerifyCertificateRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiPublicCalendarTokenRoute: typeof ApiPublicCalendarTokenRoute
   ApiPublicResourcesFileRoute: typeof ApiPublicResourcesFileRoute
@@ -2314,6 +2328,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/events'
       fullPath: '/lovable/email/events'
       preLoaderRoute: typeof LovableEmailEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/verify-certificate': {
+      id: '/api/public/verify-certificate'
+      path: '/api/public/verify-certificate'
+      fullPath: '/api/public/verify-certificate'
+      preLoaderRoute: typeof ApiPublicVerifyCertificateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/study-submit': {
@@ -3254,6 +3275,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSelfhostHeartbeatRoute: ApiPublicSelfhostHeartbeatRoute,
   ApiPublicStudyContactRoute: ApiPublicStudyContactRoute,
   ApiPublicStudySubmitRoute: ApiPublicStudySubmitRoute,
+  ApiPublicVerifyCertificateRoute: ApiPublicVerifyCertificateRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiPublicCalendarTokenRoute: ApiPublicCalendarTokenRoute,
   ApiPublicResourcesFileRoute: ApiPublicResourcesFileRoute,
