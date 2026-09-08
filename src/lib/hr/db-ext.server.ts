@@ -83,9 +83,13 @@ const DOC_SELECT = `
          d.kind, d.title, d.filename, d.mime, (d.data IS NOT NULL) AS has_file,
          d.body, d.valid_until, d.approved_at, d.approved_by, d.created_at,
          d.status, d.draft_name, d.template_key, d.country, d.language,
-         (d.signed_data IS NOT NULL) AS has_signed, d.signed_filename, d.signed_at, d.updated_at
+         (d.signed_data IS NOT NULL) AS has_signed, d.signed_filename, d.signed_at, d.updated_at,
+         COALESCE(d.signature_status, 'none') AS signature_status, d.signature_due::text AS signature_due,
+         d.signature_requested_at, d.signature_requested_by, d.signed_by_name, d.signature_kind,
+         (SELECT count(*)::int FROM public.hr_document_versions v WHERE v.document_id = d.id) AS versions
     FROM public.hr_documents d
     LEFT JOIN public.hr_employees e ON e.id = d.employee_id`;
+
 
 export function listDocuments(companyId: string, employeeId?: string) {
   const params: unknown[] = [companyId];

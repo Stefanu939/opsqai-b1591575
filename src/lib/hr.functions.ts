@@ -40,8 +40,22 @@ async function actor(context: Ctx): Promise<Actor> {
         ? getAreaRightsRepository(context.supabase).listForUser(companyId, context.userId)
         : Promise.resolve([]),
   );
-  const hrRights = rights.filter((r) => r.areaKey === "hr" && r.granted);
+  const hrRights = rights.filter(
+    (r) => (r.areaKey === "hr" || r.areaKey === "hr_payroll") && r.granted,
+  );
   const mapped = hrRights.flatMap((r): HrGrantKey[] => {
+    if (r.areaKey === "hr_payroll") {
+      switch (r.action) {
+        case "view":
+          return ["payroll"];
+        case "edit":
+          return ["payroll", "payroll_edit"];
+        case "administer":
+          return ["payroll", "payroll_edit", "export"];
+        default:
+          return [];
+      }
+    }
     switch (r.action) {
       case "view":
         return ["view"];
@@ -59,6 +73,7 @@ async function actor(context: Ctx): Promise<Actor> {
         return [];
     }
   });
+
 
   const grants: HrGrantKey[] = unrestricted
     ? [...HR_GRANTS]

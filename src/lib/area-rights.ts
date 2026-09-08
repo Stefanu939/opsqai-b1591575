@@ -24,7 +24,10 @@ export const AREA_LABELS: Record<string, string> = {
   dashboard: "Dashboard",
   feedback: "Feedback",
   transport: "Transport",
+  hr: "HR",
+  hr_payroll: "HR — Payroll",
 };
+
 
 export const TRANSPORT_ACTION_TO_LEGACY: Record<AreaAction, string[]> = {
   view: ["view"],

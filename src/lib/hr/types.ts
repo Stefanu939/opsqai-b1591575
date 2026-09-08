@@ -9,8 +9,67 @@ export const HR_GRANTS = [
   "sensitive",
   "settings",
   "export",
+  /** Dedicated payroll right: salary values, payslips and payroll exports. */
+  "payroll",
+  /** Record salaries, additions, deductions, payslips. */
+  "payroll_edit",
 ] as const;
 export type HrGrantKey = (typeof HR_GRANTS)[number];
+
+export interface HrSalary {
+  id: string;
+  employee_id: string;
+  valid_from: string;
+  gross_amount: number;
+  currency: string;
+  period: "month" | "hour" | "year";
+  hours_per_week: number | null;
+  reason: string | null;
+  note: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export interface HrPayrollEntry {
+  id: string;
+  employee_id: string;
+  period_month: string;
+  kind: "addition" | "deduction";
+  label: string;
+  amount: number;
+  note: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export interface HrPayslip {
+  id: string;
+  employee_id: string;
+  employee_no?: string | null;
+  employee_name?: string | null;
+  period_month: string;
+  gross: number;
+  additions: number;
+  deductions: number;
+  payable: number;
+  currency: string;
+  filename: string;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export interface HrPayrollView {
+  currency: string;
+  current: HrSalary | null;
+  history: HrSalary[];
+  period: string;
+  entries: HrPayrollEntry[];
+  payslips: HrPayslip[];
+  totals: { gross: number; additions: number; deductions: number; payable: number };
+  canEdit: boolean;
+  canExport: boolean;
+}
+
 
 export type HrCountry = "de" | "ro" | "generic";
 
