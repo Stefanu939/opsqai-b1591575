@@ -3779,6 +3779,107 @@ export type Database = {
           },
         ]
       }
+      study_contacts: {
+        Row: {
+          company_name: string | null
+          consent: boolean
+          contact_name: string | null
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          locale: string
+          response_id: string | null
+          sector: string | null
+          size_band: string | null
+          updated_at: string
+          wants_pilot: boolean
+          wants_report: boolean
+        }
+        Insert: {
+          company_name?: string | null
+          consent?: boolean
+          contact_name?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          locale?: string
+          response_id?: string | null
+          sector?: string | null
+          size_band?: string | null
+          updated_at?: string
+          wants_pilot?: boolean
+          wants_report?: boolean
+        }
+        Update: {
+          company_name?: string | null
+          consent?: boolean
+          contact_name?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          locale?: string
+          response_id?: string | null
+          sector?: string | null
+          size_band?: string | null
+          updated_at?: string
+          wants_pilot?: boolean
+          wants_report?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_contacts_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "study_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_responses: {
+        Row: {
+          answers: Json
+          completed: boolean
+          country: string | null
+          created_at: string
+          id: string
+          ip_hash: string | null
+          locale: string
+          sector: string | null
+          size_band: string | null
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          answers?: Json
+          completed?: boolean
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          locale?: string
+          sector?: string | null
+          size_band?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          answers?: Json
+          completed?: boolean
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          locale?: string
+          sector?: string | null
+          size_band?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       subscription_events: {
         Row: {
           actor_id: string | null
@@ -4743,6 +4844,7 @@ export type Database = {
         Args: { p_company: string; p_limit?: number; p_q: string }
         Returns: Json
       }
+      study_benchmark: { Args: never; Returns: Json }
       subscription_apply_status: {
         Args: {
           _actor_kind?: string
