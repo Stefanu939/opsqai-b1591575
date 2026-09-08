@@ -243,7 +243,7 @@ export const PRODUCT_CATALOG: readonly OpsqaiProduct[] = [
     domain: "Transport & Fleet",
     description: "Fleet operations: vehicles, drivers, maintenance and transport workflows.",
     capabilities: ["fleet_workspace", "vehicles", "drivers", "maintenance"],
-    status: "planned",
+    status: "available",
   },
   {
     key: "opsqai_hr",
@@ -251,7 +251,7 @@ export const PRODUCT_CATALOG: readonly OpsqaiProduct[] = [
     domain: "HR",
     description: "Onboarding, internal policies, employee knowledge, training and HR workflows.",
     capabilities: ["hr_workspace", "onboarding", "policies"],
-    status: "planned",
+    status: "available",
   },
   {
     key: "opsqai_finance",
