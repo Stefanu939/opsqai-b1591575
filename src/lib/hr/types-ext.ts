@@ -34,7 +34,29 @@ export interface HrDocument {
   signed_filename: string | null;
   signed_at: string | null;
   updated_at: string;
+  /** Signing workflow (0045). */
+  signature_status?: "none" | "requested" | "signed" | "expired";
+  signature_due?: string | null;
+  signature_requested_at?: string | null;
+  signature_requested_by?: string | null;
+  signed_by_name?: string | null;
+  signature_kind?: string | null;
+  versions?: number;
 }
+
+export interface HrDocumentVersion {
+  id: string;
+  document_id: string;
+  version: number;
+  kind: string;
+  filename: string | null;
+  mime: string | null;
+  signed_by_name: string | null;
+  signature_kind: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
 
 export interface HrChecklistItem {
   title: string;

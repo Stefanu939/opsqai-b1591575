@@ -17,12 +17,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { deleteHrEmployee, exportHrEmployeePdf, exportHrEmployeesCsv } from "@/lib/hr.functions";
+import {
+  deleteHrEmployee,
+  exportHrEmployeePdf,
+  exportHrEmployeesCsv,
+  saveHrEmployee,
+} from "@/lib/hr.functions";
 import { downloadBase64 } from "@/components/app/transport/download";
-import type { EmployeeStatus, HrEmployee, HrEmployeeFilters } from "@/lib/hr/types";
+import { contractTypes, type EmployeeStatus, type HrEmployee, type HrEmployeeFilters } from "@/lib/hr/types";
 import type { HrUi } from "@/i18n/pages/hr";
+import { hrPayrollUi } from "@/i18n/pages/hr-payroll";
 import { EmployeeDialog } from "./employee-dialog";
+import { EditableField } from "./editable-field";
+import { PayrollCard } from "./payroll-card";
+import { SignatureCard } from "./signature-card";
+import { useHrLang } from "./use-hr-ws";
 import { useHrEmployee, useHrEmployees, useHrRefresh } from "./use-hr";
+
 
 const STATUSES: EmployeeStatus[] = [
   "onboarding",
@@ -290,7 +301,12 @@ function EmployeeDetail({
   onEdit: (employee: HrEmployee) => void;
 }) {
   const query = useHrEmployee(id);
+  const list = useHrEmployees({});
+  const refresh = useHrRefresh();
   const exportPdf = useServerFn(exportHrEmployeePdf);
+  const save = useServerFn(saveHrEmployee);
+  const lang = useHrLang();
+  const p = hrPayrollUi(lang);
 
   if (query.isPending) return <Skeleton className="h-72 w-full rounded-lg" />;
   if (query.error) {
@@ -299,13 +315,43 @@ function EmployeeDetail({
   const data = query.data;
   if (!data) return <EmptyState title={t.none} />;
   const e = data.employee;
+  const grants = data.grants;
+  const canEdit = grants.includes("edit");
+  const refs = list.data?.refs ?? { departments: [], positions: [], locations: [] };
+  const country = list.data?.settings.country ?? data.settings.country;
 
-  const field = (label: string, value: string | null) => (
-    <div className="rounded-lg border border-border/60 bg-card/50 px-3 py-2">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm text-foreground">{value?.trim() ? value : "—"}</p>
-    </div>
-  );
+  const patch = (values: Partial<HrEmployee>) =>
+    save({
+      data: {
+        id,
+        values: {
+          first_name: e.first_name,
+          last_name: e.last_name,
+          date_of_birth: e.date_of_birth?.slice(0, 10) ?? null,
+          address: e.address,
+          email: e.email,
+          phone: e.phone,
+          department_id: e.department_id,
+          position_id: e.position_id,
+          location_id: e.location_id,
+          start_date: e.start_date?.slice(0, 10) ?? null,
+          end_date: e.end_date?.slice(0, 10) ?? null,
+          status: e.status,
+          contract_type: e.contract_type,
+          employment_type: e.employment_type,
+          notes: e.notes,
+          ...values,
+        },
+      },
+    })
+      .then(() => {
+        toast.success(p.saved);
+        void refresh();
+      })
+      .catch((err: Error) => toast.error(err.message));
+
+  const options = (rows: Array<{ id: string; name: string }>) =>
+    rows.map((r) => ({ value: r.id, label: r.name }));
 
   return (
     <div className="grid gap-4">
@@ -332,7 +378,7 @@ function EmployeeDetail({
               <FileText className="mr-1.5 size-4" />
               {t.profilePdf}
             </Button>
-            {data.grants.includes("edit") ? (
+            {canEdit ? (
               <Button size="sm" onClick={() => onEdit(e)}>
                 <Pencil className="mr-1.5 size-4" />
                 {t.edit}
@@ -344,33 +390,98 @@ function EmployeeDetail({
         <div className="flex items-center gap-2">
           <Badge variant={statusTone(e.status)}>{t.statuses[e.status] ?? e.status}</Badge>
           <span className="text-xs text-muted-foreground">{t.currentStatus}</span>
+          {canEdit ? <span className="text-xs text-muted-foreground">· {p.clickToEdit}</span> : null}
         </div>
       </Panel>
 
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">{t.overview}</TabsTrigger>
+          <TabsTrigger value="documents">{p.documents}</TabsTrigger>
+          {grants.includes("payroll") ? <TabsTrigger value="payroll">{p.payroll}</TabsTrigger> : null}
           <TabsTrigger value="activity">{t.activity}</TabsTrigger>
           <TabsTrigger value="tasks">{t.tasks}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-3">
-          <Panel title={t.personalInformation}>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {field(t.dateOfBirth, e.date_of_birth?.slice(0, 10) ?? null)}
-              {field(t.email, e.email)}
-              {field(t.phone, e.phone)}
-              {field(t.address, e.address)}
-            </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {field(t.contract, e.contract_type)}
-              {field(t.employmentType, e.employment_type)}
-              {field(t.startDate, e.start_date?.slice(0, 10) ?? null)}
-              {field(t.endDate, e.end_date?.slice(0, 10) ?? null)}
-            </div>
-            {e.notes ? <p className="mt-3 text-sm text-muted-foreground">{e.notes}</p> : null}
-          </Panel>
+          <div className="grid gap-4">
+            <Panel title={t.personalInformation}>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <EditableField label={t.firstName} value={e.first_name} editable={canEdit} onSave={(v) => patch({ first_name: v ?? e.first_name })} />
+                <EditableField label={t.lastName} value={e.last_name} editable={canEdit} onSave={(v) => patch({ last_name: v ?? e.last_name })} />
+                <EditableField label={t.dateOfBirth} type="date" value={e.date_of_birth?.slice(0, 10) ?? null} editable={canEdit} onSave={(v) => patch({ date_of_birth: v })} />
+                <EditableField label={t.email} type="email" value={e.email} editable={canEdit} onSave={(v) => patch({ email: v })} />
+                <EditableField label={t.phone} value={e.phone} editable={canEdit} onSave={(v) => patch({ phone: v })} />
+                <EditableField label={t.address} value={e.address} editable={canEdit} onSave={(v) => patch({ address: v })} />
+              </div>
+            </Panel>
+            <Panel title={t.employment}>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <EditableField
+                  label={t.department}
+                  type="select"
+                  options={options(refs.departments)}
+                  value={e.department_id}
+                  editable={canEdit}
+                  onSave={(v) => patch({ department_id: v })}
+                />
+                <EditableField
+                  label={t.position}
+                  type="select"
+                  options={options(refs.positions)}
+                  value={e.position_id}
+                  editable={canEdit}
+                  onSave={(v) => patch({ position_id: v })}
+                />
+                <EditableField
+                  label={t.location}
+                  type="select"
+                  options={options(refs.locations)}
+                  value={e.location_id}
+                  editable={canEdit}
+                  onSave={(v) => patch({ location_id: v })}
+                />
+                <EditableField
+                  label={t.status}
+                  type="select"
+                  options={STATUSES.map((s) => ({ value: s, label: t.statuses[s] ?? s }))}
+                  value={e.status}
+                  editable={canEdit}
+                  onSave={(v) => patch({ status: (v as EmployeeStatus | null) ?? e.status })}
+                />
+                <EditableField
+                  label={t.contract}
+                  type="select"
+                  options={contractTypes(country).map((c) => ({ value: c, label: c }))}
+                  value={e.contract_type}
+                  editable={canEdit}
+                  onSave={(v) => patch({ contract_type: v })}
+                />
+                <EditableField label={t.employmentType} value={e.employment_type} editable={canEdit} onSave={(v) => patch({ employment_type: v })} />
+                <EditableField label={t.startDate} type="date" value={e.start_date?.slice(0, 10) ?? null} editable={canEdit} onSave={(v) => patch({ start_date: v })} />
+                <EditableField label={t.endDate} type="date" value={e.end_date?.slice(0, 10) ?? null} editable={canEdit} onSave={(v) => patch({ end_date: v })} />
+              </div>
+              <div className="mt-3">
+                <EditableField label={t.notes} type="long" value={e.notes} editable={canEdit} onSave={(v) => patch({ notes: v })} />
+              </div>
+            </Panel>
+          </div>
         </TabsContent>
+
+        <TabsContent value="documents" className="mt-3">
+          <SignatureCard
+            employeeId={id}
+            employeeName={`${e.first_name} ${e.last_name}`}
+            t={p}
+            canEdit={canEdit}
+          />
+        </TabsContent>
+
+        {grants.includes("payroll") ? (
+          <TabsContent value="payroll" className="mt-3">
+            <PayrollCard employeeId={id} t={p} hasRight />
+          </TabsContent>
+        ) : null}
 
         <TabsContent value="activity" className="mt-3">
           <Panel title={t.timeline}>
@@ -421,3 +532,4 @@ function EmployeeDetail({
     </div>
   );
 }
+
