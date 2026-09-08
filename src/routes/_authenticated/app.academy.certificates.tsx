@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Award, Download } from "lucide-react";
 import { AcademySubnav } from "@/components/app/academy-subnav";
+import { downloadBase64 } from "@/components/app/transport/download";
 
 export const Route = createFileRoute("/_authenticated/app/academy/certificates")({
   component: CertificatesPage,
