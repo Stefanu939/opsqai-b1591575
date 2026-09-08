@@ -25,6 +25,15 @@ export interface HrDocument {
   approved_at: string | null;
   approved_by: string | null;
   created_at: string;
+  status: "draft" | "review" | "approved" | "file";
+  draft_name: string | null;
+  template_key: string | null;
+  country: string | null;
+  language: string | null;
+  has_signed: boolean;
+  signed_filename: string | null;
+  signed_at: string | null;
+  updated_at: string;
 }
 
 export interface HrChecklistItem {
@@ -114,6 +123,18 @@ export interface HrCandidate {
   decision_note: string | null;
   hired_employee_id: string | null;
   created_at: string;
+  cv_language: string | null;
+  qa: HrCandidateQa[];
+  strengths: string[];
+  risks: string[];
+  interview_notes: string | null;
+}
+
+export interface HrCandidateQa {
+  question: string;
+  answer: string;
+  quote: string;
+  asked_at: string;
 }
 
 export interface HrAnalytics {

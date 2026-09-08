@@ -76,17 +76,80 @@ export const deleteHrTemplate = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Generate a document from a template: placeholders are filled from the record. */
+/** Placeholder values for one employee: employee record + company settings. Nothing invented. */
+async function placeholderValues(companyId: string, employeeId: string) {
+  const core = await import("@/lib/hr/db.server");
+  const [employee, settings] = await Promise.all([
+    core.getEmployee(companyId, employeeId),
+    core.getSettings(companyId),
+  ]);
+  if (!employee) throw new Error("Employee not found.");
+  const values: Record<string, string> = {
+    company_name: settings.company_legal_name ?? "",
+    company_address: settings.company_address ?? "",
+    signatory: settings.company_signatory ?? "",
+    employee_no: employee.employee_no,
+    first_name: employee.first_name,
+    last_name: employee.last_name,
+    full_name: `${employee.first_name} ${employee.last_name}`,
+    date_of_birth: employee.date_of_birth ?? "",
+    email: employee.email ?? "",
+    phone: employee.phone ?? "",
+    address: employee.address ?? "",
+    department: employee.department_name ?? "",
+    position: employee.position_name ?? "",
+    location: employee.location_name ?? "",
+    start_date: employee.start_date ?? "",
+    end_date: employee.end_date ?? "",
+    contract_type: employee.contract_type ?? "",
+    employment_type: employee.employment_type ?? "",
+    weekly_hours: String(settings.weekly_hours ?? ""),
+    vacation_days: String(settings.vacation_days ?? ""),
+    probation_months: String(settings.probation_months ?? ""),
+    notice_weeks: String(settings.notice_weeks ?? ""),
+    country: settings.country,
+    today: new Date().toISOString().slice(0, 10),
+  };
+  return { employee, settings, values };
+}
+
+/** Built-in document types for the company country + the company's own templates. */
+export const getHrDocumentLibrary = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const { a, need } = await who(context);
+    need("view");
+    const core = await import("@/lib/hr/db.server");
+    const { documentLibrary } = await import("@/lib/hr/library");
+    const settings = await core.getSettings(a.companyId);
+    return {
+      country: settings.country,
+      builtIn: documentLibrary(settings.country).map((d) => ({
+        key: d.key,
+        kind: d.kind,
+        label: d.label,
+        validMonths: d.validMonths,
+      })),
+    };
+  });
+
+/**
+ * Generate a document automatically: pick the employee, pick the document type,
+ * the country decides the template. The result is an editable draft.
+ */
 export const generateHrDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
-        templateId: uuidString(),
         employeeId: uuidString(),
-        title: z.string().trim().max(200).optional(),
-        validUntil: dateish,
+        // Either a built-in library key or a company template id.
+        documentKey: z.string().trim().max(60).optional(),
+        templateId: uuidString().optional(),
+        draftName: z.string().trim().max(120).optional(),
+        taskId: uuidString().optional(),
       })
+      .refine((v) => v.documentKey || v.templateId, "Choose a document type.")
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -94,54 +157,107 @@ export const generateHrDocument = createServerFn({ method: "POST" })
     need("create");
     const db = await ext();
     const core = await import("@/lib/hr/db.server");
-    const [templates, employee, settings] = await Promise.all([
-      db.listTemplates(a.companyId),
-      core.getEmployee(a.companyId, data.employeeId),
-      core.getSettings(a.companyId),
-    ]);
-    const template = templates.find((t) => t.id === data.templateId);
-    if (!template) throw new Error("Template not found.");
-    if (!employee) throw new Error("Employee not found.");
+    const { findDocDefinition, fillTemplate } = await import("@/lib/hr/library");
+    const { employee, settings, values } = await placeholderValues(a.companyId, data.employeeId);
 
-    const values: Record<string, string> = {
-      employee_no: employee.employee_no,
-      first_name: employee.first_name,
-      last_name: employee.last_name,
-      full_name: `${employee.first_name} ${employee.last_name}`,
-      email: employee.email ?? "",
-      phone: employee.phone ?? "",
-      address: employee.address ?? "",
-      department: employee.department_name ?? "",
-      position: employee.position_name ?? "",
-      location: employee.location_name ?? "",
-      start_date: employee.start_date ?? "",
-      end_date: employee.end_date ?? "",
-      contract_type: employee.contract_type ?? "",
-      country: settings.country,
-      today: new Date().toISOString().slice(0, 10),
-    };
-    const body = template.body.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (_m, key: string) =>
-      values[key.toLowerCase()] ?? "",
-    );
+    let source: { name: string; kind: string; body: string; validMonths: number | null; key: string | null } | null = null;
+    if (data.templateId) {
+      const t = (await db.listTemplates(a.companyId)).find((x) => x.id === data.templateId);
+      if (!t) throw new Error("Template not found.");
+      source = { name: t.name, kind: t.kind, body: t.body, validMonths: null, key: null };
+    } else if (data.documentKey) {
+      const def = findDocDefinition(settings.country, data.documentKey);
+      if (!def) throw new Error("Document type not available for this country.");
+      const lang = (settings.default_language as "en" | "de" | "ro") ?? "en";
+      source = { name: def.label[lang] ?? def.label.en, kind: def.kind, body: def.body, validMonths: def.validMonths, key: def.key };
+    }
+    if (!source) throw new Error("Choose a document type.");
+
+    const body = fillTemplate(source.body, values);
+    const validUntil = source.validMonths
+      ? new Date(new Date().setMonth(new Date().getMonth() + source.validMonths)).toISOString().slice(0, 10)
+      : null;
     const id = await db.createDocument(
       a.companyId,
       {
         employee_id: data.employeeId,
-        kind: template.kind,
-        title: data.title?.trim() || `${template.name} — ${values["full_name"]}`,
+        kind: source.kind,
+        title: `${source.name} — ${values["full_name"]}`,
         body,
-        valid_until: data.validUntil ?? null,
+        valid_until: validUntil,
+        status: "draft",
+        draft_name: data.draftName?.trim() || `${source.name} · ${values["today"]}`,
+        template_key: source.key,
+        template_id: data.templateId ?? null,
+        country: settings.country,
+        language: settings.default_language,
       },
       { id: a.userId },
     );
-    await core.addEvent(
-      a.companyId,
-      data.employeeId,
-      "document",
-      `Document created: ${template.name}`,
-      a.name,
-    );
-    return { id };
+    if (data.taskId) {
+      const task = await core.getTask(a.companyId, data.taskId);
+      if (task) {
+        await core.saveTask(a.companyId, {
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          category: task.category,
+          team: task.team,
+          assigned_to: task.assigned_to,
+          due_date: task.due_date,
+          priority: task.priority,
+          steps: task.steps,
+          document_id: id,
+          status: task.status === "pending" ? "in_progress" : task.status,
+        });
+      }
+    }
+    await core.addEvent(a.companyId, data.employeeId, "document", `Document generated: ${source.name}`, a.name);
+    await core.audit(a.companyId, data.employeeId, { id: a.userId, name: a.name }, "document.generate", {
+      key: source.key,
+      title: source.name,
+      employee_no: employee.employee_no,
+    });
+    return { id, missing: (body.match(/\[___\]/g) ?? []).length };
+  });
+
+/** Edit an unapproved draft in the app (body, title, draft name, validity). */
+export const updateHrDocumentDraft = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        title: z.string().trim().min(1).max(200).optional(),
+        body: z.string().max(200_000).optional(),
+        draftName: z.string().trim().max(120).nullable().optional(),
+        validUntil: dateish,
+        status: z.enum(["draft", "review"]).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("edit");
+    await (await ext()).updateDraft(a.companyId, data.id, {
+      title: data.title,
+      body: data.body,
+      draft_name: data.draftName,
+      valid_until: data.validUntil,
+      status: data.status,
+    });
+    return { ok: true };
+  });
+
+export const getHrDocument = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("view");
+    const doc = await (await ext()).getDocument(a.companyId, data.id);
+    if (!doc) throw new Error("Document not found.");
+    return doc;
   });
 
 export const uploadHrDocument = createServerFn({ method: "POST" })
@@ -156,6 +272,8 @@ export const uploadHrDocument = createServerFn({ method: "POST" })
         mime: z.string().trim().max(120),
         base64: z.string().min(1),
         validUntil: dateish,
+        /** When set, the file is attached as the signed copy of that generated document. */
+        attachToDocumentId: uuidString().optional(),
       })
       .parse(input),
   )
@@ -165,6 +283,17 @@ export const uploadHrDocument = createServerFn({ method: "POST" })
     const bytes = Buffer.from(data.base64, "base64");
     if (bytes.byteLength > 12 * 1024 * 1024) throw new Error("The file is larger than 12 MB.");
     const db = await ext();
+    const core = await import("@/lib/hr/db.server");
+    if (data.attachToDocumentId) {
+      const doc = await db.getDocument(a.companyId, data.attachToDocumentId);
+      if (!doc) throw new Error("Document not found.");
+      await db.attachSigned(a.companyId, doc.id, { filename: data.filename, mime: data.mime, data: bytes });
+      if (doc.employee_id) {
+        await core.addEvent(a.companyId, doc.employee_id, "document", `Signed copy filed: ${doc.title}`, a.name);
+      }
+      await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.signed", { title: doc.title });
+      return { id: doc.id };
+    }
     const id = await db.createDocument(
       a.companyId,
       {
@@ -175,18 +304,12 @@ export const uploadHrDocument = createServerFn({ method: "POST" })
         mime: data.mime,
         data: bytes,
         valid_until: data.validUntil ?? null,
+        status: "file",
       },
       { id: a.userId },
     );
     if (data.employeeId) {
-      const core = await import("@/lib/hr/db.server");
-      await core.addEvent(
-        a.companyId,
-        data.employeeId,
-        "document",
-        `Document uploaded: ${data.title}`,
-        a.name,
-      );
+      await core.addEvent(a.companyId, data.employeeId, "document", `Document uploaded: ${data.title}`, a.name);
     }
     return { id };
   });
@@ -197,17 +320,30 @@ export const approveHrDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { a, need } = await who(context);
     need("approve");
-    await (await ext()).approveDocument(a.companyId, data.id, a.name);
+    const db = await ext();
+    const doc = await db.getDocument(a.companyId, data.id);
+    if (!doc) throw new Error("Document not found.");
+    if (doc.body && /\[___\]/.test(doc.body)) {
+      throw new Error("The draft still contains empty [___] fields. Fill them in before approving.");
+    }
+    await db.approveDocument(a.companyId, data.id, a.name);
+    const core = await import("@/lib/hr/db.server");
+    if (doc.employee_id) {
+      await core.addEvent(a.companyId, doc.employee_id, "document", `Document approved: ${doc.title}`, a.name);
+    }
+    await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.approve", { title: doc.title });
     return { ok: true };
   });
 
 export const downloadHrDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .inputValidator((input: unknown) =>
+    z.object({ id: uuidString(), signed: z.boolean().optional() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { a, need } = await who(context);
     need("view");
-    const doc = await (await ext()).getDocumentFile(a.companyId, data.id);
+    const doc = await (await ext()).getDocumentFile(a.companyId, data.id, data.signed ?? false);
     if (!doc) throw new Error("Document not found.");
     if (doc.data) {
       return {
@@ -216,12 +352,20 @@ export const downloadHrDocument = createServerFn({ method: "POST" })
         base64: Buffer.from(doc.data).toString("base64"),
       };
     }
-    const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
-    const pdf = await renderTablePdf({
+    if (data.signed) throw new Error("No signed copy has been uploaded yet.");
+    const { renderDocumentPdf } = await import("@/lib/hr/document-pdf.server");
+    const approved = doc.status === "approved";
+    const pdf = await renderDocumentPdf({
       title: doc.title,
-      headers: [""],
-      rows: (doc.body ?? "").split(/\n/).map((line) => [line]),
-      generatedLabel: `Generated ${new Date().toISOString().slice(0, 10)}`,
+      body: doc.body ?? "",
+      meta: [
+        [doc.employee_no, doc.employee_name].filter(Boolean).join(" · "),
+        approved
+          ? `Approved ${String(doc.approved_at ?? "").slice(0, 10)} · ${doc.approved_by ?? ""}`
+          : "DRAFT — not yet approved",
+      ].filter(Boolean),
+      footer: `OPSQAI HR · ${doc.country ?? ""} · generated ${new Date().toISOString().slice(0, 10)} by ${a.name}`,
+      watermark: approved ? null : "DRAFT",
     });
     return {
       filename: `${doc.title.replace(/[^\w.-]+/g, "_")}.pdf`,
@@ -649,6 +793,121 @@ export const setHrCandidateStatus = createServerFn({ method: "POST" })
     need("edit");
     await (await ext()).setCandidateStatus(a.companyId, data.id, data.status, data.note ?? null);
     return { ok: true };
+  });
+
+/** HR corrects extracted data or adds interview notes; the correction is kept, the AI never overwrites it. */
+export const updateHrCandidate = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        first_name: text(80),
+        last_name: text(80),
+        email: text(200),
+        phone: text(60),
+        extracted: z.record(z.string(), z.string().max(400)).optional(),
+        interview_notes: text(6000),
+        job_profile_id: uuidString().nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("edit");
+    const db = await ext();
+    await db.updateCandidateFields(a.companyId, data.id, data);
+    if (data.job_profile_id !== undefined) {
+      await db.setCandidateProfile(a.companyId, data.id, data.job_profile_id);
+    }
+    return { ok: true };
+  });
+
+/** Ask a question about one CV. Grounded: quotes the CV or says the CV does not state it. */
+export const askHrCandidate = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        question: z.string().trim().min(3).max(600),
+        blind: z.boolean().optional(),
+        language: z.enum(["en", "de", "ro"]).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("view");
+    const db = await ext();
+    const cv = await db.getCandidateCv(a.companyId, data.id);
+    if (!cv?.cv_text) throw new Error("This candidate has no CV text.");
+    const { askCv } = await import("@/lib/hr/screening.server");
+    const r = await askCv(cv.cv_text, data.question, { blind: data.blind, language: data.language ?? "en" });
+    const entry = { question: data.question, answer: r.answer, quote: r.quote, asked_at: new Date().toISOString() };
+    await db.appendCandidateQa(a.companyId, data.id, entry);
+    return { ...entry, grounded: r.grounded };
+  });
+
+/** Side-by-side comparison of candidates on the same job profile (facts only, no ranking advice). */
+export const compareHrCandidates = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ ids: z.array(uuidString()).min(2).max(6) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("view");
+    const db = await ext();
+    const rows = await Promise.all(data.ids.map((id) => db.getCandidate(a.companyId, id)));
+    const candidates = rows.filter((c): c is NonNullable<typeof c> => Boolean(c));
+    const profileIds = new Set(candidates.map((c) => c.job_profile_id));
+    if (profileIds.size !== 1) throw new Error("Compare candidates from the same job profile.");
+    const profile = candidates[0]?.job_profile_id ? await db.getJobProfile(a.companyId, candidates[0].job_profile_id) : null;
+    return {
+      criteria: profile?.criteria ?? [],
+      candidates: candidates.map((c) => ({
+        id: c.id,
+        reference: c.reference,
+        name: [c.first_name, c.last_name].filter(Boolean).join(" ") || c.reference || "—",
+        score: c.score,
+        status: c.status,
+        cv_language: c.cv_language,
+        extracted: c.extracted,
+        evidence: c.evidence,
+        strengths: c.strengths,
+        risks: c.risks,
+      })),
+    };
+  });
+
+export const exportHrCandidatePdf = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("export");
+    const c = await (await ext()).getCandidate(a.companyId, data.id);
+    if (!c) throw new Error("Candidate not found.");
+    const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
+    const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || c.reference || c.id;
+    const rows: unknown[][] = [
+      ["Job profile", c.job_title ?? "—", ""],
+      ["Score", c.score == null ? "—" : `${c.score}%`, "computed from weighted criteria"],
+      ["Status", c.status, c.decision_note ?? ""],
+      ["CV language", c.cv_language ?? "—", ""],
+      ...Object.entries(c.extracted).map(([k, v]) => [k.replace(/_/g, " "), v, ""]),
+      ...c.evidence.map((e) => [e.criterion, e.verdict, e.quote]),
+      ...c.strengths.map((s) => ["Strength", s, ""]),
+      ...c.risks.map((r) => ["Risk / gap", r, ""]),
+      ...c.qa.map((q) => [`Q: ${q.question}`, q.answer, q.quote]),
+    ];
+    const pdf = await renderTablePdf({
+      title: `Candidate — ${name}`,
+      subtitle: "Evidence-based screening. The decision is human.",
+      headers: ["Item", "Value", "Evidence (CV quote)"],
+      rows,
+      generatedLabel: `Generated ${new Date().toISOString().slice(0, 10)} · ${a.name}`,
+    });
+    return { filename: `candidate-${(c.reference ?? c.id).replace(/[^\w-]+/g, "_")}.pdf`, mime: "application/pdf", base64: Buffer.from(pdf).toString("base64") };
   });
 
 export const deleteHrCandidate = createServerFn({ method: "POST" })

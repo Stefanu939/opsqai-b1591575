@@ -7,6 +7,7 @@
 import { Pool, type QueryResultRow } from "pg";
 import { pgDateTypes } from "@/lib/providers/selfhost/pg-types.server";
 import type {
+  HrPipelineRow,
   EmployeeStatus,
   HrEmployee,
   HrEmployeeEvent,
@@ -58,51 +59,83 @@ export const hrQueryOne = one;
 
 // ── Settings ──────────────────────────────────────────────────────────────
 
+const SETTINGS_COLS = `company_id, country, employee_prefix, blind_screening, retention_months_after_exit,
+  default_language, probation_months, notice_weeks, vacation_days, weekly_hours::float8 AS weekly_hours,
+  contract_alert_days, document_alert_days, auto_onboarding,
+  company_legal_name, company_address, company_signatory`;
+
+const SETTINGS_DEFAULTS: Omit<HrSettings, "company_id"> = {
+  country: "generic",
+  employee_prefix: "EMP",
+  blind_screening: true,
+  retention_months_after_exit: 9,
+  default_language: "en",
+  probation_months: 6,
+  notice_weeks: 4,
+  vacation_days: 20,
+  weekly_hours: 40,
+  contract_alert_days: 30,
+  document_alert_days: 60,
+  auto_onboarding: true,
+  company_legal_name: null,
+  company_address: null,
+  company_signatory: null,
+};
+
 export async function getSettings(companyId: string): Promise<HrSettings> {
   const row = await one<HrSettings>(
-    `SELECT company_id, country, employee_prefix, blind_screening, retention_months_after_exit
-       FROM public.hr_settings WHERE company_id = $1`,
+    `SELECT ${SETTINGS_COLS} FROM public.hr_settings WHERE company_id = $1`,
     [companyId],
   );
   if (row) return row;
   const created = await one<HrSettings>(
     `INSERT INTO public.hr_settings (company_id) VALUES ($1)
      ON CONFLICT (company_id) DO UPDATE SET updated_at = now()
-     RETURNING company_id, country, employee_prefix, blind_screening, retention_months_after_exit`,
+     RETURNING ${SETTINGS_COLS}`,
     [companyId],
   );
-  return (
-    created ?? {
-      company_id: companyId,
-      country: "generic",
-      employee_prefix: "EMP",
-      blind_screening: true,
-      retention_months_after_exit: 9,
-    }
-  );
+  return created ?? { company_id: companyId, ...SETTINGS_DEFAULTS };
 }
 
 export async function saveSettings(
   companyId: string,
-  values: Partial<Pick<HrSettings, "country" | "employee_prefix" | "blind_screening" | "retention_months_after_exit">>,
+  values: Partial<Omit<HrSettings, "company_id">>,
 ): Promise<HrSettings> {
-  await getSettings(companyId);
   const current = await getSettings(companyId);
+  const next = { ...current, ...stripUndefined(values) };
   const row = await one<HrSettings>(
     `UPDATE public.hr_settings
         SET country = $2, employee_prefix = $3, blind_screening = $4,
-            retention_months_after_exit = $5, updated_at = now()
+            retention_months_after_exit = $5, default_language = $6, probation_months = $7,
+            notice_weeks = $8, vacation_days = $9, weekly_hours = $10, contract_alert_days = $11,
+            document_alert_days = $12, auto_onboarding = $13, company_legal_name = $14,
+            company_address = $15, company_signatory = $16, updated_at = now()
       WHERE company_id = $1
-      RETURNING company_id, country, employee_prefix, blind_screening, retention_months_after_exit`,
+      RETURNING ${SETTINGS_COLS}`,
     [
       companyId,
-      values.country ?? current.country,
-      values.employee_prefix ?? current.employee_prefix,
-      values.blind_screening ?? current.blind_screening,
-      values.retention_months_after_exit ?? current.retention_months_after_exit,
+      next.country,
+      next.employee_prefix,
+      next.blind_screening,
+      next.retention_months_after_exit,
+      next.default_language,
+      next.probation_months,
+      next.notice_weeks,
+      next.vacation_days,
+      next.weekly_hours,
+      next.contract_alert_days,
+      next.document_alert_days,
+      next.auto_onboarding,
+      next.company_legal_name,
+      next.company_address,
+      next.company_signatory,
     ],
   );
-  return row ?? current;
+  return row ?? next;
+}
+
+function stripUndefined<T extends object>(v: T): Partial<T> {
+  return Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined)) as Partial<T>;
 }
 
 // ── Reference data ────────────────────────────────────────────────────────
@@ -348,6 +381,16 @@ export async function deleteEmployee(
 
 // ── Tasks ────────────────────────────────────────────────────────────────
 
+const TASK_COLS = `t.id, t.employee_id, e.employee_no,
+            NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name,
+            t.title, t.description, t.category, t.team, t.assigned_to,
+            t.due_date, t.priority, t.steps, t.document_id, t.document_key,
+            d.title AS document_title, d.status AS document_status,
+            t.resolution, t.completed_at, t.completed_by, t.status, t.created_at`;
+const TASK_JOINS = `FROM public.hr_tasks t
+       LEFT JOIN public.hr_employees e ON e.id = t.employee_id
+       LEFT JOIN public.hr_documents d ON d.id = t.document_id`;
+
 export async function listTasks(
   companyId: string,
   opts: { employeeId?: string; openOnly?: boolean } = {},
@@ -360,52 +403,80 @@ export async function listTasks(
   }
   if (opts.openOnly) where.push("t.status IN ('pending','in_progress')");
   return q<HrTask>(
-    `SELECT t.id, t.employee_id, e.employee_no, t.title, t.category, t.team, t.assigned_to,
-            t.due_date, t.status, t.created_at
-       FROM public.hr_tasks t
-       LEFT JOIN public.hr_employees e ON e.id = t.employee_id
+    `SELECT ${TASK_COLS} ${TASK_JOINS}
       WHERE ${where.join(" AND ")}
-      ORDER BY (t.due_date IS NULL), t.due_date, t.created_at DESC
+      ORDER BY (t.status = 'done' OR t.status = 'cancelled'), (t.due_date IS NULL), t.due_date,
+               CASE t.priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END, t.created_at DESC
       LIMIT 500`,
     params,
   );
 }
 
-export async function saveTask(
-  companyId: string,
-  values: {
-    id?: string;
-    employee_id?: string | null;
-    title: string;
-    category?: string;
-    team?: string | null;
-    assigned_to?: string | null;
-    due_date?: string | null;
-    status?: HrTask["status"];
-  },
-): Promise<void> {
+export async function getTask(companyId: string, id: string): Promise<HrTask | null> {
+  return one<HrTask>(`SELECT ${TASK_COLS} ${TASK_JOINS} WHERE t.company_id = $1 AND t.id = $2`, [
+    companyId,
+    id,
+  ]);
+}
+
+export interface SaveTaskInput {
+  id?: string;
+  employee_id?: string | null;
+  title: string;
+  description?: string | null;
+  category?: string;
+  team?: string | null;
+  assigned_to?: string | null;
+  due_date?: string | null;
+  priority?: HrTask["priority"];
+  steps?: HrTask["steps"];
+  document_id?: string | null;
+  document_key?: string | null;
+  resolution?: string | null;
+  status?: HrTask["status"];
+  source?: string | null;
+  completed_by?: string | null;
+}
+
+export async function saveTask(companyId: string, values: SaveTaskInput): Promise<string> {
+  const status = values.status ?? "pending";
+  const closing = status === "done" || status === "cancelled";
   if (values.id) {
+    const before = await getTask(companyId, values.id);
     await q(
       `UPDATE public.hr_tasks SET title = $3, category = $4, team = $5, assigned_to = $6,
-              due_date = $7, status = $8, updated_at = now()
+              due_date = $7, status = $8, description = $9, priority = $10, steps = $11,
+              document_id = $12, document_key = $13, resolution = $14,
+              completed_at = CASE WHEN $15::boolean THEN COALESCE(completed_at, now()) ELSE NULL END,
+              completed_by = CASE WHEN $15::boolean THEN COALESCE(completed_by, $16) ELSE NULL END,
+              updated_at = now()
          WHERE company_id = $1 AND id = $2`,
       [
         companyId,
         values.id,
         values.title,
-        values.category ?? "general",
+        values.category ?? before?.category ?? "general",
         values.team ?? null,
         values.assigned_to ?? null,
         values.due_date ?? null,
-        values.status ?? "pending",
+        status,
+        values.description ?? null,
+        values.priority ?? before?.priority ?? "normal",
+        JSON.stringify(values.steps ?? before?.steps ?? []),
+        values.document_id === undefined ? (before?.document_id ?? null) : values.document_id,
+        values.document_key === undefined ? (before?.document_key ?? null) : values.document_key,
+        values.resolution ?? null,
+        closing,
+        values.completed_by ?? null,
       ],
     );
-    return;
+    return values.id;
   }
-  await q(
+  const row = await one<{ id: string }>(
     `INSERT INTO public.hr_tasks
-       (company_id, employee_id, title, category, team, assigned_to, due_date, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+       (company_id, employee_id, title, category, team, assigned_to, due_date, status,
+        description, priority, steps, document_id, document_key, source)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
     [
       companyId,
       values.employee_id ?? null,
@@ -414,9 +485,16 @@ export async function saveTask(
       values.team ?? null,
       values.assigned_to ?? null,
       values.due_date ?? null,
-      values.status ?? "pending",
+      status,
+      values.description ?? null,
+      values.priority ?? "normal",
+      JSON.stringify(values.steps ?? []),
+      values.document_id ?? null,
+      values.document_key ?? null,
+      values.source ?? null,
     ],
   );
+  return row?.id ?? "";
 }
 
 export async function deleteTask(companyId: string, id: string): Promise<void> {
@@ -529,4 +607,61 @@ export async function actionRequired(companyId: string) {
     overdueTasks: n(row?.overdue_tasks),
     missingData: n(row?.missing),
   };
+}
+
+
+// ── Overview extras ──────────────────────────────────────────────────────
+
+export function pipeline(companyId: string): Promise<HrPipelineRow[]> {
+  return q<HrPipelineRow>(
+    `SELECT e.id AS employee_id, e.employee_no, concat_ws(' ', e.first_name, e.last_name) AS name,
+            t.category AS kind,
+            CASE WHEN t.category = 'onboarding' THEN e.start_date ELSE e.end_date END AS anchor_date,
+            count(t.id)::int AS total,
+            count(t.id) FILTER (WHERE t.status = 'done')::int AS done,
+            count(t.id) FILTER (WHERE t.status IN ('pending','in_progress') AND t.due_date < current_date)::int AS overdue,
+            (SELECT x.title FROM public.hr_tasks x WHERE x.employee_id = e.id AND x.category = t.category
+               AND x.status IN ('pending','in_progress') ORDER BY x.due_date NULLS LAST LIMIT 1) AS next_task,
+            (SELECT x.due_date FROM public.hr_tasks x WHERE x.employee_id = e.id AND x.category = t.category
+               AND x.status IN ('pending','in_progress') ORDER BY x.due_date NULLS LAST LIMIT 1) AS next_due
+       FROM public.hr_tasks t JOIN public.hr_employees e ON e.id = t.employee_id
+      WHERE t.company_id = $1 AND t.category IN ('onboarding','offboarding')
+        AND e.status IN ('onboarding','offboarding','active')
+      GROUP BY e.id, t.category
+     HAVING count(t.id) FILTER (WHERE t.status IN ('pending','in_progress')) > 0
+      ORDER BY overdue DESC, anchor_date NULLS LAST LIMIT 60`,
+    [companyId],
+  );
+}
+
+export async function overviewSignals(companyId: string) {
+  const r = await one<Record<string, string>>(
+    `SELECT
+       (SELECT count(*) FROM public.hr_candidates WHERE company_id = $1 AND status = 'new') AS candidates_new,
+       (SELECT count(*) FROM public.hr_candidates WHERE company_id = $1 AND status = 'shortlisted') AS candidates_shortlisted,
+       (SELECT count(*) FROM public.hr_documents WHERE company_id = $1 AND status = 'draft') AS documents_draft,
+       (SELECT count(*) FROM public.hr_documents WHERE company_id = $1 AND status = 'review') AS documents_review,
+       (SELECT count(*) FROM public.hr_documents WHERE company_id = $1 AND valid_until IS NOT NULL
+          AND valid_until <= current_date + 60) AS documents_expiring,
+       (SELECT count(*) FROM public.hr_incidents WHERE company_id = $1 AND occurred_on >= current_date - 30) AS incidents_30d`,
+    [companyId],
+  );
+  const n = (k: string) => Number(r?.[k] ?? 0);
+  return {
+    candidatesNew: n("candidates_new"),
+    candidatesShortlisted: n("candidates_shortlisted"),
+    documentsDraft: n("documents_draft"),
+    documentsReview: n("documents_review"),
+    documentsExpiring: n("documents_expiring"),
+    incidents30d: n("incidents_30d"),
+  };
+}
+
+export function recentEvents(companyId: string) {
+  return q<{ id: string; employee_no: string; kind: string; message: string; actor: string | null; created_at: string }>(
+    `SELECT ev.id, e.employee_no, ev.kind, ev.message, ev.actor, ev.created_at
+       FROM public.hr_employee_events ev JOIN public.hr_employees e ON e.id = ev.employee_id
+      WHERE ev.company_id = $1 ORDER BY ev.created_at DESC LIMIT 15`,
+    [companyId],
+  );
 }

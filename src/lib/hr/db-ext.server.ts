@@ -81,7 +81,9 @@ const DOC_SELECT = `
   SELECT d.id, d.employee_id, e.employee_no,
          NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name,
          d.kind, d.title, d.filename, d.mime, (d.data IS NOT NULL) AS has_file,
-         d.body, d.valid_until, d.approved_at, d.approved_by, d.created_at
+         d.body, d.valid_until, d.approved_at, d.approved_by, d.created_at,
+         d.status, d.draft_name, d.template_key, d.country, d.language,
+         (d.signed_data IS NOT NULL) AS has_signed, d.signed_filename, d.signed_at, d.updated_at
     FROM public.hr_documents d
     LEFT JOIN public.hr_employees e ON e.id = d.employee_id`;
 
@@ -92,7 +94,11 @@ export function listDocuments(companyId: string, employeeId?: string) {
     params.push(employeeId);
     where += ` AND d.employee_id = $${params.length}`;
   }
-  return q<HrDocument>(`${DOC_SELECT} WHERE ${where} ORDER BY d.created_at DESC LIMIT 500`, params);
+  return q<HrDocument>(`${DOC_SELECT} WHERE ${where} ORDER BY d.updated_at DESC LIMIT 500`, params);
+}
+
+export function getDocument(companyId: string, id: string) {
+  return one<HrDocument>(`${DOC_SELECT} WHERE d.company_id = $1 AND d.id = $2`, [companyId, id]);
 }
 
 export async function createDocument(
@@ -106,13 +112,20 @@ export async function createDocument(
     data?: Uint8Array | null;
     body?: string | null;
     valid_until?: string | null;
+    status?: string;
+    draft_name?: string | null;
+    template_key?: string | null;
+    template_id?: string | null;
+    country?: string | null;
+    language?: string | null;
   },
   actor: { id: string },
 ) {
   const row = await one<{ id: string }>(
     `INSERT INTO public.hr_documents
-       (company_id, employee_id, kind, title, filename, mime, data, body, valid_until, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+       (company_id, employee_id, kind, title, filename, mime, data, body, valid_until, created_by,
+        status, draft_name, template_key, template_id, country, language)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
     [
       companyId,
       values.employee_id ?? null,
@@ -124,23 +137,88 @@ export async function createDocument(
       values.body ?? null,
       values.valid_until ?? null,
       actor.id,
+      values.status ?? (values.data ? "file" : "draft"),
+      values.draft_name ?? null,
+      values.template_key ?? null,
+      values.template_id ?? null,
+      values.country ?? null,
+      values.language ?? null,
     ],
   );
   return row!.id;
 }
 
+/** Edit a draft (body, title, draft name, validity). Approved documents are locked. */
+export async function updateDraft(
+  companyId: string,
+  id: string,
+  values: { title?: string; body?: string; draft_name?: string | null; valid_until?: string | null; status?: "draft" | "review" },
+) {
+  const current = await getDocument(companyId, id);
+  if (!current) throw new Error("Document not found.");
+  if (current.status === "approved") throw new Error("Approved documents cannot be edited. Create a new version instead.");
+  await q(
+    `UPDATE public.hr_documents
+        SET title = $3, body = $4, draft_name = $5, valid_until = $6, status = $7, updated_at = now()
+      WHERE company_id = $1 AND id = $2`,
+    [
+      companyId,
+      id,
+      values.title ?? current.title,
+      values.body ?? current.body,
+      values.draft_name === undefined ? current.draft_name : values.draft_name,
+      values.valid_until === undefined ? current.valid_until : values.valid_until,
+      values.status ?? (current.status === "file" ? "file" : "draft"),
+    ],
+  );
+}
+
 export async function approveDocument(companyId: string, id: string, approvedBy: string) {
   await q(
-    `UPDATE public.hr_documents SET approved_at = now(), approved_by = $3
+    `UPDATE public.hr_documents SET approved_at = now(), approved_by = $3, status = 'approved', updated_at = now()
       WHERE company_id = $1 AND id = $2`,
     [companyId, id, approvedBy],
   );
 }
 
-export async function getDocumentFile(companyId: string, id: string) {
-  return one<{ filename: string | null; mime: string | null; data: Uint8Array | null; body: string | null; title: string }>(
-    `SELECT filename, mime, data, body, title FROM public.hr_documents
+/** Attach the signed / scanned version to an approved document (kept in the employee file). */
+export async function attachSigned(
+  companyId: string,
+  id: string,
+  file: { filename: string; mime: string; data: Uint8Array },
+) {
+  await q(
+    `UPDATE public.hr_documents
+        SET signed_filename = $3, signed_mime = $4, signed_data = $5, signed_at = now(), updated_at = now()
       WHERE company_id = $1 AND id = $2`,
+    [companyId, id, file.filename, file.mime, Buffer.from(file.data)],
+  );
+}
+
+export async function getDocumentFile(companyId: string, id: string, signed = false) {
+  return one<{
+    filename: string | null;
+    mime: string | null;
+    data: Uint8Array | null;
+    body: string | null;
+    title: string;
+    status: string;
+    approved_at: string | null;
+    approved_by: string | null;
+    employee_no: string | null;
+    employee_name: string | null;
+    country: string | null;
+  }>(
+    signed
+      ? `SELECT d.signed_filename AS filename, d.signed_mime AS mime, d.signed_data AS data, NULL::text AS body,
+                d.title, d.status, d.approved_at, d.approved_by, e.employee_no,
+                NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name, d.country
+           FROM public.hr_documents d LEFT JOIN public.hr_employees e ON e.id = d.employee_id
+          WHERE d.company_id = $1 AND d.id = $2`
+      : `SELECT d.filename, d.mime, d.data, d.body, d.title, d.status, d.approved_at, d.approved_by,
+                e.employee_no, NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name, d.country
+           FROM public.hr_documents d LEFT JOIN public.hr_employees e ON e.id = d.employee_id
+          WHERE d.company_id = $1 AND d.id = $2`,
     [companyId, id],
   );
 }
@@ -446,7 +524,7 @@ const CAND_SELECT = `
   SELECT c.id, c.job_profile_id, j.title AS job_title, c.reference, c.first_name, c.last_name,
          c.email, c.phone, c.source, c.cv_filename, (c.cv_text IS NOT NULL) AS has_cv,
          c.extracted, c.evidence, c.score, c.status, c.decision_note, c.hired_employee_id,
-         c.created_at
+         c.created_at, c.cv_language, c.qa, c.strengths, c.risks, c.interview_notes
     FROM public.hr_candidates c
     LEFT JOIN public.hr_job_profiles j ON j.id = c.job_profile_id`;
 
@@ -513,11 +591,20 @@ export async function createCandidate(
 export async function saveCandidateAnalysis(
   companyId: string,
   id: string,
-  analysis: { extracted: Record<string, string>; evidence: unknown[]; score: number },
+  analysis: {
+    extracted: Record<string, string>;
+    evidence: unknown[];
+    score: number;
+    cv_language?: string | null;
+    strengths?: string[];
+    risks?: string[];
+  },
 ) {
   await q(
     `UPDATE public.hr_candidates
         SET extracted = $3::jsonb, evidence = $4::jsonb, score = $5,
+            cv_language = COALESCE($6, cv_language),
+            strengths = $7::jsonb, risks = $8::jsonb,
             status = CASE WHEN status = 'new' THEN 'screened' ELSE status END,
             updated_at = now()
       WHERE company_id = $1 AND id = $2`,
@@ -527,7 +614,56 @@ export async function saveCandidateAnalysis(
       JSON.stringify(analysis.extracted),
       JSON.stringify(analysis.evidence),
       analysis.score,
+      analysis.cv_language ?? null,
+      JSON.stringify(analysis.strengths ?? []),
+      JSON.stringify(analysis.risks ?? []),
     ],
+  );
+}
+
+/** HR corrects an AI-extracted field; the correction wins and is kept. */
+export async function updateCandidateFields(
+  companyId: string,
+  id: string,
+  values: {
+    first_name?: string | null;
+    last_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    extracted?: Record<string, string>;
+    interview_notes?: string | null;
+  },
+) {
+  await q(
+    `UPDATE public.hr_candidates
+        SET first_name = COALESCE($3, first_name), last_name = COALESCE($4, last_name),
+            email = COALESCE($5, email), phone = COALESCE($6, phone),
+            extracted = COALESCE($7::jsonb, extracted),
+            interview_notes = COALESCE($8, interview_notes), updated_at = now()
+      WHERE company_id = $1 AND id = $2`,
+    [
+      companyId,
+      id,
+      values.first_name ?? null,
+      values.last_name ?? null,
+      values.email ?? null,
+      values.phone ?? null,
+      values.extracted ? JSON.stringify(values.extracted) : null,
+      values.interview_notes ?? null,
+    ],
+  );
+}
+
+export async function appendCandidateQa(
+  companyId: string,
+  id: string,
+  entry: { question: string; answer: string; quote: string; asked_at: string },
+) {
+  await q(
+    `UPDATE public.hr_candidates
+        SET qa = (COALESCE(qa, '[]'::jsonb) || $3::jsonb), updated_at = now()
+      WHERE company_id = $1 AND id = $2`,
+    [companyId, id, JSON.stringify([entry])],
   );
 }
 
@@ -542,6 +678,13 @@ export async function setCandidateStatus(
             updated_at = now()
       WHERE company_id = $1 AND id = $2`,
     [companyId, id, status, note ?? null],
+  );
+}
+
+export async function setCandidateProfile(companyId: string, id: string, jobProfileId: string | null) {
+  await q(
+    `UPDATE public.hr_candidates SET job_profile_id = $3, updated_at = now() WHERE company_id = $1 AND id = $2`,
+    [companyId, id, jobProfileId],
   );
 }
 
@@ -596,7 +739,7 @@ export async function analytics(companyId: string): Promise<HrAnalytics> {
       [companyId],
     ),
     one<{ months: string | null; headcount: string; exits: string }>(
-      `SELECT avg(EXTRACT(EPOCH FROM (COALESCE(end_date, current_date) - start_date)) / 2629800)
+      `SELECT avg((COALESCE(end_date, current_date) - start_date)::numeric / 30.44)
                 AS months,
               count(*) FILTER (WHERE status <> 'terminated') AS headcount,
               count(*) FILTER (WHERE end_date IS NOT NULL
