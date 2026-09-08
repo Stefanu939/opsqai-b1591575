@@ -18,6 +18,8 @@ import { EmployeesSection } from "@/components/app/hr/employees-section";
 import { TasksSection } from "@/components/app/hr/tasks-section";
 import { HrSettingsSection } from "@/components/app/hr/settings-section";
 import { useHrOverview } from "@/components/app/hr/use-hr";
+import { HrFailure, HrLoading, HrWarnings } from "@/components/app/hr/query-state";
+import { hrRetryLabel, hrWarningsTitle } from "@/components/app/hr/state-labels";
 import { DocumentsSection } from "@/components/app/hr/documents-section";
 import { LifecycleSection } from "@/components/app/hr/lifecycle-section";
 import { EquipmentSection } from "@/components/app/hr/equipment-section";
@@ -121,11 +123,24 @@ function HrSection({
 }
 
 function HrOverview({ t, w, x }: { t: ReturnType<typeof hrUi>; w: ReturnType<typeof hrWsUi>; x: ReturnType<typeof hrExtUi> }) {
+  const { lang } = useT();
   const query = useHrOverview();
-  if (query.isPending) return <Skeleton className="h-72 w-full rounded-lg" />;
+  if (query.isPending) return <HrLoading label={`${t.eyebrow} — ${t.employees}…`} />;
   if (query.error) {
-    return <EmptyState title={t.employees} description={(query.error as Error).message} />;
+    return (
+      <HrFailure
+        title={t.eyebrow}
+        message={(query.error as Error).message}
+        retryLabel={hrRetryLabel(lang)}
+        onRetry={() => void query.refetch()}
+      />
+    );
   }
   if (!query.data) return <EmptyState title={t.employees} />;
-  return <HrOverviewSection t={t} w={w} x={x} data={query.data} />;
+  return (
+    <div className="space-y-4">
+      <HrWarnings title={hrWarningsTitle(lang)} items={query.data.warnings ?? []} />
+      <HrOverviewSection t={t} w={w} x={x} data={query.data} />
+    </div>
+  );
 }

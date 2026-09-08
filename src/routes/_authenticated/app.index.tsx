@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ManagementOverview } from "@/components/dashboard/management-overview";
 import { ControlCenter } from "@/components/dashboard/control-center";
+import { ModuleKpis } from "@/components/dashboard/module-kpis";
 import { UpcomingCard } from "@/components/calendar/upcoming-card";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
 import { MetricTile } from "@/components/ui/metric-tile";
@@ -339,6 +340,8 @@ function DashboardWidgets() {
       <DashboardFilters value={filters} onChange={update} />
 
       <ManagementOverview />
+
+      <ModuleKpis />
 
       <ControlCenter />
 
