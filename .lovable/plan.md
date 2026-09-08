@@ -1,64 +1,72 @@
-# Studiu de caz OPSQAI — pagină ascunsă, 9 limbi, formular opțional
+# Studiu OPSQAI — chestionar în 9 limbi, cu date colectate
 
-## Ce construim și de ce
+## Ce facem, pe scurt
 
-Un studiu de caz este singura formă de marketing pe care un cumpărător B2B o citește până la capăt, pentru că nu vinde funcții — arată o firmă reală care avea o problemă, ce a făcut, ce s-a schimbat. Al tău este intern: OPSQAI folosind OPSQAI. Avantaj mare — cifrele sunt ale voastre, nu ai nevoie de acordul niciunui client.
+Nu publicăm un studiu de caz existent. Construim un **chestionar public** prin care întrebăm firme cum lucrează astăzi (unde își țin documentele, cât caută o informație, cum pregătesc un audit, cum fac onboarding). Răspunsurile se strâng într-o bază de date, iar peste câteva săptămâni, când sunt suficiente, din ele iese studiul — „Cum gestionează 100 de firme de transport și logistică informația internă”.
 
-Împărțirea muncii:
-- **LinkedIn** = cârligul. O postare scurtă care spune problema și un singur rezultat, plus link.
-- **Pagina ascunsă** (`/case-study`) = studiul complet, în 9 limbi, cu formular opțional la final.
-- **PDF** = varianta pe care o trimiți prin email sau o dai la telefon.
+De ce funcționează asta mai bine decât un studiu de caz clasic:
+- **Ai ce publica fără client.** Datele vin de la respondenți, nu de la un client OPSQAI.
+- **Fiecare respondent e un lead calificat.** Ți-a spus deja unde îl doare.
+- **Îți dă un motiv de contact ulterior:** „ți-am promis raportul, iată-l” — nu e vânzare, e livrare.
+- **Devine conținut care se citează.** Cifrele de piață pe care le folosim acum pe site sunt ale altora; astea vor fi ale voastre.
 
-Pagina nu apare în meniu, nu apare în sitemap și primește `noindex`. Ajunge acolo doar cine are linkul.
+## Unde trăiește
 
-## Structura studiului de caz
+- Pagină publică `/study` pe opsqai.de — trebuie să fie indexabilă și partajabilă, altfel nu vine nimeni.
+- Linkul se distribuie prin postare LinkedIn, prin email direct și în grupuri de branșă.
+- Mai târziu, o a doua pagină `/study/results` cu raportul agregat.
 
-Ordinea aceasta este standardul care convertește:
+## Cum arată parcursul respondentului
 
-1. **Cine suntem și ce facem** — 3 rânduri de context (firmă, mărime, domeniu).
-2. **Situația de dinainte** — cum lucrați concret: documente în foldere, întrebări pe WhatsApp, auditul pregătit manual. Fapte, nu adjective.
-3. **Costul acelei situații** — cifrele voastre măsurate: minute pierdute la căutarea unui document, ore pe pregătirea unui audit, zile de onboarding.
-4. **De ce nu au funcționat alternativele** — de ce nu SharePoint, nu ChatGPT public, nu un WMS.
-5. **Ce am implementat** — ce module, în ce ordine, în cât timp.
-6. **Rezultatul** — aceleași metrici ca la punctul 3, măsurate după. Tabel înainte/după.
-7. **Ce nu s-a rezolvat** — obligatoriu. Un studiu de caz fără limite citește ca reclamă.
-8. **Cum reproduci asta** — pașii, pilotul de 30 de zile.
+1. **Ecran de intrare** — o promisiune și un cost clar: „7 întrebări, 3 minute. Primești raportul complet gratuit, înaintea publicării.” Plus alegerea limbii: EN, DE, RO, FR, IT, ES, NL, PL, HU. Limba browserului e presetată ca sugestie, se ține minte, se poate schimba oricând.
+2. **Întrebările** — câte una pe ecran, cu bară de progres. Doar variante de răspuns, aproape zero scris de mână; se poate răspunde de pe telefon.
+3. **Ecran de rezultat instant** — după ultima întrebare arătăm imediat ceva de valoare: unde se plasează firma lui față de ceilalți respondenți de până acum („petreci mai mult timp căutând documente decât 70% din firmele care au răspuns”). Asta e recompensa care merită cele 3 minute.
+4. **Colectare, opțional** — email pentru raport, apoi butonul de pilot 30 de zile. Se poate sări complet: răspunsurile anonime se salvează oricum, ele sunt datele studiului.
 
-Fiecare cifră poartă lângă ea cum a fost măsurată (perioadă, metodă). Nu se publică nicio cifră pe care nu mi-o dai măsurată — locurile respective rămân marcate până le completezi.
+## Întrebările (draft, se ajustează)
 
-## Alegerea limbii
+Context, ca să putem segmenta raportul:
+1. Domeniu: transport / logistică / producție / construcții / altul
+2. Număr de angajați: 1–10 / 11–50 / 51–200 / 200+
+3. Țară
 
-La prima intrare pe pagină apare un ecran scurt cu 9 opțiuni: EN, DE, RO, FR, IT, ES, NL, PL, HU. Alegerea se ține minte în browser și se poate schimba oricând din capul paginii. Detectăm și limba browserului ca sugestie, dar nu forțăm nimic.
+Miezul, fiecare cu variante măsurabile:
+4. Unde trăiesc procedurile și documentele interne? (foldere partajate / email / hârtie / intranet / nu există un loc anume)
+5. Cât durează, în medie, să găsești un document intern de care ai nevoie? (sub 2 min / 2–10 min / 10–30 min / peste 30 min / de obicei întreb un coleg)
+6. Cât timp ia pregătirea unui audit sau a unui control? (câteva ore / 1–2 zile / peste o săptămână / nu ținem socoteala)
+7. Cât durează până un angajat nou lucrează independent? (sub o săptămână / 2–4 săptămâni / 1–3 luni / peste 3 luni)
+8. Folosesc angajații AI public (ChatGPT etc.) cu informații din firmă? (da, oficial / da, neoficial / nu / nu știu)
+9. Ce te-a costat cel mai mult în ultimele 12 luni: informație pierdută, un audit, un angajat plecat, o eroare repetată?
 
-Textul studiului trăiește într-un dicționar propriu al paginii, separat de restul site-ului (site-ul rămâne pe EN/DE/RO). Așa cele 9 limbi nu ating nicio altă pagină.
+Ultimele două sunt cele care dau titluri de studiu. Întrebarea 8 în special.
 
-## Formularul de la final — opțional, în trei trepte
+## Colectarea datelor — reguli
 
-Tot studiul se citește integral fără să dai nimic. La final, trei acțiuni, în ordinea efortului:
-
-1. **Vezi PDF-ul** — descărcare directă, fără email. Sub el: „trimite-mi-l pe email" (doar adresa).
-2. **Context scurt** (3 câmpuri, toate opționale): domeniu, mărimea firmei, principala durere.
-3. **Cere pilotul de 30 de zile** — butonul dominant, colorat, singurul repetat și la mijlocul paginii.
-
-Ce se trimite ajunge direct în CRM-ul din Management Center ca lead nou, marcat cu sursa „case study" și limba aleasă, deci vezi din ce țară vine interesul. Fără email introdus, nu se salvează nimic.
+- Fără email, răspunsurile se salvează **anonim**. Ele sunt scopul principal.
+- Emailul e strict opțional și doar pentru livrarea raportului; se spune explicit ce faceți cu el.
+- Nimic invocat, nimic obligatoriu, nicio întrebare capcană.
+- Respondenții care lasă email ajung în CRM ca lead cu sursa „study”, cu limba și segmentul lor.
+- GDPR: text scurt de consimțământ lângă câmpul de email, link la politica de confidențialitate, ștergere la cerere.
 
 ## Detalii tehnice
 
-- Rută nouă `src/routes/case-study.tsx`, `noindex, nofollow` în `head()`, exclusă din `sitemap` și din navigație/footer.
-- Dicționar nou `src/i18n/pages/case-study.ts` cu tipul `CaseStudyCopy` și 9 locale; hook propriu `useCaseStudyLocale()` cu persistență în `localStorage`, independent de comutatorul EN/DE/RO al site-ului.
-- Componente noi sub `src/components/oix/case-study/`: selectorul de limbă, tabelul înainte/după, banda de metrici cu notă de metodă, blocul de limite, blocul de conversie.
-- Server function `submitCaseStudyLead` (validare Zod, rate-limit simplu pe IP) care scrie în tabelele CRM existente cu `source = 'case_study'` și `locale`; reutilizează calea de intake folosită de formularul de contact.
-- Generare PDF per limbă prin generatorul existent folosit la `/resources`, cu buton de descărcare direct pe pagină.
-- Postarea LinkedIn: fișier text în `/mnt/documents/linkedin/` cu variantă EN și DE, plus imaginile — publicarea o fac doar dacă îmi ceri explicit.
+- Rute noi: `src/routes/study.tsx` (chestionarul, indexabil, cu `head()` propriu) și, în faza a doua, `src/routes/study.results.tsx`.
+- Dicționar propriu `src/i18n/pages/study.ts` cu tipul `StudyCopy` și cele 9 locale, plus `useStudyLocale()` cu persistență în `localStorage` — independent de comutatorul EN/DE/RO al site-ului, ca restul paginilor să nu fie atinse.
+- Componente noi sub `src/components/oix/study/`: selector de limbă, card de întrebare, bară de progres, ecranul de benchmark instant, blocul de colectare.
+- Migrație nouă: tabel `study_responses` (id, locale, sector, size, country, răspunsuri, created_at, user_agent hash) și `study_contacts` (email, consimțământ, legătură opțională către răspuns). GRANT-uri explicite, RLS: inserare permisă publicului prin server function, citire doar pentru platform admin.
+- Server functions: `submitStudyResponse` (validare Zod, o singură trimitere per sesiune, rate-limit pe IP), `submitStudyContact`, `getStudyBenchmark` (agregări, fără date individuale, ascunse până la un minim de răspunsuri).
+- Panou în Management Center: număr de răspunsuri, distribuții, export CSV, ca să poți urmări când sunt suficiente pentru raport.
+- Fișier text pentru postarea LinkedIn în `/mnt/documents/linkedin/`, EN și DE; publicarea doar dacă îmi ceri.
 
 ## Verificare
 
 - Typecheck și build.
-- Pagina răspunde 200, comutarea între toate 9 limbile schimbă textul integral, fără chei lipsă.
-- Formularul trimis creează lead în CRM; formularul necompletat nu creează nimic.
-- Pagina nu apare în sitemap și nu e linkată din meniu sau footer.
-- Verificare în browser pe desktop și mobil, temă închisă și deschisă.
+- Parcurs complet în toate cele 9 limbi, fără chei lipsă.
+- Trimitere fără email → răspuns anonim salvat, niciun contact creat.
+- Trimitere cu email → lead în CRM cu limba și segmentul corecte.
+- Benchmark-ul instant nu expune răspunsuri individuale și rămâne ascuns sub pragul minim.
+- Verificare în browser pe telefon și desktop, temă închisă și deschisă.
 
 ## Ce am nevoie de la tine
 
-Cifrele interne măsurate pentru punctele 3 și 6 (înainte/după). Până le primesc, construiesc pagina completă cu acele locuri marcate vizibil ca „de completat" și nu o public.
+Confirmarea listei de întrebări (mai adaug, tai sau reformulez) și pragul minim de răspunsuri de la care publicăm raportul — propun 50.
