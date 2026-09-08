@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { pageHead, faqLd } from "@/lib/seo";
+import { CostCalculator } from "@/components/oix/cost-calculator";
+import { BeforeAfter } from "@/components/oix/before-after";
 import { Package, Puzzle, Layers, LifeBuoy, Check } from "lucide-react";
 import { OixLayout } from "@/components/oix/oix-layout";
 import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
@@ -84,6 +86,9 @@ function PricingPage() {
           <EnterpriseIntelligence variant="platform" compact className="hidden md:block" />
         </div>
       </section>
+
+      <BeforeAfter />
+      <CostCalculator />
 
       {/* Tiers */}
       <SectionShell>
