@@ -28,6 +28,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CompanyRouteImport } from './routes/company'
 import { Route as BrandRouteImport } from './routes/brand'
 import { Route as BlogRouteImport } from './routes/blog'
@@ -243,6 +244,11 @@ const DocumentationRoute = DocumentationRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompanyRoute = CompanyRouteImport.update({
@@ -918,6 +924,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
@@ -1058,6 +1065,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -1195,6 +1203,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/brand': typeof BrandRoute
   '/company': typeof CompanyRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
@@ -1338,6 +1347,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/brand'
     | '/company'
+    | '/compare'
     | '/contact'
     | '/documentation'
     | '/first-run'
@@ -1478,6 +1488,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/brand'
     | '/company'
+    | '/compare'
     | '/contact'
     | '/first-run'
     | '/forgot-password'
@@ -1614,6 +1625,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/brand'
     | '/company'
+    | '/compare'
     | '/contact'
     | '/documentation'
     | '/first-run'
@@ -1757,6 +1769,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   BrandRoute: typeof BrandRoute
   CompanyRoute: typeof CompanyRoute
+  CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
   DocumentationRoute: typeof DocumentationRouteWithChildren
   FirstRunRoute: typeof FirstRunRoute
@@ -1948,6 +1961,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/company': {
@@ -3102,6 +3122,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   BrandRoute: BrandRoute,
   CompanyRoute: CompanyRoute,
+  CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
   DocumentationRoute: DocumentationRouteWithChildren,
   FirstRunRoute: FirstRunRoute,

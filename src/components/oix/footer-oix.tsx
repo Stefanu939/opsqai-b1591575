@@ -14,6 +14,7 @@ export function FooterOix() {
         { label: m.nav.solutions, to: "/solutions" },
         { label: m.nav.overview, to: "/product-overview" },
         { label: m.nav.modules, to: "/modules" },
+        { label: m.nav.compare, to: "/compare" },
         { label: m.nav.selfHosted, to: "/self-hosted" },
         { label: m.nav.security, to: "/security" },
       ],
