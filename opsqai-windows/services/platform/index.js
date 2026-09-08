@@ -52,7 +52,12 @@ function buildDatabaseUrl() {
   }
   const e = cfg.database.external;
   const auth = encodeURIComponent(e.username) + ":" + encodeURIComponent(e.password);
-  return `postgres://${auth}@${e.host}:${e.port}/${e.database}`;
+  // Honour the TLS choice made in the setup wizard. `prefer` is libpq's
+  // default and needs no parameter; `require`/`disable` are explicit.
+  const sslmode = String(e.sslmode || "prefer");
+  const query =
+    sslmode === "require" || sslmode === "disable" ? `?sslmode=${sslmode}` : "";
+  return `postgres://${auth}@${e.host}:${e.port}/${e.database}${query}`;
 }
 
 const programData = process.env.ProgramData || "C:\\ProgramData";
