@@ -87,6 +87,7 @@ function PricingPage() {
         </div>
       </section>
 
+      <PainBand page="pricing" calculatorHref="#cost" />
       <BeforeAfter />
       <CostCalculator />
 
