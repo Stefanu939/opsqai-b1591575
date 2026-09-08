@@ -5,10 +5,10 @@ import { useT } from "@/i18n";
 
 const en = {
   heroEyebrow: "The OPSQAI platform",
-  heroSerifAccent: "Products adapt to your domain.",
-  heroHeadline: "One platform.",
+  heroSerifAccent: "replaces it with one system that answers.",
+  heroHeadline: "Folders, chats, inbox archaeology.",
   heroBody:
-    "Every OPSQAI installation includes the complete Core platform. On top of it, OPSQAI products bring the workspaces of your business domain, and a small set of optional add-ons covers what not every organisation needs. Everything is delivered through signed licenses — activated by OPSQAI, no reinstall, no cloud dependency.",
+    "Your operational knowledge lives in too many places, and every question costs someone time. OPSQAI Core is the complete platform every installation ships with; OPSQAI products bring the workspaces of your business domain on top of it. Delivered through signed licenses — activated by OPSQAI, no reinstall, no cloud dependency.",
   ctaRequestModules: "Talk to OPSQAI",
   ctaSeePricing: "See licensing model",
 
@@ -38,10 +38,10 @@ type Copy = typeof en;
 
 const de: Copy = {
   heroEyebrow: "Die OPSQAI-Plattform",
-  heroSerifAccent: "Produkte passen sich Ihrem Fachbereich an.",
-  heroHeadline: "Eine Plattform.",
+  heroSerifAccent: "ersetzt sie durch ein System, das antwortet.",
+  heroHeadline: "Ordner, Chats, Postfach-Archäologie.",
   heroBody:
-    "Jede OPSQAI-Installation enthält die vollständige Core-Plattform. Darauf bringen OPSQAI-Produkte die Arbeitsbereiche Ihres Fachbereichs, und einige optionale Add-ons decken ab, was nicht jede Organisation braucht. Alles wird über signierte Lizenzen ausgeliefert — von OPSQAI aktiviert, ohne Neuinstallation, ohne Cloud-Abhängigkeit.",
+    "Ihr betriebliches Wissen liegt an zu vielen Orten, und jede Frage kostet jemanden Zeit. OPSQAI Core ist die vollständige Plattform jeder Installation; OPSQAI-Produkte bringen die Arbeitsbereiche Ihres Fachbereichs obenauf. Ausgeliefert über signierte Lizenzen — von OPSQAI aktiviert, ohne Neuinstallation, ohne Cloud-Abhängigkeit.",
   ctaRequestModules: "OPSQAI kontaktieren",
   ctaSeePricing: "Lizenzmodell ansehen",
 
@@ -69,10 +69,10 @@ const de: Copy = {
 
 const ro: Copy = {
   heroEyebrow: "Platforma OPSQAI",
-  heroSerifAccent: "Produsele se adaptează domeniului dumneavoastră.",
-  heroHeadline: "O singură platformă.",
+  heroSerifAccent: "le înlocuiește cu un sistem care răspunde.",
+  heroHeadline: "Foldere, chat-uri, arheologie în inbox.",
   heroBody:
-    "Fiecare instalare OPSQAI include platforma Core completă. Peste ea, produsele OPSQAI aduc spațiile de lucru ale domeniului dumneavoastră, iar câteva add-on-uri opționale acoperă ce nu este necesar fiecărei organizații. Totul se livrează prin licențe semnate — activate de OPSQAI, fără reinstalare, fără dependență de cloud.",
+    "Cunoștințele operaționale stau în prea multe locuri, iar fiecare întrebare costă timpul cuiva. OPSQAI Core este platforma completă inclusă în fiecare instalare; produsele OPSQAI aduc spațiile de lucru ale domeniului dumneavoastră peste ea. Livrate prin licențe semnate — activate de OPSQAI, fără reinstalare, fără dependență de cloud.",
   ctaRequestModules: "Contactați OPSQAI",
   ctaSeePricing: "Vedeți modelul de licențiere",
 
