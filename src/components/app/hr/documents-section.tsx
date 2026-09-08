@@ -29,7 +29,7 @@ import { downloadBase64 } from "@/components/app/transport/download";
 import type { HrExtUi } from "@/i18n/pages/hr-ext";
 import type { HrWsUi } from "@/i18n/pages/hr-ws";
 import { useHrDocuments, useHrExtRefresh } from "./use-hr-ext";
-import { useHrDocumentLibrary } from "./use-hr-ws";
+import { useHrLang, useHrDocumentLibrary } from "./use-hr-ws";
 import { EmployeePicker, Field, fmtDate, selectCls } from "./shared";
 
 type Filter = "all" | "draft" | "review" | "approved" | "file";
@@ -37,6 +37,7 @@ type Filter = "all" | "draft" | "review" | "approved" | "file";
 export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi; initialDocId?: string | null }) {
   const query = useHrDocuments();
   const library = useHrDocumentLibrary();
+  const lang = useHrLang();
   const refresh = useHrExtRefresh();
   const generate = useServerFn(generateHrDocument);
   const upload = useServerFn(uploadHrDocument);
@@ -288,7 +289,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
                     <optgroup label={`${w.builtIn} ${lib.country.toUpperCase()}`}>
                       {lib.builtIn.map((d) => (
                         <option key={d.key} value={`b:${d.key}`}>
-                          {d.label}
+                          {d.label[lang] ?? d.label.en}
                         </option>
                       ))}
                     </optgroup>

@@ -46,12 +46,12 @@
 - [x] Faza 8 — HR Analytics & AI Alerts
 
 ## Cerere 2026-09-08 (Self-Hosted HR)
-- [ ] Contracte: descărcare PDF reparată (atob eroare); flux angajat → tip document (per țară) → generare automată cu conținut → editare/draft cu nume → aprobare → PDF → atașare la fișă
-- [ ] HR Overview: rezumat complet (onboarding, offboarding, noi, în așteptare, CV-uri, expirări), taskuri deschise ca și card de lucru, marcare rezolvat, export PDF
-- [ ] HR Tasks: detaliu/editare, documente atașate, generare din șablon per țară
-- [ ] Onboarding/Offboarding: fluxuri reale per țară, căutare angajat, promote/demote cu criterii
-- [ ] Equipment: șabloane/categorii predefinite (safety, hardware…) + manual
-- [ ] Candidate screening: orice limbă, interogare/editare/analiză extinsă
-- [ ] HR Analytics & Alerts: reparat + complex
-- [ ] Settings: mai ample
-- [ ] Workspaces noi funcționale: Policies & Procedures, Employee Requests, HR Knowledge, Training, Compliance, HR Intelligence
+- [x] Contracte: descărcare PDF reparată (atob eroare); flux angajat → tip document (per țară) → generare automată cu conținut → editare/draft cu nume → aprobare → PDF → atașare la fișă
+- [x] HR Overview: rezumat complet (onboarding, offboarding, noi, în așteptare, CV-uri, expirări), taskuri deschise ca și card de lucru, marcare rezolvat, export PDF
+- [x] HR Tasks: detaliu/editare, documente atașate, generare din șablon per țară
+- [x] Onboarding/Offboarding: fluxuri reale per țară, căutare angajat, promote/demote cu criterii
+- [x] Equipment: șabloane/categorii predefinite (safety, hardware…) + manual
+- [x] Candidate screening: orice limbă, interogare/editare/analiză extinsă
+- [x] HR Analytics & Alerts: reparat + complex
+- [x] Settings: mai ample
+- [x] Workspaces noi funcționale: Policies & Procedures, Employee Requests, HR Knowledge, Training, Compliance, HR Intelligence

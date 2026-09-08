@@ -19,9 +19,11 @@ import {
 } from "@/components/ui/dialog";
 import { assignHrAsset, deleteHrAsset, saveHrAsset } from "@/lib/hr-ext.functions";
 import type { HrExtUi } from "@/i18n/pages/hr-ext";
+import type { HrWsUi } from "@/i18n/pages/hr-ws";
+import { EquipmentPackages } from "./equipment-packages";
 import { useHrAssets, useHrExtRefresh } from "./use-hr-ext";
 
-export function EquipmentSection({ t }: { t: HrExtUi }) {
+export function EquipmentSection({ t, w }: { t: HrExtUi; w?: HrWsUi }) {
   const query = useHrAssets();
   const refresh = useHrExtRefresh();
   const save = useServerFn(saveHrAsset);
@@ -41,6 +43,7 @@ export function EquipmentSection({ t }: { t: HrExtUi }) {
 
   return (
     <div className="grid gap-6">
+      {w ? <EquipmentPackages t={t} w={w} employees={data.employees} can={can} /> : null}
       <Panel
         icon={Laptop}
         title={t.equipment}

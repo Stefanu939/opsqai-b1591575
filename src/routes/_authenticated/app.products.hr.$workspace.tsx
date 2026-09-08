@@ -25,6 +25,13 @@ import { IncidentsSection } from "@/components/app/hr/incidents-section";
 import { ScreeningSection } from "@/components/app/hr/screening-section";
 import { HrAnalyticsSection } from "@/components/app/hr/analytics-section";
 import { hrExtUi } from "@/i18n/pages/hr-ext";
+import { hrWsUi } from "@/i18n/pages/hr-ws";
+import { PoliciesSection } from "@/components/app/hr/policies-section";
+import { RequestsSection } from "@/components/app/hr/requests-section";
+import { KnowledgeSection } from "@/components/app/hr/knowledge-section";
+import { TrainingSection } from "@/components/app/hr/training-section";
+import { ComplianceSection } from "@/components/app/hr/compliance-section";
+import { IntelligenceSection } from "@/components/app/hr/intelligence-section";
 
 export const Route = createFileRoute("/_authenticated/app/products/hr/$workspace")({
   component: HrWorkspacePage,
@@ -78,7 +85,7 @@ function HrWorkspacePage() {
       title={title}
       description={found.workspace.description}
     >
-      <HrSection slug={slug} t={t} x={hrExtUi(lang)} />
+      <HrSection slug={slug} t={t} x={hrExtUi(lang)} w={hrWsUi(lang)} />
     </ModulePage>
   );
 }
@@ -87,31 +94,38 @@ function HrSection({
   slug,
   t,
   x,
+  w,
 }: {
   slug: string;
   t: ReturnType<typeof hrUi>;
   x: ReturnType<typeof hrExtUi>;
+  w: ReturnType<typeof hrWsUi>;
 }) {
   if (slug === "employees") return <EmployeesSection t={t} />;
-  if (slug === "tasks") return <TasksSection t={t} />;
-  if (slug === "settings") return <HrSettingsSection t={t} />;
-  if (slug === "documents") return <DocumentsSection t={x} />;
-  if (slug === "lifecycle") return <LifecycleSection t={x} />;
-  if (slug === "equipment") return <EquipmentSection t={x} />;
+  if (slug === "tasks") return <TasksSection t={t} w={w} x={x} />;
+  if (slug === "settings") return <HrSettingsSection t={t} w={w} />;
+  if (slug === "documents") return <DocumentsSection t={x} w={w} />;
+  if (slug === "lifecycle") return <LifecycleSection t={x} w={w} h={t} />;
+  if (slug === "equipment") return <EquipmentSection t={x} w={w} />;
   if (slug === "incidents") return <IncidentsSection t={x} />;
-  if (slug === "screening") return <ScreeningSection t={x} />;
+  if (slug === "screening") return <ScreeningSection t={x} w={w} h={t} />;
   if (slug === "analytics") return <HrAnalyticsSection t={x} />;
-  if (slug === "overview") return <HrOverview t={t} />;
-  // Workspaces delivered in the next HR phases.
+  if (slug === "policies") return <PoliciesSection w={w} />;
+  if (slug === "requests") return <RequestsSection w={w} />;
+  if (slug === "knowledge") return <KnowledgeSection w={w} />;
+  if (slug === "training") return <TrainingSection w={w} />;
+  if (slug === "compliance") return <ComplianceSection w={w} />;
+  if (slug === "intelligence") return <IntelligenceSection w={w} />;
+  if (slug === "overview") return <HrOverview t={t} w={w} x={x} />;
   return <EmptyState title={t.comingSoon} description={t.notLicensedBody} />;
 }
 
-function HrOverview({ t }: { t: ReturnType<typeof hrUi> }) {
+function HrOverview({ t, w, x }: { t: ReturnType<typeof hrUi>; w: ReturnType<typeof hrWsUi>; x: ReturnType<typeof hrExtUi> }) {
   const query = useHrOverview();
   if (query.isPending) return <Skeleton className="h-72 w-full rounded-lg" />;
   if (query.error) {
     return <EmptyState title={t.employees} description={(query.error as Error).message} />;
   }
   if (!query.data) return <EmptyState title={t.employees} />;
-  return <HrOverviewSection t={t} data={query.data} />;
+  return <HrOverviewSection t={t} w={w} x={x} data={query.data} />;
 }
