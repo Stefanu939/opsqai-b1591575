@@ -15,7 +15,7 @@ import { OixLayout } from "@/components/oix/oix-layout";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
-import { MottoBand } from "@/components/oix/motto-band";
+import { PainBand } from "@/components/oix/pain-band";
 import { useProductOverviewCopy } from "@/i18n/pages/product-overview";
 import demoVideo from "@/assets/opsqai-demo.mp4.asset.json";
 
@@ -244,7 +244,7 @@ function ProductOverviewPage() {
         </div>
       </SectionShell>
 
-      <MottoBand />
+      <PainBand page="overview" />
 
       {/* 4 — How OPSQAI works */}
       <SectionShell className="oix-hairline-top">

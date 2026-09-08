@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OixLayout } from "@/components/oix/oix-layout";
 import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
-import { MottoBand } from "@/components/oix/motto-band";
 import { OixButton } from "@/components/oix/buttons";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +13,7 @@ import {
   workspacesForProduct,
 } from "@/lib/product-architecture";
 import { Check, Package } from "lucide-react";
+import { PainBand } from "@/components/oix/pain-band";
 import { useModulesCopy } from "@/i18n/pages/modules";
 import { useT } from "@/i18n";
 import { localizeWorkspaceLabel } from "@/i18n/pages/product-workspaces";
@@ -70,7 +70,7 @@ function ModulesPage() {
       </section>
 
       {/* Motto band */}
-      <MottoBand compact />
+      <PainBand page="platform" />
 
       {/* Core / Products / Add-ons */}
       <section className="mx-auto max-w-6xl px-6 py-24 space-y-16">
