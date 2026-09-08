@@ -52,6 +52,11 @@ import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
 import { OixButton } from "@/components/oix/buttons";
 import { Founders } from "@/components/oix/founders";
+import { PainHero } from "@/components/oix/pain-hero";
+import { BeforeAfter } from "@/components/oix/before-after";
+import { CostCalculator } from "@/components/oix/cost-calculator";
+import { RoleScenarios } from "@/components/oix/role-scenarios";
+import { ProofMap } from "@/components/oix/proof-map";
 import { useHomeCopy } from "@/i18n/pages/home";
 
 export const Route = createFileRoute("/")({
@@ -109,8 +114,11 @@ function Home() {
 
   return (
     <OixLayout>
-      <Hero />
-      <WhoFor />
+      <PainHero />
+      <BeforeAfter />
+      <CostCalculator />
+      <RoleScenarios />
+      <ProofMap />
       <ThreeSurfaces />
       <CorePlatform />
       <ProductsAndAddons />
