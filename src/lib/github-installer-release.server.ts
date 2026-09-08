@@ -27,6 +27,8 @@ interface GithubRelease {
   prerelease: boolean;
   published_at: string;
   assets: GithubReleaseAsset[];
+  /** true when published_at is synthetic (public-page fallback, not the API). */
+  synthetic_date?: boolean;
 }
 
 export interface ResolvedInstaller {
@@ -63,9 +65,14 @@ function pickInstallerAsset(release: GithubRelease): GithubReleaseAsset | null {
   return release.assets.find((a) => a.name.toLowerCase().endsWith(".zip")) ?? null;
 }
 
-async function fetchLatestReleaseMeta(repo: string): Promise<GithubRelease | null> {
+async function fetchLatestReleaseMeta(
+  repo: string,
+  opts: { forceFresh?: boolean } = {},
+): Promise<GithubRelease | null> {
   const cached = metadataCache.get(repo);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return cached.release;
+  if (!opts.forceFresh && cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS)
+    return cached.release;
+
 
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
