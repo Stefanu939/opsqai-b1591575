@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { deleteHrRef, saveHrRef, saveHrSettings } from "@/lib/hr.functions";
-import type { HrCountry, HrRef } from "@/lib/hr/types";
+import type { HrCountry, HrRef, HrSettings } from "@/lib/hr/types";
+import type { HrWsUi } from "@/i18n/pages/hr-ws";
 import type { HrUi } from "@/i18n/pages/hr";
 import { useHrOverview, useHrRefresh } from "./use-hr";
 
@@ -27,7 +28,7 @@ const COUNTRIES: Array<{ value: HrCountry; label: string }> = [
   { value: "generic", label: "Generic / EU" },
 ];
 
-export function HrSettingsSection({ t }: { t: HrUi }) {
+export function HrSettingsSection({ t, w }: { t: HrUi; w?: HrWsUi }) {
   const query = useHrOverview();
   const refresh = useHrRefresh();
   const saveSettings = useServerFn(saveHrSettings);
@@ -103,6 +104,8 @@ export function HrSettingsSection({ t }: { t: HrUi }) {
           </div>
         </div>
       </Panel>
+
+      {w ? <ExtendedSettings s={data.settings} w={w} t={t} canEdit={canEdit} onChanged={refresh} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <RefPanel
@@ -210,5 +213,131 @@ function RefPanel({
         </ul>
       )}
     </Panel>
+  );
+}
+
+
+function ExtendedSettings({
+  s,
+  w,
+  t,
+  canEdit,
+  onChanged,
+}: {
+  s: HrSettings;
+  w: HrWsUi;
+  t: HrUi;
+  canEdit: boolean;
+  onChanged: () => void;
+}) {
+  const saveSettings = useServerFn(saveHrSettings);
+  const [f, setF] = useState({
+    default_language: s.default_language as "en" | "de" | "ro",
+    probation_months: String(s.probation_months),
+    notice_weeks: String(s.notice_weeks),
+    vacation_days: String(s.vacation_days),
+    weekly_hours: String(s.weekly_hours),
+    contract_alert_days: String(s.contract_alert_days),
+    document_alert_days: String(s.document_alert_days),
+    auto_onboarding: s.auto_onboarding,
+    blind_screening: s.blind_screening,
+    retention_months_after_exit: String(s.retention_months_after_exit),
+    company_legal_name: s.company_legal_name ?? "",
+    company_address: s.company_address ?? "",
+    company_signatory: s.company_signatory ?? "",
+  });
+  const num = (v: string, fallback: number) => (Number.isFinite(Number(v)) && v.trim() !== "" ? Number(v) : fallback);
+  const save = () =>
+    void saveSettings({
+      data: {
+        default_language: f.default_language,
+        probation_months: Math.round(num(f.probation_months, s.probation_months)),
+        notice_weeks: Math.round(num(f.notice_weeks, s.notice_weeks)),
+        vacation_days: Math.round(num(f.vacation_days, s.vacation_days)),
+        weekly_hours: num(f.weekly_hours, s.weekly_hours),
+        contract_alert_days: Math.round(num(f.contract_alert_days, s.contract_alert_days)),
+        document_alert_days: Math.round(num(f.document_alert_days, s.document_alert_days)),
+        auto_onboarding: f.auto_onboarding,
+        blind_screening: f.blind_screening,
+        retention_months_after_exit: Math.round(num(f.retention_months_after_exit, s.retention_months_after_exit)),
+        company_legal_name: f.company_legal_name.trim() || null,
+        company_address: f.company_address.trim() || null,
+        company_signatory: f.company_signatory.trim() || null,
+      },
+    })
+      .then(() => {
+        toast.success(t.saved);
+        onChanged();
+      })
+      .catch((e: Error) => toast.error(e.message));
+  const N = (key: keyof typeof f, label: string, step = "1") => (
+    <div className="grid gap-1.5">
+      <Label>{label}</Label>
+      <Input type="number" step={step} value={String(f[key])} disabled={!canEdit} onChange={(e) => setF({ ...f, [key]: e.target.value })} />
+    </div>
+  );
+  return (
+    <>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel icon={Settings} title={w.contractDefaults}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label>{w.defaultLanguage}</Label>
+              <select
+                className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                value={f.default_language}
+                disabled={!canEdit}
+                onChange={(e) => setF({ ...f, default_language: e.target.value as "en" | "de" | "ro" })}
+              >
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="ro">Română</option>
+              </select>
+            </div>
+            {N("probation_months", w.probationMonths)}
+            {N("notice_weeks", w.noticeWeeks)}
+            {N("vacation_days", w.vacationDays)}
+            {N("weekly_hours", w.weeklyHours, "0.5")}
+          </div>
+        </Panel>
+        <Panel icon={Settings} title={w.alertsThresholds}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {N("contract_alert_days", w.contractAlertDays)}
+            {N("document_alert_days", w.documentAlertDays)}
+            {N("retention_months_after_exit", "Retention (months after exit)")}
+          </div>
+          <label className="mt-3 flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={f.auto_onboarding} disabled={!canEdit} onChange={(e) => setF({ ...f, auto_onboarding: e.target.checked })} />
+            {w.autoOnboarding}
+          </label>
+          <p className="ml-6 text-xs text-muted-foreground">{w.autoOnboardingHint}</p>
+          <label className="mt-2 flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={f.blind_screening} disabled={!canEdit} onChange={(e) => setF({ ...f, blind_screening: e.target.checked })} />
+            Blind screening
+          </label>
+        </Panel>
+      </div>
+      <Panel
+        icon={Building2}
+        title={w.companyIdentity}
+        actions={canEdit ? <Button size="sm" onClick={save}>{t.save}</Button> : null}
+      >
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-1.5">
+            <Label>{w.companyLegalName}</Label>
+            <Input value={f.company_legal_name} disabled={!canEdit} onChange={(e) => setF({ ...f, company_legal_name: e.target.value })} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>{w.companyAddress}</Label>
+            <Input value={f.company_address} disabled={!canEdit} onChange={(e) => setF({ ...f, company_address: e.target.value })} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>{w.companySignatory}</Label>
+            <Input value={f.company_signatory} disabled={!canEdit} onChange={(e) => setF({ ...f, company_signatory: e.target.value })} />
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">{w.identityHint}</p>
+      </Panel>
+    </>
   );
 }

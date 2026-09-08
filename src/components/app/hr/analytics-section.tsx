@@ -65,7 +65,7 @@ export function HrAnalyticsSection({ t }: { t: HrExtUi }) {
               variant="outline"
               onClick={() =>
                 void exportPdf()
-                  .then((r) => downloadBase64(r.base64, r.filename, r.mime))
+                  .then((r) => downloadBase64(r.filename, r.base64, r.mime))
                   .catch((e: Error) => toast.error(e.message))
               }
             >
