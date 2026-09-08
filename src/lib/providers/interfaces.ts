@@ -1919,6 +1919,9 @@ export interface IAcademyRepository {
   // Settings
   getSettings(companyId: string): Promise<AcademySettingsRow | null>;
   saveSettings(input: AcademySettingsUpsertInput): Promise<void>;
+  /** Certificate branding (logo / signature) stored in academy_settings.certificate_template. */
+  saveCertificateTemplate(companyId: string, template: JsonLike): Promise<void>;
+
 
   // Targeting
   resolveTargets(input: AcademyResolveTargetsInput): Promise<string[]>;
