@@ -67,12 +67,16 @@ try {
 function databaseEnv() {
   if (cfg.database?.mode === "external") {
     const db = cfg.database.external || {};
+    // Honour the wizard's TLS choice so migrations use the same encryption
+    // policy as the running app. libpq default is "prefer".
+    const sslmode = String(db.sslmode || "prefer");
     return {
       PGHOST: db.host,
       PGPORT: String(db.port || 5432),
       PGDATABASE: db.database || "opsqai",
       PGUSER: db.username || "opsqai",
       PGPASSWORD: db.password || "",
+      PGSSLMODE: sslmode,
     };
   }
   const embedded = cfg.database?.embedded || {};

@@ -342,6 +342,61 @@ async function probeDiskSpace(): Promise<DoctorFinding> {
   }
 }
 
+// Reports WHERE this install's data lives (bundled PostgreSQL vs. the
+// company's own server) without ever exposing credentials. Self-Hosted only;
+// on Cloud the database is the managed platform one.
+function probeDatabaseSource(): DoctorFinding {
+  const url = process.env.DATABASE_URL || "";
+  if (!url) {
+    return {
+      id: "database.source",
+      category: "database",
+      severity: "n/a",
+      message: "Database connection not configured in this process",
+    };
+  }
+  try {
+    const u = new URL(url);
+    const local = u.hostname === "127.0.0.1" || u.hostname === "localhost";
+    const sslmode = u.searchParams.get("sslmode") || "";
+    if (local) {
+      return {
+        id: "database.source",
+        category: "database",
+        severity: "green",
+        message: `Database: bundled PostgreSQL on this machine (port ${u.port || "5432"})`,
+        detail: { mode: "embedded", host: u.hostname, port: u.port || "5432" },
+      };
+    }
+    const sslNote =
+      sslmode === "require"
+        ? "encrypted connection enforced"
+        : sslmode === "disable"
+          ? "unencrypted connection (isolated network)"
+          : "encryption negotiated with the server";
+    return {
+      id: "database.source",
+      category: "database",
+      severity: "green",
+      message: `Database: company server ${u.hostname}:${u.port || "5432"} (${sslNote})`,
+      detail: {
+        mode: "external",
+        host: u.hostname,
+        port: u.port || "5432",
+        database: u.pathname.replace(/^\//, ""),
+        sslmode: sslmode || "prefer",
+      },
+    };
+  } catch {
+    return {
+      id: "database.source",
+      category: "database",
+      severity: "amber",
+      message: "Database connection string could not be parsed",
+    };
+  }
+}
+
 export async function runDoctor(): Promise<DoctorReport> {
   const findings = await Promise.all([
     probeLicense(),
@@ -351,6 +406,7 @@ export async function runDoctor(): Promise<DoctorReport> {
     probeBackupFreshness(),
     Promise.resolve(probeTelemetry()),
     probeDiskSpace(),
+    Promise.resolve(probeDatabaseSource()),
   ]);
   return {
     overall: rollup(findings),

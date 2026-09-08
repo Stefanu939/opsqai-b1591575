@@ -270,6 +270,13 @@ const WIZARD_SHELL_HTML = String.raw`
       </div>
 
       <div class="form" id="db-external" hidden>
+        <p class="hint">
+          OPSQAI will store all of your data in this server. Before you start, ask your
+          database administrator for: PostgreSQL 15+ with the <strong>pgvector</strong>
+          extension installed, a dedicated database (e.g. <code>opsqai</code>) and a login
+          allowed to create tables and extensions in it. The connection test below checks
+          all of this for you.
+        </p>
         <div class="grid-2">
           <label>Host<input id="db-host" placeholder="db.internal.acme" /></label>
           <label>Port<input id="db-port" type="number" value="5432" /></label>
@@ -279,6 +286,17 @@ const WIZARD_SHELL_HTML = String.raw`
           <label>Username<input id="db-user" placeholder="opsqai_app" /></label>
           <label>Password<input id="db-pass" type="password" /></label>
         </div>
+        <label>Connection encryption (SSL/TLS)
+          <select id="db-sslmode">
+            <option value="prefer" selected>Prefer — encrypt when the server supports it</option>
+            <option value="require">Require — refuse to connect without encryption</option>
+            <option value="disable">Disable — only on isolated internal networks</option>
+          </select>
+        </label>
+        <p class="hint">
+          Choose <strong>Require</strong> when the database server is on another machine.
+          OPSQAI stores these credentials locally, readable only by Windows administrators.
+        </p>
         <div class="row">
           <button type="button" class="btn btn-primary" id="btn-db-test">Test connection</button>
           <span id="db-status" class="status-pill" hidden></span>
@@ -542,7 +560,7 @@ $$('input[name="db-mode"]').forEach((r) =>
     updateNextButton();
   }),
 );
-$$('input[name="db-mode"], #db-host, #db-port, #db-name, #db-user, #db-pass').forEach((el) => {
+$$('input[name="db-mode"], #db-host, #db-port, #db-name, #db-user, #db-pass, #db-sslmode').forEach((el) => {
   el?.addEventListener("input", () => {
     state.data.dbConnectionTested = false;
     setDbStatus("", null);
@@ -560,14 +578,20 @@ $("#btn-db-test").addEventListener("click", async () => {
     setDbStatus("Fill in all fields first", "err");
     return;
   }
-  const r = await window.opsqai.testDatabase({ host, port, database, user, password });
+  const sslmode = $("#db-sslmode")?.value || "prefer";
+  const r = await window.opsqai.testDatabase({ host, port, database, user, password, sslmode });
   if (!r?.ok) {
     setDbStatus(r?.error || "Connection failed", "err");
     state.data.dbConnectionTested = false;
     updateNextButton();
     return;
   }
-  setDbStatus("Connected · " + (r.version || "ok"), "ok");
+  const detail = [
+    r.version ? r.version.replace(/^PostgreSQL\s*/i, "PostgreSQL ") : "ok",
+    r.pgvector ? `pgvector ${r.pgvector}` : null,
+    r.ssl ? "SSL on" : "SSL off",
+  ].filter(Boolean).join(" · ");
+  setDbStatus("Connected · " + detail, "ok");
   state.data.dbConnectionTested = true;
   updateNextButton();
 });
@@ -694,7 +718,11 @@ function renderReview() {
     ["Mode", dbLine],
   );
   if (d.database.mode === "external") {
-    rows.push(["Database", d.database.external.database || "—"], ["Username", d.database.external.username || "—"]);
+    rows.push(
+      ["Database", d.database.external.database || "—"],
+      ["Username", d.database.external.username || "—"],
+      ["SSL/TLS", d.database.external.sslmode || "prefer"],
+    );
   }
   rows.push(
     ["section", "Local AI engine"],
@@ -741,6 +769,7 @@ function buildConfig() {
           database: $("#db-name").value.trim(),
           username: $("#db-user").value.trim(),
           password: $("#db-pass").value,
+          sslmode: $("#db-sslmode")?.value || "prefer",
         },
       }
     : { mode: "embedded", embedded: { port: 55432 } };

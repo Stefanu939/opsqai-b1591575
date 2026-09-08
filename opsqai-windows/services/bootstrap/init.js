@@ -702,7 +702,15 @@ function psqlExec(sql) {
       psql,
       ["-w", "-v", "ON_ERROR_STOP=1", "-h", host, "-p", String(port), "-U", user, "-d", db, "-c", sql],
       {
-        env: { ...process.env, PGPASSWORD: pw || process.env.PGPASSWORD || "" },
+        env: {
+          ...process.env,
+          PGPASSWORD: pw || process.env.PGPASSWORD || "",
+          // External mode honours the wizard's TLS choice ("prefer" default).
+          PGSSLMODE:
+            config.database.mode === "external"
+              ? String(config.database.external?.sslmode || "prefer")
+              : process.env.PGSSLMODE || "prefer",
+        },
         encoding: "utf8",
         windowsHide: true,
         timeout: 10_000,
