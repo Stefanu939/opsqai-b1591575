@@ -139,13 +139,15 @@ export function WindowsReleasesPanel() {
                   row={editing}
                   onChange={setEditing}
                   onSave={(payload) => {
+                     setBusy(true);
                     void save({ data: payload })
                       .then(() => {
                         toast.success("Release saved");
                         setEditing(null);
+                         return releases.refetch();
                       })
                       .catch((e: Error) => toast.error(e.message))
-                      .finally(refresh);
+                       .finally(() => setBusy(false));
                   }}
                 />
               ) : null}
@@ -240,6 +242,7 @@ function ReleaseEditor({
       <div className="sm:col-span-2 flex justify-end">
         <Button
           size="sm"
+          disabled={busy}
           onClick={() =>
             onSave({
               id: row.id,

@@ -9,7 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
-import { getCloudSupabase } from "@/lib/providers/not-available";
+import { getCloudSupabase, getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 import { uuidString } from "@/lib/zod-uuid";
 
 export interface InstallerReleaseRow {
@@ -76,7 +76,10 @@ export const saveInstallerRelease = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => SaveInput.parse(d))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     await requirePlatformAdmin(context);
-    const db = getCloudSupabase(context, "installer releases");
+    // Authorization is checked above. Mutations use the privileged Cloud
+    // client because installer_releases deliberately grants authenticated
+    // users read-only access.
+    const db = await getCloudSupabaseAdmin("installer releases");
 
     // A published release must be installable: the updater needs somewhere to
     // download from and a hash to verify the artifact against.
@@ -102,16 +105,25 @@ export const saveInstallerRelease = createServerFn({ method: "POST" })
     };
 
     let error: { message: string } | null = null;
+    let saved: Array<{ id: string }> | null = null;
     if (data.id) {
-      ({ error } = await db.from("installer_releases").update(row).eq("id", data.id));
+      ({ data: saved, error } = await db
+        .from("installer_releases")
+        .update(row)
+        .eq("id", data.id)
+        .select("id"));
     } else {
       if (!row.zip_url) throw new Error("A download URL is required for a new release.");
-      ({ error } = await db.from("installer_releases").upsert(
-        { ...row, zip_url: row.zip_url, tag_name: row.tag_name ?? data.version },
-        { onConflict: "version" },
-      ));
+      ({ data: saved, error } = await db
+        .from("installer_releases")
+        .upsert(
+          { ...row, zip_url: row.zip_url, tag_name: row.tag_name ?? data.version },
+          { onConflict: "version" },
+        )
+        .select("id"));
     }
     if (error) throw new Error(error.message);
+    if (!saved?.length) throw new Error("Release was not saved. Please retry.");
     return { ok: true };
   });
 
@@ -122,7 +134,7 @@ export const setInstallerReleasePublished = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     await requirePlatformAdmin(context);
-    const db = getCloudSupabase(context, "installer releases");
+    const db = await getCloudSupabaseAdmin("installer releases");
 
     if (data.is_published) {
       const { data: row, error: readErr } = await db
@@ -140,10 +152,12 @@ export const setInstallerReleasePublished = createServerFn({ method: "POST" })
       }
     }
 
-    const { error } = await db
+    const { data: saved, error } = await db
       .from("installer_releases")
       .update({ is_published: data.is_published })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!saved?.length) throw new Error("Release was not updated. Please retry.");
     return { ok: true };
   });

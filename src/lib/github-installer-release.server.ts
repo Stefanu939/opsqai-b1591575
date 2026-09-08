@@ -44,6 +44,7 @@ interface CacheEntry {
 }
 
 const cache = new Map<string, CacheEntry>();
+const metadataCache = new Map<string, { fetchedAt: number; release: GithubRelease | null }>();
 
 function repoSlug(): string {
   return (process.env.OPSQAI_GITHUB_REPO?.trim() || DEFAULT_REPO).replace(/^\/+|\/+$/g, "");
@@ -63,6 +64,9 @@ function pickInstallerAsset(release: GithubRelease): GithubReleaseAsset | null {
 }
 
 async function fetchLatestReleaseMeta(repo: string): Promise<GithubRelease | null> {
+  const cached = metadataCache.get(repo);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return cached.release;
+
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     "User-Agent": "opsqai-lovable-installer-sync",
@@ -73,10 +77,56 @@ async function fetchLatestReleaseMeta(repo: string): Promise<GithubRelease | nul
   const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers });
   if (res.status === 404) return null;
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`github_releases_api_failed: ${res.status} ${body.slice(0, 200)}`);
+    // GitHub's unauthenticated API limit is shared by the hosting egress IP.
+    // Public release pages are not subject to that small API quota, so keep
+    // manual sync usable even when the API answers 403/429.
+    if (res.status === 403 || res.status === 429) {
+      const fallback = await fetchLatestReleaseFromPublicPage(repo);
+      metadataCache.set(repo, { fetchedAt: Date.now(), release: fallback });
+      return fallback;
+    }
+    throw new Error(`GitHub release sync failed (HTTP ${res.status}). Please try again.`);
   }
-  return (await res.json()) as GithubRelease;
+  const release = (await res.json()) as GithubRelease;
+  metadataCache.set(repo, { fetchedAt: Date.now(), release });
+  return release;
+}
+
+async function fetchLatestReleaseFromPublicPage(repo: string): Promise<GithubRelease | null> {
+  const latest = await fetch(`https://github.com/${repo}/releases/latest`, {
+    headers: { "User-Agent": "opsqai-lovable-installer-sync" },
+    redirect: "follow",
+  });
+  if (latest.status === 404) return null;
+  if (!latest.ok) throw new Error(`GitHub release page unavailable (HTTP ${latest.status}).`);
+
+  const match = latest.url.match(/\/releases\/tag\/([^/?#]+)/i);
+  if (!match?.[1]) throw new Error("GitHub did not return a latest release tag.");
+  const tag = decodeURIComponent(match[1]);
+  const assetsResponse = await fetch(
+    `https://github.com/${repo}/releases/expanded_assets/${encodeURIComponent(tag)}`,
+    { headers: { "User-Agent": "opsqai-lovable-installer-sync" } },
+  );
+  if (!assetsResponse.ok) {
+    throw new Error(`GitHub release assets unavailable (HTTP ${assetsResponse.status}).`);
+  }
+  const html = await assetsResponse.text();
+  const hrefs = [...html.matchAll(/href="([^"]+\.zip)"/gi)].map((m) =>
+    m[1].replaceAll("&amp;", "&"),
+  );
+  const preferred = hrefs.find((href) => /\/OPSQAI-Setup[^/]*\.zip$/i.test(href));
+  const href = preferred ?? hrefs[0];
+  if (!href) return null;
+  const zipUrl = new URL(href, "https://github.com").toString();
+
+  return {
+    tag_name: tag,
+    name: tag,
+    draft: false,
+    prerelease: /(?:beta|alpha|rc)/i.test(tag),
+    published_at: new Date().toISOString(),
+    assets: [{ name: href.split("/").pop() ?? "OPSQAI-Setup.zip", size: 0, browser_download_url: zipUrl, content_type: "application/zip" }],
+  };
 }
 
 async function fetchZipBytes(url: string): Promise<Uint8Array> {
@@ -181,6 +231,7 @@ export async function resolveLatestInstaller(): Promise<ResolvedInstaller | null
 
 export function clearInstallerCache() {
   cache.clear();
+  metadataCache.clear();
 }
 
 /**
@@ -207,9 +258,9 @@ export async function syncLatestReleaseMetadata(): Promise<{
     version,
     tag_name: release.tag_name,
     zip_url: asset.browser_download_url,
-    zip_size_bytes: asset.size,
     published_at: release.published_at,
     channel: release.prerelease ? "beta" : "stable",
+    ...(asset.size > 0 ? { zip_size_bytes: asset.size } : {}),
   };
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
