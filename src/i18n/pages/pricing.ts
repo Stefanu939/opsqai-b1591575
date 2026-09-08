@@ -8,9 +8,9 @@ import { useT } from "@/i18n";
 const en = {
   hero: {
     eyebrow: "Pricing · No SaaS",
-    headline: "Own the platform.",
-    serifAccent: "pay for what you enable.",
-    body: "OPSQAI is not a SaaS. You license the OPSQAI Core Platform once for your installation, enable the domain products your business actually needs, and keep the installation healthy with Annual Maintenance.",
+    headline: "The license is not the cost.",
+    serifAccent: "The daily chaos already is.",
+    body: "You are already paying — in searching, asking, retraining and audit weekends. OPSQAI turns that hidden monthly bill into a one-time Core platform license, domain products you actually enable, and predictable Annual Maintenance. Use the calculator below to see your own number.",
   },
   tiers: {
     eyebrow: "How OPSQAI is licensed",
@@ -111,9 +111,9 @@ type Copy = typeof en;
 const de: Copy = {
   hero: {
     eyebrow: "Preise · Kein SaaS",
-    headline: "Besitzen Sie die Plattform.",
-    serifAccent: "zahlen Sie für das, was Sie aktivieren.",
-    body: "OPSQAI ist kein SaaS. Sie lizenzieren die OPSQAI Core-Plattform einmalig für Ihre Installation, aktivieren die Fachprodukte, die Ihr Unternehmen wirklich braucht, und halten die Installation mit einem jährlichen Wartungsvertrag gesund.",
+    headline: "Die Lizenz ist nicht die Kostenstelle.",
+    serifAccent: "Der tägliche Chaos-Betrieb ist es.",
+    body: "Sie zahlen bereits — mit Suchen, Rückfragen, Nachschulungen und Audit-Wochenenden. OPSQAI wandelt diese versteckte Monatsrechnung in eine einmalige Core-Plattform-Lizenz, Fachprodukte, die Sie wirklich aktivieren, und planbare jährliche Wartung um. Der Rechner unten zeigt Ihre eigene Zahl.",
   },
   tiers: {
     eyebrow: "So wird OPSQAI lizenziert",
@@ -212,9 +212,9 @@ const de: Copy = {
 const ro: Copy = {
   hero: {
     eyebrow: "Prețuri · Fără SaaS",
-    headline: "Dețineți platforma.",
-    serifAccent: "plătiți ce activați.",
-    body: "OPSQAI nu este un SaaS. Licențiați Platforma Core OPSQAI o singură dată pentru instalarea dumneavoastră, activați produsele de domeniu de care are nevoie afacerea și mențineți instalarea sănătoasă printr-un contract anual de mentenanță.",
+    headline: "Licența nu este costul real.",
+    serifAccent: "Haosul zilnic deja este.",
+    body: "Plătiți deja — prin căutări, întrebări repetate, reinstruiri și weekenduri de audit. OPSQAI transformă această factură lunară ascunsă într-o licență unică pentru platforma Core, produse de domeniu activate doar la nevoie și mentenanță anuală previzibilă. Calculatorul de mai jos vă arată cifra dumneavoastră.",
   },
   tiers: {
     eyebrow: "Cum se licențiază OPSQAI",
