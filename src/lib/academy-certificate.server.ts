@@ -183,6 +183,41 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
     color: rgb(0.4, 0.45, 0.5),
   });
 
+  async function embedImage(bytes: Uint8Array | null) {
+    if (!bytes || bytes.length === 0) return null;
+    try {
+      return await pdf.embedPng(bytes);
+    } catch {
+      try {
+        return await pdf.embedJpg(bytes);
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  // Company logo (top right).
+  const logoImage = await embedImage(logoBytes);
+  if (logoImage) {
+    const maxW = 150;
+    const maxH = 70;
+    const scale = Math.min(maxW / logoImage.width, maxH / logoImage.height, 1);
+    const lw = logoImage.width * scale;
+    const lh = logoImage.height * scale;
+    page.drawImage(logoImage, { x: W - lw - 60, y: H - lh - 60, width: lw, height: lh });
+  }
+
+  // Company signature (above the signature line).
+  const signatureImage = await embedImage(signatureBytes);
+  if (signatureImage) {
+    const maxW = 200;
+    const maxH = 60;
+    const scale = Math.min(maxW / signatureImage.width, maxH / signatureImage.height, 1);
+    const sw = signatureImage.width * scale;
+    const sh = signatureImage.height * scale;
+    page.drawImage(signatureImage, { x: 60, y: 118, width: sw, height: sh });
+  }
+
   page.drawText("____________________________", {
     x: 60,
     y: 110,
@@ -190,13 +225,23 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
     font: regular,
     color: rgb(0.3, 0.35, 0.42),
   });
-  page.drawText("Authorized Signature", {
+  page.drawText(signatureName || "Authorized Signature", {
     x: 60,
     y: 92,
     size: 10,
-    font: regular,
-    color: rgb(0.4, 0.45, 0.5),
+    font: signatureName ? bold : regular,
+    color: rgb(0.2, 0.25, 0.32),
   });
+  if (signatureRole) {
+    page.drawText(signatureRole, {
+      x: 60,
+      y: 78,
+      size: 9,
+      font: regular,
+      color: rgb(0.4, 0.45, 0.5),
+    });
+  }
+
 
   const qrImage = await pdf.embedPng(qrPng);
   const qrSize = 130;
