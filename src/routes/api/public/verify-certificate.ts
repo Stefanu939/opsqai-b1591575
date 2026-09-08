@@ -37,8 +37,11 @@ export const Route = createFileRoute("/api/public/verify-certificate")({
           }
           return Response.json({ found: true, certificate: result }, { headers });
         } catch {
-          return Response.json({ found: false, error: "unavailable" }, { status: 503, headers });
+          // Unknown code for this deployment (e.g. a Self-Hosted code scanned
+          // against the Cloud site) — treat as not found, never as an error.
+          return Response.json({ found: false }, { status: 404, headers });
         }
+
       },
     },
   },
