@@ -165,7 +165,7 @@ const ro: Copy = {
   ],
   honestyTitle: "Ce am omis în mod deliberat",
   honestyBody:
-    "Fără procente inventate, fără logo-uri false de clienți, fără afirmații de tipul „economisiți 10 ore pe săptămână". Când primele rezultate din piloți vor fi măsurate și confirmate, le publicăm aici — cu cifre reale.",
+    "Fără procente inventate, fără logo-uri false de clienți, fără afirmații de tipul «economisiți 10 ore pe săptămână». Când primele rezultate din piloți vor fi măsurate și confirmate, le publicăm aici — cu cifre reale.",
   pilotSlotTitle: "Primele rezultate din piloți",
   pilotSlotBody:
     "Acest spațiu este rezervat. Pilotul de 30 de zile măsoară timpul de căutare, întrebările repetate și efortul de integrare în compania dumneavoastră — iar rezultatele, odată reale, apar pe această pagină în locul promisiunilor.",
