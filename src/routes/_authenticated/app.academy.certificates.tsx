@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Award, Download } from "lucide-react";
 import { AcademySubnav } from "@/components/app/academy-subnav";
+import { downloadBase64 } from "@/components/app/transport/download";
 
 export const Route = createFileRoute("/_authenticated/app/academy/certificates")({
   component: CertificatesPage,
@@ -23,8 +24,12 @@ function CertificatesPage() {
   }, []);
 
   const download = async (id: string) => {
-    const { url: u } = (await url({ data: { id } })) as { url: string };
-    window.open(u, "_blank");
+    const res = (await url({ data: { id } })) as { base64?: string; filename?: string; url: string };
+    if (res.base64) {
+      downloadBase64(res.filename ?? `opsqai-certificate-${id}.pdf`, res.base64, "application/pdf");
+      return;
+    }
+    window.open(res.url, "_blank");
   };
 
   return (
