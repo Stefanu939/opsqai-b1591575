@@ -137,6 +137,7 @@ export function WindowsReleasesPanel() {
               {editing?.id === r.id ? (
                 <ReleaseEditor
                   row={editing}
+                   busy={busy}
                   onChange={setEditing}
                   onSave={(payload) => {
                      setBusy(true);
@@ -161,10 +162,12 @@ export function WindowsReleasesPanel() {
 
 function ReleaseEditor({
   row,
+  busy,
   onChange,
   onSave,
 }: {
   row: InstallerReleaseRow;
+  busy: boolean;
   onChange: (r: InstallerReleaseRow) => void;
   onSave: (payload: {
     id: string;
