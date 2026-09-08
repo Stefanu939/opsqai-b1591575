@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
+import { PainBand } from "@/components/oix/pain-band";
 import { BookOpen, Shield, Code2, Wrench, Boxes, Building2 } from "lucide-react";
 import { useDocumentationCopy } from "@/i18n/pages/documentation";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
@@ -60,6 +61,8 @@ function DocumentationIndex() {
           })}
         </div>
       </section>
+
+      <PainBand page="docs" />
 
       <section className="bg-surface-1 border-t border-border/60">
         <div className="mx-auto max-w-3xl px-4 py-16 text-center">

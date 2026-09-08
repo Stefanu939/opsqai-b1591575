@@ -3,6 +3,7 @@ import { pageHead } from "@/lib/seo";
 import { BLOG_POSTS, formatDate } from "@/content/blog";
 import { ArrowRight } from "lucide-react";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
+import { PainBand } from "@/components/oix/pain-band";
 
 export const Route = createFileRoute("/blog/")({
   head: () =>
@@ -62,6 +63,8 @@ function BlogIndex() {
           ))}
         </ul>
       </section>
+
+      <PainBand page="blog" />
     </>
   );
 }
