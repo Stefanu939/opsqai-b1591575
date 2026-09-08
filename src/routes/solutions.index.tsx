@@ -11,6 +11,7 @@ import {
   useSolutionsCopy,
 } from "@/i18n/pages/solutions";
 import { ArrowRight } from "lucide-react";
+import { PainBand } from "@/components/oix/pain-band";
 
 export const Route = createFileRoute("/solutions/")({
   head: () =>
@@ -98,6 +99,8 @@ function SolutionsIndex() {
           })}
         </div>
       </SectionShell>
+
+      <PainBand page="solutions" />
     </OixLayout>
   );
 }

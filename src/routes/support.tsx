@@ -3,6 +3,7 @@ import { MarketingLayout } from "@/components/marketing/layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/seo";
+import { PainBand } from "@/components/oix/pain-band";
 import { LifeBuoy, MessageSquare, Clock, ShieldCheck, BookOpen } from "lucide-react";
 import { useSupportCopy } from "@/i18n/pages/support";
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
@@ -87,6 +88,8 @@ function SupportPage() {
           </p>
         </div>
       </section>
+
+      <PainBand page="support" />
 
       <section className="mx-auto max-w-3xl px-4 py-20 text-center">
         <LifeBuoy className="h-8 w-8 text-primary mx-auto" />

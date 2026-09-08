@@ -15,7 +15,8 @@ import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
-import { MottoBand } from "@/components/oix/motto-band";
+import { PainBand } from "@/components/oix/pain-band";
+import { ProofBand } from "@/components/oix/proof-band";
 import { useMarketing } from "@/i18n/marketing";
 
 export const Route = createFileRoute("/product")({
@@ -75,6 +76,8 @@ function ProductPage() {
         </div>
       </section>
 
+      <PainBand page="product" />
+
       {/* The boundary */}
       <SectionShell className="oix-hairline-bottom">
         <div className="max-w-3xl">
@@ -114,7 +117,7 @@ function ProductPage() {
         </div>
       </SectionShell>
 
-      <MottoBand />
+      <ProofBand />
 
       {/* Journey */}
       <SectionShell className="oix-hairline-top">

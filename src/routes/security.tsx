@@ -22,7 +22,7 @@ import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
-import { MottoBand } from "@/components/oix/motto-band";
+import { PainBand } from "@/components/oix/pain-band";
 import { useSecurityCopy } from "@/i18n/pages/security";
 
 export const Route = createFileRoute("/security")({
@@ -123,7 +123,7 @@ function SecurityPage() {
         </div>
       </SectionShell>
 
-      <MottoBand size="lg" compact />
+      <PainBand page="security" />
 
       {/* Boundary — cloud vs on-prem */}
       <SectionShell className="oix-hairline-top oix-hairline-bottom">

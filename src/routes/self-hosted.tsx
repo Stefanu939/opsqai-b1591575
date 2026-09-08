@@ -17,7 +17,8 @@ import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
-import { MottoBand } from "@/components/oix/motto-band";
+import { PainBand } from "@/components/oix/pain-band";
+import { ProofBand } from "@/components/oix/proof-band";
 import { useSelfHostedCopy } from "@/i18n/pages/self-hosted";
 
 export const Route = createFileRoute("/self-hosted")({
@@ -134,7 +135,9 @@ function SelfHostedPage() {
         </div>
       </SectionShell>
 
-      <MottoBand size="lg" compact />
+      <PainBand page="selfHosted" />
+
+      <ProofBand limit={4} showFigures={false} />
 
       {/* Pillars */}
       <SectionShell>

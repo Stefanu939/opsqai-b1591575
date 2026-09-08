@@ -9,7 +9,8 @@ import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
-import { MottoBand } from "@/components/oix/motto-band";
+import { ProofBand } from "@/components/oix/proof-band";
+import { PainBand } from "@/components/oix/pain-band";
 import { usePricingCopy } from "@/i18n/pages/pricing";
 
 // English source used only for SEO head (faqLd) — not user-visible copy.
@@ -87,6 +88,7 @@ function PricingPage() {
         </div>
       </section>
 
+      <PainBand page="pricing" calculatorHref="#cost" />
       <BeforeAfter />
       <CostCalculator />
 
@@ -134,7 +136,7 @@ function PricingPage() {
         </p>
       </SectionShell>
 
-      <MottoBand size="lg" compact />
+      <ProofBand />
 
       {/* FAQ */}
       <SectionShell className="oix-hairline-top oix-hairline-bottom">
