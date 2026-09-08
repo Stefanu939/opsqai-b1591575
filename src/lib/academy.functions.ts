@@ -1197,7 +1197,8 @@ export const certificateSignedUrl = createServerFn({ method: "POST" })
     let binary = "";
     for (const byte of bytes) binary += String.fromCharCode(byte);
     const filename = `opsqai-certificate-${cert.pdf_path.split("/").pop()}`;
-    return { url: `data:application/pdf;base64,${btoa(binary)}#${filename}` };
+    const base64 = btoa(binary);
+    return { url: `data:application/pdf;base64,${base64}#${filename}`, base64, filename };
   });
 
 /* ----------------------------- Dashboard ----------------------------- */
