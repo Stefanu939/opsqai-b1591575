@@ -59,7 +59,6 @@ function Pipeline({ rows, title, icon: Icon, w, empty }: { rows: HrPipelineRow[]
                 <Link
                   to="/app/products/hr/$workspace"
                   params={{ workspace: "employees" }}
-                  search={{ id: p.employee_id } as never}
                   className="truncate font-medium hover:underline"
                 >
                   {p.employee_no} · {p.name}
