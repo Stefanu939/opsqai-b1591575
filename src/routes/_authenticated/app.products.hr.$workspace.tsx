@@ -108,7 +108,7 @@ function HrSection({
   if (slug === "lifecycle") return <LifecycleSection t={x} w={w} h={t} />;
   if (slug === "equipment") return <EquipmentSection t={x} w={w} />;
   if (slug === "incidents") return <IncidentsSection t={x} />;
-  if (slug === "screening") return <ScreeningSection t={x} />;
+  if (slug === "screening") return <ScreeningSection t={x} w={w} h={t} />;
   if (slug === "analytics") return <HrAnalyticsSection t={x} />;
   if (slug === "policies") return <PoliciesSection w={w} />;
   if (slug === "requests") return <RequestsSection w={w} />;

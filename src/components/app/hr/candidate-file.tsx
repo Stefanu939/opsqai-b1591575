@@ -14,6 +14,7 @@ import { downloadBase64 } from "@/components/app/transport/download";
 import type { HrCandidate } from "@/lib/hr/types-ext";
 import type { HrExtUi } from "@/i18n/pages/hr-ext";
 import type { HrWsUi } from "@/i18n/pages/hr-ws";
+import type { HrUi } from "@/i18n/pages/hr";
 import { useHrLang } from "./use-hr-ws";
 import { Field } from "./shared";
 
@@ -21,6 +22,7 @@ export function CandidateFileDialog({
   c,
   t,
   w,
+  h,
   canEdit,
   blind,
   onClose,
@@ -29,6 +31,7 @@ export function CandidateFileDialog({
   c: HrCandidate;
   t: HrExtUi;
   w: HrWsUi;
+  h: HrUi;
   canEdit: boolean;
   blind: boolean;
   onClose: () => void;
@@ -91,10 +94,10 @@ export function CandidateFileDialog({
           <div className="grid gap-3">
             {!blind ? (
               <div className="grid gap-2 sm:grid-cols-2">
-                <Field label={t.firstName}><Input value={f.first_name} disabled={!canEdit} onChange={(e) => setF({ ...f, first_name: e.target.value })} /></Field>
-                <Field label={t.lastName}><Input value={f.last_name} disabled={!canEdit} onChange={(e) => setF({ ...f, last_name: e.target.value })} /></Field>
-                <Field label={t.email}><Input value={f.email} disabled={!canEdit} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
-                <Field label={t.phone}><Input value={f.phone} disabled={!canEdit} onChange={(e) => setF({ ...f, phone: e.target.value })} /></Field>
+                <Field label={h.firstName}><Input value={f.first_name} disabled={!canEdit} onChange={(e) => setF({ ...f, first_name: e.target.value })} /></Field>
+                <Field label={h.lastName}><Input value={f.last_name} disabled={!canEdit} onChange={(e) => setF({ ...f, last_name: e.target.value })} /></Field>
+                <Field label={h.email}><Input value={f.email} disabled={!canEdit} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
+                <Field label={h.phone}><Input value={f.phone} disabled={!canEdit} onChange={(e) => setF({ ...f, phone: e.target.value })} /></Field>
               </div>
             ) : null}
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{w.extractedData} · {w.editExtracted}</p>
@@ -198,7 +201,7 @@ export function CandidateComparison({ ids, t, w, blind, onClose }: { ids: string
                     <td className="p-2 font-medium">{cr.label}{cr.required ? " *" : ""} <span className="text-muted-foreground">×{cr.weight}</span></td>
                     {data.candidates.map((c) => {
                       const v = verdict(c.id, cr.label);
-                      return <td key={c.id} className="p-2"><span className={`rounded px-1.5 py-0.5 ${cls(v)}`}>{v === "met" ? t.met : v === "partial" ? t.partial : v === "not_met" ? t.notMet : t.unknown}</span></td>;
+                      return <td key={c.id} className="p-2"><span className={`rounded px-1.5 py-0.5 ${cls(v)}`}>{v === "met" ? t.verdictMet : v === "partial" ? t.verdictPartial : v === "not_met" ? t.verdictNotMet : t.verdictUnknown}</span></td>;
                     })}
                   </tr>
                 ))}

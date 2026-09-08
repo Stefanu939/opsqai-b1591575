@@ -31,8 +31,12 @@ import {
 import { useT } from "@/i18n";
 import type { HrExtUi } from "@/i18n/pages/hr-ext";
 import { useHrExtRefresh, useHrScreening } from "./use-hr-ext";
+import type { HrWsUi } from "@/i18n/pages/hr-ws";
+import type { HrUi } from "@/i18n/pages/hr";
+import type { HrCandidate } from "@/lib/hr/types-ext";
+import { CandidateComparison, CandidateFileDialog } from "./candidate-file";
 
-export function ScreeningSection({ t }: { t: HrExtUi }) {
+export function ScreeningSection({ t, w, h }: { t: HrExtUi; w: HrWsUi; h: HrUi }) {
   const { lang } = useT();
   const [profileId, setProfileId] = useState<string>("");
   const query = useHrScreening(profileId || undefined);
@@ -48,6 +52,9 @@ export function ScreeningSection({ t }: { t: HrExtUi }) {
 
   const [open, setOpen] = useState(false);
   const [blind, setBlind] = useState(false);
+  const [fileFor, setFileFor] = useState<HrCandidate | null>(null);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [showCompare, setShowCompare] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [hireFor, setHireFor] = useState<{
     id: string;
@@ -200,9 +207,23 @@ export function ScreeningSection({ t }: { t: HrExtUi }) {
             <EmptyState title={t.noCandidates} description={t.noCandidatesBody} />
           ) : (
             <ul className="grid gap-4">
+              {compareIds.length > 0 ? (
+                <li className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
+                  <span className="flex-1">{w.selectToCompare} · {compareIds.length}</span>
+                  <Button size="sm" disabled={compareIds.length < 2} onClick={() => setShowCompare(true)}>{w.compareSelected}</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setCompareIds([])}>{w.close}</Button>
+                </li>
+              ) : null}
               {data.candidates.map((c) => (
                 <li key={c.id} className="rounded-lg border border-border/60 p-4">
                   <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      type="checkbox"
+                      aria-label={w.selectToCompare}
+                      checked={compareIds.includes(c.id)}
+                      onChange={(e) => setCompareIds(e.target.checked ? [...compareIds, c.id].slice(0, 6) : compareIds.filter((x) => x !== c.id))}
+                    />
+                    <Button size="sm" variant="outline" onClick={() => setFileFor(c)}>{w.candidateFile}</Button>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">
                         {[c.first_name, c.last_name].filter(Boolean).join(" ") ||
@@ -549,6 +570,19 @@ export function ScreeningSection({ t }: { t: HrExtUi }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {fileFor ? (
+        <CandidateFileDialog
+          c={fileFor}
+          t={t}
+          w={w}
+          h={h}
+          blind={blind}
+          canEdit={can("edit")}
+          onClose={() => setFileFor(null)}
+          onChanged={() => void refresh()}
+        />
+      ) : null}
+      {showCompare ? <CandidateComparison ids={compareIds} t={t} w={w} blind={blind} onClose={() => setShowCompare(false)} /> : null}
     </div>
   );
 }
