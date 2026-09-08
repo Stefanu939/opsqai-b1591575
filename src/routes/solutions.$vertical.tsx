@@ -1,4 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { CostCalculator } from "@/components/oix/cost-calculator";
+import { RoleScenarios } from "@/components/oix/role-scenarios";
 import { pageHead, breadcrumbLd } from "@/lib/seo";
 import { OixLayout } from "@/components/oix/oix-layout";
 import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence";
@@ -172,6 +174,8 @@ function VerticalPage() {
           </div>
         </div>
       </SectionShell>
+      <RoleScenarios />
+      <CostCalculator />
     </OixLayout>
   );
 }

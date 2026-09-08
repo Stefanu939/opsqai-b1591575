@@ -52,14 +52,19 @@ import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
 import { OixButton } from "@/components/oix/buttons";
 import { Founders } from "@/components/oix/founders";
+import { PainHero } from "@/components/oix/pain-hero";
+import { BeforeAfter } from "@/components/oix/before-after";
+import { CostCalculator } from "@/components/oix/cost-calculator";
+import { RoleScenarios } from "@/components/oix/role-scenarios";
+import { ProofMap } from "@/components/oix/proof-map";
 import { useHomeCopy } from "@/i18n/pages/home";
 
 export const Route = createFileRoute("/")({
   head: () =>
     pageHead({
-      title: "OPSQAI — Enterprise Operational AI Platform · Windows Self-Hosted",
+      title: "Your procedures exist — nobody finds them in time | OPSQAI",
       description:
-        "OPSQAI is an Enterprise Operational AI Platform delivered as a Windows Self-Hosted product. Sovereign by design: customers own their data, documents, embeddings and AI provider. OPSQAI never sees operational knowledge.",
+        "Operational knowledge scattered across drives, outdated SOPs, weeks of onboarding, audits that turn into document hunts. OPSQAI answers from your approved documents, inside your own Windows environment. Free 30-day pilot.",
       path: "/",
       keywords:
         "enterprise operational AI, windows self-hosted AI, sovereign AI, local LLM Ollama, operations AI, quality and compliance AI, HR and finance operations AI, on-premise AI",
@@ -109,8 +114,11 @@ function Home() {
 
   return (
     <OixLayout>
-      <Hero />
-      <WhoFor />
+      <PainHero />
+      <BeforeAfter />
+      <CostCalculator />
+      <RoleScenarios />
+      <ProofMap />
       <ThreeSurfaces />
       <CorePlatform />
       <ProductsAndAddons />
