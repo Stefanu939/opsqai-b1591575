@@ -27,6 +27,8 @@ interface GithubRelease {
   prerelease: boolean;
   published_at: string;
   assets: GithubReleaseAsset[];
+  /** true when published_at is synthetic (public-page fallback, not the API). */
+  synthetic_date?: boolean;
 }
 
 export interface ResolvedInstaller {
@@ -63,9 +65,14 @@ function pickInstallerAsset(release: GithubRelease): GithubReleaseAsset | null {
   return release.assets.find((a) => a.name.toLowerCase().endsWith(".zip")) ?? null;
 }
 
-async function fetchLatestReleaseMeta(repo: string): Promise<GithubRelease | null> {
+async function fetchLatestReleaseMeta(
+  repo: string,
+  opts: { forceFresh?: boolean } = {},
+): Promise<GithubRelease | null> {
   const cached = metadataCache.get(repo);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return cached.release;
+  if (!opts.forceFresh && cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS)
+    return cached.release;
+
 
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
@@ -125,6 +132,7 @@ async function fetchLatestReleaseFromPublicPage(repo: string): Promise<GithubRel
     draft: false,
     prerelease: /(?:beta|alpha|rc)/i.test(tag),
     published_at: new Date().toISOString(),
+    synthetic_date: true,
     assets: [{ name: href.split("/").pop() ?? "OPSQAI-Setup.zip", size: 0, browser_download_url: zipUrl, content_type: "application/zip" }],
   };
 }
@@ -248,22 +256,36 @@ export async function syncLatestReleaseMetadata(): Promise<{
   zip_size_bytes: number;
   published_at: string;
 } | null> {
-  const release = await fetchLatestReleaseMeta(repoSlug());
+  // A manual sync must always read GitHub again: an admin presses it right
+  // after publishing a build, so a cached answer would hide the new release.
+  const release = await fetchLatestReleaseMeta(repoSlug(), { forceFresh: true });
   if (!release || release.draft) return null;
   const asset = pickInstallerAsset(release);
   if (!asset) return null;
 
   const version = versionFromTag(release.tag_name);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  let publishedAt = release.published_at;
+  if (release.synthetic_date) {
+    // Fallback metadata has no real publish date — keep any date already stored.
+    const { data: existing } = await supabaseAdmin
+      .from("installer_releases")
+      .select("published_at")
+      .eq("version", version)
+      .maybeSingle();
+    if (existing?.published_at) publishedAt = existing.published_at;
+  }
+
   const row = {
     version,
     tag_name: release.tag_name,
     zip_url: asset.browser_download_url,
-    published_at: release.published_at,
+    published_at: publishedAt,
     channel: release.prerelease ? "beta" : "stable",
     ...(asset.size > 0 ? { zip_size_bytes: asset.size } : {}),
   };
 
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { error } = await supabaseAdmin
     .from("installer_releases")
     .upsert(row, { onConflict: "version" });
