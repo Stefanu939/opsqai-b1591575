@@ -132,6 +132,20 @@ function Dashboard() {
 
   const company = (data?.companyName || "").trim();
 
+  // Rendered after hydration only: the server and browser can sit in different
+  // timezones, so formatting the date during SSR would mismatch.
+  const [todayLabel, setTodayLabel] = useState("");
+  useEffect(() => {
+    setTodayLabel(
+      new Date().toLocaleDateString(undefined, {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    );
+  }, []);
+
   const cards: {
     id: CardId;
     icon: typeof FileText;
@@ -192,6 +206,9 @@ function Dashboard() {
          <div className="inline-flex items-center gap-2 rounded-sm border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
           <Sparkles className="h-3 w-3" />
           {isEmptyWorkspace ? "Get started" : "Operational overview"}
+        </div>
+        <div className="mt-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {todayLabel}
         </div>
         <PageHeader
           title={
