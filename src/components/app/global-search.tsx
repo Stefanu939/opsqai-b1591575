@@ -46,7 +46,16 @@ const LABELS: Record<string, string> = {
   workspace: "Workspaces",
 };
 
-export function GlobalSearch({ asButton = false }: { asButton?: boolean }) {
+export function GlobalSearch({
+  asButton = false,
+  variant = "compact",
+  placeholder,
+}: {
+  asButton?: boolean;
+  /** "bar" renders a wide input-looking trigger for the app top bar. */
+  variant?: "compact" | "bar";
+  placeholder?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<any[]>([]);
@@ -100,7 +109,22 @@ export function GlobalSearch({ asButton = false }: { asButton?: boolean }) {
 
   return (
     <>
-      {asButton && (
+      {asButton && variant === "bar" && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex h-10 w-full items-center gap-3 rounded-lg border border-border bg-muted/40 px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Search className="h-4 w-4 shrink-0" />
+          <span className="truncate flex-1">
+            {placeholder ?? "Search knowledge, documents, people…"}
+          </span>
+          <kbd className="hidden sm:inline-flex pointer-events-none h-5 select-none items-center rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium">
+            Ctrl + K
+          </kbd>
+        </button>
+      )}
+      {asButton && variant === "compact" && (
         <Button
           variant="ghost"
           size="sm"

@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useMyModuleAccess } from "@/hooks/use-module-access";
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import {
   CalendarDays,
   LayoutDashboard,
@@ -19,6 +19,7 @@ import {
   Download,
   ClipboardCheck,
   BrainCircuit,
+  ChevronDown,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/app/global-search";
 import { BuildProvenanceLine } from "@/components/app/build-provenance-line";
@@ -60,6 +61,36 @@ export function AppShell({ children }: { children: ReactNode }) {
   const gate = (m: ModuleKey | null) =>
     m === null ? true : hasModule(license, m) && canSeeModule(m);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Collapsed sidebar groups persist per browser so long product lists stay
+  // manageable across sessions.
+  const GROUPS_KEY = "opsqai.app.sidebar.closedGroups";
+  const [closedGroups, setClosedGroups] = useState<string[]>([]);
+  // Read after hydration so server and client markup match.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(GROUPS_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed)) {
+        setClosedGroups(parsed.filter((v): v is string => typeof v === "string"));
+      }
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+  const toggleGroup = useCallback((label: string) => {
+    setClosedGroups((prev) => {
+      const next = prev.includes(label)
+        ? prev.filter((l) => l !== label)
+        : [...prev, label];
+      try {
+        window.localStorage.setItem(GROUPS_KEY, JSON.stringify(next));
+      } catch {
+        /* storage unavailable — collapse still works for this session */
+      }
+      return next;
+    });
+  }, []);
 
   const mode = getClientDeploymentMode();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -180,48 +211,75 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 
 
-  const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
+  const SidebarContent = ({
+    onNavigate,
+    withLocalControls = false,
+  }: {
+    onNavigate?: () => void;
+    /** Mobile sheet has no desktop top bar, so it carries theme/language. */
+    withLocalControls?: boolean;
+  }) => (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <LogoMark size={32} className="text-sidebar-foreground" />
+      <div className="flex items-start gap-3 px-5 py-5 border-b border-sidebar-border">
+        <LogoMark size={32} className="text-sidebar-foreground shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="font-semibold tracking-tight truncate">{t("appName")}</div>
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/55 truncate">
-            {companyName ?? t("tagline")}
+            {t("tagline")}
           </div>
+          <span className="mt-2 inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+            {mode === "selfhost" ? "Self-Hosted" : "Cloud"}
+          </span>
         </div>
-        <ThemeToggle className="h-8 w-8" />
-        <NotificationsBell />
-      </div>
-      <div className="px-3 pt-3">
-        <GlobalSearch asButton />
+        {withLocalControls && (
+          <div className="flex items-center gap-0.5">
+            <ThemeToggle className="h-8 w-8" />
+            <NotificationsBell />
+          </div>
+        )}
       </div>
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {sections.map((section, sIdx) =>
-          section.items.length > 0 ? (
+        {sections.map((section, sIdx) => {
+          if (section.items.length === 0) return null;
+          const collapsible = sIdx > 0;
+          const collapsed = collapsible && closedGroups.includes(section.label);
+          return (
             <div key={section.label}>
-              <div
-                className={`${sIdx === 0 ? "" : "pt-5"} pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40`}
-              >
-                {section.label}
-              </div>
-              {section.items.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={onNavigate}
-                  activeOptions={item.exact ? { exact: true } : undefined}
-                  className={linkCls}
+              {collapsible ? (
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(section.label)}
+                  aria-expanded={!collapsed}
+                  className="mt-5 mb-1.5 flex w-full items-center gap-1.5 rounded-md px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/45 hover:bg-sidebar-accent hover:text-sidebar-foreground/80 transition-colors"
                 >
-                  <ActiveIndicator />
-                   <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 transition-colors duration-150 group-data-[status=active]:text-primary" />
+                  <ChevronDown
+                    className={`h-3 w-3 shrink-0 transition-transform duration-150 ${collapsed ? "-rotate-90" : ""}`}
+                  />
+                  <span className="truncate">{section.label}</span>
+                </button>
+              ) : (
+                <div className="pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                  {section.label}
+                </div>
+              )}
+              {!collapsed &&
+                section.items.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={onNavigate}
+                    activeOptions={item.exact ? { exact: true } : undefined}
+                    className={linkCls}
+                  >
+                    <ActiveIndicator />
+                    <item.icon className="h-4 w-4 shrink-0 text-sidebar-foreground/60 transition-colors duration-150 group-data-[status=active]:text-primary" />
 
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              ))}
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                ))}
             </div>
-          ) : null,
-        )}
+          );
+        })}
         <div className="pt-5 pb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
           Deployment
         </div>
@@ -232,22 +290,33 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       </nav>
       <div className="border-t border-sidebar-border p-3 space-y-2">
-        <div className="flex items-center gap-2 px-1">
-          <Languages className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
-          <Select value={lang} onValueChange={(v) => setLang(v as "de" | "en" | "ro")}>
-            <SelectTrigger
-              aria-label="Language"
-              className="h-8 flex-1 bg-sidebar-accent/40 border-sidebar-border text-xs"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="de">Deutsch</SelectItem>
-              <SelectItem value="ro">Română</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {withLocalControls && (
+          <div className="flex items-center gap-2 px-1">
+            <Languages className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />
+            <Select value={lang} onValueChange={(v) => setLang(v as "de" | "en" | "ro")}>
+              <SelectTrigger
+                aria-label="Language"
+                className="h-8 flex-1 bg-sidebar-accent/40 border-sidebar-border text-xs"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="de">Deutsch</SelectItem>
+                <SelectItem value="ro">Română</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {companyName && (
+          <div className="flex items-center gap-2 px-2 py-1.5">
+            <Building2 className="h-4 w-4 shrink-0 text-sidebar-foreground/50" />
+            <span className="truncate text-[12px] font-medium text-sidebar-foreground/90">
+              {companyName}
+            </span>
+          </div>
+        )}
 
          <div className="flex items-center gap-2 rounded-md border border-sidebar-border px-2 py-2 bg-sidebar-accent/40">
           <AvatarUploader size="sm" />
@@ -255,6 +324,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {user?.email}
           </span>
         </div>
+
 
         <AccountMenu
           className="ml-0 w-full"
@@ -318,7 +388,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-[85vw] max-w-sm border-0">
-            <SidebarContent onNavigate={() => setMobileOpen(false)} />
+            <SidebarContent onNavigate={() => setMobileOpen(false)} withLocalControls />
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2 min-w-0">
@@ -326,10 +396,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="font-semibold tracking-tight text-sm truncate">{t("appName")}</span>
         </div>
         <div className="flex items-center gap-0.5">
+          <GlobalSearch asButton variant="compact" />
           <ThemeToggle className="h-9 w-9" />
           <NotificationsBell />
         </div>
       </div>
+
 
       <main
         className="flex-1 min-w-0 flex flex-col md:pt-0 md:min-h-0 md:overflow-y-auto"
@@ -338,12 +410,34 @@ export function AppShell({ children }: { children: ReactNode }) {
           paddingBottom: "calc(4rem + env(safe-area-inset-bottom))",
         }}
       >
+        {/* Desktop top bar — search always visible, controls on the right */}
+        <div className="hidden md:flex sticky top-0 z-20 items-center gap-3 border-b border-border bg-background/95 px-6 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="min-w-0 flex-1 max-w-2xl">
+            <GlobalSearch asButton variant="bar" placeholder={t("searchPlaceholder")} />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ThemeToggle className="h-9 w-9" />
+            <Select value={lang} onValueChange={(v) => setLang(v as "de" | "en" | "ro")}>
+              <SelectTrigger
+                aria-label="Language"
+                className="h-9 w-[86px] gap-1.5 text-xs uppercase"
+              >
+                <Languages className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">EN</SelectItem>
+                <SelectItem value="de">DE</SelectItem>
+                <SelectItem value="ro">RO</SelectItem>
+              </SelectContent>
+            </Select>
+            <NotificationsBell />
+          </div>
+        </div>
+
         <div className="md:contents">
           <SubscriptionStatusBanner />
           <IdleSessionGuard />
-
-          
-          
         </div>
         {/* Route change gets a short fade/rise so navigation reads as a state
             change rather than a hard swap. */}
