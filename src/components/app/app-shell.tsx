@@ -116,6 +116,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: null },
     { to: "/app/chat", label: "AI Chat", icon: MessageSquare, show: true, module: "chat" },
     { to: "/app/calendar", label: "Calendar", icon: CalendarDays, show: true, module: null },
+    {
+      to: "/app/operations",
+      label: "Operations",
+      icon: AlertTriangle,
+      // Core capability: incidents, root cause, corrective actions.
+      show: true,
+      module: null,
+    },
 
     {
       to: "/app/knowledge",
