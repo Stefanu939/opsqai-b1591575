@@ -998,16 +998,32 @@ function SourcesPanel({
 function FeedbackBar({ messageId }: { messageId: string }) {
   const rate = useServerFn(rateMessage);
   const [voted, setVoted] = useState<-1 | 1 | null>(null);
+  const [open, setOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [sent, setSent] = useState(false);
   const vote = async (r: -1 | 1) => {
     try {
       await rate({ data: { message_id: messageId, rating: r } });
       setVoted(r);
+      // Thumbs-down: ask what was wrong so the gap carries real context.
+      if (r === -1) setOpen(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  const sendComment = async () => {
+    const text = comment.trim();
+    if (!text || !voted) return;
+    try {
+      await rate({ data: { message_id: messageId, rating: voted, comment: text } });
+      setSent(true);
+      setOpen(false);
     } catch (e) {
       console.error(e);
     }
   };
   return (
-    <div className="mt-2 flex items-center gap-1">
+    <div className="mt-2 flex flex-wrap items-center gap-1">
       <button
         onClick={() => vote(1)}
         aria-label="Helpful"
