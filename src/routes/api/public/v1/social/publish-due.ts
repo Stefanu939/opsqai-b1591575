@@ -84,9 +84,9 @@ async function commentLinkedIn(
   shareUrn: string,
   text: string,
 ) {
-  const activity = shareUrn.replace("urn:li:share:", "urn:li:activity:");
+  // Comment on the share URN itself: the derived activity URN is not the same id.
   const res = await fetch(
-    `${GATEWAY}/v2/socialActions/${encodeURIComponent(activity)}/comments`,
+    `${GATEWAY}/v2/socialActions/${encodeURIComponent(shareUrn)}/comments`,
     {
       method: "POST",
       headers: {
