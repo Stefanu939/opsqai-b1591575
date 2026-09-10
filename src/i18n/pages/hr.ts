@@ -33,7 +33,7 @@ export interface HrUi {
   none: string;
   noneBody: string;
   newEmployee: string;
-  exportCsv: string;
+  exportPdf: string;
   profilePdf: string;
   // Form
   personalInformation: string;
@@ -116,7 +116,7 @@ const en: HrUi = {
   none: "No employees yet",
   noneBody: "Create the first employee — OPSQAI assigns the internal employee ID automatically.",
   newEmployee: "New employee",
-  exportCsv: "Export Excel/CSV",
+  exportPdf: "Export PDF",
   profilePdf: "Profile PDF",
   personalInformation: "Personal information",
   employment: "Employment",
@@ -207,7 +207,7 @@ const de: HrUi = {
   noneBody:
     "Erstellen Sie den ersten Mitarbeiter — OPSQAI vergibt die interne Personalnummer automatisch.",
   newEmployee: "Neuer Mitarbeiter",
-  exportCsv: "Excel/CSV-Export",
+  exportPdf: "PDF-Export",
   profilePdf: "Profil-PDF",
   personalInformation: "Persönliche Daten",
   employment: "Beschäftigung",
@@ -296,7 +296,7 @@ const ro: HrUi = {
   none: "Încă niciun angajat",
   noneBody: "Creează primul angajat — OPSQAI atribuie automat ID-ul intern.",
   newEmployee: "Angajat nou",
-  exportCsv: "Export Excel/CSV",
+  exportPdf: "Export PDF",
   profilePdf: "PDF profil",
   personalInformation: "Date personale",
   employment: "Date de angajare",

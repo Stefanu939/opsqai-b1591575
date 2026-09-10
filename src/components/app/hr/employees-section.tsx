@@ -123,7 +123,7 @@ export function EmployeesSection({ t }: { t: HrUi }) {
                 }
               >
                 <Download className="mr-1.5 size-4" />
-                {t.exportPdf ?? "PDF"}
+                {t.exportPdf}
               </Button>
             ) : null}
             {grants.includes("create") ? (
