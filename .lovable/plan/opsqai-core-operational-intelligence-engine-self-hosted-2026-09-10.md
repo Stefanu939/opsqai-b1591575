@@ -10,9 +10,9 @@ Scope: Self-Hosted Core only. Nothing changes in Management Center, Customer Por
 
 ## Build order
 
-**1. Incident & Damage Management (new area "Operations")**
-New records: type (damage, accident, process error, system error), title, description, date/time, department, location, financial cost, lost minutes, occurrence count, status (open → analysed → action → closed), involved person/role, attachments (images/PDF), linked SOP documents and FAQs.
-Screens: list with filters (department, type, status, period), full incident detail with inline editing, create/edit dialog, attachment upload with preview, PDF export of the incident file.
+**1. Incident & Damage Management (new area "Operations")**  
+New records: type (damage, accident, process error, system error), title, description, date/time, department, location, financial cost, lost minutes, occurrence count, status (open → analysed → action → closed), involved person/role, attachments (images/PDF), linked SOP documents and FAQs.  
+Screens: list with filters (department, type, status, period), full incident detail with inline editing, create/edit dialog, attachment upload with preview, PDF export of the incident file.  Cards UI .
 
 **2. SOP / FAQ relationship**
 On an incident, one SOP can be marked as violated; further related SOPs and FAQs are suggested from the knowledge base by similarity and can be confirmed or removed by hand. Relations are stored, so a document shows the incidents it is implicated in.
