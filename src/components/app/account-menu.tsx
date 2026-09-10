@@ -130,6 +130,14 @@ function fmtDate(value: string): string {
   });
 }
 
+/** Inclusive number of calendar days in a request. */
+function dayCount(startsOn: string, endsOn: string): number {
+  const a = new Date(`${startsOn}T00:00:00`).getTime();
+  const b = new Date(`${endsOn}T00:00:00`).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b)) return 1;
+  return Math.max(1, Math.round((b - a) / 86_400_000) + 1);
+}
+
 export function AccountMenu({
   profilePath,
   roleLabel,
@@ -579,8 +587,16 @@ export function HolidaysDialog({
                     key={r.id}
                     className="flex flex-wrap items-center gap-2 rounded-md border border-border p-2.5 text-sm"
                   >
-                    <span className="font-medium">
-                      {fmtDate(r.startsOn)} – {fmtDate(r.endsOn)}
+                    <span className="min-w-0">
+                      <span className="block font-medium">
+                        {r.requesterName ?? r.requesterEmail ?? "Colleague"}
+                      </span>
+                      <span className="block text-xs text-muted-foreground">
+                        {fmtDate(r.startsOn)} – {fmtDate(r.endsOn)} ·{" "}
+                        {dayCount(r.startsOn, r.endsOn)}d
+                        {r.requesterDepartment ? ` · ${r.requesterDepartment}` : ""}
+                        {r.requesterEmail ? ` · ${r.requesterEmail}` : ""}
+                      </span>
                     </span>
                     {r.reason ? (
                       <span className="truncate text-muted-foreground">{r.reason}</span>

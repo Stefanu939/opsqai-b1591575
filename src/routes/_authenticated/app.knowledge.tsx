@@ -77,6 +77,7 @@ import {
   setCriticalFlag,
 } from "@/lib/sop-versions.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
+import { listDepartments } from "@/lib/users.functions";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
@@ -160,6 +161,8 @@ function KnowledgePage() {
   const [title, setTitle] = useState("");
   const [docCode, setDocCode] = useState("");
   const [category, setCategory] = useState("SOP");
+  const [departmentId, setDepartmentId] = useState<string>("");
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [replaceTarget, setReplaceTarget] = useState<Doc | null>(null);
@@ -188,6 +191,7 @@ function KnowledgePage() {
   const uploadFile = useServerFn(uploadKnowledgeFile);
   const saveMetadata = useServerFn(updateKnowledgeMetadata);
   const markReviewed = useServerFn(markDocumentReviewed);
+  const fetchDepartments = useServerFn(listDepartments);
 
   const openMetadata = (d: Doc) => {
     setMetaTarget(d);
@@ -253,6 +257,15 @@ function KnowledgePage() {
     return () => clearInterval(t);
   }, [showInactive, scopeCompanyId]);
 
+  // Departments from Organization become selectable, so an SOP can be
+  // published for a single team.
+  useEffect(() => {
+    void fetchDepartments()
+      .then((rows) => setDepartments((rows ?? []).map((d) => ({ id: d.id, name: d.name }))))
+      .catch(() => setDepartments([]));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, []);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
@@ -280,6 +293,7 @@ function KnowledgePage() {
           title: title || file.name,
           category,
           doc_code: docCode || null,
+          department_id: departmentId || null,
           file_path: path,
           file_type: file.type || "application/octet-stream",
           filename: file.name,
@@ -290,6 +304,7 @@ function KnowledgePage() {
       setTitle("");
       setDocCode("");
       setCategory("SOP");
+      setDepartmentId("");
       setFile(null);
       load();
     } catch (err) {
@@ -555,6 +570,21 @@ function KnowledgePage() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label>{t("department")}</Label>
+                      <select
+                        value={departmentId}
+                        onChange={(e) => setDepartmentId(e.target.value)}
+                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                      >
+                        <option value="">{t("allDepartments")}</option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="space-y-2">
