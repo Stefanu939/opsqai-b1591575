@@ -103,9 +103,14 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   } else if(!isGreeting&&query){
     try{
       const [embedding,faqs]=await Promise.all([resolveEmbedOne(query),getFaqRepository(dataCtx).list(companyId)]);
-      const matches=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,12);
-      const docs=await getKnowledgeRepository(dataCtx).getDocumentsByIds(Array.from(new Set(matches.map((m)=>m.document_id))));
+      const found=await getKnowledgeRepository(dataCtx).searchSimilar(companyId,embedding,12);
+      const docs=await getKnowledgeRepository(dataCtx).getDocumentsByIds(Array.from(new Set(found.map((m)=>m.document_id))));
       const meta=new Map(docs.map((d)=>[d.id,d]));
+      // Department isolation: a document scoped to another department must not
+      // ground this answer. Enforced server-side for every retrieval path.
+      const {resolveDepartmentScope,documentInScope}=await import("@/lib/department-scope.server");
+      const departmentScope=await resolveDepartmentScope(dataCtx,identity.userId,profile?.departmentId ?? null);
+      const matches=found.filter((m)=>documentInScope(meta.get(m.document_id) as {departmentId?:string|null}|undefined,departmentScope));
       matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.45?"high":sim>=.28?"medium":"low",primary:index===0});});
       const words=query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w)=>w.length>3);
       faqs.map((faq)=>({faq,score:words.reduce((n,w)=>n+(faq.question_en.toLowerCase().includes(w)||faq.question_de.toLowerCase().includes(w)?2:0)+(faq.answer_en.toLowerCase().includes(w)||faq.answer_de.toLowerCase().includes(w)?1:0),0)})).filter((x)=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5).forEach(({faq,score})=>sources.push({type:"faq",id:faq.id,title:`${faq.question_en} / ${faq.question_de}`,excerpt:`EN: ${faq.answer_en}\nDE: ${faq.answer_de}`,confidence:score>=4?"high":score>=2?"medium":"low"}));
