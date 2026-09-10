@@ -714,13 +714,14 @@ export const exportCoreAnalyticsPdf = createServerFn({ method: "POST" })
 
 async function audit(context: Ctx, a: Actor, action: string, target: string): Promise<void> {
   try {
-    const { getAuditRepository, hasAuditRepository } = await import("@/lib/providers/registry");
-    if (!hasAuditRepository()) return;
-    await getAuditRepository(context.supabase).write({
-      actorId: a.userId,
+    const { writeAudit } = await import("@/lib/audit.server");
+    await writeAudit(context.supabase, {
+      userId: a.userId,
       action,
-      target,
-      detail: { module: "core_operations", company_id: a.companyId },
+      resource: target,
+      module: "core_operations",
+      companyId: a.companyId,
+      success: true,
     } as never);
   } catch {
     /* auditing never blocks the operation */
