@@ -146,7 +146,7 @@ const en = {
     eyebrow: "Mechanism → consequence",
     title: "What the technology actually buys you.",
     intro:
-      "Local AI, retrieval and signed licenses are mechanisms. Here is the business consequence of each — and where we deliberately stop short of a promise.",
+      "Every line below pairs one thing the product does with the business result it produces — and stops there, without a promise we cannot prove.",
     items: [
       {
         mechanism: "Grounded answers with citations, refusal without a source",
@@ -298,7 +298,7 @@ const de: PainCopy = {
     eyebrow: "Mechanismus → Wirkung",
     title: "Was die Technik Ihnen tatsächlich bringt.",
     intro:
-      "Lokale KI, Retrieval und signierte Lizenzen sind Mechanismen. Hier steht die geschäftliche Wirkung — und wo wir bewusst kein Versprechen abgeben.",
+      "Jede Zeile verbindet eine Funktion des Produkts mit dem geschäftlichen Ergebnis — und endet dort, ohne ein Versprechen, das wir nicht belegen können.",
     items: [
       {
         mechanism: "Belegte Antworten mit Quellenangabe, Verweigerung ohne Quelle",
@@ -365,7 +365,7 @@ const ro: PainCopy = {
       },
       {
         value: "120.000",
-        label: "șoferi lipsă în Germania — oamenii care rămân duc mai mult, mai repede",
+        label: "posturi de șofer neocupate în Germania — cei care rămân duc tot mai mult, tot mai repede",
         source: sources.drivers,
       },
     ],
@@ -448,7 +448,7 @@ const ro: PainCopy = {
     eyebrow: "Mecanism → consecință",
     title: "Ce îți aduce de fapt tehnologia.",
     intro:
-      "AI local, regăsire și licențe semnate sunt mecanisme. Aici e consecința de business a fiecăruia — și unde nu promitem nimic.",
+      "Fiecare rând leagă un lucru pe care produsul îl face de rezultatul concret în firmă — și se oprește acolo, fără promisiuni pe care nu le putem demonstra.",
     items: [
       {
         mechanism: "Răspunsuri fundamentate, cu citare, și refuz când nu există sursă",

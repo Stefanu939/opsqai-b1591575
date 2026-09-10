@@ -22,28 +22,30 @@ export function BeforeAfter({ className }: { className?: string }) {
       </div>
 
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/[0.04] p-6 md:p-8">
-          <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-destructive">
+        <div className="rounded-xl border-2 border-destructive/60 bg-destructive/[0.07] p-6 md:p-8">
+          <h3 className="inline-flex items-center gap-2 rounded-full bg-destructive px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-destructive-foreground">
+            <X className="h-3.5 w-3.5" strokeWidth={3} />
             {t.beforeTitle}
           </h3>
           <ul className="mt-6 space-y-4">
             {t.before.map((item) => (
-              <li key={item} className="flex gap-3 text-sm leading-relaxed text-foreground/90">
-                <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" strokeWidth={2} />
+              <li key={item} className="flex gap-3 text-sm leading-relaxed text-destructive">
+                <X className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
                 <span>{item}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="rounded-xl border border-primary/30 bg-primary/[0.04] p-6 md:p-8">
-          <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-primary">
+        <div className="rounded-xl border-2 border-primary/60 bg-primary/[0.07] p-6 md:p-8">
+          <h3 className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-primary-foreground">
+            <Check className="h-3.5 w-3.5" strokeWidth={3} />
             {t.afterTitle}
           </h3>
           <ul className="mt-6 space-y-4">
             {t.after.map((item) => (
-              <li key={item} className="flex gap-3 text-sm leading-relaxed text-foreground/90">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={2} />
+              <li key={item} className="flex gap-3 text-sm leading-relaxed text-primary">
+                <Check className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
                 <span>{item}</span>
               </li>
             ))}
