@@ -200,7 +200,7 @@ function AuthPage() {
           <span className="font-semibold tracking-tight text-base md:text-lg">OPSQAI</span>
         </Link>
         <button
-          onClick={() => setLang(lang === "de" ? "en" : "de")}
+          onClick={() => setLang(lang === "en" ? "de" : lang === "de" ? "ro" : "en")}
           aria-label="Change language"
           className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-border/60 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground"
         >
