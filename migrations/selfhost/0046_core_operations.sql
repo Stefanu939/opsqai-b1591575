@@ -122,6 +122,17 @@ CREATE INDEX IF NOT EXISTS core_actions_status_idx ON public.core_actions(status
 CREATE INDEX IF NOT EXISTS core_actions_due_idx ON public.core_actions(due_date);
 
 -- ── Rights: Operations area + financial visibility ────────────────────────
+-- area_permission_map.permission_key references public.permissions(key), so the
+-- permission rows must exist before the mapping is inserted.
+INSERT INTO public.permissions (key, label, category, description) VALUES
+  ('core_ops.view',       'Operations: view',       'operations', 'View incidents, damages and root-cause records'),
+  ('core_ops.create',     'Operations: create',     'operations', 'Create incidents and damages'),
+  ('core_ops.edit',       'Operations: edit',       'operations', 'Edit incidents, root causes and actions'),
+  ('core_ops.delete',     'Operations: delete',     'operations', 'Delete incidents and evidence'),
+  ('core_ops.administer', 'Operations: administer', 'operations', 'Administer Operations settings and all departments'),
+  ('core_costs.view',     'Operations: costs',      'operations', 'View incident costs and financial analytics')
+ON CONFLICT (key) DO NOTHING;
+
 INSERT INTO public.area_permission_map (area_key, action, permission_key) VALUES
   ('core_ops', 'view',       'core_ops.view'),
   ('core_ops', 'create',     'core_ops.create'),
