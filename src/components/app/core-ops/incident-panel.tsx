@@ -427,7 +427,7 @@ export function IncidentPanel({
                           .catch((e: Error) => toast.error(e.message))
                       }
                     >
-                      {a.status === "done" ? ui.statuses["open"] : ui.kindCorrective ? "✓" : "✓"}
+                      {a.status === "done" ? ui.statuses["open"] : "✓"}
                     </Button>
                     <Button
                       size="icon"
