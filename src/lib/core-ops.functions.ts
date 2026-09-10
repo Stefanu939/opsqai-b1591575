@@ -9,7 +9,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "@/lib/providers/require-auth";
-import { uuidString } from "@/lib/zod-uuid";
+import { uuidString() } from "@/lib/zod-uuid";
 import { getProfileRepository } from "@/lib/providers/registry";
 import {
   CORE_OPS_GRANTS,
@@ -124,7 +124,7 @@ export const getCoreOpsBoard = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        departmentId: uuidString.nullish(),
+        departmentId: uuidString().nullish(),
         kind: kindEnum.nullish(),
         status: statusEnum.nullish(),
         from: z.string().min(4).nullish(),
@@ -178,7 +178,7 @@ export const getCoreOpsBoard = createServerFn({ method: "POST" })
 
 export const getCoreIncident = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }): Promise<CoreIncidentDetail & { grants: CoreOpsGrantKey[] }> => {
     const a = await actor(context as Ctx);
     need(a, "view");
@@ -206,12 +206,12 @@ export const saveCoreIncident = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        id: uuidString.nullish(),
+        id: uuidString().nullish(),
         kind: kindEnum,
         title: z.string().min(3).max(200),
         description: z.string().max(6000).nullish(),
         occurred_at: z.string().min(4),
-        department_id: uuidString.nullish(),
+        department_id: uuidString().nullish(),
         location: z.string().max(160).nullish(),
         cost_amount: z.number().min(0).max(100_000_000).optional(),
         currency: z.string().min(3).max(3).optional(),
@@ -242,7 +242,7 @@ export const saveCoreIncident = createServerFn({ method: "POST" })
 
 export const deleteCoreIncident = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const a = await actor(context as Ctx);
     need(a, "delete");
@@ -268,9 +268,9 @@ export const saveCoreIncidentLink = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        incidentId: uuidString,
+        incidentId: uuidString(),
         link_type: z.enum(["violated_sop", "related_sop", "faq", "incident"]),
-        target_id: uuidString.nullish(),
+        target_id: uuidString().nullish(),
         target_title: z.string().max(300).nullish(),
         note: z.string().max(1000).nullish(),
       })
@@ -291,7 +291,7 @@ export const saveCoreIncidentLink = createServerFn({ method: "POST" })
 export const deleteCoreIncidentLink = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z.object({ incidentId: uuidString, id: uuidString }).parse(input),
+    z.object({ incidentId: uuidString(), id: uuidString() }).parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const a = await actor(context as Ctx);
@@ -312,7 +312,7 @@ export const uploadCoreIncidentEvidence = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        incidentId: uuidString,
+        incidentId: uuidString(),
         filename: z.string().min(1).max(200),
         mimeType: z.string().min(3).max(120),
         base64: z.string().min(8),
@@ -341,7 +341,7 @@ export const uploadCoreIncidentEvidence = createServerFn({ method: "POST" })
 
 export const downloadCoreIncidentEvidence = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(
     async ({ data, context }): Promise<{ filename: string; mimeType: string; base64: string }> => {
       const a = await actor(context as Ctx);
@@ -359,7 +359,7 @@ export const downloadCoreIncidentEvidence = createServerFn({ method: "POST" })
 
 export const deleteCoreIncidentEvidence = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const a = await actor(context as Ctx);
     need(a, "edit");
@@ -381,7 +381,7 @@ export const saveCoreRootCause = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        incidentId: uuidString,
+        incidentId: uuidString(),
         problem: z.string().max(2000).nullish(),
         immediate_cause: z.string().max(2000).nullish(),
         root_cause: z.string().max(2000).nullish(),
@@ -430,7 +430,7 @@ export const generateCoreRootCause = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
     z
-      .object({ incidentId: uuidString, language: z.enum(["en", "de", "ro"]).optional() })
+      .object({ incidentId: uuidString(), language: z.enum(["en", "de", "ro"]).optional() })
       .parse(input),
   )
   .handler(
@@ -638,8 +638,8 @@ export const saveCoreAction = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        incidentId: uuidString,
-        id: uuidString.nullish(),
+        incidentId: uuidString(),
+        id: uuidString().nullish(),
         kind: z.enum(["corrective", "preventive"]),
         title: z.string().min(3).max(200),
         detail: z.string().max(4000).nullish(),
@@ -664,7 +664,7 @@ export const saveCoreAction = createServerFn({ method: "POST" })
 export const deleteCoreAction = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
-    z.object({ incidentId: uuidString, id: uuidString }).parse(input),
+    z.object({ incidentId: uuidString(), id: uuidString() }).parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const a = await actor(context as Ctx);
@@ -682,7 +682,7 @@ export const deleteCoreAction = createServerFn({ method: "POST" })
 
 export const exportCoreIncidentPdf = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }): Promise<{ filename: string; base64: string }> => {
     const a = await actor(context as Ctx);
     need(a, "export");
