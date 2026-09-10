@@ -736,6 +736,13 @@ $makensis = @(
   'C:\Program Files (x86)\NSIS\makensis.exe',
   'C:\Program Files\NSIS\makensis.exe'
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+# Fall back to PATH — CI (and choco installs) expose makensis via PATH
+# rather than the fixed locations above.
+if (-not $makensis) {
+  $onPath = Get-Command makensis.exe -ErrorAction SilentlyContinue
+  if (-not $onPath) { $onPath = Get-Command makensis -ErrorAction SilentlyContinue }
+  if ($onPath) { $makensis = $onPath.Source }
+}
 if (-not $makensis) { throw 'NSIS not found. Install NSIS 3.09+.' }
 Write-Host "Using $makensis"
 
