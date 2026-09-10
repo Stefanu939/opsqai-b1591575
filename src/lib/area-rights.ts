@@ -26,6 +26,8 @@ export const AREA_LABELS: Record<string, string> = {
   transport: "Transport",
   hr: "HR",
   hr_payroll: "HR — Payroll",
+  core_ops: "Operations (incidents & root cause)",
+  core_costs: "Operations — cost figures",
 };
 
 

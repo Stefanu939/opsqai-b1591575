@@ -1,9 +1,7 @@
-// Browser download helpers for Transport exports.
+// Browser download helpers. Self-Hosted user exports are PDF only — the former
+// CSV helper was removed so no surface can reintroduce a spreadsheet export.
 
-export function downloadText(filename: string, content: string, mime = "text/csv;charset=utf-8") {
-  const blob = new Blob([content], { type: mime });
-  triggerDownload(filename, URL.createObjectURL(blob));
-}
+
 
 export function downloadBase64(filename: string, base64: string, mime = "application/pdf") {
   const binary = atob(base64);

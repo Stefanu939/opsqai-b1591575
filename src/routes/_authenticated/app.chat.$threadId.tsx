@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getBrowserAuthProvider } from "@/lib/providers/registry";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -998,16 +999,32 @@ function SourcesPanel({
 function FeedbackBar({ messageId }: { messageId: string }) {
   const rate = useServerFn(rateMessage);
   const [voted, setVoted] = useState<-1 | 1 | null>(null);
+  const [open, setOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [sent, setSent] = useState(false);
   const vote = async (r: -1 | 1) => {
     try {
       await rate({ data: { message_id: messageId, rating: r } });
       setVoted(r);
+      // Thumbs-down: ask what was wrong so the gap carries real context.
+      if (r === -1) setOpen(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  const sendComment = async () => {
+    const text = comment.trim();
+    if (!text || !voted) return;
+    try {
+      await rate({ data: { message_id: messageId, rating: voted, comment: text } });
+      setSent(true);
+      setOpen(false);
     } catch (e) {
       console.error(e);
     }
   };
   return (
-    <div className="mt-2 flex items-center gap-1">
+    <div className="mt-2 flex flex-wrap items-center gap-1">
       <button
         onClick={() => vote(1)}
         aria-label="Helpful"
@@ -1022,6 +1039,38 @@ function FeedbackBar({ messageId }: { messageId: string }) {
       >
         <ThumbsDown className="h-3.5 w-3.5" />
       </button>
+      {voted && !open && !sent && (
+        <button
+          onClick={() => setOpen(true)}
+          className="rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          Add a comment
+        </button>
+      )}
+      {sent && <span className="px-1.5 text-[11px] text-muted-foreground">Thanks — sent to your knowledge team.</span>}
+      {open && (
+        <div className="mt-1 flex w-full flex-wrap items-center gap-2">
+          <Input
+            value={comment}
+            autoFocus
+            placeholder="What was missing or wrong?"
+            onChange={(e) => setComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void sendComment();
+              }
+            }}
+            className="h-8 flex-1 min-w-[12rem] text-xs"
+          />
+          <Button size="sm" className="h-8" disabled={comment.trim().length === 0} onClick={() => void sendComment()}>
+            Send
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

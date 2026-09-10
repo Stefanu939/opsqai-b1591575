@@ -55,3 +55,11 @@
 - [x] HR Analytics & Alerts: reparat + complex
 - [x] Settings: mai ample
 - [x] Workspaces noi funcționale: Policies & Procedures, Employee Requests, HR Knowledge, Training, Compliance, HR Intelligence
+
+## Core Operations (Self-Hosted) — done
+- [x] Incidents & damages register with costs, downtime, evidence, statuses, departments (`0046_core_operations.sql`)
+- [x] Grounded Root Cause Intelligence (5 Whys, Lean class, UNKNOWN, knowledge-gap recording)
+- [x] Corrective/preventive actions + analytics, PDF-only reports
+- [x] `/app/operations` in Self-Hosted navigation; rights `core_ops`, `core_costs`
+- [x] Department isolation enforced server-side for chat retrieval (`src/lib/department-scope.server.ts`)
+- [x] User-facing spreadsheet exports removed (HR employee list now PDF; CSV download helper deleted)
