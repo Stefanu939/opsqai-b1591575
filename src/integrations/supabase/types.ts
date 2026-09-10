@@ -3672,6 +3672,75 @@ export type Database = {
           },
         ]
       }
+      social_cron_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      social_scheduled_posts: {
+        Row: {
+          attempts: number
+          body: string
+          created_at: string
+          first_comment: string | null
+          id: string
+          label: string | null
+          last_error: string | null
+          locked_until: string | null
+          network: string
+          published_at: string | null
+          published_urn: string | null
+          scheduled_at: string
+          status: string
+          variant: string | null
+        }
+        Insert: {
+          attempts?: number
+          body: string
+          created_at?: string
+          first_comment?: string | null
+          id?: string
+          label?: string | null
+          last_error?: string | null
+          locked_until?: string | null
+          network?: string
+          published_at?: string | null
+          published_urn?: string | null
+          scheduled_at: string
+          status?: string
+          variant?: string | null
+        }
+        Update: {
+          attempts?: number
+          body?: string
+          created_at?: string
+          first_comment?: string | null
+          id?: string
+          label?: string | null
+          last_error?: string | null
+          locked_until?: string | null
+          network?: string
+          published_at?: string | null
+          published_urn?: string | null
+          scheduled_at?: string
+          status?: string
+          variant?: string | null
+        }
+        Relationships: []
+      }
       sop_acknowledgements: {
         Row: {
           acknowledged_at: string
