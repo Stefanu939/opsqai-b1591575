@@ -122,6 +122,17 @@ CREATE INDEX IF NOT EXISTS core_actions_status_idx ON public.core_actions(status
 CREATE INDEX IF NOT EXISTS core_actions_due_idx ON public.core_actions(due_date);
 
 -- ── Rights: Operations area + financial visibility ────────────────────────
+-- area_permission_map.permission_key references public.permissions(key), so the
+-- permission rows must exist before the mapping is inserted.
+INSERT INTO public.permissions (key, label, category, description) VALUES
+  ('core_ops.view',       'Operations: view',       'operations', 'View incidents, damages and root-cause records'),
+  ('core_ops.create',     'Operations: create',     'operations', 'Create incidents and damages'),
+  ('core_ops.edit',       'Operations: edit',       'operations', 'Edit incidents, root causes and actions'),
+  ('core_ops.delete',     'Operations: delete',     'operations', 'Delete incidents and evidence'),
+  ('core_ops.administer', 'Operations: administer', 'operations', 'Administer Operations settings and all departments'),
+  ('core_costs.view',     'Operations: costs',      'operations', 'View incident costs and financial analytics')
+ON CONFLICT (key) DO NOTHING;
+
 INSERT INTO public.area_permission_map (area_key, action, permission_key) VALUES
   ('core_ops', 'view',       'core_ops.view'),
   ('core_ops', 'create',     'core_ops.create'),
@@ -130,3 +141,12 @@ INSERT INTO public.area_permission_map (area_key, action, permission_key) VALUES
   ('core_ops', 'administer', 'core_ops.administer'),
   ('core_costs', 'view',     'core_costs.view')
 ON CONFLICT (area_key, action) DO NOTHING;
+
+-- Full-access roles inherit the new Operations permissions.
+INSERT INTO public.role_permissions (role_key, permission_key)
+SELECT full_roles.role_key, p.key
+FROM (VALUES ('platform_owner'), ('platform_admin'), ('superadmin')) AS full_roles(role_key)
+CROSS JOIN (VALUES ('core_ops.view'),('core_ops.create'),('core_ops.edit'),
+                   ('core_ops.delete'),('core_ops.administer'),('core_costs.view')) AS p(key)
+WHERE EXISTS (SELECT 1 FROM public.roles r WHERE r.key = full_roles.role_key)
+ON CONFLICT DO NOTHING;
