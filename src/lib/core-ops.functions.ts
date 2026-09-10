@@ -519,13 +519,14 @@ export const generateCoreRootCause = createServerFn({ method: "POST" })
       if (!contextText) {
         // No grounding at all → record the gap instead of inventing a cause.
         try {
-          const { recordKnowledgeGap } = await import("@/lib/knowledge-gap-auto.server");
-          await recordKnowledgeGap(context.supabase, {
+          const { recordAutoKnowledgeGap } = await import("@/lib/knowledge-gap-auto.server");
+          await recordAutoKnowledgeGap(context.supabase, {
             companyId: a.companyId,
-            userId: a.userId,
+            createdBy: a.userId,
+            departmentId: detail.incident.department_id,
             question: `Root cause analysis: ${detail.incident.title}`,
             confidence: 0,
-          } as never);
+          });
         } catch {
           /* the gap loop is best effort */
         }
