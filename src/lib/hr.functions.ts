@@ -474,52 +474,47 @@ export const saveHrSettings = createServerFn({ method: "POST" })
 
 // ── Exports ──────────────────────────────────────────────────────────────
 
-export const exportHrEmployeesCsv = createServerFn({ method: "POST" })
+export const exportHrEmployeesPdf = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     const a = await actor(context as Ctx);
     need(a, "export");
     const db = await import("@/lib/hr/db.server");
     const rows = await db.listEmployees(a.companyId, {});
-    const head = [
-      "Employee ID",
-      "First name",
-      "Last name",
-      "Position",
-      "Department",
-      "Location",
-      "Status",
-      "Contract",
-      "Start date",
-      "End date",
-      "Email",
-      "Phone",
-    ];
-    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const csv = [
-      head.map(esc).join(","),
-      ...rows.map((r) =>
-        [
-          r.employee_no,
-          r.first_name,
-          r.last_name,
-          r.position_name,
-          r.department_name,
-          r.location_name,
-          r.status,
-          r.contract_type,
-          r.start_date,
-          r.end_date,
-          r.email,
-          r.phone,
-        ]
-          .map(esc)
-          .join(","),
-      ),
-    ].join("\r\n");
-    // Excel opens UTF-8 CSV correctly only with a BOM.
-    const base64 = Buffer.from(`\uFEFF${csv}`, "utf8").toString("base64");
-    return { filename: `opsqai-employees-${new Date().toISOString().slice(0, 10)}.csv`, base64 };
+    const { renderTablePdf } = await import("@/lib/transport/table-pdf.server");
+    const bytes = await renderTablePdf({
+      title: "Employees",
+      subtitle: `OPSQAI HR — ${rows.length} records`,
+      headers: [
+        "ID",
+        "First name",
+        "Last name",
+        "Position",
+        "Department",
+        "Location",
+        "Status",
+        "Contract",
+        "Start",
+        "End",
+      ],
+      rows: rows.map((r) => [
+        r.employee_no,
+        r.first_name,
+        r.last_name,
+        r.position_name,
+        r.department_name,
+        r.location_name,
+        r.status,
+        r.contract_type,
+        r.start_date,
+        r.end_date,
+      ]),
+      generatedLabel: `Generated ${new Date().toISOString().slice(0, 10)}`,
+    });
+    return {
+      filename: `opsqai-employees-${new Date().toISOString().slice(0, 10)}.pdf`,
+      base64: Buffer.from(bytes).toString("base64"),
+    };
   });
 
 export const exportHrEmployeePdf = createServerFn({ method: "POST" })

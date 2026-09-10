@@ -20,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   deleteHrEmployee,
   exportHrEmployeePdf,
-  exportHrEmployeesCsv,
+  exportHrEmployeesPdf,
   saveHrEmployee,
 } from "@/lib/hr.functions";
 import { downloadBase64 } from "@/components/app/transport/download";
@@ -59,7 +59,7 @@ export function EmployeesSection({ t }: { t: HrUi }) {
   const query = useHrEmployees(filters);
   const refresh = useHrRefresh();
   const remove = useServerFn(deleteHrEmployee);
-  const exportCsv = useServerFn(exportHrEmployeesCsv);
+  const exportPdf = useServerFn(exportHrEmployeesPdf);
 
   const refs = query.data?.refs ?? { departments: [], positions: [], locations: [] };
   const grants = query.data?.grants ?? [];
@@ -117,13 +117,13 @@ export function EmployeesSection({ t }: { t: HrUi }) {
                 size="sm"
                 variant="outline"
                 onClick={() =>
-                  void exportCsv()
-                    .then((res) => downloadBase64(res.filename, res.base64, "text/csv"))
+                  void exportPdf()
+                    .then((res) => downloadBase64(res.filename, res.base64))
                     .catch((e: Error) => toast.error(e.message))
                 }
               >
                 <Download className="mr-1.5 size-4" />
-                {t.exportCsv}
+                {t.exportPdf ?? "PDF"}
               </Button>
             ) : null}
             {grants.includes("create") ? (
