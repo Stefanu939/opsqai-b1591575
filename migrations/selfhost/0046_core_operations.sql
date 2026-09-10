@@ -141,3 +141,12 @@ INSERT INTO public.area_permission_map (area_key, action, permission_key) VALUES
   ('core_ops', 'administer', 'core_ops.administer'),
   ('core_costs', 'view',     'core_costs.view')
 ON CONFLICT (area_key, action) DO NOTHING;
+
+-- Full-access roles inherit the new Operations permissions.
+INSERT INTO public.role_permissions (role_key, permission_key)
+SELECT full_roles.role_key, p.key
+FROM (VALUES ('platform_owner'), ('platform_admin'), ('superadmin')) AS full_roles(role_key)
+CROSS JOIN (VALUES ('core_ops.view'),('core_ops.create'),('core_ops.edit'),
+                   ('core_ops.delete'),('core_ops.administer'),('core_costs.view')) AS p(key)
+WHERE EXISTS (SELECT 1 FROM public.roles r WHERE r.key = full_roles.role_key)
+ON CONFLICT DO NOTHING;
