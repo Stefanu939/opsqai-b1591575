@@ -31,6 +31,28 @@ import {
 } from "@/lib/selfhost-updates.functions";
 import { Download, Package, ExternalLink, History, RefreshCw } from "lucide-react";
 
+/** Plain-language explanation for an update-check outcome. */
+function updateReasonText(reason?: string): string {
+  const r = reason ?? "unknown";
+  if (r === "unreachable") return "The Management Center could not be reached.";
+  if (r === "unauthorized" || r.startsWith("http_401"))
+    return "This installation is not recognised by the Management Center.";
+  if (r === "license_missing" || r === "license_key_missing")
+    return "No valid licence was found on this installation.";
+  if (r === "maintenance_expired")
+    return "Maintenance has expired — renew it to receive new versions.";
+  if (r === "no_artifact") return "The published release has no installer package attached.";
+  if (r === "bad_signature" || r === "descriptor_mismatch" || r === "wrong_kind")
+    return "The update information could not be verified and was rejected.";
+  if (r === "descriptor_expired") return "The update information expired — try again.";
+  if (r === "install_mismatch")
+    return "The update was issued for a different installation and was rejected.";
+  if (r.startsWith("http_400"))
+    return "The Management Center rejected the request details. Please try again after refreshing.";
+  if (r.startsWith("http_5")) return "The Management Center is temporarily unavailable.";
+  return `Update check failed: ${r}`;
+}
+
 export const Route = createFileRoute("/_authenticated/app/updates")({
   head: () => ({ meta: [{ title: "Updates — OPSQAI" }] }),
   component: UpdatesPage,
@@ -102,7 +124,7 @@ function AutoUpdatePanel() {
                   if (r.ok) toast.success(`Version ${r.version} is available`);
                   else if (r.reason === "up_to_date")
                     toast.success("You are already on the newest version");
-                  else toast.error(`Update check failed: ${r.reason ?? "unknown"}`);
+                  else toast.error(updateReasonText(r.reason));
                 })
                 .catch((e: Error) => toast.error(e.message))
                 .finally(() => {

@@ -27,9 +27,18 @@ export function createPgFaqRepository(deps: PgFaqRepositoryDeps): IFaqRepository
                 question_en = $3,
                 answer_de   = $4,
                 answer_en   = $5,
-                category    = $6
+                category    = $6,
+                department_id = $7
           WHERE id = $1`,
-        [id, patch.question_de, patch.question_en, patch.answer_de, patch.answer_en, patch.category],
+        [
+          id,
+          patch.question_de,
+          patch.question_en,
+          patch.answer_de,
+          patch.answer_en,
+          patch.category,
+          patch.department_id ?? null,
+        ],
       );
     },
 
@@ -46,8 +55,8 @@ export function createPgFaqRepository(deps: PgFaqRepositoryDeps): IFaqRepository
     async insert(companyId, input) {
       const { rows } = await pool.query<Pick<FaqRow, "id" | "category" | "question_en">>(
         `INSERT INTO public.faqs
-           (company_id, question_de, question_en, answer_de, answer_en, category)
-         VALUES ($1,$2,$3,$4,$5,$6)
+           (company_id, question_de, question_en, answer_de, answer_en, category, department_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
          RETURNING id, category, question_en`,
         [
           companyId,
@@ -56,6 +65,7 @@ export function createPgFaqRepository(deps: PgFaqRepositoryDeps): IFaqRepository
           input.answer_de,
           input.answer_en,
           input.category,
+          input.department_id ?? null,
         ],
       );
       return rows[0];

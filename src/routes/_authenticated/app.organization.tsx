@@ -339,21 +339,6 @@ function OrganizationPage() {
                     </div>
                   )}
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Language</Label>
-                  <Select
-                    value={form.language_pref}
-                    onValueChange={(v) => setForm({ ...form, language_pref: v as "en" | "de" })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="de">Deutsch</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
               <div className="pt-2">
                 <Button type="submit" disabled={busy}>

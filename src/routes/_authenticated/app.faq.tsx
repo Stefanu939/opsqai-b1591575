@@ -31,6 +31,7 @@ import {
 import { Plus, Pencil, Trash2, Download, Upload, HelpCircle, SearchX, Layers } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertFaq, deleteFaq, listFaqs } from "@/lib/faqs.functions";
+import { listDepartments } from "@/lib/users.functions";
 import { ExportDialog } from "@/components/admin/export-dialog";
 import { FaqImportDialog } from "@/components/admin/faq-import-dialog";
 import { toast } from "sonner";
@@ -65,6 +66,7 @@ interface Faq {
   answer_de: string;
   answer_en: string;
   category: string;
+  department_id?: string | null;
 }
 
 function FaqPage() {
@@ -81,7 +83,9 @@ function FaqPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
   const save = useServerFn(upsertFaq);
+  const fetchDepartments = useServerFn(listDepartments);
   const del = useServerFn(deleteFaq);
   const fetchFaqs = useServerFn(listFaqs);
 
@@ -96,6 +100,15 @@ function FaqPage() {
     load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [scopeCompanyId]);
 
+  // Departments created in Organization become selectable here, so an FAQ can
+  // be published for one team only.
+  useEffect(() => {
+    void fetchDepartments()
+      .then((rows) => setDepartments((rows ?? []).map((d) => ({ id: d.id, name: d.name }))))
+      .catch(() => setDepartments([]));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, []);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const fd = new FormData(e.target as HTMLFormElement);
@@ -106,6 +119,7 @@ function FaqPage() {
       answer_de: String(fd.get("ade") ?? ""),
       answer_en: String(fd.get("aen") ?? ""),
       category: String(fd.get("cat") ?? "general"),
+      department_id: String(fd.get("dept") ?? "") || null,
       // Anchor new FAQs to the active workspace so platform admins working
       // inside a tenant don't accidentally write to their home company.
       company_id: scopeCompanyId ?? undefined,
@@ -230,6 +244,21 @@ function FaqPage() {
                     <Label>{t("category")}</Label>
                     <Input name="cat" defaultValue={editing?.category ?? "general"} required />
                   </div>
+                  <div className="space-y-2">
+                    <Label>{t("department")}</Label>
+                    <select
+                      name="dept"
+                      defaultValue={editing?.department_id ?? ""}
+                      className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                    >
+                      <option value="">{t("allDepartments")}</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <Label>{t("question")} (DE)</Label>
@@ -315,7 +344,11 @@ function FaqPage() {
                   <Panel
                     className="oq-lift"
                     title={lang === "de" ? f.question_de : f.question_en}
-                    description={f.category || "general"}
+                    description={`${f.category || "general"}${
+                      f.department_id
+                        ? ` · ${departments.find((d) => d.id === f.department_id)?.name ?? ""}`
+                        : ""
+                    }`}
                     icon={HelpCircle}
                     actions={
                       canEditFaq ? (

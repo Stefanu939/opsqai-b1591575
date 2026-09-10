@@ -19,6 +19,7 @@ const DocInput = z.object({
   title: z.string().min(1),
   category: z.string().min(1),
   doc_code: z.string().optional().nullable(),
+  department_id: uuidString().optional().nullable(),
   file_path: z.string().min(1),
   file_type: z.string().min(1),
   filename: z.string().min(1),
@@ -132,6 +133,14 @@ export const processDocument = createServerFn({ method: "POST" })
       file_type: data.file_type,
       uploaded_by: context.userId,
     });
+
+    // A document published for one department only grounds answers for that
+    // department; without one it stays company-wide.
+    if (data.department_id) {
+      await repo
+        .updateMetadata(doc.id, { department_id: data.department_id })
+        .catch(() => undefined);
+    }
 
     try {
       const chunks = await runProcessingPipeline(

@@ -14,6 +14,7 @@ const FaqInput = z.object({
   answer_en: z.string().min(1),
   category: z.string().min(1),
   company_id: uuidString().optional().nullable(),
+  department_id: uuidString().optional().nullable(),
 });
 
 export const listFaqs = createServerFn({ method: "GET" })
@@ -43,6 +44,7 @@ export const upsertFaq = createServerFn({ method: "POST" })
       answer_de: data.answer_de,
       answer_en: data.answer_en,
       category: data.category,
+      department_id: data.department_id ?? null,
     };
 
     if (data.id) {

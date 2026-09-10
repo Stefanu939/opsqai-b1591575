@@ -826,6 +826,8 @@ export interface FaqRow {
   answer_de: string;
   answer_en: string;
   category: string;
+  /** Self-Hosted only: null/absent means the entry is company-wide. */
+  department_id?: string | null;
 }
 
 export interface FaqUpsertInput {
@@ -834,6 +836,7 @@ export interface FaqUpsertInput {
   answer_de: string;
   answer_en: string;
   category: string;
+  department_id?: string | null;
 }
 
 export interface IFaqRepository {
@@ -2030,6 +2033,8 @@ export interface TimeOffRecord {
   calendarEventId: string | null;
   createdAt: string;
   requesterName?: string | null;
+  requesterEmail?: string | null;
+  requesterDepartment?: string | null;
 }
 
 export interface IPresenceRepository {

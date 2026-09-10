@@ -115,9 +115,10 @@ export async function checkForUpdateFromMc(
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        installation_id: lic.claims.install_id,
+        installation_id: String(lic.claims.install_id ?? "").trim(),
         signed_token: lic.installRaw,
-        current_version: APP_VERSION,
+        // The Management Center compares plain semver, never a "v" prefix.
+        current_version: APP_VERSION.replace(/^v/i, ""),
         channel,
       }),
       signal: AbortSignal.timeout(20_000),
@@ -126,7 +127,18 @@ export async function checkForUpdateFromMc(
     return { ok: false, reason: "unreachable" };
   }
   if (res.status === 401) return { ok: false, reason: "unauthorized" };
-  if (!res.ok) return { ok: false, reason: `http_${res.status}` };
+  if (!res.ok) {
+    // Surface the server's own explanation so the UI can be specific instead
+    // of showing a bare status code.
+    let detail = "";
+    try {
+      const parsed = (await res.json()) as { error?: string; fields?: string[] };
+      detail = [parsed.error, parsed.fields?.join(",")].filter(Boolean).join(":");
+    } catch {
+      /* non-JSON error body */
+    }
+    return { ok: false, reason: detail ? `http_${res.status}_${detail}` : `http_${res.status}` };
+  }
 
   let body: {
     update?: {

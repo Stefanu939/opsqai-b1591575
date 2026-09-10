@@ -14,11 +14,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isNewerVersion, satisfiesMinVersion } from "@/lib/update-version";
 
+// Kept deliberately permissive: an installation must never be blocked from
+// discovering updates because its identifier or signed licence is longer or
+// shorter than expected. Authenticity is proven by the signature check below,
+// not by these bounds.
 const BodySchema = z.object({
-  installation_id: z.string().min(8).max(200),
-  signed_token: z.string().min(10).max(8000),
-  current_version: z.string().min(1).max(64),
-  channel: z.enum(["stable", "beta"]).default("stable"),
+  installation_id: z.string().trim().min(3).max(400),
+  signed_token: z.string().trim().min(10).max(64_000),
+  current_version: z
+    .string()
+    .trim()
+    .min(1)
+    .max(64)
+    .transform((v) => v.replace(/^v/i, "")),
+  channel: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .optional()
+    .transform((v) => (v === "beta" ? "beta" : "stable")),
 });
 
 const CORS = {
@@ -46,7 +60,15 @@ export const Route = createFileRoute("/api/public/v1/updates/check")({
           return json({ error: "invalid_body" }, 400);
         }
         const parsed = BodySchema.safeParse(raw);
-        if (!parsed.success) return json({ error: "invalid_payload" }, 400);
+        if (!parsed.success) {
+          return json(
+            {
+              error: "invalid_payload",
+              fields: parsed.error.issues.map((i) => i.path.join(".")),
+            },
+            400,
+          );
+        }
         const body = parsed.data;
 
         const { verifyHeartbeatInstallTokenFromDb } = await import("@/lib/license-signing.server");

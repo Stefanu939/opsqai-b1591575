@@ -19,7 +19,9 @@ export function createSupabaseFaqRepository(client: Client): IFaqRepository {
     },
 
     async update(id, patch) {
-      const { error } = await client.from("faqs").update(patch).eq("id", id);
+      // Department scope is a Self-Hosted concept; Cloud FAQs are company-wide.
+      const { department_id: _ignored, ...cloudPatch } = patch;
+      const { error } = await client.from("faqs").update(cloudPatch).eq("id", id);
       if (error) throw new Error(error.message);
     },
     async getMetaById(id) {
@@ -34,7 +36,7 @@ export function createSupabaseFaqRepository(client: Client): IFaqRepository {
     async insert(companyId, input) {
       const { data, error } = await client
         .from("faqs")
-        .insert({ ...input, company_id: companyId } as never)
+        .insert({ ...input, department_id: undefined, company_id: companyId } as never)
         .select("id, category, question_en")
         .single();
       if (error) throw new Error(error.message);
