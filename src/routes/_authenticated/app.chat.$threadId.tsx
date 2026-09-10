@@ -1038,6 +1038,38 @@ function FeedbackBar({ messageId }: { messageId: string }) {
       >
         <ThumbsDown className="h-3.5 w-3.5" />
       </button>
+      {voted && !open && !sent && (
+        <button
+          onClick={() => setOpen(true)}
+          className="rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          Add a comment
+        </button>
+      )}
+      {sent && <span className="px-1.5 text-[11px] text-muted-foreground">Thanks — sent to your knowledge team.</span>}
+      {open && (
+        <div className="mt-1 flex w-full flex-wrap items-center gap-2">
+          <Input
+            value={comment}
+            autoFocus
+            placeholder="What was missing or wrong?"
+            onChange={(e) => setComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void sendComment();
+              }
+            }}
+            className="h-8 flex-1 min-w-[12rem] text-xs"
+          />
+          <Button size="sm" className="h-8" disabled={comment.trim().length === 0} onClick={() => void sendComment()}>
+            Send
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
