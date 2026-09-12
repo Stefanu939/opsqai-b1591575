@@ -100,11 +100,6 @@ export function OverviewSection({
     [data.recentIncidents, severity, carrier, vehicleIdsInDepot],
   );
 
-  const pins = useMemo(() => {
-    if (!vehicleIdsInDepot) return data.pins;
-    return data.pins.filter((p) => p.kind !== "vehicle" || vehicleIdsInDepot.has(p.id));
-  }, [data.pins, vehicleIdsInDepot]);
-
   const lanes = useMemo(() => buildRiskLanes(t, data), [t, data]);
 
   const runFleetStatus = () =>
