@@ -559,6 +559,8 @@ export function MapSection({ t }: { t: Ui }) {
           </ul>
         )}
       </Panel>
+
+      <TripPlannerSection t={t} />
     </div>
   );
 }
