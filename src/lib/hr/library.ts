@@ -29,6 +29,13 @@ export interface HrDocDefinition {
   /** Suggested validity in months (null = no expiry). */
   validMonths: number | null;
   body: string;
+  /** Country-law review metadata. Country contracts cannot be approved without review. */
+  legalReviewRequired?: boolean;
+  legalVersion?: number;
+  legalVerifiedOn?: string;
+  legalReviewDue?: string;
+  legalSources?: string[];
+  expectedPages?: string;
 }
 
 export const HR_PLACEHOLDERS = [
@@ -54,8 +61,123 @@ export const HR_PLACEHOLDERS = [
   "vacation_days",
   "probation_months",
   "notice_weeks",
+  "salary_amount",
+  "salary_currency",
+  "salary_period",
+  "salary_valid_from",
   "today",
 ] as const;
+
+export const HR_LEGAL_SOURCES = {
+  de: [
+    "Nachweisgesetz § 2 — https://www.gesetze-im-internet.de/nachwg/__2.html",
+    "BGB §§ 622, 623 — https://www.gesetze-im-internet.de/bgb/__622.html",
+    "Bundesurlaubsgesetz § 3 — https://www.gesetze-im-internet.de/burlg/",
+    "Teilzeit- und Befristungsgesetz — https://www.gesetze-im-internet.de/tzbfg/",
+  ],
+  ro: [
+    "Legea nr. 53/2003, Codul muncii — https://legislatie.just.ro/Public/DetaliiDocument/44636",
+    "Ordinul nr. 2.171/2022, modelul-cadru CIM — https://legislatie.just.ro/public/DetaliiDocument/262299",
+    "Legea nr. 81/2018 privind telemunca — https://legislatie.just.ro/Public/DetaliiDocument/199418",
+  ],
+} as const;
+
+const DE_CONTRACT_ANNEX = `
+[[PAGE_BREAK]]
+§ 11 ARBEITSZEIT, PAUSEN UND MEHRARBEIT
+Die regelmäßige Wochenarbeitszeit beträgt {{weekly_hours}} Stunden. Beginn, Ende und Verteilung richten sich nach dem betrieblichen Arbeitszeitmodell und den Grenzen des Arbeitszeitgesetzes. Ruhepausen und Ruhezeiten sind einzuhalten und vollständig zu erfassen. Angeordnete oder vorab genehmigte Mehrarbeit wird durch Freizeit oder gesonderte Vergütung ausgeglichen; eine unbestimmte pauschale Abgeltung findet nicht statt.
+
+§ 12 VERGÜTUNG UND FÄLLIGKEIT
+Das bestätigte Grundentgelt beträgt {{salary_amount}} {{salary_currency}} brutto je {{salary_period}}, gültig seit {{salary_valid_from}}. Es wird spätestens zum Monatsende auf das benannte Konto gezahlt. Gesetzliche oder tarifliche Mindestentgelte bleiben unberührt. Variable Vergütung, Zuschläge oder Sachleistungen gelten nur, wenn sie schriftlich vereinbart sind.
+
+[[PAGE_BREAK]]
+§ 13 URLAUB UND ARBEITSUNFÄHIGKEIT
+Der Jahresurlaub beträgt {{vacation_days}} Arbeitstage. Der gesetzliche Mindesturlaub bleibt vorrangig geschützt. Urlaubszeiten werden unter Berücksichtigung betrieblicher Belange vereinbart. Der Arbeitgeber informiert rechtzeitig und konkret über noch offenen Urlaub und mögliche Verfallsfristen. Arbeitsunfähigkeit und deren voraussichtliche Dauer sind unverzüglich mitzuteilen; die Entgeltfortzahlung richtet sich nach dem Entgeltfortzahlungsgesetz.
+
+§ 14 NEBENTÄTIGKEIT, VERTRAULICHKEIT UND DATENSCHUTZ
+Nebentätigkeiten sind anzuzeigen, soweit berechtigte betriebliche Interessen berührt werden. Geschäftsgeheimnisse sind nach dem GeschGehG zu schützen. Beschäftigtendaten werden ausschließlich zu festgelegten Zwecken nach DSGVO und BDSG verarbeitet. Gesonderte Datenschutzinformationen werden als Anlage ausgehändigt.
+
+[[PAGE_BREAK]]
+§ 15 KÜNDIGUNG WÄHREND UND NACH DER PROBEZEIT
+Die ersten {{probation_months}} Monate, höchstens sechs Monate, gelten als Probezeit. In dieser Zeit beträgt die gesetzliche Kündigungsfrist regelmäßig zwei Wochen. Danach gelten mindestens die Fristen des § 622 BGB. Eine Kündigung muss gemäß § 623 BGB schriftlich erfolgen; die elektronische Form ist ausgeschlossen.
+
+Der allgemeine Kündigungsschutz nach dem KSchG hängt insbesondere von Wartezeit und Betriebsgröße ab. Die im Gesetz vorgesehene sechsmonatige Wartezeit ist keine zusätzliche Kündigungsfrist. Sonderkündigungsschutz, Beteiligungsrechte eines Betriebsrats und das Recht zur außerordentlichen Kündigung bleiben unberührt.
+
+[[PAGE_BREAK]]
+§ 16 BEENDIGUNG, FREISTELLUNG UND RÜCKGABE
+Bei Ende des Arbeitsverhältnisses sind Unterlagen, Datenträger, Schlüssel, Geräte und Zugangsmittel vollständig zurückzugeben. Offene Urlaubs- und Zeitguthaben werden nach den gesetzlichen Regeln behandelt. Eine Freistellung bedarf einer eindeutigen schriftlichen Erklärung. Auf Verlangen wird ein qualifiziertes Arbeitszeugnis nach § 109 GewO erteilt.
+
+§ 17 FORTBILDUNG UND GEISTIGES EIGENTUM
+Berufliche Fortbildung richtet sich nach einer gesonderten Vereinbarung. Rückzahlungsklauseln bedürfen einer transparenten, verhältnismäßigen Regelung. Diensterfindungen richten sich nach dem Arbeitnehmererfindungsgesetz; urheberrechtliche Nutzungsrechte werden nur im erforderlichen gesetzlichen oder gesondert vereinbarten Umfang eingeräumt.
+
+[[PAGE_BREAK]]
+§ 18 KOLLEKTIVRECHT UND RICHTLINIEN
+Anwendbare Tarifverträge, Betriebsvereinbarungen und zwingende gesetzliche Vorschriften gehen entgegenstehenden Vertragsregelungen vor. Interne Richtlinien werden zugänglich gemacht. Besteht ein Betriebsrat, bleiben seine Beteiligungsrechte unberührt.
+
+§ 19 ÄNDERUNGEN UND TEILUNWIRKSAMKEIT
+Änderungen wesentlicher Arbeitsbedingungen werden nach Maßgabe des Nachweisgesetzes dokumentiert. Individuelle Abreden bleiben unberührt. Die Unwirksamkeit einzelner Bestimmungen lässt die übrigen Regelungen bestehen; an ihre Stelle tritt die gesetzliche Regelung, nicht eine fingierte wirtschaftlich ähnliche Bestimmung.
+
+[[PAGE_BREAK]]
+§ 20 VERTRAGSENDE IN DEN ERSTEN SECHS MONATEN
+Während einer vereinbarten Probezeit gelten die dafür gesetzlich vorgesehenen Fristen. Unabhängig davon beginnt der allgemeine Kündigungsschutz nach § 1 KSchG grundsätzlich erst nach sechs Monaten, sofern auch der betriebliche Anwendungsbereich eröffnet ist. Kündigungsverbote, Diskriminierungsschutz, Sonderkündigungsschutz, Schriftform und Beteiligungsrechte gelten dennoch.
+
+§ 21 VERTRAGSENDE NACH SECHS MONATEN
+Nach Ablauf von sechs Monaten sind die verlängerten gesetzlichen Kündigungsfristen nach Betriebszugehörigkeit sowie gegebenenfalls der allgemeine und besondere Kündigungsschutz zu prüfen. Der Vertrag verspricht keine Wirksamkeit einer Kündigung; jeder Fall benötigt eine eigene rechtliche Prüfung.
+
+[[PAGE_BREAK]]
+§ 22 NACHWEIS UND ANLAGEN
+Der Vertrag dokumentiert die wesentlichen Arbeitsbedingungen nach dem Nachweisgesetz. Bestandteile sind die Stellenbeschreibung, Datenschutzinformation, Arbeitszeitregelung, IT-/Sicherheitsrichtlinie und gegebenenfalls Vereinbarungen zu mobiler Arbeit, variabler Vergütung oder betrieblicher Altersversorgung. Widersprüche sind vor Unterzeichnung zu bereinigen.
+
+RECHTLICHER PRÜFVERMERK
+Diese Vorlage ist erst nach dokumentierter Prüfung durch eine für deutsches Arbeitsrecht qualifizierte Person zur Freigabe bestimmt. Rechtsstand und Quellen sind im Dokumentenregister festzuhalten.
+`;
+
+const RO_CONTRACT_ANNEX = `
+[[PAGE_BREAK]]
+O. TIMPUL DE MUNCĂ ȘI REPAUSUL
+Durata normală este de {{weekly_hours}} ore pe săptămână, cu repartizarea stabilită în programul de lucru comunicat salariatului. Munca suplimentară se efectuează numai în condițiile Codului muncii și se compensează cu timp liber plătit sau sporul legal/convenit. Repausul zilnic și săptămânal, munca de noapte și evidența orelor se gestionează conform legii.
+
+P. SALARIUL ȘI PLATA
+Salariul de bază brut confirmat este {{salary_amount}} {{salary_currency}} pe {{salary_period}}, valabil de la {{salary_valid_from}}. Plata se face cel puțin lunar, la data stabilită de angajator. Sporurile, indemnizațiile, prestațiile suplimentare și beneficiile în natură se consemnează distinct. Salariul nu poate coborî sub minimul legal aplicabil la data plății.
+
+[[PAGE_BREAK]]
+Q. CONCEDIUL ȘI ABSENȚELE
+Concediul anual este de {{vacation_days}} zile lucrătoare, fără a putea fi sub minimul legal. Programarea, efectuarea, reportarea și compensarea la încetare se fac potrivit Codului muncii. Concediile medicale, familiale și celelalte absențe protejate se acordă potrivit legislației speciale aplicabile.
+
+R. SĂNĂTATE, SECURITATE ȘI NEDISCRIMINARE
+Angajatorul asigură instruirea, evaluarea riscurilor și echipamentele necesare. Salariatul respectă instrucțiunile SSM și raportează pericolele. Părțile respectă egalitatea de tratament, demnitatea în muncă, prevenirea hărțuirii și protecția avertizorilor, potrivit normelor aplicabile.
+
+[[PAGE_BREAK]]
+S. PROTECȚIA DATELOR ȘI CONFIDENȚIALITATEA
+Datele salariatului sunt prelucrate pentru executarea contractului și îndeplinirea obligațiilor legale, conform GDPR și Legii nr. 190/2018. Nota de informare se comunică separat. Obligația de confidențialitate privește informațiile nepublice clar identificate și continuă după încetare în limitele legii.
+
+T. FORMAREA PROFESIONALĂ ȘI REZULTATELE MUNCII
+Participarea la formare, costurile și eventualele obligații ulterioare se stabilesc prin act adițional, proporțional și transparent. Drepturile asupra creațiilor și rezultatelor muncii se stabilesc potrivit legii și atribuțiilor postului; prezentul contract nu transferă mai mult decât permite legea.
+
+[[PAGE_BREAK]]
+U. MODIFICAREA, SUSPENDAREA ȘI DELEGAREA
+Elementele esențiale se modifică prin acord și act adițional, cu excepțiile prevăzute expres de lege. Suspendarea, delegarea, detașarea, mobilitatea și telemunca se documentează distinct când sunt aplicabile. Salariatul primește informațiile obligatorii înainte de producerea efectelor.
+
+V. PERIOADA DE PROBĂ
+Perioada de probă este de {{probation_months}} luni, dar nu poate depăși limitele legale aplicabile funcției și tipului de contract. Pe durata sau la sfârșitul perioadei de probă, contractul poate înceta exclusiv în condițiile art. 31 Codul muncii, prin notificare scrisă, fără preaviz și fără motivare. România nu aplică regula germană distinctă a primelor șase luni.
+
+[[PAGE_BREAK]]
+W. ÎNCETAREA CONTRACTULUI
+Încetarea poate avea loc de drept, prin acord sau unilateral numai în cazurile și procedurile Codului muncii. Concedierea trebuie să respecte motivarea, procedura, competența, termenele și preavizul aplicabil. Demisia se notifică în scris și respectă preavizul legal/convenit. Drepturile salariale, concediul neefectuat și documentele de încetare se regularizează la final.
+
+X. ÎNCETAREA ÎN PRIMELE ȘASE LUNI ȘI DUPĂ ACEASTĂ PERIOADĂ
+Nu există o regulă română generală prin care primele șase luni permit concedierea liberă. În probă se aplică art. 31; în afara probei se aplică temeiul legal concret, chiar dacă nu au trecut șase luni. După șase luni se aplică aceleași categorii legale de încetare, împreună cu orice protecție suplimentară dobândită. Fiecare încetare necesită verificare individuală.
+
+[[PAGE_BREAK]]
+Y. LITIGII, LEGE APLICABILĂ ȘI ANEXE
+Litigiile se soluționează de instanțele competente potrivit legii române. Sunt anexe, după caz: fișa postului, criteriile de evaluare, nota GDPR, regulamentul intern, instruirea SSM/PSI, politica IT, acordul de telemuncă și orice plan de beneficii. Contractul și anexele se citesc împreună.
+
+Z. EXEMPLARE ȘI CONFIRMARE
+Contractul se încheie înainte de începerea activității, în exemplarele cerute de lege, se transmite în registrul general în termenul legal și se predă salariatului. Părțile confirmă că datele de identificare, salariul, concediul, perioada de probă, funcția, locul și timpul de muncă au fost verificate.
+
+REVIZIE JURIDICĂ OBLIGATORIE
+Documentul poate fi aprobat numai după verificarea de către o persoană calificată în dreptul muncii din România. Versiunea legală, data verificării, sursele și observațiile se păstrează în registrul documentului.
+`;
 
 const sig = (lines: string[]) => `\n\n${lines.join("\n")}`;
 
@@ -836,7 +958,21 @@ we are pleased to promote you to {{position}} ({{department}}) effective [___], 
 ];
 
 export function documentLibrary(country: HrCountry): HrDocDefinition[] {
-  return country === "de" ? DE : country === "ro" ? RO : GENERIC;
+  const docs = country === "de" ? DE : country === "ro" ? RO : GENERIC;
+  if (country === "generic") return docs;
+  return docs.map((doc) => {
+    const isContract = doc.key === "employment_contract" || doc.key === "fixed_term_contract";
+    return {
+      ...doc,
+      body: isContract ? `${doc.body}\n${country === "de" ? DE_CONTRACT_ANNEX : RO_CONTRACT_ANNEX}` : doc.body,
+      legalReviewRequired: true,
+      legalVersion: 1,
+      legalVerifiedOn: "2026-09-12",
+      legalReviewDue: "2027-03-12",
+      legalSources: [...HR_LEGAL_SOURCES[country]],
+      expectedPages: isContract ? "8–10" : doc.kind === "letter" ? "1–3" : "2–5",
+    };
+  });
 }
 
 export function findDocDefinition(country: HrCountry, key: string): HrDocDefinition | null {
