@@ -1,0 +1,106 @@
+// OPSQAI in-app feature index — client-safe.
+//
+// The global search must find *anything inside the application*: not only
+// content (documents, FAQs, people) but also the screens and functions
+// themselves. This registry lists every navigable surface with localized
+// labels and search keywords so "concediu", "vacation" or "CMR" all lead to
+// the right place, in any of the three UI languages.
+
+export type Lang = "en" | "de" | "ro";
+
+export interface FeatureEntry {
+  /** Router path. Product workspaces use the canonical /app/products/... shape. */
+  to: string;
+  /** Group heading key, translated in the search UI. */
+  group: "core" | "transport" | "hr" | "academy" | "admin";
+  label: Record<Lang, string>;
+  /** Extra words matched against the query (any language, lower-case). */
+  keywords: string[];
+}
+
+const f = (
+  to: string,
+  group: FeatureEntry["group"],
+  en: string,
+  de: string,
+  ro: string,
+  keywords: string[] = [],
+): FeatureEntry => ({ to, group, label: { en, de, ro }, keywords });
+
+export const APP_FEATURES: FeatureEntry[] = [
+  // ── Core ────────────────────────────────────────────────────────────
+  f("/app", "core", "Dashboard", "Dashboard", "Panou principal", ["overview", "kpi", "start", "übersicht", "prezentare"]),
+  f("/app/chat", "core", "AI Chat", "KI-Chat", "Chat AI", ["assistant", "ask", "frage", "intrebare", "asistent"]),
+  f("/app/calendar", "core", "Calendar", "Kalender", "Calendar", ["events", "termine", "evenimente", "holiday", "urlaub", "concediu", "absence", "time off", "abwesenheit"]),
+  f("/app/operations", "core", "Operations", "Operations", "Operațiuni", ["incident", "root cause", "corrective", "ursache", "cauza", "actiune corectiva", "5s"]),
+  f("/app/knowledge", "core", "Knowledge base", "Wissensdatenbank", "Bază de cunoștințe", ["sop", "document", "dokumente", "documente", "procedure", "prozedur", "procedura", "upload"]),
+  f("/app/faq", "core", "FAQ", "FAQ", "Întrebări frecvente", ["question", "answer", "antwort", "raspuns"]),
+  f("/app/gaps", "core", "Knowledge gaps", "Wissenslücken", "Lacune de cunoștințe", ["missing", "gap", "lücke", "lipsa"]),
+  f("/app/audit", "core", "Audit log", "Audit-Log", "Jurnal audit", ["history", "verlauf", "istoric", "ai audit"]),
+  f("/app/users", "core", "Users", "Benutzer", "Utilizatori", ["people", "team", "personal", "angajati", "roles", "rollen", "roluri", "permission", "drepturi", "rechte"]),
+  f("/app/organization", "core", "Organization", "Organisation", "Organizație", ["company", "departments", "abteilungen", "departamente", "settings", "einstellungen", "setari", "language", "sprache", "limba"]),
+  f("/app/profile", "core", "My profile", "Mein Profil", "Profilul meu", ["account", "password", "passwort", "parola", "avatar", "status"]),
+  f("/app/modules", "core", "Modules & license", "Module & Lizenz", "Module și licență", ["license", "lizenz", "licenta", "activation", "aktivierung", "activare"]),
+  f("/app/subscription", "core", "Subscription", "Abonnement", "Abonament", ["billing", "plan", "abo"]),
+  f("/app/updates", "core", "Updates", "Updates", "Actualizări", ["version", "installer", "upgrade", "check for updates", "aktualisierung"]),
+
+  // ── Academy ────────────────────────────────────────────────────────
+  f("/app/academy", "academy", "Academy", "Academy", "Academy", ["training", "schulung", "instruire", "course", "kurs", "curs"]),
+  f("/app/academy/courses", "academy", "Courses", "Kurse", "Cursuri", ["lesson", "lektion", "lectie", "quiz"]),
+  f("/app/academy/teacher", "academy", "Course editor", "Kurs-Editor", "Editor de cursuri", ["create course", "kurs erstellen", "creeaza curs", "instructor"]),
+  f("/app/academy/certificates", "academy", "Certificates", "Zertifikate", "Certificate", ["diploma", "zertifikat", "pdf"]),
+  f("/app/academy/analytics", "academy", "Academy analytics", "Academy-Analysen", "Analize Academy", ["progress", "fortschritt", "progres"]),
+  f("/app/academy/settings", "academy", "Academy settings", "Academy-Einstellungen", "Setări Academy", ["retraining", "nachschulung", "reinstruire"]),
+
+  // ── OPSQAI Transport ───────────────────────────────────────────────
+  f("/app/products/transport/overview", "transport", "Fleet overview", "Flottenübersicht", "Prezentare flotă", ["vehicles", "fahrzeuge", "masini", "fleet", "flotte", "flota", "map", "karte", "harta"]),
+  f("/app/products/transport/vehicles", "transport", "Vehicles", "Fahrzeuge", "Vehicule", ["truck", "lkw", "camion", "trailer", "anhänger", "remorca", "van"]),
+  f("/app/products/transport/drivers", "transport", "Drivers", "Fahrer", "Șoferi", ["licence", "führerschein", "permis", "duty", "dienst", "tura"]),
+  f("/app/products/transport/trips", "transport", "Trip planner", "Tourenplanung", "Planificator rute", ["route", "route planen", "ruta", "break", "pause", "pauza", "whatsapp", "maps", "561"]),
+  f("/app/products/transport/incidents", "transport", "Incidents", "Vorfälle", "Incidente", ["accident", "unfall", "damage", "schaden", "dauna"]),
+  f("/app/products/transport/procedures", "transport", "Procedures & audits", "Prüflisten & Audits", "Proceduri și audituri", ["prufliste", "checklist", "checkliste", "lista de verificare", "audit"]),
+  f("/app/products/transport/registers", "transport", "Registers", "Register", "Registre", ["fuel", "tanken", "combustibil", "cmr", "log"]),
+
+  // ── OPSQAI HR ──────────────────────────────────────────────────────
+  f("/app/products/hr/overview", "hr", "HR overview", "HR-Übersicht", "Prezentare HR", ["personal", "human resources", "resurse umane"]),
+  f("/app/products/hr/employees", "hr", "Employees", "Mitarbeiter", "Angajați", ["employee file", "personalakte", "fisa angajatului", "contract", "vertrag"]),
+  f("/app/products/hr/documents", "hr", "HR documents", "HR-Dokumente", "Documente HR", ["signature", "unterschrift", "semnatura", "pdf", "policy", "richtlinie", "politica"]),
+  f("/app/products/hr/payroll", "hr", "Payroll", "Lohnabrechnung", "Salarizare", ["salary", "gehalt", "salariu", "net", "brutto", "brut", "payslip", "fluturas"]),
+  f("/app/products/hr/onboarding", "hr", "Onboarding & offboarding", "On-/Offboarding", "Integrare și plecare", ["checklist", "checkliste", "lista", "exit"]),
+  f("/app/products/hr/requests", "hr", "Requests & time off", "Anträge & Abwesenheit", "Cereri și concedii", ["vacation", "urlaub", "concediu", "leave", "absence", "cerere"]),
+  f("/app/products/hr/candidates", "hr", "Candidate screening", "Bewerber-Screening", "Evaluare candidați", ["cv", "resume", "lebenslauf", "shortlist", "score", "recruiting", "recrutare"]),
+  f("/app/products/hr/intelligence", "hr", "HR intelligence", "HR-Intelligence", "HR Intelligence", ["analytics", "alerts", "warnungen", "alerte"]),
+];
+
+/** Score a feature against a query; higher is better, 0 means "no match". */
+export function scoreFeature(entry: FeatureEntry, query: string, lang: Lang): number {
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return 0;
+  const primary = entry.label[lang].toLowerCase();
+  const all = [
+    primary,
+    entry.label.en.toLowerCase(),
+    entry.label.de.toLowerCase(),
+    entry.label.ro.toLowerCase(),
+    ...entry.keywords,
+    entry.to,
+  ];
+  if (primary === q) return 100;
+  if (primary.startsWith(q)) return 80;
+  for (const h of all) {
+    if (h.startsWith(q)) return 60;
+  }
+  for (const h of all) {
+    if (h.includes(q)) return 40;
+  }
+  return 0;
+}
+
+/** Best-matching application screens/functions for a query. */
+export function searchFeatures(query: string, lang: Lang, limit = 6): FeatureEntry[] {
+  return APP_FEATURES.map((e) => ({ e, s: scoreFeature(e, query, lang) }))
+    .filter((r) => r.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, limit)
+    .map((r) => r.e);
+}
