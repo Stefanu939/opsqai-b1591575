@@ -277,21 +277,6 @@ export function OverviewSection({
         )}
       </Panel>
 
-      <Panel icon={PinIcon} title={t.miniMap}>
-        {pins.length === 0 ? (
-          <EmptyState title={t.noCoordinates} description={t.mapBody} />
-        ) : (
-          <Suspense fallback={<div className="h-64 rounded-lg border border-border" />}>
-            <TransportMap
-              pins={pins}
-              zones={[]}
-              zoom={data.settings.mapZoom}
-              className="h-64 w-full rounded-lg border border-border"
-            />
-          </Suspense>
-        )}
-      </Panel>
-
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel
           icon={AlertTriangle}
