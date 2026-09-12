@@ -86,8 +86,8 @@ export async function searchEverywhere(
           .catch(() => [])
       : Promise.resolve([]),
     getKnowledgeGapRepository(ctx.supabase)
-      .list?.(companyId)
-      .catch(() => []) ?? Promise.resolve([]),
+      .list(companyId, 50)
+      .catch(() => []),
     getAcademyRepository(ctx.supabase)
       .listLearningPaths(companyId)
       .catch(() => []),
@@ -131,9 +131,9 @@ export async function searchEverywhere(
   }
   for (const g of (gaps ?? []) as any[]) {
     if (hits.length >= limit) break;
-    const label = g.question ?? g.question_text ?? g.title ?? null;
-    if (!label || !matches([label, g.category], q)) continue;
-    hits.push({ kind: "gap", id: g.id, label, sub: g.category ?? null });
+    const label = g.question_sample ?? null;
+    if (!label || !matches([label, g.status], q)) continue;
+    hits.push({ kind: "gap", id: g.id, label, sub: g.status ?? null });
   }
   for (const lp of (paths ?? []) as any[]) {
     if (hits.length >= limit) break;
