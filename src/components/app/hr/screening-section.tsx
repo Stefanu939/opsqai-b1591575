@@ -234,11 +234,7 @@ export function ScreeningSection({ t, w, h }: { t: HrExtUi; w: HrWsUi; h: HrUi }
                         {[c.reference, c.email, c.source].filter(Boolean).join(" · ")}
                       </p>
                     </div>
-                    {c.score !== null ? (
-                      <Badge variant={c.score >= 70 ? "default" : "secondary"}>
-                        {t.score}: {c.score}%
-                      </Badge>
-                    ) : null}
+                    <MatchSemaphore score={c.score} label={t.score} />
                     <Badge variant={c.status === "rejected" ? "outline" : "secondary"}>
                       {c.status === "hired" ? t.hired : c.status}
                     </Badge>
