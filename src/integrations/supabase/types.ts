@@ -1501,6 +1501,59 @@ export type Database = {
           },
         ]
       }
+      crm_value_models: {
+        Row: {
+          assumptions: string | null
+          company_name: string
+          computed: Json
+          created_at: string
+          currency: string
+          drivers: Json
+          id: string
+          inputs: Json
+          lead_id: string | null
+          level: number
+          owner_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          assumptions?: string | null
+          company_name: string
+          computed?: Json
+          created_at?: string
+          currency?: string
+          drivers?: Json
+          id?: string
+          inputs?: Json
+          lead_id?: string | null
+          level?: number
+          owner_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assumptions?: string | null
+          company_name?: string
+          computed?: Json
+          created_at?: string
+          currency?: string
+          drivers?: Json
+          id?: string
+          inputs?: Json
+          lead_id?: string | null
+          level?: number
+          owner_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_value_models_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_compliance: {
         Row: {
           area: string

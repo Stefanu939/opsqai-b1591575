@@ -163,6 +163,15 @@ function LeadDetailPage() {
               Pipeline
             </Link>
           </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link
+              to="/management/value/$id"
+              params={{ id: "new" }}
+              search={{ lead: lead.id, company: lead.company_name }}
+            >
+              Value calculator
+            </Link>
+          </Button>
           {canEdit && (
             <>
               <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>
