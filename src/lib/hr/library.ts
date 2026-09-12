@@ -172,12 +172,28 @@ Nu există o regulă română generală prin care primele șase luni permit conc
 Y. LITIGII, LEGE APLICABILĂ ȘI ANEXE
 Litigiile se soluționează de instanțele competente potrivit legii române. Sunt anexe, după caz: fișa postului, criteriile de evaluare, nota GDPR, regulamentul intern, instruirea SSM/PSI, politica IT, acordul de telemuncă și orice plan de beneficii. Contractul și anexele se citesc împreună.
 
+[[PAGE_BREAK]]
 Z. EXEMPLARE ȘI CONFIRMARE
 Contractul se încheie înainte de începerea activității, în exemplarele cerute de lege, se transmite în registrul general în termenul legal și se predă salariatului. Părțile confirmă că datele de identificare, salariul, concediul, perioada de probă, funcția, locul și timpul de muncă au fost verificate.
 
 REVIZIE JURIDICĂ OBLIGATORIE
 Documentul poate fi aprobat numai după verificarea de către o persoană calificată în dreptul muncii din România. Versiunea legală, data verificării, sursele și observațiile se păstrează în registrul documentului.
 `;
+
+const EXPECTED_PAGES: Record<HrDocKey, string> = {
+  employment_contract: "8–10",
+  fixed_term_contract: "8–10",
+  contract_amendment: "1–2",
+  job_description: "2–4",
+  employment_certificate: "1",
+  termination_notice: "1–3",
+  termination_agreement: "3–4",
+  warning_letter: "1–2",
+  reference_letter: "1–2",
+  confidentiality: "2–4",
+  equipment_handover: "1–2",
+  promotion_letter: "1–2",
+};
 
 const sig = (lines: string[]) => `\n\n${lines.join("\n")}`;
 
@@ -970,7 +986,7 @@ export function documentLibrary(country: HrCountry): HrDocDefinition[] {
       legalVerifiedOn: "2026-09-12",
       legalReviewDue: "2027-03-12",
       legalSources: [...HR_LEGAL_SOURCES[country]],
-      expectedPages: isContract ? "8–10" : doc.kind === "letter" ? "1–3" : "2–5",
+      expectedPages: EXPECTED_PAGES[doc.key],
     };
   });
 }
