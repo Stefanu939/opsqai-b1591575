@@ -64,13 +64,26 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
   const lib = library.data;
   const can = (g: string) => data.grants.includes(g as never);
 
-  const docs = data.documents.filter(
-    (d) => (filter === "all" || d.status === filter) && (!empFilter || d.employee_id === empFilter),
-  );
-  const statusLabel = (s: HrDocument["status"]) =>
-    s === "draft" ? w.statusDraft : s === "review" ? w.statusReview : s === "approved" ? w.statusApproved : w.statusFile;
-  const statusVariant = (s: HrDocument["status"]) =>
-    s === "approved" ? "default" : s === "review" ? "secondary" : s === "draft" ? "outline" : "secondary";
+  // A signed document is finished: it must never read as still open, whatever
+  // its workflow status is.
+  const docs = data.documents.filter((d) => {
+    const matchesStatus =
+      filter === "all" ||
+      (filter === "signed" ? Boolean(d.has_signed) : d.status === filter && !d.has_signed);
+    return matchesStatus && (!empFilter || d.employee_id === empFilter);
+  });
+  const statusLabel = (d: HrDocument) =>
+    d.has_signed
+      ? w.signedCopy
+      : d.status === "draft"
+        ? w.statusDraft
+        : d.status === "review"
+          ? w.statusReview
+          : d.status === "approved"
+            ? w.statusApproved
+            : w.statusFile;
+  const statusVariant = (d: HrDocument) =>
+    d.has_signed || d.status === "approved" ? "default" : d.status === "draft" ? "outline" : "secondary";
 
   const runGenerate = () => {
     if (!employeeId || !choice) return;
