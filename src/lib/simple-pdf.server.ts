@@ -91,7 +91,7 @@ export function createSimplePdf(args: {
       addText(line.text, { size: 14, bold: true, gap: 8 });
     } else if (line.kind === "note") addText(line.text, { size: 9, gap: 8, indent: 8 });
     else if (line.kind === "text") addText(line.text, { size: 10.5, gap: 8 });
-    else {
+    else if (line.kind === "row") {
       const cells = line.cells.map(safeText);
       const columns = Math.max(1, cells.length);
       const columnWidth = (PAGE_W - LEFT - RIGHT) / columns;
