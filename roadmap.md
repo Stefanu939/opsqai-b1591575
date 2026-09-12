@@ -65,8 +65,8 @@
 - [x] User-facing spreadsheet exports removed (HR employee list now PDF; CSV download helper deleted)
 
 ## Management Center Core licensing (2026-09-12)
-- [ ] Configure every Core function per company; all enabled by default
-- [ ] Keep included functions automatic under their parent Core function, with no separate switches
-- [ ] Sign Core configuration into installation JWTs and preserve old-license compatibility
-- [ ] Enforce company license plus per-user rights in Self-Hosted navigation, search, routes, and server actions
-- [ ] Replace the Licenses customer list with a categorized two-column configurator
+- [x] Configure every Core function per company; all enabled by default
+- [x] Keep included functions automatic under their parent Core function, with no separate switches
+- [x] Sign Core configuration into installation JWTs and preserve old-license compatibility
+- [x] Enforce company license plus per-user rights in Self-Hosted navigation, search, routes, and server actions
+- [x] Replace the Licenses customer list with a categorized two-column configurator
