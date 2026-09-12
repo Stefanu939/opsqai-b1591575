@@ -351,7 +351,9 @@ export function includedCapabilitiesFor(
   coreCapabilities: readonly string[],
 ): AddonKey[] {
   const enabled = new Set(coreCapabilities);
-  return ADDON_KEYS.filter((key) => enabled.has(INCLUDED_CAPABILITY_PARENT[key]));
+  return ADDON_CATALOG.map((addon) => addon.key).filter((key) =>
+    enabled.has(INCLUDED_CAPABILITY_PARENT[key]),
+  );
 }
 
 export const ADDON_KEYS: readonly AddonKey[] = ADDON_CATALOG.map((a) => a.key);
