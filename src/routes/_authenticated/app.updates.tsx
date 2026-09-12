@@ -87,7 +87,11 @@ function AutoUpdatePanel() {
   const status = useQuery({
     queryKey: ["selfhost-update-status"],
     queryFn: () => load(),
-    refetchInterval: 60_000,
+    // While a download or installation is running, follow it closely.
+    refetchInterval: (q) => {
+      const phase = q.state.data?.progress?.phase;
+      return phase === "downloading" || phase === "installing" ? 2_000 : 60_000;
+    },
   });
   const [draft, setDraft] = useState<{
     automatic: boolean;
@@ -160,6 +164,49 @@ function AutoUpdatePanel() {
           >
             Dismiss
           </Button>
+        </div>
+      ) : null}
+
+      {s.progress && s.progress.phase !== "done" ? (
+        <div className="mb-3 rounded-lg border border-border/70 bg-muted/30 p-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <Badge variant={s.progress.phase === "failed" ? "destructive" : "secondary"}>
+              {s.progress.phase === "downloading"
+                ? "Downloading"
+                : s.progress.phase === "verified"
+                  ? "Downloaded and verified"
+                  : s.progress.phase === "installing"
+                    ? "Installing"
+                    : "Failed"}
+            </Badge>
+            {s.progress.version ? <span className="font-medium">v{s.progress.version}</span> : null}
+            <span className="text-xs text-muted-foreground">
+              {fmtBytes(s.progress.received)}
+              {s.progress.total ? ` / ${fmtBytes(s.progress.total)}` : ""}
+              {s.progress.total
+                ? ` · ${Math.min(100, Math.round((s.progress.received / s.progress.total) * 100))}%`
+                : ""}
+            </span>
+            {s.progress.at ? (
+              <span className="ml-auto text-xs text-muted-foreground">
+                {new Date(s.progress.at).toLocaleTimeString()}
+              </span>
+            ) : null}
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className={`h-full rounded-full transition-all ${s.progress.phase === "failed" ? "bg-destructive" : "bg-primary"}`}
+              style={{
+                width:
+                  s.progress.phase === "installing"
+                    ? "100%"
+                    : `${s.progress.total ? Math.min(100, (s.progress.received / s.progress.total) * 100) : 5}%`,
+              }}
+            />
+          </div>
+          {s.progress.error ? (
+            <p className="mt-2 text-xs text-destructive">{s.progress.error}</p>
+          ) : null}
         </div>
       ) : null}
 
