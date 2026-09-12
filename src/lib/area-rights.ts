@@ -1,4 +1,4 @@
-export const AREA_ACTIONS = ["view", "create", "edit", "delete", "approve", "administer"] as const;
+export const AREA_ACTIONS = ["view", "create", "edit", "delete", "approve", "administer", "legal_review"] as const;
 export type AreaAction = (typeof AREA_ACTIONS)[number];
 
 export interface AreaRightChoice {
