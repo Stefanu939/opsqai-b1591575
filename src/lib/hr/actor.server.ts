@@ -41,7 +41,7 @@ export async function hrActor(context: HrCtx): Promise<HrActor> {
     ? await getAreaRightsRepository(context.supabase).listForUser(companyId, context.userId)
     : [];
   const mapped = rights
-    .filter((r) => (r.areaKey === "hr" || r.areaKey === "hr_payroll") && r.granted)
+    .filter((r) => (r.areaKey === "hr" || r.areaKey === "hr_payroll" || r.areaKey === "hr_legal") && r.granted)
     .flatMap((r): HrGrantKey[] => {
       if (r.areaKey === "hr_payroll") {
         switch (r.action) {
@@ -55,6 +55,7 @@ export async function hrActor(context: HrCtx): Promise<HrActor> {
             return [];
         }
       }
+      if (r.areaKey === "hr_legal") return r.action === "approve" ? ["legal_review"] : [];
       switch (r.action) {
         case "view":
           return ["view"];

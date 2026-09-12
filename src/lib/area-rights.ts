@@ -25,6 +25,7 @@ export const AREA_LABELS: Record<string, string> = {
   feedback: "Feedback",
   transport: "Transport",
   hr: "HR",
+  hr_legal: "HR — Legal review",
   hr_payroll: "HR — Payroll",
   core_ops: "Operations (incidents & root cause)",
   core_costs: "Operations — cost figures",

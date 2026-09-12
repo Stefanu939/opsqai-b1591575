@@ -6,6 +6,8 @@ export const HR_GRANTS = [
   "edit",
   "delete",
   "approve",
+  /** Complete the independent legal-review gate for jurisdictional documents. */
+  "legal_review",
   "sensitive",
   "settings",
   "export",

@@ -20,7 +20,8 @@ const n = (v: unknown) => Number(v ?? 0);
 
 export function listTemplates(companyId: string) {
   return q<HrDocumentTemplate>(
-    `SELECT id, name, kind, country, contract_type, body, updated_at
+    `SELECT id, name, kind, country, contract_type, body, updated_at,
+            legal_version, legal_sources, legal_verified_on::text, legal_review_due::text, expected_pages
        FROM public.hr_document_templates WHERE company_id = $1 ORDER BY kind, name`,
     [companyId],
   );
@@ -83,6 +84,9 @@ const DOC_SELECT = `
          d.kind, d.title, d.filename, d.mime, (d.data IS NOT NULL) AS has_file,
          d.body, d.valid_until, d.approved_at, d.approved_by, d.created_at,
          d.status, d.draft_name, d.template_key, d.country, d.language,
+          d.legal_status, d.legal_reviewed_at, d.legal_reviewed_by, d.legal_review_notes,
+          d.legal_version, d.legal_sources, d.legal_verified_on::text, d.legal_review_due::text,
+          d.salary_snapshot, d.expected_pages,
          (d.signed_data IS NOT NULL) AS has_signed, d.signed_filename, d.signed_at, d.updated_at,
          COALESCE(d.signature_status, 'none') AS signature_status, d.signature_due::text AS signature_due,
          d.signature_requested_at, d.signature_requested_by, d.signed_by_name, d.signature_kind,
@@ -122,14 +126,22 @@ export async function createDocument(
     template_id?: string | null;
     country?: string | null;
     language?: string | null;
+    legal_status?: string;
+    legal_version?: number;
+    legal_sources?: string[];
+    legal_verified_on?: string | null;
+    legal_review_due?: string | null;
+    salary_snapshot?: Record<string, unknown> | null;
+    expected_pages?: string | null;
   },
   actor: { id: string },
 ) {
   const row = await one<{ id: string }>(
     `INSERT INTO public.hr_documents
        (company_id, employee_id, kind, title, filename, mime, data, body, valid_until, created_by,
-        status, draft_name, template_key, template_id, country, language)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
+         status, draft_name, template_key, template_id, country, language, legal_status,
+         legal_version, legal_sources, legal_verified_on, legal_review_due, salary_snapshot, expected_pages)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING id`,
     [
       companyId,
       values.employee_id ?? null,
@@ -147,6 +159,13 @@ export async function createDocument(
       values.template_id ?? null,
       values.country ?? null,
       values.language ?? null,
+      values.legal_status ?? "not_required",
+      values.legal_version ?? 1,
+      JSON.stringify(values.legal_sources ?? []),
+      values.legal_verified_on ?? null,
+      values.legal_review_due ?? null,
+      values.salary_snapshot ? JSON.stringify(values.salary_snapshot) : null,
+      values.expected_pages ?? null,
     ],
   );
   return row!.id;
@@ -163,7 +182,12 @@ export async function updateDraft(
   if (current.status === "approved") throw new Error("Approved documents cannot be edited. Create a new version instead.");
   await q(
     `UPDATE public.hr_documents
-        SET title = $3, body = $4, draft_name = $5, valid_until = $6, status = $7, updated_at = now()
+        SET title = $3, body = $4, draft_name = $5, valid_until = $6, status = $7,
+            legal_status = CASE WHEN legal_status = 'reviewed' THEN 'pending' ELSE legal_status END,
+            legal_reviewed_at = CASE WHEN legal_status = 'reviewed' THEN NULL ELSE legal_reviewed_at END,
+            legal_reviewed_by = CASE WHEN legal_status = 'reviewed' THEN NULL ELSE legal_reviewed_by END,
+            legal_review_notes = CASE WHEN legal_status = 'reviewed' THEN NULL ELSE legal_review_notes END,
+            updated_at = now()
       WHERE company_id = $1 AND id = $2`,
     [
       companyId,
@@ -182,6 +206,21 @@ export async function approveDocument(companyId: string, id: string, approvedBy:
     `UPDATE public.hr_documents SET approved_at = now(), approved_by = $3, status = 'approved', updated_at = now()
       WHERE company_id = $1 AND id = $2`,
     [companyId, id, approvedBy],
+  );
+}
+
+export async function legallyReviewDocument(
+  companyId: string,
+  id: string,
+  reviewer: string,
+  notes: string,
+) {
+  await q(
+    `UPDATE public.hr_documents
+        SET legal_status = 'reviewed', legal_reviewed_at = now(), legal_reviewed_by = $3,
+            legal_review_notes = $4, updated_at = now()
+      WHERE company_id = $1 AND id = $2 AND status IN ('draft','review')`,
+    [companyId, id, reviewer, notes],
   );
 }
 
@@ -212,15 +251,28 @@ export async function getDocumentFile(companyId: string, id: string, signed = fa
     employee_no: string | null;
     employee_name: string | null;
     country: string | null;
+    legal_status: string | null;
+    legal_reviewed_at: string | null;
+    legal_reviewed_by: string | null;
+    legal_review_notes: string | null;
+    legal_version: number | null;
+    legal_sources: string[] | null;
+    legal_verified_on: string | null;
+    legal_review_due: string | null;
+    expected_pages: string | null;
   }>(
     signed
       ? `SELECT d.signed_filename AS filename, d.signed_mime AS mime, d.signed_data AS data, NULL::text AS body,
                 d.title, d.status, d.approved_at, d.approved_by, e.employee_no,
-                NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name, d.country
+                 NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name, d.country,
+                 d.legal_status, d.legal_reviewed_at, d.legal_reviewed_by, d.legal_review_notes,
+                 d.legal_version, d.legal_sources, d.legal_verified_on::text, d.legal_review_due::text, d.expected_pages
            FROM public.hr_documents d LEFT JOIN public.hr_employees e ON e.id = d.employee_id
           WHERE d.company_id = $1 AND d.id = $2`
       : `SELECT d.filename, d.mime, d.data, d.body, d.title, d.status, d.approved_at, d.approved_by,
-                e.employee_no, NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name, d.country
+                 e.employee_no, NULLIF(concat_ws(' ', e.first_name, e.last_name), '') AS employee_name, d.country,
+                 d.legal_status, d.legal_reviewed_at, d.legal_reviewed_by, d.legal_review_notes,
+                 d.legal_version, d.legal_sources, d.legal_verified_on::text, d.legal_review_due::text, d.expected_pages
            FROM public.hr_documents d LEFT JOIN public.hr_employees e ON e.id = d.employee_id
           WHERE d.company_id = $1 AND d.id = $2`,
     [companyId, id],

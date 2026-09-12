@@ -19,7 +19,9 @@ import {
   deleteHrTemplate,
   downloadHrDocument,
   generateHrDocument,
+  getHrDocumentGenerationContext,
   getHrDocument,
+  legallyReviewHrDocument,
   saveHrTemplate,
   updateHrDocumentDraft,
   uploadHrDocument,
@@ -40,6 +42,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
   const lang = useHrLang();
   const refresh = useHrExtRefresh();
   const generate = useServerFn(generateHrDocument);
+  const generationContext = useServerFn(getHrDocumentGenerationContext);
   const upload = useServerFn(uploadHrDocument);
   const remove = useServerFn(deleteHrDocument);
   const saveTemplate = useServerFn(saveHrTemplate);
@@ -51,6 +54,8 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [choice, setChoice] = useState<string>("");
   const [draftName, setDraftName] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+  const [context, setContext] = useState<Awaited<ReturnType<typeof generationContext>> | null>(null);
   const [openId, setOpenId] = useState<string | null>(initialDocId ?? null);
   const [filter, setFilter] = useState<Filter>("all");
   const [empFilter, setEmpFilter] = useState<string>("");
@@ -94,6 +99,8 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
         documentKey: kind === "b" ? key : undefined,
         templateId: kind === "t" ? key : undefined,
         draftName: draftName.trim() || undefined,
+        salaryId: context?.salary?.id ?? null,
+        confirmed: true,
       },
     })
       .then((r) => {
@@ -102,6 +109,8 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
         setStep(1);
         setChoice("");
         setDraftName("");
+        setConfirmed(false);
+        setContext(null);
         void refresh();
         setOpenId(r.id);
       })
@@ -322,6 +331,21 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
               <Field label={w.draftName}>
                 <Input value={draftName} onChange={(e) => setDraftName(e.target.value)} />
               </Field>
+              <div className="rounded-md border border-border bg-muted/35 p-3 text-sm">
+                {context ? (
+                  <div className="grid gap-1">
+                    <strong>{context.employee}</strong>
+                    <span>{context.company || "[___]"} · {context.companyAddress || "[___]"}</span>
+                    <span>{context.address || "[___]"}</span>
+                    <span>Salary: {context.salary ? `${context.salary.gross_amount} ${context.salary.currency} / ${context.salary.period}` : "[___]"}</span>
+                    <span>Leave: {context.vacationDays} days · Probation: {context.probationMonths} months</span>
+                  </div>
+                ) : <span>Loading contract values…</span>}
+              </div>
+              <label className="flex items-start gap-2 text-sm">
+                <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+                I confirm the employee, company, salary, leave and probation values shown above.
+              </label>
               <p className="text-xs text-muted-foreground">{w.missingFieldsHint}</p>
             </div>
           )}
@@ -332,11 +356,17 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
               </Button>
             ) : null}
             {step === 1 ? (
-              <Button disabled={!employeeId} onClick={() => setStep(2)}>
+              <Button disabled={!employeeId} onClick={() => {
+                if (!employeeId) return;
+                setStep(2);
+                setConfirmed(false);
+                setContext(null);
+                void generationContext({ data: { employeeId } }).then(setContext).catch((e: Error) => toast.error(e.message));
+              }}>
                 {w.next}
               </Button>
             ) : (
-              <Button disabled={!choice} onClick={runGenerate}>
+              <Button disabled={!choice || !confirmed || !context} onClick={runGenerate}>
                 <Wand2 className="mr-1.5 size-4" /> {w.generateNow}
               </Button>
             )}
@@ -408,6 +438,7 @@ export function DocumentDialog({
   const load = useServerFn(getHrDocument);
   const save = useServerFn(updateHrDocumentDraft);
   const approve = useServerFn(approveHrDocument);
+  const legalReview = useServerFn(legallyReviewHrDocument);
   const download = useServerFn(downloadHrDocument);
   const upload = useServerFn(uploadHrDocument);
   const refresh = useHrExtRefresh();
@@ -417,6 +448,7 @@ export function DocumentDialog({
   const [name, setName] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [legalNotes, setLegalNotes] = useState("");
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const signedRef = useRef<HTMLInputElement>(null);
 
@@ -524,6 +556,21 @@ export function DocumentDialog({
                 {missing} {w.missingFields} — {w.missingFieldsHint}
               </p>
             ) : null}
+            {doc.legal_status && doc.legal_status !== "not_required" ? (
+              <div className="grid gap-2 rounded-md border border-border bg-muted/35 p-3 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={doc.legal_status === "reviewed" ? "default" : "secondary"}>
+                    {doc.legal_status === "reviewed" ? "Legal review complete" : "Mandatory legal review pending"}
+                  </Badge>
+                  <span>Legal version {doc.legal_version ?? 1} · expected {doc.expected_pages ?? "—"} pages</span>
+                </div>
+                {doc.legal_reviewed_by ? <span>{doc.legal_reviewed_by} · {fmtDate(doc.legal_reviewed_at)}</span> : null}
+                {doc.legal_sources?.map((source) => <span key={source}>{source}</span>)}
+                {!locked && can("legal_review") ? (
+                  <Textarea rows={2} placeholder="Legal review notes and scope" value={legalNotes} onChange={(e) => setLegalNotes(e.target.value)} />
+                ) : null}
+              </div>
+            ) : null}
             <Textarea
               rows={22}
               className="font-mono text-[13px] leading-relaxed"
@@ -554,7 +601,7 @@ export function DocumentDialog({
           ) : null}
           {doc && !locked && can("approve") ? (
             <Button
-              disabled={missing > 0}
+              disabled={missing > 0 || (doc.legal_status !== "not_required" && doc.legal_status !== "reviewed")}
               onClick={() =>
                 void (dirty ? persist() : Promise.resolve()).then(() =>
                   approve({ data: { id } })
@@ -565,6 +612,18 @@ export function DocumentDialog({
               }
             >
               <CheckCircle2 className="mr-1.5 size-4" /> {w.approveAndLock}
+            </Button>
+          ) : null}
+          {doc && !locked && doc.legal_status === "pending" && can("legal_review") ? (
+            <Button variant="outline" disabled={missing > 0 || legalNotes.trim().length < 3} onClick={() =>
+              void (dirty ? persist("review") : Promise.resolve()).then(() =>
+                legalReview({ data: { id, notes: legalNotes } })
+                  .then(() => load({ data: { id } }))
+                  .then((d) => { setDoc(d); toast.success("Legal review recorded"); void refresh(); })
+                  .catch((e: Error) => toast.error(e.message)),
+              )
+            }>
+              <CheckCircle2 className="mr-1.5 size-4" /> Complete legal review
             </Button>
           ) : null}
           {doc && doc.body ? (

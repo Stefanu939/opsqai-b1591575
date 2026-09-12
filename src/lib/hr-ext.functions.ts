@@ -92,11 +92,15 @@ export const deleteHrTemplate = createServerFn({ method: "POST" })
 /** Placeholder values for one employee: employee record + company settings. Nothing invented. */
 async function placeholderValues(companyId: string, employeeId: string) {
   const core = await import("@/lib/hr/db.server");
-  const [employee, settings] = await Promise.all([
+  const payroll = await import("@/lib/hr/payroll.server");
+  const [employee, settings, salaries] = await Promise.all([
     core.getEmployee(companyId, employeeId),
     core.getSettings(companyId),
+    payroll.listSalaries(companyId, employeeId),
   ]);
   if (!employee) throw new Error("Employee not found.");
+  const effectiveMonth = (employee.start_date ?? new Date().toISOString().slice(0, 10)).slice(0, 7);
+  const salary = payroll.salaryAt(salaries, effectiveMonth);
   const values: Record<string, string> = {
     company_name: settings.company_legal_name ?? "",
     company_address: settings.company_address ?? "",
@@ -120,11 +124,34 @@ async function placeholderValues(companyId: string, employeeId: string) {
     vacation_days: String(settings.vacation_days ?? ""),
     probation_months: String(settings.probation_months ?? ""),
     notice_weeks: String(settings.notice_weeks ?? ""),
+    salary_amount: salary ? String(salary.gross_amount) : "",
+    salary_currency: salary?.currency ?? "",
+    salary_period: salary?.period ?? "",
+    salary_valid_from: salary?.valid_from ?? "",
     country: settings.country,
     today: new Date().toISOString().slice(0, 10),
   };
-  return { employee, settings, values };
+  return { employee, settings, salary, values };
 }
+
+export const getHrDocumentGenerationContext = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ employeeId: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("create");
+    const { employee, settings, salary } = await placeholderValues(a.companyId, data.employeeId);
+    return {
+      employee: `${employee.first_name} ${employee.last_name}`,
+      address: employee.address,
+      country: settings.country,
+      company: settings.company_legal_name,
+      companyAddress: settings.company_address,
+      vacationDays: settings.vacation_days,
+      probationMonths: settings.probation_months,
+      salary: a.grants.includes("payroll") ? salary : null,
+    };
+  });
 
 /** Built-in document types for the company country + the company's own templates. */
 export const getHrDocumentLibrary = createServerFn({ method: "POST" })
@@ -161,6 +188,8 @@ export const generateHrDocument = createServerFn({ method: "POST" })
         templateId: uuidString().optional(),
         draftName: z.string().trim().max(120).optional(),
         taskId: uuidString().optional(),
+        salaryId: uuidString().nullable().optional(),
+        confirmed: z.literal(true),
       })
       .refine((v) => v.documentKey || v.templateId, "Choose a document type.")
       .parse(input),
@@ -171,9 +200,10 @@ export const generateHrDocument = createServerFn({ method: "POST" })
     const db = await ext();
     const core = await import("@/lib/hr/db.server");
     const { findDocDefinition, fillTemplate } = await import("@/lib/hr/library");
-    const { employee, settings, values } = await placeholderValues(a.companyId, data.employeeId);
+    const { employee, settings, salary, values } = await placeholderValues(a.companyId, data.employeeId);
+    if (salary?.id !== (data.salaryId ?? null)) throw new Error("Salary changed. Review and confirm the current values again.");
 
-    let source: { name: string; kind: string; body: string; validMonths: number | null; key: string | null } | null = null;
+    let source: { name: string; kind: string; body: string; validMonths: number | null; key: string | null; legalReviewRequired?: boolean; legalVersion?: number; legalSources?: string[]; legalVerifiedOn?: string; legalReviewDue?: string; expectedPages?: string } | null = null;
     if (data.templateId) {
       const t = (await db.listTemplates(a.companyId)).find((x) => x.id === data.templateId);
       if (!t) throw new Error("Template not found.");
@@ -182,9 +212,12 @@ export const generateHrDocument = createServerFn({ method: "POST" })
       const def = findDocDefinition(settings.country, data.documentKey);
       if (!def) throw new Error("Document type not available for this country.");
       const lang = (settings.default_language as "en" | "de" | "ro") ?? "en";
-      source = { name: def.label[lang] ?? def.label.en, kind: def.kind, body: def.body, validMonths: def.validMonths, key: def.key };
+      source = { name: def.label[lang] ?? def.label.en, kind: def.kind, body: def.body, validMonths: def.validMonths, key: def.key, legalReviewRequired: def.legalReviewRequired, legalVersion: def.legalVersion, legalSources: def.legalSources, legalVerifiedOn: def.legalVerifiedOn, legalReviewDue: def.legalReviewDue, expectedPages: def.expectedPages };
     }
     if (!source) throw new Error("Choose a document type.");
+    if (source.kind === "contract" && !a.grants.includes("payroll")) {
+      throw new Error("Payroll access is required to confirm salary values in a contract.");
+    }
 
     const body = fillTemplate(source.body, values);
     const validUntil = source.validMonths
@@ -204,6 +237,13 @@ export const generateHrDocument = createServerFn({ method: "POST" })
         template_id: data.templateId ?? null,
         country: settings.country,
         language: settings.default_language,
+        legal_status: source.legalReviewRequired ? "pending" : "not_required",
+        legal_version: source.legalVersion ?? 1,
+        legal_sources: source.legalSources ?? [],
+        legal_verified_on: source.legalVerifiedOn ?? null,
+        legal_review_due: source.legalReviewDue ?? null,
+        salary_snapshot: salary ? { id: salary.id, gross_amount: salary.gross_amount, currency: salary.currency, period: salary.period, valid_from: salary.valid_from } : null,
+        expected_pages: source.expectedPages ?? null,
       },
       { id: a.userId },
     );
@@ -339,12 +379,31 @@ export const approveHrDocument = createServerFn({ method: "POST" })
     if (doc.body && /\[___\]/.test(doc.body)) {
       throw new Error("The draft still contains empty [___] fields. Fill them in before approving.");
     }
+    if ((doc.country === "de" || doc.country === "ro") && doc.legal_status !== "reviewed") {
+      throw new Error("Mandatory legal review must be completed before approval.");
+    }
     await db.approveDocument(a.companyId, data.id, a.name);
     const core = await import("@/lib/hr/db.server");
     if (doc.employee_id) {
       await core.addEvent(a.companyId, doc.employee_id, "document", `Document approved: ${doc.title}`, a.name);
     }
     await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.approve", { title: doc.title });
+    return { ok: true };
+  });
+
+export const legallyReviewHrDocument = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString(), notes: z.string().trim().min(3).max(4000) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("legal_review");
+    const db = await ext();
+    const doc = await db.getDocument(a.companyId, data.id);
+    if (!doc) throw new Error("Document not found.");
+    if (doc.body && /\[___\]/.test(doc.body)) throw new Error("Complete all [___] fields before legal review.");
+    await db.legallyReviewDocument(a.companyId, data.id, a.name, data.notes);
+    const core = await import("@/lib/hr/db.server");
+    await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.legal_review", { title: doc.title, version: doc.legal_version });
     return { ok: true };
   });
 
@@ -367,6 +426,8 @@ export const downloadHrDocument = createServerFn({ method: "POST" })
     }
     if (data.signed) throw new Error("No signed copy has been uploaded yet.");
     const { renderDocumentPdf } = await import("@/lib/hr/document-pdf.server");
+    const { readSelfHostConfig } = await import("@/lib/selfhost-config.server");
+    const logoDataUrl = readSelfHostConfig().company?.logo_url ?? null;
     const approved = doc.status === "approved";
     const pdf = await renderDocumentPdf({
       title: doc.title,
@@ -379,6 +440,15 @@ export const downloadHrDocument = createServerFn({ method: "POST" })
       ].filter(Boolean),
       footer: `OPSQAI HR · ${doc.country ?? ""} · generated ${new Date().toISOString().slice(0, 10)} by ${a.name}`,
       watermark: approved ? null : "DRAFT",
+      logoDataUrl,
+      legal: doc.legal_status === "reviewed" ? {
+        reviewer: doc.legal_reviewed_by ?? "",
+        reviewedAt: String(doc.legal_reviewed_at ?? "").slice(0, 10),
+        version: doc.legal_version ?? 1,
+        verifiedOn: doc.legal_verified_on ?? "",
+        reviewDue: doc.legal_review_due ?? "",
+        sources: doc.legal_sources ?? [],
+      } : null,
     });
     return {
       filename: `${doc.title.replace(/[^\w.-]+/g, "_")}.pdf`,

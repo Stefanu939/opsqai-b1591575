@@ -70,3 +70,10 @@
 - [x] Sign Core configuration into installation JWTs and preserve old-license compatibility
 - [x] Enforce company license plus per-user rights in Self-Hosted navigation, search, routes, and server actions
 - [x] Replace the Licenses customer list with a categorized two-column configurator
+
+## HR legal documents 2026-09-13
+- [x] Extend DE/RO employment contracts and audit all country documents
+- [x] Add salary confirmation and required-field validation before generation
+- [x] Add company logo and Unicode branded multi-page PDF rendering
+- [x] Add mandatory legal-review workflow, metadata, rights and version invalidation
+- [x] Add tests and visually inspect generated DE/RO PDFs
