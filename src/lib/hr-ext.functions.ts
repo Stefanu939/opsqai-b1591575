@@ -149,7 +149,7 @@ export const getHrDocumentGenerationContext = createServerFn({ method: "POST" })
       companyAddress: settings.company_address,
       vacationDays: settings.vacation_days,
       probationMonths: settings.probation_months,
-      salary,
+      salary: a.grants.includes("payroll") ? salary : null,
     };
   });
 
@@ -215,6 +215,9 @@ export const generateHrDocument = createServerFn({ method: "POST" })
       source = { name: def.label[lang] ?? def.label.en, kind: def.kind, body: def.body, validMonths: def.validMonths, key: def.key, legalReviewRequired: def.legalReviewRequired, legalVersion: def.legalVersion, legalSources: def.legalSources, legalVerifiedOn: def.legalVerifiedOn, legalReviewDue: def.legalReviewDue, expectedPages: def.expectedPages };
     }
     if (!source) throw new Error("Choose a document type.");
+    if (source.kind === "contract" && !a.grants.includes("payroll")) {
+      throw new Error("Payroll access is required to confirm salary values in a contract.");
+    }
 
     const body = fillTemplate(source.body, values);
     const validUntil = source.validMonths

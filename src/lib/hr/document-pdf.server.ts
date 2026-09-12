@@ -1,19 +1,13 @@
 // OPSQAI HR — branded, Unicode, portrait A4 document renderer (server only).
 import { PDFDocument, degrees, rgb, type PDFImage, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import fontUrl from "@/assets/figtree-variable.ttf?url";
+import { FIGTREE_TTF_BASE64 } from "@/assets/figtree-font";
 
 const WIDTH = 595;
 const HEIGHT = 842;
 const MARGIN = 54;
 const BODY = 10.5;
 const LEADING = 15;
-
-async function assetBytes(url: string): Promise<Uint8Array> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Unable to load PDF font (${response.status}).`);
-  return new Uint8Array(await response.arrayBuffer());
-}
 
 function wrap(font: PDFFont, text: string, size: number, maxWidth: number): string[] {
   const words = text.split(/\s+/).filter(Boolean);
@@ -60,7 +54,7 @@ export interface DocumentPdfInput {
 export async function renderDocumentPdf(input: DocumentPdfInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  const fontBytes = await assetBytes(fontUrl);
+  const fontBytes = new Uint8Array(Buffer.from(FIGTREE_TTF_BASE64, "base64"));
   const font = await doc.embedFont(fontBytes, { subset: true });
   const bold = font;
   const logo = await embedLogo(doc, input.logoDataUrl);

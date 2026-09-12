@@ -182,7 +182,12 @@ export async function updateDraft(
   if (current.status === "approved") throw new Error("Approved documents cannot be edited. Create a new version instead.");
   await q(
     `UPDATE public.hr_documents
-        SET title = $3, body = $4, draft_name = $5, valid_until = $6, status = $7, updated_at = now()
+        SET title = $3, body = $4, draft_name = $5, valid_until = $6, status = $7,
+            legal_status = CASE WHEN legal_status = 'reviewed' THEN 'pending' ELSE legal_status END,
+            legal_reviewed_at = CASE WHEN legal_status = 'reviewed' THEN NULL ELSE legal_reviewed_at END,
+            legal_reviewed_by = CASE WHEN legal_status = 'reviewed' THEN NULL ELSE legal_reviewed_by END,
+            legal_review_notes = CASE WHEN legal_status = 'reviewed' THEN NULL ELSE legal_review_notes END,
+            updated_at = now()
       WHERE company_id = $1 AND id = $2`,
     [
       companyId,
