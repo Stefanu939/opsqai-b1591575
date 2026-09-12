@@ -6,6 +6,8 @@
 // labels and search keywords so "concediu", "vacation" or "CMR" all lead to
 // the right place, in any of the three UI languages.
 
+import { PRODUCT_WORKSPACES } from "@/lib/product-architecture";
+
 export type Lang = "en" | "de" | "ro";
 
 export interface FeatureEntry {
@@ -52,27 +54,56 @@ export const APP_FEATURES: FeatureEntry[] = [
   f("/app/academy/analytics", "academy", "Academy analytics", "Academy-Analysen", "Analize Academy", ["progress", "fortschritt", "progres"]),
   f("/app/academy/settings", "academy", "Academy settings", "Academy-Einstellungen", "Setări Academy", ["retraining", "nachschulung", "reinstruire"]),
 
-  // ── OPSQAI Transport ───────────────────────────────────────────────
-  f("/app/products/transport/overview", "transport", "Fleet overview", "Flottenübersicht", "Prezentare flotă", ["vehicles", "fahrzeuge", "masini", "fleet", "flotte", "flota", "map", "karte", "harta"]),
-  f("/app/products/transport/vehicles", "transport", "Vehicles", "Fahrzeuge", "Vehicule", ["truck", "lkw", "camion", "trailer", "anhänger", "remorca", "van"]),
-  f("/app/products/transport/drivers", "transport", "Drivers", "Fahrer", "Șoferi", ["licence", "führerschein", "permis", "duty", "dienst", "tura"]),
-  f("/app/products/transport/trips", "transport", "Trip planner", "Tourenplanung", "Planificator rute", ["route", "route planen", "ruta", "break", "pause", "pauza", "whatsapp", "maps", "561"]),
-  f("/app/products/transport/incidents", "transport", "Incidents", "Vorfälle", "Incidente", ["accident", "unfall", "damage", "schaden", "dauna"]),
-  f("/app/products/transport/procedures", "transport", "Procedures & audits", "Prüflisten & Audits", "Proceduri și audituri", ["prufliste", "checklist", "checkliste", "lista de verificare", "audit"]),
-  f("/app/products/transport/registers", "transport", "Registers", "Register", "Registre", ["fuel", "tanken", "combustibil", "cmr", "log"]),
-
-  // ── OPSQAI HR ──────────────────────────────────────────────────────
-  f("/app/products/hr/overview", "hr", "HR overview", "HR-Übersicht", "Prezentare HR", ["personal", "human resources", "resurse umane"]),
-  f("/app/products/hr/employees", "hr", "Employees", "Mitarbeiter", "Angajați", ["employee file", "personalakte", "fisa angajatului", "contract", "vertrag"]),
-  f("/app/products/hr/documents", "hr", "HR documents", "HR-Dokumente", "Documente HR", ["signature", "unterschrift", "semnatura", "pdf", "policy", "richtlinie", "politica"]),
-  f("/app/products/hr/payroll", "hr", "Payroll", "Lohnabrechnung", "Salarizare", ["salary", "gehalt", "salariu", "net", "brutto", "brut", "payslip", "fluturas"]),
-  f("/app/products/hr/onboarding", "hr", "Onboarding & offboarding", "On-/Offboarding", "Integrare și plecare", ["checklist", "checkliste", "lista", "exit"]),
-  f("/app/products/hr/requests", "hr", "Requests & time off", "Anträge & Abwesenheit", "Cereri și concedii", ["vacation", "urlaub", "concediu", "leave", "absence", "cerere"]),
-  f("/app/products/hr/candidates", "hr", "Candidate screening", "Bewerber-Screening", "Evaluare candidați", ["cv", "resume", "lebenslauf", "shortlist", "score", "recruiting", "recrutare"]),
-  f("/app/products/hr/intelligence", "hr", "HR intelligence", "HR-Intelligence", "HR Intelligence", ["analytics", "alerts", "warnungen", "alerte"]),
 ];
 
 /** Score a feature against a query; higher is better, 0 means "no match". */
+// Product workspaces are derived from the canonical catalogue so search can
+// never point at a workspace route that does not exist. Localized search words
+// are added per workspace where the domain vocabulary differs by language.
+const WORKSPACE_KEYWORDS: Record<string, string[]> = {
+  transport_overview: ["flotte", "flota", "masini", "fahrzeuge", "kpi"],
+  transport_operations: ["fahrer", "sofer", "driver", "tura", "dienst", "vehicles", "trailer", "remorca", "anhänger"],
+  transport_coupling: ["coupling", "remorca", "anhänger", "trailer", "atribuire", "zuordnung"],
+  transport_procedures: ["prufliste", "checkliste", "checklist", "lista de verificare", "audit"],
+  transport_incidents: ["unfall", "accident", "dauna", "schaden"],
+  transport_map: ["karte", "harta", "map", "gps", "ruta", "route", "tour", "pauza", "pause", "561", "whatsapp"],
+  transport_cmr: ["cmr", "frachtbrief", "scrisoare de transport"],
+  transport_settings: ["einstellungen", "setari", "settings"],
+  hr_overview: ["personal", "resurse umane", "human resources"],
+  hr_employees: ["mitarbeiter", "angajati", "employee", "personalakte", "fisa angajatului", "salariu", "gehalt", "salarizare", "payroll"],
+  hr_documents: ["dokumente", "documente", "unterschrift", "semnatura", "signature", "pdf"],
+  hr_lifecycle: ["onboarding", "offboarding", "integrare", "plecare"],
+  hr_equipment: ["ausstattung", "echipament", "asset", "laptop"],
+  hr_incidents: ["vorfall", "incident", "accident de munca"],
+  hr_screening: ["cv", "lebenslauf", "bewerber", "candidat", "recrutare", "shortlist", "score"],
+  hr_requests: ["urlaub", "concediu", "vacation", "abwesenheit", "cerere", "antrag", "time off"],
+  hr_policies: ["richtlinie", "politica", "policy"],
+  hr_training: ["schulung", "instruire", "training"],
+  hr_compliance: ["compliance", "conformitate", "dsgvo", "gdpr"],
+  hr_intelligence: ["analytics", "alerte", "warnungen", "intelligence"],
+  hr_analytics: ["analysen", "analize", "rapoarte", "reports"],
+};
+
+function workspaceGroup(product: string): FeatureEntry["group"] {
+  if (product === "opsqai_transport") return "transport";
+  if (product === "opsqai_hr") return "hr";
+  return "core";
+}
+
+for (const w of PRODUCT_WORKSPACES) {
+  if (w.status !== "implemented" || !w.route) continue;
+  APP_FEATURES.push({
+    to: w.route,
+    group: workspaceGroup(w.product),
+    label: { en: w.label, de: w.label, ro: w.label },
+    keywords: [
+      w.description.toLowerCase(),
+      w.key.replace(/_/g, " "),
+      ...(WORKSPACE_KEYWORDS[w.key] ?? []),
+    ],
+  });
+}
+
 export function scoreFeature(entry: FeatureEntry, query: string, lang: Lang): number {
   const q = query.trim().toLowerCase();
   if (q.length < 2) return 0;
