@@ -422,7 +422,7 @@ export function TripPlannerSection({ t }: { t: Ui }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">{t.tripCmrNone}</SelectItem>
-                  {(cmrNotes.data?.notes ?? []).map((note) => (
+                  {(cmrNotes.data?.records ?? []).map((note) => (
                     <SelectItem key={note.id} value={note.id}>
                       {note.number || note.draft_name || note.id.slice(0, 8)}
                     </SelectItem>
