@@ -29,6 +29,19 @@ export const getHrDocuments = createServerFn({ method: "POST" })
     need("view");
     const db = await ext();
     const core = await import("@/lib/hr/db.server");
+
+    // Callers without an explicit HR right may only see their own personnel
+    // file — never the company-wide document list.
+    if (a.selfOnly) {
+      const { hrSelfEmployeeId } = await import("@/lib/hr/actor.server");
+      const selfId = await hrSelfEmployeeId(a);
+      if (!selfId || (data.employeeId && data.employeeId !== selfId)) {
+        return { documents: [], templates: [], employees: [], grants: a.grants };
+      }
+      const documents = await db.listDocuments(a.companyId, selfId);
+      return { documents, templates: [], employees: [], grants: a.grants };
+    }
+
     const [documents, templates, employees] = await Promise.all([
       db.listDocuments(a.companyId, data.employeeId),
       db.listTemplates(a.companyId),
