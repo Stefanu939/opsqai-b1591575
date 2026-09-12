@@ -31,6 +31,7 @@ import { EmployeeDialog } from "./employee-dialog";
 import { EditableField } from "./editable-field";
 import { PayrollCard } from "./payroll-card";
 import { SignatureCard } from "./signature-card";
+import { EmployeeUploadCard } from "./employee-upload";
 import { useHrLang } from "./use-hr-ws";
 import { useHrEmployee, useHrEmployees, useHrRefresh } from "./use-hr";
 
@@ -469,12 +470,15 @@ function EmployeeDetail({
         </TabsContent>
 
         <TabsContent value="documents" className="mt-3">
-          <SignatureCard
-            employeeId={id}
-            employeeName={`${e.first_name} ${e.last_name}`}
-            t={p}
-            canEdit={canEdit}
-          />
+          <div className="grid gap-4">
+            {canEdit ? <EmployeeUploadCard employeeId={id} t={p} /> : null}
+            <SignatureCard
+              employeeId={id}
+              employeeName={`${e.first_name} ${e.last_name}`}
+              t={p}
+              canEdit={canEdit}
+            />
+          </div>
         </TabsContent>
 
         {grants.includes("payroll") ? (

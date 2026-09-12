@@ -65,6 +65,14 @@ export interface HrPayrollUi {
   save: string;
   cancel: string;
   file: string;
+  // Upload into the employee file
+  uploadToFile: string;
+  uploadToFileHint: string;
+  documentTitle: string;
+  chooseFile: string;
+  uploading: string;
+  uploadFailed: string;
+  fileTooLarge: string;
 }
 
 const en: HrPayrollUi = {
@@ -132,6 +140,14 @@ const en: HrPayrollUi = {
   save: "Save",
   cancel: "Cancel",
   file: "File",
+  uploadToFile: "Upload a document to the file",
+  uploadToFileHint:
+    "Any file (signed contract, certificate, ID copy) goes straight into the employee file. Maximum 12 MB.",
+  documentTitle: "Document title",
+  chooseFile: "Choose file",
+  uploading: "Uploading…",
+  uploadFailed: "Upload failed.",
+  fileTooLarge: "The file is larger than 12 MB.",
 };
 
 const de: HrPayrollUi = {
@@ -199,6 +215,14 @@ const de: HrPayrollUi = {
   save: "Speichern",
   cancel: "Abbrechen",
   file: "Akte",
+  uploadToFile: "Dokument in die Akte laden",
+  uploadToFileHint:
+    "Jede Datei (unterschriebener Vertrag, Zeugnis, Ausweiskopie) landet direkt in der Personalakte. Maximal 12 MB.",
+  documentTitle: "Dokumenttitel",
+  chooseFile: "Datei wählen",
+  uploading: "Wird geladen…",
+  uploadFailed: "Upload fehlgeschlagen.",
+  fileTooLarge: "Die Datei ist größer als 12 MB.",
 };
 
 const ro: HrPayrollUi = {
@@ -266,6 +290,14 @@ const ro: HrPayrollUi = {
   save: "Salvează",
   cancel: "Anulează",
   file: "Fișă",
+  uploadToFile: "Încarcă document în fișă",
+  uploadToFileHint:
+    "Orice fișier (contract semnat, diplomă, copie act) intră direct în fișa angajatului. Maximum 12 MB.",
+  documentTitle: "Titlul documentului",
+  chooseFile: "Alege fișierul",
+  uploading: "Se încarcă…",
+  uploadFailed: "Încărcarea a eșuat.",
+  fileTooLarge: "Fișierul depășește 12 MB.",
 };
 
 export function hrPayrollUi(lang: string): HrPayrollUi {

@@ -32,7 +32,7 @@ import { useHrDocuments, useHrExtRefresh } from "./use-hr-ext";
 import { useHrLang, useHrDocumentLibrary } from "./use-hr-ws";
 import { EmployeePicker, Field, fmtDate, selectCls } from "./shared";
 
-type Filter = "all" | "draft" | "review" | "approved" | "file";
+type Filter = "all" | "draft" | "review" | "approved" | "file" | "signed";
 
 export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi; initialDocId?: string | null }) {
   const query = useHrDocuments();
@@ -64,13 +64,26 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
   const lib = library.data;
   const can = (g: string) => data.grants.includes(g as never);
 
-  const docs = data.documents.filter(
-    (d) => (filter === "all" || d.status === filter) && (!empFilter || d.employee_id === empFilter),
-  );
-  const statusLabel = (s: HrDocument["status"]) =>
-    s === "draft" ? w.statusDraft : s === "review" ? w.statusReview : s === "approved" ? w.statusApproved : w.statusFile;
-  const statusVariant = (s: HrDocument["status"]) =>
-    s === "approved" ? "default" : s === "review" ? "secondary" : s === "draft" ? "outline" : "secondary";
+  // A signed document is finished: it must never read as still open, whatever
+  // its workflow status is.
+  const docs = data.documents.filter((d) => {
+    const matchesStatus =
+      filter === "all" ||
+      (filter === "signed" ? Boolean(d.has_signed) : d.status === filter && !d.has_signed);
+    return matchesStatus && (!empFilter || d.employee_id === empFilter);
+  });
+  const statusLabel = (d: HrDocument) =>
+    d.has_signed
+      ? w.signedCopy
+      : d.status === "draft"
+        ? w.statusDraft
+        : d.status === "review"
+          ? w.statusReview
+          : d.status === "approved"
+            ? w.statusApproved
+            : w.statusFile;
+  const statusVariant = (d: HrDocument) =>
+    d.has_signed || d.status === "approved" ? "default" : d.status === "draft" ? "outline" : "secondary";
 
   const runGenerate = () => {
     if (!employeeId || !choice) return;
@@ -167,6 +180,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
               { value: "review", label: w.statusReview },
               { value: "approved", label: w.statusApproved },
               { value: "file", label: w.statusFile },
+              { value: "signed", label: w.signedCopy },
             ]}
           />
           <select className={`${selectCls} sm:w-64`} value={empFilter} onChange={(e) => setEmpFilter(e.target.value)}>
@@ -198,7 +212,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
           <ul className="divide-y divide-border/60">
             {docs.map((d) => (
               <li key={d.id} className="flex flex-wrap items-center gap-3 py-2.5">
-                <Badge variant={statusVariant(d.status)}>{statusLabel(d.status)}</Badge>
+                <Badge variant={statusVariant(d)}>{statusLabel(d)}</Badge>
                 <button type="button" onClick={() => setOpenId(d.id)} className="min-w-0 flex-1 text-left">
                   <span className="block truncate text-sm font-medium hover:underline">
                     {d.draft_name ?? d.title}

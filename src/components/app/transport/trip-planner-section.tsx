@@ -42,7 +42,7 @@ import {
 } from "@/lib/transport.functions";
 import { formatMinutes } from "@/lib/transport/trip-planner";
 import { downloadBase64 } from "./download";
-import { useTransportMapData } from "./use-transport";
+import { useTransportMapData, useTransportRegisters } from "./use-transport";
 import { useT } from "@/i18n";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { TripPlan } from "@/lib/transport/types";
@@ -74,6 +74,7 @@ export function TripPlannerSection({ t }: { t: Ui }) {
   const { lang } = useT();
   const uiLang: "en" | "de" | "ro" = lang === "de" ? "de" : lang === "ro" ? "ro" : "en";
   const map = useTransportMapData();
+  const registers = useTransportRegisters();
   const plan = useServerFn(planTransportTrip);
   const save = useServerFn(saveTransportTrip);
   const remove = useServerFn(deleteTransportTrip);
@@ -89,9 +90,14 @@ export function TripPlannerSection({ t }: { t: Ui }) {
   });
 
   const vehicles = map.data?.vehicles ?? [];
+  // Drivers come from the driver register, not from GPS pins: a newly added
+  // driver has no position yet and must still be selectable for a trip.
   const drivers = useMemo(
-    () => (map.data?.pins ?? []).filter((p) => p.kind === "driver"),
-    [map.data?.pins],
+    () =>
+      (registers.data?.drivers ?? [])
+        .filter((d) => d.status !== "inactive")
+        .map((d) => ({ id: d.id, label: d.full_name, phone: d.phone ?? null })),
+    [registers.data?.drivers],
   );
 
   const [origin, setOrigin] = useState("");
@@ -249,7 +255,16 @@ export function TripPlannerSection({ t }: { t: Ui }) {
           </div>
           <div className="grid gap-1.5">
             <Label>{t.driver}</Label>
-            <Select value={driverId || "none"} onValueChange={(v) => setDriverId(v === "none" ? "" : v)}>
+            <Select
+              value={driverId || "none"}
+              onValueChange={(v) => {
+                const id = v === "none" ? "" : v;
+                setDriverId(id);
+                // Prefill the WhatsApp number from the driver record.
+                const picked = drivers.find((d) => d.id === id);
+                if (picked?.phone) setPhone(picked.phone);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
