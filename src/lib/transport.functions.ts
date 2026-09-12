@@ -1540,9 +1540,9 @@ const tripPlanSchema = z.object({
   destination: tripPointSchema,
   stops: z.array(tripPointSchema).max(8).optional(),
   departAt: z.string().min(10).max(40),
-  vehicleId: uuidString.nullable().optional(),
-  trailerId: uuidString.nullable().optional(),
-  driverId: uuidString.nullable().optional(),
+  vehicleId: uuidString().nullable().optional(),
+  trailerId: uuidString().nullable().optional(),
+  driverId: uuidString().nullable().optional(),
   vehicleProfile: z.enum(["truck", "van", "car"]).default("truck"),
   routePreference: z.enum(["fast", "short", "no_tolls"]).default("fast"),
   alreadyDrivenMinutes: z.number().int().min(0).max(540).default(0),
@@ -1629,7 +1629,7 @@ export const planTransportTrip = createServerFn({ method: "POST" })
       applyDrivingRules: data.vehicleProfile === "truck",
     });
 
-    const plan = {
+    const plan: import("@/lib/transport/types").TripPlan = {
       origin,
       destination,
       stops: ordered.map((p, i) => ({
@@ -1669,7 +1669,7 @@ export const planTransportTrip = createServerFn({ method: "POST" })
       driverName: driver?.full_name ?? null,
       driverPhone: driver?.phone ?? null,
       alternatives: route.alternatives.map((alt) => ({ ...alt, tollAmount: null })),
-    } satisfies import("@/lib/transport/types").TripPlan;
+    };
 
     const weather = [];
     if (settings.tripExternalLookups) {
@@ -1722,7 +1722,10 @@ export const planTransportTrip = createServerFn({ method: "POST" })
   });
 
 const tripPlanPayload = z.object({
-  plan: z.custom<import("@/lib/transport/types").TripPlan>((v) => !!v && typeof v === "object"),
+  // The plan is produced by planTransportTrip and echoed back by the client.
+  plan: z
+    .custom<import("@/lib/transport/types").TripPlan>((v) => !!v && typeof v === "object")
+    .transform((v) => v as import("@/lib/transport/types").TripPlan),
 });
 
 export const listTransportTrips = createServerFn({ method: "GET" })
@@ -1736,7 +1739,7 @@ export const listTransportTrips = createServerFn({ method: "GET" })
 
 export const getTransportTrip = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "view");
@@ -1749,7 +1752,7 @@ export const saveTransportTrip = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     tripPlanPayload
       .extend({
-        id: uuidString.nullable().optional(),
+        id: uuidString().nullable().optional(),
         name: z.string().max(120).nullable().optional(),
         notes: z.string().max(2000).nullable().optional(),
       })
@@ -1769,7 +1772,7 @@ export const saveTransportTrip = createServerFn({ method: "POST" })
 
 export const deleteTransportTrip = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
   .handler(async ({ data, context }) => {
     const a = await actor(context as Ctx);
     require(a, "delete");
@@ -1842,7 +1845,7 @@ export const sendTransportTripToDriver = createServerFn({ method: "POST" })
       .extend({
         lang: z.enum(["en", "de", "ro"]).default("en"),
         phone: z.string().min(6).max(24),
-        tripId: uuidString.nullable().optional(),
+        tripId: uuidString().nullable().optional(),
       })
       .parse(input),
   )
