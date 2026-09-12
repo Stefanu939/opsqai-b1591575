@@ -2,7 +2,6 @@
 // then what expires when, then the map. Trends and charts live in
 // Intelligence so this page stays a decision surface, not a report.
 import { useMemo, useState } from "react";
-import { lazy, Suspense } from "react";
 import {
   AlertTriangle,
   CalendarCheck,
@@ -11,7 +10,6 @@ import {
   Handshake,
   Inbox,
   Mail,
-  MapPin as PinIcon,
   Truck,
   UsersRound,
 } from "lucide-react";
@@ -34,7 +32,6 @@ import { FleetBoard } from "./fleet-board";
 import { RiskBand, buildRiskLanes } from "./risk-band";
 import { ExpiryTimeline } from "./expiry-timeline";
 
-const TransportMap = lazy(() => import("./transport-map"));
 
 type Ui = ReturnType<typeof transportUi>;
 
