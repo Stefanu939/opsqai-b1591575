@@ -264,12 +264,13 @@ export function planTrip(input: PlanInput): PlanResult {
     }
     const untilBreak = Math.max(0, DRIVE_RULES.maxContinuousDrive - sinceBreak);
     if (untilBreak === 0) {
-      if (input.splitBreak && !splitUsed) {
+      if (input.splitBreak) {
+        // Regulation (EC) 561/2006: the split break is 15 + 30 minutes and both
+        // parts belong to the same 4h30 driving block, so the full 45 minutes
+        // are scheduled here as two consecutive legs.
         pushPause("break", DRIVE_RULES.splitFirst);
-        splitUsed = true;
-        // The remaining 30 minutes are taken at the next break window.
-      } else if (input.splitBreak && splitUsed) {
         pushPause("break", DRIVE_RULES.splitSecond);
+        splitUsed = true;
       } else {
         pushPause("break", DRIVE_RULES.breakMinutes);
       }
