@@ -63,3 +63,10 @@
 - [x] `/app/operations` in Self-Hosted navigation; rights `core_ops`, `core_costs`
 - [x] Department isolation enforced server-side for chat retrieval (`src/lib/department-scope.server.ts`)
 - [x] User-facing spreadsheet exports removed (HR employee list now PDF; CSV download helper deleted)
+
+## Management Center Core licensing (2026-09-12)
+- [ ] Configure every Core function per company; all enabled by default
+- [ ] Keep included functions automatic under their parent Core function, with no separate switches
+- [ ] Sign Core configuration into installation JWTs and preserve old-license compatibility
+- [ ] Enforce company license plus per-user rights in Self-Hosted navigation, search, routes, and server actions
+- [ ] Replace the Licenses customer list with a categorized two-column configurator
