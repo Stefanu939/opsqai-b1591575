@@ -65,6 +65,14 @@ export interface HrPayrollUi {
   save: string;
   cancel: string;
   file: string;
+  // Upload into the employee file
+  uploadToFile: string;
+  uploadToFileHint: string;
+  documentTitle: string;
+  chooseFile: string;
+  uploading: string;
+  uploadFailed: string;
+  fileTooLarge: string;
 }
 
 const en: HrPayrollUi = {
