@@ -79,6 +79,8 @@ export async function hrActor(context: HrCtx): Promise<HrActor> {
       ? Array.from(new Set<HrGrantKey>(["view", ...mapped]))
       : ["view"];
 
+  const email =
+    (profile as { email?: string } | null)?.email ?? context.claims?.email ?? null;
 
   return {
     userId: context.userId,
@@ -87,8 +89,24 @@ export async function hrActor(context: HrCtx): Promise<HrActor> {
       (profile as { fullName?: string; email?: string } | null)?.fullName ||
       context.claims?.email ||
       "User",
+    email,
     grants,
+    selfOnly: !unrestricted && mapped.length === 0,
   };
+}
+
+/**
+ * Resolves the HR employee record that belongs to the calling user (matched on
+ * email). Used to keep self-service HR reads scoped to the caller's own file.
+ */
+export async function hrSelfEmployeeId(a: HrActor): Promise<string | null> {
+  if (!a.email) return null;
+  const core = await import("@/lib/hr/db.server");
+  const rows = await core.listEmployees(a.companyId, { search: a.email });
+  const mine = rows.find(
+    (e) => (e.email ?? "").trim().toLowerCase() === a.email!.trim().toLowerCase(),
+  );
+  return mine?.id ?? null;
 }
 
 export function hrNeed(a: HrActor, grant: HrGrantKey): void {
