@@ -626,6 +626,8 @@ export interface Trip {
   whatsapp_to: string | null;
   whatsapp_sent_at: string | null;
   whatsapp_status: string | null;
+  cmr_id: string | null;
+  cmr_number?: string | null;
   created_by_name: string | null;
   created_at: string;
   updated_at: string;

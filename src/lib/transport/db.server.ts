@@ -2592,12 +2592,13 @@ const TRIP_SELECT = `t.id, t.name, t.origin_label, t.origin_lat, t.origin_lng,
   t.toll_currency, t.arrival_at, t.fuel_litres::float8 AS fuel_litres,
   t.route_source, t.route_geometry, t.already_driven_minutes, t.status, t.notes,
   t.whatsapp_channel, t.whatsapp_to, t.whatsapp_sent_at, t.whatsapp_status,
-  t.created_by_name, t.created_at, t.updated_at`;
+  t.cmr_id, COALESCE(c.number, c.draft_name) AS cmr_number, t.created_by_name, t.created_at, t.updated_at`;
 
 const TRIP_JOIN = `FROM public.transport_trips t
   LEFT JOIN public.transport_vehicles v ON v.id = t.vehicle_id
   LEFT JOIN public.transport_trailers tr ON tr.id = t.trailer_id
-  LEFT JOIN public.transport_drivers d ON d.id = t.driver_id`;
+  LEFT JOIN public.transport_drivers d ON d.id = t.driver_id
+  LEFT JOIN public.transport_cmr c ON c.id = t.cmr_id`;
 
 export async function listTrips(companyId: string, limit = 40): Promise<Trip[]> {
   return q<Trip>(
@@ -2642,7 +2643,12 @@ export async function saveTrip(
   companyId: string,
   actorName: string | null,
   plan: TripPlan,
-  extra: { id?: string | null; name?: string | null; notes?: string | null },
+  extra: {
+    id?: string | null;
+    name?: string | null;
+    notes?: string | null;
+    cmrId?: string | null;
+  },
 ): Promise<{ id: string }> {
   const row = extra.id
     ? await one<{ id: string }>(
@@ -2653,7 +2659,8 @@ export async function saveTrip(
             vehicle_profile = $14, route_preference = $15, distance_km = $16,
             drive_minutes = $17, total_minutes = $18, toll_amount = $19,
             toll_currency = $20, arrival_at = $21, fuel_litres = $22,
-            route_source = $23, route_geometry = $24, notes = $25, updated_at = now()
+            route_source = $23, route_geometry = $24, notes = $25, cmr_id = $26,
+            updated_at = now()
           WHERE id = $1 AND company_id = $2 RETURNING id`,
         [
           extra.id,
@@ -2681,6 +2688,7 @@ export async function saveTrip(
           plan.routeSource,
           JSON.stringify(plan.geometry ?? []),
           extra.notes ?? null,
+          extra.cmrId ?? null,
         ],
       )
     : await one<{ id: string }>(
@@ -2689,9 +2697,10 @@ export async function saveTrip(
             destination_label, destination_lat, destination_lng, depart_at,
             vehicle_id, trailer_id, driver_id, vehicle_profile, route_preference,
             distance_km, drive_minutes, total_minutes, toll_amount, toll_currency,
-            arrival_at, fuel_litres, route_source, route_geometry, notes, created_by_name)
+            arrival_at, fuel_litres, route_source, route_geometry, notes, created_by_name,
+            cmr_id)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,
-                 $20,$21,$22,$23,$24,$25) RETURNING id`,
+                 $20,$21,$22,$23,$24,$25,$26) RETURNING id`,
         [
           companyId,
           extra.name ?? null,
@@ -2718,6 +2727,7 @@ export async function saveTrip(
           JSON.stringify(plan.geometry ?? []),
           extra.notes ?? null,
           actorName,
+          extra.cmrId ?? null,
         ],
       );
   if (!row) throw new Error("Could not save the trip.");

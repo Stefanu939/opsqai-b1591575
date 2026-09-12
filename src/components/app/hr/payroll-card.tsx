@@ -23,6 +23,7 @@ import {
 import { downloadBase64 } from "@/components/app/transport/download";
 import type { HrPayrollUi } from "@/i18n/pages/hr-payroll";
 import { useHrPayroll, useHrPayrollRefresh } from "./use-hr-payroll";
+import { NetEstimateCard } from "./net-estimate";
 import { Field, StatCell, selectCls } from "./shared";
 
 const thisMonth = () => new Date().toISOString().slice(0, 7);
@@ -165,6 +166,8 @@ export function PayrollCard({
           )}
         </div>
       </Panel>
+
+      <NetEstimateCard gross={data.totals.gross} currency={cur} country={data.country} t={t} />
 
       <Panel title={t.salaryHistory}>
         {data.history.length === 0 ? (

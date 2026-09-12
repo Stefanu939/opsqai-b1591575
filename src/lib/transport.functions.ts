@@ -1763,6 +1763,7 @@ export const saveTransportTrip = createServerFn({ method: "POST" })
         id: uuidString().nullable().optional(),
         name: z.string().max(120).nullable().optional(),
         notes: z.string().max(2000).nullable().optional(),
+        cmrId: uuidString().nullable().optional(),
       })
       .parse(input),
   )
@@ -1774,6 +1775,7 @@ export const saveTransportTrip = createServerFn({ method: "POST" })
       id: data.id ?? null,
       name: data.name ?? null,
       notes: data.notes ?? null,
+      cmrId: data.cmrId ?? null,
     });
     return { id: saved.id, trip: await db.getTrip(a.companyId, saved.id) };
   });

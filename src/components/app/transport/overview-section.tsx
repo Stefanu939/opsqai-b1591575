@@ -2,7 +2,6 @@
 // then what expires when, then the map. Trends and charts live in
 // Intelligence so this page stays a decision surface, not a report.
 import { useMemo, useState } from "react";
-import { lazy, Suspense } from "react";
 import {
   AlertTriangle,
   CalendarCheck,
@@ -11,7 +10,6 @@ import {
   Handshake,
   Inbox,
   Mail,
-  MapPin as PinIcon,
   Truck,
   UsersRound,
 } from "lucide-react";
@@ -34,7 +32,6 @@ import { FleetBoard } from "./fleet-board";
 import { RiskBand, buildRiskLanes } from "./risk-band";
 import { ExpiryTimeline } from "./expiry-timeline";
 
-const TransportMap = lazy(() => import("./transport-map"));
 
 type Ui = ReturnType<typeof transportUi>;
 
@@ -102,11 +99,6 @@ export function OverviewSection({
       }),
     [data.recentIncidents, severity, carrier, vehicleIdsInDepot],
   );
-
-  const pins = useMemo(() => {
-    if (!vehicleIdsInDepot) return data.pins;
-    return data.pins.filter((p) => p.kind !== "vehicle" || vehicleIdsInDepot.has(p.id));
-  }, [data.pins, vehicleIdsInDepot]);
 
   const lanes = useMemo(() => buildRiskLanes(t, data), [t, data]);
 
@@ -274,21 +266,6 @@ export function OverviewSection({
               </li>
             ))}
           </ul>
-        )}
-      </Panel>
-
-      <Panel icon={PinIcon} title={t.miniMap}>
-        {pins.length === 0 ? (
-          <EmptyState title={t.noCoordinates} description={t.mapBody} />
-        ) : (
-          <Suspense fallback={<div className="h-64 rounded-lg border border-border" />}>
-            <TransportMap
-              pins={pins}
-              zones={[]}
-              zoom={data.settings.mapZoom}
-              className="h-64 w-full rounded-lg border border-border"
-            />
-          </Suspense>
         )}
       </Panel>
 

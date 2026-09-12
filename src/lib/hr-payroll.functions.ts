@@ -57,6 +57,7 @@ export const getHrPayroll = createServerFn({ method: "POST" })
     const deductions = round(entries.filter((e) => e.kind === "deduction").reduce((s, e) => s + e.amount, 0));
     return {
       currency: current?.currency ?? currencyFor(settings.country),
+      country: settings.country,
       current,
       history,
       period,

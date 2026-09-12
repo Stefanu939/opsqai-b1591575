@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MatchSemaphore } from "./semaphore";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -234,11 +235,7 @@ export function ScreeningSection({ t, w, h }: { t: HrExtUi; w: HrWsUi; h: HrUi }
                         {[c.reference, c.email, c.source].filter(Boolean).join(" · ")}
                       </p>
                     </div>
-                    {c.score !== null ? (
-                      <Badge variant={c.score >= 70 ? "default" : "secondary"}>
-                        {t.score}: {c.score}%
-                      </Badge>
-                    ) : null}
+                    <MatchSemaphore score={c.score} label={t.score} />
                     <Badge variant={c.status === "rejected" ? "outline" : "secondary"}>
                       {c.status === "hired" ? t.hired : c.status}
                     </Badge>

@@ -100,32 +100,65 @@ function fetchJson(url) {
   });
 }
 
-function download(url, dest, expectedSha256) {
+// Progress file the application polls so the user sees exactly how many bytes
+// of the release are downloaded, and when the installation runs.
+const PROGRESS = programData("updates", "progress.json");
+
+function writeProgress(p) {
+  try {
+    fs.mkdirSync(path.dirname(PROGRESS), { recursive: true });
+    fs.writeFileSync(PROGRESS, JSON.stringify({ ...p, at: new Date().toISOString() }, null, 2));
+  } catch {
+    /* progress is best effort */
+  }
+}
+
+function download(url, dest, expectedSha256, meta = {}) {
   return new Promise((resolve, reject) => {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     const tmp = dest + ".part";
     const out = fs.createWriteStream(tmp);
     const hash = crypto.createHash("sha256");
+    let received = 0;
+    let total = Number(meta.size) || 0;
+    let lastWrite = 0;
+    writeProgress({ phase: "downloading", version: meta.version ?? null, received: 0, total });
     https
       .get(url, (res) => {
         if (res.statusCode !== 200) {
           res.resume();
+          writeProgress({ phase: "failed", version: meta.version ?? null, error: `HTTP ${res.statusCode}` });
           return reject(new Error(`HTTP ${res.statusCode}`));
         }
-        res.on("data", (c) => hash.update(c));
+        const len = Number(res.headers["content-length"]);
+        if (Number.isFinite(len) && len > 0) total = len;
+        res.on("data", (c) => {
+          hash.update(c);
+          received += c.length;
+          const now = Date.now();
+          if (now - lastWrite > 700) {
+            lastWrite = now;
+            writeProgress({ phase: "downloading", version: meta.version ?? null, received, total });
+          }
+        });
         res.pipe(out);
         out.on("finish", () => {
           out.close();
           const got = hash.digest("hex");
           if (got !== expectedSha256.toLowerCase()) {
             fs.unlinkSync(tmp);
+            writeProgress({ phase: "failed", version: meta.version ?? null, received, total, error: "sha256 mismatch" });
             return reject(new Error(`sha256 mismatch (want ${expectedSha256}, got ${got})`));
           }
           fs.renameSync(tmp, dest);
+          writeProgress({ phase: "verified", version: meta.version ?? null, received, total });
           resolve(dest);
         });
       })
-      .on("error", reject);
+      .on("error", (e) => {
+        writeProgress({ phase: "failed", version: meta.version ?? null, received, total, error: String(e && e.message) });
+        reject(e);
+      });
   });
 }
 
@@ -248,7 +281,7 @@ async function stageRelease(state, rel, source) {
   const ext = rel.artifact === "zip" ? "zip" : "exe";
   const dest = path.join(STAGE_DIR, `OPSQAI-Setup-${rel.version}.${ext}`);
   log(`downloading ${rel.version} (${source})`);
-  await download(rel.url, dest, rel.sha256);
+  await download(rel.url, dest, rel.sha256, { version: rel.version, size: rel.size });
   state.lastStaged = {
     version: rel.version,
     path: dest,
@@ -319,7 +352,7 @@ async function pollOnce() {
 
     log(`downloading ${rel.version} from ${rel.url}`);
     const dest = path.join(STAGE_DIR, `OPSQAI-Setup-${rel.version}.exe`);
-    await download(rel.url, dest, rel.sha256);
+    await download(rel.url, dest, rel.sha256, { version: rel.version, size: rel.size });
     state.lastStaged = {
       version: rel.version,
       path: dest,
@@ -348,7 +381,9 @@ async function pollOnce() {
     state.lastApply?.version !== state.lastStaged.version &&
     (command?.action === "install" || inWindow(policy))
   ) {
+    writeProgress({ phase: "installing", version: state.lastStaged.version });
     await applyStaged(state);
+    writeProgress({ phase: "done", version: state.lastStaged.version });
   }
 }
 

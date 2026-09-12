@@ -60,6 +60,8 @@ export interface HrPayslip {
 
 export interface HrPayrollView {
   currency: string;
+  /** Country pack used by the gross → net estimate. */
+  country: HrCountry;
   current: HrSalary | null;
   history: HrSalary[];
   period: string;

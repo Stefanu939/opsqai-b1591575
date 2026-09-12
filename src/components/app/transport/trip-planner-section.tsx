@@ -42,7 +42,7 @@ import {
 } from "@/lib/transport.functions";
 import { formatMinutes } from "@/lib/transport/trip-planner";
 import { downloadBase64 } from "./download";
-import { useTransportMapData, useTransportRegisters } from "./use-transport";
+import { useCmrNotes, useTransportMapData, useTransportRegisters } from "./use-transport";
 import { useT } from "@/i18n";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { TripPlan } from "@/lib/transport/types";
@@ -115,6 +115,8 @@ export function TripPlannerSection({ t }: { t: Ui }) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<TripPlan | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [cmrId, setCmrId] = useState<string>("");
+  const cmrNotes = useCmrNotes();
 
   const pauses = (result?.legs ?? []).filter((l) => l.kind === "break" || l.kind === "rest");
 
@@ -408,17 +410,35 @@ export function TripPlannerSection({ t }: { t: Ui }) {
               </div>
             ) : null}
 
-            <div className="mt-4 grid gap-2 md:grid-cols-[1fr_auto_auto]">
+            <div className="mt-4 grid gap-2 md:grid-cols-[1fr_1fr_auto_auto]">
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t.tripName}
               />
+              <Select value={cmrId || "none"} onValueChange={(v) => setCmrId(v === "none" ? "" : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.tripCmr} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t.tripCmrNone}</SelectItem>
+                  {(cmrNotes.data?.records ?? []).map((note) => (
+                    <SelectItem key={note.id} value={note.id}>
+                      {note.number || note.draft_name || note.id.slice(0, 8)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 variant="outline"
                 onClick={() => {
                   void save({
-                    data: { plan: result, id: savedId, name: name || null },
+                    data: {
+                      plan: result,
+                      id: savedId,
+                      name: name || null,
+                      cmrId: cmrId || null,
+                    },
                   })
                     .then((r) => {
                       setSavedId(r.id);
@@ -544,6 +564,9 @@ export function TripPlannerSection({ t }: { t: Ui }) {
                 </span>
                 <span className="text-muted-foreground">{shortTime(trip.depart_at)}</span>
                 {trip.vehicle_plate ? <Badge variant="outline">{trip.vehicle_plate}</Badge> : null}
+                {trip.cmr_number ? (
+                  <Badge variant="outline">CMR {trip.cmr_number}</Badge>
+                ) : null}
                 {trip.whatsapp_sent_at ? (
                   <Badge variant="secondary">WhatsApp</Badge>
                 ) : null}
