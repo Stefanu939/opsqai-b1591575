@@ -8,18 +8,26 @@
  * the search itself run through the provider repositories, which are backed by
  * local PostgreSQL in Self-Hosted and by Supabase in Cloud.
  */
-import { getActorRoles, getProfileCompany, requirePermission } from "@/lib/authorization";
+import {
+  getActorRoles,
+  getProfileCompany,
+  hasPermission,
+  requirePermission,
+} from "@/lib/authorization";
 import {
   getCompanyRepository,
   getFaqRepository,
   getKnowledgeRepository,
+  getProfileRepository,
+  getKnowledgeGapRepository,
+  getAcademyRepository,
 } from "@/lib/providers/registry";
 
 type Ctx = { supabase: unknown; userId: string };
 
 /** Shape consumed by `global-search.tsx` (kind / label / sub). */
 export type GlobalSearchHit = {
-  kind: "sop" | "faq";
+  kind: "sop" | "faq" | "user" | "gap" | "course";
   id: string;
   label: string;
   sub: string | null;
@@ -63,12 +71,25 @@ export async function searchEverywhere(
   q: string,
   limit = 8,
 ): Promise<GlobalSearchHit[]> {
-  const [docs, faqs] = await Promise.all([
+  // People are only searchable for actors allowed to see the user list.
+  const canSeePeople = await hasPermission(ctx as any, "users.read").catch(() => false);
+  const [docs, faqs, people, gaps, paths] = await Promise.all([
     getKnowledgeRepository(ctx.supabase)
       .listDocuments(companyId, false)
       .catch(() => []),
     getFaqRepository(ctx.supabase)
       .list(companyId)
+      .catch(() => []),
+    canSeePeople
+      ? getProfileRepository(ctx.supabase)
+          .listByCompany(companyId)
+          .catch(() => [])
+      : Promise.resolve([]),
+    getKnowledgeGapRepository(ctx.supabase)
+      .list?.(companyId)
+      .catch(() => []) ?? Promise.resolve([]),
+    getAcademyRepository(ctx.supabase)
+      .listLearningPaths(companyId)
       .catch(() => []),
   ]);
 
@@ -92,6 +113,33 @@ export async function searchEverywhere(
       label: f.question_en || f.question_de || "FAQ",
       sub: f.category ?? null,
     });
+  }
+  for (const p of people as any[]) {
+    if (hits.length >= limit) break;
+    const name =
+      p.fullName ||
+      [p.firstName, p.lastName].filter(Boolean).join(" ") ||
+      p.email ||
+      "User";
+    if (!matches([name, p.email, p.position, p.department], q)) continue;
+    hits.push({
+      kind: "user",
+      id: p.userId,
+      label: name,
+      sub: [p.position, p.department].filter(Boolean).join(" · ") || p.email || null,
+    });
+  }
+  for (const g of (gaps ?? []) as any[]) {
+    if (hits.length >= limit) break;
+    const label = g.question ?? g.question_text ?? g.title ?? null;
+    if (!label || !matches([label, g.category], q)) continue;
+    hits.push({ kind: "gap", id: g.id, label, sub: g.category ?? null });
+  }
+  for (const lp of (paths ?? []) as any[]) {
+    if (hits.length >= limit) break;
+    const label = lp.title ?? lp.name ?? null;
+    if (!label || !matches([label, lp.description], q)) continue;
+    hits.push({ kind: "course", id: lp.id, label, sub: lp.description ?? null });
   }
   return hits.slice(0, limit);
 }
