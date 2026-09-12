@@ -3,7 +3,7 @@
 // Every number is derived from the inputs the colleague entered. The wording is
 // deliberately estimative — the report never guarantees a saving.
 
-import { generatePdf, type PdfBlock } from "@/lib/generators/pdf.server";
+import { createSimplePdf, type SimplePdfLine } from "@/lib/simple-pdf.server";
 import {
   computeValue,
   formatMoney,
@@ -195,105 +195,66 @@ export async function buildValueReport(args: {
   const money = (n: number) => formatMoney(n, r.currency, locale);
   const pct = (n: number) => `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(n)}%`;
 
-  const blocks: PdfBlock[] = [
-    {
-      type: "kpis",
-      items: [
-        { label: c.currentLoss ?? "", value: money(r.currentTotal) },
-        { label: c.potential ?? "", value: money(r.potentialValue) },
-        { label: c.expected ?? "", value: money(r.expectedValue) },
-        { label: c.multiple ?? "", value: `${r.valueMultiple.toFixed(2)}x` },
-      ],
-    },
-    { type: "h2", text: c.profile ?? "" },
-    {
-      type: "table",
-      headers: [c.driver ?? "", c.value ?? ""],
-      rows: [
-        [c.employees ?? "", String(inputs.quick.employees)],
-        [c.hourly ?? "", money(inputs.quick.hourlyCost)],
-        [c.minutes ?? "", String(inputs.quick.minutesPerDay)],
-        [c.days ?? "", String(inputs.quick.workingDays)],
-        [c.investment ?? "", money(r.investment)],
-      ],
-    },
-    { type: "h2", text: c.drivers ?? "" },
-    {
-      type: "table",
-      headers: [c.driver ?? "", c.current ?? "", c.impact ?? "", c.value ?? ""],
-      rows: r.drivers.map((d) => [
-        dl[d.key],
-        money(d.currentCost),
-        pct(d.impactPct),
-        money(d.value),
-      ]),
-    },
-    { type: "h2", text: c.results ?? "" },
-    {
-      type: "table",
-      headers: [c.driver ?? "", c.value ?? ""],
-      rows: [
-        [c.potential ?? "", money(r.potentialValue)],
-        [c.likelihood ?? "", pct(r.likelihoodPct)],
-        [c.expected ?? "", money(r.expectedValue)],
-        [c.investment ?? "", money(r.investment)],
-        [c.net ?? "", money(r.netValue)],
-        [c.roi ?? "", pct(r.roiPct)],
-        [c.multiple ?? "", `${r.valueMultiple.toFixed(2)}x`],
-        [c.improvement ?? "", pct(r.operationalImprovementPct)],
-        [
-          c.payback ?? "",
-          r.paybackMonths == null ? "-" : `${r.paybackMonths.toFixed(1)} ${c.months}`,
-        ],
-        [c.ttv ?? "", `${r.timeToValueMonths} ${c.months}`],
-        [c.effort ?? "", EFFORT_LABEL[lang][r.effort] ?? r.effort],
-        [c.score ?? "", SCORE_LABEL[lang][r.score.label] ?? r.score.label],
-      ],
-    },
-    { type: "h2", text: c.scenarios ?? "" },
-    {
-      type: "table",
-      headers: [c.scenario ?? "", c.impact ?? "", c.potential ?? "", c.expected ?? ""],
-      rows: scenarios(inputs).map((s) => [
+  const row = (...cells: string[]): SimplePdfLine => ({ kind: "row", cells });
+  const lines: SimplePdfLine[] = [
+    { kind: "title", text: c.title ?? "OPSQAI Value Report" },
+    { kind: "subtitle", text: `${args.companyName} - ${c.subtitle}` },
+    { kind: "heading", text: c.results ?? "" },
+    row(c.currentLoss ?? "", money(r.currentTotal), c.potential ?? "", money(r.potentialValue)),
+    row(c.expected ?? "", money(r.expectedValue), c.multiple ?? "", `${r.valueMultiple.toFixed(2)}x`),
+    { kind: "heading", text: c.profile ?? "" },
+    row(c.driver ?? "", c.value ?? ""),
+    row(c.employees ?? "", String(inputs.quick.employees)),
+    row(c.hourly ?? "", money(inputs.quick.hourlyCost)),
+    row(c.minutes ?? "", String(inputs.quick.minutesPerDay)),
+    row(c.days ?? "", String(inputs.quick.workingDays)),
+    row(c.investment ?? "", money(r.investment)),
+    { kind: "heading", text: c.drivers ?? "" },
+    row(c.driver ?? "", c.current ?? "", c.impact ?? "", c.value ?? ""),
+    ...r.drivers.map((d) => row(dl[d.key], money(d.currentCost), pct(d.impactPct), money(d.value))),
+    { kind: "heading", text: c.results ?? "" },
+    row(c.driver ?? "", c.value ?? ""),
+    row(c.potential ?? "", money(r.potentialValue)),
+    row(c.likelihood ?? "", pct(r.likelihoodPct)),
+    row(c.expected ?? "", money(r.expectedValue)),
+    row(c.investment ?? "", money(r.investment)),
+    row(c.net ?? "", money(r.netValue)),
+    row(c.roi ?? "", pct(r.roiPct)),
+    row(c.multiple ?? "", `${r.valueMultiple.toFixed(2)}x`),
+    row(c.improvement ?? "", pct(r.operationalImprovementPct)),
+    row(c.payback ?? "", r.paybackMonths == null ? "-" : `${r.paybackMonths.toFixed(1)} ${c.months}`),
+    row(c.ttv ?? "", `${r.timeToValueMonths} ${c.months}`),
+    row(c.effort ?? "", EFFORT_LABEL[lang][r.effort] ?? r.effort),
+    row(c.score ?? "", SCORE_LABEL[lang][r.score.label] ?? r.score.label),
+    { kind: "heading", text: c.scenarios ?? "" },
+    row(c.scenario ?? "", c.impact ?? "", c.potential ?? "", c.expected ?? ""),
+    ...scenarios(inputs).map((s) =>
+      row(
         SCENARIO_LABEL[lang][s.label] ?? s.label,
         pct(s.impactPct),
         money(s.result.potentialValue),
         money(s.result.expectedValue),
-      ]),
-    },
-    { type: "h2", text: c.proposition ?? "" },
-    { type: "p", text: proposition(lang, args.companyName, r, money, dl) },
-    ...(r.topDrivers.length
-      ? ([
-          {
-            type: "bullets",
-            items: r.topDrivers
-              .slice(0, 3)
-              .map((d) => `${dl[d.key]} - ${money(d.value)}`),
-          },
-        ] as PdfBlock[])
-      : []),
+      ),
+    ),
+    { kind: "heading", text: c.proposition ?? "" },
+    { kind: "text", text: proposition(lang, args.companyName, r, money, dl) },
+    ...r.topDrivers.slice(0, 3).map(
+      (d): SimplePdfLine => ({ kind: "text", text: `- ${dl[d.key]} - ${money(d.value)}` }),
+    ),
     ...(args.assumptions
       ? ([
-          { type: "h2", text: c.assumptions ?? "" },
-          { type: "p", text: args.assumptions },
-        ] as PdfBlock[])
+          { kind: "heading", text: c.assumptions ?? "" },
+          { kind: "text", text: args.assumptions },
+        ] satisfies SimplePdfLine[])
       : []),
-    { type: "callout", kind: "note", text: c.disclaimer ?? "" },
+    { kind: "note", text: c.disclaimer ?? "" },
   ];
 
-  return generatePdf({
+  return createSimplePdf({
     title: c.title ?? "OPSQAI Value Report",
-    subtitle: `${args.companyName} - ${c.subtitle}`,
     author: "OPSQAI",
-    blocks,
-    meta: {
-      customerName: args.companyName,
-      documentType: c.title,
-      date: new Date().toISOString().slice(0, 10),
-      brand: "OPSQAI",
-      confidentiality: "Commercial in confidence",
-    },
+    footer: `OPSQAI | ${args.companyName} | Commercial in confidence`,
+    lines,
   });
 }
 
