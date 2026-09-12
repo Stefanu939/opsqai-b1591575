@@ -180,6 +180,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
               { value: "review", label: w.statusReview },
               { value: "approved", label: w.statusApproved },
               { value: "file", label: w.statusFile },
+              { value: "signed", label: w.signedCopy },
             ]}
           />
           <select className={`${selectCls} sm:w-64`} value={empFilter} onChange={(e) => setEmpFilter(e.target.value)}>
