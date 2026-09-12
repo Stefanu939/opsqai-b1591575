@@ -61,10 +61,10 @@ function sanitize(text: string): string {
 }
 
 export async function generatePdf(spec: PdfSpec): Promise<Uint8Array> {
-  // Force the ESM build of pdf-lib. The CJS entry relies on `tslib`'s
-  // `__extends` helper which is not picked up correctly by the Worker bundler
-  // (manifests as: Cannot destructure property '__extends' of '__toESM(...)').
-  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib/es/index.js");
+  // Use the package entry (same as every other PDF module in the project);
+  // the deep `pdf-lib/es/index.js` path pulls tslib per-file and breaks in the
+  // Worker bundle with: Cannot destructure property '__extends'.
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const pdf = await PDFDocument.create();
   pdf.setTitle(spec.title);
   if (spec.author) pdf.setAuthor(spec.author);
