@@ -483,6 +483,19 @@ const EN = {
   tripCheckAdr: "ADR load",
   tripCheckAdrDetail: "Check tunnel and city restrictions on the route.",
   tripCheckFuel: "Plan a refuelling stop",
+  tripSettings: "Trip planner & WhatsApp",
+  tripSettingsBody:
+    "Assumed speeds, consumption, break style, online lookups and how the route reaches the driver.",
+  tripSpeedTruck: "Truck average speed (km/h)",
+  tripSpeedCar: "Car average speed (km/h)",
+  tripFuelDefault: "Default consumption (l / 100 km)",
+  tripBreakSplit: "Split break (15 + 30 min)",
+  tripExternalLookups: "Allow route and weather lookups online",
+  tripWhatsappChannel: "WhatsApp sending",
+  tripWhatsappChannelLink: "Open WhatsApp with the message (no setup)",
+  tripWhatsappChannelTwilio: "Send automatically (Twilio)",
+  tripWhatsappFrom: "Sender number (WhatsApp business)",
+  tripWhatsappDispatcher: "Dispatcher shown in the message",
 } as const;
 
 type Dict = { [K in keyof typeof EN]: string };
@@ -946,6 +959,19 @@ const DE: Dict = {
   tripCheckAdr: "ADR-Ladung",
   tripCheckAdrDetail: "Tunnel- und Stadtbeschränkungen auf der Route prüfen.",
   tripCheckFuel: "Tankstopp einplanen",
+  tripSettings: "Tourenplaner & WhatsApp",
+  tripSettingsBody:
+    "Angenommene Geschwindigkeiten, Verbrauch, Pausenart, Online-Abfragen und wie die Route zum Fahrer kommt.",
+  tripSpeedTruck: "LKW-Durchschnittsgeschwindigkeit (km/h)",
+  tripSpeedCar: "PKW-Durchschnittsgeschwindigkeit (km/h)",
+  tripFuelDefault: "Standardverbrauch (l / 100 km)",
+  tripBreakSplit: "Geteilte Pause (15 + 30 Min.)",
+  tripExternalLookups: "Routen- und Wetterabfragen online erlauben",
+  tripWhatsappChannel: "WhatsApp-Versand",
+  tripWhatsappChannelLink: "WhatsApp mit Nachricht öffnen (ohne Einrichtung)",
+  tripWhatsappChannelTwilio: "Automatisch senden (Twilio)",
+  tripWhatsappFrom: "Absendernummer (WhatsApp Business)",
+  tripWhatsappDispatcher: "Disponent in der Nachricht",
 };
 
 const RO: Dict = {
@@ -1410,6 +1436,19 @@ const RO: Dict = {
   tripCheckAdr: "Marfă ADR",
   tripCheckAdrDetail: "Verifică restricțiile de tunel și de oraș pe rută.",
   tripCheckFuel: "Planifică o oprire de alimentare",
+  tripSettings: "Planificator de traseu & WhatsApp",
+  tripSettingsBody:
+    "Vitezele estimate, consumul, tipul pauzei, interogările online și cum ajunge traseul la șofer.",
+  tripSpeedTruck: "Viteză medie camion (km/h)",
+  tripSpeedCar: "Viteză medie autoturism (km/h)",
+  tripFuelDefault: "Consum implicit (l / 100 km)",
+  tripBreakSplit: "Pauză împărțită (15 + 30 min)",
+  tripExternalLookups: "Permite interogări online de rută și vreme",
+  tripWhatsappChannel: "Trimitere pe WhatsApp",
+  tripWhatsappChannelLink: "Deschide WhatsApp cu mesajul (fără configurare)",
+  tripWhatsappChannelTwilio: "Trimite automat (Twilio)",
+  tripWhatsappFrom: "Număr expeditor (WhatsApp business)",
+  tripWhatsappDispatcher: "Dispecerul afișat în mesaj",
 };
 
 export const TRANSPORT_UI: Record<TLang, Dict> = { en: EN, de: DE, ro: RO };
