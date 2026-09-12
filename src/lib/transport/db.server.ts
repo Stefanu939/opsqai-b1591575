@@ -2592,7 +2592,7 @@ const TRIP_SELECT = `t.id, t.name, t.origin_label, t.origin_lat, t.origin_lng,
   t.toll_currency, t.arrival_at, t.fuel_litres::float8 AS fuel_litres,
   t.route_source, t.route_geometry, t.already_driven_minutes, t.status, t.notes,
   t.whatsapp_channel, t.whatsapp_to, t.whatsapp_sent_at, t.whatsapp_status,
-  t.cmr_id, c.cmr_number, t.created_by_name, t.created_at, t.updated_at`;
+  t.cmr_id, COALESCE(c.number, c.draft_name) AS cmr_number, t.created_by_name, t.created_at, t.updated_at`;
 
 const TRIP_JOIN = `FROM public.transport_trips t
   LEFT JOIN public.transport_vehicles v ON v.id = t.vehicle_id
