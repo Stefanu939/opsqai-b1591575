@@ -73,6 +73,18 @@ export interface HrPayrollUi {
   uploading: string;
   uploadFailed: string;
   fileTooLarge: string;
+  // Gross → net estimate
+  netTitle: string;
+  netHint: string;
+  netNet: string;
+  netContributions: string;
+  netTaxes: string;
+  netEmployerCost: string;
+  netCountry: string;
+  netSettings: string;
+  netNotBinding: string;
+  netLabels: Record<string, string>;
+  netFields: Record<string, string>;
 }
 
 const en: HrPayrollUi = {
@@ -148,6 +160,46 @@ const en: HrPayrollUi = {
   uploading: "Uploading…",
   uploadFailed: "Upload failed.",
   fileTooLarge: "The file is larger than 12 MB.",
+  netTitle: "Gross → net estimate",
+  netHint:
+    "Enter the gross salary and the country details; the contributions and the tax are calculated for information, so you can see exactly what is withheld.",
+  netNet: "Estimated net",
+  netContributions: "Contributions",
+  netTaxes: "Taxes",
+  netEmployerCost: "Total employer cost",
+  netCountry: "Country pack",
+  netSettings: "Country details",
+  netNotBinding: "Estimate only — it does not replace the statutory payroll run of your accountant.",
+  netLabels: {
+    "de.pension": "Pension insurance",
+    "de.unemployment": "Unemployment insurance",
+    "de.health": "Health insurance",
+    "de.care": "Long-term care insurance",
+    "de.accident": "Accident insurance",
+    "de.incomeTax": "Wage tax",
+    "de.soli": "Solidarity surcharge",
+    "de.church": "Church tax",
+    "ro.cas": "Pension contribution (CAS)",
+    "ro.cass": "Health contribution (CASS)",
+    "ro.incomeTax": "Income tax",
+    "ro.personalDeduction": "Personal deduction",
+    "ro.cam": "Employer work contribution (CAM)",
+    "generic.contributions": "Social contributions",
+    "generic.tax": "Income tax",
+    extra: "Other deduction",
+  },
+  netFields: {
+    taxClass: "Tax class",
+    healthExtraRate: "Health additional rate (%)",
+    churchTaxRate: "Church tax (%)",
+    childless: "Childless (care surcharge)",
+    children: "Children",
+    personalDeduction: "Personal deduction",
+    itExempt: "Income tax exemption (IT / construction)",
+    taxRate: "Income tax rate (%)",
+    contributionRate: "Contribution rate (%)",
+    extraFixedDeduction: "Other fixed deduction",
+  },
 };
 
 const de: HrPayrollUi = {
@@ -223,6 +275,46 @@ const de: HrPayrollUi = {
   uploading: "Wird geladen…",
   uploadFailed: "Upload fehlgeschlagen.",
   fileTooLarge: "Die Datei ist größer als 12 MB.",
+  netTitle: "Brutto → Netto Schätzung",
+  netHint:
+    "Bruttogehalt und Länderangaben eingeben; Beiträge und Steuer werden informativ berechnet, damit sichtbar ist, was einbehalten wird.",
+  netNet: "Geschätztes Netto",
+  netContributions: "Beiträge",
+  netTaxes: "Steuern",
+  netEmployerCost: "Gesamtkosten Arbeitgeber",
+  netCountry: "Länderpaket",
+  netSettings: "Länderangaben",
+  netNotBinding: "Nur eine Schätzung — sie ersetzt die gesetzliche Abrechnung des Steuerbüros nicht.",
+  netLabels: {
+    "de.pension": "Rentenversicherung",
+    "de.unemployment": "Arbeitslosenversicherung",
+    "de.health": "Krankenversicherung",
+    "de.care": "Pflegeversicherung",
+    "de.accident": "Unfallversicherung",
+    "de.incomeTax": "Lohnsteuer",
+    "de.soli": "Solidaritätszuschlag",
+    "de.church": "Kirchensteuer",
+    "ro.cas": "Rentenbeitrag (CAS)",
+    "ro.cass": "Krankenbeitrag (CASS)",
+    "ro.incomeTax": "Einkommensteuer",
+    "ro.personalDeduction": "Persönlicher Freibetrag",
+    "ro.cam": "Arbeitgeberbeitrag (CAM)",
+    "generic.contributions": "Sozialbeiträge",
+    "generic.tax": "Einkommensteuer",
+    extra: "Weiterer Abzug",
+  },
+  netFields: {
+    taxClass: "Steuerklasse",
+    healthExtraRate: "Zusatzbeitrag Krankenkasse (%)",
+    churchTaxRate: "Kirchensteuer (%)",
+    childless: "Kinderlos (Pflegezuschlag)",
+    children: "Kinder",
+    personalDeduction: "Persönlicher Freibetrag",
+    itExempt: "Steuerbefreiung (IT / Bau)",
+    taxRate: "Einkommensteuersatz (%)",
+    contributionRate: "Beitragssatz (%)",
+    extraFixedDeduction: "Weiterer fixer Abzug",
+  },
 };
 
 const ro: HrPayrollUi = {
@@ -298,6 +390,46 @@ const ro: HrPayrollUi = {
   uploading: "Se încarcă…",
   uploadFailed: "Încărcarea a eșuat.",
   fileTooLarge: "Fișierul depășește 12 MB.",
+  netTitle: "Estimare brut → net",
+  netHint:
+    "Introduci salariul brut și detaliile pentru țară; contribuțiile și impozitul sunt calculate informativ, ca să vezi exact ce se reține.",
+  netNet: "Net estimat",
+  netContributions: "Contribuții",
+  netTaxes: "Impozite",
+  netEmployerCost: "Cost total angajator",
+  netCountry: "Pachet de țară",
+  netSettings: "Detalii pentru țară",
+  netNotBinding: "Doar estimare — nu înlocuiește calculul oficial făcut de contabilitate.",
+  netLabels: {
+    "de.pension": "Asigurare de pensie",
+    "de.unemployment": "Asigurare de șomaj",
+    "de.health": "Asigurare de sănătate",
+    "de.care": "Asigurare de îngrijire",
+    "de.accident": "Asigurare de accident",
+    "de.incomeTax": "Impozit pe salariu",
+    "de.soli": "Supliment de solidaritate",
+    "de.church": "Impozit pentru biserică",
+    "ro.cas": "Contribuție de pensie (CAS)",
+    "ro.cass": "Contribuție de sănătate (CASS)",
+    "ro.incomeTax": "Impozit pe venit",
+    "ro.personalDeduction": "Deducere personală",
+    "ro.cam": "Contribuție asiguratorie pentru muncă (CAM)",
+    "generic.contributions": "Contribuții sociale",
+    "generic.tax": "Impozit pe venit",
+    extra: "Altă reținere",
+  },
+  netFields: {
+    taxClass: "Clasa de impozitare",
+    healthExtraRate: "Cotă suplimentară de sănătate (%)",
+    churchTaxRate: "Impozit pentru biserică (%)",
+    childless: "Fără copii (supliment de îngrijire)",
+    children: "Copii",
+    personalDeduction: "Deducere personală",
+    itExempt: "Scutire de impozit (IT / construcții)",
+    taxRate: "Cotă de impozit (%)",
+    contributionRate: "Cotă de contribuții (%)",
+    extraFixedDeduction: "Altă reținere fixă",
+  },
 };
 
 export function hrPayrollUi(lang: string): HrPayrollUi {
