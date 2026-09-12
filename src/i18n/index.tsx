@@ -8,7 +8,8 @@ const dict = {
   de: {
     appName: "OPSQAI",
     tagline: "Sofortiger Zugriff auf Unternehmenswissen.",
-    searchPlaceholder: "Wissen, Dokumente, Personen suchen …",
+    searchPlaceholder: "Alles suchen: Seiten, Dokumente, Personen …",
+    searchPagesHeading: "Seiten & Funktionen",
     dashboard: "Dashboard",
     chat: "Chat",
     newChat: "Neue Unterhaltung",
@@ -168,7 +169,8 @@ const dict = {
   en: {
     appName: "OPSQAI",
     tagline: "Instant access to company knowledge.",
-    searchPlaceholder: "Search knowledge, documents, people…",
+    searchPlaceholder: "Search anything: pages, documents, people…",
+    searchPagesHeading: "Pages & functions",
     dashboard: "Dashboard",
     chat: "Chat",
     newChat: "New conversation",
@@ -332,7 +334,8 @@ export type DictKey = keyof typeof dict.en;
 /** Romanian UI strings. Full coverage of all dictionary keys. */
 const ro: Record<DictKey, string> = {
   tagline: "Acces instant la cunoștințele companiei.",
-  searchPlaceholder: "Caută cunoștințe, documente, persoane…",
+  searchPlaceholder: "Caută orice: pagini, documente, persoane…",
+  searchPagesHeading: "Pagini și funcții",
   dashboard: "Panou",
   chat: "Chat",
   newChat: "Conversație nouă",

@@ -3,6 +3,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { globalSearch } from "@/lib/dashboard.functions";
 import { useAuth } from "@/lib/auth-context";
+import { useT } from "@/i18n";
+import { searchFeatures, type FeatureEntry } from "@/lib/app-search-index";
 import {
   CommandDialog,
   CommandEmpty,
@@ -22,6 +24,8 @@ import {
   ClipboardCheck,
   MessagesSquare,
   FlaskConical,
+  GraduationCap,
+  Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,6 +38,7 @@ const ICONS: Record<string, any> = {
   ai_audit: ClipboardCheck,
   thread: MessagesSquare,
   workspace: FlaskConical,
+  course: GraduationCap,
 };
 const LABELS: Record<string, string> = {
   sop: "SOPs",
@@ -44,6 +49,7 @@ const LABELS: Record<string, string> = {
   ai_audit: "AI audits",
   thread: "Conversations",
   workspace: "Workspaces",
+  course: "Courses",
 };
 
 export function GlobalSearch({
@@ -60,6 +66,7 @@ export function GlobalSearch({
   const [q, setQ] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const { activeCompanyId } = useAuth() as any;
+  const { t, lang } = useT();
   const search = useServerFn(globalSearch);
   const navigate = useNavigate();
 
@@ -90,6 +97,10 @@ export function GlobalSearch({
     return () => clearTimeout(h);
   }, [q, open, activeCompanyId]);
 
+  // Screens and functions of the application itself, matched locally in the
+  // active UI language (and in the other two, so search works either way).
+  const features: FeatureEntry[] = q.trim().length >= 2 ? searchFeatures(q, lang as any, 6) : [];
+
   const groups = results.reduce<Record<string, any[]>>((acc, r) => {
     (acc[r.kind] ||= []).push(r);
     return acc;
@@ -103,6 +114,7 @@ export function GlobalSearch({
     else if (r.kind === "user") navigate({ to: "/app/users" });
     else if (r.kind === "gap") navigate({ to: "/app/knowledge" });
     else if (r.kind === "ai_audit") navigate({ to: "/app/audit" });
+    else if (r.kind === "course") navigate({ to: "/app/academy/courses" });
     else if (r.kind === "thread")
       navigate({ to: "/app/chat/$threadId", params: { threadId: r.id } });
   };
@@ -142,12 +154,33 @@ export function GlobalSearch({
         <CommandInput
           value={q}
           onValueChange={setQ}
-          placeholder="Search SOPs, FAQs, users, audit…"
+          placeholder={placeholder ?? t("searchPlaceholder")}
         />
-        <CommandList>
+        <CommandList className="max-h-[70vh]">
           <CommandEmpty>
             {q.length < 2 ? "Type at least 2 characters." : "No results."}
           </CommandEmpty>
+          {features.length > 0 && (
+            <CommandGroup heading={t("searchPagesHeading")}>
+              {features.map((f) => (
+                <CommandItem
+                  key={f.to}
+                  value={`page-${f.to}-${f.label[lang as "en"] ?? f.label.en}`}
+                  onSelect={() => {
+                    setOpen(false);
+                    navigate({ to: f.to });
+                  }}
+                >
+                  <Compass className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <div className="min-w-0">
+                    <div className="truncate">{f.label[lang as "en"] ?? f.label.en}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">{f.to}</div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          {features.length > 0 && Object.keys(groups).length > 0 && <CommandSeparator />}
           {Object.entries(groups).map(([kind, items], i) => {
             const Icon = ICONS[kind] ?? Search;
             return (

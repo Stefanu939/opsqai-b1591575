@@ -421,7 +421,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         {/* Desktop top bar — search always visible, controls on the right */}
-        <div className="hidden md:flex sticky top-0 z-20 items-center gap-3 border-b border-border bg-background/95 px-6 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        {/* Fixed, fully opaque: page content scrolls underneath, never through. */}
+        <div className="hidden md:flex sticky top-0 z-40 items-center gap-3 border-b border-border bg-background px-6 py-2.5 shadow-sm">
           <div className="min-w-0 flex-1 max-w-2xl">
             <GlobalSearch asButton variant="bar" placeholder={t("searchPlaceholder")} />
           </div>
