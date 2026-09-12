@@ -31,6 +31,10 @@ export const ALLOWED_PREFIXES = [
   // for the platform email API, not AI inference.
   "src/routes/lovable/",
   "src/lib/email-templates/",
+  // Connector gateway callers (WhatsApp/Twilio, LinkedIn): LOVABLE_API_KEY is
+  // gateway caller auth for a messaging connector, not AI inference.
+  "src/lib/transport/whatsapp.server.ts",
+  "src/routes/api/public/v1/social/",
   // Cloud legal / marketing / documentation copy (text, not calls).
   "src/lib/customer-templates.ts",
   "src/lib/opsqai-facts.ts",

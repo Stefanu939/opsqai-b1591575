@@ -68,6 +68,14 @@ export function SettingsSection({ t }: { t: Ui }) {
     digestHour: 7,
     digestEmails: "",
     digestWebhookUrl: "",
+    tripSpeedTruck: 70,
+    tripSpeedCar: 95,
+    tripFuelPer100Km: 28,
+    tripBreakSplit: false,
+    tripExternalLookups: true,
+    whatsappChannel: "link" as "link" | "twilio",
+    whatsappFrom: "",
+    whatsappDispatcher: "",
   });
 
   useEffect(() => {
@@ -95,6 +103,14 @@ export function SettingsSection({ t }: { t: Ui }) {
       digestHour: s.digestHour,
       digestEmails: s.digestEmails ?? "",
       digestWebhookUrl: s.digestWebhookUrl ?? "",
+      tripSpeedTruck: s.tripSpeedTruck,
+      tripSpeedCar: s.tripSpeedCar,
+      tripFuelPer100Km: s.tripFuelPer100Km,
+      tripBreakSplit: s.tripBreakSplit,
+      tripExternalLookups: s.tripExternalLookups,
+      whatsappChannel: s.whatsappChannel,
+      whatsappFrom: s.whatsappFrom ?? "",
+      whatsappDispatcher: s.whatsappDispatcher ?? "",
     });
   }, [query.data?.settings]);
 
@@ -132,6 +148,14 @@ export function SettingsSection({ t }: { t: Ui }) {
         liveTracking: form.liveTracking,
         gpsPollMinutes: form.gpsPollMinutes,
         searchProvider: form.searchProvider,
+        tripSpeedTruck: form.tripSpeedTruck,
+        tripSpeedCar: form.tripSpeedCar,
+        tripFuelPer100Km: form.tripFuelPer100Km,
+        tripBreakSplit: form.tripBreakSplit,
+        tripExternalLookups: form.tripExternalLookups,
+        whatsappChannel: form.whatsappChannel,
+        whatsappFrom: form.whatsappFrom.trim() || null,
+        whatsappDispatcher: form.whatsappDispatcher.trim() || null,
       },
     })
       .then(() => {
@@ -532,6 +556,111 @@ export function SettingsSection({ t }: { t: Ui }) {
           </div>
         )}
       </Panel>
+      <Panel icon={Globe2} title={t.tripSettings} description={t.tripSettingsBody}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <Label className="text-xs">{t.tripSpeedTruck}</Label>
+            <Input
+              className="mt-1"
+              type="number"
+              min={30}
+              max={110}
+              value={form.tripSpeedTruck}
+              disabled={!canEdit}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, tripSpeedTruck: Number(e.target.value) || 70 }))
+              }
+            />
+          </div>
+          <div>
+            <Label className="text-xs">{t.tripSpeedCar}</Label>
+            <Input
+              className="mt-1"
+              type="number"
+              min={40}
+              max={140}
+              value={form.tripSpeedCar}
+              disabled={!canEdit}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, tripSpeedCar: Number(e.target.value) || 95 }))
+              }
+            />
+          </div>
+          <div>
+            <Label className="text-xs">{t.tripFuelDefault}</Label>
+            <Input
+              className="mt-1"
+              type="number"
+              min={1}
+              max={120}
+              value={form.tripFuelPer100Km}
+              disabled={!canEdit}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, tripFuelPer100Km: Number(e.target.value) || 28 }))
+              }
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="trip-split"
+              checked={form.tripBreakSplit}
+              disabled={!canEdit}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, tripBreakSplit: v }))}
+            />
+            <Label htmlFor="trip-split" className="text-xs">
+              {t.tripBreakSplit}
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="trip-external"
+              checked={form.tripExternalLookups}
+              disabled={!canEdit}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, tripExternalLookups: v }))}
+            />
+            <Label htmlFor="trip-external" className="text-xs">
+              {t.tripExternalLookups}
+            </Label>
+          </div>
+          <div>
+            <Label className="text-xs">{t.tripWhatsappChannel}</Label>
+            <Select
+              value={form.whatsappChannel}
+              disabled={!canEdit}
+              onValueChange={(v) =>
+                setForm((f) => ({ ...f, whatsappChannel: v as "link" | "twilio" }))
+              }
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="link">{t.tripWhatsappChannelLink}</SelectItem>
+                <SelectItem value="twilio">{t.tripWhatsappChannelTwilio}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">{t.tripWhatsappFrom}</Label>
+            <Input
+              className="mt-1"
+              value={form.whatsappFrom}
+              disabled={!canEdit || form.whatsappChannel !== "twilio"}
+              onChange={(e) => setForm((f) => ({ ...f, whatsappFrom: e.target.value }))}
+            />
+          </div>
+          <div>
+            <Label className="text-xs">{t.tripWhatsappDispatcher}</Label>
+            <Input
+              className="mt-1"
+              value={form.whatsappDispatcher}
+              disabled={!canEdit}
+              onChange={(e) => setForm((f) => ({ ...f, whatsappDispatcher: e.target.value }))}
+            />
+          </div>
+        </div>
+      </Panel>
+
     </div>
   );
 }

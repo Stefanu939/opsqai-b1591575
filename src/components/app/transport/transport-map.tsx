@@ -41,6 +41,12 @@ export interface TransportMapProps {
   zoom?: number;
   focus?: { lat: number; lng: number; label?: string } | null;
   track?: Array<{ lat: number; lng: number }>;
+  /** A planned trip route with its break / rest markers. */
+  route?: {
+    geometry: Array<{ lat: number; lng: number }>;
+    stops?: Array<{ label: string; lat: number | null; lng: number | null }>;
+    pauses?: Array<{ label: string; lat: number | null; lng: number | null }>;
+  } | null;
   onSelect?: (pin: MapPin) => void;
   onPick?: (lat: number, lng: number) => void;
   className?: string;
@@ -54,6 +60,7 @@ export default function TransportMap({
   zoom = 5,
   focus,
   track,
+  route,
   onSelect,
   onPick,
   className,
@@ -162,6 +169,38 @@ export default function TransportMap({
       for (const p of track) bounds.push([p.lat, p.lng]);
     }
 
+    if (route && route.geometry.length > 1) {
+      L.polyline(
+        route.geometry.map((p) => [p.lat, p.lng] as [number, number]),
+        { color: "#7c3aed", weight: 4, opacity: 0.85 },
+      ).addTo(layer);
+      for (const p of route.geometry) bounds.push([p.lat, p.lng]);
+      for (const stop of route.stops ?? []) {
+        if (stop.lat == null || stop.lng == null) continue;
+        L.circleMarker([stop.lat, stop.lng], {
+          radius: 7,
+          color: "#7c3aed",
+          fillColor: "#ffffff",
+          fillOpacity: 1,
+          weight: 3,
+        })
+          .bindTooltip(stop.label)
+          .addTo(layer);
+      }
+      for (const pause of route.pauses ?? []) {
+        if (pause.lat == null || pause.lng == null) continue;
+        L.circleMarker([pause.lat, pause.lng], {
+          radius: 6,
+          color: "#f59e0b",
+          fillColor: "#f59e0b",
+          fillOpacity: 0.9,
+          weight: 2,
+        })
+          .bindTooltip(pause.label)
+          .addTo(layer);
+      }
+    }
+
     if (focus) {
       L.marker([focus.lat, focus.lng])
         .bindTooltip(focus.label ?? `${focus.lat.toFixed(5)}, ${focus.lng.toFixed(5)}`)
@@ -172,7 +211,7 @@ export default function TransportMap({
 
     if (bounds.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
     else if (bounds.length === 1) map.setView(bounds[0] as [number, number], 10);
-  }, [pins, zones, heat, track, focus, onSelect]);
+  }, [pins, zones, heat, track, route, focus, onSelect]);
 
   return (
     <div ref={holder} className={className ?? "h-[560px] w-full rounded-lg border border-border"} />

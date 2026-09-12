@@ -29,6 +29,7 @@ import {
   syncTransportGps,
 } from "@/lib/transport.functions";
 import { useTransportMapData, useTransportRefresh } from "./use-transport";
+import { TripPlannerSection } from "./trip-planner-section";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { MapPin } from "@/lib/transport/types";
 
@@ -558,6 +559,8 @@ export function MapSection({ t }: { t: Ui }) {
           </ul>
         )}
       </Panel>
+
+      <TripPlannerSection t={t} />
     </div>
   );
 }

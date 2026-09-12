@@ -957,6 +957,14 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
         digestHour: z.number().int().min(0).max(23).optional(),
         digestEmails: z.string().max(500).nullish(),
         digestWebhookUrl: z.string().max(500).nullish(),
+        tripSpeedTruck: z.number().int().min(30).max(110).optional(),
+        tripSpeedCar: z.number().int().min(40).max(140).optional(),
+        tripFuelPer100Km: z.number().min(1).max(120).optional(),
+        tripBreakSplit: z.boolean().optional(),
+        tripExternalLookups: z.boolean().optional(),
+        whatsappChannel: z.enum(["link", "twilio"]).optional(),
+        whatsappFrom: z.string().max(40).nullish(),
+        whatsappDispatcher: z.string().max(120).nullish(),
       })
       .parse(input),
   )
@@ -1524,4 +1532,360 @@ export const sendTransportDigestNow = createServerFn({ method: "POST" })
       emails: settings.digestEmails,
       webhookUrl: settings.digestWebhookUrl,
     });
+  });
+
+// ── Trip planner ──────────────────────────────────────────────────────────
+
+const tripPointSchema = z.object({
+  label: z.string().min(1).max(200),
+  lat: z.number().min(-90).max(90).nullable().optional(),
+  lng: z.number().min(-180).max(180).nullable().optional(),
+});
+
+const tripPlanSchema = z.object({
+  lang: z.enum(["en", "de", "ro"]).default("en"),
+  origin: tripPointSchema,
+  destination: tripPointSchema,
+  stops: z.array(tripPointSchema).max(8).optional(),
+  departAt: z.string().min(10).max(40),
+  vehicleId: uuidString().nullable().optional(),
+  trailerId: uuidString().nullable().optional(),
+  driverId: uuidString().nullable().optional(),
+  vehicleProfile: z.enum(["truck", "van", "car"]).default("truck"),
+  routePreference: z.enum(["fast", "short", "no_tolls"]).default("fast"),
+  alreadyDrivenMinutes: z.number().int().min(0).max(540).default(0),
+  stopMinutes: z.number().int().min(0).max(240).default(30),
+});
+
+/** Compute a trip plan. Nothing is stored until the user saves it. */
+export const planTransportTrip = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => tripPlanSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "view");
+    const db = await import("@/lib/transport/db.server");
+    const { fetchRoute, fetchWeather } = await import("@/lib/transport/routing.server");
+    const { planTrip } = await import("@/lib/transport/trip-planner");
+    const { buildTripChecks } = await import("@/lib/transport/trip-checks.server");
+    const { transportUi } = await import("@/i18n/pages/transport");
+    const t = transportUi(data.lang);
+
+    const settings = await db.getSettings(a.companyId);
+    const [vehicles, drivers, alerts, duty, incidents] = await Promise.all([
+      db.listVehicles(a.companyId),
+      db.listDrivers(a.companyId),
+      db.expiryAlerts(a.companyId),
+      db.listDutyDays(a.companyId, 0, 14),
+      db.listIncidents(a.companyId),
+    ]);
+    const vehicle = data.vehicleId ? vehicles.find((v) => v.id === data.vehicleId) ?? null : null;
+    const driver = data.driverId ? drivers.find((d) => d.id === data.driverId) ?? null : null;
+
+    // Resolve any point that arrived without coordinates.
+    const resolve = async (point: { label: string; lat?: number | null; lng?: number | null }) => {
+      if (point.lat != null && point.lng != null) {
+        return { label: point.label, lat: point.lat, lng: point.lng };
+      }
+      const hit = settings.tripExternalLookups
+        ? await db.geocode(a.companyId, point.label)
+        : null;
+      return {
+        label: hit?.label ?? point.label,
+        lat: hit?.lat ?? null,
+        lng: hit?.lng ?? null,
+      };
+    };
+
+    const origin = await resolve(data.origin);
+    const destination = await resolve(data.destination);
+    const middle = [];
+    for (const stop of data.stops ?? []) middle.push(await resolve(stop));
+
+    const ordered = [origin, ...middle, destination];
+    const withCoords = ordered.filter(
+      (p): p is { label: string; lat: number; lng: number } => p.lat != null && p.lng != null,
+    );
+    if (withCoords.length < 2) {
+      throw new Error(t.tripNeedCoordinates);
+    }
+
+    const route = await fetchRoute(
+      withCoords.map((p) => ({ lat: p.lat, lng: p.lng })),
+      {
+        profile: data.vehicleProfile,
+        preference: data.routePreference,
+        speedTruck: settings.tripSpeedTruck,
+        speedCar: settings.tripSpeedCar,
+        allowExternal: settings.tripExternalLookups,
+        cache: {
+          read: (key) => db.readRouteCache(key),
+          write: (key, value) => db.writeRouteCache(a.companyId, key, value),
+        },
+      },
+    );
+
+    const timeline = planTrip({
+      departAt: new Date(data.departAt).toISOString(),
+      distanceKm: route.distanceKm,
+      driveMinutes: route.driveMinutes,
+      alreadyDrivenMinutes: data.alreadyDrivenMinutes,
+      stopMinutes: data.stopMinutes,
+      stops: withCoords,
+      splitBreak: settings.tripBreakSplit,
+      fuelPer100Km: vehicle?.fuel_per_100km ?? settings.tripFuelPer100Km,
+      applyDrivingRules: data.vehicleProfile === "truck",
+    });
+
+    const plan: import("@/lib/transport/types").TripPlan = {
+      origin,
+      destination,
+      stops: ordered.map((p, i) => ({
+        position: i + 1,
+        label: p.label,
+        latitude: p.lat,
+        longitude: p.lng,
+      })),
+      departAt: new Date(data.departAt).toISOString(),
+      arrivalAt: timeline.arrivalAt,
+      distanceKm: route.distanceKm,
+      driveMinutes: timeline.driveMinutes,
+      totalMinutes: timeline.totalMinutes,
+      fuelLitres: timeline.fuelLitres,
+      tollAmount: null,
+      tollCurrency: null,
+      routeSource: route.source,
+      geometry: route.geometry,
+      legs: timeline.legs.map((l) => ({
+        position: l.position,
+        kind: l.kind,
+        minutes: l.minutes,
+        distance_km: l.distanceKm,
+        start_at: l.startAt,
+        end_at: l.endAt,
+        label: l.label,
+        latitude: l.lat,
+        longitude: l.lng,
+      })),
+      checks: [],
+      vehicleProfile: data.vehicleProfile,
+      routePreference: data.routePreference,
+      vehicleId: vehicle?.id ?? null,
+      vehiclePlate: vehicle?.plate ?? null,
+      trailerId: data.trailerId ?? null,
+      driverId: driver?.id ?? null,
+      driverName: driver?.full_name ?? null,
+      driverPhone: driver?.phone ?? null,
+      alternatives: route.alternatives.map((alt) => ({ ...alt, tollAmount: null })),
+    };
+
+    const weather = [];
+    if (settings.tripExternalLookups) {
+      const first = withCoords[0]!;
+      const last = withCoords[withCoords.length - 1]!;
+      const [start, end] = await Promise.all([
+        fetchWeather(first, plan.departAt, first.label, true),
+        fetchWeather(last, plan.arrivalAt, last.label, true),
+      ]);
+      for (const w of [start, end]) if (w) weather.push(w);
+    }
+
+    plan.checks = buildTripChecks(plan, {
+      alerts,
+      vehicle,
+      driver,
+      duty,
+      incidents: incidents.map((i) => ({
+        id: i.id,
+        title: i.title,
+        latitude: i.latitude,
+        longitude: i.longitude,
+        status: i.status,
+        severity: (i as { severity?: string | null }).severity ?? null,
+      })),
+      weather,
+      offlineRoute: route.source === "offline",
+      labels: {
+        docExpired: t.tripCheckDocExpired,
+        docExpiring: t.tripCheckDocExpiring,
+        driverOff: t.tripCheckDriverOff,
+        driverNoPhone: t.tripCheckDriverNoPhone,
+        incidentOnRoute: t.tripCheckIncident,
+        weather: t.tripCheckWeather,
+        parking: t.tripCheckParking,
+        restNeeded: t.tripCheckRest,
+        restNeededDetail: t.tripCheckRestDetail,
+        noRouteOnline: t.tripCheckOffline,
+        noRouteOnlineDetail: t.tripCheckOfflineDetail,
+        vehicleDimensions: t.tripCheckDimensions,
+        vehicleDimensionsDetail: t.tripCheckDimensionsDetail,
+        adr: t.tripCheckAdr,
+        adrDetail: t.tripCheckAdrDetail,
+        fuelStop: t.tripCheckFuel,
+        allClear: t.tripChecksClear,
+      },
+    });
+
+    return { plan, weather, settings: { timezone: settings.timezone } };
+  });
+
+const tripPlanPayload = z.object({
+  // The plan is produced by planTransportTrip and echoed back by the client.
+  plan: z
+    .custom<import("@/lib/transport/types").TripPlan>((v) => !!v && typeof v === "object")
+    .transform((v) => v as import("@/lib/transport/types").TripPlan),
+});
+
+export const listTransportTrips = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "view");
+    const db = await import("@/lib/transport/db.server");
+    return { trips: await db.listTrips(a.companyId), grants: a.grants };
+  });
+
+export const getTransportTrip = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "view");
+    const db = await import("@/lib/transport/db.server");
+    return { trip: await db.getTrip(a.companyId, data.id) };
+  });
+
+export const saveTransportTrip = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    tripPlanPayload
+      .extend({
+        id: uuidString().nullable().optional(),
+        name: z.string().max(120).nullable().optional(),
+        notes: z.string().max(2000).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, data.id ? "edit" : "create");
+    const db = await import("@/lib/transport/db.server");
+    const saved = await db.saveTrip(a.companyId, a.name, data.plan, {
+      id: data.id ?? null,
+      name: data.name ?? null,
+      notes: data.notes ?? null,
+    });
+    return { id: saved.id, trip: await db.getTrip(a.companyId, saved.id) };
+  });
+
+export const deleteTransportTrip = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "delete");
+    const db = await import("@/lib/transport/db.server");
+    await db.deleteTrip(a.companyId, data.id);
+    return { ok: true };
+  });
+
+/** The trip plan as an A4 PDF (Self-Hosted exports are PDF only). */
+export const exportTransportTripPdf = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    tripPlanPayload
+      .extend({
+        lang: z.enum(["en", "de", "ro"]).default("en"),
+        name: z.string().max(120).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "export");
+    const db = await import("@/lib/transport/db.server");
+    const settings = await db.getSettings(a.companyId);
+    const { renderTripPdf } = await import("@/lib/transport/trip-pdf.server");
+    const { transportUi } = await import("@/i18n/pages/transport");
+    const t = transportUi(data.lang);
+    const bytes = await renderTripPdf(
+      data.plan,
+      {
+        title: t.tripPlan,
+        from: t.tripFrom,
+        to: t.tripTo,
+        depart: t.tripDepart,
+        arrive: t.tripArrive,
+        distance: t.tripDistance,
+        drive: t.tripDrive,
+        total: t.tripTotal,
+        fuel: t.tripFuel,
+        vehicle: t.vehicle ?? "Vehicle",
+        driver: t.driver ?? "Driver",
+        stops: t.tripStops,
+        timeline: t.tripTimeline,
+        checks: t.tripChecks,
+        source: t.tripSource,
+        offline: t.tripOffline,
+        online: t.tripOnline,
+        generated: t.generatedOn,
+        breakLabel: t.tripBreak,
+        restLabel: t.tripRest,
+        driveLabel: t.tripDriveLeg,
+        stopLabel: t.tripStop,
+      },
+      { timezone: settings.timezone, generatedBy: a.name, name: data.name ?? null },
+    );
+    return {
+      filename: `trip-${new Date(data.plan.departAt).toISOString().slice(0, 10)}.pdf`,
+      base64: Buffer.from(bytes).toString("base64"),
+    };
+  });
+
+/**
+ * Send the plan to the driver on WhatsApp. Default mode returns a wa.me link
+ * the dispatcher opens; with Twilio connected the message is sent directly.
+ */
+export const sendTransportTripToDriver = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    tripPlanPayload
+      .extend({
+        lang: z.enum(["en", "de", "ro"]).default("en"),
+        phone: z.string().min(6).max(24),
+        tripId: uuidString().nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const a = await actor(context as Ctx);
+    require(a, "edit");
+    const db = await import("@/lib/transport/db.server");
+    const settings = await db.getSettings(a.companyId);
+    const wa = await import("@/lib/transport/whatsapp.server");
+    const phone = wa.normalizePhone(data.phone);
+    if (!phone) throw new Error("The driver's phone number is not a valid international number.");
+    const message = wa.composeTripMessage(data.plan, {
+      lang: data.lang,
+      timezone: settings.timezone,
+      dispatcher: settings.whatsappDispatcher ?? a.name,
+    });
+
+    if (settings.whatsappChannel === "twilio" && settings.whatsappFrom) {
+      const outcome = await wa.sendViaTwilio(phone, settings.whatsappFrom, message);
+      if (data.tripId) {
+        await db.recordTripSend(a.companyId, data.tripId, "twilio", phone, outcome.status);
+      }
+      return { mode: "twilio" as const, status: outcome.status, link: null, message };
+    }
+
+    if (data.tripId) {
+      await db.recordTripSend(a.companyId, data.tripId, "link", phone, "prepared");
+    }
+    return {
+      mode: "link" as const,
+      status: "prepared" as const,
+      link: wa.whatsappLink(phone, message),
+      message,
+    };
   });
