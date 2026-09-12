@@ -58,7 +58,7 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
   ]);
 
   // 3) Build PDF (A4 landscape).
-  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib/es/index.js");
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const QRCode = (await import("qrcode")).default;
 
   const verifyBase = (
