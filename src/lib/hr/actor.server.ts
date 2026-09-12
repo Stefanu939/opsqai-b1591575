@@ -65,7 +65,7 @@ export async function hrActor(context: HrCtx): Promise<HrActor> {
         case "delete":
           return ["delete"];
         case "approve":
-          return ["approve"];
+          return ["approve", "legal_review"];
         case "administer":
           return ["settings", "export", "sensitive"];
         default:

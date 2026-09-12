@@ -23,7 +23,7 @@ ALTER TABLE public.hr_document_templates
   ADD COLUMN IF NOT EXISTS legal_review_due date,
   ADD COLUMN IF NOT EXISTS expected_pages text;
 
-INSERT INTO public.permissions (key, name, module_key, description)
+INSERT INTO public.permissions (key, label, category, description)
 VALUES ('hr.legal_review','Review HR legal documents','HR','Approve country-specific HR documents after legal review')
 ON CONFLICT (key) DO NOTHING;
 

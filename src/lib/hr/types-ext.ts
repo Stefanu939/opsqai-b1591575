@@ -8,6 +8,11 @@ export interface HrDocumentTemplate {
   contract_type: string | null;
   body: string;
   updated_at: string;
+  legal_version?: number;
+  legal_sources?: string[];
+  legal_verified_on?: string | null;
+  legal_review_due?: string | null;
+  expected_pages?: string | null;
 }
 
 export interface HrDocument {
@@ -34,6 +39,22 @@ export interface HrDocument {
   signed_filename: string | null;
   signed_at: string | null;
   updated_at: string;
+  legal_status?: "not_required" | "pending" | "reviewed" | "changes_requested";
+  legal_reviewed_at?: string | null;
+  legal_reviewed_by?: string | null;
+  legal_review_notes?: string | null;
+  legal_version?: number;
+  legal_sources?: string[];
+  legal_verified_on?: string | null;
+  legal_review_due?: string | null;
+  salary_snapshot?: {
+    id: string;
+    gross_amount: number;
+    currency: string;
+    period: "month" | "hour" | "year";
+    valid_from: string;
+  } | null;
+  expected_pages?: string | null;
   /** Signing workflow (0045). */
   signature_status?: "none" | "requested" | "signed" | "expired";
   signature_due?: string | null;
