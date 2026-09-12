@@ -57,6 +57,7 @@ interface InstallLicenseClaims extends BaseLicenseClaims {
   /** Additive entitlement claims (ignored by older builds). */
   profile?: string;
   products?: string[];
+  core_capabilities?: string[];
 }
 
 interface ModuleLicenseClaims extends BaseLicenseClaims {
@@ -530,6 +531,9 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
           edition: claims.edition as string,
           seats: claims.seats ?? null,
           modules: mergeEntitlementKeys(claims, verified),
+          coreCapabilities: Array.isArray(claims.core_capabilities)
+            ? claims.core_capabilities.filter((key): key is string => typeof key === "string")
+            : null,
           profile: typeof claims.profile === "string" ? claims.profile : null,
           products: Array.isArray(claims.products)
             ? claims.products.filter((p): p is string => typeof p === "string")
@@ -553,6 +557,7 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
           edition: "community",
           seats: null,
           modules: [] as string[],
+          coreCapabilities: null,
           profile: null,
           products: [] as string[],
           expiresAt: null,
