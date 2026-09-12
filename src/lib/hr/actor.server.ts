@@ -10,7 +10,14 @@ export interface HrActor {
   userId: string;
   companyId: string;
   name: string;
+  email: string | null;
   grants: HrGrantKey[];
+  /**
+   * True when the caller has no explicit HR area-right configured: they get a
+   * minimal read-only fallback and may only see their own HR records, never
+   * company-wide personnel data.
+   */
+  selfOnly: boolean;
 }
 
 export async function hrActor(context: HrCtx): Promise<HrActor> {
