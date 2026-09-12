@@ -41,3 +41,15 @@ Când nu se poate ajunge la un serviciu extern, planificatorul funcționează î
 - PDF: `src/lib/transport/trip-pdf.server.ts`, în stilul rapoartelor existente.
 - Traduceri EN/DE/RO în dicționarul Transport. Setări noi: viteze medii pe tip de vehicul, consum mediu, pauza extinsă 45 vs 15+30, permite/blochează interogări externe.
 - Verificare: typecheck, build, teste noi pentru calculul de pauze și ETA, plus guard-ul de migrații Self-Hosted.
+
+## Buton WhatsApp — trimite ruta șoferului
+
+Două niveluri, ca să fie cât mai ușor de folosit:
+
+**1. Fără nicio configurare (implicit)** — buton „Trimite pe WhatsApp” lângă planul de cursă. Deschide WhatsApp (aplicația de pe telefon sau WhatsApp Web) cu numărul șoferului din fișa lui deja completat și mesajul pregătit: plecare, destinație, ora de plecare, distanță, durată, pauzele planificate, ora estimată de sosire, avertizările blocante și un link către traseu pe hartă. Utilizatorul apasă doar „trimite”. Merge din prima, fără cont de business și fără chei.
+
+**2. Trimitere automată (opțional, se activează o dată)** — „Conectează WhatsApp” în setările Transport. Folosim Twilio (canal WhatsApp), care e disponibil ca integrare gata făcută: o singură conectare, apoi butonul trimite direct mesajul, fără să se deschidă WhatsApp. Se poate trimite și către mai mulți destinatari (șofer + dispecer), iar mesajul se poate trimite din nou dacă planul se schimbă. Dacă nu e conectat nimic, butonul rămâne în modul de la punctul 1 — nimic nu se blochează.
+
+Comun ambelor: numărul se ia din fișa șoferului (se poate completa/corecta acolo), mesajul e în limba selectată (EN/DE/RO), textul trimis se salvează pe cursă cu ora și autorul și se scrie în audit log, iar PDF-ul planului se poate atașa ca link cu valabilitate limitată. Trimiterea cere dreptul Transport de editare.
+
+Tehnic: `src/lib/transport/whatsapp.server.ts` (compune mesajul, alege calea link vs Twilio prin gateway, tratează erorile furnizorului cu mesaj concret), câmp `driver_phone` pe `transport_drivers` dacă lipsește, coloane de trimitere pe `transport_trips` (canal, destinatar, ora, status) în aceeași migrație `0048`, funcție autentificată `sendTripToDriver`, plus setările „canal implicit” și „șablon mesaj” în Transport Settings. Fără WhatsApp Cloud API propriu — Twilio scutește utilizatorul de aprobări Meta.
