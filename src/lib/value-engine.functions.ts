@@ -9,7 +9,12 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { getActorRoles, requirePlatformAdmin } from "@/lib/authorization";
 import { getCloudSupabaseAdmin } from "@/lib/providers/not-available";
 import { uuidString } from "@/lib/zod-uuid";
-import { VALUE_DRIVERS, computeValue, type ValueInputs } from "@/lib/value-engine";
+import {
+  VALUE_DRIVERS,
+  computeValue,
+  type DriverInput,
+  type ValueInputs,
+} from "@/lib/value-engine";
 
 export type ValueModelRow = {
   id: string;
@@ -18,9 +23,9 @@ export type ValueModelRow = {
   level: number;
   currency: string;
   inputs: ValueInputs;
-  drivers: unknown;
+  drivers: DriverInput[];
   assumptions: string | null;
-  computed: Record<string, unknown>;
+  computed: Record<string, number | string | boolean | null>;
   owner_user_id: string | null;
   created_at: string;
   updated_at: string;
@@ -124,7 +129,7 @@ export const saveValueModel = createServerFn({ method: "POST" })
       inputs: data.inputs,
       drivers: data.inputs.drivers,
       assumptions: data.assumptions ?? null,
-      computed: computed as unknown as Record<string, unknown>,
+      computed: computed as unknown as Record<string, never>,
     };
 
     if (data.id) {
@@ -143,7 +148,7 @@ export const saveValueModel = createServerFn({ method: "POST" })
       }
       const { error } = await admin
         .from("crm_value_models")
-        .update(payload)
+        .update(payload as never)
         .eq("id", data.id);
       if (error) throw new Error(error.message);
       if (payload.lead_id) {
@@ -159,7 +164,7 @@ export const saveValueModel = createServerFn({ method: "POST" })
 
     const { data: created, error } = await admin
       .from("crm_value_models")
-      .insert({ ...payload, owner_user_id: actor.userId })
+      .insert({ ...payload, owner_user_id: actor.userId } as never)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
