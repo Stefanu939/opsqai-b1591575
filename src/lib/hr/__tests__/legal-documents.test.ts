@@ -8,8 +8,10 @@ const values = new Proxy<Record<string, string>>({}, { get: (_target, key) => St
 describe("country legal HR documents", () => {
   for (const country of ["de", "ro"] as const) {
     it(`${country} contracts require legal review and render 8–10 pages`, async () => {
-      const contracts = documentLibrary(country).filter((doc) => doc.kind === "contract");
-      expect(contracts.length).toBeGreaterThanOrEqual(2);
+      const contracts = documentLibrary(country).filter((doc) =>
+        doc.key === "employment_contract" || doc.key === "fixed_term_contract",
+      );
+      expect(contracts).toHaveLength(2);
       for (const contract of contracts) {
         expect(contract.legalReviewRequired).toBe(true);
         expect(contract.legalSources?.length).toBeGreaterThanOrEqual(3);
