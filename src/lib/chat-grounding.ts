@@ -215,6 +215,66 @@ export function normalizeGapQuestion(question: string): string {
     .slice(0, 500);
 }
 
+/** Localized label for the mandatory source attribution shown under an answer. */
+const SOURCE_LABEL: Record<string, string> = {
+  en: "Source",
+  de: "Quelle",
+  ro: "Sursă",
+  fr: "Source",
+  es: "Fuente",
+  it: "Fonte",
+  nl: "Bron",
+};
+
+const DEPARTMENT_LABEL: Record<string, string> = {
+  en: "Department",
+  de: "Abteilung",
+  ro: "Departamentul",
+  fr: "Département",
+  es: "Departamento",
+  it: "Reparto",
+  nl: "Afdeling",
+};
+
+export type AttributionSource = {
+  type: "document" | "faq";
+  title: string;
+  code?: string | null;
+  similarity?: number;
+  confidence?: "high" | "medium" | "low";
+  departmentName?: string | null;
+};
+
+/**
+ * Deterministic "Source: SOP-02 — Title · Department Logistics" line appended to
+ * every grounded answer. Built from the evidence that actually passed the
+ * grounding gate, so the attribution can never be invented by the model.
+ */
+export function sourceAttributionLine(
+  sources: AttributionSource[],
+  language: string,
+): string {
+  const lang = (language ?? "en").slice(0, 2).toLowerCase();
+  const label = SOURCE_LABEL[lang] ?? SOURCE_LABEL.en;
+  const deptLabel = DEPARTMENT_LABEL[lang] ?? DEPARTMENT_LABEL.en;
+  const strong = relevantSources(sources).slice(0, 3);
+  if (!strong.length) return "";
+  const seen = new Set<string>();
+  const parts: string[] = [];
+  for (const s of strong) {
+    const name =
+      s.type === "faq"
+        ? `FAQ — ${s.title}`
+        : `${s.code ? `${s.code} — ` : ""}${s.title}`;
+    const dept = s.departmentName ? ` · ${deptLabel} ${s.departmentName}` : "";
+    const entry = `${name}${dept}`;
+    if (seen.has(entry)) continue;
+    seen.add(entry);
+    parts.push(entry);
+  }
+  return `\n\n_${label}: ${parts.join(" | ")}_`;
+}
+
 
 /**
  * System prompt for grounded answers. The answer language is always driven by

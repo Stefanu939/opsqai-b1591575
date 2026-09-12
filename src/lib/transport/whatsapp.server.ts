@@ -26,6 +26,7 @@ const COPY: Record<
     stops: string;
     checks: string;
     dispatcher: string;
+    navigate: string;
   }
 > = {
   en: {
@@ -40,6 +41,7 @@ const COPY: Record<
     stops: "Stops",
     checks: "Check before departure",
     dispatcher: "Dispatcher",
+    navigate: "Start navigation",
   },
   de: {
     title: "Tourenplan",
@@ -53,6 +55,7 @@ const COPY: Record<
     stops: "Zwischenstopps",
     checks: "Vor der Abfahrt prüfen",
     dispatcher: "Disponent",
+    navigate: "Navigation starten",
   },
   ro: {
     title: "Plan de traseu",
@@ -66,6 +69,7 @@ const COPY: Record<
     stops: "Opriri",
     checks: "Verifică înainte de plecare",
     dispatcher: "Dispecer",
+    navigate: "Pornește navigația",
   },
 };
 
@@ -79,6 +83,41 @@ function localTime(iso: string, timezone: string, lang: WhatsAppLang): string {
   } catch {
     return iso.replace("T", " ").slice(0, 16);
   }
+}
+
+/** A stop as Google Maps understands it: coordinates when known, else the label. */
+function mapsPoint(stop: {
+  label: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  lat?: number | null;
+  lng?: number | null;
+}): string {
+  const lat = stop.latitude ?? stop.lat ?? null;
+  const lng = stop.longitude ?? stop.lng ?? null;
+  if (lat != null && lng != null) return `${lat},${lng}`;
+  return stop.label;
+}
+
+/**
+ * Google Maps directions link for the whole planned trip — origin, every
+ * intermediate stop as a waypoint, destination. The driver taps it in WhatsApp
+ * and starts the exact route the dispatcher planned.
+ */
+export function tripNavigationLink(plan: TripPlan): string {
+  const inner = plan.stops.filter(
+    (s) => s.label !== plan.origin.label && s.label !== plan.destination.label,
+  );
+  const params = new URLSearchParams({
+    api: "1",
+    origin: mapsPoint(plan.origin),
+    destination: mapsPoint(plan.destination),
+    travelmode: "driving",
+  });
+  if (inner.length) {
+    params.set("waypoints", inner.slice(0, 9).map(mapsPoint).join("|"));
+  }
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
 
 export function composeTripMessage(
@@ -114,6 +153,8 @@ export function composeTripMessage(
       lines.push(`• ${k.title}${k.detail ? ` — ${k.detail}` : ""}`);
     }
   }
+  lines.push("");
+  lines.push(`${c.navigate}: ${tripNavigationLink(plan)}`);
   if (options.dispatcher) {
     lines.push("");
     lines.push(`${c.dispatcher}: ${options.dispatcher}`);

@@ -64,7 +64,9 @@ export function CreateCourseDialog({
   const [difficulty, setDifficulty] = useState("standard");
   const [passingScore, setPassingScore] = useState(70);
   const [mandatory, setMandatory] = useState(false);
-  const [publishStatus, setPublishStatus] = useState<"draft" | "published">("draft");
+  // Published by default: a freshly created course that stays a draft is
+  // invisible to everyone else, which reads as "the course was not saved".
+  const [publishStatus, setPublishStatus] = useState<"draft" | "published">("published");
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
 
@@ -103,7 +105,7 @@ export function CreateCourseDialog({
     setDifficulty("standard");
     setPassingScore(70);
     setMandatory(false);
-    setPublishStatus("draft");
+    setPublishStatus("published");
     setSelectedDocs([]);
     setDocFilter("");
   };
@@ -245,6 +247,7 @@ export function CreateCourseDialog({
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
                   <SelectItem value="de">Deutsch</SelectItem>
+                  <SelectItem value="ro">Română</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -285,10 +288,13 @@ export function CreateCourseDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="published">Published — visible to learners</SelectItem>
+                  <SelectItem value="draft">Draft — only visible to you</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Draft courses are not distributed to other users.
+              </p>
             </div>
           </div>
 
