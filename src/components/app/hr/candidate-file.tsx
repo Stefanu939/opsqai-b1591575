@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Download, FileText, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MatchSemaphore } from "./semaphore";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,7 +88,7 @@ export function CandidateFileDialog({
           <DialogTitle className="flex flex-wrap items-center gap-2">
             <FileText className="size-4" /> {w.candidateFile} · {name}
             {c.cv_language ? <Badge variant="outline">{w.cvLanguage}: {c.cv_language.toUpperCase()}</Badge> : null}
-            {c.score != null ? <Badge>{t.score} {c.score}</Badge> : null}
+            {c.score != null ? <MatchSemaphore score={c.score} label={t.score} /> : null}
           </DialogTitle>
         </DialogHeader>
         <div className="grid max-h-[70vh] gap-4 overflow-y-auto pr-1 lg:grid-cols-2">
@@ -190,7 +191,8 @@ export function CandidateComparison({ ids, t, w, blind, onClose }: { ids: string
                   {data.candidates.map((c) => (
                     <th key={c.id} className="p-2 align-top">
                       <p className="font-medium">{blind ? c.reference ?? "—" : c.name}</p>
-                      <p className="text-muted-foreground">{t.score}: {c.score ?? "—"} · {c.cv_language?.toUpperCase() ?? "—"}</p>
+                      <MatchSemaphore score={c.score ?? null} label={t.score} showBar={false} />
+                      <p className="text-muted-foreground">{c.cv_language?.toUpperCase() ?? "—"}</p>
                     </th>
                   ))}
                 </tr>
