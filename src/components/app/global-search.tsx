@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { globalSearch } from "@/lib/dashboard.functions";
 import { useAuth } from "@/lib/auth-context";
-import { useT, useLang } from "@/i18n";
+import { useT } from "@/i18n";
 import { searchFeatures, type FeatureEntry } from "@/lib/app-search-index";
 import {
   CommandDialog,
@@ -66,8 +66,7 @@ export function GlobalSearch({
   const [q, setQ] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const { activeCompanyId } = useAuth() as any;
-  const t = useT();
-  const { lang } = useLang();
+  const { t, lang } = useT();
   const search = useServerFn(globalSearch);
   const navigate = useNavigate();
 
