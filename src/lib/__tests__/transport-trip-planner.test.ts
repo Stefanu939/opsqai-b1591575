@@ -34,6 +34,42 @@ describe("trip planner", () => {
     });
     const pauses = plan.legs.filter((l) => l.kind === "break");
     expect(pauses[0]?.minutes).toBe(DRIVE_RULES.splitFirst);
+    expect(pauses[1]?.minutes).toBe(DRIVE_RULES.splitSecond);
+    // Both halves belong to the same block, so the full 45 minutes are planned.
+    expect(plan.totalMinutes).toBe(330 + DRIVE_RULES.breakMinutes);
+  });
+
+  it("counts driving already done towards the break window", () => {
+    const plan = planTrip({
+      departAt: DEPART,
+      distanceKm: 200,
+      driveMinutes: 120,
+      alreadyDrivenMinutes: 4 * 60,
+    });
+    const firstDrive = plan.legs.find((l) => l.kind === "drive");
+    // Only 30 minutes of driving remain before the break is due.
+    expect(firstDrive?.minutes).toBe(30);
+    expect(plan.breakCount).toBe(1);
+  });
+
+  it("places a break along the route line, not on the destination", () => {
+    const plan = planTrip({
+      departAt: DEPART,
+      distanceKm: 500,
+      driveMinutes: 330,
+      stops: [
+        { label: "A", lat: 48, lng: 16 },
+        { label: "B", lat: 52, lng: 16 },
+      ],
+      geometry: [
+        { lat: 48, lng: 16 },
+        { lat: 50, lng: 16 },
+        { lat: 52, lng: 16 },
+      ],
+    });
+    const brk = plan.legs.find((l) => l.kind === "break");
+    expect(brk?.lat).toBeGreaterThan(48);
+    expect(brk?.lat).toBeLessThan(52);
   });
 
   it("adds the daily rest once the 9h driving limit is used up", () => {

@@ -50,6 +50,14 @@ export interface PlanInput {
   /** Extra minutes spent at every intermediate stop. */
   stopMinutes?: number;
   stops?: Waypoint[];
+  /**
+   * Continuous minutes driven since the driver's last break. Defaults to
+   * `alreadyDrivenMinutes`, which is the safe assumption when a dispatcher
+   * only reports the total driven today.
+   */
+  minutesSinceLastBreak?: number;
+  /** The real route line, used to place break markers along the road. */
+  geometry?: Array<{ lat: number; lng: number }>;
   splitBreak?: boolean;
   /** Litres / 100 km, used for the fuel estimate. */
   fuelPer100Km?: number | null;
@@ -127,18 +135,72 @@ export function planTrip(input: PlanInput): PlanResult {
   const legs: TripLeg[] = [];
   let cursor = 0; // minutes since departure
   let driven = 0; // minutes driven on this trip
-  let sinceBreak = 0;
-  let sinceRest = Math.max(0, Math.min(DRIVE_RULES.dailyDrive, input.alreadyDrivenMinutes ?? 0));
+  const alreadyDriven = Math.max(0, input.alreadyDrivenMinutes ?? 0);
+  // Time already driven also counts towards the break window: a driver who has
+  // driven 4h today may not drive another 4h30 before the 45-minute break.
+  let sinceBreak = Math.min(
+    DRIVE_RULES.maxContinuousDrive,
+    Math.max(0, input.minutesSinceLastBreak ?? alreadyDriven),
+  );
+  let sinceRest = Math.min(DRIVE_RULES.dailyDrive, alreadyDriven);
   let splitUsed = false;
   let breakCount = 0;
   let restCount = 0;
   let position = 1;
 
+  // Prefer the real route line so a break marker lands on the road where the
+  // driver actually is, not on the departure or delivery pin.
+  const line = (input.geometry ?? []).filter(
+    (p) => Number.isFinite(p.lat) && Number.isFinite(p.lng),
+  );
+  const cumulative: number[] = [];
+  if (line.length > 1) {
+    let total = 0;
+    cumulative.push(0);
+    for (let i = 1; i < line.length; i += 1) {
+      total += haversineKm(line[i - 1]!, line[i]!);
+      cumulative.push(total);
+    }
+  }
+
   const pointAt = (fraction: number): { lat: number | null; lng: number | null } => {
-    if (!stops.length) return { lat: null, lng: null };
-    const idx = Math.min(stops.length - 1, Math.floor(fraction * stops.length));
-    const stop = stops[idx];
-    return { lat: stop?.lat ?? null, lng: stop?.lng ?? null };
+    const f = Math.min(1, Math.max(0, fraction));
+    if (line.length > 1) {
+      const total = cumulative[cumulative.length - 1] ?? 0;
+      if (total > 0) {
+        const target = total * f;
+        for (let i = 1; i < line.length; i += 1) {
+          const prev = cumulative[i - 1]!;
+          const next = cumulative[i]!;
+          if (next >= target) {
+            const span = next - prev;
+            const t = span > 0 ? (target - prev) / span : 0;
+            const a = line[i - 1]!;
+            const b = line[i]!;
+            return {
+              lat: a.lat + (b.lat - a.lat) * t,
+              lng: a.lng + (b.lng - a.lng) * t,
+            };
+          }
+        }
+      }
+      const last = line[line.length - 1]!;
+      return { lat: last.lat, lng: last.lng };
+    }
+    // No route line available (offline estimate): interpolate between the
+    // geocoded waypoints instead of snapping to one of them.
+    const known = stops.filter((s) => s.lat !== null && s.lng !== null) as Array<{
+      lat: number;
+      lng: number;
+    }>;
+    if (known.length === 0) return { lat: null, lng: null };
+    if (known.length === 1) return { lat: known[0]!.lat, lng: known[0]!.lng };
+    const scaled = f * (known.length - 1);
+    const idx = Math.min(known.length - 2, Math.floor(scaled));
+    const t = scaled - idx;
+    const a = known[idx]!;
+    const b = known[idx + 1]!;
+    return { lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t };
   };
 
   const pushDrive = (minutes: number) => {
@@ -202,12 +264,13 @@ export function planTrip(input: PlanInput): PlanResult {
     }
     const untilBreak = Math.max(0, DRIVE_RULES.maxContinuousDrive - sinceBreak);
     if (untilBreak === 0) {
-      if (input.splitBreak && !splitUsed) {
+      if (input.splitBreak) {
+        // Regulation (EC) 561/2006: the split break is 15 + 30 minutes and both
+        // parts belong to the same 4h30 driving block, so the full 45 minutes
+        // are scheduled here as two consecutive legs.
         pushPause("break", DRIVE_RULES.splitFirst);
-        splitUsed = true;
-        // The remaining 30 minutes are taken at the next break window.
-      } else if (input.splitBreak && splitUsed) {
         pushPause("break", DRIVE_RULES.splitSecond);
+        splitUsed = true;
       } else {
         pushPause("break", DRIVE_RULES.breakMinutes);
       }

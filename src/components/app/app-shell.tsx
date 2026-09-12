@@ -120,8 +120,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/operations",
       label: "Operations",
       icon: AlertTriangle,
-      // Core capability: incidents, root cause, corrective actions.
-      show: true,
+      // Core capability: incidents, root cause, corrective actions. The data
+      // lives in the local Self-Hosted database, so it is hidden on Cloud.
+      show: mode === "selfhost",
       module: null,
     },
 

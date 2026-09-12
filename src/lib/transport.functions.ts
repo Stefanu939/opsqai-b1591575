@@ -1632,6 +1632,7 @@ export const planTransportTrip = createServerFn({ method: "POST" })
       alreadyDrivenMinutes: data.alreadyDrivenMinutes,
       stopMinutes: data.stopMinutes,
       stops: withCoords,
+      geometry: route.geometry,
       splitBreak: settings.tripBreakSplit,
       fuelPer100Km: vehicle?.fuel_per_100km ?? settings.tripFuelPer100Km,
       applyDrivingRules: data.vehicleProfile === "truck",
