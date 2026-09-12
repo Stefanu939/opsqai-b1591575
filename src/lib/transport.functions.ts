@@ -957,6 +957,14 @@ export const saveTransportSettings = createServerFn({ method: "POST" })
         digestHour: z.number().int().min(0).max(23).optional(),
         digestEmails: z.string().max(500).nullish(),
         digestWebhookUrl: z.string().max(500).nullish(),
+        tripSpeedTruck: z.number().int().min(30).max(110).optional(),
+        tripSpeedCar: z.number().int().min(40).max(140).optional(),
+        tripFuelPer100Km: z.number().min(1).max(120).optional(),
+        tripBreakSplit: z.boolean().optional(),
+        tripExternalLookups: z.boolean().optional(),
+        whatsappChannel: z.enum(["link", "twilio"]).optional(),
+        whatsappFrom: z.string().max(40).nullish(),
+        whatsappDispatcher: z.string().max(120).nullish(),
       })
       .parse(input),
   )
