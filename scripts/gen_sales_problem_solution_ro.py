@@ -575,7 +575,7 @@ class Doc:
         self.para(blurb, size=11, color=SLATE, width=(W - 2 * M) * 0.82, leading=17)
 
     def function_title(self, name):
-        need = 26 * mm
+        need = 46 * mm
         if self.y - need < M + 6 * mm:
             self.new_page()
         self.y -= 3 * mm
