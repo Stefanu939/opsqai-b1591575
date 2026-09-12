@@ -59,6 +59,19 @@ export interface TransportSettings {
   digestHour: number;
   digestEmails: string | null;
   digestWebhookUrl: string | null;
+  /** Trip planner: assumed average speeds when no router answers. */
+  tripSpeedTruck: number;
+  tripSpeedCar: number;
+  /** Default consumption used for the fuel estimate (litres / 100 km). */
+  tripFuelPer100Km: number;
+  /** Use the 15 + 30 split break instead of one 45 minute break. */
+  tripBreakSplit: boolean;
+  /** Allow route / weather lookups over the internet. */
+  tripExternalLookups: boolean;
+  /** "link" = WhatsApp deep link, "twilio" = automatic sending. */
+  whatsappChannel: "link" | "twilio";
+  whatsappFrom: string | null;
+  whatsappDispatcher: string | null;
 }
 
 /** An owner + due date attached to one risk line of the overview. */
@@ -144,6 +157,14 @@ export interface Vehicle {
   assigned_driver_id: string | null;
   status: RecordStatus;
   notes: string | null;
+  /** Dimensions used for truck-aware routing (optional). */
+  gross_weight_kg?: number | null;
+  height_cm?: number | null;
+  width_cm?: number | null;
+  length_cm?: number | null;
+  axle_count?: number | null;
+  adr?: boolean | null;
+  fuel_per_100km?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -536,4 +557,113 @@ export interface TransportOverview {
 
   grants: TransportGrantKey[];
   canManageGrants: boolean;
+}
+
+// ── Trip planner ──────────────────────────────────────────────────────────
+
+export interface TripStop {
+  id?: string;
+  position: number;
+  label: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface TripLegRow {
+  id?: string;
+  position: number;
+  kind: "drive" | "break" | "rest" | "stop";
+  minutes: number;
+  distance_km: number | null;
+  start_at: string | null;
+  end_at: string | null;
+  label: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface TripCheck {
+  id?: string;
+  area: string;
+  severity: "critical" | "warning" | "info";
+  title: string;
+  detail: string | null;
+  source: string | null;
+}
+
+export interface Trip {
+  id: string;
+  name: string | null;
+  origin_label: string;
+  origin_lat: number | null;
+  origin_lng: number | null;
+  destination_label: string;
+  destination_lat: number | null;
+  destination_lng: number | null;
+  depart_at: string;
+  vehicle_id: string | null;
+  vehicle_plate?: string | null;
+  trailer_id: string | null;
+  trailer_plate?: string | null;
+  driver_id: string | null;
+  driver_name?: string | null;
+  driver_phone?: string | null;
+  vehicle_profile: "truck" | "van" | "car";
+  route_preference: "fast" | "short" | "no_tolls";
+  distance_km: number | null;
+  drive_minutes: number | null;
+  total_minutes: number | null;
+  toll_amount: number | null;
+  toll_currency: string | null;
+  arrival_at: string | null;
+  fuel_litres: number | null;
+  route_source: "osrm" | "offline";
+  route_geometry: Array<{ lat: number; lng: number }> | null;
+  already_driven_minutes: number;
+  status: string;
+  notes: string | null;
+  whatsapp_channel: string | null;
+  whatsapp_to: string | null;
+  whatsapp_sent_at: string | null;
+  whatsapp_status: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+  stops?: TripStop[];
+  legs?: TripLegRow[];
+  checks?: TripCheck[];
+}
+
+/** A computed plan that has not necessarily been saved yet. */
+export interface TripPlan {
+  origin: { label: string; lat: number | null; lng: number | null };
+  destination: { label: string; lat: number | null; lng: number | null };
+  stops: TripStop[];
+  departAt: string;
+  arrivalAt: string;
+  distanceKm: number;
+  driveMinutes: number;
+  totalMinutes: number;
+  fuelLitres: number | null;
+  tollAmount: number | null;
+  tollCurrency: string | null;
+  routeSource: "osrm" | "offline";
+  geometry: Array<{ lat: number; lng: number }>;
+  legs: TripLegRow[];
+  checks: TripCheck[];
+  vehicleProfile: "truck" | "van" | "car";
+  routePreference: "fast" | "short" | "no_tolls";
+  vehicleId: string | null;
+  vehiclePlate: string | null;
+  trailerId: string | null;
+  driverId: string | null;
+  driverName: string | null;
+  driverPhone: string | null;
+  /** Which alternative the driver would take, when the router offered more. */
+  alternatives: Array<{
+    label: string;
+    distanceKm: number;
+    driveMinutes: number;
+    tollAmount: number | null;
+  }>;
 }

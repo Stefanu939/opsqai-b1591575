@@ -102,6 +102,14 @@ const DEFAULT_SETTINGS: TransportSettings = {
   digestHour: 7,
   digestEmails: null,
   digestWebhookUrl: null,
+  tripSpeedTruck: 70,
+  tripSpeedCar: 95,
+  tripFuelPer100Km: 28,
+  tripBreakSplit: false,
+  tripExternalLookups: true,
+  whatsappChannel: "link",
+  whatsappFrom: null,
+  whatsappDispatcher: null,
 };
 
 interface SettingsRow {
@@ -129,13 +137,23 @@ interface SettingsRow {
   digest_hour: number;
   digest_emails: string | null;
   digest_webhook_url: string | null;
+  trip_speed_truck: number;
+  trip_speed_car: number;
+  trip_fuel_per_100km: number;
+  trip_break_split: boolean;
+  trip_external_lookups: boolean;
+  whatsapp_channel: string;
+  whatsapp_from: string | null;
+  whatsapp_dispatcher: string | null;
 }
 
 const SETTINGS_SELECT = `country, language, units, alert_windows, doc_alert_windows,
   map_enabled, cmr_prefix, timezone, week_start, audit_day, audit_required,
   map_center_lat, map_center_lng, map_zoom, live_tracking, gps_poll_minutes,
   search_provider, audit_cadence, audit_owner_user_id, audit_reminder,
-  digest_enabled, digest_hour, digest_emails, digest_webhook_url`;
+  digest_enabled, digest_hour, digest_emails, digest_webhook_url,
+  trip_speed_truck, trip_speed_car, trip_fuel_per_100km, trip_break_split,
+  trip_external_lookups, whatsapp_channel, whatsapp_from, whatsapp_dispatcher`;
 
 export async function getSettings(companyId: string): Promise<TransportSettings> {
   const row = await one<SettingsRow>(
@@ -175,6 +193,14 @@ export async function getSettings(companyId: string): Promise<TransportSettings>
     digestHour: Number(row.digest_hour ?? 7),
     digestEmails: row.digest_emails,
     digestWebhookUrl: row.digest_webhook_url,
+    tripSpeedTruck: Number(row.trip_speed_truck ?? 70),
+    tripSpeedCar: Number(row.trip_speed_car ?? 95),
+    tripFuelPer100Km: Number(row.trip_fuel_per_100km ?? 28),
+    tripBreakSplit: Boolean(row.trip_break_split),
+    tripExternalLookups: row.trip_external_lookups !== false,
+    whatsappChannel: row.whatsapp_channel === "twilio" ? "twilio" : "link",
+    whatsappFrom: row.whatsapp_from,
+    whatsappDispatcher: row.whatsapp_dispatcher,
   };
 }
 
@@ -245,6 +271,27 @@ export async function saveSettings(
       next.digestHour,
       next.digestEmails,
       next.digestWebhookUrl,
+    ],
+  );
+  // Trip planner / WhatsApp fields live in the same row but were added later,
+  // so they are written separately to keep the upsert above readable.
+  await q(
+    `UPDATE public.transport_settings
+        SET trip_speed_truck = $2, trip_speed_car = $3, trip_fuel_per_100km = $4,
+            trip_break_split = $5, trip_external_lookups = $6,
+            whatsapp_channel = $7, whatsapp_from = $8, whatsapp_dispatcher = $9,
+            updated_at = now()
+      WHERE company_id = $1`,
+    [
+      companyId,
+      next.tripSpeedTruck,
+      next.tripSpeedCar,
+      next.tripFuelPer100Km,
+      next.tripBreakSplit,
+      next.tripExternalLookups,
+      next.whatsappChannel,
+      next.whatsappFrom,
+      next.whatsappDispatcher,
     ],
   );
   return next;
@@ -326,6 +373,13 @@ const COLUMNS = {
     "assigned_driver_id",
     "status",
     "notes",
+    "gross_weight_kg",
+    "height_cm",
+    "width_cm",
+    "length_cm",
+    "axle_count",
+    "adr",
+    "fuel_per_100km",
   ],
   trailers: [
     "plate",
@@ -523,7 +577,10 @@ export async function deleteRecord(
 export async function listVehicles(companyId: string): Promise<Vehicle[]> {
   return q<Vehicle>(
     `SELECT id, plate, kind, make, model, vin, ownership, odometer_km, base_location,
-            latitude, longitude, assigned_driver_id, status, notes, created_at, updated_at
+            latitude, longitude, assigned_driver_id, status, notes,
+            gross_weight_kg::float8 AS gross_weight_kg, height_cm, width_cm, length_cm,
+            axle_count, adr, fuel_per_100km::float8 AS fuel_per_100km,
+            created_at, updated_at
        FROM public.transport_vehicles
       WHERE company_id = $1 AND archived_at IS NULL
       ORDER BY plate`,
@@ -2519,4 +2576,236 @@ export async function listRiskActionEvents(
       LIMIT $2`,
     [companyId, limit],
   ) as unknown as Promise<RiskActionEvent[]>;
+}
+
+// ── Trip planner ──────────────────────────────────────────────────────────
+
+import type { Trip, TripCheck, TripLegRow, TripPlan, TripStop } from "./types";
+import type { RouteResult } from "./routing.server";
+
+const TRIP_SELECT = `t.id, t.name, t.origin_label, t.origin_lat, t.origin_lng,
+  t.destination_label, t.destination_lat, t.destination_lng, t.depart_at,
+  t.vehicle_id, v.plate AS vehicle_plate, t.trailer_id, tr.plate AS trailer_plate,
+  t.driver_id, d.full_name AS driver_name, d.phone AS driver_phone,
+  t.vehicle_profile, t.route_preference, t.distance_km::float8 AS distance_km,
+  t.drive_minutes, t.total_minutes, t.toll_amount::float8 AS toll_amount,
+  t.toll_currency, t.arrival_at, t.fuel_litres::float8 AS fuel_litres,
+  t.route_source, t.route_geometry, t.already_driven_minutes, t.status, t.notes,
+  t.whatsapp_channel, t.whatsapp_to, t.whatsapp_sent_at, t.whatsapp_status,
+  t.created_by_name, t.created_at, t.updated_at`;
+
+const TRIP_JOIN = `FROM public.transport_trips t
+  LEFT JOIN public.transport_vehicles v ON v.id = t.vehicle_id
+  LEFT JOIN public.transport_trailers tr ON tr.id = t.trailer_id
+  LEFT JOIN public.transport_drivers d ON d.id = t.driver_id`;
+
+export async function listTrips(companyId: string, limit = 40): Promise<Trip[]> {
+  return q<Trip>(
+    `SELECT ${TRIP_SELECT} ${TRIP_JOIN}
+      WHERE t.company_id = $1
+      ORDER BY t.depart_at DESC
+      LIMIT $2`,
+    [companyId, limit],
+  );
+}
+
+export async function getTrip(companyId: string, id: string): Promise<Trip | null> {
+  const trip = await one<Trip>(
+    `SELECT ${TRIP_SELECT} ${TRIP_JOIN} WHERE t.company_id = $1 AND t.id = $2`,
+    [companyId, id],
+  );
+  if (!trip) return null;
+  const [stops, legs, checks] = await Promise.all([
+    q<TripStop>(
+      `SELECT id, position, label, latitude, longitude
+         FROM public.transport_trip_stops WHERE trip_id = $1 ORDER BY position`,
+      [id],
+    ),
+    q<TripLegRow>(
+      `SELECT id, position, kind, minutes, distance_km::float8 AS distance_km,
+              start_at, end_at, label, latitude, longitude
+         FROM public.transport_trip_legs WHERE trip_id = $1 ORDER BY position`,
+      [id],
+    ),
+    q<TripCheck>(
+      `SELECT id, area, severity, title, detail, source
+         FROM public.transport_trip_checks WHERE trip_id = $1
+        ORDER BY CASE severity WHEN 'critical' THEN 0 WHEN 'warning' THEN 1 ELSE 2 END, title`,
+      [id],
+    ),
+  ]);
+  return { ...trip, stops, legs, checks };
+}
+
+/** Persist a computed plan. Replaces stops/legs/checks when updating. */
+export async function saveTrip(
+  companyId: string,
+  actorName: string | null,
+  plan: TripPlan,
+  extra: { id?: string | null; name?: string | null; notes?: string | null },
+): Promise<{ id: string }> {
+  const row = extra.id
+    ? await one<{ id: string }>(
+        `UPDATE public.transport_trips SET
+            name = $3, origin_label = $4, origin_lat = $5, origin_lng = $6,
+            destination_label = $7, destination_lat = $8, destination_lng = $9,
+            depart_at = $10, vehicle_id = $11, trailer_id = $12, driver_id = $13,
+            vehicle_profile = $14, route_preference = $15, distance_km = $16,
+            drive_minutes = $17, total_minutes = $18, toll_amount = $19,
+            toll_currency = $20, arrival_at = $21, fuel_litres = $22,
+            route_source = $23, route_geometry = $24, notes = $25, updated_at = now()
+          WHERE id = $1 AND company_id = $2 RETURNING id`,
+        [
+          extra.id,
+          companyId,
+          extra.name ?? null,
+          plan.origin.label,
+          plan.origin.lat,
+          plan.origin.lng,
+          plan.destination.label,
+          plan.destination.lat,
+          plan.destination.lng,
+          plan.departAt,
+          plan.vehicleId,
+          plan.trailerId,
+          plan.driverId,
+          plan.vehicleProfile,
+          plan.routePreference,
+          plan.distanceKm,
+          plan.driveMinutes,
+          plan.totalMinutes,
+          plan.tollAmount,
+          plan.tollCurrency,
+          plan.arrivalAt,
+          plan.fuelLitres,
+          plan.routeSource,
+          JSON.stringify(plan.geometry ?? []),
+          extra.notes ?? null,
+        ],
+      )
+    : await one<{ id: string }>(
+        `INSERT INTO public.transport_trips
+           (company_id, name, origin_label, origin_lat, origin_lng,
+            destination_label, destination_lat, destination_lng, depart_at,
+            vehicle_id, trailer_id, driver_id, vehicle_profile, route_preference,
+            distance_km, drive_minutes, total_minutes, toll_amount, toll_currency,
+            arrival_at, fuel_litres, route_source, route_geometry, notes, created_by_name)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,
+                 $20,$21,$22,$23,$24,$25) RETURNING id`,
+        [
+          companyId,
+          extra.name ?? null,
+          plan.origin.label,
+          plan.origin.lat,
+          plan.origin.lng,
+          plan.destination.label,
+          plan.destination.lat,
+          plan.destination.lng,
+          plan.departAt,
+          plan.vehicleId,
+          plan.trailerId,
+          plan.driverId,
+          plan.vehicleProfile,
+          plan.routePreference,
+          plan.distanceKm,
+          plan.driveMinutes,
+          plan.totalMinutes,
+          plan.tollAmount,
+          plan.tollCurrency,
+          plan.arrivalAt,
+          plan.fuelLitres,
+          plan.routeSource,
+          JSON.stringify(plan.geometry ?? []),
+          extra.notes ?? null,
+          actorName,
+        ],
+      );
+  if (!row) throw new Error("Could not save the trip.");
+  const tripId = row.id;
+
+  await q(`DELETE FROM public.transport_trip_stops WHERE trip_id = $1`, [tripId]);
+  await q(`DELETE FROM public.transport_trip_legs WHERE trip_id = $1`, [tripId]);
+  await q(`DELETE FROM public.transport_trip_checks WHERE trip_id = $1`, [tripId]);
+
+  for (const stop of plan.stops) {
+    await q(
+      `INSERT INTO public.transport_trip_stops
+         (trip_id, company_id, position, label, latitude, longitude)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [tripId, companyId, stop.position, stop.label, stop.latitude, stop.longitude],
+    );
+  }
+  for (const leg of plan.legs) {
+    await q(
+      `INSERT INTO public.transport_trip_legs
+         (trip_id, company_id, position, kind, minutes, distance_km, start_at, end_at,
+          label, latitude, longitude)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+      [
+        tripId,
+        companyId,
+        leg.position,
+        leg.kind,
+        leg.minutes,
+        leg.distance_km,
+        leg.start_at,
+        leg.end_at,
+        leg.label,
+        leg.latitude,
+        leg.longitude,
+      ],
+    );
+  }
+  for (const check of plan.checks) {
+    await q(
+      `INSERT INTO public.transport_trip_checks
+         (trip_id, company_id, area, severity, title, detail, source)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [tripId, companyId, check.area, check.severity, check.title, check.detail, check.source],
+    );
+  }
+  return { id: tripId };
+}
+
+export async function deleteTrip(companyId: string, id: string): Promise<void> {
+  await q(`DELETE FROM public.transport_trips WHERE id = $1 AND company_id = $2`, [id, companyId]);
+}
+
+export async function recordTripSend(
+  companyId: string,
+  id: string,
+  channel: string,
+  to: string,
+  status: string,
+): Promise<void> {
+  await q(
+    `UPDATE public.transport_trips
+        SET whatsapp_channel = $3, whatsapp_to = $4, whatsapp_status = $5,
+            whatsapp_sent_at = now(), updated_at = now()
+      WHERE id = $1 AND company_id = $2`,
+    [id, companyId, channel, to, status],
+  );
+}
+
+/** Route cache — keeps a planned route usable when the router is unreachable. */
+export async function readRouteCache(key: string): Promise<RouteResult | null> {
+  const row = await one<{ payload: RouteResult }>(
+    `SELECT payload FROM public.transport_route_cache
+      WHERE cache_key = $1 AND created_at > now() - interval '7 days'`,
+    [key],
+  );
+  return row?.payload ?? null;
+}
+
+export async function writeRouteCache(
+  companyId: string,
+  key: string,
+  payload: RouteResult,
+): Promise<void> {
+  await q(
+    `INSERT INTO public.transport_route_cache (company_id, cache_key, payload)
+     VALUES ($1,$2,$3)
+     ON CONFLICT (cache_key) DO UPDATE SET payload = EXCLUDED.payload, created_at = now()`,
+    [companyId, key, JSON.stringify(payload)],
+  );
 }
