@@ -40,7 +40,7 @@ const DRIVER_LABELS: Record<Lang, Record<ValueDriverKey, string>> = {
     management: "Eingriffe der Fuehrung",
   },
   ro: {
-    search: "Caut" + "area informatiei",
+    search: "Cautarea informatiei",
     training: "Instruire si reinstruire",
     errors: "Erori si refacere",
     downtime: "Timp de nefunctionare",
@@ -48,7 +48,7 @@ const DRIVER_LABELS: Record<Lang, Record<ValueDriverKey, string>> = {
     onboarding: "Integrare angajati noi",
     deviations: "Abateri de proces",
     knowledge_loss: "Pierdere de cunostinte",
-    management: "Intervenția conducerii",
+    management: "Intervenția conducerii".replace("ț", "t"),
   },
 };
 
