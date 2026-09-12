@@ -826,9 +826,8 @@ function CustomerEntitlementsPanel({
               <p className="mt-1 font-mono text-xs text-muted-foreground">{selectedCompany.install_id ?? slugify(selectedCompany.name)}</p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" disabled={!dirty || coreMut.isPending} onClick={() => coreMut.mutate()}>{coreMut.isPending ? "Saving…" : "Save Core"}</Button>
-              <Button size="sm" onClick={() => onIssueFor({ company_name: selectedCompany.name, install_id: (selectedCompany.install_id ?? slugify(selectedCompany.name)).toLowerCase(), seats: selectedCompany.max_users })}>
-                <KeyRound className="mr-1.5 h-3.5 w-3.5" />{lic ? "Reissue JWT" : "Issue JWT"}
+              <Button size="sm" disabled={coreMut.isPending} onClick={async () => { if (dirty) await coreMut.mutateAsync(); onIssueFor({ company_name: selectedCompany.name, install_id: (selectedCompany.install_id ?? slugify(selectedCompany.name)).toLowerCase(), seats: selectedCompany.max_users }); }}>
+                <KeyRound className="mr-1.5 h-3.5 w-3.5" />{coreMut.isPending ? "Saving…" : lic ? "Save & reissue JWT" : "Save & issue JWT"}
               </Button>
             </div>
           </div>
@@ -868,7 +867,7 @@ function CustomerEntitlementsPanel({
               <div className="rounded-md border border-border bg-muted/20 p-3">
                 <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /><h4 className="text-sm font-semibold">Included automatically</h4></div>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {ADDON_CATALOG.map((item) => { const parent = INCLUDED_CAPABILITY_PARENT[item.key]; const active = coreDraft.has(parent); return <Badge key={item.key} variant={active ? "secondary" : "outline"} className={cn(!active && "opacity-50")}>{item.label} · {active ? "included" : "hidden with parent"}</Badge>; })}
+                  {ADDON_CATALOG.filter((item) => coreDraft.has(INCLUDED_CAPABILITY_PARENT[item.key])).map((item) => <Badge key={item.key} variant="secondary">{item.label} · included</Badge>)}
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">No separate activation or license is required for these functions.</p>
               </div>

@@ -113,9 +113,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   // customer. Ten flat items — no admin/platform sub-groups. Platform
   // operators run separately on the Management Center (/management/*).
   const workspace: NavItem[] = [
-    { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: null },
+    { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true, show: true, module: "workspace_health" },
     { to: "/app/chat", label: "AI Chat", icon: MessageSquare, show: true, module: "chat" },
-    { to: "/app/calendar", label: "Calendar", icon: CalendarDays, show: true, module: null },
+    { to: "/app/calendar", label: "Calendar", icon: CalendarDays, show: true, module: "notifications" },
     {
       to: "/app/operations",
       label: "Operations",
@@ -123,7 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       // Core capability: incidents, root cause, corrective actions. The data
       // lives in the local Self-Hosted database, so it is hidden on Cloud.
       show: mode === "selfhost",
-      module: null,
+      module: "internal_requests",
     },
 
     {
@@ -162,16 +162,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: "AI Audit",
       icon: LineChart,
       show: mode === "selfhost" || hasAnyPermission("ai_audit.view", "ai_audit.run"),
-      module: null,
+      module: "audit_log",
     },
     {
       to: "/app/users",
       label: "Users",
       icon: Users,
       show: hasAnyPermission("user.create", "user.update", "user.delete"),
-      module: null,
+      module: "rbac",
     },
-    { to: "/app/organization", label: "Organization", icon: Building2, show: true, module: null },
+    { to: "/app/organization", label: "Organization", icon: Building2, show: true, module: "rbac" },
     {
       to: "/app/subscription",
       label: "Subscription",

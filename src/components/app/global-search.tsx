@@ -28,6 +28,7 @@ import {
   Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLicense } from "@/lib/license";
 
 const ICONS: Record<string, any> = {
   sop: BookOpen,
@@ -69,6 +70,7 @@ export function GlobalSearch({
   const { t, lang } = useT();
   const search = useServerFn(globalSearch);
   const navigate = useNavigate();
+  const license = useLicense();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -99,9 +101,25 @@ export function GlobalSearch({
 
   // Screens and functions of the application itself, matched locally in the
   // active UI language (and in the other two, so search works either way).
-  const features: FeatureEntry[] = q.trim().length >= 2 ? searchFeatures(q, lang as any, 6) : [];
+  const allowsCore = (capability: string) =>
+    license.unlimited || license.coreCapabilities === null || license.coreCapabilities.includes(capability);
+  const features: FeatureEntry[] = q.trim().length >= 2
+    ? searchFeatures(q, lang as any, 6, allowsCore)
+    : [];
 
-  const groups = results.reduce<Record<string, any[]>>((acc, r) => {
+  const resultAllowed = (kind: string) => {
+    const capability = kind === "sop" ? "kb"
+      : kind === "faq" ? "faq"
+        : kind === "gap" ? "knowledge_gaps"
+          : kind === "course" ? "academy"
+            : kind === "audit" || kind === "ai_audit" ? "audit_log"
+              : kind === "user" ? "rbac"
+                : kind === "thread" ? "internal_chat"
+                  : null;
+    return capability === null || allowsCore(capability);
+  };
+
+  const groups = results.filter((r) => resultAllowed(r.kind)).reduce<Record<string, any[]>>((acc, r) => {
     (acc[r.kind] ||= []).push(r);
     return acc;
   }, {});
