@@ -33,6 +33,15 @@ export interface SelfHostUpdateStatus {
     url: string;
     discoveredAt: string;
   } | null;
+  /** Live download / install progress reported by the updater service. */
+  progress: {
+    phase: "downloading" | "verified" | "installing" | "done" | "failed";
+    version: string | null;
+    received: number;
+    total: number;
+    error: string | null;
+    at: string | null;
+  } | null;
   notice: {
     at: string;
     version: string | null;
@@ -63,6 +72,7 @@ const EMPTY: SelfHostUpdateStatus = {
   lastCheck: null,
   staged: null,
   available: null,
+  progress: null,
   notice: null,
   history: [],
 };
@@ -75,6 +85,7 @@ async function paths() {
   return {
     state: join(root, "updates", "state.json"),
     notice: join(root, "updates", "notice.json"),
+    progress: join(root, "updates", "progress.json"),
     history: join(root, "logs", "update-history.jsonl"),
   };
 }
@@ -118,6 +129,21 @@ export const getSelfHostUpdateStatus = createServerFn({ method: "POST" })
       lastStaged?: { version: string; stagedAt?: string; notes?: string };
     }>(p.state);
     const notice = await readJson<SelfHostUpdateStatus["notice"]>(p.notice);
+    const rawProgress = await readJson<Record<string, unknown>>(p.progress);
+    const progress: SelfHostUpdateStatus["progress"] = rawProgress
+      ? {
+          phase: (["downloading", "verified", "installing", "done", "failed"] as const).includes(
+            rawProgress["phase"] as never,
+          )
+            ? (rawProgress["phase"] as NonNullable<SelfHostUpdateStatus["progress"]>["phase"])
+            : "downloading",
+          version: typeof rawProgress["version"] === "string" ? rawProgress["version"] : null,
+          received: Number(rawProgress["received"]) || 0,
+          total: Number(rawProgress["total"]) || 0,
+          error: typeof rawProgress["error"] === "string" ? rawProgress["error"] : null,
+          at: typeof rawProgress["at"] === "string" ? rawProgress["at"] : null,
+        }
+      : null;
 
     let history: SelfHostUpdateStatus["history"] = [];
     try {
@@ -163,6 +189,7 @@ export const getSelfHostUpdateStatus = createServerFn({ method: "POST" })
             discoveredAt: avail.discoveredAt,
           }
         : null,
+      progress,
       notice: notice ?? null,
       history,
     };
