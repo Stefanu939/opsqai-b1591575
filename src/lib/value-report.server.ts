@@ -48,7 +48,7 @@ const DRIVER_LABELS: Record<Lang, Record<ValueDriverKey, string>> = {
     onboarding: "Integrare angajati noi",
     deviations: "Abateri de proces",
     knowledge_loss: "Pierdere de cunostinte",
-    management: "Intervenția conducerii".replace("ț", "t"),
+    management: "Interventia conducerii",
   },
 };
 
