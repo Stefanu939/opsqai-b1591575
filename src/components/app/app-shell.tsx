@@ -95,6 +95,24 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const mode = getClientDeploymentMode();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const routeModule: ModuleKey | null = pathname.startsWith("/app/chat")
+    ? "chat"
+    : pathname.startsWith("/app/knowledge")
+      ? "kb"
+      : pathname.startsWith("/app/faq")
+        ? "faq"
+        : pathname.startsWith("/app/gaps")
+          ? "knowledge_gaps"
+          : pathname.startsWith("/app/academy")
+            ? "academy"
+            : pathname.startsWith("/app/audit")
+              ? "audit_log"
+              : pathname.startsWith("/app/users") || pathname.startsWith("/app/organization")
+                ? "rbac"
+                : pathname.startsWith("/app/operations")
+                  ? "internal_requests"
+                  : null;
+  const routeAllowed = routeModule === null || gate(routeModule);
 
   type NavItem = {
     to: string;
@@ -453,7 +471,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Route change gets a short fade/rise so navigation reads as a state
             change rather than a hard swap. */}
         <div key={pathname} className="oq-page flex-1 min-h-0 min-w-0 flex flex-col">
-          {children}
+          {routeAllowed ? children : (
+            <section className="flex min-h-[50vh] items-center justify-center px-6 py-12">
+              <div className="max-w-md text-center">
+                <ClipboardCheck className="mx-auto h-8 w-8 text-muted-foreground" />
+                <h1 className="mt-4 text-xl font-semibold text-foreground">Function unavailable</h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  This function is not enabled in your company license. Contact your OPSQAI administrator.
+                </p>
+              </div>
+            </section>
+          )}
         </div>
 
       </main>
