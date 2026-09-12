@@ -32,7 +32,7 @@ import { useHrDocuments, useHrExtRefresh } from "./use-hr-ext";
 import { useHrLang, useHrDocumentLibrary } from "./use-hr-ws";
 import { EmployeePicker, Field, fmtDate, selectCls } from "./shared";
 
-type Filter = "all" | "draft" | "review" | "approved" | "file";
+type Filter = "all" | "draft" | "review" | "approved" | "file" | "signed";
 
 export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi; initialDocId?: string | null }) {
   const query = useHrDocuments();
@@ -212,7 +212,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
           <ul className="divide-y divide-border/60">
             {docs.map((d) => (
               <li key={d.id} className="flex flex-wrap items-center gap-3 py-2.5">
-                <Badge variant={statusVariant(d.status)}>{statusLabel(d.status)}</Badge>
+                <Badge variant={statusVariant(d)}>{statusLabel(d)}</Badge>
                 <button type="button" onClick={() => setOpenId(d.id)} className="min-w-0 flex-1 text-left">
                   <span className="block truncate text-sm font-medium hover:underline">
                     {d.draft_name ?? d.title}
