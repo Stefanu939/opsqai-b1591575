@@ -281,7 +281,7 @@ async function stageRelease(state, rel, source) {
   const ext = rel.artifact === "zip" ? "zip" : "exe";
   const dest = path.join(STAGE_DIR, `OPSQAI-Setup-${rel.version}.${ext}`);
   log(`downloading ${rel.version} (${source})`);
-  await download(rel.url, dest, rel.sha256);
+  await download(rel.url, dest, rel.sha256, { version: rel.version, size: rel.size });
   state.lastStaged = {
     version: rel.version,
     path: dest,
@@ -352,7 +352,7 @@ async function pollOnce() {
 
     log(`downloading ${rel.version} from ${rel.url}`);
     const dest = path.join(STAGE_DIR, `OPSQAI-Setup-${rel.version}.exe`);
-    await download(rel.url, dest, rel.sha256);
+    await download(rel.url, dest, rel.sha256, { version: rel.version, size: rel.size });
     state.lastStaged = {
       version: rel.version,
       path: dest,
@@ -381,7 +381,9 @@ async function pollOnce() {
     state.lastApply?.version !== state.lastStaged.version &&
     (command?.action === "install" || inWindow(policy))
   ) {
+    writeProgress({ phase: "installing", version: state.lastStaged.version });
     await applyStaged(state);
+    writeProgress({ phase: "done", version: state.lastStaged.version });
   }
 }
 
