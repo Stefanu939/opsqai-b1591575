@@ -34,6 +34,8 @@ export interface LicenseState {
   profile: string | null;
   /** Explicitly enabled OPSQAI Products (canonical product keys). */
   products: string[];
+  /** Explicit Core allowlist; null means a legacy all-Core license. */
+  coreCapabilities: string[] | null;
 }
 
 const CLOUD_STATE: LicenseState = {
@@ -49,6 +51,7 @@ const CLOUD_STATE: LicenseState = {
   unlimited: true,
   profile: null,
   products: [],
+  coreCapabilities: null,
 };
 
 interface RawPayload {
@@ -60,6 +63,7 @@ interface RawPayload {
   issued_at?: number;
   expires_at?: number | null;
   maintenance_expires_at?: number | null;
+  core_capabilities?: string[];
 }
 
 function base64UrlDecode(s: string): string {
@@ -174,6 +178,7 @@ function buildSelfHostState(): LicenseState {
       unlimited: false,
       profile: null,
       products: [],
+      coreCapabilities: null,
     };
   }
   const payload = resolveInstallPayload(token);
@@ -191,6 +196,7 @@ function buildSelfHostState(): LicenseState {
       unlimited: false,
       profile: null,
       products: [],
+      coreCapabilities: null,
     };
   }
   const now = Math.floor(Date.now() / 1000);
@@ -202,7 +208,7 @@ function buildSelfHostState(): LicenseState {
     install_id: payload.install_id ?? null,
     company_name: payload.company_name ?? null,
     tier: (payload.tier ?? "basic") as LicenseState["tier"],
-    modules: effectiveModules(payload.modules ?? []),
+    modules: effectiveModules(payload.modules ?? [], payload.core_capabilities ?? null),
     max_users: payload.max_users ?? null,
     expires_at: payload.expires_at ?? null,
     maintenance_expires_at: payload.maintenance_expires_at ?? null,
@@ -212,6 +218,9 @@ function buildSelfHostState(): LicenseState {
     products: Array.isArray((payload as { products?: string[] }).products)
       ? ((payload as { products?: string[] }).products as string[])
       : [],
+    coreCapabilities: Array.isArray(payload.core_capabilities)
+      ? payload.core_capabilities
+      : null,
   };
 }
 
@@ -243,7 +252,7 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
               : ent.edition === "standard" || ent.edition === "professional"
                 ? "standard"
                 : "basic") as LicenseState["tier"],
-          modules: effectiveModules(ent.modules),
+          modules: effectiveModules(ent.modules, ent.coreCapabilities),
           max_users: ent.seats,
           expires_at: ent.expiresAt,
           maintenance_expires_at: ent.maintenanceExpiresAt,
@@ -251,6 +260,7 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
           unlimited: ent.unlimited,
           profile: ent.profile ?? null,
           products: ent.products ?? [],
+          coreCapabilities: ent.coreCapabilities ?? null,
         });
       })
       .catch(() => {

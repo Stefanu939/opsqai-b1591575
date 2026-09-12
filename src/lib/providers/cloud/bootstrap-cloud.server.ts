@@ -137,6 +137,7 @@ class CloudLicensingProvider implements ILicensingProvider {
       edition: Edition.Enterprise as string,
       seats: null,
       modules: [] as string[],
+      coreCapabilities: null,
       expiresAt: null,
       maintenanceExpiresAt: null,
       revoked: false,
