@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   listLicenses,
   issueLicense,
-  issueModuleLicense,
   revokeLicense,
   deleteLicense,
 } from "@/lib/licenses.functions";
@@ -39,11 +38,18 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, KeyRound, Plus, Search, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, KeyRound, Plus, Search, Trash2, Building2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { listCompanies } from "@/lib/companies.functions";
-import { setCompanyProduct } from "@/lib/company-products.functions";
 import {
+  getCompanyArchitecture,
+  setCompanyCoreCapabilities,
+  setCompanyProduct,
+} from "@/lib/company-products.functions";
+import {
+  CORE_CAPABILITIES,
+  INCLUDED_CAPABILITY_PARENT,
+  ADDON_CATALOG,
   getCompanyProfile,
   getProduct,
   productsAvailableFor,
@@ -53,7 +59,6 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { z } from "zod";
-import { LICENSE_MODULE_CATALOG, BASIC_MODULES } from "@/lib/license-modules";
 import { confirmAction } from "@/components/ui/confirm";
 
 
@@ -86,7 +91,6 @@ function LicensesPage() {
   const { install: installFilter } = Route.useSearch();
   const list = useServerFn(listLicenses);
   const issue = useServerFn(issueLicense);
-  const issueModule = useServerFn(issueModuleLicense);
   const revoke = useServerFn(revokeLicense);
   const remove = useServerFn(deleteLicense);
 
@@ -114,20 +118,6 @@ function LicensesPage() {
     }) => issue({ data: v }),
     onSuccess: () => {
       toast.success("License issued");
-      qc.invalidateQueries({ queryKey: ["mc-licenses"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const issueModuleMut = useMutation({
-    mutationFn: (v: {
-      install_id: string;
-      module_key: string;
-      unit_price_cents: number;
-      expires_at?: string | null;
-    }) => issueModule({ data: v }),
-    onSuccess: () => {
-      toast.success("Module activated");
       qc.invalidateQueries({ queryKey: ["mc-licenses"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -292,12 +282,6 @@ function LicensesPage() {
       align: "right",
       render: (l) => (
         <div className="flex justify-end gap-1">
-          <ActivateModuleDialog
-            installId={l.install_id}
-            existing={l.modules.map((m) => m.module_key).filter(Boolean) as string[]}
-            onIssue={(v) => issueModuleMut.mutate(v)}
-            pending={issueModuleMut.isPending}
-          />
           {!l.revoked && (
             <Button
               size="sm"
@@ -345,7 +329,7 @@ function LicensesPage() {
     <ModulePage
       eyebrow="Management Center"
       title="Licenses"
-      description="Installation licenses and per-install module activations. Modules are activated exclusively here."
+      description="Configure company Core functions and Products, then issue signed JWT licenses."
       actions={
         <IssueLicenseDialog
           onIssue={(v) => issueMut.mutate(v)}
@@ -709,132 +693,6 @@ function IssueLicenseDialog({
   );
 }
 
-function ActivateModuleDialog({
-  installId,
-  existing,
-  onIssue,
-  pending,
-}: {
-  installId: string;
-  existing: string[];
-  onIssue: (v: {
-    install_id: string;
-    module_key: string;
-    unit_price_cents: number;
-    expires_at?: string | null;
-  }) => void;
-  pending: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const [moduleKey, setModuleKey] = useState("");
-  const [price, setPrice] = useState(0);
-  const [expires, setExpires] = useState("");
-
-  const availableModules = useMemo(
-    () =>
-      LICENSE_MODULE_CATALOG.filter(
-        (m) => !(BASIC_MODULES as readonly string[]).includes(m.key) && !existing.includes(m.key),
-      ),
-    [existing],
-  );
-
-  const handleModuleChange = (key: string) => {
-    setModuleKey(key);
-    const m = LICENSE_MODULE_CATALOG.find((x) => x.key === key);
-    if (m) setPrice(m.defaultPriceCents / 100);
-  };
-
-  const submit = () => {
-    if (!moduleKey.trim()) {
-      toast.error("Select a module to activate.");
-      return;
-    }
-    onIssue({
-      install_id: installId,
-      module_key: moduleKey.trim(),
-      unit_price_cents: Math.round(price * 100),
-      expires_at: expires ? new Date(expires).toISOString() : null,
-    });
-    setOpen(false);
-    setModuleKey("");
-    setPrice(0);
-    setExpires("");
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="ghost">
-          Activate module
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Activate module for {installId}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <Label>Module</Label>
-            <Select value={moduleKey} onValueChange={handleModuleChange}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select a module…" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableModules.length === 0 ? (
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                    All add-on modules are already active for this install.
-                  </div>
-                ) : (
-                  availableModules.map((m) => (
-                    <SelectItem key={m.key} value={m.key}>
-                      {m.label} <span className="text-muted-foreground">({m.key})</span>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            {existing.length > 0 && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Already active: {existing.join(", ")}
-              </p>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Unit price (EUR)</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Expires (optional)</Label>
-              <Input
-                type="date"
-                value={expires}
-                onChange={(e) => setExpires(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={submit} disabled={pending || !moduleKey}>
-            {pending ? "Activating…" : "Activate"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ─── Customers & entitlements ───────────────────────────────────────────
 // Management Center is the authority: the company profile decides which
 // OPSQAI products are available, the administrator explicitly enables them,
@@ -858,12 +716,28 @@ function CustomerEntitlementsPanel({
 }) {
   const qc = useQueryClient();
   const listCompaniesFn = useServerFn(listCompanies);
+  const getArchitecture = useServerFn(getCompanyArchitecture);
+  const saveCore = useServerFn(setCompanyCoreCapabilities);
   const setProduct = useServerFn(setCompanyProduct);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [coreDraft, setCoreDraft] = useState<Set<string>>(new Set());
+  const [dirty, setDirty] = useState(false);
 
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ["mc-companies-entitlements"],
     queryFn: () => listCompaniesFn({ data: {} } as never) as Promise<CompanyRow[]>,
   });
+  const activeId = selectedId ?? companies[0]?.id ?? null;
+  const { data: architecture, isLoading: architectureLoading } = useQuery({
+    queryKey: ["mc-company-architecture", activeId],
+    enabled: Boolean(activeId),
+    queryFn: () => getArchitecture({ data: { company_id: activeId as string } }),
+  });
+  useEffect(() => {
+    if (!architecture) return;
+    setCoreDraft(new Set(architecture.enabled_core_capabilities));
+    setDirty(false);
+  }, [architecture]);
 
   const productMut = useMutation({
     mutationFn: (v: { company_id: string; product_key: string; enabled: boolean }) =>
@@ -874,6 +748,15 @@ function CustomerEntitlementsPanel({
       );
       qc.invalidateQueries({ queryKey: ["mc-companies-entitlements"] });
       qc.invalidateQueries({ queryKey: ["mc-customers"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const coreMut = useMutation({
+    mutationFn: () => saveCore({ data: { company_id: activeId as string, capability_keys: [...coreDraft] } }),
+    onSuccess: () => {
+      setDirty(false);
+      toast.success("Core configuration saved — reissue the JWT license to distribute it.");
+      qc.invalidateQueries({ queryKey: ["mc-company-architecture", activeId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -896,98 +779,102 @@ function CustomerEntitlementsPanel({
   }
   if (companies.length === 0) return null;
 
+  const selectedCompany = companies.find((c) => c.id === activeId) ?? companies[0];
+  if (!selectedCompany) return null;
+  const lic = licenseFor(selectedCompany);
+  const available = productsAvailableFor(selectedCompany.business_type);
+  const recommended = new Set(productsRecommendedFor(selectedCompany.business_type));
+  const enabledProducts = new Set(selectedCompany.enabled_products ?? []);
+  const areas = [...new Set(CORE_CAPABILITIES.map((capability) => capability.area))];
+
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border p-3">
-        <h2 className="text-sm font-semibold text-foreground">Customers &amp; entitlements</h2>
-        <p className="text-xs text-muted-foreground">
-          Company profile decides what is available. Enable products explicitly, then issue or
-          reissue the license so the customer install receives them.
-        </p>
+    <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="border-b border-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-foreground">Customer license configuration</h2>
+        <p className="text-xs text-muted-foreground">Core functions are enabled by default. Included functions follow their parent automatically.</p>
       </div>
-      <ul className="divide-y divide-border">
-        {companies.map((c) => {
-          const profile = getCompanyProfile(c.business_type);
-          const available = productsAvailableFor(c.business_type);
-          const recommended = new Set<string>(productsRecommendedFor(c.business_type));
-          const enabled = new Set<string>(c.enabled_products ?? []);
-          const lic = licenseFor(c);
-          return (
-            <li key={c.id} className="space-y-3 p-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">{c.name}</span>
-                    <Badge variant="outline">{profile.label}</Badge>
-                    {lic ? (
-                      lic.revoked ? (
-                        <Badge variant="destructive">License revoked</Badge>
-                      ) : (
-                        <Badge>License active</Badge>
-                      )
-                    ) : (
-                      <Badge variant="secondary">No license</Badge>
-                    )}
+      <div className="grid min-h-[520px] md:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="border-b border-border bg-muted/20 p-2 md:border-b-0 md:border-r">
+          {companies.map((company) => {
+            const companyLicense = licenseFor(company);
+            return (
+              <button
+                key={company.id}
+                type="button"
+                onClick={() => setSelectedId(company.id)}
+                className={cn("flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors", activeId === company.id ? "bg-accent text-accent-foreground" : "hover:bg-muted")}
+              >
+                <Building2 className="h-4 w-4 shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{company.name}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{company.install_id ?? slugify(company.name)}</span>
+                </span>
+                <span className={cn("h-2 w-2 rounded-full", companyLicense && !companyLicense.revoked ? "bg-success" : "bg-muted-foreground/40")} />
+              </button>
+            );
+          })}
+        </aside>
+        <div className="min-w-0 p-4 md:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-lg font-semibold text-foreground">{selectedCompany.name}</h3>
+                <Badge variant="outline">{getCompanyProfile(selectedCompany.business_type).label}</Badge>
+                <Badge variant={lic?.revoked ? "destructive" : lic ? "default" : "secondary"}>{lic?.revoked ? "License revoked" : lic ? "License active" : "No license"}</Badge>
+                {dirty && <Badge variant="secondary">Pending license reissue</Badge>}
+              </div>
+              <p className="mt-1 font-mono text-xs text-muted-foreground">{selectedCompany.install_id ?? slugify(selectedCompany.name)}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" disabled={coreMut.isPending} onClick={async () => { if (dirty) await coreMut.mutateAsync(); onIssueFor({ company_name: selectedCompany.name, install_id: (selectedCompany.install_id ?? slugify(selectedCompany.name)).toLowerCase(), seats: selectedCompany.max_users }); }}>
+                <KeyRound className="mr-1.5 h-3.5 w-3.5" />{coreMut.isPending ? "Saving…" : lic ? "Save & reissue JWT" : "Save & issue JWT"}
+              </Button>
+            </div>
+          </div>
+
+          {architectureLoading ? <p className="py-8 text-sm text-muted-foreground">Loading configuration…</p> : (
+            <div className="space-y-6 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div><h4 className="text-sm font-semibold">Core functions</h4><p className="text-xs text-muted-foreground">Company-wide availability; personal rights still apply.</p></div>
+                <Button size="sm" variant="ghost" onClick={() => { setCoreDraft(new Set(CORE_CAPABILITIES.map((item) => item.key))); setDirty(true); }}>Enable all Core</Button>
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                {areas.map((area) => (
+                  <div key={area} className="rounded-md border border-border p-3">
+                    <h5 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{area}</h5>
+                    <div className="divide-y divide-border">
+                      {CORE_CAPABILITIES.filter((item) => item.area === area).map((item) => (
+                        <label key={item.key} className="flex items-start gap-3 py-2.5">
+                          <Switch checked={coreDraft.has(item.key)} onCheckedChange={(value) => { setCoreDraft((current) => { const next = new Set(current); value ? next.add(item.key) : next.delete(item.key); return next; }); setDirty(true); }} aria-label={`${item.label} for ${selectedCompany.name}`} />
+                          <span className="min-w-0"><span className="block text-sm font-medium text-foreground">{item.label}</span><span className="block text-xs text-muted-foreground">{item.description}</span></span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {c.install_id ?? slugify(c.name)}
-                  </span>
+                ))}
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold">OPSQAI Products</h4>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {available.map((key) => {
+                    const product = getProduct(key);
+                    return <label key={key} className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs"><Switch checked={enabledProducts.has(key)} disabled={productMut.isPending} onCheckedChange={(value) => productMut.mutate({ company_id: selectedCompany.id, product_key: key, enabled: value })} /><span>{product?.label ?? key}</span>{recommended.has(key) && <Badge variant="secondary">Recommended</Badge>}</label>;
+                  })}
                 </div>
-                <Button
-                  size="sm"
-                  variant={lic ? "outline" : "default"}
-                  onClick={() =>
-                    onIssueFor({
-                      company_name: c.name,
-                      install_id: (c.install_id ?? slugify(c.name)).toLowerCase(),
-                      seats: c.max_users,
-                    })
-                  }
-                >
-                  <KeyRound className="mr-1.5 h-3.5 w-3.5" />
-                  {lic ? "Reissue license" : "Issue license"}
-                </Button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {available.length === 0 ? (
-                  <span className="text-xs text-muted-foreground">
-                    No products available for this profile.
-                  </span>
-                ) : (
-                  available.map((key) => {
-                    const p = getProduct(key);
-                    return (
-                      <label
-                        key={key}
-                        className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-xs"
-                      >
-                        <Switch
-                          checked={enabled.has(key)}
-                          disabled={productMut.isPending}
-                          onCheckedChange={(v) =>
-                            productMut.mutate({
-                              company_id: c.id,
-                              product_key: key,
-                              enabled: v,
-                            })
-                          }
-                          aria-label={`${p?.label ?? key} for ${c.name}`}
-                        />
-                        <span className="text-foreground">{p?.label ?? key}</span>
-                        {recommended.has(key) && (
-                          <Badge variant="secondary" className="text-[10px]">
-                            Recommended
-                          </Badge>
-                        )}
-                      </label>
-                    );
-                  })
-                )}
+
+              <div className="rounded-md border border-border bg-muted/20 p-3">
+                <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /><h4 className="text-sm font-semibold">Included automatically</h4></div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {ADDON_CATALOG.filter((item) => coreDraft.has(INCLUDED_CAPABILITY_PARENT[item.key])).map((item) => <Badge key={item.key} variant="secondary">{item.label} · included</Badge>)}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">No separate activation or license is required for these functions.</p>
               </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }

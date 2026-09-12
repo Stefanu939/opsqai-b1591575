@@ -55,6 +55,8 @@ export interface InstallLicensePayload extends BaseLicensePayload {
    */
   profile?: string;
   products?: string[];
+  /** Explicit company-level Core allowlist. Missing means legacy all-Core. */
+  core_capabilities?: string[];
 }
 
 export interface ModuleLicensePayload extends BaseLicensePayload {

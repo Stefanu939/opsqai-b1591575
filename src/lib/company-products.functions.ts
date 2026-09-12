@@ -7,6 +7,7 @@ import { uuidString } from "@/lib/zod-uuid";
 import {
   ADDON_CATALOG,
   CORE_CAPABILITIES,
+  CORE_CAPABILITY_KEYS,
   PRODUCT_CATALOG,
   getCompanyProfile,
   isCompanyProfileKey,
@@ -95,6 +96,12 @@ export const getCompanyArchitecture = createServerFn({ method: "POST" })
     if (!company) throw new Error("Company not found");
 
     const enabled = (rows ?? []).filter((r) => r.enabled).map((r) => r.product_key);
+    const coreRows = (rows ?? []).filter((r) =>
+      (CORE_CAPABILITY_KEYS as readonly string[]).includes(r.product_key),
+    );
+    const enabledCore = coreRows.length === 0
+      ? [...CORE_CAPABILITY_KEYS]
+      : coreRows.filter((r) => r.enabled).map((r) => r.product_key);
     const profile = getCompanyProfile(company.business_type).key;
     const effective = resolveEffectiveConfig({ profile, enabledProducts: enabled });
 
@@ -107,6 +114,7 @@ export const getCompanyArchitecture = createServerFn({ method: "POST" })
       available_products: productsAvailableFor(profile),
       recommended_products: productsRecommendedFor(profile),
       product_rows: rows ?? [],
+      enabled_core_capabilities: enabledCore,
       core_capabilities: CORE_CAPABILITIES.map((c) => ({
         key: c.key,
         label: c.label,
@@ -121,6 +129,35 @@ export const getCompanyArchitecture = createServerFn({ method: "POST" })
         description: p.description,
       })),
     };
+  });
+
+export const setCompanyCoreCapabilities = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ company_id: Uuid, capability_keys: z.array(z.string()).max(64) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requirePlatformAdmin(context);
+    const { assertCompanyInScope } = await import("@/lib/mc-scope.server");
+    await assertCompanyInScope(context, data.company_id);
+    const enabled = new Set(
+      data.capability_keys.filter((key) =>
+        (CORE_CAPABILITY_KEYS as readonly string[]).includes(key),
+      ),
+    );
+    const admin = await getCloudSupabaseAdmin("company-core-capabilities");
+    const { error } = await admin.from("company_products").upsert(
+      CORE_CAPABILITY_KEYS.map((key) => ({
+        company_id: data.company_id,
+        product_key: key,
+        enabled: enabled.has(key),
+        source: "management_center_core",
+        notes: null,
+      })),
+      { onConflict: "company_id,product_key" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true, core_capabilities: [...enabled] };
   });
 
 export const setCompanyProfile = createServerFn({ method: "POST" })

@@ -1118,6 +1118,11 @@ export interface LicenseEntitlements {
    * here — they are included with any valid installation license.
    */
   modules: string[];
+  /**
+   * Explicit Core configuration from the signed installation JWT. `null` or
+   * absent means a legacy license, for which every Core function stays active.
+   */
+  coreCapabilities?: string[] | null;
   /** Company profile (business type) carried by the installation license. */
   profile?: string | null;
   /** Explicitly enabled OPSQAI Product keys. Subset of `modules`. */

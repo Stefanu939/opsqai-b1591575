@@ -18,6 +18,8 @@ export interface FeatureEntry {
   label: Record<Lang, string>;
   /** Extra words matched against the query (any language, lower-case). */
   keywords: string[];
+  /** Company-level Core function required for this screen. */
+  coreCapability?: string;
 }
 
 const f = (
@@ -28,6 +30,17 @@ const f = (
   ro: string,
   keywords: string[] = [],
 ): FeatureEntry => ({ to, group, label: { en, de, ro }, keywords });
+
+const CORE_ROUTE_CAPABILITY: ReadonlyArray<[string, string]> = [
+  ["/app/chat", "chat"],
+  ["/app/knowledge", "kb"],
+  ["/app/faq", "faq"],
+  ["/app/gaps", "knowledge_gaps"],
+  ["/app/academy", "academy"],
+  ["/app/audit", "audit_log"],
+  ["/app/users", "rbac"],
+  ["/app/operations", "internal_requests"],
+];
 
 export const APP_FEATURES: FeatureEntry[] = [
   // ── Core ────────────────────────────────────────────────────────────
@@ -101,7 +114,13 @@ for (const w of PRODUCT_WORKSPACES) {
       w.key.replace(/_/g, " "),
       ...(WORKSPACE_KEYWORDS[w.key] ?? []),
     ],
+    coreCapability: w.coreCapabilities?.[0],
   });
+}
+
+for (const entry of APP_FEATURES) {
+  const match = CORE_ROUTE_CAPABILITY.find(([route]) => entry.to === route || entry.to.startsWith(`${route}/`));
+  if (match) entry.coreCapability = match[1];
 }
 
 export function scoreFeature(entry: FeatureEntry, query: string, lang: Lang): number {
@@ -128,9 +147,14 @@ export function scoreFeature(entry: FeatureEntry, query: string, lang: Lang): nu
 }
 
 /** Best-matching application screens/functions for a query. */
-export function searchFeatures(query: string, lang: Lang, limit = 6): FeatureEntry[] {
+export function searchFeatures(
+  query: string,
+  lang: Lang,
+  limit = 6,
+  allowCore?: (capability: string) => boolean,
+): FeatureEntry[] {
   return APP_FEATURES.map((e) => ({ e, s: scoreFeature(e, query, lang) }))
-    .filter((r) => r.s > 0)
+    .filter((r) => r.s > 0 && (!r.e.coreCapability || !allowCore || allowCore(r.e.coreCapability)))
     .sort((a, b) => b.s - a.s)
     .slice(0, limit)
     .map((r) => r.e);

@@ -334,6 +334,28 @@ export const ADDON_CATALOG: readonly OpsqaiAddon[] = [
   },
 ] as const;
 
+/**
+ * Former add-ons are included automatically with their owning Core function.
+ * They remain valid legacy entitlement keys so installed older versions keep
+ * working, but Management Center never exposes a separate switch for them.
+ */
+export const INCLUDED_CAPABILITY_PARENT: Readonly<Record<AddonKey, CoreCapabilityKey>> = {
+  analytics: "reports",
+  executive_dashboard: "reports",
+  brand_center: "enterprise_export",
+  ai_sop_generator: "sop_versioning",
+  ai_workspace_audit: "workspace_health",
+};
+
+export function includedCapabilitiesFor(
+  coreCapabilities: readonly string[],
+): AddonKey[] {
+  const enabled = new Set(coreCapabilities);
+  return ADDON_CATALOG.map((addon) => addon.key).filter((key) =>
+    enabled.has(INCLUDED_CAPABILITY_PARENT[key]),
+  );
+}
+
 export const ADDON_KEYS: readonly AddonKey[] = ADDON_CATALOG.map((a) => a.key);
 
 export function isAddonKey(key: string): key is AddonKey {

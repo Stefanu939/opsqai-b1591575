@@ -16,7 +16,12 @@
 // functions that gate a product/add-on MUST route through `requireModule`.
 
 import { isValidModuleKey, type ModuleKey } from "@/lib/license-modules";
-import { CORE_CAPABILITY_KEYS, classifyLegacy } from "@/lib/product-architecture";
+import {
+  CORE_CAPABILITY_KEYS,
+  INCLUDED_CAPABILITY_PARENT,
+  classifyLegacy,
+  isAddonKey,
+} from "@/lib/product-architecture";
 
 
 export type EnforcementDenyReason =
@@ -96,11 +101,15 @@ export function evaluateModuleAccess(
  * Self-Hosted enforcement source: the offline licensing provider (signed
  * install/module tokens on the local machine). NEVER touches a Cloud client.
  */
-async function selfHostLicenseRows(): Promise<{ rows: LicenseRow[]; installId: string | null }> {
+async function selfHostLicenseRows(): Promise<{
+  rows: LicenseRow[];
+  installId: string | null;
+  coreCapabilities: string[] | null;
+}> {
   const { getLicensingProvider } = await import("@/lib/providers/registry");
   const ent = await getLicensingProvider().entitlements();
   const iso = (secs: number | null) => (secs ? new Date(secs * 1000).toISOString() : null);
-  if (!ent.installId) return { rows: [], installId: null };
+  if (!ent.installId) return { rows: [], installId: null, coreCapabilities: ent.coreCapabilities ?? null };
   const rows: LicenseRow[] = [
     {
       kind: "install",
@@ -117,7 +126,7 @@ async function selfHostLicenseRows(): Promise<{ rows: LicenseRow[]; installId: s
       expires_at: null,
     })),
   ];
-  return { rows, installId: ent.installId };
+  return { rows, installId: ent.installId, coreCapabilities: ent.coreCapabilities ?? null };
 }
 
 /**
@@ -133,7 +142,24 @@ export async function requireModule(
 ): Promise<EnforcementResult> {
   const { isSelfHostedRuntime } = await import("@/lib/ai-adapters/registry");
   if (isSelfHostedRuntime()) {
-    const { rows, installId } = await selfHostLicenseRows();
+    const { rows, installId, coreCapabilities } = await selfHostLicenseRows();
+    if (coreCapabilities !== null) {
+      const coreKey = (CORE_CAPABILITY_KEYS as readonly string[]).includes(module_key)
+        ? module_key
+        : isAddonKey(module_key)
+          ? INCLUDED_CAPABILITY_PARENT[module_key]
+          : classifyLegacy(module_key) === "core"
+            ? module_key
+            : null;
+      if (coreKey && !coreCapabilities.includes(coreKey)) {
+        return {
+          ok: false,
+          reason: "no_module_license",
+          install_id: installId ?? install_id,
+          module_key: module_key as ModuleKey,
+        };
+      }
+    }
     return evaluateModuleAccess(rows, installId ?? install_id, module_key, now);
   }
 

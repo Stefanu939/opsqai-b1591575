@@ -16,6 +16,7 @@
 import {
   LEGACY_INCLUDED_MODULE_KEYS,
   classifyLegacy,
+  includedCapabilitiesFor,
   type Classification,
 } from "@/lib/product-architecture";
 
@@ -272,8 +273,15 @@ export function isValidModuleKey(k: string): k is ModuleKey {
   return LICENSE_MODULE_CATALOG.some((m) => m.key === k);
 }
 
-export function effectiveModules(licensed: string[] | null | undefined): ModuleKey[] {
-  const set = new Set<string>(BASIC_MODULES);
+export function effectiveModules(
+  licensed: string[] | null | undefined,
+  coreCapabilities?: string[] | null,
+): ModuleKey[] {
+  // Missing claim means a pre-capability license: preserve all historical Core.
+  const set = new Set<string>(coreCapabilities == null ? BASIC_MODULES : coreCapabilities);
+  if (coreCapabilities != null) {
+    for (const key of includedCapabilitiesFor(coreCapabilities)) set.add(key);
+  }
   for (const k of licensed ?? []) if (isValidModuleKey(k)) set.add(k);
   return Array.from(set) as ModuleKey[];
 }

@@ -4,7 +4,11 @@ import { requireAuth } from "@/lib/providers/require-auth";
 import { requirePlatformAdmin } from "@/lib/authorization";
 import { z } from "zod";
 import { isValidModuleKey, BASIC_MODULES } from "@/lib/license-modules";
-import { getCompanyProfile, isProductKey } from "@/lib/product-architecture";
+import {
+  CORE_CAPABILITY_KEYS,
+  getCompanyProfile,
+  isProductKey,
+} from "@/lib/product-architecture";
 
 import { buildInstallLicenseRow, mapLicenseDbError } from "@/lib/license-issue";
 import { assertNoBlacklistedSecrets } from "@/lib/mc-secrets-blacklist";
@@ -121,7 +125,7 @@ export const issueLicense = createServerFn({ method: "POST" })
     // profile and the explicitly enabled OPSQAI Products (additive claims).
     const { data: companyRow } = await supabaseAdmin
       .from("companies")
-      .select("business_type, enabled_products")
+      .select("id, business_type, enabled_products")
       .ilike("name", data.company_name.trim())
       .maybeSingle();
     const profile = getCompanyProfile(
@@ -130,6 +134,19 @@ export const issueLicense = createServerFn({ method: "POST" })
     const products = (
       ((companyRow as { enabled_products: string[] | null } | null)?.enabled_products ?? []) as string[]
     ).filter(isProductKey);
+    const companyId = (companyRow as { id?: string } | null)?.id;
+    const { data: coreRows, error: coreError } = companyId
+      ? await supabaseAdmin
+          .from("company_products")
+          .select("product_key, enabled")
+          .eq("company_id", companyId)
+          .in("product_key", [...CORE_CAPABILITY_KEYS])
+      : { data: [], error: null };
+    if (coreError) throw new Error(coreError.message);
+    const configuredCore = (coreRows ?? []) as Array<{ product_key: string; enabled: boolean }>;
+    const coreCapabilities = configuredCore.length === 0
+      ? [...CORE_CAPABILITY_KEYS]
+      : configuredCore.filter((row) => row.enabled).map((row) => row.product_key);
 
     const { token } = await signInstallLicense({
       install_id: data.install_id,
@@ -140,6 +157,7 @@ export const issueLicense = createServerFn({ method: "POST" })
       maintenance_expires_at: maintSec,
       profile,
       products,
+      core_capabilities: coreCapabilities,
     });
 
 
@@ -190,6 +208,7 @@ export const issueLicense = createServerFn({ method: "POST" })
       install_id: data.install_id,
       reissued: Boolean(existingInstall),
       basic_modules: BASIC_MODULES,
+      core_capabilities: coreCapabilities,
     };
   });
 

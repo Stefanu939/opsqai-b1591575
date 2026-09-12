@@ -18,7 +18,7 @@ export async function getLicensedModules(): Promise<ModuleKey[]> {
     const { LICENSE_MODULE_CATALOG } = await import("@/lib/license-modules");
     return LICENSE_MODULE_CATALOG.map((m) => m.key);
   }
-  return effectiveModules(ent.modules);
+  return effectiveModules(ent.modules, ent.coreCapabilities);
 }
 
 export async function resolveModuleAccessForUser(

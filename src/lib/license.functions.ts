@@ -20,6 +20,7 @@ export const getLicenseEntitlements = createServerFn({ method: "GET" }).handler(
         edition: "community",
         seats: null,
         modules: [],
+        coreCapabilities: null,
         expiresAt: null,
         maintenanceExpiresAt: null,
         revoked: false,
