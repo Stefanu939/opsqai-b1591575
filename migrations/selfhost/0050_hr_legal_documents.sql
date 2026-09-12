@@ -27,12 +27,8 @@ INSERT INTO public.permissions (key, label, category, description)
 VALUES ('hr.legal_review','Review HR legal documents','HR','Approve country-specific HR documents after legal review')
 ON CONFLICT (key) DO NOTHING;
 
-ALTER TABLE public.area_permission_map DROP CONSTRAINT IF EXISTS area_permission_map_action_check;
-ALTER TABLE public.area_permission_map ADD CONSTRAINT area_permission_map_action_check
-  CHECK (action IN ('view','create','edit','delete','approve','administer','legal_review'));
-
 INSERT INTO public.area_permission_map (area_key, action, permission_key)
-VALUES ('hr','legal_review','hr.legal_review')
+VALUES ('hr_legal','approve','hr.legal_review')
 ON CONFLICT (area_key, action) DO NOTHING;
 
 INSERT INTO public.role_permissions (role_key, permission_key)
