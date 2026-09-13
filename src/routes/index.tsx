@@ -52,26 +52,30 @@ import { MottoBand } from "@/components/oix/motto-band";
 import { SecurityWall } from "@/components/oix/security-wall";
 import { OixButton } from "@/components/oix/buttons";
 import { Founders } from "@/components/oix/founders";
-import { PainHero } from "@/components/oix/pain-hero";
+import { ProblemHero } from "@/components/oix/problem-hero";
+import { DiscoverySteps } from "@/components/oix/discovery-steps";
+import { PainToSolution } from "@/components/oix/pain-to-solution";
+import { SectionShell } from "@/components/oix/section-shell";
 import { BeforeAfter } from "@/components/oix/before-after";
 import { CostCalculator } from "@/components/oix/cost-calculator";
 import { RoleScenarios } from "@/components/oix/role-scenarios";
 import { ProofMap } from "@/components/oix/proof-map";
 import { useHomeCopy } from "@/i18n/pages/home";
+import { useDiscoveryCopy } from "@/i18n/pages/discovery";
 
 export const Route = createFileRoute("/")({
   head: () =>
     pageHead({
-      title: "Your procedures exist — nobody finds them in time | OPSQAI",
+      title: "Your Workspace. Built around your problems. | OPSQAI",
       description:
-        "Operational knowledge scattered across drives, outdated SOPs, weeks of onboarding, audits that turn into document hunts. OPSQAI answers from your approved documents, inside your own Windows environment. Free 30-day pilot.",
+        "You tell us the problem. We analyze the root cause, design the solution and build it into your OPSQAI Workspace — installed on your own Windows environment. Start with OPSQAI Discovery: written diagnosis, workspace configuration, value estimate, direct path into a 30-day pilot.",
       path: "/",
       keywords:
-        "enterprise operational AI, windows self-hosted AI, sovereign AI, local LLM Ollama, operations AI, quality and compliance AI, HR and finance operations AI, on-premise AI",
+        "OPSQAI Discovery, operational problems diagnosis, workspace built around problems, enterprise operational AI, windows self-hosted AI, root cause analysis operations, logistics AI, HR AI",
       jsonLd: [
         softwareApplicationLd({
           description:
-            "Enterprise Operational AI Platform delivered as a Windows Self-Hosted product. Governed AI over operational knowledge, with local PostgreSQL, local embeddings, customer-owned AI provider, signed licenses and a hash-chained audit trail.",
+            "OPSQAI builds a workspace around your problems: you describe the pain, OPSQAI diagnoses the root cause, designs the solution and delivers it as a Windows self-hosted workspace your employees actually use.",
         }),
       ],
     }),
@@ -114,7 +118,10 @@ function Home() {
 
   return (
     <OixLayout>
-      <PainHero />
+      <ProblemHero />
+      <DiscoverySteps />
+      <PainToSolution />
+      <AntiCompare />
       <BeforeAfter />
       <CostCalculator />
       <RoleScenarios />
@@ -129,6 +136,33 @@ function Home() {
       <Founders />
       <FinalCTA />
     </OixLayout>
+  );
+}
+
+/* ---------------- Anti-comparison band ---------------- */
+
+function AntiCompare() {
+  const t = useDiscoveryCopy().antiCompare;
+  return (
+    <SectionShell className="oix-hairline-top">
+      <div className="grid items-start gap-10 md:grid-cols-2">
+        <div>
+          <p className="oix-eyebrow">{t.eyebrow}</p>
+          <h2 className="oix-display mt-3 text-4xl md:text-5xl">{t.title}</h2>
+        </div>
+        <div>
+          <p className="text-[15px] leading-relaxed text-muted-foreground">{t.body}</p>
+          <ul className="mt-6 space-y-3">
+            {t.points.map((p) => (
+              <li key={p} className="flex items-start gap-2 text-sm text-foreground/90">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </SectionShell>
   );
 }
 
