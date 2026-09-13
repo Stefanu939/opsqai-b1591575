@@ -10,7 +10,7 @@
 
 from reportlab.lib.units import mm
 from gen_objections_playbook import (  # layout + fonts reused for a consistent family
-    Doc, BODY, BOLD, GRAPHITE, SLATE, GREEN, TEAL, RED, AMBER, MUTED, HAIR, W, H, M,
+    Doc, BODY, BOLD, GRAPHITE, SLATE, PAPER, GREEN, TEAL, RED, AMBER, MUTED, HAIR, W, H, M,
 )
 
 
@@ -925,8 +925,7 @@ def render(L):
     d.c.setFillColor(GREEN)
     d.c.rect(M, H - 62 * mm, 40 * mm, 3 * mm, stroke=0, fill=1)
     d.c.setFont(BOLD, 12)
-    d.c.setFillColor(HexColorPaper := None) if False else None
-    d.c.setFillColor(TEAL)
+    d.c.setFillColor(PAPER)
     d.c.drawString(M, H - 26 * mm, "OPSQAI")
     d.c.setFont(BODY, 9)
     d.c.setFillColor(MUTED)
