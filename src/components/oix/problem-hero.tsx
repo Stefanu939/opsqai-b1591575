@@ -53,9 +53,12 @@ export function ProblemHero() {
           <OixButton to="/discovery" variant="gold" withArrow>
             {t.primary}
           </OixButton>
-          <OixButton to="/#cost" variant="ghost">
+          <a
+            href="#cost"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-[var(--oix-border-strong)] bg-transparent px-5 py-3 text-sm font-semibold text-[var(--oix-cream)] transition-colors duration-200 hover:bg-[var(--oix-surface)]"
+          >
             {t.secondary}
-          </OixButton>
+          </a>
           <OixButton to="/pilot" variant="ghost">
             {t.tertiary}
           </OixButton>
