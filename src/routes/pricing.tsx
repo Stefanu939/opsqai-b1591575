@@ -89,6 +89,9 @@ function PricingPage() {
       </section>
 
       <PainBand page="pricing" calculatorHref="#cost" />
+      <div className="py-12">
+        <DiscoveryNote variant="pricing" />
+      </div>
       <BeforeAfter />
       <CostCalculator />
 
