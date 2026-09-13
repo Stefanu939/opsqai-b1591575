@@ -277,8 +277,9 @@ export function effectiveModules(
   licensed: string[] | null | undefined,
   coreCapabilities?: string[] | null,
 ): ModuleKey[] {
-  // Missing claim means a pre-capability license: preserve all historical Core.
-  const set = new Set<string>(coreCapabilities == null ? BASIC_MODULES : coreCapabilities);
+  // Missing claim means a pre-capability license: Core is never sold, so every
+  // canonical Core capability stays available (not just the short legacy list).
+  const set = new Set<string>(coreCapabilities == null ? CORE_MODULE_KEYS : coreCapabilities);
   if (coreCapabilities != null) {
     for (const key of includedCapabilitiesFor(coreCapabilities)) set.add(key);
   }
