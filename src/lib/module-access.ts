@@ -49,15 +49,12 @@ export const ROLE_MODULE_PRESETS: Record<AppRole, ModuleKey[]> = {
   manager: Array.from(
     new Set<ModuleKey>([
       ...BASIC_MODULES,
+      ...CORE_MODULE_KEYS,
       "analytics",
       "reports",
-      "knowledge_gaps",
-      "internal_requests",
-      "workspace_health",
-      "audit_log",
     ]),
   ),
-  employee: Array.from(new Set<ModuleKey>([...BASIC_MODULES])),
+  employee: Array.from(new Set<ModuleKey>([...BASIC_MODULES, ...CORE_MODULE_KEYS])),
 };
 
 export interface ResolveAccessibleModulesInput {
