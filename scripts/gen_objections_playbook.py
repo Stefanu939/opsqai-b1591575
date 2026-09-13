@@ -1303,7 +1303,7 @@ def build(L):
             d.divider()
 
     # ---- refusals
-    d.section_cover("04", L["refusal_title"], L["refusal_intro"])
+    d.section_cover("05", L["refusal_title"], L["refusal_intro"])
     d.new_page(L["refusal_title"])
     for says, answer in L["refusals"]:
         d.space(38 * mm)
