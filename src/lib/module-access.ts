@@ -85,5 +85,8 @@ export function resolveAccessibleModules(input: ResolveAccessibleModulesInput): 
   const base = input.explicit !== undefined && input.explicit !== null
     ? input.explicit
     : ROLE_MODULE_PRESETS[role];
-  return base.filter((m) => licensedSet.has(m));
+  // Core capabilities are never sold and never revoked per user, so they stay
+  // available for every role even when an explicit grant list omits them.
+  const set = new Set<ModuleKey>([...base, ...CORE_MODULE_KEYS]);
+  return ALL_MODULE_KEYS.filter((m) => set.has(m) && (licensedSet.has(m) || CORE_MODULE_KEYS.includes(m)));
 }
