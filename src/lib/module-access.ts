@@ -5,7 +5,12 @@
 // file must stay free of server-only imports so it can be shared by UI
 // code and server functions alike.
 
-import { BASIC_MODULES, LICENSE_MODULE_CATALOG, type ModuleKey } from "@/lib/license-modules";
+import {
+  BASIC_MODULES,
+  CORE_MODULE_KEYS,
+  LICENSE_MODULE_CATALOG,
+  type ModuleKey,
+} from "@/lib/license-modules";
 
 export type AppRole = "superadmin" | "admin" | "manager" | "employee";
 
@@ -44,15 +49,12 @@ export const ROLE_MODULE_PRESETS: Record<AppRole, ModuleKey[]> = {
   manager: Array.from(
     new Set<ModuleKey>([
       ...BASIC_MODULES,
+      ...CORE_MODULE_KEYS,
       "analytics",
       "reports",
-      "knowledge_gaps",
-      "internal_requests",
-      "workspace_health",
-      "audit_log",
     ]),
   ),
-  employee: Array.from(new Set<ModuleKey>([...BASIC_MODULES])),
+  employee: Array.from(new Set<ModuleKey>([...BASIC_MODULES, ...CORE_MODULE_KEYS])),
 };
 
 export interface ResolveAccessibleModulesInput {
@@ -83,5 +85,8 @@ export function resolveAccessibleModules(input: ResolveAccessibleModulesInput): 
   const base = input.explicit !== undefined && input.explicit !== null
     ? input.explicit
     : ROLE_MODULE_PRESETS[role];
-  return base.filter((m) => licensedSet.has(m));
+  // Core capabilities are never sold and never revoked per user, so they stay
+  // available for every role even when an explicit grant list omits them.
+  const set = new Set<ModuleKey>([...base, ...CORE_MODULE_KEYS]);
+  return ALL_MODULE_KEYS.filter((m) => set.has(m) && (licensedSet.has(m) || CORE_MODULE_KEYS.includes(m)));
 }
