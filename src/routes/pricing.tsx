@@ -11,6 +11,7 @@ import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
 import { ProofBand } from "@/components/oix/proof-band";
 import { PainBand } from "@/components/oix/pain-band";
+import { DiscoveryNote } from "@/components/oix/discovery-note";
 import { usePricingCopy } from "@/i18n/pages/pricing";
 
 // English source used only for SEO head (faqLd) — not user-visible copy.
