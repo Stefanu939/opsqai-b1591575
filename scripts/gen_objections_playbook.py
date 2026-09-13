@@ -212,6 +212,61 @@ RO = dict(
          "Închid dosarul dumneavoastră ca „nu acum”. Rămâne diagnosticul scris la dumneavoastră. "
          "Dacă se schimbă ceva, un mesaj și reluăm din locul în care am rămas."),
     ],
+    script_title="Scenariul discuției de 45 de minute",
+    script_intro=(
+        "Structura de mai jos este cadrul unei prime discuții. Timpii sunt orientativi, ordinea nu. "
+        "Dacă la minutul 25 nu ai o problemă exprimată cu cuvintele clientului și o cifră, nu treci "
+        "la prezentare — mai pui întrebări."
+    ),
+    script=[
+        ("00-03 min · Deschiderea",
+         "„Mulțumesc pentru timp. Propun 45 de minute: primele 20 vă ascult, apoi vă arăt doar ce are "
+         "legătură cu ce mi-ați spus, iar la final stabilim dacă merită un pas următor. Vi se pare corect?” "
+         "Nu porniți nicio prezentare aici."),
+        ("03-20 min · Descoperirea",
+         "Întrebările din capitolul 02, alese pentru rolul lui. Notează cuvintele exacte. La fiecare "
+         "problemă cere un exemplu concret și o frecvență. Nu propune soluții încă, nici dacă e evident."),
+        ("20-25 min · Rezumatul care vinde",
+         "„Ca să fiu sigur că am înțeles: problema principală este [cuvintele lui], se întâmplă [frecvență], "
+         "vă costă aproximativ [cifră], iar dacă nu se schimbă, riscul este [risc]. Am înțeles corect?” "
+         "Un „da” aici este jumătate din vânzare."),
+        ("25-35 min · Demonstrația scurtă",
+         "Arată maximum trei lucruri, toate legate de problema lui: întrebarea în limba lui cu sursă citată, "
+         "documentul cu versiune și stare, testul cu certificat. Nu deschide meniuri care nu au fost cerute."),
+        ("35-40 min · Obiecțiile",
+         "Invită obiecția: „Ce v-ar face să nu mergeți mai departe?” Răspunde cu capitolul 03, o obiecție "
+         "pe rând, fără liste de funcții."),
+        ("40-45 min · Pasul următor",
+         "„Vă propun un pilot de 30 de zile pe [problema lui], într-un singur departament, cu criteriul "
+         "[criteriul lui]. Am nevoie de patru ore de la o persoană. Începem luni?” Ieși din discuție cu dată și nume."),
+    ],
+    prep_title="Pregătirea înainte de discuție",
+    prep=[
+        "Ce face firma, câți angajați, câte locații — două minute pe site-ul lor sunt suficiente.",
+        "Ce reglementare sau audit îi presează (transport, HR, calitate, siguranță alimentară).",
+        "Cine e persoana din față: proprietar, operațional, HR, calitate sau IT — schimbă complet accentul.",
+        "Trei ipoteze de problemă scrise înainte, ca să le poți testa cu întrebări, nu cu afirmații.",
+        "O cifră de referință din același domeniu, pregătită pentru comparație.",
+        "Ce NU vom propune în prima discuție, ca să nu diluăm mesajul.",
+    ],
+    scenarios_title="Scenarii pe domenii: cu ce deschidem",
+    scenarios=[
+        ("Transport și logistică",
+         "Șoferi fără acces la instrucțiuni, CMR-uri incomplete, timpi de conducere și pauze discutabile, incidente repetate cu marfă refuzată.",
+         "„Când un șofer are marfă refuzată la 300 km de sediu, în cât timp știe exact ce are voie să facă — și cu ce document dovediți asta la control?”"),
+        ("Resurse umane",
+         "Integrare lentă, contracte și documente diferite pe țară, instruire fără dovadă, plecări care iau cunoașterea cu ele.",
+         "„Cât durează azi până un angajat nou lucrează ca unul cu experiență, și cine dovedește că a fost instruit după versiunea corectă?”"),
+        ("Producție și calitate",
+         "Proceduri expirate la linie, audit pregătit manual, neconformități care se repetă din același motiv.",
+         "„Ultimul audit — cât timp v-a luat pregătirea dosarului și câte observații s-au repetat de anul trecut?”"),
+        ("Depozit și distribuție",
+         "Ture care lucrează diferit, întrebări permanente către șeful de tură, erori la recepție și retur.",
+         "„Dacă întreb acum tura de noapte care e procedura la un retur, primesc același răspuns ca de la tura de zi?”"),
+        ("Firme de servicii și birouri",
+         "Cunoaștere în capul câtorva oameni, răspunsuri diferite la aceeași întrebare de client, dependență de persoane-cheie.",
+         "„Dacă mâine lipsește persoana care știe cel mai bine procesul, ce se oprește și pentru cât timp?”"),
+    ],
     close_title="Formulări de închidere",
     closes=[
         "„Ce ar trebui să vedeți în 30 de zile ca să spuneți că a meritat?” — Scrie răspunsul lui, semnează-l ca criteriu de succes.",
