@@ -6,6 +6,7 @@ import { EnterpriseIntelligence } from "@/components/oix/enterprise-intelligence
 import { EditorialHeadline } from "@/components/oix/editorial-headline";
 import { SectionShell } from "@/components/oix/section-shell";
 import { OixButton } from "@/components/oix/buttons";
+import { DiscoveryNote } from "@/components/oix/discovery-note";
 import { MottoBand } from "@/components/oix/motto-band";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -118,6 +119,10 @@ function PilotPage() {
           <EnterpriseIntelligence variant="contact" compact className="hidden md:block" />
         </div>
       </section>
+
+      <div className="pt-12">
+        <DiscoveryNote variant="pilot" />
+      </div>
 
       <SectionShell>
         <div className="grid gap-10 lg:grid-cols-2">

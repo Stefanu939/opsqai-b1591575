@@ -16,6 +16,7 @@ export function NavShell() {
   const m = useMarketing();
 
   const links = [
+    { to: "/discovery", label: "Discovery" },
     { to: "/product", label: m.nav.product },
     { to: "/solutions", label: m.nav.solutions },
     { to: "/product-overview", label: m.nav.overview },

@@ -28,6 +28,7 @@ import { Route as HealthRouteImport } from './routes/health'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DocumentationRouteImport } from './routes/documentation'
+import { Route as DiscoveryRouteImport } from './routes/discovery'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CompanyRouteImport } from './routes/company'
@@ -253,6 +254,11 @@ const FirstRunRoute = FirstRunRouteImport.update({
 const DocumentationRoute = DocumentationRouteImport.update({
   id: '/documentation',
   path: '/documentation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiscoveryRoute = DiscoveryRouteImport.update({
+  id: '/discovery',
+  path: '/discovery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -986,6 +992,7 @@ export interface FileRoutesByFullPath {
   '/company': typeof CompanyRoute
   '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
+  '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -1136,6 +1143,7 @@ export interface FileRoutesByTo {
   '/company': typeof CompanyRoute
   '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
+  '/discovery': typeof DiscoveryRoute
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
@@ -1283,6 +1291,7 @@ export interface FileRoutesById {
   '/company': typeof CompanyRoute
   '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
+  '/discovery': typeof DiscoveryRoute
   '/documentation': typeof DocumentationRouteWithChildren
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -1436,6 +1445,7 @@ export interface FileRouteTypes {
     | '/company'
     | '/compare'
     | '/contact'
+    | '/discovery'
     | '/documentation'
     | '/first-run'
     | '/forgot-password'
@@ -1586,6 +1596,7 @@ export interface FileRouteTypes {
     | '/company'
     | '/compare'
     | '/contact'
+    | '/discovery'
     | '/first-run'
     | '/forgot-password'
     | '/health'
@@ -1732,6 +1743,7 @@ export interface FileRouteTypes {
     | '/company'
     | '/compare'
     | '/contact'
+    | '/discovery'
     | '/documentation'
     | '/first-run'
     | '/forgot-password'
@@ -1885,6 +1897,7 @@ export interface RootRouteChildren {
   CompanyRoute: typeof CompanyRoute
   CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
+  DiscoveryRoute: typeof DiscoveryRoute
   DocumentationRoute: typeof DocumentationRouteWithChildren
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -2080,6 +2093,13 @@ declare module '@tanstack/react-router' {
       path: '/documentation'
       fullPath: '/documentation'
       preLoaderRoute: typeof DocumentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/discovery': {
+      id: '/discovery'
+      path: '/discovery'
+      fullPath: '/discovery'
+      preLoaderRoute: typeof DiscoveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -3315,6 +3335,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompanyRoute: CompanyRoute,
   CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
+  DiscoveryRoute: DiscoveryRoute,
   DocumentationRoute: DocumentationRouteWithChildren,
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,

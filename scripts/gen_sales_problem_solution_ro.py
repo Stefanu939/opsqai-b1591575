@@ -12,7 +12,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-OUT = "/mnt/documents/OPSQAI_Probleme_Soluții_RO.pdf"
+OUT = "/mnt/documents/OPSQAI_Probleme_Soluții_RO_v2.pdf"
 
 GRAPHITE = HexColor("#101315")
 SLATE = HexColor("#252B2D")
@@ -41,12 +41,28 @@ ITAL = font("DejaVu Sans:italic", "DJI")
 # ---------------------------------------------------------------- content
 
 INTRO = (
-    "Acest document este instrumentul de vânzare al OPSQAI. Pentru fiecare funcție a "
+    "OPSQAI nu vinde un produs din catalog — construiește workspace-ul clientului "
+    "în jurul problemelor lui. Modelul: Problemă → Diagnostic → Proiectarea soluției → "
+    "Workspace. Clientul nu trebuie să știe ce software îi trebuie; trebuie doar să știe "
+    "ce îl doare. Acest document este instrumentul de vânzare: pentru fiecare funcție a "
     "produsului sunt scrise problemele reale pe care le întâlnește o firmă și modul "
-    "concret în care OPSQAI le rezolvă. Nu vindem funcții, vindem eliminarea unor "
-    "pierderi măsurabile: timp pierdut, greșeli repetate, informație care nu se găsește, "
-    "documente expirate, oameni care întreabă de două ori același lucru."
+    "concret în care OPSQAI le rezolvă — eliminarea unor pierderi măsurabile: timp "
+    "pierdut, greșeli repetate, informație care nu se găsește, documente expirate."
 )
+
+DISCOVERY = (
+    "OPSQAI Discovery este prima etapă a fiecărei colaborări. Clientul vine cu o frază — "
+    "„asta ne doare” — iar noi întoarcem un diagnostic scris, o configurație de "
+    "workspace propusă, o estimare de valoare și trecerea directă într-un pilot de "
+    "30 de zile. Raportul de diagnostic rămâne al clientului chiar dacă nu continuă."
+)
+
+DISCOVERY_STEPS = [
+    ("Problemă", "Sesiune de lucru cu echipa clientului. El descrie ce doare — ore pierdute, erori repetate, integrare lentă, stres de audit. Noi ascultăm, nu vindem."),
+    ("Diagnostic", "Găsim cauza de rădăcină din spatele simptomului: unde se rupe informația, ce procedură cedează, ce pas mănâncă orele. În scris, în limbaj clar."),
+    ("Proiectarea soluției", "Proiectăm workspace-ul care elimină cauza — și doar pe aceea. Exact modulele OPSQAI care rezolvă problema, nimic în plus."),
+    ("Workspace", "Construim soluția în OPSQAI Workspace-ul clientului, în mediul lui Windows. Angajații folosesc un singur spațiu de lucru, modelat după felul în care firma lucrează de fapt."),
+]
 
 HOWTO = [
     "Fiecare funcție are cel puțin două perechi Problemă → Soluție.",
@@ -677,6 +693,26 @@ def build():
         d.c.drawString(M, d.y, title)
         d.y -= 5 * mm
         d.para(blurb, size=9.5, color=SLATE, width=W - 2 * M, leading=13.5)
+        d.y -= 4 * mm
+
+    # ---- discovery model
+    d.new_page("Modelul comercial")
+    d.c.setFont(BOLD, 18)
+    d.c.setFillColor(GRAPHITE)
+    d.c.drawString(M, d.y, "Problemă → Diagnostic → Soluție → Workspace")
+    d.y -= 10 * mm
+    d.para(DISCOVERY, size=10.5, color=SLATE, width=W - 2 * M, leading=15.5)
+    d.y -= 6 * mm
+    for i, (name, body) in enumerate(DISCOVERY_STEPS, 1):
+        d.space(28)
+        d.c.setFont(BOLD, 10)
+        d.c.setFillColor(GREEN)
+        d.c.drawString(M, d.y, f"{i:02d}")
+        d.c.setFont(BOLD, 10.5)
+        d.c.setFillColor(GRAPHITE)
+        d.c.drawString(M + 10 * mm, d.y, name)
+        d.y -= 5.5 * mm
+        d.para(body, size=9.5, color=SLATE, x=M + 10 * mm, width=W - 2 * M - 10 * mm, leading=13.5)
         d.y -= 4 * mm
 
     # ---- products

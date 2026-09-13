@@ -1,6 +1,11 @@
 # OPSQAI
 
-> OPSQAI is an Enterprise Operational AI Platform delivered as a Windows Self-Hosted product. The Windows installation is the product; OPSQAI Cloud (Management Center and Customer Portal) exists only for licensing, releases, installer distribution and customer support. Customers own their data, documents, embeddings and AI provider.
+> OPSQAI builds your workspace around your problems. You tell us the problem; we analyze the root cause, design the solution and build it into your OPSQAI Workspace — a Windows Self-Hosted product your employees actually use. OPSQAI Cloud (Management Center and Customer Portal) exists only for licensing, releases, installer distribution and customer support. Customers own their data, documents, embeddings and AI provider.
+
+## The model
+
+- OPSQAI Discovery: Problem → Diagnosis → Solution design → Workspace. Every engagement starts with the customer's problem, not a product catalogue. Discovery delivers a written diagnosis report, a proposed workspace configuration, a value estimate and a direct path into a 30-day pilot.
+- We do not compete on feature lists. If a module does not solve your problem, it is not in your workspace.
 
 ## Product architecture
 
@@ -10,11 +15,12 @@
 
 ## Pages
 
-- [Home](/): Positioning, architecture, modules, differentiation.
+- [Home](/): Your Workspace. Built around your problems.
+- [Discovery](/discovery): Problem → Diagnosis → Solution → Workspace. Deliverables and how to start.
 - [Product](/product): Windows Self-Hosted customer product and its supporting cloud services.
 - [Platform](/modules): Core Platform, licensed OPSQAI Products and optional Add-ons.
 - [Self-hosted](/self-hosted): Windows deployment, data flow, requirements.
 - [Security](/security): Ed25519 licenses, hash-chained audit, CRL, chunk-level ACL.
 - [Pricing](/pricing): Core Platform, OPSQAI Products, optional Add-ons and Annual Maintenance.
 - [Company](/company): Mission, team, go-to-market.
-- [Contact](/contact): Request pricing, demo or installer.
+- [Contact](/contact): Request a Discovery session, pricing, demo or installer.
