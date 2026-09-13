@@ -1249,7 +1249,37 @@ def build(L):
         d.y -= 4 * mm
 
     # ---- objections
-    d.section_cover("03", L["obj_title"], L["obj_intro"])
+    # ---- call script + preparation + scenarios
+    d.section_cover("03", L["script_title"], L["script_intro"])
+    d.new_page(L["script_title"])
+    for phase, body in L["script"]:
+        d.space(34 * mm)
+        d.para(phase, size=10.5, fname=BOLD, color=TEAL, leading=14.5)
+        d.para(body, size=9.8, color=SLATE, x=tx, width=txt_w, leading=14)
+        d.y -= 5 * mm
+
+    d.divider()
+    d.h1(L["prep_title"], size=15)
+    for p in L["prep"]:
+        d.space(18 * mm)
+        d.c.setFillColor(GREEN)
+        d.c.circle(M + 1.6 * mm, d.y + 1.2 * mm, 1.1 * mm, stroke=0, fill=1)
+        d.para(p, size=10, color=SLATE, x=tx, width=txt_w, leading=14)
+        d.y -= 3 * mm
+
+    d.divider()
+    d.h1(L["scenarios_title"], size=15)
+    for name, pain, opener in L["scenarios"]:
+        d.space(34 * mm)
+        d.h2(name)
+        d.para(pain, size=9.5, color=SLATE, x=tx, width=txt_w, leading=13.5)
+        d.y -= 2 * mm
+        d.label(lab["ask"], TEAL)
+        d.para(opener, size=9.8, fname=BOLD, color=GRAPHITE, x=tx, width=txt_w, leading=14)
+        d.y -= 4 * mm
+
+    # ---- objections
+    d.section_cover("04", L["obj_title"], L["obj_intro"])
     for cat, items in L["categories"]:
         d.new_page(f"{lab['category']}: {cat}")
         d.h1(cat, size=17)
