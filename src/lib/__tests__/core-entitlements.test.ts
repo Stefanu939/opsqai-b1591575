@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CORE_CAPABILITY_KEYS } from "@/lib/product-architecture";
 import { effectiveModules } from "@/lib/license-modules";
+import { hasModule } from "@/lib/license";
 
 describe("Core capability entitlements", () => {
   it("keeps every Core function active for legacy licenses", () => {
