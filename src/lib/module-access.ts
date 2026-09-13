@@ -5,7 +5,12 @@
 // file must stay free of server-only imports so it can be shared by UI
 // code and server functions alike.
 
-import { BASIC_MODULES, LICENSE_MODULE_CATALOG, type ModuleKey } from "@/lib/license-modules";
+import {
+  BASIC_MODULES,
+  CORE_MODULE_KEYS,
+  LICENSE_MODULE_CATALOG,
+  type ModuleKey,
+} from "@/lib/license-modules";
 
 export type AppRole = "superadmin" | "admin" | "manager" | "employee";
 
