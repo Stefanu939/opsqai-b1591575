@@ -14,6 +14,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { BASIC_MODULES, effectiveModules, type ModuleKey } from "@/lib/license-modules";
+import { classifyLegacy } from "@/lib/product-architecture";
 import { getLicenseEntitlements } from "@/lib/license.functions";
 
 export type DeploymentMode = "cloud" | "selfhost";
