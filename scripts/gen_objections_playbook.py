@@ -713,6 +713,64 @@ DE = dict(
          "Ich schließe Ihre Akte als „nicht jetzt“. Die schriftliche Diagnose bleibt bei Ihnen. Wenn sich "
          "etwas ändert, eine Nachricht und wir machen dort weiter, wo wir stehen geblieben sind."),
     ],
+    script_title="Der Gesprächsleitfaden für 45 Minuten",
+    script_intro=(
+        "Die folgende Struktur ist der Rahmen für ein Erstgespräch. Die Zeiten sind Richtwerte, die "
+        "Reihenfolge nicht. Wenn du in Minute 25 kein in seinen Worten formuliertes Problem und keine "
+        "Zahl hast, gehst du nicht in die Präsentation — du fragst weiter."
+    ),
+    script=[
+        ("00-03 Min · Eröffnung",
+         "„Danke für Ihre Zeit. Ich schlage 45 Minuten vor: die ersten 20 höre ich zu, danach zeige ich "
+         "ausschließlich, was mit dem zu tun hat, was Sie mir gesagt haben, und am Ende klären wir, ob ein "
+         "nächster Schritt sinnvoll ist. Passt das für Sie?“ Hier startet keine Präsentation."),
+        ("03-20 Min · Bedarfsanalyse",
+         "Die Fragen aus Kapitel 02, passend zu seiner Rolle. Seine Worte wörtlich notieren. Zu jedem "
+         "Problem ein konkretes Beispiel und eine Häufigkeit erfragen. Noch keine Lösungen anbieten, "
+         "auch wenn es naheliegt."),
+        ("20-25 Min · Die Zusammenfassung, die verkauft",
+         "„Damit ich sicher bin, dass ich es verstanden habe: Das Hauptproblem ist [seine Worte], es "
+         "passiert [Häufigkeit], es kostet Sie etwa [Zahl], und ohne Änderung ist das Risiko [Risiko]. "
+         "Habe ich das richtig verstanden?“ Ein Ja an dieser Stelle ist die halbe Entscheidung."),
+        ("25-35 Min · Die kurze Demonstration",
+         "Höchstens drei Dinge zeigen, alle mit Bezug zu seinem Problem: die Frage in seiner Sprache mit "
+         "zitierter Quelle, das Dokument mit Version und Status, den Test mit Zertifikat. Keine Menüs "
+         "öffnen, nach denen niemand gefragt hat."),
+        ("35-40 Min · Die Einwände",
+         "Den Einwand einladen: „Was würde Sie davon abhalten, weiterzumachen?“ Antworten nach Kapitel 03, "
+         "ein Einwand nach dem anderen, ohne Funktionslisten."),
+        ("40-45 Min · Der nächste Schritt",
+         "„Ich schlage einen 30-Tage-Pilot auf [sein Problem] vor, in einer Abteilung, mit dem Kriterium "
+         "[sein Kriterium]. Ich brauche vier Stunden einer Person. Starten wir Montag?“ Nie ohne Datum "
+         "und Namen aus dem Termin gehen."),
+    ],
+    prep_title="Vorbereitung vor dem Gespräch",
+    prep=[
+        "Was das Unternehmen macht, wie viele Mitarbeiter, wie viele Standorte — zwei Minuten auf ihrer Website genügen.",
+        "Welche Regulierung oder Prüfung Druck macht (Transport, HR, Qualität, Lebensmittelsicherheit).",
+        "Wer gegenübersitzt: Inhaber, Operations, HR, Qualität oder IT — das verändert die Schwerpunkte vollständig.",
+        "Drei vorab notierte Problemhypothesen, um sie mit Fragen zu prüfen statt mit Behauptungen.",
+        "Eine Vergleichszahl aus derselben Branche, vorbereitet für die Gegenüberstellung.",
+        "Was im Erstgespräch NICHT vorgeschlagen wird, damit die Botschaft nicht verwässert.",
+    ],
+    scenarios_title="Branchenszenarien: womit wir eröffnen",
+    scenarios=[
+        ("Transport und Logistik",
+         "Fahrer ohne Zugriff auf Anweisungen, unvollständige Frachtbriefe, strittige Lenk- und Ruhezeiten, wiederkehrende Fälle mit abgelehnter Ware.",
+         "„Wenn ein Fahrer 300 km vom Standort abgelehnte Ware hat — wie schnell weiß er genau, was er tun darf, und mit welchem Dokument belegen Sie das bei einer Kontrolle?“"),
+        ("Personalwesen",
+         "Langsame Einarbeitung, unterschiedliche Verträge und Dokumente je Land, Schulung ohne Nachweis, Abgänge, die das Wissen mitnehmen.",
+         "„Wie lange braucht heute ein neuer Mitarbeiter, bis er wie ein erfahrener arbeitet, und wer belegt, dass nach der gültigen Version geschult wurde?“"),
+        ("Produktion und Qualität",
+         "Abgelaufene Anweisungen an der Linie, manuell vorbereitete Audits, Abweichungen, die sich aus demselben Grund wiederholen.",
+         "„Das letzte Audit — wie lange hat die Vorbereitung gedauert und wie viele Feststellungen waren Wiederholungen aus dem Vorjahr?“"),
+        ("Lager und Distribution",
+         "Schichten, die unterschiedlich arbeiten, dauernde Rückfragen an den Schichtleiter, Fehler bei Annahme und Retoure.",
+         "„Wenn ich jetzt die Nachtschicht nach dem Retourenablauf frage — bekomme ich dieselbe Antwort wie von der Tagschicht?“"),
+        ("Dienstleister und Büroorganisationen",
+         "Wissen in den Köpfen einiger Personen, unterschiedliche Antworten auf dieselbe Kundenfrage, Abhängigkeit von Schlüsselpersonen.",
+         "„Wenn morgen die Person fehlt, die den Prozess am besten kennt — was steht still und wie lange?“"),
+    ],
     close_title="Abschlussformulierungen",
     closes=[
         "„Was müssten Sie in 30 Tagen sehen, um zu sagen: das hat sich gelohnt?“ — Antwort mitschreiben und als Erfolgskriterium festhalten.",
