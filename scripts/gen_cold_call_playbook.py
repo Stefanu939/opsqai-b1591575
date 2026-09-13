@@ -912,6 +912,25 @@ DE = dict(
 
 # ============================================================== RENDER
 
+def section_cover(d, kicker, title, blurb):
+    """Local chapter cover with extra space between kicker and title."""
+    d.new_page(title)
+    d.y = H / 2 + 30 * mm
+    d.c.setFillColor(GREEN)
+    d.c.rect(M, d.y + 16 * mm, 26 * mm, 2.4 * mm, stroke=0, fill=1)
+    d.c.setFont(BODY, 9)
+    d.c.setFillColor(MUTED)
+    d.c.drawString(M, d.y + 9 * mm, kicker.upper())
+    d.c.setFont(BOLD, 24)
+    d.c.setFillColor(GRAPHITE)
+    for ln in d.wrap(title, BOLD, 24, W - 2 * M):
+        d.c.drawString(M, d.y, ln)
+        d.y -= 29
+    d.y -= 6 * mm
+    if blurb:
+        d.para(blurb, size=10.5, color=SLATE, width=(W - 2 * M) * 0.86, leading=16)
+
+
 def render(L):
     d = Doc(L["out"], L["footer"])
     txt_w = W - 2 * M - 6 * mm
@@ -947,7 +966,7 @@ def render(L):
     d.c.drawString(M, M + 4 * mm, L["cover_note"])
 
     # references chapter
-    d.section_cover("00", L["ref_title"],
+    section_cover(d, "00", L["ref_title"],
                     "Documentele de vânzare OPSQAI se folosesc împreună." if L is RO
                     else "Die OPSQAI-Vertriebsdokumente werden gemeinsam benutzt.")
     d.new_page(L["ref_title"])
@@ -963,7 +982,7 @@ def render(L):
         d.y -= 5 * mm
 
     for ch in L["chapters"]:
-        d.section_cover(ch["kicker"], ch["title"], ch["blurb"])
+        section_cover(d, ch["kicker"], ch["title"], ch["blurb"])
         d.new_page(ch["title"])
         for kind, payload in ch["blocks"]:
             if kind == "h2":
