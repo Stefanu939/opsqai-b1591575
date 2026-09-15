@@ -90,9 +90,14 @@ function AutoUpdatePanel() {
     // While a download or installation is running, follow it closely.
     refetchInterval: (q) => {
       const phase = q.state.data?.progress?.phase;
-      return phase === "downloading" || phase === "installing" ? 2_000 : 60_000;
+      return phase === "downloading" || phase === "installing" ? 1_000 : 60_000;
     },
   });
+  // Optimistic phase so the bar appears the instant the operator clicks.
+  const [pending, setPending] = useState<null | {
+    phase: "downloading" | "installing";
+    version: string | null;
+  }>(null);
   const [draft, setDraft] = useState<{
     automatic: boolean;
     channel: "stable" | "beta";
