@@ -172,48 +172,72 @@ function AutoUpdatePanel() {
         </div>
       ) : null}
 
-      {s.progress && s.progress.phase !== "done" ? (
+      {(() => {
+        const prog =
+          s.progress && s.progress.phase !== "done"
+            ? s.progress
+            : pending
+              ? {
+                  phase: pending.phase,
+                  version: pending.version,
+                  received: 0,
+                  total: 0,
+                  error: null,
+                  at: null as string | null,
+                }
+              : null;
+        if (!prog) return null;
+        const pct = prog.total ? Math.min(100, (prog.received / prog.total) * 100) : 0;
+        const indeterminate = prog.phase === "downloading" && !prog.total;
+        return (
         <div className="mb-3 rounded-lg border border-border/70 bg-muted/30 p-3">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <Badge variant={s.progress.phase === "failed" ? "destructive" : "secondary"}>
-              {s.progress.phase === "downloading"
+            <Badge variant={prog.phase === "failed" ? "destructive" : "secondary"}>
+              {prog.phase === "downloading"
                 ? "Downloading"
-                : s.progress.phase === "verified"
+                : prog.phase === "verified"
                   ? "Downloaded and verified"
-                  : s.progress.phase === "installing"
+                  : prog.phase === "installing"
                     ? "Installing"
                     : "Failed"}
             </Badge>
-            {s.progress.version ? <span className="font-medium">v{s.progress.version}</span> : null}
+            {prog.version ? <span className="font-medium">v{prog.version}</span> : null}
             <span className="text-xs text-muted-foreground">
-              {fmtBytes(s.progress.received)}
-              {s.progress.total ? ` / ${fmtBytes(s.progress.total)}` : ""}
-              {s.progress.total
-                ? ` · ${Math.min(100, Math.round((s.progress.received / s.progress.total) * 100))}%`
-                : ""}
+              {indeterminate
+                ? "starting…"
+                : `${fmtBytes(prog.received)}${prog.total ? ` / ${fmtBytes(prog.total)}` : ""}${
+                    prog.total ? ` · ${Math.round(pct)}%` : ""
+                  }`}
             </span>
-            {s.progress.at ? (
+            {prog.at ? (
               <span className="ml-auto text-xs text-muted-foreground">
-                {new Date(s.progress.at).toLocaleTimeString()}
+                {new Date(prog.at).toLocaleTimeString()}
               </span>
             ) : null}
           </div>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className={`h-full rounded-full transition-all ${s.progress.phase === "failed" ? "bg-destructive" : "bg-primary"}`}
+              className={`h-full rounded-full transition-all ${
+                prog.phase === "failed"
+                  ? "bg-destructive"
+                  : indeterminate
+                    ? "animate-pulse bg-primary"
+                    : "bg-primary"
+              }`}
               style={{
                 width:
-                  s.progress.phase === "installing"
+                  prog.phase === "installing" || prog.phase === "verified"
                     ? "100%"
-                    : `${s.progress.total ? Math.min(100, (s.progress.received / s.progress.total) * 100) : 5}%`,
+                    : indeterminate
+                      ? "15%"
+                      : `${Math.max(2, pct)}%`,
               }}
             />
           </div>
-          {s.progress.error ? (
-            <p className="mt-2 text-xs text-destructive">{s.progress.error}</p>
-          ) : null}
+          {prog.error ? <p className="mt-2 text-xs text-destructive">{prog.error}</p> : null}
         </div>
-      ) : null}
+        );
+      })()}
 
       {s.available ? (
         <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
