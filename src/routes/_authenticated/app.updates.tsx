@@ -254,12 +254,17 @@ function AutoUpdatePanel() {
                 disabled={busy !== null}
                 onClick={() => {
                   setBusy("download");
+                  setPending({ phase: "downloading", version: s.available!.version });
                   void runAction({ data: { action: "download", version: s.available!.version } })
-                    .then(() => toast.success("Download started in the background"))
-                    .catch((e: Error) => toast.error(e.message))
+                    .then(() => toast.success("Download started"))
+                    .catch((e: Error) => {
+                      setPending(null);
+                      toast.error(e.message);
+                    })
                     .finally(() => {
                       setBusy(null);
                       void status.refetch();
+                      setTimeout(() => setPending(null), 8_000);
                     });
                 }}
               >
@@ -270,14 +275,19 @@ function AutoUpdatePanel() {
                 disabled={busy !== null || s.available.artifact === "zip"}
                 onClick={() => {
                   setBusy("install");
+                  setPending({ phase: "installing", version: s.available!.version });
                   void runAction({ data: { action: "install", version: s.available!.version } })
                     .then(() =>
                       toast.success("Installation scheduled — a backup is taken first"),
                     )
-                    .catch((e: Error) => toast.error(e.message))
+                    .catch((e: Error) => {
+                      setPending(null);
+                      toast.error(e.message);
+                    })
                     .finally(() => {
                       setBusy(null);
                       void status.refetch();
+                      setTimeout(() => setPending(null), 8_000);
                     });
                 }}
               >
