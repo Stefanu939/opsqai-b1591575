@@ -90,9 +90,14 @@ function AutoUpdatePanel() {
     // While a download or installation is running, follow it closely.
     refetchInterval: (q) => {
       const phase = q.state.data?.progress?.phase;
-      return phase === "downloading" || phase === "installing" ? 2_000 : 60_000;
+      return phase === "downloading" || phase === "installing" ? 1_000 : 60_000;
     },
   });
+  // Optimistic phase so the bar appears the instant the operator clicks.
+  const [pending, setPending] = useState<null | {
+    phase: "downloading" | "installing";
+    version: string | null;
+  }>(null);
   const [draft, setDraft] = useState<{
     automatic: boolean;
     channel: "stable" | "beta";
@@ -167,48 +172,72 @@ function AutoUpdatePanel() {
         </div>
       ) : null}
 
-      {s.progress && s.progress.phase !== "done" ? (
+      {(() => {
+        const prog =
+          s.progress && s.progress.phase !== "done"
+            ? s.progress
+            : pending
+              ? {
+                  phase: pending.phase,
+                  version: pending.version,
+                  received: 0,
+                  total: 0,
+                  error: null,
+                  at: null as string | null,
+                }
+              : null;
+        if (!prog) return null;
+        const pct = prog.total ? Math.min(100, (prog.received / prog.total) * 100) : 0;
+        const indeterminate = prog.phase === "downloading" && !prog.total;
+        return (
         <div className="mb-3 rounded-lg border border-border/70 bg-muted/30 p-3">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <Badge variant={s.progress.phase === "failed" ? "destructive" : "secondary"}>
-              {s.progress.phase === "downloading"
+            <Badge variant={prog.phase === "failed" ? "destructive" : "secondary"}>
+              {prog.phase === "downloading"
                 ? "Downloading"
-                : s.progress.phase === "verified"
+                : prog.phase === "verified"
                   ? "Downloaded and verified"
-                  : s.progress.phase === "installing"
+                  : prog.phase === "installing"
                     ? "Installing"
                     : "Failed"}
             </Badge>
-            {s.progress.version ? <span className="font-medium">v{s.progress.version}</span> : null}
+            {prog.version ? <span className="font-medium">v{prog.version}</span> : null}
             <span className="text-xs text-muted-foreground">
-              {fmtBytes(s.progress.received)}
-              {s.progress.total ? ` / ${fmtBytes(s.progress.total)}` : ""}
-              {s.progress.total
-                ? ` · ${Math.min(100, Math.round((s.progress.received / s.progress.total) * 100))}%`
-                : ""}
+              {indeterminate
+                ? "starting…"
+                : `${fmtBytes(prog.received)}${prog.total ? ` / ${fmtBytes(prog.total)}` : ""}${
+                    prog.total ? ` · ${Math.round(pct)}%` : ""
+                  }`}
             </span>
-            {s.progress.at ? (
+            {prog.at ? (
               <span className="ml-auto text-xs text-muted-foreground">
-                {new Date(s.progress.at).toLocaleTimeString()}
+                {new Date(prog.at).toLocaleTimeString()}
               </span>
             ) : null}
           </div>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className={`h-full rounded-full transition-all ${s.progress.phase === "failed" ? "bg-destructive" : "bg-primary"}`}
+              className={`h-full rounded-full transition-all ${
+                prog.phase === "failed"
+                  ? "bg-destructive"
+                  : indeterminate
+                    ? "animate-pulse bg-primary"
+                    : "bg-primary"
+              }`}
               style={{
                 width:
-                  s.progress.phase === "installing"
+                  prog.phase === "installing" || prog.phase === "verified"
                     ? "100%"
-                    : `${s.progress.total ? Math.min(100, (s.progress.received / s.progress.total) * 100) : 5}%`,
+                    : indeterminate
+                      ? "15%"
+                      : `${Math.max(2, pct)}%`,
               }}
             />
           </div>
-          {s.progress.error ? (
-            <p className="mt-2 text-xs text-destructive">{s.progress.error}</p>
-          ) : null}
+          {prog.error ? <p className="mt-2 text-xs text-destructive">{prog.error}</p> : null}
         </div>
-      ) : null}
+        );
+      })()}
 
       {s.available ? (
         <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
@@ -225,12 +254,17 @@ function AutoUpdatePanel() {
                 disabled={busy !== null}
                 onClick={() => {
                   setBusy("download");
+                  setPending({ phase: "downloading", version: s.available!.version });
                   void runAction({ data: { action: "download", version: s.available!.version } })
-                    .then(() => toast.success("Download started in the background"))
-                    .catch((e: Error) => toast.error(e.message))
+                    .then(() => toast.success("Download started"))
+                    .catch((e: Error) => {
+                      setPending(null);
+                      toast.error(e.message);
+                    })
                     .finally(() => {
                       setBusy(null);
                       void status.refetch();
+                      setTimeout(() => setPending(null), 8_000);
                     });
                 }}
               >
@@ -241,14 +275,19 @@ function AutoUpdatePanel() {
                 disabled={busy !== null || s.available.artifact === "zip"}
                 onClick={() => {
                   setBusy("install");
+                  setPending({ phase: "installing", version: s.available!.version });
                   void runAction({ data: { action: "install", version: s.available!.version } })
                     .then(() =>
                       toast.success("Installation scheduled — a backup is taken first"),
                     )
-                    .catch((e: Error) => toast.error(e.message))
+                    .catch((e: Error) => {
+                      setPending(null);
+                      toast.error(e.message);
+                    })
                     .finally(() => {
                       setBusy(null);
                       void status.refetch();
+                      setTimeout(() => setPending(null), 8_000);
                     });
                 }}
               >

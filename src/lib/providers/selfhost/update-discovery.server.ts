@@ -236,3 +236,137 @@ export async function writeUpdateCommand(
     return false;
   }
 }
+
+// ---------------------------------------------------------------------------
+// In-application download with live progress.
+//
+// The Windows updater service can stage releases on its own, but when it is
+// stopped (or between poll cycles) the operator would see no feedback at all
+// after pressing "Download now". The application therefore downloads the
+// verified package itself and writes the same progress.json the UI reads, so a
+// progress bar always appears immediately.
+// ---------------------------------------------------------------------------
+
+export function progressPath(): string | null {
+  const dir = updatesDir();
+  return dir ? join(dir, "progress.json") : null;
+}
+
+type ProgressPhase = "downloading" | "verified" | "installing" | "done" | "failed";
+
+export async function writeUpdateProgress(p: {
+  phase: ProgressPhase;
+  version?: string | null;
+  received?: number;
+  total?: number;
+  error?: string | null;
+}): Promise<void> {
+  const file = progressPath();
+  if (!file) return;
+  await writeJson(file, {
+    phase: p.phase,
+    version: p.version ?? null,
+    received: p.received ?? 0,
+    total: p.total ?? 0,
+    error: p.error ?? null,
+    at: new Date().toISOString(),
+  }).catch(() => undefined);
+}
+
+let downloadInFlight: string | null = null;
+
+/**
+ * Download the verified release package into the local packages folder,
+ * reporting byte progress the whole way. Resolves when the file is stored and
+ * its checksum verified; never throws (failures land in progress.json).
+ */
+export async function downloadAvailableUpdate(version?: string): Promise<boolean> {
+  const dir = updatesDir();
+  const update = await readAvailableUpdate();
+  if (!dir || !update) return false;
+  if (version && update.version !== version) return false;
+  if (downloadInFlight === update.version) return true;
+  downloadInFlight = update.version;
+
+  await writeUpdateProgress({
+    phase: "downloading",
+    version: update.version,
+    received: 0,
+    total: update.size ?? 0,
+  });
+
+  try {
+    const { createHash } = await import("node:crypto");
+    const { writeFile: write, mkdir: makeDir, rename } = await import("node:fs/promises");
+    const res = await fetch(update.url, { signal: AbortSignal.timeout(30 * 60_000) });
+    if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+
+    const len = Number(res.headers.get("content-length"));
+    const total = Number.isFinite(len) && len > 0 ? len : (update.size ?? 0);
+    const hash = createHash("sha256");
+    const chunks: Uint8Array[] = [];
+    let received = 0;
+    let lastWrite = 0;
+
+    const reader = res.body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      chunks.push(value);
+      hash.update(value);
+      received += value.byteLength;
+      const now = Date.now();
+      if (now - lastWrite > 700) {
+        lastWrite = now;
+        await writeUpdateProgress({
+          phase: "downloading",
+          version: update.version,
+          received,
+          total,
+        });
+      }
+    }
+
+    const digest = hash.digest("hex");
+    if (update.sha256 && digest !== update.sha256.toLowerCase()) {
+      throw new Error("The downloaded package did not match its checksum and was discarded.");
+    }
+
+    const target = join(
+      dir,
+      "packages",
+      `opsqai-${update.version}.${update.artifact === "exe" ? "exe" : "zip"}`,
+    );
+    await makeDir(dirname(target), { recursive: true });
+    const tmp = `${target}.part`;
+    await write(tmp, Buffer.concat(chunks.map((c) => Buffer.from(c))));
+    await rename(tmp, target);
+
+    await writeJson(join(dir, "downloaded.json"), {
+      version: update.version,
+      artifact: update.artifact,
+      path: target,
+      sha256: digest,
+      size: received,
+      at: new Date().toISOString(),
+    }).catch(() => undefined);
+
+    await writeUpdateProgress({
+      phase: "verified",
+      version: update.version,
+      received,
+      total: total || received,
+    });
+    return true;
+  } catch (e) {
+    await writeUpdateProgress({
+      phase: "failed",
+      version: update.version,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return false;
+  } finally {
+    downloadInFlight = null;
+  }
+}

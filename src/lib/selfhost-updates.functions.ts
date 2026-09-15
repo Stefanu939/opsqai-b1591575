@@ -276,10 +276,25 @@ export const runSelfHostUpdateAction = createServerFn({ method: "POST" })
     await requirePlatformAdmin(context);
     const { isSelfHosted } = await import("@/lib/platform/mode");
     if (!isSelfHosted()) throw new Error("Updates apply to Self-Hosted only.");
-    const { writeUpdateCommand } = await import(
+    const { writeUpdateCommand, writeUpdateProgress, downloadAvailableUpdate } = await import(
       "@/lib/providers/selfhost/update-discovery.server"
     );
     const ok = await writeUpdateCommand(data.action, data.version);
     if (!ok) throw new Error("Could not reach the local update folder.");
+
+    if (data.action === "download") {
+      // Show a progress bar right away instead of waiting for the updater
+      // service poll, and download the package here so progress is real even
+      // when that service is stopped.
+      await writeUpdateProgress({
+        phase: "downloading",
+        version: data.version ?? null,
+        received: 0,
+        total: 0,
+      });
+      void downloadAvailableUpdate(data.version).catch(() => undefined);
+    } else {
+      await writeUpdateProgress({ phase: "installing", version: data.version ?? null });
+    }
     return { ok: true };
   });
