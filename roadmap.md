@@ -79,8 +79,8 @@
 - [x] Add tests and visually inspect generated DE/RO PDFs
 
 ## English congress pitch deck 2026-09-15
-- [ ] Create a 12–14 page English PDF for a Bavarian transport and logistics congress organizer
-- [ ] Present Core, Transport and HR as proven delivery layers, not the limit of OPSQAI
-- [ ] Explain that OPSQAI can build company-specific workspaces, modules and features from diagnosed problems
-- [ ] Cover speaker, partnership and pilot opportunities
-- [ ] Render and visually verify every page, then deliver the final PDF
+- [x] Create a 12–14 page English PDF for a Bavarian transport and logistics congress organizer
+- [x] Present Core, Transport and HR as proven delivery layers, not the limit of OPSQAI
+- [x] Explain that OPSQAI can build company-specific workspaces, modules and features from diagnosed problems
+- [x] Cover speaker, partnership and pilot opportunities
+- [x] Render and visually verify every page, then deliver the final PDF
