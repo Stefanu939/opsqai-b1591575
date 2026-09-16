@@ -24,6 +24,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PilotRouteImport } from './routes/pilot'
 import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as InvestRouteImport } from './routes/invest'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
@@ -234,6 +235,11 @@ const ModulesRoute = ModulesRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvestRoute = InvestRouteImport.update({
+  id: '/invest',
+  path: '/invest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthRoute = HealthRouteImport.update({
@@ -997,6 +1003,7 @@ export interface FileRoutesByFullPath {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/pilot': typeof PilotRoute
@@ -1147,6 +1154,7 @@ export interface FileRoutesByTo {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/pilot': typeof PilotRoute
@@ -1296,6 +1304,7 @@ export interface FileRoutesById {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
   '/pilot': typeof PilotRoute
@@ -1450,6 +1459,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/invest'
     | '/mcp'
     | '/modules'
     | '/pilot'
@@ -1600,6 +1610,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/invest'
     | '/mcp'
     | '/modules'
     | '/pilot'
@@ -1748,6 +1759,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/invest'
     | '/mcp'
     | '/modules'
     | '/pilot'
@@ -1902,6 +1914,7 @@ export interface RootRouteChildren {
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HealthRoute: typeof HealthRoute
+  InvestRoute: typeof InvestRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
   PilotRoute: typeof PilotRoute
@@ -2065,6 +2078,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invest': {
+      id: '/invest'
+      path: '/invest'
+      fullPath: '/invest'
+      preLoaderRoute: typeof InvestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health': {
@@ -3340,6 +3360,7 @@ const rootRouteChildren: RootRouteChildren = {
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HealthRoute: HealthRoute,
+  InvestRoute: InvestRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
   PilotRoute: PilotRoute,
