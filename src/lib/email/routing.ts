@@ -33,14 +33,14 @@ export const CONTACT_SUBJECT_LABELS: Record<ContactSubject, string> = {
 };
 
 export interface RoutingMailboxes {
-  contact: string; // info@opsqai.de
+  contact: string; // baristefan@opsqai.de
   support: string; // support@opsqai.de
   security: string; // security@opsqai.de
   privacy: string; // policy@opsqai.de
 }
 
 export const DEFAULT_MAILBOXES: RoutingMailboxes = {
-  contact: "info@opsqai.de",
+  contact: "baristefan@opsqai.de",
   support: "support@opsqai.de",
   security: "security@opsqai.de",
   privacy: "policy@opsqai.de",

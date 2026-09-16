@@ -7,7 +7,7 @@ export const BRAND = {
   website: "https://opsqai.de",
   logoUrl: "https://opsqai.de/brand/logo-horizontal-light.svg",
   supportEmail: "support@opsqai.de",
-  contactEmail: "info@opsqai.de",
+  contactEmail: "baristefan@opsqai.de",
   securityEmail: "security@opsqai.de",
   privacyEmail: "policy@opsqai.de",
   // Cohesive with the in-app design system
