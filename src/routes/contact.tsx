@@ -267,7 +267,7 @@ function ContactPage() {
 
           <div className="space-y-4">
             {[
-              { label: t.channelLabels.general, email: "info@opsqai.de", subject: "general", icon: Mail },
+              { label: t.channelLabels.general, email: "baristefan@opsqai.de", subject: "general", icon: Mail },
               { label: t.channelLabels.support, email: "support@opsqai.de", subject: "support", icon: Mail },
               {
                 label: t.channelLabels.security,

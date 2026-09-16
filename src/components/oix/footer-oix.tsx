@@ -24,6 +24,7 @@ export function FooterOix() {
       heading: m.footer.company,
       items: [
         { label: m.footer.about, to: "/company" },
+        { label: investLabel, to: "/invest" },
         { label: m.nav.blog, to: "/blog" },
         { label: m.nav.contact, to: "/contact" },
         { label: m.footer.support, to: "/support" },
