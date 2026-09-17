@@ -23,4 +23,5 @@
 - [Security](/security): Ed25519 licenses, hash-chained audit, CRL, chunk-level ACL.
 - [Pricing](/pricing): Core Platform, OPSQAI Products, optional Add-ons and Annual Maintenance.
 - [Company](/company): Mission, team, go-to-market.
+- [Invest](/invest): Seed round of EUR 100,000, thesis, stage, commercial model and founder targets. Contact baristefan@opsqai.de.
 - [Contact](/contact): Request a Discovery session, pricing, demo or installer.

@@ -2,9 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { MottoBand } from "./motto-band";
 import { useMarketing } from "@/i18n/marketing";
 import { LogoMark } from "@/components/brand/logo";
+import { useInvestNavLabel } from "@/i18n/pages/invest";
 
 export function FooterOix() {
   const m = useMarketing();
+  const investLabel = useInvestNavLabel();
 
   const columns: Array<{ heading: string; items: Array<{ label: string; to: string }> }> = [
     {
