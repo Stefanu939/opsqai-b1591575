@@ -12,7 +12,13 @@
 ## Ce voi face
 
 1. **Repar HR „date parțiale”** — corectez numele coloanei în interogarea de activitate recentă și trec prin restul interogărilor HR/Transport ca să prind aceeași scăpare oriunde mai apare.
-2. **Diagnostic vizibil în instalare** — o verificare de sănătate care arată: modul detectat, dacă baza de date locală răspunde, dacă licența e citită, dacă drepturile s-au încărcat, plus lista secțiunilor care au eșuat cu motiv concret.
+2. **Deblochez verificarea și aprobarea documentelor** — pentru orice document generat (contract sau altul):
+   - un panou „Verificare și acceptare” mereu vizibil, cu starea reală și motivul exact pentru care aprobarea nu e încă posibilă (câmpuri lipsă, revizie neefectuată, drepturi insuficiente) — niciodată buton dezactivat fără explicație;
+   - acțiunea „Verific și accept” disponibilă administratorilor/proprietarilor și persoanelor cu drept de revizie, cu numele celui care confirmă, data și notă opțională, nu obligatorie;
+   - posibilitatea de „Cer modificări” și revenire la verificare, ca un document respins să nu rămână blocat;
+   - documentele fără stare juridică (instalări rămase în urmă) tratate ca „verificare simplă”, deci aprobabile, nu blocate;
+   - după aprobare: document blocat, cu istoric cine a verificat și cine a aprobat, PDF descărcabil și încărcarea copiei semnate ca acum.
+3. **Diagnostic vizibil în instalare** — o verificare de sănătate care arată: modul detectat, dacă baza de date locală răspunde, dacă actualizările bazei sunt la zi, dacă licența e citită, dacă drepturile s-au încărcat, plus lista secțiunilor care au eșuat cu motiv concret.
 3. **Corectez declararea modului la pornire** — serviciul Windows trimite `OPSQAI_MODE=selfhost`, iar aplicația acceptă și variabilele deja trimise, ca instalările existente să se repare fără reinstalare.
 4. **Elemente Core rezistente** — „Users”, Dashboard, Organization, Operations apar întotdeauna on-premise; drepturile controlează doar ce poți face în pagină.
 5. **Fără eșecuri silențioase** — dacă drepturile nu se încarcă, apare mesaj clar cu „Reîncearcă”, nu butoane ascunse.
