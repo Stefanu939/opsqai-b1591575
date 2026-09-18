@@ -189,6 +189,44 @@ export const deleteAcademyPath = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Publish / unpublish / archive an existing course without retyping its fields. */
+export const setAcademyPathPublishStatus = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        publish_status: z.enum(["draft", "published", "archived"]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireModuleAccess(context, "academy");
+    await requirePermission(context, "academy.manage");
+    const repo = getAcademyRepository(context);
+    const current = await repo.getLearningPath(data.id);
+    if (!current) throw new Error("Path not found");
+    const p = current.path as any;
+    await repo.upsertLearningPath({
+      id: p.id,
+      companyId: p.company_id,
+      departmentId: p.department_id ?? null,
+      title: p.title,
+      description: p.description ?? null,
+      language: p.language,
+      targetRole: p.target_role ?? null,
+      targetPosition: p.target_position ?? null,
+      experienceLevel: p.experience_level ?? null,
+      employmentType: p.employment_type ?? null,
+      mandatory: !!p.mandatory,
+      passingScore: p.passing_score ?? 70,
+      difficulty: p.difficulty ?? "standard",
+      publishStatus: data.publish_status,
+      createdBy: context.userId,
+    });
+    return { id: p.id, publish_status: data.publish_status };
+  });
+
 export const getAcademyPath = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((d: unknown) => z.object({ id: uuidString() }).parse(d))
