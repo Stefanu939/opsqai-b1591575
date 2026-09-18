@@ -430,6 +430,154 @@ export const requestHrDocumentChanges = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Record that an external lawyer / consultant verified the document. Counts as
+ * the verification step, so approval is unblocked afterwards. The optional
+ * opinion file is filed as a separate document linked to this one.
+ */
+export const recordExternalHrReview = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        reviewerName: z.string().trim().min(2).max(160),
+        reviewerOrg: z.string().trim().max(160).optional(),
+        reviewedOn: z.string().trim().min(4).max(40).optional(),
+        reference: z.string().trim().max(200).optional(),
+        notes: z.string().trim().max(4000).optional(),
+        evidenceFilename: z.string().trim().max(200).optional(),
+        evidenceMime: z.string().trim().max(120).optional(),
+        evidenceBase64: z.string().max(12_000_000).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("legal_review");
+    const db = await ext();
+    const doc = await db.getDocument(a.companyId, data.id);
+    if (!doc) throw new Error("Document not found.");
+    if (doc.status === "approved" || doc.status === "file") {
+      throw new Error("This document is already finished.");
+    }
+    if (doc.body && /\[___\]/.test(doc.body)) {
+      throw new Error("Complete all [___] fields before recording the verification.");
+    }
+
+    let evidenceId: string | null = null;
+    if (data.evidenceBase64 && data.evidenceFilename) {
+      const bytes = Buffer.from(data.evidenceBase64, "base64");
+      if (bytes.byteLength > 8 * 1024 * 1024) throw new Error("The opinion file is larger than 8 MB.");
+      const mime = data.evidenceMime ?? "application/pdf";
+      if (!/^application\/pdf$|^image\//.test(mime)) {
+        throw new Error("Only PDF or image files are accepted as the legal opinion.");
+      }
+      evidenceId = await db.createDocument(
+        a.companyId,
+        {
+          employee_id: doc.employee_id,
+          kind: "legal_opinion",
+          title: `Legal opinion — ${doc.title}`,
+          filename: data.evidenceFilename,
+          mime,
+          data: bytes,
+          status: "file",
+        },
+        { id: a.userId },
+      );
+    }
+
+    await db.recordExternalReview(a.companyId, data.id, {
+      reviewerName: data.reviewerOrg
+        ? `${data.reviewerName} (${data.reviewerOrg})`
+        : data.reviewerName,
+      reviewerOrg: data.reviewerOrg ?? null,
+      reviewedOn: data.reviewedOn ?? null,
+      reference: data.reference ?? null,
+      notes: data.notes ?? "",
+      evidenceId,
+      recordedBy: a.name,
+    });
+
+    const core = await import("@/lib/hr/db.server");
+    if (doc.employee_id) {
+      await core.addEvent(a.companyId, doc.employee_id, "document", `External verification recorded: ${doc.title}`, a.name);
+    }
+    await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.external_review", {
+      title: doc.title,
+      reviewer: data.reviewerName,
+      org: data.reviewerOrg ?? null,
+      reference: data.reference ?? null,
+    });
+    return { ok: true, evidenceId };
+  });
+
+export const getHrReviewLinks = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ id: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("view");
+    const links = await (await ext()).listReviewLinks(a.companyId, data.id);
+    return { links };
+  });
+
+/** Create a single-document, time-limited link for an external reviewer. */
+export const createHrReviewLink = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: uuidString(),
+        reviewerName: z.string().trim().max(160).optional(),
+        reviewerOrg: z.string().trim().max(160).optional(),
+        days: z.number().int().min(1).max(60).default(14),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("legal_review");
+    const db = await ext();
+    const doc = await db.getDocument(a.companyId, data.id);
+    if (!doc) throw new Error("Document not found.");
+    if (doc.status === "approved" || doc.status === "file") {
+      throw new Error("This document is already finished.");
+    }
+    const { randomBytes, createHash } = await import("node:crypto");
+    const token = randomBytes(32).toString("base64url");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const expiresAt = new Date(Date.now() + data.days * 24 * 60 * 60 * 1000).toISOString();
+    const id = await db.createReviewLink(a.companyId, data.id, {
+      tokenHash,
+      reviewerName: data.reviewerName ?? null,
+      reviewerOrg: data.reviewerOrg ?? null,
+      expiresAt,
+      createdBy: a.name,
+    });
+    const core = await import("@/lib/hr/db.server");
+    await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.review_link", {
+      title: doc.title,
+      reviewer: data.reviewerName ?? null,
+      expires_at: expiresAt,
+    });
+    // The token is returned exactly once; only its hash is stored.
+    return { id, token, path: `/hr-review?token=${token}`, expiresAt };
+  });
+
+export const revokeHrReviewLink = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) => z.object({ linkId: uuidString() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("legal_review");
+    await (await ext()).revokeReviewLink(a.companyId, data.linkId);
+    return { ok: true };
+  });
+
+
+
 export const downloadHrDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .inputValidator((input: unknown) =>
