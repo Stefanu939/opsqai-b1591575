@@ -379,8 +379,11 @@ export const approveHrDocument = createServerFn({ method: "POST" })
     if (doc.body && /\[___\]/.test(doc.body)) {
       throw new Error("The draft still contains empty [___] fields. Fill them in before approving.");
     }
-    if ((doc.country === "de" || doc.country === "ro") && doc.legal_status !== "reviewed") {
-      throw new Error("Mandatory legal review must be completed before approval.");
+    // A document only blocks approval while its review is still open. Documents
+    // without any legal state (older rows / installs behind on schema updates)
+    // are treated as "no separate review required" so they can never deadlock.
+    if (doc.legal_status === "pending" || doc.legal_status === "changes_requested") {
+      throw new Error("Review the document first ('I verify and accept'), then approve it.");
     }
     await db.approveDocument(a.companyId, data.id, a.name);
     const core = await import("@/lib/hr/db.server");
@@ -393,17 +396,37 @@ export const approveHrDocument = createServerFn({ method: "POST" })
 
 export const legallyReviewHrDocument = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: unknown) => z.object({ id: uuidString(), notes: z.string().trim().min(3).max(4000) }).parse(input))
+  .inputValidator((input: unknown) =>
+    z.object({ id: uuidString(), notes: z.string().trim().max(4000).optional() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { a, need } = await who(context);
     need("legal_review");
     const db = await ext();
     const doc = await db.getDocument(a.companyId, data.id);
     if (!doc) throw new Error("Document not found.");
-    if (doc.body && /\[___\]/.test(doc.body)) throw new Error("Complete all [___] fields before legal review.");
-    await db.legallyReviewDocument(a.companyId, data.id, a.name, data.notes);
+    if (doc.body && /\[___\]/.test(doc.body)) throw new Error("Complete all [___] fields before the review.");
+    await db.legallyReviewDocument(a.companyId, data.id, a.name, data.notes ?? "");
     const core = await import("@/lib/hr/db.server");
     await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.legal_review", { title: doc.title, version: doc.legal_version });
+    return { ok: true };
+  });
+
+/** Send a generated document back for changes instead of leaving it stuck in review. */
+export const requestHrDocumentChanges = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: uuidString(), notes: z.string().trim().max(4000).optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { a, need } = await who(context);
+    need("legal_review");
+    const db = await ext();
+    const doc = await db.getDocument(a.companyId, data.id);
+    if (!doc) throw new Error("Document not found.");
+    await db.requestDocumentChanges(a.companyId, data.id, a.name, data.notes ?? "");
+    const core = await import("@/lib/hr/db.server");
+    await core.audit(a.companyId, doc.employee_id, { id: a.userId, name: a.name }, "document.changes_requested", { title: doc.title });
     return { ok: true };
   });
 
