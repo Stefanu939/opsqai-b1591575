@@ -556,21 +556,38 @@ export function DocumentDialog({
                 {missing} {w.missingFields} — {w.missingFieldsHint}
               </p>
             ) : null}
-            {doc.legal_status && doc.legal_status !== "not_required" ? (
-              <div className="grid gap-2 rounded-md border border-border bg-muted/35 p-3 text-xs">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={doc.legal_status === "reviewed" ? "default" : "secondary"}>
-                    {doc.legal_status === "reviewed" ? "Legal review complete" : "Mandatory legal review pending"}
-                  </Badge>
-                  <span>Legal version {doc.legal_version ?? 1} · expected {doc.expected_pages ?? "—"} pages</span>
-                </div>
-                {doc.legal_reviewed_by ? <span>{doc.legal_reviewed_by} · {fmtDate(doc.legal_reviewed_at)}</span> : null}
-                {doc.legal_sources?.map((source) => <span key={source}>{source}</span>)}
-                {!locked && can("legal_review") ? (
-                  <Textarea rows={2} placeholder="Legal review notes and scope" value={legalNotes} onChange={(e) => setLegalNotes(e.target.value)} />
-                ) : null}
+            {/* Verification panel — always visible, always says what is still needed. */}
+            <div className="grid gap-2 rounded-md border border-border bg-muted/35 p-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={reviewDone ? "default" : "secondary"}>
+                  {reviewDone
+                    ? doc.legal_status === "reviewed"
+                      ? w.reviewComplete
+                      : w.reviewNotRequired
+                    : doc.legal_status === "changes_requested"
+                      ? w.reviewChangesRequested
+                      : w.reviewPending}
+                </Badge>
+                <span>
+                  {w.legalVersion} {doc.legal_version ?? 1}
+                  {doc.expected_pages ? ` · ${doc.expected_pages} ${w.expectedPages}` : ""}
+                </span>
               </div>
-            ) : null}
+              {doc.legal_reviewed_by ? <span>{doc.legal_reviewed_by} · {fmtDate(doc.legal_reviewed_at)}</span> : null}
+              {doc.legal_review_notes ? <span className="text-muted-foreground">{doc.legal_review_notes}</span> : null}
+              {doc.legal_sources?.map((source) => <span key={source}>{source}</span>)}
+              {!locked && canReview ? (
+                <Textarea
+                  rows={2}
+                  placeholder={w.reviewNotesOptional}
+                  value={legalNotes}
+                  onChange={(e) => setLegalNotes(e.target.value)}
+                />
+              ) : null}
+              {!locked && approveBlockedReason ? (
+                <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5">{approveBlockedReason}</p>
+              ) : null}
+            </div>
             <Textarea
               rows={22}
               className="font-mono text-[13px] leading-relaxed"
