@@ -25,6 +25,7 @@ import { Route as PilotRouteImport } from './routes/pilot'
 import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as InvestRouteImport } from './routes/invest'
+import { Route as HrReviewRouteImport } from './routes/hr-review'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
@@ -242,6 +243,11 @@ const McpRoute = McpRouteImport.update({
 const InvestRoute = InvestRouteImport.update({
   id: '/invest',
   path: '/invest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HrReviewRoute = HrReviewRouteImport.update({
+  id: '/hr-review',
+  path: '/hr-review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthRoute = HealthRouteImport.update({
@@ -1016,6 +1022,7 @@ export interface FileRoutesByFullPath {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
@@ -1169,6 +1176,7 @@ export interface FileRoutesByTo {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
@@ -1321,6 +1329,7 @@ export interface FileRoutesById {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
@@ -1478,6 +1487,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/hr-review'
     | '/invest'
     | '/mcp'
     | '/modules'
@@ -1631,6 +1641,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/hr-review'
     | '/invest'
     | '/mcp'
     | '/modules'
@@ -1782,6 +1793,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/hr-review'
     | '/invest'
     | '/mcp'
     | '/modules'
@@ -1939,6 +1951,7 @@ export interface RootRouteChildren {
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HealthRoute: typeof HealthRoute
+  HrReviewRoute: typeof HrReviewRoute
   InvestRoute: typeof InvestRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
@@ -2112,6 +2125,13 @@ declare module '@tanstack/react-router' {
       path: '/invest'
       fullPath: '/invest'
       preLoaderRoute: typeof InvestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hr-review': {
+      id: '/hr-review'
+      path: '/hr-review'
+      fullPath: '/hr-review'
+      preLoaderRoute: typeof HrReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health': {
@@ -3401,6 +3421,7 @@ const rootRouteChildren: RootRouteChildren = {
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HealthRoute: HealthRoute,
+  HrReviewRoute: HrReviewRoute,
   InvestRoute: InvestRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
