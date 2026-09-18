@@ -28,10 +28,19 @@ import {
   getSelfHostPeerUpdateSettings,
   getSelfHostUpdateStatus,
   installSelfHostUpdateFromFile,
+  restartSelfHostMachine,
   runSelfHostUpdateAction,
   setSelfHostPeerUpdateSettings,
   setSelfHostUpdatePolicy,
 } from "@/lib/selfhost-updates.functions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Download, Package, ExternalLink, History, RefreshCw, Upload } from "lucide-react";
 
 /** Plain-language explanation for an update-check outcome. */
@@ -260,6 +269,11 @@ function AutoUpdatePanel() {
     windowStartHour: number;
     windowEndHour: number;
   } | null>(null);
+  // Versions whose "installation finished" window the operator already closed.
+  const [ackDone, setAckDone] = useState<string[]>([]);
+  const [restarting, setRestarting] = useState(false);
+  const restartMachine = useServerFn(restartSelfHostMachine);
+
 
   if (!status.data?.selfHosted) return null;
   const s = status.data;
@@ -306,6 +320,51 @@ function AutoUpdatePanel() {
         </div>
       }
     >
+      {/* Installation finished — make the operator confirm the machine restart. */}
+      <Dialog
+        open={
+          s.progress?.phase === "done" && !ackDone.includes(s.progress.version ?? "installed")
+        }
+        onOpenChange={(open) => {
+          if (!open) setAckDone((v) => [...v, s.progress?.version ?? "installed"]);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Instalare finalizată</DialogTitle>
+            <DialogDescription>
+              Versiunea {s.progress?.version ? `v${s.progress.version}` : "nouă"} a fost
+              instalată. Repornește computerul pe care rulează OPSQAI ca toate serviciile să
+              pornească pe versiunea nouă. Repornirea începe în 20 de secunde și toți utilizatorii
+              vor fi deconectați.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAckDone((v) => [...v, s.progress?.version ?? "installed"])}
+            >
+              Închide fereastra
+            </Button>
+            <Button
+              disabled={restarting}
+              onClick={() => {
+                setRestarting(true);
+                void restartMachine()
+                  .then(() => {
+                    toast.success("Computerul se repornește în câteva secunde");
+                    setAckDone((v) => [...v, s.progress?.version ?? "installed"]);
+                  })
+                  .catch((e: Error) => toast.error(e.message))
+                  .finally(() => setRestarting(false));
+              }}
+            >
+              {restarting ? "Se repornește…" : "Repornește computerul"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {s.notice && s.notice.outcome !== "staged" ? (
         <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border p-3">
           <Badge variant={s.notice.outcome === "success" ? "default" : "destructive"}>

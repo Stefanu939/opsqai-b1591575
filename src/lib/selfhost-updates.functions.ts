@@ -334,6 +334,26 @@ export const restartSelfHostServices = createServerFn({ method: "POST" })
   });
 
 /**
+ * Ask the updater service to reboot the Windows machine the installation runs
+ * on. Offered right after an installation so the operator can be certain every
+ * service and driver starts from the new version. The updater schedules the
+ * reboot with a short delay so this response still reaches the browser.
+ */
+export const restartSelfHostMachine = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }): Promise<{ ok: boolean }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Restart applies to Self-Hosted only.");
+    const { writeUpdateCommand } = await import(
+      "@/lib/providers/selfhost/update-discovery.server"
+    );
+    const ok = await writeUpdateCommand("restart-machine");
+    if (!ok) throw new Error("Could not reach the local update folder.");
+    return { ok: true };
+  });
+
+/**
  * Install an update package the operator downloaded manually from the website.
  * The bytes are verified against the signed release descriptor before they are
  * staged, then the normal installation command runs.
