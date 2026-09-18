@@ -186,13 +186,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/users",
       label: "Users",
       icon: Users,
-      show: hasAnyPermission(
-        "user.read",
-        "user.create",
-        "user.update",
-        "user.delete",
-        "rbac.manage",
-      ),
+      show:
+        mode === "selfhost" ||
+        hasAnyPermission(
+          "user.read",
+          "user.create",
+          "user.update",
+          "user.delete",
+          "rbac.manage",
+        ),
       module: "rbac",
     },
     { to: "/app/organization", label: "Organization", icon: Building2, show: true, module: "rbac" },
