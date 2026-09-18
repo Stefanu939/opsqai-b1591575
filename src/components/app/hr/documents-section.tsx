@@ -241,6 +241,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
             {docs.map((d) => (
               <li key={d.id} className="flex flex-wrap items-center gap-3 py-2.5">
                 <Badge variant={statusVariant(d)}>{statusLabel(d)}</Badge>
+                {reviewLabel(d) ? <Badge variant="outline">{reviewLabel(d)}</Badge> : null}
                 <button type="button" onClick={() => setOpenId(d.id)} className="min-w-0 flex-1 text-left">
                   <span className="block truncate text-sm font-medium hover:underline">
                     {d.draft_name ?? d.title}
