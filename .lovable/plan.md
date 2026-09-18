@@ -1,9 +1,10 @@
-# Reparăm Self-Hosted: elemente lipsă, HR „date parțiale”, actualizări
+# Reparăm Self-Hosted: elemente lipsă, HR „date parțiale”, aprobarea contractelor, actualizări
 
 ## Ce am verificat acum
 
 - Codul din proiect e sănătos: verificarea de tipuri, toate testele (393) și pachetele trec. Munca întreruptă de credite nu a lăsat cod rupt.
 - **Eroarea din HR e confirmată exact.** Lista „activitate recentă” cere o coloană `created_at` din tabelul de evenimente ale angajaților, dar acolo coloana se numește `occurred_at`. De aceea apare „Date parțiale — unele secțiuni nu s-au putut încărca”. O altă interogare, tot în HR, folosește deja numele corect — deci e o singură scăpare, nu o problemă de structură.
+- **Aprobarea contractelor e blocată prin construcție.** Butonul „Aprobă și blochează” e dezactivat până când starea juridică a documentului este „verificat”. Butonul care pune documentul în starea „verificat” apare numai dacă starea e exact „în așteptare” **și** utilizatorul are dreptul special de revizie juridică. Dacă documentul nu are deloc stare juridică (instalare rămasă în urmă cu actualizările bazei) sau starea e „modificări cerute”, nu apare niciun buton — contractul rămâne permanent invalid, fără cale de ieșire. Exact ce descrii.
 - **Instalarea nu se declară „on-premise” către partea de server.** Serviciul care pornește aplicația pe Windows setează `OPSQAI_PLATFORM_MODE` și `OPSQAI_DEPLOYMENT_TYPE`, dar **nu** `OPSQAI_MODE`. Tot ce citește `OPSQAI_MODE` (setup la prima pornire, verificările „doar on-premise”, funcția care spune interfeței în ce mod rulează) crede că aplicația e cea din cloud. De aici „funcțiile nu se încarcă”.
 - **„Users” nu are plasa de siguranță pe care o au celelalte funcții Core**: apare doar dacă drepturile utilizatorului s-au încărcat. Când încărcarea eșuează, „Users” dispare și butoanele de adăugare (documente, licență) nu mai apar, fără mesaj.
 - La actualizări există deja: descărcare cu procentaj real, verificare amprentă, sursă din Management Center cu rezervă pe manifest semnat, instalare prin serviciul de update. **Lipsesc**: alegerea manuală a unui pachet descărcat de pe site și distribuirea unui update către celelalte instalări din rețeaua clientului.
