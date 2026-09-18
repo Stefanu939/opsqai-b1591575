@@ -15,14 +15,18 @@ import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   approveHrDocument,
+  createHrReviewLink,
   deleteHrDocument,
   deleteHrTemplate,
   downloadHrDocument,
   generateHrDocument,
   getHrDocumentGenerationContext,
   getHrDocument,
+  getHrReviewLinks,
   legallyReviewHrDocument,
+  recordExternalHrReview,
   requestHrDocumentChanges,
+  revokeHrReviewLink,
   saveHrTemplate,
   updateHrDocumentDraft,
   uploadHrDocument,
