@@ -66,9 +66,11 @@ export async function hrActor(context: HrCtx): Promise<HrActor> {
         case "delete":
           return ["delete"];
         case "approve":
-          return ["approve"];
+          // Whoever may approve documents may also record the verification step,
+          // otherwise a generated contract can never leave the review state.
+          return ["approve", "legal_review"];
         case "administer":
-          return ["settings", "export", "sensitive"];
+          return ["settings", "export", "sensitive", "approve", "legal_review"];
         default:
           return [];
       }
