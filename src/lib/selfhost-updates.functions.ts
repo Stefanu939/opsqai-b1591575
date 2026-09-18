@@ -383,6 +383,57 @@ export const installSelfHostUpdateFromFile = createServerFn({ method: "POST" })
     return { ok: true, version: staged.version };
   });
 
+/**
+ * Receive one chunk of a package the operator downloaded from the website.
+ * Installers weigh more than a gigabyte, so the browser sends them piece by
+ * piece; each piece is appended to a temporary file on the server.
+ */
+export const uploadSelfHostUpdateChunk = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        uploadId: z.string().regex(/^[a-z0-9-]{8,64}$/i),
+        index: z.number().int().min(0),
+        base64: z.string().min(1).max(12_000_000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: boolean; received: number; reason?: string }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Updates apply to Self-Hosted only.");
+    const { appendUpdateUploadChunk } = await import(
+      "@/lib/providers/selfhost/update-discovery.server"
+    );
+    const bytes = new Uint8Array(Buffer.from(data.base64, "base64"));
+    return appendUpdateUploadChunk(data.uploadId, data.index, bytes);
+  });
+
+/** Verify the fully uploaded package and schedule its installation. */
+export const finishSelfHostUpdateUpload = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        uploadId: z.string().regex(/^[a-z0-9-]{8,64}$/i),
+        filename: z.string().min(1).max(200),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: boolean; version?: string; reason?: string }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Updates apply to Self-Hosted only.");
+    const { finishUpdateUpload, writeUpdateCommand } = await import(
+      "@/lib/providers/selfhost/update-discovery.server"
+    );
+    const staged = await finishUpdateUpload(data.uploadId, data.filename);
+    if (!staged.ok) return { ok: false, reason: staged.reason };
+    await writeUpdateCommand("install", staged.version);
+    return { ok: true, version: staged.version };
+  });
+
 /** Read / write LAN peer distribution settings for this installation. */
 export const getSelfHostPeerUpdateSettings = createServerFn({ method: "POST" })
   .middleware([requireAuth])
