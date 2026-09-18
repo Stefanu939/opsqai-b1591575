@@ -221,7 +221,9 @@ function ChatInner({
   t: (k: never) => string;
   firstName: string;
 }) {
+  const { lang } = useT();
   const transcribeVoice = useServerFn2(transcribeVoiceInput);
+
   const synthesizeVoice = useServerFn2(synthesizeVoiceReply);
   const uploadImage = useServerFn2(uploadChatImage);
 
