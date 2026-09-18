@@ -363,35 +363,106 @@ export async function stageUpdateFromFile(
 ): Promise<{ ok: true; version: string } | { ok: false; reason: string }> {
   const dir = updatesDir();
   if (!dir) return { ok: false, reason: "no_update_folder" };
+  const tmp = join(dir, "incoming", `direct-${Date.now()}.part`);
+  await mkdir(dirname(tmp), { recursive: true });
+  const { writeFile: write } = await import("node:fs/promises");
+  await write(tmp, Buffer.from(bytes));
+  return stageUpdateFromStagedPath(tmp, filename);
+}
+
+/**
+ * Append one chunk of an operator-selected package to a temporary file. Large
+ * installers (well over a gigabyte) cannot travel as a single request, so the
+ * browser sends them in pieces and only the last call verifies and stages.
+ */
+export async function appendUpdateUploadChunk(
+  uploadId: string,
+  index: number,
+  bytes: Uint8Array,
+): Promise<{ ok: boolean; received: number; reason?: string }> {
+  const dir = updatesDir();
+  if (!dir) return { ok: false, received: 0, reason: "no_update_folder" };
+  if (!/^[a-z0-9-]{8,64}$/i.test(uploadId)) return { ok: false, received: 0, reason: "bad_upload" };
+  const target = join(dir, "incoming", `${uploadId}.part`);
+  await mkdir(dirname(target), { recursive: true });
+  const { appendFile, writeFile: write, stat } = await import("node:fs/promises");
+  if (index === 0) await write(target, Buffer.alloc(0));
+  await appendFile(target, Buffer.from(bytes));
+  const st = await stat(target).catch(() => null);
+  return { ok: true, received: st?.size ?? 0 };
+}
+
+/** Verify a fully uploaded package and stage it for installation. */
+export async function finishUpdateUpload(
+  uploadId: string,
+  filename: string,
+): Promise<{ ok: true; version: string } | { ok: false; reason: string }> {
+  const dir = updatesDir();
+  if (!dir) return { ok: false, reason: "no_update_folder" };
+  if (!/^[a-z0-9-]{8,64}$/i.test(uploadId)) return { ok: false, reason: "bad_upload" };
+  return stageUpdateFromStagedPath(join(dir, "incoming", `${uploadId}.part`), filename);
+}
+
+/**
+ * Hash a package already written to disk, compare it with the signed release
+ * descriptor and move it into the packages folder. Hashing streams the file, so
+ * package size is limited only by free disk space.
+ */
+async function stageUpdateFromStagedPath(
+  tmpPath: string,
+  filename: string,
+): Promise<{ ok: true; version: string } | { ok: false; reason: string }> {
+  const dir = updatesDir();
+  if (!dir) return { ok: false, reason: "no_update_folder" };
+  const { stat, rename, mkdir: mkdirp, rm } = await import("node:fs/promises");
+  const st = await stat(tmpPath).catch(() => null);
+  if (!st || st.size === 0) {
+    await rm(tmpPath, { force: true });
+    return { ok: false, reason: "empty_file" };
+  }
   const update = await readAvailableUpdate();
-  if (!update) return { ok: false, reason: "no_known_release" };
-  if (!update.sha256) return { ok: false, reason: "no_checksum" };
+  if (!update) {
+    await rm(tmpPath, { force: true });
+    return { ok: false, reason: "no_known_release" };
+  }
+  if (!update.sha256) {
+    await rm(tmpPath, { force: true });
+    return { ok: false, reason: "no_checksum" };
+  }
 
   const { createHash } = await import("node:crypto");
-  const digest = createHash("sha256").update(bytes).digest("hex");
-  if (digest !== update.sha256.toLowerCase()) return { ok: false, reason: "checksum_mismatch" };
+  const { createReadStream } = await import("node:fs");
+  const hash = createHash("sha256");
+  await new Promise<void>((resolve, reject) => {
+    const stream = createReadStream(tmpPath);
+    stream.on("data", (c) => hash.update(c));
+    stream.on("error", reject);
+    stream.on("end", () => resolve());
+  });
+  const digest = hash.digest("hex");
+  if (digest !== update.sha256.toLowerCase()) {
+    await rm(tmpPath, { force: true });
+    return { ok: false, reason: "checksum_mismatch" };
+  }
 
   const ext = /\.exe$/i.test(filename) ? "exe" : "zip";
   const target = join(dir, "packages", `opsqai-${update.version}.${ext}`);
-  await mkdir(dirname(target), { recursive: true });
-  const tmp = `${target}.part`;
-  const { writeFile: write, rename } = await import("node:fs/promises");
-  await write(tmp, Buffer.from(bytes));
-  await rename(tmp, target);
+  await mkdirp(dirname(target), { recursive: true });
+  await rename(tmpPath, target);
   await writeJson(join(dir, "downloaded.json"), {
     version: update.version,
     artifact: ext,
     path: target,
     sha256: digest,
-    size: bytes.byteLength,
+    size: st.size,
     at: new Date().toISOString(),
     source: "manual-file",
   }).catch(() => undefined);
   await writeUpdateProgress({
     phase: "verified",
     version: update.version,
-    received: bytes.byteLength,
-    total: bytes.byteLength,
+    received: st.size,
+    total: st.size,
   });
   return { ok: true, version: update.version };
 }

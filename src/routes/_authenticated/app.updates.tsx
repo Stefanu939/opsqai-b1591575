@@ -27,7 +27,8 @@ import {
   dismissSelfHostUpdateNotice,
   getSelfHostPeerUpdateSettings,
   getSelfHostUpdateStatus,
-  installSelfHostUpdateFromFile,
+  uploadSelfHostUpdateChunk,
+  finishSelfHostUpdateUpload,
   restartSelfHostMachine,
   runSelfHostUpdateAction,
   setSelfHostPeerUpdateSettings,
@@ -101,8 +102,10 @@ function ManualInstallPanel({
   expected: { version: string } | null;
   onDone: () => void;
 }) {
-  const installFile = useServerFn(installSelfHostUpdateFromFile);
+  const uploadChunk = useServerFn(uploadSelfHostUpdateChunk);
+  const finishUpload = useServerFn(finishSelfHostUpdateUpload);
   const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reasons: Record<string, string> = {
@@ -111,23 +114,43 @@ function ManualInstallPanel({
     no_checksum: "This release has no published checksum, so a manual file cannot be verified.",
     checksum_mismatch: "This file does not match the published release and was not installed.",
     empty_file: "The selected file is empty.",
+    no_update_folder: "The local update folder is not reachable on this server.",
+    bad_upload: "The transfer was interrupted — select the file again.",
   };
 
   const onPick = async (file: File) => {
     setBusy(true);
+    setSent(0);
     try {
-      const buf = new Uint8Array(await file.arrayBuffer());
-      let binary = "";
-      for (let i = 0; i < buf.length; i += 8192) {
-        binary += String.fromCharCode(...buf.subarray(i, i + 8192));
+      // The package is sent in pieces: a gigabyte-sized installer cannot be
+      // encoded or transferred in a single request.
+      const uploadId = crypto.randomUUID();
+      const CHUNK = 4 * 1024 * 1024;
+      let index = 0;
+      for (let offset = 0; offset < file.size; offset += CHUNK) {
+        const part = new Uint8Array(await file.slice(offset, offset + CHUNK).arrayBuffer());
+        let binary = "";
+        for (let i = 0; i < part.length; i += 8192) {
+          binary += String.fromCharCode(...part.subarray(i, i + 8192));
+        }
+        const up = await uploadChunk({
+          data: { uploadId, index, base64: btoa(binary) },
+        });
+        if (!up.ok) {
+          toast.error(reasons[up.reason ?? ""] ?? "The file could not be transferred.");
+          return;
+        }
+        index += 1;
+        setSent(Math.min(100, Math.round(((offset + part.length) / file.size) * 100)));
       }
-      const res = await installFile({ data: { filename: file.name, base64: btoa(binary) } });
+      const res = await finishUpload({ data: { uploadId, filename: file.name } });
       if (res.ok) toast.success(`v${res.version} verified — installation scheduled`);
       else toast.error(reasons[res.reason ?? ""] ?? "The file could not be verified.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
+      setSent(0);
       onDone();
     }
   };
@@ -147,7 +170,7 @@ function ManualInstallPanel({
           disabled={busy}
           onClick={() => inputRef.current?.click()}
         >
-          {busy ? "Verifying…" : "Choose file"}
+          {busy ? (sent > 0 ? `Sending ${sent}%` : "Reading…") : "Choose file"}
         </Button>
       </div>
       <input
@@ -487,7 +510,7 @@ function AutoUpdatePanel() {
               </Button>
               <Button
                 size="sm"
-                disabled={busy !== null || s.available.artifact === "zip"}
+                disabled={busy !== null}
                 onClick={() => {
                   setBusy("install");
                   setPending({ phase: "installing", version: s.available!.version });
@@ -517,8 +540,8 @@ function AutoUpdatePanel() {
           ) : null}
           {s.available.artifact === "zip" ? (
             <p className="mt-2 text-xs text-muted-foreground">
-              This release is published as an archive, so it is downloaded for you but installed
-              manually.
+              This release is published as an archive: it is downloaded, verified and then
+              unpacked over the installation, with the same backup and rollback as an installer.
             </p>
           ) : null}
         </div>

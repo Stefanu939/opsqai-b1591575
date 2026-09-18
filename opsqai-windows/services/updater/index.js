@@ -381,7 +381,6 @@ async function pollOnce() {
       const shouldApply =
         state.lastStaged &&
         isNewer(state.lastStaged.version, CURRENT_VERSION) &&
-        state.lastStaged.artifact !== "zip" &&
         state.lastApply?.version !== state.lastStaged.version &&
         (command?.action === "install" || (policy.automatic && inWindow(policy)));
       if (shouldApply) await applyStaged(state);
