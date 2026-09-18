@@ -87,6 +87,8 @@ const DOC_SELECT = `
           d.legal_status, d.legal_reviewed_at, d.legal_reviewed_by, d.legal_review_notes,
           d.legal_version, d.legal_sources, d.legal_verified_on::text, d.legal_review_due::text,
           d.salary_snapshot, d.expected_pages,
+          d.external_reviewer_name, d.external_reviewer_org, d.external_reviewed_at,
+          d.external_reference, d.external_evidence_id,
          (d.signed_data IS NOT NULL) AS has_signed, d.signed_filename, d.signed_at, d.updated_at,
          COALESCE(d.signature_status, 'none') AS signature_status, d.signature_due::text AS signature_due,
          d.signature_requested_at, d.signature_requested_by, d.signed_by_name, d.signature_kind,
