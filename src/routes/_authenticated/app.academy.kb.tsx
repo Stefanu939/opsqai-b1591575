@@ -2,7 +2,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listAcademyDepartments, listAcademyPaths } from "@/lib/academy.functions";
+import {
+  listAcademyDepartments,
+  listAcademyPaths,
+  setAcademyPathPublishStatus,
+} from "@/lib/academy.functions";
+import { AssignTrainingDialog } from "@/components/academy/assign-training-dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -107,13 +114,15 @@ function AcademyKBPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map((p) => (
-              <Link
+              <Card
                 key={p.id}
-                to="/app/academy/path/$pathId"
-                params={{ pathId: p.id }}
-                className="block"
+                className="p-4 space-y-2 h-full hover:border-primary/40 transition-colors flex flex-col"
               >
-                <Card className="p-4 space-y-2 h-full hover:border-primary/40 transition-colors">
+                <Link
+                  to="/app/academy/path/$pathId"
+                  params={{ pathId: p.id }}
+                  className="block space-y-2"
+                >
                   <div className="font-medium text-sm flex items-start gap-2">
                     <BookOpen className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                     <span className="truncate">{p.title}</span>
@@ -130,8 +139,28 @@ function AcademyKBPage() {
                       </Badge>
                     )}
                   </div>
-                </Card>
-              </Link>
+                </Link>
+                {canManage && (
+                  <div className="mt-auto pt-2 flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant={p.publish_status === "published" ? "outline" : "default"}
+                      disabled={busyId === p.id}
+                      onClick={() =>
+                        void togglePublish(
+                          p.id,
+                          p.publish_status === "published" ? "draft" : "published",
+                        )
+                      }
+                    >
+                      {p.publish_status === "published" ? "Unpublish" : "Publish"}
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => setAssignPathId(p.id)}>
+                      Assign
+                    </Button>
+                  </div>
+                )}
+              </Card>
             ))}
           </div>
         )}
