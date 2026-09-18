@@ -678,7 +678,42 @@ function IssueLicenseDialog({
               onChange={(e) => setExpires(e.target.value)}
               className="mt-1"
             />
+            {/* Pilot presets: a time-boxed licence is the usual way a pilot
+                is scoped, so the dates are one click instead of arithmetic. */}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-muted-foreground">Pilot:</span>
+              {[14, 30, 60, 90].map((d) => (
+                <Button
+                  key={d}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-xs"
+                  onClick={() =>
+                    setExpires(
+                      new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10),
+                    )
+                  }
+                >
+                  {d} days
+                </Button>
+              ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs"
+                onClick={() => setExpires("")}
+              >
+                No expiry
+              </Button>
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              After the date the installation keeps reading and exporting its data; creating and
+              changing records is blocked until the licence is extended or moved to production.
+            </p>
           </div>
+
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>

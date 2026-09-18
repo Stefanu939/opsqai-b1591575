@@ -43,6 +43,8 @@ import { AccountMenu } from "@/components/app/account-menu";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SubscriptionStatusBanner } from "@/components/app/subscription-status-banner";
+import { LicenseExpiryBanner } from "@/components/app/license-expiry-banner";
+
 import { IdleSessionGuard } from "@/components/app/idle-session-guard";
 import { useLicense, hasModule } from "@/lib/license";
 import type { ModuleKey } from "@/lib/license-modules";
@@ -474,7 +476,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="md:contents">
           <SubscriptionStatusBanner />
+          <LicenseExpiryBanner />
           <IdleSessionGuard />
+
         </div>
         {/* Route change gets a short fade/rise so navigation reads as a state
             change rather than a hard swap. */}

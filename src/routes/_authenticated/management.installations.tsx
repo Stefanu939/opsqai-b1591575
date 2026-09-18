@@ -331,16 +331,26 @@ function InstallationsPage() {
       header: "",
       align: "right",
       render: (r) => (
-        <Link
-          to="/management/licenses"
-          search={{ install: r.install_id }}
-          className="text-xs text-foreground underline underline-offset-4 hover:no-underline"
-        >
-          License →
-        </Link>
+        <div className="flex items-center justify-end gap-3">
+          <Link
+            to="/management/usage/$installId"
+            params={{ installId: r.install_id }}
+            className="text-xs text-foreground underline underline-offset-4 hover:no-underline"
+          >
+            Usage →
+          </Link>
+          <Link
+            to="/management/licenses"
+            search={{ install: r.install_id }}
+            className="text-xs text-foreground underline underline-offset-4 hover:no-underline"
+          >
+            License →
+          </Link>
+        </div>
       ),
     },
   ];
+
 
   return (
     <ModulePage

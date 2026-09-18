@@ -248,11 +248,24 @@ export async function bootstrapSelfHosted(): Promise<void> {
       ? Number(env.OPSQAI_HEARTBEAT_INTERVAL_MS)
       : undefined,
     appVersion: env.OPSQAI_APP_VERSION,
+    // Aggregate-only usage numbers for the external usage audit. Skipped
+    // entirely when the installation's telemetry level is "disabled".
+    collectUsage:
+      env.OPSQAI_TELEMETRY_LEVEL === "disabled"
+        ? undefined
+        : async () => {
+            const { collectUsageMetrics } = await import("./usage-metrics.server");
+            return (await collectUsageMetrics(pool)) as unknown as Record<
+              string,
+              number | null
+            >;
+          },
     logger: {
       info: (message) => console.info(message),
       warn: (message, error) => console.warn(message, error),
     },
   });
+
 
   const backup = env.OPSQAI_PG_DUMP_PATH
     ? createWindowsBackupService({

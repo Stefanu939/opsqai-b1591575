@@ -46,6 +46,11 @@ export async function hasPermission(
     repo.isPlatformOwner(context.userId),
     repo.hasPermission(context.userId, permission),
   ]);
+  // An expired licence puts the installation in read-only grace: reading,
+  // searching and exporting stay available to everyone (owner included),
+  // creating and changing records does not.
+  const { isMutatingPermission, isLicenseReadOnly } = await import("@/lib/license-readonly.server");
+  if (isMutatingPermission(permission) && (await isLicenseReadOnly())) return false;
   // Owner and platform-level SuperAdmins are permanent full-access roles.
   const roles = await repo.listRolesForUser(context.userId);
   if (isOwner || roles.some((role) => role === "platform_admin" || role === "superadmin")) return true;
@@ -56,6 +61,7 @@ export async function hasPermission(
   }
   return has;
 }
+
 
 export async function requirePermission(
   context: { supabase: any; userId: string },
