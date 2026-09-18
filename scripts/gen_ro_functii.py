@@ -237,10 +237,10 @@ def core_section():
         lead("Core este platforma însăși: este inclusă întotdeauna, nu se cumpără bucată cu "
              "bucată. Accesul la fiecare funcție rămâne controlat prin roluri și drepturi."),
     ]
-    for nume_row in rows:
-        out.append(table(["Funcție", "Ce face", "La ce ajută", "Cine o vede"], [nume_row],
-                         widths=[18, 32, 30, 20], keep=True))
-        out.append(Spacer(1, 3))
+    out.append(table(["Funcție", "Ce face", "La ce ajută", "Cine o vede"], rows,
+                     widths=[17, 31, 29, 23], keep=False))
+    out.append(Spacer(1, 4))
+
     out.append(small("Sursă: arhitectura de produs a aplicației, versiunea " + ARCH["version"] + "."))
     return out
 
