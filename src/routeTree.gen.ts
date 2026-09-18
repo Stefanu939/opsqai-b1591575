@@ -141,6 +141,7 @@ import { Route as ApiPublicCalendarTokenRouteImport } from './routes/api/public/
 import { Route as AuthenticatedPortalNewsSlugRouteImport } from './routes/_authenticated/portal.news.$slug'
 import { Route as AuthenticatedPortalAdminDownloadsRouteImport } from './routes/_authenticated/portal.admin.downloads'
 import { Route as AuthenticatedManagementValueIdRouteImport } from './routes/_authenticated/management.value.$id'
+import { Route as AuthenticatedManagementUsageInstallIdRouteImport } from './routes/_authenticated/management.usage.$installId'
 import { Route as AuthenticatedManagementTeamUserIdRouteImport } from './routes/_authenticated/management.team.$userId'
 import { Route as AuthenticatedManagementCrmReportsRouteImport } from './routes/_authenticated/management.crm.reports'
 import { Route as AuthenticatedManagementCrmActivitiesRouteImport } from './routes/_authenticated/management.crm.activities'
@@ -870,6 +871,12 @@ const AuthenticatedManagementValueIdRoute =
     path: '/value/$id',
     getParentRoute: () => AuthenticatedManagementRoute,
   } as any)
+const AuthenticatedManagementUsageInstallIdRoute =
+  AuthenticatedManagementUsageInstallIdRouteImport.update({
+    id: '/usage/$installId',
+    path: '/usage/$installId',
+    getParentRoute: () => AuthenticatedManagementRoute,
+  } as any)
 const AuthenticatedManagementTeamUserIdRoute =
   AuthenticatedManagementTeamUserIdRouteImport.update({
     id: '/$userId',
@@ -1136,6 +1143,7 @@ export interface FileRoutesByFullPath {
   '/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
   '/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
+  '/management/usage/$installId': typeof AuthenticatedManagementUsageInstallIdRoute
   '/management/value/$id': typeof AuthenticatedManagementValueIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
@@ -1285,6 +1293,7 @@ export interface FileRoutesByTo {
   '/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
   '/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
+  '/management/usage/$installId': typeof AuthenticatedManagementUsageInstallIdRoute
   '/management/value/$id': typeof AuthenticatedManagementValueIdRoute
   '/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
@@ -1443,6 +1452,7 @@ export interface FileRoutesById {
   '/_authenticated/management/crm/activities': typeof AuthenticatedManagementCrmActivitiesRoute
   '/_authenticated/management/crm/reports': typeof AuthenticatedManagementCrmReportsRoute
   '/_authenticated/management/team/$userId': typeof AuthenticatedManagementTeamUserIdRoute
+  '/_authenticated/management/usage/$installId': typeof AuthenticatedManagementUsageInstallIdRoute
   '/_authenticated/management/value/$id': typeof AuthenticatedManagementValueIdRoute
   '/_authenticated/portal/admin/downloads': typeof AuthenticatedPortalAdminDownloadsRoute
   '/_authenticated/portal/news/$slug': typeof AuthenticatedPortalNewsSlugRoute
@@ -1601,6 +1611,7 @@ export interface FileRouteTypes {
     | '/management/crm/activities'
     | '/management/crm/reports'
     | '/management/team/$userId'
+    | '/management/usage/$installId'
     | '/management/value/$id'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
@@ -1750,6 +1761,7 @@ export interface FileRouteTypes {
     | '/management/crm/activities'
     | '/management/crm/reports'
     | '/management/team/$userId'
+    | '/management/usage/$installId'
     | '/management/value/$id'
     | '/portal/admin/downloads'
     | '/portal/news/$slug'
@@ -1907,6 +1919,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/crm/activities'
     | '/_authenticated/management/crm/reports'
     | '/_authenticated/management/team/$userId'
+    | '/_authenticated/management/usage/$installId'
     | '/_authenticated/management/value/$id'
     | '/_authenticated/portal/admin/downloads'
     | '/_authenticated/portal/news/$slug'
@@ -2939,6 +2952,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManagementValueIdRouteImport
       parentRoute: typeof AuthenticatedManagementRoute
     }
+    '/_authenticated/management/usage/$installId': {
+      id: '/_authenticated/management/usage/$installId'
+      path: '/usage/$installId'
+      fullPath: '/management/usage/$installId'
+      preLoaderRoute: typeof AuthenticatedManagementUsageInstallIdRouteImport
+      parentRoute: typeof AuthenticatedManagementRoute
+    }
     '/_authenticated/management/team/$userId': {
       id: '/_authenticated/management/team/$userId'
       path: '/$userId'
@@ -3231,6 +3251,7 @@ interface AuthenticatedManagementRouteChildren {
   AuthenticatedManagementCrmLeadIdRoute: typeof AuthenticatedManagementCrmLeadIdRoute
   AuthenticatedManagementCrmActivitiesRoute: typeof AuthenticatedManagementCrmActivitiesRoute
   AuthenticatedManagementCrmReportsRoute: typeof AuthenticatedManagementCrmReportsRoute
+  AuthenticatedManagementUsageInstallIdRoute: typeof AuthenticatedManagementUsageInstallIdRoute
   AuthenticatedManagementValueIdRoute: typeof AuthenticatedManagementValueIdRoute
   AuthenticatedManagementCrmIndexRoute: typeof AuthenticatedManagementCrmIndexRoute
   AuthenticatedManagementValueIndexRoute: typeof AuthenticatedManagementValueIndexRoute
@@ -3263,6 +3284,8 @@ const AuthenticatedManagementRouteChildren: AuthenticatedManagementRouteChildren
       AuthenticatedManagementCrmActivitiesRoute,
     AuthenticatedManagementCrmReportsRoute:
       AuthenticatedManagementCrmReportsRoute,
+    AuthenticatedManagementUsageInstallIdRoute:
+      AuthenticatedManagementUsageInstallIdRoute,
     AuthenticatedManagementValueIdRoute: AuthenticatedManagementValueIdRoute,
     AuthenticatedManagementCrmIndexRoute: AuthenticatedManagementCrmIndexRoute,
     AuthenticatedManagementValueIndexRoute:

@@ -3725,6 +3725,36 @@ export type Database = {
           },
         ]
       }
+      selfhost_usage_snapshots: {
+        Row: {
+          app_version: string | null
+          client_timestamp: string | null
+          id: string
+          install_id: string
+          metrics: Json
+          received_at: string
+          window_days: number
+        }
+        Insert: {
+          app_version?: string | null
+          client_timestamp?: string | null
+          id?: string
+          install_id: string
+          metrics?: Json
+          received_at?: string
+          window_days?: number
+        }
+        Update: {
+          app_version?: string | null
+          client_timestamp?: string | null
+          id?: string
+          install_id?: string
+          metrics?: Json
+          received_at?: string
+          window_days?: number
+        }
+        Relationships: []
+      }
       social_cron_tokens: {
         Row: {
           created_at: string

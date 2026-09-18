@@ -29,7 +29,13 @@ export interface HeartbeatSenderOptions {
   appVersion?: string;
   fetchImpl?: typeof fetch;
   logger?: HeartbeatLogger;
+  /**
+   * Optional aggregate-usage collector. Returns numbers only (never content);
+   * bootstrap wires it unless the install's telemetry level is "disabled".
+   */
+  collectUsage?: () => Promise<Record<string, number | null> | null>;
 }
+
 
 /** Public Management Center that ingests fleet heartbeats. */
 export const DEFAULT_MC_BASE_URL = "https://opsqai.de";
@@ -91,8 +97,10 @@ async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayl
     status: "running" as const,
     last_maintenance_at: null,
     next_maintenance_at: toIso(lic.claims.maintenance_expires_at ?? null),
+    usage: opts.collectUsage ? await opts.collectUsage().catch(() => null) : null,
     timestamp: new Date().toISOString(),
   };
+
 
   const parsed = HeartbeatPayloadSchema.safeParse(candidate);
   return parsed.success ? parsed.data : null;

@@ -259,7 +259,15 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
   const { pool, licensePublicKey, licenseFilePath } = deps;
   const now = deps.now ?? (() => new Date());
 
-  async function readAndVerify(): Promise<VerifiedLicenseSet> {
+  /**
+   * Verify the license file. `allowExpired` is used only by the read-only
+   * grace path: an expired pilot must keep its data readable and exportable,
+   * so entitlements are still derived, with writes blocked elsewhere.
+   */
+  async function readAndVerify(opts?: { allowExpired?: boolean }): Promise<VerifiedLicenseSet> {
+    const checkExpiry = (claims: BaseLicenseClaims) => {
+      if (!opts?.allowExpired) assertNotExpired(claims, now());
+    };
     let raw: string;
     try {
       raw = (await readFile(licenseFilePath, "utf8")).trim();
@@ -287,7 +295,7 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
         if (e instanceof LicenseFailure) throw e;
         throw new LicenseFailure("invalid", (e as Error).message);
       }
-      assertNotExpired(install, now());
+      checkExpiry(install);
 
       // The bundle's CRL is verified with the same pinned key. Revocation is
       // authoritative and applies before anything is mirrored or granted.
@@ -334,7 +342,7 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
     } catch (e) {
       throw new LicenseFailure("invalid", (e as Error).message);
     }
-    assertNotExpired(install, now());
+    checkExpiry(install);
     return {
       install,
       installRaw: raw,
@@ -550,6 +558,43 @@ export function createLocalLicensingProvider(deps: LocalLicensingDeps): ILicensi
         // the UI can tell the operator what to actually do about it.
         const failure = e instanceof LicenseFailure ? e : null;
         const kind = failure?.kind ?? "invalid";
+
+        // Expired licence = read-only grace, not a dead installation. The
+        // customer keeps seeing and exporting their own data; creating or
+        // changing records is blocked by the write guard until the licence
+        // is extended or moved to production.
+        if (kind === "expired") {
+          try {
+            const verified = await readAndVerify({ allowExpired: true });
+            const claims = normalizeInstallClaims(verified.install);
+            return {
+              unlimited: false,
+              installId: claims.install_id ?? null,
+              customer: claims.customer,
+              edition: claims.edition as string,
+              seats: claims.seats ?? null,
+              modules: mergeEntitlementKeys(claims, verified),
+              coreCapabilities: Array.isArray(claims.core_capabilities)
+                ? claims.core_capabilities.filter((key): key is string => typeof key === "string")
+                : null,
+              profile: typeof claims.profile === "string" ? claims.profile : null,
+              products: Array.isArray(claims.products)
+                ? claims.products.filter((p): p is string => typeof p === "string")
+                : [],
+              expiresAt: expirySeconds(claims),
+              maintenanceExpiresAt:
+                typeof claims.maintenance_expires_at === "number"
+                  ? claims.maintenance_expires_at
+                  : null,
+              revoked: false,
+              status: "expired" as const,
+              statusDetail: failure?.message ?? "License expired — read-only",
+            };
+          } catch {
+            /* fall through to the hard-failure shape below */
+          }
+        }
+
         return {
           unlimited: false,
           installId: null,

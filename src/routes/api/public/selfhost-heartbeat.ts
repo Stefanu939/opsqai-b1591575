@@ -118,8 +118,35 @@ export const Route = createFileRoute("/api/public/selfhost-heartbeat")({
           client_timestamp: payload.timestamp,
         });
 
+        // Aggregate usage history — numbers only, kept at most every 6 hours
+        // so a 5-minute heartbeat does not flood the table.
+        if (payload.usage) {
+          const { data: last } = await supabaseAdmin
+            .from("selfhost_usage_snapshots")
+            .select("received_at")
+            .eq("install_id", payload.installation_id)
+            .order("received_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          const sixHours = 6 * 60 * 60 * 1000;
+          const stale =
+            !last?.received_at ||
+            Date.now() - new Date(last.received_at).getTime() > sixHours;
+          if (stale) {
+            await supabaseAdmin.from("selfhost_usage_snapshots").insert({
+              install_id: payload.installation_id,
+              received_at: now,
+              client_timestamp: payload.timestamp,
+              app_version: payload.app_version ?? null,
+              window_days: payload.usage.window_days,
+              metrics: payload.usage,
+            });
+          }
+        }
+
         return json({ ok: true });
       },
     },
   },
 });
+
