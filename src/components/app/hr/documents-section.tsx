@@ -651,6 +651,171 @@ export function DocumentDialog({
                 <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5">{approveBlockedReason}</p>
               ) : null}
             </div>
+            {/* External verification — a lawyer or consultant outside the company. */}
+            {!locked && canReview ? (
+              <div className="grid gap-2 rounded-md border border-border p-3 text-xs">
+                <p className="text-sm font-medium">{w.externalReview}</p>
+                <p className="text-muted-foreground">{w.externalReviewHint}</p>
+                {doc.external_reviewer_name ? (
+                  <p>
+                    {w.reviewExternalDone}: {doc.external_reviewer_name}
+                    {doc.external_reviewed_at ? ` · ${fmtDate(doc.external_reviewed_at)}` : ""}
+                    {doc.external_reference ? ` · ${doc.external_reference}` : ""}
+                  </p>
+                ) : null}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Field label={w.externalReviewer}>
+                    <Input value={ext.name} onChange={(e) => setExt({ ...ext, name: e.target.value })} />
+                  </Field>
+                  <Field label={w.externalOrg}>
+                    <Input value={ext.org} onChange={(e) => setExt({ ...ext, org: e.target.value })} />
+                  </Field>
+                  <Field label={w.externalDate}>
+                    <Input type="date" value={ext.date} onChange={(e) => setExt({ ...ext, date: e.target.value })} />
+                  </Field>
+                  <Field label={w.externalReference}>
+                    <Input value={ext.ref} onChange={(e) => setExt({ ...ext, ref: e.target.value })} />
+                  </Field>
+                </div>
+                <input
+                  ref={evidenceRef}
+                  type="file"
+                  accept="application/pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () =>
+                      setEvidence({
+                        filename: file.name,
+                        mime: file.type || "application/pdf",
+                        base64: String(reader.result).split(",")[1] ?? "",
+                      });
+                    reader.readAsDataURL(file);
+                  }}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => evidenceRef.current?.click()}>
+                    <Upload className="mr-1.5 size-3.5" /> {w.externalEvidence}
+                  </Button>
+                  {evidence ? <span className="text-muted-foreground">{evidence.filename}</span> : null}
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={ext.name.trim().length < 2}
+                    onClick={() =>
+                      externalReview({
+                        data: {
+                          id,
+                          reviewerName: ext.name.trim(),
+                          reviewerOrg: ext.org.trim() || undefined,
+                          reviewedOn: ext.date || undefined,
+                          reference: ext.ref.trim() || undefined,
+                          notes: legalNotes.trim() || undefined,
+                          evidenceFilename: evidence?.filename,
+                          evidenceMime: evidence?.mime,
+                          evidenceBase64: evidence?.base64,
+                        },
+                      })
+                        .then(() => load({ data: { id } }))
+                        .then((d) => {
+                          setDoc(d);
+                          setEvidence(null);
+                          toast.success(w.externalRecorded);
+                          void refresh();
+                        })
+                        .catch((e: Error) => toast.error(e.message))
+                    }
+                  >
+                    {w.recordExternalReview}
+                  </Button>
+                </div>
+                <div className="mt-1 grid gap-2 border-t border-border/60 pt-2">
+                  <p className="text-sm font-medium">{w.reviewLinks}</p>
+                  <div className="flex flex-wrap items-end gap-2">
+                    <Field label={w.linkDays}>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={60}
+                        className="w-24"
+                        value={linkDays}
+                        onChange={(e) => setLinkDays(Number(e.target.value) || 14)}
+                      />
+                    </Field>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        createLink({
+                          data: {
+                            id,
+                            days: linkDays,
+                            reviewerName: ext.name.trim() || undefined,
+                            reviewerOrg: ext.org.trim() || undefined,
+                          },
+                        })
+                          .then((r) => {
+                            setFreshLink(`${window.location.origin}${r.path}`);
+                            toast.success(w.linkCreated);
+                            void refreshLinks();
+                          })
+                          .catch((e: Error) => toast.error(e.message))
+                      }
+                    >
+                      {w.shareForReview}
+                    </Button>
+                  </div>
+                  {freshLink ? (
+                    <div className="flex flex-wrap items-center gap-2 rounded-md bg-muted px-2 py-1.5">
+                      <code className="min-w-0 flex-1 truncate">{freshLink}</code>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(freshLink);
+                          toast.success(w.linkCopied);
+                        }}
+                      >
+                        {w.copyLink}
+                      </Button>
+                    </div>
+                  ) : null}
+                  {links.map((l) => (
+                    <div key={l.id} className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        {l.revoked_at
+                          ? w.linkRevoked
+                          : l.used_at
+                            ? `${w.linkUsed}${l.verdict ? ` · ${l.verdict}` : ""}`
+                            : w.linkOpen}
+                      </Badge>
+                      <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                        {l.reviewer_name ?? "—"}
+                        {l.reviewer_org ? ` · ${l.reviewer_org}` : ""} · {w.linkExpires} {fmtDate(l.expires_at)}
+                      </span>
+                      {!l.revoked_at && !l.used_at ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            revokeLink({ data: { linkId: l.id } })
+                              .then(() => refreshLinks())
+                              .catch((e: Error) => toast.error(e.message))
+                          }
+                        >
+                          {w.revokeLink}
+                        </Button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <Textarea
               rows={22}
               className="font-mono text-[13px] leading-relaxed"
