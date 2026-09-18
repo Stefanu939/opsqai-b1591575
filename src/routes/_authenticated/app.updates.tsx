@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { getCloudBrowserDb } from "@/lib/cloud-client";
@@ -25,11 +25,14 @@ import {
 import {
   checkSelfHostUpdateNow,
   dismissSelfHostUpdateNotice,
+  getSelfHostPeerUpdateSettings,
   getSelfHostUpdateStatus,
+  installSelfHostUpdateFromFile,
   runSelfHostUpdateAction,
+  setSelfHostPeerUpdateSettings,
   setSelfHostUpdatePolicy,
 } from "@/lib/selfhost-updates.functions";
-import { Download, Package, ExternalLink, History, RefreshCw } from "lucide-react";
+import { Download, Package, ExternalLink, History, RefreshCw, Upload } from "lucide-react";
 
 /** Plain-language explanation for an update-check outcome. */
 function updateReasonText(reason?: string): string {
