@@ -41,31 +41,36 @@ async function runProcessingPipeline(
   const storage = getStorageProvider();
 
   const bytes = await storage.get(KB_BUCKET, filePath);
-  const { extractText, chunkText } = await import("@/lib/doc-processing.server");
-  const text = await extractText(toArrayBuffer(bytes), filename, fileType);
+  const { extractDocument, chunkDocument } = await import("@/lib/doc-processing.server");
+  const extracted = await extractDocument(toArrayBuffer(bytes), filename, fileType);
+  const text = extracted.text;
   if (!text.trim()) throw new Error("No text extracted from document");
 
-  const chunks = chunkText(text, 1000, 200);
+  const chunks = chunkDocument(extracted, 1000, 200);
   if (chunks.length === 0) throw new Error("Document produced no chunks");
 
   const { embedTexts } = await import("@/lib/embeddings.server");
   const embeddings: number[][] = [];
   const BATCH = 50;
   for (let i = 0; i < chunks.length; i += BATCH) {
-    const vecs = await embedTexts(chunks.slice(i, i + BATCH));
+    const vecs = await embedTexts(chunks.slice(i, i + BATCH).map((c) => c.content));
     embeddings.push(...vecs);
   }
 
   await repo.insertChunks(
-    chunks.map((content, idx) => ({
+    chunks.map((chunk, idx) => ({
       document_id: documentId,
       company_id: companyId,
       chunk_index: idx,
-      content,
-      token_count: Math.ceil(content.length / 4),
+      content: chunk.content,
+      token_count: Math.ceil(chunk.content.length / 4),
       embedding: embeddings[idx],
+      section: chunk.section,
+      page: chunk.pageStart,
+      page_end: chunk.pageEnd,
     })),
   );
+
 
   await repo.markReady(documentId, chunks.length, text.slice(0, 50000));
 

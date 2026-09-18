@@ -136,7 +136,7 @@ export function createPgKnowledgeRepository(
       let p = 1;
       for (const r of rows) {
         values.push(
-          `($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}::vector)`,
+          `($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}::vector, $${p++}, $${p++}, $${p++})`,
         );
         params.push(
           r.document_id,
@@ -145,15 +145,20 @@ export function createPgKnowledgeRepository(
           r.content,
           r.token_count,
           toVectorLiteral(r.embedding),
+          r.section ?? null,
+          r.page ?? null,
+          r.page_end ?? r.page ?? null,
         );
       }
       await pool.query(
         `INSERT INTO public.document_chunks
-           (document_id, company_id, chunk_index, content, token_count, embedding)
+           (document_id, company_id, chunk_index, content, token_count, embedding,
+            section, page, page_end)
          VALUES ${values.join(",")}`,
         params,
       );
     },
+
 
     async getFilePath(id) {
       const { rows } = await pool.query<{ file_path: string | null }>(
@@ -180,18 +185,40 @@ export function createPgKnowledgeRepository(
       const { rows } = await pool.query<{
         id: string; title: string; doc_code: string | null; version: number;
         section: string | null; page: number | null; department_id: string | null;
-        updated_at: Date;
+        updated_at: Date; file_type: string | null;
       }>(
-        `SELECT id, title, doc_code, version, section, page, department_id, updated_at
+        `SELECT id, title, doc_code, version, section, page, department_id, updated_at, file_type
            FROM public.knowledge_documents WHERE id = ANY($1)`,
         [ids],
       );
       return rows.map((row) => ({
         id: row.id, title: row.title, docCode: row.doc_code, version: row.version,
         section: row.section, page: row.page, departmentId: row.department_id,
-        updatedAt: toIso(row.updated_at),
+        updatedAt: toIso(row.updated_at), fileType: row.file_type,
       }));
     },
+
+    async getChunkMetadata(refs) {
+      if (refs.length === 0) return [];
+      const docIds = Array.from(new Set(refs.map((r) => r.document_id)));
+      const indexes = Array.from(new Set(refs.map((r) => r.chunk_index)));
+      const { rows } = await pool.query<{
+        id: string;
+        document_id: string;
+        chunk_index: number;
+        section: string | null;
+        page: number | null;
+        page_end: number | null;
+      }>(
+        `SELECT id, document_id, chunk_index, section, page, page_end
+           FROM public.document_chunks
+          WHERE document_id = ANY($1) AND chunk_index = ANY($2)`,
+        [docIds, indexes],
+      );
+      const wanted = new Set(refs.map((r) => `${r.document_id}:${r.chunk_index}`));
+      return rows.filter((r) => wanted.has(`${r.document_id}:${r.chunk_index}`));
+    },
+
 
     async getChunksContent(documentId, limit) {
       const { rows } = await pool.query<{ content: string }>(

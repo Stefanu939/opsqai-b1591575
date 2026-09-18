@@ -54,11 +54,16 @@ interface SourceItem {
   version?: number;
   section?: string | null;
   page?: number | null;
+  pageEnd?: number | null;
+  paginated?: boolean;
+  chunk_id?: string | null;
   department?: string | null;
+  departmentName?: string | null;
   last_updated?: string | null;
   confidence?: "high" | "medium" | "low";
   primary?: boolean;
 }
+
 
 interface PendingAttachment {
   id: string;

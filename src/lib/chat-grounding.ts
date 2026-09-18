@@ -236,6 +236,51 @@ const DEPARTMENT_LABEL: Record<string, string> = {
   nl: "Afdeling",
 };
 
+const SECTION_LABEL: Record<string, string> = {
+  en: "Section",
+  de: "Abschnitt",
+  ro: "Secțiunea",
+  fr: "Section",
+  es: "Sección",
+  it: "Sezione",
+  nl: "Sectie",
+};
+
+const PAGE_LABEL: Record<string, string> = {
+  en: "Page",
+  de: "Seite",
+  ro: "Pagina",
+  fr: "Page",
+  es: "Página",
+  it: "Pagina",
+  nl: "Pagina",
+};
+
+const PAGES_LABEL: Record<string, string> = {
+  en: "Pages",
+  de: "Seiten",
+  ro: "Paginile",
+  fr: "Pages",
+  es: "Páginas",
+  it: "Pagine",
+  nl: "Pagina's",
+};
+
+/**
+ * Exact wording required when the source IS paginated (a PDF) but the indexed
+ * chunk carries no page. Never "Not applicable" — that would imply the source
+ * has no pages, which is false.
+ */
+const PAGE_UNAVAILABLE: Record<string, string> = {
+  en: "Page number is unavailable in the indexed source metadata.",
+  de: "Die Seitenzahl ist in den indexierten Quellmetadaten nicht verfügbar.",
+  ro: "Numărul paginii nu este disponibil în metadatele sursei indexate.",
+  fr: "Le numéro de page n'est pas disponible dans les métadonnées de la source indexée.",
+  es: "El número de página no está disponible en los metadatos de la fuente indexada.",
+  it: "Il numero di pagina non è disponibile nei metadati della fonte indicizzata.",
+  nl: "Het paginanummer is niet beschikbaar in de geïndexeerde bronmetadata.",
+};
+
 export type AttributionSource = {
   type: "document" | "faq";
   title: string;
@@ -243,12 +288,40 @@ export type AttributionSource = {
   similarity?: number;
   confidence?: "high" | "medium" | "low";
   departmentName?: string | null;
+  /** Heading of the retrieved chunk, verbatim from the document. */
+  section?: string | null;
+  /** First page of the retrieved chunk. */
+  page?: number | null;
+  /** Last page of the retrieved chunk when it straddles a page break. */
+  pageEnd?: number | null;
+  /** True when the underlying file has real pages (PDF). */
+  paginated?: boolean;
+  /** Stable id of the retrieved chunk the citation refers to. */
+  chunkId?: string | null;
 };
 
+/** Localized sentence used when a paginated source has no indexed page. */
+export function pageUnavailableNote(language: string): string {
+  const lang = (language ?? "en").slice(0, 2).toLowerCase();
+  return PAGE_UNAVAILABLE[lang] ?? PAGE_UNAVAILABLE.en;
+}
+
+/** "Page 4" / "Pages 4–5", or the unavailable sentence for paginated sources. */
+export function pageReference(source: AttributionSource, language: string): string | null {
+  const lang = (language ?? "en").slice(0, 2).toLowerCase();
+  const start = typeof source.page === "number" ? source.page : null;
+  const end = typeof source.pageEnd === "number" ? source.pageEnd : start;
+  if (start === null) return source.paginated ? pageUnavailableNote(language) : null;
+  if (end !== null && end > start)
+    return `${PAGES_LABEL[lang] ?? PAGES_LABEL.en} ${start}–${end}`;
+  return `${PAGE_LABEL[lang] ?? PAGE_LABEL.en} ${start}`;
+}
+
 /**
- * Deterministic "Source: SOP-02 — Title · Department Logistics" line appended to
- * every grounded answer. Built from the evidence that actually passed the
- * grounding gate, so the attribution can never be invented by the model.
+ * Deterministic "Source: SOP-02 — Title · Section X · Page 4" line appended to
+ * every grounded answer. Built from the metadata of the chunks that actually
+ * passed the grounding gate, so no part of the attribution — document name,
+ * section or page — can be invented by the model.
  */
 export function sourceAttributionLine(
   sources: AttributionSource[],
@@ -256,6 +329,7 @@ export function sourceAttributionLine(
 ): string {
   const lang = (language ?? "en").slice(0, 2).toLowerCase();
   const label = SOURCE_LABEL[lang] ?? SOURCE_LABEL.en;
+  const sectionLabel = SECTION_LABEL[lang] ?? SECTION_LABEL.en;
   const deptLabel = DEPARTMENT_LABEL[lang] ?? DEPARTMENT_LABEL.en;
   const strong = relevantSources(sources).slice(0, 3);
   if (!strong.length) return "";
@@ -266,14 +340,69 @@ export function sourceAttributionLine(
       s.type === "faq"
         ? `FAQ — ${s.title}`
         : `${s.code ? `${s.code} — ` : ""}${s.title}`;
-    const dept = s.departmentName ? ` · ${deptLabel} ${s.departmentName}` : "";
-    const entry = `${name}${dept}`;
+    const bits: string[] = [name];
+    if (s.type === "document" && s.section) bits.push(`${sectionLabel}: ${s.section}`);
+    if (s.type === "document") {
+      const page = pageReference(s, lang);
+      if (page) bits.push(page);
+    }
+    if (s.departmentName) bits.push(`${deptLabel} ${s.departmentName}`);
+    const entry = bits.join(" · ");
     if (seen.has(entry)) continue;
     seen.add(entry);
     parts.push(entry);
   }
   return `\n\n_${label}: ${parts.join(" | ")}_`;
 }
+
+/**
+ * Step claims the answer makes, e.g. "Step 3 = Verify Shipment Accuracy",
+ * "Step 3: Verify Shipment Accuracy", "Pasul 4 — Assign Loading Dock".
+ */
+export function extractStepClaims(
+  answer: string,
+): Array<{ step: number; label: string }> {
+  const out: Array<{ step: number; label: string }> = [];
+  const re = /\b(?:step|schritt|pasul|pas|étape|etapa|paso|passo)\s*(\d{1,2})\s*(?:=|:|—|–|-)\s*([^\n.;]{3,80})/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(answer)) !== null) {
+    out.push({ step: Number(m[1]), label: m[2].trim() });
+  }
+  return out;
+}
+
+function normalizeForMatch(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * True when every "Step N = label" claim in the answer is actually present in
+ * the retrieved evidence. A mismatched step number or a step label that no
+ * retrieved chunk contains means the model invented the reference.
+ */
+export function citedStepsMatchEvidence(answer: string, evidence: string[]): boolean {
+  const claims = extractStepClaims(answer ?? "");
+  if (claims.length === 0) return true;
+  const haystacks = evidence.map(normalizeForMatch);
+  return claims.every(({ step, label }) => {
+    const words = normalizeForMatch(label)
+      .split(" ")
+      .filter((w) => w.length > 3);
+    const needle = words.length ? words : normalizeForMatch(label).split(" ");
+    return haystacks.some((h) => {
+      // The step number and its label must appear in the SAME chunk, close together.
+      const stepRe = new RegExp(`(step|schritt|pasul|pas|etapa|paso|passo|^|\\s)${step}\\b`);
+      if (!stepRe.test(h)) return false;
+      return needle.every((w) => h.includes(w));
+    });
+  });
+}
+
 
 
 /**
@@ -300,6 +429,9 @@ export function groundedSystemPrompt(
     `UNDERSTANDING: interpret everyday, informal wording, synonyms, misspellings and shop-floor slang, and map it onto the documented terminology. Semantic understanding of the question is expected; inventing content is not.`,
     `LENGTH: keep answers short and to the point — normally 2-5 sentences, or up to 6 short bullet points for a procedure. No preamble, no repeating the question, no summary of what you just said, no offers of further help unless the user asks something open.`,
     `CITATIONS: only add a translated "Sources" label with the citations you used ([Document N] / [FAQ N]) when the user asks where the information comes from, asks for a source/document/proof, or asks you to cite. Otherwise give the answer with no Sources block — the interface already shows the sources separately.`,
+    `CITATION FACTS (absolute rule): document titles, codes, section/heading names, step numbers and page numbers may ONLY be repeated exactly as they appear in the COMPANY KNOWLEDGE headers and text below. Never invent or renumber a step, never state a page number that is not printed in the header of the quoted document, and never write "not applicable" for a page — if a page is not given, simply do not mention a page. When you restate a step, copy its number together with its own heading from the same chunk.`,
+    `CORRECTIONS: if the user says a citation, step or page was wrong, re-read the COMPANY KNOWLEDGE and correct yourself using only what is written there. Never invent a different document, section or page to satisfy the correction, and never keep a claim the evidence does not contain.`,
+
     `If only part of the question is covered, answer that part and say plainly which part is not documented.`,
 
     `Earlier conversation turns must not reintroduce world knowledge.`,

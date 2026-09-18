@@ -122,10 +122,14 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
         content: r.content,
         token_count: r.token_count,
         embedding: toVectorLiteral(r.embedding),
+        section: r.section ?? null,
+        page: r.page ?? null,
+        page_end: r.page_end ?? r.page ?? null,
       }));
       const { error } = await client.from("document_chunks").insert(payload as never);
       if (error) throw new Error(error.message);
     },
+
 
     async getFilePath(id) {
       const { data, error } = await client
@@ -168,15 +172,40 @@ export function createSupabaseKnowledgeRepository(client: Client): IKnowledgeRep
       if (ids.length === 0) return [];
       const { data, error } = await client
         .from("knowledge_documents")
-        .select("id, title, doc_code, version, section, page, department_id, updated_at")
+        .select("id, title, doc_code, version, section, page, department_id, updated_at, file_type")
         .in("id", ids);
       if (error) throw new Error(error.message);
       return (data ?? []).map((row) => ({
         id: row.id, title: row.title, docCode: row.doc_code, version: row.version,
         section: row.section, page: row.page, departmentId: row.department_id,
-        updatedAt: row.updated_at,
+        updatedAt: row.updated_at, fileType: (row as { file_type?: string | null }).file_type ?? null,
       }));
     },
+
+    async getChunkMetadata(refs) {
+      if (refs.length === 0) return [];
+      const docIds = Array.from(new Set(refs.map((r) => r.document_id)));
+      const indexes = Array.from(new Set(refs.map((r) => r.chunk_index)));
+      const { data, error } = await client
+        .from("document_chunks")
+        .select("id, document_id, chunk_index, section, page, page_end")
+        .in("document_id", docIds)
+        .in("chunk_index", indexes);
+      if (error) throw new Error(error.message);
+      const wanted = new Set(refs.map((r) => `${r.document_id}:${r.chunk_index}`));
+      return (data ?? [])
+        .map((row: any) => ({
+          id: row.id as string,
+          document_id: row.document_id as string,
+          chunk_index: row.chunk_index as number,
+          section: (row.section ?? null) as string | null,
+          page: (row.page ?? null) as number | null,
+          page_end: (row.page_end ?? null) as number | null,
+        }))
+        .filter((r) => wanted.has(`${r.document_id}:${r.chunk_index}`));
+    },
+
+
 
     async getChunksContent(documentId, limit) {
       const { data, error } = await client

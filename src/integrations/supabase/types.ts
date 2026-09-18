@@ -2037,6 +2037,7 @@ export type Database = {
           embedding: string | null
           id: string
           page: number | null
+          page_end: number | null
           section: string | null
           token_count: number | null
         }
@@ -2049,6 +2050,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           page?: number | null
+          page_end?: number | null
           section?: string | null
           token_count?: number | null
         }
@@ -2061,6 +2063,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           page?: number | null
+          page_end?: number | null
           section?: string | null
           token_count?: number | null
         }
