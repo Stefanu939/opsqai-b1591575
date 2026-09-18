@@ -452,10 +452,14 @@ async function pollOnce() {
   }
 }
 
-module.exports = { _internal: { autoPolicy, inWindow, isNewer, readAvailable, takeCommand } };
+module.exports = {
+  _internal: { autoPolicy, inWindow, isNewer, readAvailable, takeCommand, watchRestartCommands },
+};
 
 if (require.main === module) {
   pollOnce();
   setInterval(pollOnce, POLL_MS);
+  // Restart requests must act within seconds, not on the slow poll.
+  setInterval(watchRestartCommands, 5_000);
 }
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => process.exit(0));
