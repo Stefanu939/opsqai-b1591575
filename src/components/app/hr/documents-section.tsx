@@ -504,7 +504,15 @@ export function DocumentDialog({
         setValidUntil(d.valid_until ? d.valid_until.slice(0, 10) : "");
       })
       .catch((e: Error) => setErr(e.message));
+    void loadLinks({ data: { id } })
+      .then((r) => setLinks(r.links))
+      .catch(() => setLinks([]));
   }
+
+  const refreshLinks = () =>
+    loadLinks({ data: { id } })
+      .then((r) => setLinks(r.links))
+      .catch(() => undefined);
 
   const missing = useMemo(() => (body.match(/\[___\]/g) ?? []).length, [body]);
   const locked = doc?.status === "approved" || doc?.status === "file";
