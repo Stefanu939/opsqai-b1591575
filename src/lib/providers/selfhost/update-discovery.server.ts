@@ -402,8 +402,12 @@ export async function downloadAvailableUpdate(version?: string): Promise<boolean
   const update = await readAvailableUpdate();
   if (!dir || !update) return false;
   if (version && update.version !== version) return false;
-  if (downloadInFlight === update.version) return true;
+  // A download that died with the process (service restart, machine sleep) used
+  // to keep the version marked as in flight, so pressing "Download now" again
+  // did nothing. Only a download that is still moving blocks a retry.
+  if (downloadInFlight === update.version && Date.now() - downloadHeartbeat < STALL_MS) return true;
   downloadInFlight = update.version;
+  downloadHeartbeat = Date.now();
 
   await writeUpdateProgress({
     phase: "downloading",
