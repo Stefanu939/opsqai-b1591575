@@ -13,6 +13,11 @@ import type { DeploymentMode } from "./deployment-mode";
 export function currentServerMode(): DeploymentMode {
   const raw = process.env.OPSQAI_MODE;
   if (raw === "selfhost" || raw === "mc") return raw;
+  // Installs delivered before OPSQAI_MODE existed only set these two; honour
+  // them so an existing on-premise install is not mistaken for the cloud.
+  const legacy = process.env.OPSQAI_PLATFORM_MODE;
+  if (legacy === "selfhost" || legacy === "mc") return legacy;
+  if ((process.env.OPSQAI_DEPLOYMENT_TYPE ?? "").toLowerCase() === "selfhosted") return "selfhost";
   return "mc";
 }
 
