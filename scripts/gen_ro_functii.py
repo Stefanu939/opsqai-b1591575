@@ -304,8 +304,9 @@ def main() -> None:
                    "disponibile. Le listăm pentru transparență, ca să știi ce urmează."))
     for prod in planned:
         story.extend(product_section(prod))
-    story.append(PageBreak())
+    story.append(Spacer(1, 10))
     story.append(h1("Partea IV · Detalii care se întreabă cel mai des"))
+
     for titlu, puncte in DETALII_SPECIALE:
         story.append(h3(titlu))
         story.extend(bullets(puncte))
