@@ -219,6 +219,47 @@ function runInstaller(exePath) {
   return events;
 }
 
+/**
+ * Apply a release published as an archive. The staged ZIP is expanded into a
+ * temporary folder and mirrored over the installation. Config, data and logs
+ * live under ProgramData, so nothing operator-owned is touched here.
+ */
+function runArchive(zipPath, stamp) {
+  const events = [];
+  const extract = programData("updates", "extract", stamp);
+  fs.rmSync(extract, { recursive: true, force: true });
+  fs.mkdirSync(extract, { recursive: true });
+  events.push(log("install", `expanding ${zipPath}`));
+  const x = spawnSync(
+    "powershell.exe",
+    [
+      "-NoProfile",
+      "-NonInteractive",
+      "-Command",
+      `Expand-Archive -LiteralPath ${JSON.stringify(zipPath)} -DestinationPath ${JSON.stringify(extract)} -Force`,
+    ],
+    { stdio: "inherit" },
+  );
+  if ((x.status ?? 1) !== 0) throw new Error(`could not expand the archive (exit ${x.status})`);
+
+  // Many archives wrap the payload in a single top-level folder.
+  let src = extract;
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  if (entries.length === 1 && entries[0].isDirectory()) src = path.join(src, entries[0].name);
+  if (!fs.existsSync(path.join(src, "app")))
+    throw new Error("the archive does not contain an OPSQAI payload (app folder missing)");
+
+  events.push(log("install", `copying payload -> ${programFiles()}`));
+  const r = spawnSync(
+    "robocopy.exe",
+    [src, programFiles(), "/E", "/NFL", "/NDL", "/NP", "/R:1", "/W:1"],
+    { stdio: "inherit" },
+  );
+  if ((r.status ?? 16) >= 8) throw new Error(`copying the payload failed (exit ${r.status})`);
+  fs.rmSync(extract, { recursive: true, force: true });
+  return events;
+}
+
 function runMigrations() {
   const events = [];
   const migrator = programFiles("app", "server", "migrate.mjs");
@@ -328,7 +369,11 @@ async function main() {
     push([log("services", "stopping app + worker")]);
     stopServices();
 
-    push(runInstaller(staged.path));
+    push(
+      staged.artifact === "zip"
+        ? runArchive(staged.path, stamp)
+        : runInstaller(staged.path),
+    );
     push(runMigrations());
 
     push([log("services", "starting app + worker")]);
@@ -375,7 +420,7 @@ async function main() {
   }
 }
 
-module.exports = { main, _internal: { preFlight, snapshot, copyBinaries, retentionPrune } };
+module.exports = { main, _internal: { preFlight, snapshot, copyBinaries, retentionPrune, runArchive } };
 
 if (require.main === module) {
   main().catch((e) => {
