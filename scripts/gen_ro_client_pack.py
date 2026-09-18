@@ -110,8 +110,8 @@ def one_pager() -> Path:
             ("2.000–6.000 €", "pe produs / modul configurat"),
             ("de la 500 €/lună", "mentenanță și actualizări"),
         ]),
-        Spacer(1, 7),
-        p(DISCLAIMER_PRET, ),
+        Spacer(1, 6),
+        small("Prețuri indicative; oferta fermă se emite pe firmă, într-o singură pagină."),
         h2("Cum începem"),
         *numbered([
             "<b>Discovery</b> — o discuție de o oră: care e problema, cine o deține, cum se măsoară azi.",

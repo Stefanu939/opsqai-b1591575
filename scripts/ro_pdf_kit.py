@@ -142,7 +142,7 @@ def numbered(items):
     return [Paragraph(f"<b>{n}.</b>&nbsp;&nbsp;{i}", BULLET) for n, i in enumerate(items, 1)]
 
 
-def table(headers, rows, widths=None, header_color=NAVY):
+def table(headers, rows, widths=None, header_color=NAVY, keep=None):
     if widths is None:
         widths = [AVAIL / len(headers)] * len(headers)
     else:
@@ -166,7 +166,9 @@ def table(headers, rows, widths=None, header_color=NAVY):
             ]
         )
     )
-    return t
+    if keep is None:
+        keep = len(rows) <= 8
+    return KeepTogether(t) if keep else t
 
 
 def callout(title, body, color=VIOLET):
@@ -194,7 +196,7 @@ def callout(title, body, color=VIOLET):
 
 def metrics_row(items):
     """items: list of (big, label)."""
-    big_style = ParagraphStyle("MB", fontName="Body-Bold", fontSize=17, leading=21, textColor=VIOLET)
+    big_style = ParagraphStyle("MB", fontName="Body-Bold", fontSize=14.5, leading=18, textColor=VIOLET)
     lbl_style = ParagraphStyle("ML", fontName="Body", fontSize=8.6, leading=12, textColor=MUTED)
     cells = []
     for big, label in items:
