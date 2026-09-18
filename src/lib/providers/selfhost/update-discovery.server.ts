@@ -274,6 +274,10 @@ export async function writeUpdateProgress(p: {
 }
 
 let downloadInFlight: string | null = null;
+/** Last moment bytes actually arrived, used to notice a dead connection. */
+let downloadHeartbeat = 0;
+/** A download with no bytes for this long is treated as stalled, not running. */
+export const STALL_MS = 90_000;
 
 /**
  * Peer distribution settings. When several installations share one customer
