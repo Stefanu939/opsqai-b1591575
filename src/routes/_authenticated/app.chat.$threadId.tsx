@@ -36,7 +36,7 @@ import ReactMarkdown from "react-markdown";
 import { useServerFn } from "@tanstack/react-start";
 import { createInternalRequest } from "@/lib/internal-requests.functions";
 import { rateMessage } from "@/lib/feedback.functions";
-import { firstNameFrom } from "@/lib/chat-grounding";
+import { firstNameFrom, pageUnavailableNote } from "@/lib/chat-grounding";
 import { useAuth } from "@/lib/auth-context";
 import { Square, Mic, ImagePlus, Volume2, VolumeX, X } from "lucide-react";
 import { useServerFn as useServerFn2 } from "@tanstack/react-start";
@@ -566,7 +566,7 @@ function ChatInner({
                       </div>
                     )}
                     {sources.length > 0 && (
-                      <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />
+                      <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} lang={lang} />
                     )}
                     {(meta?.images?.length ?? 0) > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -780,10 +780,12 @@ function SourcesPanel({
   sources,
   answerBucket,
   T,
+  lang,
 }: {
   sources: SourceItem[];
   answerBucket: ConfBucket;
   T: (k: string) => string;
+  lang: string;
 }) {
   const navigate = useNavigate();
   const docs = sources.filter((s) => s.type === "document");
