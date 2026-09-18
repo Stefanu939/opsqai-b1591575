@@ -462,6 +462,10 @@ export function DocumentDialog({
   const requestChanges = useServerFn(requestHrDocumentChanges);
   const download = useServerFn(downloadHrDocument);
   const upload = useServerFn(uploadHrDocument);
+  const externalReview = useServerFn(recordExternalHrReview);
+  const createLink = useServerFn(createHrReviewLink);
+  const revokeLink = useServerFn(revokeHrReviewLink);
+  const loadLinks = useServerFn(getHrReviewLinks);
   const refresh = useHrExtRefresh();
   const [doc, setDoc] = useState<HrDocument | null>(null);
   const [body, setBody] = useState("");
@@ -472,6 +476,22 @@ export function DocumentDialog({
   const [legalNotes, setLegalNotes] = useState("");
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const signedRef = useRef<HTMLInputElement>(null);
+  const evidenceRef = useRef<HTMLInputElement>(null);
+  const [ext, setExt] = useState({ name: "", org: "", date: "", ref: "" });
+  const [evidence, setEvidence] = useState<{ filename: string; mime: string; base64: string } | null>(null);
+  const [links, setLinks] = useState<
+    Array<{
+      id: string;
+      reviewer_name: string | null;
+      reviewer_org: string | null;
+      expires_at: string;
+      used_at: string | null;
+      verdict: string | null;
+      revoked_at: string | null;
+    }>
+  >([]);
+  const [linkDays, setLinkDays] = useState(14);
+  const [freshLink, setFreshLink] = useState<string | null>(null);
 
   if (loadedFor !== id) {
     setLoadedFor(id);
