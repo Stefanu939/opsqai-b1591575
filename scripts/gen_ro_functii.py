@@ -261,7 +261,8 @@ def product_section(prod):
         p(f"<b>Stare:</b> {stare}. <b>Spații de lucru:</b> {len(ws)}."),
         p(PRODUCT_INTRO[key]),
         table(["Spațiu de lucru", "Ce conține", "Unde se găsește"], rows,
-              widths=[24, 58, 18], keep=len(rows) <= 8),
+              widths=[23, 53, 24], keep=len(rows) <= 8),
+
         Spacer(1, 4),
     ]
 
