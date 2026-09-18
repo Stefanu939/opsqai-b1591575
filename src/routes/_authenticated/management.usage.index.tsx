@@ -35,7 +35,7 @@ function UsageIndexPage() {
   const fetchFleet = useServerFn(listSelfHostFleet);
   const query = useQuery({
     queryKey: ["mc-usage-fleet"],
-    queryFn: () => fetchFleet({ data: {} }) as Promise<SelfHostFleetRow[]>,
+    queryFn: () => fetchFleet() as Promise<SelfHostFleetRow[]>,
     refetchInterval: 60_000,
   });
   const rows = query.data ?? [];
