@@ -31,12 +31,13 @@
 ## Detalii tehnice
 
 - `src/lib/hr/db.server.ts` (`recentEvents`): `ev.created_at` → `ev.occurred_at` (select + order by); audit al celorlalte interogări HR/Transport pentru nepotriviri de coloane.
+- Aprobare documente: `src/components/app/hr/documents-section.tsx` — panou de verificare mereu randat, motive explicite pentru buton dezactivat, acțiuni „Verific și accept” / „Cer modificări”, notă opțională; `src/lib/hr/db-ext.server.ts` — `legallyReviewDocument` acceptă notă goală și starea `changes_requested`, funcție nouă pentru cererea de modificări, `approveDocument` tratează `legal_status` nul ca „nu necesită revizie”; `src/lib/hr/actor.server.ts` — `legal_review` acordat rolurilor administrative HR, nu doar dreptului dedicat.
 - `opsqai-windows/services/platform/index.js`: adaug `OPSQAI_MODE: "selfhost"`; `src/lib/platform/mode.ts` și `src/lib/deployment-mode.server.ts` acceptă fallback pe `OPSQAI_PLATFORM_MODE` / `OPSQAI_DEPLOYMENT_TYPE`.
 - `src/components/app/app-shell.tsx`: „Users” primește `show: mode === "selfhost" || hasAnyPermission(...)`.
 - `src/lib/auth-context.tsx`: expun eșecul `bootstrapSession` ca banner cu reîncercare.
 - Update din fișier: server fn nou în `src/lib/selfhost-updates.functions.ts` + helper în `src/lib/providers/selfhost/update-discovery.server.ts` (scriere în `%ProgramData%\OPSQAI\updates`, validare sha256 + semnătură Ed25519 cu `pubkey.pem` folosit de serviciul updater, apoi `available.json` / `command.json`); UI în `src/routes/_authenticated/app.updates.tsx`.
 - Distribuire LAN: endpoint intern care servește pachetul deja verificat + opțiune `updates.peerSource` în config, încercată înainte de internet.
-- Teste noi: interogarea de activitate HR, fallback de mod fără `OPSQAI_MODE`, Core prezent cu drepturi goale, refuzul unui pachet cu amprentă greșită, progres raportat corect.
+- Teste noi: interogarea de activitate HR, aprobarea unui document cu stare juridică absentă și după „modificări cerute”, fallback de mod fără `OPSQAI_MODE`, Core prezent cu drepturi goale, refuzul unui pachet cu amprentă greșită, progres raportat corect.
 - Fără migrație de bază de date și fără schimbări de design.
 
 ## Limitări
