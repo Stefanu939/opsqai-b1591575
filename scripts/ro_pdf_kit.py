@@ -83,6 +83,12 @@ NOTE = ParagraphStyle(
     leftIndent=10, rightIndent=10, spaceBefore=5, spaceAfter=10, backColor=WARN,
     borderColor=WARN_LINE, borderWidth=0.6, borderPadding=10,
 )
+NOTE_TXT = ParagraphStyle(
+    "NoteTxt", fontName="Body", fontSize=10, leading=15, textColor=INK,
+)
+CODE_TXT = ParagraphStyle(
+    "CodeTxt", fontName="Mono", fontSize=8.3, leading=12, textColor=NAVY,
+)
 CODE = ParagraphStyle(
     "Code", fontName="Mono", fontSize=8.3, leading=12, textColor=NAVY,
     backColor=SOFT, borderPadding=8, spaceBefore=8, spaceAfter=12,
@@ -120,7 +126,21 @@ def lead(t):
 
 
 def note(t):
-    return Paragraph(t, NOTE)
+    inner = Paragraph(t, NOTE_TXT)
+    tb = Table([[inner]], colWidths=[AVAIL])
+    tb.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), WARN),
+                ("BOX", (0, 0), (-1, -1), 0.6, WARN_LINE),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 9),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    return KeepTogether([Spacer(1, 5), tb, Spacer(1, 10)])
 
 
 def small(t):
@@ -131,7 +151,19 @@ def code(lines):
     if isinstance(lines, str):
         lines = [lines]
     body = "<br/>".join(x.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") for x in lines)
-    return Paragraph(body, CODE)
+    tb = Table([[Paragraph(body, CODE_TXT)]], colWidths=[AVAIL])
+    tb.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), SOFT),
+                ("LEFTPADDING", (0, 0), (-1, -1), 9),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 9),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ]
+        )
+    )
+    return KeepTogether([Spacer(1, 6), tb, Spacer(1, 10)])
 
 
 def bullets(items):
