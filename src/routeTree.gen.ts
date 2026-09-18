@@ -157,6 +157,7 @@ import { Route as ApiPublicV1UpdatesCheckRouteImport } from './routes/api/public
 import { Route as ApiPublicV1SocialPublishDueRouteImport } from './routes/api/public/v1/social/publish-due'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
 import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
+import { Route as ApiPublicV1HrReviewRouteImport } from './routes/api/public/v1/hr/review'
 import { Route as AuthenticatedAppProductsTransportWorkspaceRouteImport } from './routes/_authenticated/app.products.transport.$workspace'
 import { Route as AuthenticatedAppProductsHrWorkspaceRouteImport } from './routes/_authenticated/app.products.hr.$workspace'
 import { Route as AuthenticatedAppProductsProductWorkspaceRouteImport } from './routes/_authenticated/app.products.$product.$workspace'
@@ -964,6 +965,11 @@ const ApiPublicV1LicenseHeartbeatRoute =
     path: '/api/public/v1/license/heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1HrReviewRoute = ApiPublicV1HrReviewRouteImport.update({
+  id: '/api/public/v1/hr/review',
+  path: '/api/public/v1/hr/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppProductsTransportWorkspaceRoute =
   AuthenticatedAppProductsTransportWorkspaceRouteImport.update({
     id: '/products/transport/$workspace',
@@ -1143,6 +1149,7 @@ export interface FileRoutesByFullPath {
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
@@ -1290,6 +1297,7 @@ export interface FileRoutesByTo {
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
@@ -1446,6 +1454,7 @@ export interface FileRoutesById {
   '/_authenticated/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/_authenticated/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/_authenticated/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
@@ -1602,6 +1611,7 @@ export interface FileRouteTypes {
     | '/app/products/$product/$workspace'
     | '/app/products/hr/$workspace'
     | '/app/products/transport/$workspace'
+    | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
@@ -1749,6 +1759,7 @@ export interface FileRouteTypes {
     | '/app/products/$product/$workspace'
     | '/app/products/hr/$workspace'
     | '/app/products/transport/$workspace'
+    | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
@@ -1904,6 +1915,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/products/$product/$workspace'
     | '/_authenticated/app/products/hr/$workspace'
     | '/_authenticated/app/products/transport/$workspace'
+    | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
@@ -1980,6 +1992,7 @@ export interface RootRouteChildren {
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  ApiPublicV1HrReviewRoute: typeof ApiPublicV1HrReviewRoute
   ApiPublicV1LicenseHeartbeatRoute: typeof ApiPublicV1LicenseHeartbeatRoute
   ApiPublicV1LicenseReleasesRoute: typeof ApiPublicV1LicenseReleasesRoute
   ApiPublicV1SocialPublishDueRoute: typeof ApiPublicV1SocialPublishDueRoute
@@ -3025,6 +3038,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1LicenseHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/hr/review': {
+      id: '/api/public/v1/hr/review'
+      path: '/api/public/v1/hr/review'
+      fullPath: '/api/public/v1/hr/review'
+      preLoaderRoute: typeof ApiPublicV1HrReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/products/transport/$workspace': {
       id: '/_authenticated/app/products/transport/$workspace'
       path: '/products/transport/$workspace'
@@ -3435,6 +3455,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  ApiPublicV1HrReviewRoute: ApiPublicV1HrReviewRoute,
   ApiPublicV1LicenseHeartbeatRoute: ApiPublicV1LicenseHeartbeatRoute,
   ApiPublicV1LicenseReleasesRoute: ApiPublicV1LicenseReleasesRoute,
   ApiPublicV1SocialPublishDueRoute: ApiPublicV1SocialPublishDueRoute,
