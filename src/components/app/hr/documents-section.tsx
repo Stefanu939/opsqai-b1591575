@@ -630,9 +630,32 @@ export function DocumentDialog({
               ) : null}
             </>
           ) : null}
-          {doc && !locked && can("approve") ? (
+          {doc && !locked && reviewOpen && canReview ? (
+            <>
+              <Button variant="outline" disabled={missing > 0} onClick={() =>
+                void (dirty ? persist("review") : Promise.resolve()).then(() =>
+                  legalReview({ data: { id, notes: legalNotes.trim() || undefined } })
+                    .then(() => load({ data: { id } }))
+                    .then((d) => { setDoc(d); toast.success(w.reviewRecorded); void refresh(); })
+                    .catch((e: Error) => toast.error(e.message)),
+                )
+              }>
+                <CheckCircle2 className="mr-1.5 size-4" /> {w.verifyAndAccept}
+              </Button>
+              <Button variant="ghost" onClick={() =>
+                void requestChanges({ data: { id, notes: legalNotes.trim() || undefined } })
+                  .then(() => load({ data: { id } }))
+                  .then((d) => { setDoc(d); toast.success(w.changesRequested); void refresh(); })
+                  .catch((e: Error) => toast.error(e.message))
+              }>
+                {w.requestChanges}
+              </Button>
+            </>
+          ) : null}
+          {doc && !locked ? (
             <Button
-              disabled={missing > 0 || (doc.legal_status !== "not_required" && doc.legal_status !== "reviewed")}
+              disabled={Boolean(approveBlockedReason)}
+              title={approveBlockedReason ?? undefined}
               onClick={() =>
                 void (dirty ? persist() : Promise.resolve()).then(() =>
                   approve({ data: { id } })
@@ -643,18 +666,6 @@ export function DocumentDialog({
               }
             >
               <CheckCircle2 className="mr-1.5 size-4" /> {w.approveAndLock}
-            </Button>
-          ) : null}
-          {doc && !locked && doc.legal_status === "pending" && can("legal_review") ? (
-            <Button variant="outline" disabled={missing > 0 || legalNotes.trim().length < 3} onClick={() =>
-              void (dirty ? persist("review") : Promise.resolve()).then(() =>
-                legalReview({ data: { id, notes: legalNotes } })
-                  .then(() => load({ data: { id } }))
-                  .then((d) => { setDoc(d); toast.success("Legal review recorded"); void refresh(); })
-                  .catch((e: Error) => toast.error(e.message)),
-              )
-            }>
-              <CheckCircle2 className="mr-1.5 size-4" /> Complete legal review
             </Button>
           ) : null}
           {doc && doc.body ? (
