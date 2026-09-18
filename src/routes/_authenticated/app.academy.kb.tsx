@@ -2,7 +2,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listAcademyDepartments, listAcademyPaths } from "@/lib/academy.functions";
+import {
+  listAcademyDepartments,
+  listAcademyPaths,
+  setAcademyPathPublishStatus,
+} from "@/lib/academy.functions";
+import { AssignTrainingDialog } from "@/components/academy/assign-training-dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
