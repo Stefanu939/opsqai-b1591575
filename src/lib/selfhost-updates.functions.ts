@@ -298,3 +298,74 @@ export const runSelfHostUpdateAction = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/**
+ * Install an update package the operator downloaded manually from the website.
+ * The bytes are verified against the signed release descriptor before they are
+ * staged, then the normal installation command runs.
+ */
+export const installSelfHostUpdateFromFile = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        filename: z.string().min(1).max(200),
+        base64: z.string().min(1),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: boolean; version?: string; reason?: string }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Updates apply to Self-Hosted only.");
+    const { stageUpdateFromFile, writeUpdateCommand } = await import(
+      "@/lib/providers/selfhost/update-discovery.server"
+    );
+    const bytes = Buffer.from(data.base64, "base64");
+    if (bytes.byteLength === 0) return { ok: false, reason: "empty_file" };
+    const staged = await stageUpdateFromFile(new Uint8Array(bytes), data.filename);
+    if (!staged.ok) return { ok: false, reason: staged.reason };
+    await writeUpdateCommand("install", staged.version);
+    return { ok: true, version: staged.version };
+  });
+
+/** Read / write LAN peer distribution settings for this installation. */
+export const getSelfHostPeerUpdateSettings = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) return { serve: false, source: null, token: null };
+    const { readPeerUpdateSettings } = await import(
+      "@/lib/providers/selfhost/update-discovery.server"
+    );
+    return readPeerUpdateSettings();
+  });
+
+export const setSelfHostPeerUpdateSettings = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        serve: z.boolean(),
+        source: z.string().trim().max(300).nullable(),
+        token: z.string().trim().max(200).nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Updates apply to Self-Hosted only.");
+    const { readSelfHostConfig, writeSelfHostConfig } = await import(
+      "@/lib/selfhost-config.server"
+    );
+    const cfg = readSelfHostConfig();
+    const updates = { ...((cfg["updates"] as Record<string, unknown>) ?? {}) };
+    updates["peerServe"] = data.serve;
+    updates["peerSource"] = data.source || null;
+    updates["peerToken"] = data.token || null;
+    cfg["updates"] = updates;
+    writeSelfHostConfig(cfg);
+    return { ok: true };
+  });
