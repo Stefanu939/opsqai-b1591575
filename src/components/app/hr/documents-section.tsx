@@ -22,6 +22,7 @@ import {
   getHrDocumentGenerationContext,
   getHrDocument,
   legallyReviewHrDocument,
+  requestHrDocumentChanges,
   saveHrTemplate,
   updateHrDocumentDraft,
   uploadHrDocument,
@@ -439,6 +440,7 @@ export function DocumentDialog({
   const save = useServerFn(updateHrDocumentDraft);
   const approve = useServerFn(approveHrDocument);
   const legalReview = useServerFn(legallyReviewHrDocument);
+  const requestChanges = useServerFn(requestHrDocumentChanges);
   const download = useServerFn(downloadHrDocument);
   const upload = useServerFn(uploadHrDocument);
   const refresh = useHrExtRefresh();
@@ -468,6 +470,20 @@ export function DocumentDialog({
   const missing = useMemo(() => (body.match(/\[___\]/g) ?? []).length, [body]);
   const locked = doc?.status === "approved" || doc?.status === "file";
   const dirty = doc ? body !== (doc.body ?? "") || title !== doc.title || name !== (doc.draft_name ?? "") : false;
+  // A missing legal state (older rows) counts as "no separate review required",
+  // so a generated document can never end up unapprovable.
+  const reviewOpen = doc?.legal_status === "pending" || doc?.legal_status === "changes_requested";
+  const reviewDone = !reviewOpen;
+  const canReview = can("legal_review") || can("approve");
+  const approveBlockedReason = !doc
+    ? null
+    : missing > 0
+      ? w.blockedMissingFields
+      : reviewOpen
+        ? w.blockedReviewPending
+        : !can("approve")
+          ? w.blockedNoRight
+          : null;
 
   const persist = (status?: "draft" | "review") =>
     save({ data: { id, title: title.trim() || undefined, body, draftName: name.trim() || null, validUntil: validUntil || null, status } })
@@ -556,21 +572,38 @@ export function DocumentDialog({
                 {missing} {w.missingFields} — {w.missingFieldsHint}
               </p>
             ) : null}
-            {doc.legal_status && doc.legal_status !== "not_required" ? (
-              <div className="grid gap-2 rounded-md border border-border bg-muted/35 p-3 text-xs">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={doc.legal_status === "reviewed" ? "default" : "secondary"}>
-                    {doc.legal_status === "reviewed" ? "Legal review complete" : "Mandatory legal review pending"}
-                  </Badge>
-                  <span>Legal version {doc.legal_version ?? 1} · expected {doc.expected_pages ?? "—"} pages</span>
-                </div>
-                {doc.legal_reviewed_by ? <span>{doc.legal_reviewed_by} · {fmtDate(doc.legal_reviewed_at)}</span> : null}
-                {doc.legal_sources?.map((source) => <span key={source}>{source}</span>)}
-                {!locked && can("legal_review") ? (
-                  <Textarea rows={2} placeholder="Legal review notes and scope" value={legalNotes} onChange={(e) => setLegalNotes(e.target.value)} />
-                ) : null}
+            {/* Verification panel — always visible, always says what is still needed. */}
+            <div className="grid gap-2 rounded-md border border-border bg-muted/35 p-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={reviewDone ? "default" : "secondary"}>
+                  {reviewDone
+                    ? doc.legal_status === "reviewed"
+                      ? w.reviewComplete
+                      : w.reviewNotRequired
+                    : doc.legal_status === "changes_requested"
+                      ? w.reviewChangesRequested
+                      : w.reviewPending}
+                </Badge>
+                <span>
+                  {w.legalVersion} {doc.legal_version ?? 1}
+                  {doc.expected_pages ? ` · ${doc.expected_pages} ${w.expectedPages}` : ""}
+                </span>
               </div>
-            ) : null}
+              {doc.legal_reviewed_by ? <span>{doc.legal_reviewed_by} · {fmtDate(doc.legal_reviewed_at)}</span> : null}
+              {doc.legal_review_notes ? <span className="text-muted-foreground">{doc.legal_review_notes}</span> : null}
+              {doc.legal_sources?.map((source) => <span key={source}>{source}</span>)}
+              {!locked && canReview ? (
+                <Textarea
+                  rows={2}
+                  placeholder={w.reviewNotesOptional}
+                  value={legalNotes}
+                  onChange={(e) => setLegalNotes(e.target.value)}
+                />
+              ) : null}
+              {!locked && approveBlockedReason ? (
+                <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5">{approveBlockedReason}</p>
+              ) : null}
+            </div>
             <Textarea
               rows={22}
               className="font-mono text-[13px] leading-relaxed"
@@ -599,9 +632,32 @@ export function DocumentDialog({
               ) : null}
             </>
           ) : null}
-          {doc && !locked && can("approve") ? (
+          {doc && !locked && reviewOpen && canReview ? (
+            <>
+              <Button variant="outline" disabled={missing > 0} onClick={() =>
+                void (dirty ? persist("review") : Promise.resolve()).then(() =>
+                  legalReview({ data: { id, notes: legalNotes.trim() || undefined } })
+                    .then(() => load({ data: { id } }))
+                    .then((d) => { setDoc(d); toast.success(w.reviewRecorded); void refresh(); })
+                    .catch((e: Error) => toast.error(e.message)),
+                )
+              }>
+                <CheckCircle2 className="mr-1.5 size-4" /> {w.verifyAndAccept}
+              </Button>
+              <Button variant="ghost" onClick={() =>
+                void requestChanges({ data: { id, notes: legalNotes.trim() || undefined } })
+                  .then(() => load({ data: { id } }))
+                  .then((d) => { setDoc(d); toast.success(w.changesRequested); void refresh(); })
+                  .catch((e: Error) => toast.error(e.message))
+              }>
+                {w.requestChanges}
+              </Button>
+            </>
+          ) : null}
+          {doc && !locked ? (
             <Button
-              disabled={missing > 0 || (doc.legal_status !== "not_required" && doc.legal_status !== "reviewed")}
+              disabled={Boolean(approveBlockedReason)}
+              title={approveBlockedReason ?? undefined}
               onClick={() =>
                 void (dirty ? persist() : Promise.resolve()).then(() =>
                   approve({ data: { id } })
@@ -612,18 +668,6 @@ export function DocumentDialog({
               }
             >
               <CheckCircle2 className="mr-1.5 size-4" /> {w.approveAndLock}
-            </Button>
-          ) : null}
-          {doc && !locked && doc.legal_status === "pending" && can("legal_review") ? (
-            <Button variant="outline" disabled={missing > 0 || legalNotes.trim().length < 3} onClick={() =>
-              void (dirty ? persist("review") : Promise.resolve()).then(() =>
-                legalReview({ data: { id, notes: legalNotes } })
-                  .then(() => load({ data: { id } }))
-                  .then((d) => { setDoc(d); toast.success("Legal review recorded"); void refresh(); })
-                  .catch((e: Error) => toast.error(e.message)),
-              )
-            }>
-              <CheckCircle2 className="mr-1.5 size-4" /> Complete legal review
             </Button>
           ) : null}
           {doc && doc.body ? (

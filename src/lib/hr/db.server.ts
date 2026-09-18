@@ -659,9 +659,9 @@ export async function overviewSignals(companyId: string) {
 
 export function recentEvents(companyId: string) {
   return q<{ id: string; employee_no: string; kind: string; message: string; actor: string | null; created_at: string }>(
-    `SELECT ev.id, e.employee_no, ev.kind, ev.message, ev.actor, ev.created_at
+    `SELECT ev.id, e.employee_no, ev.kind, ev.message, ev.actor, ev.occurred_at AS created_at
        FROM public.hr_employee_events ev JOIN public.hr_employees e ON e.id = ev.employee_id
-      WHERE ev.company_id = $1 ORDER BY ev.created_at DESC LIMIT 15`,
+      WHERE ev.company_id = $1 ORDER BY ev.occurred_at DESC LIMIT 15`,
     [companyId],
   );
 }

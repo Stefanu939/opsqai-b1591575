@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     readStoredActiveCompanyId,
   );
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
 
   const setActiveCompanyId = (id: string | null) => {
     const next = normalizeCompanyId(id);
@@ -129,16 +130,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
         setCompanyName(c?.name ?? null);
       })
+      .then(() => setProfileError(false))
       .catch((error: unknown) => {
         if (attempt < 2) {
           setTimeout(() => loadProfile(_uid, attempt + 1), 400 * (attempt + 1));
           return;
         }
         console.error("[auth] session bootstrap failed", error);
+        // A toast disappears and leaves the user with a silently reduced app.
+        // Keep a persistent banner with an explicit retry instead.
+        setProfileError(true);
         toast.error(
-          "Could not load your permissions — some actions are hidden. Reload the page to retry.",
+          "Could not load your permissions — some actions are hidden. Use Retry in the banner.",
         );
       });
+  };
+
+  const retryProfile = () => {
+    const uid = session?.user?.id;
+    setProfileError(false);
+    if (uid) loadProfile(uid);
+    else if (typeof window !== "undefined") window.location.reload();
   };
 
 
@@ -234,6 +246,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
       }}
     >
+      {profileError && session?.user ? (
+        <div className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/40 bg-amber-500/15 px-4 py-2 text-sm">
+          <span>
+            Your permissions could not be loaded, so some pages and buttons are hidden.
+          </span>
+          <button
+            type="button"
+            onClick={retryProfile}
+            className="rounded-md border border-amber-500/50 px-3 py-1 text-xs font-medium hover:bg-amber-500/20"
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
       {children}
     </Ctx.Provider>
   );

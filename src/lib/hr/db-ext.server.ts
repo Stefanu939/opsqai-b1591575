@@ -218,7 +218,23 @@ export async function legallyReviewDocument(
   await q(
     `UPDATE public.hr_documents
         SET legal_status = 'reviewed', legal_reviewed_at = now(), legal_reviewed_by = $3,
-            legal_review_notes = $4, updated_at = now()
+            legal_review_notes = NULLIF($4, ''), updated_at = now()
+      WHERE company_id = $1 AND id = $2 AND status IN ('draft','review')`,
+    [companyId, id, reviewer, notes],
+  );
+}
+
+/** Send a document back for changes; it stays editable and can be reviewed again. */
+export async function requestDocumentChanges(
+  companyId: string,
+  id: string,
+  reviewer: string,
+  notes: string,
+) {
+  await q(
+    `UPDATE public.hr_documents
+        SET legal_status = 'changes_requested', legal_reviewed_at = now(), legal_reviewed_by = $3,
+            legal_review_notes = NULLIF($4, ''), status = 'draft', updated_at = now()
       WHERE company_id = $1 AND id = $2 AND status IN ('draft','review')`,
     [companyId, id, reviewer, notes],
   );

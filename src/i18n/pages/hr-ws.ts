@@ -51,6 +51,20 @@ export interface HrWsUi {
   saveDraft: string;
   sendToReview: string;
   approveAndLock: string;
+  reviewComplete: string;
+  reviewNotRequired: string;
+  reviewPending: string;
+  reviewChangesRequested: string;
+  reviewNotesOptional: string;
+  verifyAndAccept: string;
+  requestChanges: string;
+  reviewRecorded: string;
+  changesRequested: string;
+  legalVersion: string;
+  expectedPages: string;
+  blockedMissingFields: string;
+  blockedReviewPending: string;
+  blockedNoRight: string;
   approvedLocked: string;
   downloadPdf: string;
   uploadSigned: string;
@@ -331,6 +345,20 @@ const en: HrWsUi = {
   saveDraft: "Save draft",
   sendToReview: "Send to review",
   approveAndLock: "Approve & lock",
+  reviewComplete: "Verified and accepted",
+  reviewNotRequired: "No separate review required",
+  reviewPending: "Review pending",
+  reviewChangesRequested: "Changes requested",
+  reviewNotesOptional: "Review note (optional)",
+  verifyAndAccept: "I verify and accept",
+  requestChanges: "Request changes",
+  reviewRecorded: "Review recorded",
+  changesRequested: "Document sent back for changes",
+  legalVersion: "Legal version",
+  expectedPages: "expected pages",
+  blockedMissingFields: "Fill in the [___] fields before approving.",
+  blockedReviewPending: "Confirm “I verify and accept” before approving.",
+  blockedNoRight: "You don't have the document approval right. Ask an administrator for it.",
   approvedLocked: "Approved — locked for editing",
   downloadPdf: "Download PDF",
   uploadSigned: "Upload signed copy",
@@ -612,6 +640,20 @@ const de: HrWsUi = {
   saveDraft: "Entwurf speichern",
   sendToReview: "Zur Prüfung",
   approveAndLock: "Freigeben & sperren",
+  reviewComplete: "Geprüft und akzeptiert",
+  reviewNotRequired: "Keine separate Prüfung erforderlich",
+  reviewPending: "Prüfung offen",
+  reviewChangesRequested: "Änderungen angefordert",
+  reviewNotesOptional: "Prüfnotiz (optional)",
+  verifyAndAccept: "Ich prüfe und akzeptiere",
+  requestChanges: "Änderungen anfordern",
+  reviewRecorded: "Prüfung wurde erfasst",
+  changesRequested: "Dokument zur Änderung zurückgegeben",
+  legalVersion: "Rechtsversion",
+  expectedPages: "erwartete Seiten",
+  blockedMissingFields: "Bitte die [___]-Felder vor der Freigabe ausfüllen.",
+  blockedReviewPending: "Zuerst „Ich prüfe und akzeptiere“ bestätigen, dann freigeben.",
+  blockedNoRight: "Dir fehlt das Recht zur Dokumentenfreigabe. Bitte eine Administration anfragen.",
   approvedLocked: "Freigegeben — nicht mehr bearbeitbar",
   downloadPdf: "PDF herunterladen",
   uploadSigned: "Unterschriebene Kopie hochladen",
@@ -893,6 +935,20 @@ const ro: HrWsUi = {
   saveDraft: "Salvează ciorna",
   sendToReview: "Trimite la verificare",
   approveAndLock: "Aprobă și blochează",
+  reviewComplete: "Verificat și acceptat",
+  reviewNotRequired: "Nu necesită verificare separată",
+  reviewPending: "Verificare în așteptare",
+  reviewChangesRequested: "Modificări cerute",
+  reviewNotesOptional: "Notă de verificare (opțional)",
+  verifyAndAccept: "Verific și accept",
+  requestChanges: "Cer modificări",
+  reviewRecorded: "Verificarea a fost înregistrată",
+  changesRequested: "Documentul a fost trimis pentru modificări",
+  legalVersion: "Versiune juridică",
+  expectedPages: "pagini estimate",
+  blockedMissingFields: "Completează câmpurile [___] înainte de aprobare.",
+  blockedReviewPending: "Apasă „Verific și accept” înainte de aprobare.",
+  blockedNoRight: "Nu ai dreptul de aprobare a documentelor. Cere-l unui administrator.",
   approvedLocked: "Aprobat — nu mai poate fi editat",
   downloadPdf: "Descarcă PDF",
   uploadSigned: "Încarcă copia semnată",

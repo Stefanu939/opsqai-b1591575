@@ -276,6 +276,123 @@ export async function writeUpdateProgress(p: {
 let downloadInFlight: string | null = null;
 
 /**
+ * Peer distribution settings. When several installations share one customer
+ * server, only the first one needs to reach the internet: the others fetch the
+ * already verified package from it over the LAN. Off by default so an isolated
+ * installation behaves exactly as before.
+ */
+export interface PeerUpdateSettings {
+  /** Serve verified packages to other installs on this server. */
+  serve: boolean;
+  /** Base URL of the peer to fetch from, e.g. http://opsqai-host:8080 */
+  source: string | null;
+  /** Shared secret both sides must present. */
+  token: string | null;
+}
+
+export async function readPeerUpdateSettings(): Promise<PeerUpdateSettings> {
+  try {
+    const { readSelfHostConfig } = await import("@/lib/selfhost-config.server");
+    const u = (readSelfHostConfig()["updates"] as Record<string, unknown> | undefined) ?? {};
+    const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+    return {
+      serve: u["peerServe"] === true,
+      source: str(u["peerSource"])?.replace(/\/+$/, "") ?? null,
+      token: str(u["peerToken"]),
+    };
+  } catch {
+    return { serve: false, source: null, token: null };
+  }
+}
+
+/** Fetch the package from the LAN peer first, falling back to the signed URL. */
+async function fetchUpdateBody(update: AvailableUpdate): Promise<Response> {
+  const peer = await readPeerUpdateSettings();
+  if (peer.source && peer.token) {
+    try {
+      const res = await fetch(
+        `${peer.source}/api/public/v1/updates/peer-package?version=${encodeURIComponent(update.version)}`,
+        {
+          headers: { "x-opsqai-peer-token": peer.token },
+          signal: AbortSignal.timeout(30 * 60_000),
+        },
+      );
+      if (res.ok && res.body) return res;
+    } catch {
+      /* peer unavailable — use the internet source */
+    }
+  }
+  return fetch(update.url, { signal: AbortSignal.timeout(30 * 60_000) });
+}
+
+/** Path of the locally stored, verified package for a version (if any). */
+export async function storedPackage(
+  version: string,
+): Promise<{ path: string; sha256: string; size: number; artifact: string } | null> {
+  const dir = updatesDir();
+  if (!dir) return null;
+  try {
+    const parsed = JSON.parse(
+      (await readFile(join(dir, "downloaded.json"), "utf8")).replace(/^\uFEFF/, ""),
+    ) as { version?: string; path?: string; sha256?: string; size?: number; artifact?: string };
+    if (parsed.version !== version || !parsed.path || !parsed.sha256) return null;
+    return {
+      path: parsed.path,
+      sha256: parsed.sha256,
+      size: parsed.size ?? 0,
+      artifact: parsed.artifact ?? "zip",
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Accept a package the operator downloaded manually (e.g. from the website)
+ * and stage it for installation. The bytes are only accepted when their
+ * SHA-256 matches the signed descriptor of the discovered release, so a
+ * swapped or corrupted file can never be installed.
+ */
+export async function stageUpdateFromFile(
+  bytes: Uint8Array,
+  filename: string,
+): Promise<{ ok: true; version: string } | { ok: false; reason: string }> {
+  const dir = updatesDir();
+  if (!dir) return { ok: false, reason: "no_update_folder" };
+  const update = await readAvailableUpdate();
+  if (!update) return { ok: false, reason: "no_known_release" };
+  if (!update.sha256) return { ok: false, reason: "no_checksum" };
+
+  const { createHash } = await import("node:crypto");
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  if (digest !== update.sha256.toLowerCase()) return { ok: false, reason: "checksum_mismatch" };
+
+  const ext = /\.exe$/i.test(filename) ? "exe" : "zip";
+  const target = join(dir, "packages", `opsqai-${update.version}.${ext}`);
+  await mkdir(dirname(target), { recursive: true });
+  const tmp = `${target}.part`;
+  const { writeFile: write, rename } = await import("node:fs/promises");
+  await write(tmp, Buffer.from(bytes));
+  await rename(tmp, target);
+  await writeJson(join(dir, "downloaded.json"), {
+    version: update.version,
+    artifact: ext,
+    path: target,
+    sha256: digest,
+    size: bytes.byteLength,
+    at: new Date().toISOString(),
+    source: "manual-file",
+  }).catch(() => undefined);
+  await writeUpdateProgress({
+    phase: "verified",
+    version: update.version,
+    received: bytes.byteLength,
+    total: bytes.byteLength,
+  });
+  return { ok: true, version: update.version };
+}
+
+/**
  * Download the verified release package into the local packages folder,
  * reporting byte progress the whole way. Resolves when the file is stored and
  * its checksum verified; never throws (failures land in progress.json).
@@ -298,7 +415,7 @@ export async function downloadAvailableUpdate(version?: string): Promise<boolean
   try {
     const { createHash } = await import("node:crypto");
     const { writeFile: write, mkdir: makeDir, rename } = await import("node:fs/promises");
-    const res = await fetch(update.url, { signal: AbortSignal.timeout(30 * 60_000) });
+    const res = await fetchUpdateBody(update);
     if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
     const len = Number(res.headers.get("content-length"));

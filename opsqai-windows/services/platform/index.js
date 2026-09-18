@@ -126,6 +126,9 @@ const env = {
   HOST: "127.0.0.1",
   DATABASE_URL: buildDatabaseUrl(),
   // --- Platform mode --------------------------------------------------
+  // OPSQAI_MODE is the variable the server reads; the other two are kept for
+  // compatibility with installs and scripts that already rely on them.
+  OPSQAI_MODE: "selfhost",
   OPSQAI_PLATFORM_MODE: "selfhost",
   OPSQAI_DEPLOYMENT_TYPE: "SelfHosted",
   OPSQAI_EDITION: cfg.license?.edition || "community",

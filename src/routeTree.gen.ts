@@ -152,6 +152,7 @@ import { Route as AuthenticatedAppAcademyKbRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppAcademyCoursesRouteImport } from './routes/_authenticated/app.academy.courses'
 import { Route as AuthenticatedAppAcademyCertificatesRouteImport } from './routes/_authenticated/app.academy.certificates'
 import { Route as AuthenticatedAppAcademyAnalyticsRouteImport } from './routes/_authenticated/app.academy.analytics'
+import { Route as ApiPublicV1UpdatesPeerPackageRouteImport } from './routes/api/public/v1/updates/peer-package'
 import { Route as ApiPublicV1UpdatesCheckRouteImport } from './routes/api/public/v1/updates/check'
 import { Route as ApiPublicV1SocialPublishDueRouteImport } from './routes/api/public/v1/social/publish-due'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
@@ -934,6 +935,12 @@ const AuthenticatedAppAcademyAnalyticsRoute =
     path: '/academy/analytics',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const ApiPublicV1UpdatesPeerPackageRoute =
+  ApiPublicV1UpdatesPeerPackageRouteImport.update({
+    id: '/api/public/v1/updates/peer-package',
+    path: '/api/public/v1/updates/peer-package',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicV1UpdatesCheckRoute = ApiPublicV1UpdatesCheckRouteImport.update({
   id: '/api/public/v1/updates/check',
   path: '/api/public/v1/updates/check',
@@ -1140,6 +1147,7 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
   '/api/public/v1/updates/check': typeof ApiPublicV1UpdatesCheckRoute
+  '/api/public/v1/updates/peer-package': typeof ApiPublicV1UpdatesPeerPackageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1286,6 +1294,7 @@ export interface FileRoutesByTo {
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
   '/api/public/v1/updates/check': typeof ApiPublicV1UpdatesCheckRoute
+  '/api/public/v1/updates/peer-package': typeof ApiPublicV1UpdatesPeerPackageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1441,6 +1450,7 @@ export interface FileRoutesById {
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
   '/api/public/v1/updates/check': typeof ApiPublicV1UpdatesCheckRoute
+  '/api/public/v1/updates/peer-package': typeof ApiPublicV1UpdatesPeerPackageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1596,6 +1606,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
     | '/api/public/v1/updates/check'
+    | '/api/public/v1/updates/peer-package'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1742,6 +1753,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
     | '/api/public/v1/updates/check'
+    | '/api/public/v1/updates/peer-package'
   id:
     | '__root__'
     | '/'
@@ -1896,6 +1908,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
     | '/api/public/v1/updates/check'
+    | '/api/public/v1/updates/peer-package'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1971,6 +1984,7 @@ export interface RootRouteChildren {
   ApiPublicV1LicenseReleasesRoute: typeof ApiPublicV1LicenseReleasesRoute
   ApiPublicV1SocialPublishDueRoute: typeof ApiPublicV1SocialPublishDueRoute
   ApiPublicV1UpdatesCheckRoute: typeof ApiPublicV1UpdatesCheckRoute
+  ApiPublicV1UpdatesPeerPackageRoute: typeof ApiPublicV1UpdatesPeerPackageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2976,6 +2990,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAcademyAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/v1/updates/peer-package': {
+      id: '/api/public/v1/updates/peer-package'
+      path: '/api/public/v1/updates/peer-package'
+      fullPath: '/api/public/v1/updates/peer-package'
+      preLoaderRoute: typeof ApiPublicV1UpdatesPeerPackageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/updates/check': {
       id: '/api/public/v1/updates/check'
       path: '/api/public/v1/updates/check'
@@ -3418,6 +3439,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicV1LicenseReleasesRoute: ApiPublicV1LicenseReleasesRoute,
   ApiPublicV1SocialPublishDueRoute: ApiPublicV1SocialPublishDueRoute,
   ApiPublicV1UpdatesCheckRoute: ApiPublicV1UpdatesCheckRoute,
+  ApiPublicV1UpdatesPeerPackageRoute: ApiPublicV1UpdatesPeerPackageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
