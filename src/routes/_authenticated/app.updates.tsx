@@ -309,6 +309,14 @@ function AutoUpdatePanel() {
         </div>
       ) : null}
 
+      <ManualInstallPanel
+        expected={s.available ? { version: s.available.version } : null}
+        onDone={() => void status.refetch()}
+      />
+      <PeerDistributionPanel />
+
+
+
       <div className="grid gap-3 sm:grid-cols-4 sm:items-end">
         <div className="flex items-center gap-2">
           <Switch
