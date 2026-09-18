@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     readStoredActiveCompanyId,
   );
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
 
   const setActiveCompanyId = (id: string | null) => {
     const next = normalizeCompanyId(id);
