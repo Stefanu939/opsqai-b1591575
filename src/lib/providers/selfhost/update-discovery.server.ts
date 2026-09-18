@@ -415,7 +415,7 @@ export async function downloadAvailableUpdate(version?: string): Promise<boolean
   try {
     const { createHash } = await import("node:crypto");
     const { writeFile: write, mkdir: makeDir, rename } = await import("node:fs/promises");
-    const res = await fetch(update.url, { signal: AbortSignal.timeout(30 * 60_000) });
+    const res = await fetchUpdateBody(update);
     if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
     const len = Number(res.headers.get("content-length"));
