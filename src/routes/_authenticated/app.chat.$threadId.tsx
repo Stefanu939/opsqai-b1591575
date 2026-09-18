@@ -866,10 +866,10 @@ function SourcesPanel({
               <dd className="font-medium">v{s.version}</dd>
             </>
           )}
-          {s.department && (
+          {(s.department || s.departmentName) && (
             <>
               <dt className="text-muted-foreground">Department</dt>
-              <dd className="font-medium truncate">{s.department}</dd>
+              <dd className="font-medium truncate">{s.department ?? s.departmentName}</dd>
             </>
           )}
           {s.last_updated && (
@@ -884,12 +884,27 @@ function SourcesPanel({
               <dd className="font-medium truncate">{s.section}</dd>
             </>
           )}
-          {s.page && (
+          {s.type === "document" && (
             <>
               <dt className="text-muted-foreground">Page</dt>
-              <dd className="font-medium">{s.page}</dd>
+              <dd className="font-medium">
+                {typeof s.page === "number"
+                  ? typeof s.pageEnd === "number" && s.pageEnd > s.page
+                    ? `${s.page}–${s.pageEnd}`
+                    : String(s.page)
+                  : s.paginated
+                    ? pageUnavailableNote(lang)
+                    : "—"}
+              </dd>
             </>
           )}
+          {s.chunk_id && (
+            <>
+              <dt className="text-muted-foreground">Chunk</dt>
+              <dd className="font-mono text-[10px] truncate">{s.chunk_id.slice(0, 8)}</dd>
+            </>
+          )}
+
           <dt className="text-muted-foreground">Confidence</dt>
           <dd>
             <span
