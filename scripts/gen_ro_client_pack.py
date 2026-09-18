@@ -138,7 +138,7 @@ def one_pager() -> Path:
 # 2 · PREZENTARE PENTRU CLIENT
 # ──────────────────────────────────────────────────────────────────────────
 def customer_deck() -> Path:
-    from gen_ro_functii import CORE_RO
+    from gen_ro_functii import CORE_RO, PRODUCT_RO
     core_rows = [[f"<b>{CORE_RO[c['key']][0]}</b>", CORE_RO[c["key"]][1]]
                  for c in ARCH["core"] if c["key"] in CORE_RO]
     story = [
@@ -179,7 +179,8 @@ def customer_deck() -> Path:
           "livrează prin licența semnată, fără reinstalare."),
         table(
             ["Produs", "Domeniu", "Stare", "Spații de lucru"],
-            [[PRODUS_RO.get(pr["key"], pr["label"]), pr["domain"],
+            [[PRODUCT_RO.get(pr["key"], (pr["label"], pr["domain"]))[0],
+              PRODUCT_RO.get(pr["key"], (pr["label"], pr["domain"]))[1],
               "disponibil" if pr["status"] == "available" else "planificat",
               str(len(_impl(pr["key"])))] for pr in ARCH["products"]],
             widths=[26, 30, 16, 28],
@@ -278,7 +279,8 @@ def pricing() -> Path:
         h2("3 · Ce se licențiază separat"),
         table(
             ["Produs", "Stare astăzi"],
-            [[pr["label"] + f" — {pr['domain']}",
+            [[__import__("gen_ro_functii").PRODUCT_RO.get(pr["key"], (pr["label"], pr["domain"]))[0]
+              + " — " + __import__("gen_ro_functii").PRODUCT_RO.get(pr["key"], (pr["label"], pr["domain"]))[1],
               "disponibil" if pr["status"] == "available" else "planificat"]
              for pr in ARCH["products"]],
             widths=[62, 38],
