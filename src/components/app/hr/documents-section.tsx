@@ -22,6 +22,7 @@ import {
   getHrDocumentGenerationContext,
   getHrDocument,
   legallyReviewHrDocument,
+  requestHrDocumentChanges,
   saveHrTemplate,
   updateHrDocumentDraft,
   uploadHrDocument,
@@ -439,6 +440,7 @@ export function DocumentDialog({
   const save = useServerFn(updateHrDocumentDraft);
   const approve = useServerFn(approveHrDocument);
   const legalReview = useServerFn(legallyReviewHrDocument);
+  const requestChanges = useServerFn(requestHrDocumentChanges);
   const download = useServerFn(downloadHrDocument);
   const upload = useServerFn(uploadHrDocument);
   const refresh = useHrExtRefresh();
