@@ -260,6 +260,11 @@ function AutoUpdatePanel() {
     windowStartHour: number;
     windowEndHour: number;
   } | null>(null);
+  // Versions whose "installation finished" window the operator already closed.
+  const [ackDone, setAckDone] = useState<string[]>([]);
+  const [restarting, setRestarting] = useState(false);
+  const restartMachine = useServerFn(restartSelfHostMachine);
+
 
   if (!status.data?.selfHosted) return null;
   const s = status.data;
