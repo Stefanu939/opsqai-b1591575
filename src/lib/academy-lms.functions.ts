@@ -211,6 +211,35 @@ export const assignTraining = createServerFn({ method: "POST" })
       }
     }
 
+    // A course that gets assigned is implicitly released: publish drafts so the
+    // learners can actually open it and it stays visible in the course library.
+    for (const p of validPaths) {
+      try {
+        const full = await repo.getLearningPath(p.id);
+        const row = full?.path as any;
+        if (!row || row.publish_status === "published") continue;
+        await repo.upsertLearningPath({
+          id: row.id,
+          companyId: row.company_id,
+          departmentId: row.department_id ?? null,
+          title: row.title,
+          description: row.description ?? null,
+          language: row.language,
+          targetRole: row.target_role ?? null,
+          targetPosition: row.target_position ?? null,
+          experienceLevel: row.experience_level ?? null,
+          employmentType: row.employment_type ?? null,
+          mandatory: !!row.mandatory,
+          passingScore: row.passing_score ?? 70,
+          difficulty: row.difficulty ?? "standard",
+          publishStatus: "published",
+          createdBy: context.userId,
+        });
+      } catch (e) {
+        console.error("[assignTraining] auto-publish failed", p.id, (e as Error)?.message);
+      }
+    }
+
     await repo.assignEnrollments(rows);
 
     if (notifications.length) {
