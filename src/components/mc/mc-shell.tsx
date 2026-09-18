@@ -45,6 +45,7 @@ const SECTIONS: Section[] = [
       { to: "/management/study", label: "Study", icon: Handshake },
       { to: "/management/customers", label: "Customers", icon: Users },
       { to: "/management/installations", label: "Installations", icon: Radio },
+      { to: "/management/usage", label: "Usage audit", icon: Gauge },
       { to: "/management/licenses", label: "Licenses", icon: KeyRound },
     ],
   },
