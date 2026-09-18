@@ -274,7 +274,9 @@ export const listAssignTargets = createServerFn({ method: "POST" })
 
     const [assignTargets, paths] = await Promise.all([
       repo.getAssignTargets(companyId),
-      repo.listLearningPaths(companyId, { publishStatus: "published" }),
+      // Include drafts: a freshly generated course must be assignable without
+      // a separate publish step (assignTraining publishes it automatically).
+      repo.listLearningPaths(companyId, {}),
     ]);
 
     return {
