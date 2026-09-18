@@ -129,16 +129,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
         setCompanyName(c?.name ?? null);
       })
+      .then(() => setProfileError(false))
       .catch((error: unknown) => {
         if (attempt < 2) {
           setTimeout(() => loadProfile(_uid, attempt + 1), 400 * (attempt + 1));
           return;
         }
         console.error("[auth] session bootstrap failed", error);
+        // A toast disappears and leaves the user with a silently reduced app.
+        // Keep a persistent banner with an explicit retry instead.
+        setProfileError(true);
         toast.error(
-          "Could not load your permissions — some actions are hidden. Reload the page to retry.",
+          "Could not load your permissions — some actions are hidden. Use Retry in the banner.",
         );
       });
+  };
+
+  const retryProfile = () => {
+    const uid = session?.user?.id;
+    setProfileError(false);
+    if (uid) loadProfile(uid);
+    else if (typeof window !== "undefined") window.location.reload();
   };
 
 
