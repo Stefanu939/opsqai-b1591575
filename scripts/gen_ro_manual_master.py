@@ -229,7 +229,7 @@ def main() -> None:
         ]),
         note("Înainte de fiecare actualizare la un client: copie de siguranță, verificarea ei și "
              "anunțarea utilizatorilor. Actualizarea repornește serviciile."),
-        PageBreak(),
+        Spacer(1, 10),
         h1("9 · Depanare — erori reale și cauza lor"),
         table(
             ["Simptom", "Cauză probabilă", "Ce faci"],
