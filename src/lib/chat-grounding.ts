@@ -363,10 +363,16 @@ export function extractStepClaims(
   answer: string,
 ): Array<{ step: number; label: string }> {
   const out: Array<{ step: number; label: string }> = [];
-  const re = /\b(?:step|schritt|pasul|pas|étape|etapa|paso|passo)\s*(\d{1,2})\s*(?:=|:|—|–|-)\s*([^\n.;]{3,80})/gi;
+  // The label stops at sentence/list punctuation and before another step
+  // reference, so "Step 3 = A, then Step 4: B" yields two separate claims.
+  const re =
+    /\b(?:step|schritt|pasul|pas|étape|etapa|paso|passo)\s*(\d{1,2})\s*(?:=|:|—|–|-)\s*([^\n.;,]{3,80})/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(answer)) !== null) {
-    out.push({ step: Number(m[1]), label: m[2].trim() });
+    const label = m[2]
+      .replace(/\s+(?:then|and|dann|und|apoi|iar|puis|luego|poi)\s+.*$/i, "")
+      .trim();
+    out.push({ step: Number(m[1]), label });
   }
   return out;
 }
