@@ -284,11 +284,13 @@ export const listAssignTargets = createServerFn({ method: "POST" })
       users: assignTargets.users,
       departments: assignTargets.departments,
       roles: assignTargets.roles,
-      paths: (paths ?? []).map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        mandatory: p.mandatory,
-        publish_status: p.publish_status,
-      })),
+      paths: (paths ?? [])
+        .filter((p: any) => p.publish_status !== "archived")
+        .map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          mandatory: p.mandatory,
+          publish_status: p.publish_status,
+        })),
     };
   });
