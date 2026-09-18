@@ -468,6 +468,20 @@ export function DocumentDialog({
   const missing = useMemo(() => (body.match(/\[___\]/g) ?? []).length, [body]);
   const locked = doc?.status === "approved" || doc?.status === "file";
   const dirty = doc ? body !== (doc.body ?? "") || title !== doc.title || name !== (doc.draft_name ?? "") : false;
+  // A missing legal state (older rows) counts as "no separate review required",
+  // so a generated document can never end up unapprovable.
+  const reviewOpen = doc?.legal_status === "pending" || doc?.legal_status === "changes_requested";
+  const reviewDone = !reviewOpen;
+  const canReview = can("legal_review") || can("approve");
+  const approveBlockedReason = !doc
+    ? null
+    : missing > 0
+      ? w.blockedMissingFields
+      : reviewOpen
+        ? w.blockedReviewPending
+        : !can("approve")
+          ? w.blockedNoRight
+          : null;
 
   const persist = (status?: "draft" | "review") =>
     save({ data: { id, title: title.trim() || undefined, body, draftName: name.trim() || null, validUntil: validUntil || null, status } })
