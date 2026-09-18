@@ -94,6 +94,20 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
             : w.statusFile;
   const statusVariant = (d: HrDocument) =>
     d.has_signed || d.status === "approved" ? "default" : d.status === "draft" ? "outline" : "secondary";
+  // The verification state is what decides whether a document can be approved,
+  // so the list shows it next to the workflow status.
+  const reviewLabel = (d: HrDocument) =>
+    d.status === "approved" || d.status === "file"
+      ? null
+      : d.legal_status === "pending"
+        ? w.reviewPending
+        : d.legal_status === "changes_requested"
+          ? w.reviewChangesRequested
+          : d.legal_status === "reviewed"
+            ? d.external_reviewer_name
+              ? w.reviewExternalDone
+              : w.reviewComplete
+            : null;
 
   const runGenerate = () => {
     if (!employeeId || !choice) return;
