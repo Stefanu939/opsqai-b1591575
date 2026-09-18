@@ -274,6 +274,10 @@ export async function writeUpdateProgress(p: {
 }
 
 let downloadInFlight: string | null = null;
+/** Last moment bytes actually arrived, used to notice a dead connection. */
+let downloadHeartbeat = 0;
+/** A download with no bytes for this long is treated as stalled, not running. */
+export const STALL_MS = 90_000;
 
 /**
  * Peer distribution settings. When several installations share one customer
@@ -402,8 +406,12 @@ export async function downloadAvailableUpdate(version?: string): Promise<boolean
   const update = await readAvailableUpdate();
   if (!dir || !update) return false;
   if (version && update.version !== version) return false;
-  if (downloadInFlight === update.version) return true;
+  // A download that died with the process (service restart, machine sleep) used
+  // to keep the version marked as in flight, so pressing "Download now" again
+  // did nothing. Only a download that is still moving blocks a retry.
+  if (downloadInFlight === update.version && Date.now() - downloadHeartbeat < STALL_MS) return true;
   downloadInFlight = update.version;
+  downloadHeartbeat = Date.now();
 
   await writeUpdateProgress({
     phase: "downloading",
@@ -419,7 +427,11 @@ export async function downloadAvailableUpdate(version?: string): Promise<boolean
     if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
     const len = Number(res.headers.get("content-length"));
-    const total = Number.isFinite(len) && len > 0 ? len : (update.size ?? 0);
+    // The announced size is only a hint: a compressed transfer or a descriptor
+    // written before the artifact was rebuilt makes it differ from the bytes
+    // that actually arrive. The real byte count always wins in the end, so the
+    // bar cannot park at 99%.
+    const announced = Number.isFinite(len) && len > 0 ? len : (update.size ?? 0);
     const hash = createHash("sha256");
     const chunks: Uint8Array[] = [];
     let received = 0;
@@ -427,23 +439,46 @@ export async function downloadAvailableUpdate(version?: string): Promise<boolean
 
     const reader = res.body.getReader();
     for (;;) {
-      const { done, value } = await reader.read();
+      // A silent connection (proxy dropped it, VPN went down) otherwise leaves
+      // the page polling a frozen bar forever. Time out and say so.
+      const step = await Promise.race([
+        reader.read(),
+        new Promise<"stalled">((resolve) => setTimeout(() => resolve("stalled"), STALL_MS)),
+      ]);
+      if (step === "stalled") {
+        await reader.cancel().catch(() => undefined);
+        throw new Error(
+          "The download stopped receiving data and was cancelled. Check the internet connection and start it again.",
+        );
+      }
+      const { done, value } = step;
       if (done) break;
       if (!value) continue;
       chunks.push(value);
       hash.update(value);
       received += value.byteLength;
       const now = Date.now();
+      downloadHeartbeat = now;
       if (now - lastWrite > 700) {
         lastWrite = now;
         await writeUpdateProgress({
           phase: "downloading",
           version: update.version,
           received,
-          total,
+          // Never report more bytes than the total, or the bar reads over 100%.
+          total: Math.max(announced, received),
         });
       }
     }
+
+    // Final byte count, so the bar completes even when the announced size was
+    // slightly larger than the file.
+    await writeUpdateProgress({
+      phase: "downloading",
+      version: update.version,
+      received,
+      total: received,
+    });
 
     const digest = hash.digest("hex");
     if (update.sha256 && digest !== update.sha256.toLowerCase()) {
@@ -473,7 +508,7 @@ export async function downloadAvailableUpdate(version?: string): Promise<boolean
       phase: "verified",
       version: update.version,
       received,
-      total: total || received,
+      total: received,
     });
     return true;
   } catch (e) {

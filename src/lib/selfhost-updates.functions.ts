@@ -145,6 +145,21 @@ export const getSelfHostUpdateStatus = createServerFn({ method: "POST" })
         }
       : null;
 
+    // A download or installation whose process died (service restart, machine
+    // asleep, connection dropped) leaves its last progress line behind. Without
+    // this the page polls a frozen bar forever; with it the operator sees the
+    // real state and can start again.
+    if (progress && (progress.phase === "downloading" || progress.phase === "installing")) {
+      const age = progress.at ? Date.now() - new Date(progress.at).getTime() : 0;
+      const limit = progress.phase === "downloading" ? 3 * 60_000 : 30 * 60_000;
+      if (age > limit) {
+        progress.phase = "failed";
+        progress.error =
+          progress.error ??
+          "The download stopped and no longer receives data. Start it again — already downloaded versions are kept.";
+      }
+    }
+
     let history: SelfHostUpdateStatus["history"] = [];
     try {
       const { readFileSync } = await import("node:fs");
