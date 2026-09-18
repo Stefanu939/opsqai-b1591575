@@ -28,10 +28,19 @@ import {
   getSelfHostPeerUpdateSettings,
   getSelfHostUpdateStatus,
   installSelfHostUpdateFromFile,
+  restartSelfHostMachine,
   runSelfHostUpdateAction,
   setSelfHostPeerUpdateSettings,
   setSelfHostUpdatePolicy,
 } from "@/lib/selfhost-updates.functions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Download, Package, ExternalLink, History, RefreshCw, Upload } from "lucide-react";
 
 /** Plain-language explanation for an update-check outcome. */
