@@ -310,7 +310,7 @@ def main() -> None:
     for titlu, puncte in DETALII_SPECIALE:
         story.append(h3(titlu))
         story.extend(bullets(puncte))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
     story.append(h2("Ce nu face OPSQAI"))
     story.extend(bullets([
         "Nu răspunde din internet și nu inventează: dacă informația nu există la tine, spune că nu știe.",
@@ -318,7 +318,7 @@ def main() -> None:
         "Nu înlocuiește un ERP sau un program de contabilitate; lucrează peste procesele tale.",
         "Nu trimite datele tale în afara serverului firmei, dacă furnizorul AI este configurat local.",
     ]))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 4))
     story.append(callout("Întrebări despre o funcție anume",
                          f"Scrie la {CONTACT} și primești răspunsul cu ecranul și rolul care o folosește."))
 
