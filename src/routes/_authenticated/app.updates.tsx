@@ -77,6 +77,159 @@ function fmtBytes(n: number | null | undefined) {
 }
 
 
+/**
+ * Install a package the operator downloaded from the website. The file is
+ * checked against the signed release descriptor on the server, so a wrong or
+ * corrupted file is refused instead of installed.
+ */
+function ManualInstallPanel({
+  expected,
+  onDone,
+}: {
+  expected: { version: string } | null;
+  onDone: () => void;
+}) {
+  const installFile = useServerFn(installSelfHostUpdateFromFile);
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const reasons: Record<string, string> = {
+    no_known_release:
+      "Check for updates first — the file is compared against the release the Management Center offers.",
+    no_checksum: "This release has no published checksum, so a manual file cannot be verified.",
+    checksum_mismatch: "This file does not match the published release and was not installed.",
+    empty_file: "The selected file is empty.",
+  };
+
+  const onPick = async (file: File) => {
+    setBusy(true);
+    try {
+      const buf = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      for (let i = 0; i < buf.length; i += 8192) {
+        binary += String.fromCharCode(...buf.subarray(i, i + 8192));
+      }
+      const res = await installFile({ data: { filename: file.name, base64: btoa(binary) } });
+      if (res.ok) toast.success(`v${res.version} verified — installation scheduled`);
+      else toast.error(reasons[res.reason ?? ""] ?? "The file could not be verified.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+      onDone();
+    }
+  };
+
+  return (
+    <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Upload className="size-4 text-muted-foreground" />
+        <span className="text-sm font-medium">Install from a downloaded file</span>
+        <span className="text-xs text-muted-foreground">
+          {expected ? `Expected: v${expected.version}` : "Run a check first"}
+        </span>
+        <Button
+          size="sm"
+          variant="outline"
+          className="ml-auto"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+        >
+          {busy ? "Verifying…" : "Choose file"}
+        </Button>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".exe,.zip"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) void onPick(f);
+        }}
+      />
+      <p className="mt-2 text-xs text-muted-foreground">
+        Downloaded the update from the website? Select it here — its checksum is verified against
+        the signed release before installation starts.
+      </p>
+    </div>
+  );
+}
+
+/** Share a verified package with the other installations on this server. */
+function PeerDistributionPanel() {
+  const load = useServerFn(getSelfHostPeerUpdateSettings);
+  const save = useServerFn(setSelfHostPeerUpdateSettings);
+  const q = useQuery({ queryKey: ["selfhost-peer-updates"], queryFn: () => load() });
+  const [draft, setDraft] = useState<{
+    serve: boolean;
+    source: string;
+    token: string;
+  } | null>(null);
+  if (!q.data) return null;
+  const v = draft ?? {
+    serve: q.data.serve,
+    source: q.data.source ?? "",
+    token: q.data.token ?? "",
+  };
+
+  return (
+    <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm font-medium">Share updates inside this server</span>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="peer-serve"
+            checked={v.serve}
+            onCheckedChange={(on) => setDraft({ ...v, serve: on })}
+          />
+          <Label htmlFor="peer-serve" className="text-xs">
+            Serve to other installations
+          </Label>
+        </div>
+      </div>
+      <div className="mt-2 grid gap-2 sm:grid-cols-3">
+        <Input
+          className="h-9"
+          placeholder="Source, e.g. http://opsqai-host:8080"
+          value={v.source}
+          onChange={(e) => setDraft({ ...v, source: e.target.value })}
+        />
+        <Input
+          className="h-9"
+          placeholder="Shared token"
+          value={v.token}
+          onChange={(e) => setDraft({ ...v, token: e.target.value })}
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!draft}
+          onClick={() =>
+            void save({
+              data: { serve: v.serve, source: v.source.trim() || null, token: v.token.trim() || null },
+            })
+              .then(() => {
+                setDraft(null);
+                toast.success("Saved");
+                void q.refetch();
+              })
+              .catch((e: Error) => toast.error(e.message))
+          }
+        >
+          Save
+        </Button>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Off by default. When several installations run on one server, only one needs internet
+        access: the others download the already verified package from it, using the same token.
+      </p>
+    </div>
+  );
+}
+
+
 function AutoUpdatePanel() {
   const load = useServerFn(getSelfHostUpdateStatus);
   const save = useServerFn(setSelfHostUpdatePolicy);
