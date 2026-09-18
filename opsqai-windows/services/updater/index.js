@@ -301,6 +301,71 @@ async function stageRelease(state, rel, source) {
   return true;
 }
 
+// ---------------------------------------------------------------------------
+// Restart handling.
+//
+// After an installation the application offers the operator a reboot of the
+// machine (or a restart of the OPSQAI services only). Those instructions arrive
+// through the same command file, but they must not wait for the 30-minute poll,
+// so a short watcher picks them up within seconds. Non-restart commands are
+// left in place for pollOnce().
+// ---------------------------------------------------------------------------
+
+const { spawn } = require("child_process");
+
+function runDetached(cmd, args) {
+  try {
+    const child = spawn(cmd, args, { detached: true, stdio: "ignore", windowsHide: true });
+    child.unref();
+    return true;
+  } catch (e) {
+    warn(`cannot run ${cmd}: ${e.message}`);
+    return false;
+  }
+}
+
+const SERVICES = [
+  "OpsqaiDatabase",
+  "OpsqaiPlatform",
+  "OpsqaiWorker",
+  "OpsqaiProxy",
+];
+
+/** Restart the OPSQAI Windows services without touching the machine. */
+function restartServices() {
+  log("restarting OPSQAI services on request");
+  runDetached("cmd.exe", [
+    "/c",
+    SERVICES.map((s) => `net stop ${s}`).join(" & ") +
+      " & " +
+      SERVICES.map((s) => `net start ${s}`).join(" & "),
+  ]);
+}
+
+/** Reboot the machine. The delay lets the browser receive the response. */
+function restartMachine() {
+  log("rebooting the machine on request");
+  runDetached("shutdown.exe", ["/r", "/t", "20", "/c", "OPSQAI update: restarting Windows"]);
+}
+
+function watchRestartCommands() {
+  let c = null;
+  try {
+    c = JSON.parse(fs.readFileSync(COMMAND, "utf8"));
+  } catch {
+    return;
+  }
+  if (!c || (c.action !== "restart" && c.action !== "restart-machine")) return;
+  try {
+    fs.unlinkSync(COMMAND);
+  } catch {
+    /* already taken */
+  }
+  if (c.action === "restart-machine") restartMachine();
+  else restartServices();
+}
+
+
 async function pollOnce() {
   const state = loadState();
   state.lastCheck = new Date().toISOString();
