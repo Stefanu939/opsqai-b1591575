@@ -169,7 +169,7 @@ def main() -> None:
         PageBreak(),
         h1("4 · Prima pornire"),
         *numbered([
-            "Deschide https://<numele-serverului>/ din rețeaua clientului.",
+            "Deschide adresa internă a serverului (https://nume-server/) din rețeaua clientului.",
             "Asistentul de primă configurare apare numai în modul selfhost. Dacă nu apare, verifică OPSQAI_MODE.",
             "Creează primul SuperAdmin (e-mail real al clientului, parolă schimbată la prima intrare).",
             "Completează profilul firmei: denumire, domeniu de activitate, limbă implicită, fus orar.",
