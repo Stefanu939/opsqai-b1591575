@@ -19,14 +19,14 @@
    - documentele fără stare juridică (instalări rămase în urmă) tratate ca „verificare simplă”, deci aprobabile, nu blocate;
    - după aprobare: document blocat, cu istoric cine a verificat și cine a aprobat, PDF descărcabil și încărcarea copiei semnate ca acum.
 3. **Diagnostic vizibil în instalare** — o verificare de sănătate care arată: modul detectat, dacă baza de date locală răspunde, dacă actualizările bazei sunt la zi, dacă licența e citită, dacă drepturile s-au încărcat, plus lista secțiunilor care au eșuat cu motiv concret.
-3. **Corectez declararea modului la pornire** — serviciul Windows trimite `OPSQAI_MODE=selfhost`, iar aplicația acceptă și variabilele deja trimise, ca instalările existente să se repare fără reinstalare.
-4. **Elemente Core rezistente** — „Users”, Dashboard, Organization, Operations apar întotdeauna on-premise; drepturile controlează doar ce poți face în pagină.
-5. **Fără eșecuri silențioase** — dacă drepturile nu se încarcă, apare mesaj clar cu „Reîncearcă”, nu butoane ascunse.
-6. **Verific actualizările cap-coadă**: procentaj real, sursa afișată (versiune, canal, dimensiune, notițe), verificarea pachetului, instalarea — inclusiv cazul în care serviciul de update e oprit.
-7. **Buton nou „Instalează din fișier”** — clientul descarcă pachetul de pe site și îl selectează din Self-Hosted. Aplicația verifică semnătura și amprenta înainte de a-l accepta, afișează versiunea, apoi permite instalarea; un fișier nepotrivit e refuzat cu motiv clar.
-8. **Distribuire în rețeaua clientului** — instalarea principală poate servi pachetul verificat celorlalte instalări din aceeași rețea, cu aceeași verificare de semnătură; opțional, oprit implicit pentru instalări izolate.
-9. **Verific cele trei lucruri reclamate**: apariția „Users”, încărcarea funcțiilor, adăugarea unei licențe, încărcarea unui document.
-10. **La final** rulez verificarea de tipuri, toate testele și pachetul, plus teste noi pentru fiecare regresie de mai sus.
+4. **Corectez declararea modului la pornire** — serviciul Windows trimite `OPSQAI_MODE=selfhost`, iar aplicația acceptă și variabilele deja trimise, ca instalările existente să se repare fără reinstalare.
+5. **Elemente Core rezistente** — „Users”, Dashboard, Organization, Operations apar întotdeauna on-premise; drepturile controlează doar ce poți face în pagină.
+6. **Fără eșecuri silențioase** — dacă drepturile nu se încarcă, apare mesaj clar cu „Reîncearcă”, nu butoane ascunse.
+7. **Verific actualizările cap-coadă**: procentaj real, sursa afișată (versiune, canal, dimensiune, notițe), verificarea pachetului, instalarea — inclusiv cazul în care serviciul de update e oprit.
+8. **Buton nou „Instalează din fișier”** — clientul descarcă pachetul de pe site și îl selectează din Self-Hosted. Aplicația verifică semnătura și amprenta înainte de a-l accepta, afișează versiunea, apoi permite instalarea; un fișier nepotrivit e refuzat cu motiv clar.
+9. **Distribuire în rețeaua clientului** — instalarea principală poate servi pachetul verificat celorlalte instalări din aceeași rețea, cu aceeași verificare de semnătură; opțional, oprit implicit pentru instalări izolate.
+10. **Verific lucrurile reclamate**: apariția „Users”, încărcarea funcțiilor, adăugarea unei licențe, încărcarea unui document, generarea + verificarea + aprobarea unui contract până la PDF.
+11. **La final** rulez verificarea de tipuri, toate testele și pachetul, plus teste noi pentru fiecare regresie de mai sus.
 
 ## Detalii tehnice
 
