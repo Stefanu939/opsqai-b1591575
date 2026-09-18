@@ -55,6 +55,12 @@ export interface HrDocument {
     valid_from: string;
   } | null;
   expected_pages?: string | null;
+  /** External (outside counsel) verification (0051). */
+  external_reviewer_name?: string | null;
+  external_reviewer_org?: string | null;
+  external_reviewed_at?: string | null;
+  external_reference?: string | null;
+  external_evidence_id?: string | null;
   /** Signing workflow (0045). */
   signature_status?: "none" | "requested" | "signed" | "expired";
   signature_due?: string | null;
