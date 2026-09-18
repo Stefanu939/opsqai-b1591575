@@ -15,14 +15,18 @@ import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   approveHrDocument,
+  createHrReviewLink,
   deleteHrDocument,
   deleteHrTemplate,
   downloadHrDocument,
   generateHrDocument,
   getHrDocumentGenerationContext,
   getHrDocument,
+  getHrReviewLinks,
   legallyReviewHrDocument,
+  recordExternalHrReview,
   requestHrDocumentChanges,
+  revokeHrReviewLink,
   saveHrTemplate,
   updateHrDocumentDraft,
   uploadHrDocument,
@@ -90,6 +94,20 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
             : w.statusFile;
   const statusVariant = (d: HrDocument) =>
     d.has_signed || d.status === "approved" ? "default" : d.status === "draft" ? "outline" : "secondary";
+  // The verification state is what decides whether a document can be approved,
+  // so the list shows it next to the workflow status.
+  const reviewLabel = (d: HrDocument) =>
+    d.status === "approved" || d.status === "file"
+      ? null
+      : d.legal_status === "pending"
+        ? w.reviewPending
+        : d.legal_status === "changes_requested"
+          ? w.reviewChangesRequested
+          : d.legal_status === "reviewed"
+            ? d.external_reviewer_name
+              ? w.reviewExternalDone
+              : w.reviewComplete
+            : null;
 
   const runGenerate = () => {
     if (!employeeId || !choice) return;
@@ -223,6 +241,7 @@ export function DocumentsSection({ t, w, initialDocId }: { t: HrExtUi; w: HrWsUi
             {docs.map((d) => (
               <li key={d.id} className="flex flex-wrap items-center gap-3 py-2.5">
                 <Badge variant={statusVariant(d)}>{statusLabel(d)}</Badge>
+                {reviewLabel(d) ? <Badge variant="outline">{reviewLabel(d)}</Badge> : null}
                 <button type="button" onClick={() => setOpenId(d.id)} className="min-w-0 flex-1 text-left">
                   <span className="block truncate text-sm font-medium hover:underline">
                     {d.draft_name ?? d.title}
@@ -443,6 +462,10 @@ export function DocumentDialog({
   const requestChanges = useServerFn(requestHrDocumentChanges);
   const download = useServerFn(downloadHrDocument);
   const upload = useServerFn(uploadHrDocument);
+  const externalReview = useServerFn(recordExternalHrReview);
+  const createLink = useServerFn(createHrReviewLink);
+  const revokeLink = useServerFn(revokeHrReviewLink);
+  const loadLinks = useServerFn(getHrReviewLinks);
   const refresh = useHrExtRefresh();
   const [doc, setDoc] = useState<HrDocument | null>(null);
   const [body, setBody] = useState("");
@@ -453,6 +476,22 @@ export function DocumentDialog({
   const [legalNotes, setLegalNotes] = useState("");
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const signedRef = useRef<HTMLInputElement>(null);
+  const evidenceRef = useRef<HTMLInputElement>(null);
+  const [ext, setExt] = useState({ name: "", org: "", date: "", ref: "" });
+  const [evidence, setEvidence] = useState<{ filename: string; mime: string; base64: string } | null>(null);
+  const [links, setLinks] = useState<
+    Array<{
+      id: string;
+      reviewer_name: string | null;
+      reviewer_org: string | null;
+      expires_at: string;
+      used_at: string | null;
+      verdict: string | null;
+      revoked_at: string | null;
+    }>
+  >([]);
+  const [linkDays, setLinkDays] = useState(14);
+  const [freshLink, setFreshLink] = useState<string | null>(null);
 
   if (loadedFor !== id) {
     setLoadedFor(id);
@@ -465,7 +504,15 @@ export function DocumentDialog({
         setValidUntil(d.valid_until ? d.valid_until.slice(0, 10) : "");
       })
       .catch((e: Error) => setErr(e.message));
+    void loadLinks({ data: { id } })
+      .then((r) => setLinks(r.links))
+      .catch(() => setLinks([]));
   }
+
+  const refreshLinks = () =>
+    loadLinks({ data: { id } })
+      .then((r) => setLinks(r.links))
+      .catch(() => undefined);
 
   const missing = useMemo(() => (body.match(/\[___\]/g) ?? []).length, [body]);
   const locked = doc?.status === "approved" || doc?.status === "file";
@@ -604,6 +651,171 @@ export function DocumentDialog({
                 <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5">{approveBlockedReason}</p>
               ) : null}
             </div>
+            {/* External verification — a lawyer or consultant outside the company. */}
+            {!locked && canReview ? (
+              <div className="grid gap-2 rounded-md border border-border p-3 text-xs">
+                <p className="text-sm font-medium">{w.externalReview}</p>
+                <p className="text-muted-foreground">{w.externalReviewHint}</p>
+                {doc.external_reviewer_name ? (
+                  <p>
+                    {w.reviewExternalDone}: {doc.external_reviewer_name}
+                    {doc.external_reviewed_at ? ` · ${fmtDate(doc.external_reviewed_at)}` : ""}
+                    {doc.external_reference ? ` · ${doc.external_reference}` : ""}
+                  </p>
+                ) : null}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Field label={w.externalReviewer}>
+                    <Input value={ext.name} onChange={(e) => setExt({ ...ext, name: e.target.value })} />
+                  </Field>
+                  <Field label={w.externalOrg}>
+                    <Input value={ext.org} onChange={(e) => setExt({ ...ext, org: e.target.value })} />
+                  </Field>
+                  <Field label={w.externalDate}>
+                    <Input type="date" value={ext.date} onChange={(e) => setExt({ ...ext, date: e.target.value })} />
+                  </Field>
+                  <Field label={w.externalReference}>
+                    <Input value={ext.ref} onChange={(e) => setExt({ ...ext, ref: e.target.value })} />
+                  </Field>
+                </div>
+                <input
+                  ref={evidenceRef}
+                  type="file"
+                  accept="application/pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () =>
+                      setEvidence({
+                        filename: file.name,
+                        mime: file.type || "application/pdf",
+                        base64: String(reader.result).split(",")[1] ?? "",
+                      });
+                    reader.readAsDataURL(file);
+                  }}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => evidenceRef.current?.click()}>
+                    <Upload className="mr-1.5 size-3.5" /> {w.externalEvidence}
+                  </Button>
+                  {evidence ? <span className="text-muted-foreground">{evidence.filename}</span> : null}
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={ext.name.trim().length < 2}
+                    onClick={() =>
+                      externalReview({
+                        data: {
+                          id,
+                          reviewerName: ext.name.trim(),
+                          reviewerOrg: ext.org.trim() || undefined,
+                          reviewedOn: ext.date || undefined,
+                          reference: ext.ref.trim() || undefined,
+                          notes: legalNotes.trim() || undefined,
+                          evidenceFilename: evidence?.filename,
+                          evidenceMime: evidence?.mime,
+                          evidenceBase64: evidence?.base64,
+                        },
+                      })
+                        .then(() => load({ data: { id } }))
+                        .then((d) => {
+                          setDoc(d);
+                          setEvidence(null);
+                          toast.success(w.externalRecorded);
+                          void refresh();
+                        })
+                        .catch((e: Error) => toast.error(e.message))
+                    }
+                  >
+                    {w.recordExternalReview}
+                  </Button>
+                </div>
+                <div className="mt-1 grid gap-2 border-t border-border/60 pt-2">
+                  <p className="text-sm font-medium">{w.reviewLinks}</p>
+                  <div className="flex flex-wrap items-end gap-2">
+                    <Field label={w.linkDays}>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={60}
+                        className="w-24"
+                        value={linkDays}
+                        onChange={(e) => setLinkDays(Number(e.target.value) || 14)}
+                      />
+                    </Field>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        createLink({
+                          data: {
+                            id,
+                            days: linkDays,
+                            reviewerName: ext.name.trim() || undefined,
+                            reviewerOrg: ext.org.trim() || undefined,
+                          },
+                        })
+                          .then((r) => {
+                            setFreshLink(`${window.location.origin}${r.path}`);
+                            toast.success(w.linkCreated);
+                            void refreshLinks();
+                          })
+                          .catch((e: Error) => toast.error(e.message))
+                      }
+                    >
+                      {w.shareForReview}
+                    </Button>
+                  </div>
+                  {freshLink ? (
+                    <div className="flex flex-wrap items-center gap-2 rounded-md bg-muted px-2 py-1.5">
+                      <code className="min-w-0 flex-1 truncate">{freshLink}</code>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(freshLink);
+                          toast.success(w.linkCopied);
+                        }}
+                      >
+                        {w.copyLink}
+                      </Button>
+                    </div>
+                  ) : null}
+                  {links.map((l) => (
+                    <div key={l.id} className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        {l.revoked_at
+                          ? w.linkRevoked
+                          : l.used_at
+                            ? `${w.linkUsed}${l.verdict ? ` · ${l.verdict}` : ""}`
+                            : w.linkOpen}
+                      </Badge>
+                      <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                        {l.reviewer_name ?? "—"}
+                        {l.reviewer_org ? ` · ${l.reviewer_org}` : ""} · {w.linkExpires} {fmtDate(l.expires_at)}
+                      </span>
+                      {!l.revoked_at && !l.used_at ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            revokeLink({ data: { linkId: l.id } })
+                              .then(() => refreshLinks())
+                              .catch((e: Error) => toast.error(e.message))
+                          }
+                        >
+                          {w.revokeLink}
+                        </Button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <Textarea
               rows={22}
               className="font-mono text-[13px] leading-relaxed"

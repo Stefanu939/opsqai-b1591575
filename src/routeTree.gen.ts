@@ -25,6 +25,7 @@ import { Route as PilotRouteImport } from './routes/pilot'
 import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as InvestRouteImport } from './routes/invest'
+import { Route as HrReviewRouteImport } from './routes/hr-review'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FirstRunRouteImport } from './routes/first-run'
@@ -157,6 +158,7 @@ import { Route as ApiPublicV1UpdatesCheckRouteImport } from './routes/api/public
 import { Route as ApiPublicV1SocialPublishDueRouteImport } from './routes/api/public/v1/social/publish-due'
 import { Route as ApiPublicV1LicenseReleasesRouteImport } from './routes/api/public/v1/license/releases'
 import { Route as ApiPublicV1LicenseHeartbeatRouteImport } from './routes/api/public/v1/license/heartbeat'
+import { Route as ApiPublicV1HrReviewRouteImport } from './routes/api/public/v1/hr/review'
 import { Route as AuthenticatedAppProductsTransportWorkspaceRouteImport } from './routes/_authenticated/app.products.transport.$workspace'
 import { Route as AuthenticatedAppProductsHrWorkspaceRouteImport } from './routes/_authenticated/app.products.hr.$workspace'
 import { Route as AuthenticatedAppProductsProductWorkspaceRouteImport } from './routes/_authenticated/app.products.$product.$workspace'
@@ -241,6 +243,11 @@ const McpRoute = McpRouteImport.update({
 const InvestRoute = InvestRouteImport.update({
   id: '/invest',
   path: '/invest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HrReviewRoute = HrReviewRouteImport.update({
+  id: '/hr-review',
+  path: '/hr-review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthRoute = HealthRouteImport.update({
@@ -964,6 +971,11 @@ const ApiPublicV1LicenseHeartbeatRoute =
     path: '/api/public/v1/license/heartbeat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1HrReviewRoute = ApiPublicV1HrReviewRouteImport.update({
+  id: '/api/public/v1/hr/review',
+  path: '/api/public/v1/hr/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppProductsTransportWorkspaceRoute =
   AuthenticatedAppProductsTransportWorkspaceRouteImport.update({
     id: '/products/transport/$workspace',
@@ -1010,6 +1022,7 @@ export interface FileRoutesByFullPath {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
@@ -1143,6 +1156,7 @@ export interface FileRoutesByFullPath {
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
@@ -1162,6 +1176,7 @@ export interface FileRoutesByTo {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
@@ -1290,6 +1305,7 @@ export interface FileRoutesByTo {
   '/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
@@ -1313,6 +1329,7 @@ export interface FileRoutesById {
   '/first-run': typeof FirstRunRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/health': typeof HealthRoute
+  '/hr-review': typeof HrReviewRoute
   '/invest': typeof InvestRoute
   '/mcp': typeof McpRoute
   '/modules': typeof ModulesRoute
@@ -1446,6 +1463,7 @@ export interface FileRoutesById {
   '/_authenticated/app/products/$product/$workspace': typeof AuthenticatedAppProductsProductWorkspaceRoute
   '/_authenticated/app/products/hr/$workspace': typeof AuthenticatedAppProductsHrWorkspaceRoute
   '/_authenticated/app/products/transport/$workspace': typeof AuthenticatedAppProductsTransportWorkspaceRoute
+  '/api/public/v1/hr/review': typeof ApiPublicV1HrReviewRoute
   '/api/public/v1/license/heartbeat': typeof ApiPublicV1LicenseHeartbeatRoute
   '/api/public/v1/license/releases': typeof ApiPublicV1LicenseReleasesRoute
   '/api/public/v1/social/publish-due': typeof ApiPublicV1SocialPublishDueRoute
@@ -1469,6 +1487,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/hr-review'
     | '/invest'
     | '/mcp'
     | '/modules'
@@ -1602,6 +1621,7 @@ export interface FileRouteTypes {
     | '/app/products/$product/$workspace'
     | '/app/products/hr/$workspace'
     | '/app/products/transport/$workspace'
+    | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
@@ -1621,6 +1641,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/hr-review'
     | '/invest'
     | '/mcp'
     | '/modules'
@@ -1749,6 +1770,7 @@ export interface FileRouteTypes {
     | '/app/products/$product/$workspace'
     | '/app/products/hr/$workspace'
     | '/app/products/transport/$workspace'
+    | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
@@ -1771,6 +1793,7 @@ export interface FileRouteTypes {
     | '/first-run'
     | '/forgot-password'
     | '/health'
+    | '/hr-review'
     | '/invest'
     | '/mcp'
     | '/modules'
@@ -1904,6 +1927,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/products/$product/$workspace'
     | '/_authenticated/app/products/hr/$workspace'
     | '/_authenticated/app/products/transport/$workspace'
+    | '/api/public/v1/hr/review'
     | '/api/public/v1/license/heartbeat'
     | '/api/public/v1/license/releases'
     | '/api/public/v1/social/publish-due'
@@ -1927,6 +1951,7 @@ export interface RootRouteChildren {
   FirstRunRoute: typeof FirstRunRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HealthRoute: typeof HealthRoute
+  HrReviewRoute: typeof HrReviewRoute
   InvestRoute: typeof InvestRoute
   McpRoute: typeof McpRoute
   ModulesRoute: typeof ModulesRoute
@@ -1980,6 +2005,7 @@ export interface RootRouteChildren {
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  ApiPublicV1HrReviewRoute: typeof ApiPublicV1HrReviewRoute
   ApiPublicV1LicenseHeartbeatRoute: typeof ApiPublicV1LicenseHeartbeatRoute
   ApiPublicV1LicenseReleasesRoute: typeof ApiPublicV1LicenseReleasesRoute
   ApiPublicV1SocialPublishDueRoute: typeof ApiPublicV1SocialPublishDueRoute
@@ -2099,6 +2125,13 @@ declare module '@tanstack/react-router' {
       path: '/invest'
       fullPath: '/invest'
       preLoaderRoute: typeof InvestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hr-review': {
+      id: '/hr-review'
+      path: '/hr-review'
+      fullPath: '/hr-review'
+      preLoaderRoute: typeof HrReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health': {
@@ -3025,6 +3058,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1LicenseHeartbeatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/hr/review': {
+      id: '/api/public/v1/hr/review'
+      path: '/api/public/v1/hr/review'
+      fullPath: '/api/public/v1/hr/review'
+      preLoaderRoute: typeof ApiPublicV1HrReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/products/transport/$workspace': {
       id: '/_authenticated/app/products/transport/$workspace'
       path: '/products/transport/$workspace'
@@ -3381,6 +3421,7 @@ const rootRouteChildren: RootRouteChildren = {
   FirstRunRoute: FirstRunRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HealthRoute: HealthRoute,
+  HrReviewRoute: HrReviewRoute,
   InvestRoute: InvestRoute,
   McpRoute: McpRoute,
   ModulesRoute: ModulesRoute,
@@ -3435,6 +3476,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  ApiPublicV1HrReviewRoute: ApiPublicV1HrReviewRoute,
   ApiPublicV1LicenseHeartbeatRoute: ApiPublicV1LicenseHeartbeatRoute,
   ApiPublicV1LicenseReleasesRoute: ApiPublicV1LicenseReleasesRoute,
   ApiPublicV1SocialPublishDueRoute: ApiPublicV1SocialPublishDueRoute,

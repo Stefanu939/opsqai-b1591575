@@ -87,6 +87,8 @@ const DOC_SELECT = `
           d.legal_status, d.legal_reviewed_at, d.legal_reviewed_by, d.legal_review_notes,
           d.legal_version, d.legal_sources, d.legal_verified_on::text, d.legal_review_due::text,
           d.salary_snapshot, d.expected_pages,
+          d.external_reviewer_name, d.external_reviewer_org, d.external_reviewed_at,
+          d.external_reference, d.external_evidence_id,
          (d.signed_data IS NOT NULL) AS has_signed, d.signed_filename, d.signed_at, d.updated_at,
          COALESCE(d.signature_status, 'none') AS signature_status, d.signature_due::text AS signature_due,
          d.signature_requested_at, d.signature_requested_by, d.signed_by_name, d.signature_kind,
@@ -239,6 +241,166 @@ export async function requestDocumentChanges(
     [companyId, id, reviewer, notes],
   );
 }
+
+// ── External (outside counsel) verification ──────────────────────────────
+
+/**
+ * Record that an external lawyer / consultant verified the document. This is a
+ * full verification step: the document leaves the review state, so approval is
+ * no longer blocked.
+ */
+export async function recordExternalReview(
+  companyId: string,
+  id: string,
+  values: {
+    reviewerName: string;
+    reviewerOrg: string | null;
+    reviewedOn: string | null;
+    reference: string | null;
+    notes: string;
+    evidenceId: string | null;
+    recordedBy: string;
+  },
+) {
+  await q(
+    `UPDATE public.hr_documents
+        SET legal_status = 'reviewed',
+            legal_reviewed_at = COALESCE($5::timestamptz, now()),
+            legal_reviewed_by = $3,
+            legal_review_notes = NULLIF($8, ''),
+            external_reviewer_name = $3,
+            external_reviewer_org = NULLIF($4, ''),
+            external_reviewed_at = COALESCE($5::timestamptz, now()),
+            external_reference = NULLIF($6, ''),
+            external_evidence_id = COALESCE($7::uuid, external_evidence_id),
+            updated_at = now()
+      WHERE company_id = $1 AND id = $2 AND status IN ('draft','review')`,
+    [
+      companyId,
+      id,
+      values.reviewerName,
+      values.reviewerOrg ?? "",
+      values.reviewedOn,
+      values.reference ?? "",
+      values.evidenceId,
+      values.notes,
+    ],
+  );
+}
+
+export interface HrReviewLinkRow {
+  id: string;
+  document_id: string;
+  reviewer_name: string | null;
+  reviewer_org: string | null;
+  expires_at: string;
+  created_by: string | null;
+  created_at: string;
+  opened_at: string | null;
+  used_at: string | null;
+  verdict: string | null;
+  notes: string | null;
+  revoked_at: string | null;
+}
+
+const LINK_SELECT = `
+  SELECT id, document_id, reviewer_name, reviewer_org, expires_at, created_by, created_at,
+         opened_at, used_at, verdict, notes, revoked_at
+    FROM public.hr_document_review_links`;
+
+export function listReviewLinks(companyId: string, documentId: string) {
+  return q<HrReviewLinkRow>(
+    `${LINK_SELECT} WHERE company_id = $1 AND document_id = $2 ORDER BY created_at DESC LIMIT 20`,
+    [companyId, documentId],
+  );
+}
+
+export async function createReviewLink(
+  companyId: string,
+  documentId: string,
+  values: {
+    tokenHash: string;
+    reviewerName: string | null;
+    reviewerOrg: string | null;
+    expiresAt: string;
+    createdBy: string;
+  },
+) {
+  const row = await one<{ id: string }>(
+    `INSERT INTO public.hr_document_review_links
+       (company_id, document_id, token_hash, reviewer_name, reviewer_org, expires_at, created_by)
+     VALUES ($1,$2,$3,NULLIF($4,''),NULLIF($5,''),$6,$7) RETURNING id`,
+    [
+      companyId,
+      documentId,
+      values.tokenHash,
+      values.reviewerName ?? "",
+      values.reviewerOrg ?? "",
+      values.expiresAt,
+      values.createdBy,
+    ],
+  );
+  return row!.id;
+}
+
+export async function revokeReviewLink(companyId: string, id: string) {
+  await q(
+    `UPDATE public.hr_document_review_links SET revoked_at = now()
+      WHERE company_id = $1 AND id = $2 AND revoked_at IS NULL`,
+    [companyId, id],
+  );
+}
+
+/**
+ * Resolve a presented review token. Returns null for unknown, revoked, expired
+ * or already used links, so the external page cannot tell them apart.
+ */
+export async function reviewLinkByToken(tokenHash: string) {
+  return one<{
+    id: string;
+    company_id: string;
+    document_id: string;
+    reviewer_name: string | null;
+    reviewer_org: string | null;
+    attempts: number;
+    title: string;
+    body: string | null;
+    country: string | null;
+    language: string | null;
+    legal_status: string | null;
+  }>(
+    `SELECT l.id, l.company_id, l.document_id, l.reviewer_name, l.reviewer_org, l.attempts,
+            d.title, d.body, d.country, d.language, d.legal_status
+       FROM public.hr_document_review_links l
+       JOIN public.hr_documents d ON d.id = l.document_id
+      WHERE l.token_hash = $1
+        AND l.revoked_at IS NULL
+        AND l.used_at IS NULL
+        AND l.expires_at > now()
+        AND l.attempts < 50`,
+    [tokenHash],
+  );
+}
+
+export async function markReviewLinkOpened(id: string) {
+  await q(
+    `UPDATE public.hr_document_review_links
+        SET opened_at = COALESCE(opened_at, now()), attempts = attempts + 1
+      WHERE id = $1`,
+    [id],
+  );
+}
+
+export async function settleReviewLink(id: string, verdict: "reviewed" | "changes_requested", notes: string) {
+  await q(
+    `UPDATE public.hr_document_review_links
+        SET used_at = now(), verdict = $2, notes = NULLIF($3, '')
+      WHERE id = $1`,
+    [id, verdict, notes],
+  );
+}
+
+
 
 /** Attach the signed / scanned version to an approved document (kept in the employee file). */
 export async function attachSigned(

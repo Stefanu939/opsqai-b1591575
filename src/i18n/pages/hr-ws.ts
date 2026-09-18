@@ -60,6 +60,27 @@ export interface HrWsUi {
   requestChanges: string;
   reviewRecorded: string;
   changesRequested: string;
+  reviewExternalDone: string;
+  externalReview: string;
+  externalReviewHint: string;
+  externalReviewer: string;
+  externalOrg: string;
+  externalDate: string;
+  externalReference: string;
+  externalEvidence: string;
+  recordExternalReview: string;
+  externalRecorded: string;
+  shareForReview: string;
+  reviewLinks: string;
+  linkCreated: string;
+  copyLink: string;
+  linkCopied: string;
+  revokeLink: string;
+  linkExpires: string;
+  linkUsed: string;
+  linkRevoked: string;
+  linkOpen: string;
+  linkDays: string;
   legalVersion: string;
   expectedPages: string;
   blockedMissingFields: string;
@@ -354,6 +375,27 @@ const en: HrWsUi = {
   requestChanges: "Request changes",
   reviewRecorded: "Review recorded",
   changesRequested: "Document sent back for changes",
+  reviewExternalDone: "Verified externally",
+  externalReview: "External review (lawyer / consultant)",
+  externalReviewHint: "Record the confirmation of outside counsel. It counts as the verification step, so approval is unblocked.",
+  externalReviewer: "Reviewer name",
+  externalOrg: "Firm / practice",
+  externalDate: "Review date",
+  externalReference: "Opinion reference (optional)",
+  externalEvidence: "Attach the opinion (PDF or image)",
+  recordExternalReview: "Record external review",
+  externalRecorded: "External review recorded",
+  shareForReview: "Send for review",
+  reviewLinks: "Review links",
+  linkCreated: "Link created — copy it and send it to the reviewer",
+  copyLink: "Copy link",
+  linkCopied: "Link copied",
+  revokeLink: "Withdraw link",
+  linkExpires: "expires",
+  linkUsed: "used",
+  linkRevoked: "withdrawn",
+  linkOpen: "active",
+  linkDays: "Valid (days)",
   legalVersion: "Legal version",
   expectedPages: "expected pages",
   blockedMissingFields: "Fill in the [___] fields before approving.",
@@ -649,6 +691,27 @@ const de: HrWsUi = {
   requestChanges: "Änderungen anfordern",
   reviewRecorded: "Prüfung wurde erfasst",
   changesRequested: "Dokument zur Änderung zurückgegeben",
+  reviewExternalDone: "Extern geprüft",
+  externalReview: "Externe Prüfung (Anwalt / Berater)",
+  externalReviewHint: "Bestätigung einer externen Rechtsberatung erfassen. Gilt als Prüfschritt, damit die Freigabe möglich wird.",
+  externalReviewer: "Name der Prüferin / des Prüfers",
+  externalOrg: "Kanzlei / Firma",
+  externalDate: "Prüfdatum",
+  externalReference: "Gutachten-Referenz (optional)",
+  externalEvidence: "Gutachten anhängen (PDF oder Bild)",
+  recordExternalReview: "Externe Prüfung erfassen",
+  externalRecorded: "Externe Prüfung wurde erfasst",
+  shareForReview: "Zur Prüfung senden",
+  reviewLinks: "Prüf-Links",
+  linkCreated: "Link erstellt — kopieren und der Prüferin / dem Prüfer senden",
+  copyLink: "Link kopieren",
+  linkCopied: "Link kopiert",
+  revokeLink: "Link zurückziehen",
+  linkExpires: "läuft ab",
+  linkUsed: "verwendet",
+  linkRevoked: "zurückgezogen",
+  linkOpen: "aktiv",
+  linkDays: "Gültig (Tage)",
   legalVersion: "Rechtsversion",
   expectedPages: "erwartete Seiten",
   blockedMissingFields: "Bitte die [___]-Felder vor der Freigabe ausfüllen.",
@@ -944,6 +1007,27 @@ const ro: HrWsUi = {
   requestChanges: "Cer modificări",
   reviewRecorded: "Verificarea a fost înregistrată",
   changesRequested: "Documentul a fost trimis pentru modificări",
+  reviewExternalDone: "Verificat extern",
+  externalReview: "Verificare externă (avocat / consultant)",
+  externalReviewHint: "Înregistrează confirmarea unui jurist din afara firmei. Contează ca pas de verificare, deci aprobarea se deblochează.",
+  externalReviewer: "Nume jurist",
+  externalOrg: "Cabinet / firmă",
+  externalDate: "Data verificării",
+  externalReference: "Referință aviz (opțional)",
+  externalEvidence: "Atașează avizul (PDF sau imagine)",
+  recordExternalReview: "Înregistrează verificarea externă",
+  externalRecorded: "Verificarea externă a fost înregistrată",
+  shareForReview: "Trimite pentru verificare",
+  reviewLinks: "Linkuri de verificare",
+  linkCreated: "Link creat — copiază-l și trimite-l juristului",
+  copyLink: "Copiază linkul",
+  linkCopied: "Link copiat",
+  revokeLink: "Anulează linkul",
+  linkExpires: "expiră",
+  linkUsed: "folosit",
+  linkRevoked: "anulat",
+  linkOpen: "activ",
+  linkDays: "Valabil (zile)",
   legalVersion: "Versiune juridică",
   expectedPages: "pagini estimate",
   blockedMissingFields: "Completează câmpurile [___] înainte de aprobare.",
