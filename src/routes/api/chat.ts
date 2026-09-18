@@ -3,7 +3,7 @@ import { convertToModelMessages, createUIMessageStream, createUIMessageStreamRes
 import { getAuthProvider, getCompanyRepository, getFaqRepository, getKnowledgeRepository, getMessageRepository, getProfileRepository, getThreadRepository } from "@/lib/providers/registry";
 import { resolveChatModel, resolveEmbedOne, hasAiCapability } from "@/lib/ai-provider.server";
 import { getStorageProvider } from "@/lib/providers/registry";
-import { answerLanguageMismatch, answerSpeculates, detectGapSignal, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources, resolveAnswerLanguage, sourceAttributionLine } from "@/lib/chat-grounding";
+import { answerLanguageMismatch, answerSpeculates, detectGapSignal, firstNameFrom, groundedSystemPrompt, passesGrounding, refusalText, relevantSources, resolveAnswerLanguage, sourceAttributionLine, pageReference, citedStepsMatchEvidence } from "@/lib/chat-grounding";
 import { recordAutoKnowledgeGap } from "@/lib/knowledge-gap-auto.server";
 import type { JsonLike } from "@/lib/providers/interfaces";
 
@@ -46,7 +46,14 @@ async function prepareMessagesForModel(messages:UIMessage[],userId:string):Promi
   }
   return out;
 }
-type Source={type:"document"|"faq";id:string;document_id?:string;title:string;code?:string|null;excerpt:string;similarity?:number;version?:number;section?:string|null;page?:number|null;last_updated?:string|null;confidence?:"high"|"medium"|"low";primary?:boolean;departmentName?:string|null};
+type Source={type:"document"|"faq";id:string;chunk_id?:string|null;document_id?:string;title:string;code?:string|null;excerpt:string;similarity?:number;version?:number;section?:string|null;page?:number|null;pageEnd?:number|null;paginated?:boolean;last_updated?:string|null;confidence?:"high"|"medium"|"low";primary?:boolean;departmentName?:string|null};
+
+/** True when the stored file has real page boundaries a citation can name. */
+function isPaginated(fileType?:string|null):boolean{
+  const t=(fileType??"").toLowerCase();
+  return t.includes("pdf");
+}
+
 
 const greeting=/^(hi|hello|hey|hallo|guten\s*(morgen|tag|abend)|salut|bun[ăa]|mul[țt]umesc|danke|thanks)\b/i;
 const capability=/(what can you (do|tell)|what do you know|how can you help|who are you|help me|was kannst du|wie kannst du helfen|wer bist du|ce po[țt]i (s[ăa] )?(imi |îmi )?(spui|faci|oferi)|cu ce (m[ăa] )?po[țt]i ajuta|cine e[șs]ti|ajut[ăa]-?m[ăa])/i;
@@ -121,12 +128,30 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
       // FAQs follow the same isolation: an entry published for another
       // department must never ground this answer.
       const scopedFaqs=faqs.filter((f)=>documentInScope({departmentId:(f as {department_id?:string|null}).department_id??null},departmentScope));
-      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:doc?.section,page:doc?.page,last_updated:doc?.updatedAt,confidence:sim>=.45?"high":sim>=.28?"medium":"low",primary:index===0,departmentName:doc?.departmentId?deptNames.get(doc.departmentId)??null:null});});
+      // Citation metadata comes from the exact chunks that were retrieved, so
+      // section, page and chunk id are facts from the index — never model output.
+      const chunkMeta=new Map<string,{id:string;section:string|null;page:number|null;page_end:number|null}>();
+      try{
+        const rows=await getKnowledgeRepository(dataCtx).getChunkMetadata(matches.map((m)=>({document_id:m.document_id,chunk_index:m.chunk_index})));
+        for(const r of rows)chunkMeta.set(`${r.document_id}:${r.chunk_index}`,{id:r.id,section:r.section,page:r.page,page_end:r.page_end});
+      }catch(error){console.error("[chat:chunk-meta]",error);}
+      matches.forEach((m,index)=>{const doc=meta.get(m.document_id);const sim=Number(m.similarity??0);const cm=chunkMeta.get(`${m.document_id}:${m.chunk_index}`);sources.push({type:"document",id:`${m.document_id}:${m.chunk_index}`,chunk_id:cm?.id??null,document_id:m.document_id,title:doc?.title??"Knowledge document",code:doc?.docCode,excerpt:m.content,similarity:sim,version:doc?.version,section:cm?.section??doc?.section??null,page:cm?.page??doc?.page??null,pageEnd:cm?.page_end??null,paginated:isPaginated(doc?.fileType),last_updated:doc?.updatedAt,confidence:sim>=.45?"high":sim>=.28?"medium":"low",primary:index===0,departmentName:doc?.departmentId?deptNames.get(doc.departmentId)??null:null});});
       const words=query.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w)=>w.length>3);
       scopedFaqs.map((faq)=>({faq,score:words.reduce((n,w)=>n+(faq.question_en.toLowerCase().includes(w)||faq.question_de.toLowerCase().includes(w)?2:0)+(faq.answer_en.toLowerCase().includes(w)||faq.answer_de.toLowerCase().includes(w)?1:0),0)})).filter((x)=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5).forEach(({faq,score})=>{const deptId=(faq as {department_id?:string|null}).department_id??null;sources.push({type:"faq",id:faq.id,title:`${faq.question_en} / ${faq.question_de}`,excerpt:`EN: ${faq.answer_en}\nDE: ${faq.answer_de}`,confidence:score>=4?"high":score>=2?"medium":"low",departmentName:deptId?deptNames.get(deptId)??null:null});});
       confidence=matches.length?matches.slice(0,3).reduce((sum,m)=>sum+Number(m.similarity??0),0)/Math.min(3,matches.length):sources.some((s)=>s.type==="faq")?0.5:0;
       const strong=relevantSources(sources);
-      context=strong.map((s,i)=>`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}\n${s.excerpt}`).join("\n\n---\n\n");
+      // The header gives the model the true section/page of each chunk, so any
+      // citation it writes itself can only repeat indexed facts.
+      context=strong.map((s,i)=>{
+        const head=[`[${s.type==="document"?"Document":"FAQ"} ${i+1}] ${s.code?`${s.code} — `:""}${s.title}`];
+        if(s.type==="document"){
+          if(s.section)head.push(`Section: ${s.section}`);
+          const page=pageReference(s,"en");
+          head.push(page?`Page: ${page.replace(/^Pages? /,"")}`:"Page: unavailable in indexed metadata");
+        }
+        return `${head.join(" | ")}\n${s.excerpt}`;
+      }).join("\n\n---\n\n");
+
     }catch(error){console.error("[chat:retrieval]",error);}
   }
   const images:ImageRef[]=[];
@@ -195,7 +220,9 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
     const r=streamText({model:resolveChatModel("chat"),system:correction?`${system}\n\n${correction}`:system,messages:convMessages});
     return (await r.text).trim();
   };
-  const invalid=(text:string)=>answerLanguageMismatch(text,answerLanguage)||(mode==="kb"&&answerSpeculates(text));
+    // Evidence the answer must stay inside of, used for step/citation checks.
+  const evidenceTexts=relevantSources(sources).map((s)=>s.excerpt);
+  const invalid=(text:string)=>answerLanguageMismatch(text,answerLanguage)||(mode==="kb"&&(answerSpeculates(text)||!citedStepsMatchEvidence(text,evidenceTexts)));
 
   let blocked=false;
   let finalText="";
@@ -209,7 +236,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
     try{
       text=await generate();
       if(invalid(text)){
-        text=await generate(`CORRECTION — your previous answer was rejected. It was not written in ${answerLanguage}, or it speculated beyond the COMPANY KNOWLEDGE. Rewrite it strictly in ${answerLanguage}, using only the evidence given above. If that evidence does not answer the question, reply ONLY that the information is not in the company knowledge base.`);
+        text=await generate(`CORRECTION — your previous answer was rejected. It was not written in ${answerLanguage}, or it speculated beyond the COMPANY KNOWLEDGE, or it cited a step number/label that the COMPANY KNOWLEDGE does not contain. Rewrite it strictly in ${answerLanguage}, using only the evidence given above. If that evidence does not answer the question, reply ONLY that the information is not in the company knowledge base.`);
       }
     }catch(error){console.error("[chat:generate]",error);}
     blocked=!text||invalid(text);

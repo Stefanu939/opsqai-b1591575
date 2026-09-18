@@ -36,7 +36,7 @@ import ReactMarkdown from "react-markdown";
 import { useServerFn } from "@tanstack/react-start";
 import { createInternalRequest } from "@/lib/internal-requests.functions";
 import { rateMessage } from "@/lib/feedback.functions";
-import { firstNameFrom } from "@/lib/chat-grounding";
+import { firstNameFrom, pageUnavailableNote } from "@/lib/chat-grounding";
 import { useAuth } from "@/lib/auth-context";
 import { Square, Mic, ImagePlus, Volume2, VolumeX, X } from "lucide-react";
 import { useServerFn as useServerFn2 } from "@tanstack/react-start";
@@ -54,11 +54,16 @@ interface SourceItem {
   version?: number;
   section?: string | null;
   page?: number | null;
+  pageEnd?: number | null;
+  paginated?: boolean;
+  chunk_id?: string | null;
   department?: string | null;
+  departmentName?: string | null;
   last_updated?: string | null;
   confidence?: "high" | "medium" | "low";
   primary?: boolean;
 }
+
 
 interface PendingAttachment {
   id: string;
@@ -216,7 +221,9 @@ function ChatInner({
   t: (k: never) => string;
   firstName: string;
 }) {
+  const { lang } = useT();
   const transcribeVoice = useServerFn2(transcribeVoiceInput);
+
   const synthesizeVoice = useServerFn2(synthesizeVoiceReply);
   const uploadImage = useServerFn2(uploadChatImage);
 
@@ -561,7 +568,7 @@ function ChatInner({
                       </div>
                     )}
                     {sources.length > 0 && (
-                      <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} />
+                      <SourcesPanel sources={sources} answerBucket={answerBucket} T={T} lang={lang} />
                     )}
                     {(meta?.images?.length ?? 0) > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -775,10 +782,12 @@ function SourcesPanel({
   sources,
   answerBucket,
   T,
+  lang,
 }: {
   sources: SourceItem[];
   answerBucket: ConfBucket;
   T: (k: string) => string;
+  lang: string;
 }) {
   const navigate = useNavigate();
   const docs = sources.filter((s) => s.type === "document");
@@ -861,10 +870,10 @@ function SourcesPanel({
               <dd className="font-medium">v{s.version}</dd>
             </>
           )}
-          {s.department && (
+          {(s.department || s.departmentName) && (
             <>
               <dt className="text-muted-foreground">Department</dt>
-              <dd className="font-medium truncate">{s.department}</dd>
+              <dd className="font-medium truncate">{s.department ?? s.departmentName}</dd>
             </>
           )}
           {s.last_updated && (
@@ -879,12 +888,27 @@ function SourcesPanel({
               <dd className="font-medium truncate">{s.section}</dd>
             </>
           )}
-          {s.page && (
+          {s.type === "document" && (
             <>
               <dt className="text-muted-foreground">Page</dt>
-              <dd className="font-medium">{s.page}</dd>
+              <dd className="font-medium">
+                {typeof s.page === "number"
+                  ? typeof s.pageEnd === "number" && s.pageEnd > s.page
+                    ? `${s.page}–${s.pageEnd}`
+                    : String(s.page)
+                  : s.paginated
+                    ? pageUnavailableNote(lang)
+                    : "—"}
+              </dd>
             </>
           )}
+          {s.chunk_id && (
+            <>
+              <dt className="text-muted-foreground">Chunk</dt>
+              <dd className="font-mono text-[10px] truncate">{s.chunk_id.slice(0, 8)}</dd>
+            </>
+          )}
+
           <dt className="text-muted-foreground">Confidence</dt>
           <dd>
             <span

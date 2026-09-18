@@ -64,25 +64,30 @@ export const replaceDocumentVersion = createServerFn({ method: "POST" })
 
     try {
       const bytes = await getStorageProvider().get(KB_BUCKET, data.file_path);
-      const { extractText, chunkText } = await import("@/lib/doc-processing.server");
-      const text = await extractText(toArrayBuffer(bytes), data.filename, data.file_type);
+      const { extractDocument, chunkDocument } = await import("@/lib/doc-processing.server");
+      const extracted = await extractDocument(toArrayBuffer(bytes), data.filename, data.file_type);
+      const text = extracted.text;
       if (!text.trim()) throw new Error("No text extracted");
-      const chunks = chunkText(text, 1000, 200);
+      const chunks = chunkDocument(extracted, 1000, 200);
       const { embedTexts } = await import("@/lib/embeddings.server");
       const vecs: number[][] = [];
       for (let i = 0; i < chunks.length; i += 50) {
-        vecs.push(...(await embedTexts(chunks.slice(i, i + 50))));
+        vecs.push(...(await embedTexts(chunks.slice(i, i + 50).map((c) => c.content))));
       }
       await repo.insertChunks(
-        chunks.map((content, idx) => ({
+        chunks.map((chunk, idx) => ({
           document_id: doc.id,
           company_id: doc.company_id,
           chunk_index: idx,
-          content,
-          token_count: Math.ceil(content.length / 4),
+          content: chunk.content,
+          token_count: Math.ceil(chunk.content.length / 4),
           embedding: vecs[idx],
+          section: chunk.section,
+          page: chunk.pageStart,
+          page_end: chunk.pageEnd,
         })),
       );
+
       await repo.markReady(doc.id, chunks.length, text.slice(0, 50000));
       return { ok: true, id: doc.id, chunks: chunks.length };
     } catch (err) {

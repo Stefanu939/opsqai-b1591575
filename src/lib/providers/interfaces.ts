@@ -910,6 +910,12 @@ export interface KnowledgeChunkInsert {
   token_count: number;
   /** Embedding vector at the install's pinned dimension; repository formats it as pgvector text. */
   embedding: number[];
+  /** Heading the chunk sits under, verbatim from the source document. */
+  section?: string | null;
+  /** First source page of the chunk; null when the source is not paginated. */
+  page?: number | null;
+  /** Last source page of the chunk (equals `page` for single-page chunks). */
+  page_end?: number | null;
 }
 
 export interface KnowledgeMatch {
@@ -919,11 +925,22 @@ export interface KnowledgeMatch {
   similarity: number;
 }
 
+/** Chunk-level citation metadata, read back after retrieval. */
+export interface KnowledgeChunkMetaRow {
+  id: string;
+  document_id: string;
+  chunk_index: number;
+  section: string | null;
+  page: number | null;
+  page_end: number | null;
+}
+
 export interface KnowledgeChunkContentRow {
   document_id: string;
   chunk_index: number;
   content: string;
 }
+
 
 /** Lineage anchor used by SOP version replace / rollback. */
 export interface KnowledgeVersionAnchor {
@@ -970,12 +987,23 @@ export interface IKnowledgeRepository {
     page: number | null;
     departmentId: string | null;
     updatedAt: string;
+    /** MIME/file type, used to know whether the source has real pages. */
+    fileType: string | null;
   }>>;
+  /**
+   * Chunk-level citation metadata (id, section, page span) for the exact
+   * chunks a retrieval returned. Citations are built from these rows, never
+   * from model output.
+   */
+  getChunkMetadata(
+    refs: Array<{ document_id: string; chunk_index: number }>,
+  ): Promise<KnowledgeChunkMetaRow[]>;
   /**
    * Ordered chunk content for a single document, used by SOP → lesson
    * conversion (`convertSopToLesson`). Content is joined by the caller.
    */
   getChunksContent(documentId: string, limit: number): Promise<string[]>;
+
   /**
    * Ordered chunk rows across multiple documents, used by multi-SOP course
    * generation (`generateAcademyCourse`).
