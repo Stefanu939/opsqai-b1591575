@@ -246,6 +246,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
       }}
     >
+      {profileError && session?.user ? (
+        <div className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/40 bg-amber-500/15 px-4 py-2 text-sm">
+          <span>
+            Your permissions could not be loaded, so some pages and buttons are hidden.
+          </span>
+          <button
+            type="button"
+            onClick={retryProfile}
+            className="rounded-md border border-amber-500/50 px-3 py-1 text-xs font-medium hover:bg-amber-500/20"
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
       {children}
     </Ctx.Provider>
   );
