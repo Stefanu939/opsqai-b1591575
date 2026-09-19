@@ -97,13 +97,30 @@ async function buildPayload(opts: HeartbeatSenderOptions): Promise<HeartbeatPayl
     status: "running" as const,
     last_maintenance_at: null,
     next_maintenance_at: toIso(lic.claims.maintenance_expires_at ?? null),
-    usage: opts.collectUsage ? await opts.collectUsage().catch(() => null) : null,
+    usage: opts.collectUsage
+      ? await opts.collectUsage().catch((e) => {
+          console.warn("[selfhost-heartbeat] usage collection failed", (e as Error)?.message);
+          return null;
+        })
+      : null,
     timestamp: new Date().toISOString(),
   };
 
-
   const parsed = HeartbeatPayloadSchema.safeParse(candidate);
-  return parsed.success ? parsed.data : null;
+  if (parsed.success) return parsed.data;
+
+  // Usage numbers must never cost us the heartbeat itself: if only the usage
+  // block is invalid, report without it and say why in the log.
+  if (candidate.usage) {
+    console.warn(
+      "[selfhost-heartbeat] usage block rejected by schema; sending heartbeat without usage",
+      JSON.stringify(parsed.error.issues.slice(0, 5)),
+    );
+    const retry = HeartbeatPayloadSchema.safeParse({ ...candidate, usage: null });
+    if (retry.success) return retry.data;
+  }
+  console.warn("[selfhost-heartbeat] payload invalid", JSON.stringify(parsed.error.issues.slice(0, 5)));
+  return null;
 }
 
 async function sendOnce(opts: HeartbeatSenderOptions, logger: HeartbeatLogger): Promise<boolean> {
