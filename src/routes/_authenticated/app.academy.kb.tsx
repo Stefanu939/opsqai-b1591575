@@ -185,6 +185,15 @@ function AcademyKBPage() {
           </div>
         )}
       </div>
+      <AssignTrainingDialog
+        open={!!assignPathId}
+        onOpenChange={(v) => !v && setAssignPathId(null)}
+        defaultPathId={assignPathId}
+        onAssigned={() => {
+          setAssignPathId(null);
+          void load();
+        }}
+      />
     </div>
   );
 }
