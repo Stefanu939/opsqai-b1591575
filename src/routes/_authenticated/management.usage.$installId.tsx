@@ -187,9 +187,22 @@ function UsageAuditPage() {
       {query.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : !audit?.reporting ? (
-        <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-          This installation has not reported usage figures yet. Reporting starts with the next
-          scheduled report, and is skipped entirely when the customer set telemetry to disabled.
+        <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground space-y-2">
+          <p>
+            This installation has not reported usage figures yet.
+            {audit?.last_heartbeat_at
+              ? " It is reachable and reports its state, but no usage numbers have arrived."
+              : " No report of any kind has arrived yet."}
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              Usage reporting was added in app version 1.1.0
+              {audit?.app_version ? ` — this installation runs ${audit.app_version}.` : "."} Older
+              installations send status only; the numbers appear after the update.
+            </li>
+            <li>Nothing is reported when the customer set telemetry to disabled.</li>
+            <li>Numbers are stored at most once every 6 hours per installation.</li>
+          </ul>
         </div>
       ) : (
         <>

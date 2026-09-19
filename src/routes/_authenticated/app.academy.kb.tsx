@@ -31,18 +31,38 @@ function AcademyKBPage() {
   const [paths, setPaths] = useState<any[]>([]);
   const [q, setQ] = useState("");
   const [dept, setDept] = useState<string | null>(null);
+  const setPublish = useServerFn(setAcademyPathPublishStatus);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [assignPathId, setAssignPathId] = useState<string | null>(null);
+
+  const load = async () => {
+    const [d, p] = await Promise.all([listDept(), listPaths({ data: {} })]);
+    setDepts((d as any[]) ?? []);
+    setPaths((p as any[]) ?? []);
+  };
 
   useEffect(() => {
     void (async () => {
       try {
-        const [d, p] = await Promise.all([listDept(), listPaths({ data: {} })]);
-        setDepts((d as any[]) ?? []);
-        setPaths((p as any[]) ?? []);
+        await load();
       } catch {
         /* */
       }
     })();
   }, []);
+
+  const togglePublish = async (id: string, status: "draft" | "published") => {
+    setBusyId(id);
+    try {
+      await setPublish({ data: { id, publish_status: status } });
+      setPaths((prev) => prev.map((p) => (p.id === id ? { ...p, publish_status: status } : p)));
+      toast.success(status === "published" ? "Course published" : "Course moved back to draft");
+    } catch (e) {
+      toast.error((e as Error)?.message ?? "Could not change the course status");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const filtered = paths.filter(
     (p) =>
@@ -165,6 +185,15 @@ function AcademyKBPage() {
           </div>
         )}
       </div>
+      <AssignTrainingDialog
+        open={!!assignPathId}
+        onOpenChange={(v) => !v && setAssignPathId(null)}
+        defaultPathId={assignPathId}
+        onAssigned={() => {
+          setAssignPathId(null);
+          void load();
+        }}
+      />
     </div>
   );
 }
