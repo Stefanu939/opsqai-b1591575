@@ -37,6 +37,8 @@ export const Route = createFileRoute("/api/workspace-chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Cloud-only route: never served by a Self-Hosted install (audit C1).
+        if (process.env["OPSQAI_MODE"] === "selfhost") return new Response("Not found", { status: 404 });
         try {
           const timer = createTimer("ws-chat");
           const token = request.headers.get("authorization")?.replace("Bearer ", "");
