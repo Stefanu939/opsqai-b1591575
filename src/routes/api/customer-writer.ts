@@ -26,6 +26,8 @@ export const Route = createFileRoute("/api/customer-writer")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Cloud-only route: never served by a Self-Hosted install (audit C1).
+        if (process.env["OPSQAI_MODE"] === "selfhost") return new Response("Not found", { status: 404 });
         try {
           const token = request.headers.get("authorization")?.replace("Bearer ", "");
           if (!token) return new Response("Unauthorized", { status: 401 });

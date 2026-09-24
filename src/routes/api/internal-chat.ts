@@ -48,6 +48,8 @@ export const Route = createFileRoute("/api/internal-chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Cloud-only route: never served by a Self-Hosted install (audit C1).
+        if (process.env["OPSQAI_MODE"] === "selfhost") return new Response("Not found", { status: 404 });
         const authHeader = request.headers.get("authorization");
         const token = authHeader?.replace("Bearer ", "");
         if (!token) return new Response("Unauthorized", { status: 401 });
