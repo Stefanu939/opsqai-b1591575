@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useT } from "@/i18n";
 import { getCloudBrowserDb } from "@/lib/cloud-client";
 import { ModulePage } from "@/components/app/module-page";
 import { BentoGrid, BentoItem } from "@/components/ui/bento-grid";
@@ -296,6 +297,7 @@ function AutoUpdatePanel() {
   const [ackDone, setAckDone] = useState<string[]>([]);
   const [restarting, setRestarting] = useState(false);
   const restartMachine = useServerFn(restartSelfHostMachine);
+  const { t } = useT();
 
 
   if (!status.data?.selfHosted) return null;
@@ -354,12 +356,12 @@ function AutoUpdatePanel() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Instalare finalizată</DialogTitle>
+            <DialogTitle>{t("installDoneTitle")}</DialogTitle>
             <DialogDescription>
-              Versiunea {s.progress?.version ? `v${s.progress.version}` : "nouă"} a fost
-              instalată. Repornește computerul pe care rulează OPSQAI ca toate serviciile să
-              pornească pe versiunea nouă. Repornirea începe în 20 de secunde și toți utilizatorii
-              vor fi deconectați.
+              {t("installDoneBody").replace(
+                "{version}",
+                s.progress?.version ? `v${s.progress.version}` : "—",
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -367,7 +369,7 @@ function AutoUpdatePanel() {
               variant="outline"
               onClick={() => setAckDone((v) => [...v, s.progress?.version ?? "installed"])}
             >
-              Închide fereastra
+              {t("closeWindow")}
             </Button>
             <Button
               disabled={restarting}
@@ -375,14 +377,14 @@ function AutoUpdatePanel() {
                 setRestarting(true);
                 void restartMachine()
                   .then(() => {
-                    toast.success("Computerul se repornește în câteva secunde");
+                    toast.success(t("restartToast"));
                     setAckDone((v) => [...v, s.progress?.version ?? "installed"]);
                   })
                   .catch((e: Error) => toast.error(e.message))
                   .finally(() => setRestarting(false));
               }}
             >
-              {restarting ? "Se repornește…" : "Repornește computerul"}
+              {restarting ? t("restarting") : t("restartComputer")}
             </Button>
           </DialogFooter>
         </DialogContent>

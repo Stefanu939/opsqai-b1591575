@@ -176,6 +176,28 @@ describe("cited step validation", () => {
     );
   });
 
+  it("accepts a translated step label when the answer language differs from the evidence", () => {
+    // Romanian answer over an English SOP: the label is translated, so only
+    // the step number can be verified verbatim.
+    expect(
+      citedStepsMatchEvidence(
+        "Pasul 3 = Verificarea acurateței expedierii, apoi Pasul 4 = Alocarea docului de încărcare.",
+        evidence,
+        "ro",
+      ),
+    ).toBe(true);
+  });
+
+  it("still rejects an invented step number in a translated answer", () => {
+    expect(citedStepsMatchEvidence("Pasul 9 = Sigilarea remorcii.", evidence, "ro")).toBe(false);
+  });
+
+  it("accepts a same-language paraphrase of a step label", () => {
+    expect(
+      citedStepsMatchEvidence("Step 3: Verify the shipment for accuracy.", evidence, "en"),
+    ).toBe(true);
+  });
+
   it("holds when the user asks for a correction and the model re-cites", () => {
     // Simulated correction turn: the model's "corrected" answer must still be
     // checked against the SAME retrieved evidence.
