@@ -222,7 +222,7 @@ export const Route=createFileRoute("/api/chat")({server:{handlers:{POST:async({r
   };
     // Evidence the answer must stay inside of, used for step/citation checks.
   const evidenceTexts=relevantSources(sources).map((s)=>s.excerpt);
-  const invalid=(text:string)=>answerLanguageMismatch(text,answerLanguage)||(mode==="kb"&&(answerSpeculates(text)||!citedStepsMatchEvidence(text,evidenceTexts)));
+  const invalid=(text:string)=>answerLanguageMismatch(text,answerLanguage)||(mode==="kb"&&(answerSpeculates(text)||!citedStepsMatchEvidence(text,evidenceTexts,answerLanguage)));
 
   let blocked=false;
   let finalText="";

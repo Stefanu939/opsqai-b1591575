@@ -165,6 +165,19 @@ const dict = {
       "Diese Anmeldung ist dem OPSQAI-Team vorbehalten. Bitte verwenden Sie das Kundenportal.",
     cloudArchitectureNote:
       "OPSQAI ist ein Windows-Produkt. Firmenbenutzer melden sich nur in der lokalen Installation an.",
+    licenseExpiredTitle: "Die Lizenz ist am {date} abgelaufen.",
+    licenseExpiredBody:
+      "Ihre Daten bleiben sichtbar und können exportiert werden, aber es können keine Einträge hinzugefügt oder geändert werden, bis die Lizenz verlängert wird. Die Verlängerung erfolgt durch Aktivierung einer neuen Lizenz — ohne Neuinstallation und ohne Datenverlust.",
+    licenseExpiringTitle: "Die Lizenz läuft in {days} Tagen ab ({date}).",
+    licenseExpiringBody:
+      "Nach diesem Datum wechselt die Anwendung in den Nur-Lese-Modus: Daten bleiben zugänglich und können exportiert werden, Änderungen sind nicht mehr möglich. Kontaktieren Sie OPSQAI zur Verlängerung oder für den Produktivbetrieb.",
+    installDoneTitle: "Installation abgeschlossen",
+    installDoneBody:
+      "Version {version} wurde installiert. Starten Sie den Computer neu, auf dem OPSQAI läuft, damit alle Dienste mit der neuen Version starten. Der Neustart beginnt in 20 Sekunden und alle Benutzer werden abgemeldet.",
+    closeWindow: "Fenster schließen",
+    restartComputer: "Computer neu starten",
+    restarting: "Neustart…",
+    restartToast: "Der Computer wird in wenigen Sekunden neu gestartet",
   },
   en: {
     appName: "OPSQAI",
@@ -326,6 +339,19 @@ const dict = {
       "This sign-in is reserved for the OPSQAI team. Please use the Customer Portal.",
     cloudArchitectureNote:
       "OPSQAI is a Windows product. Company users sign in only inside their local installation.",
+    licenseExpiredTitle: "The licence expired on {date}.",
+    licenseExpiredBody:
+      "Your data stays visible and can be exported, but no records can be added or changed until the licence is extended. Extension is done by activating a new licence — no reinstall, no data loss.",
+    licenseExpiringTitle: "The licence expires in {days} days ({date}).",
+    licenseExpiringBody:
+      "After this date the app switches to read-only: data stays accessible and can be exported, but no changes can be made. Contact OPSQAI to extend or move to production.",
+    installDoneTitle: "Installation finished",
+    installDoneBody:
+      "Version {version} has been installed. Restart the computer running OPSQAI so all services start on the new version. The restart begins in 20 seconds and all users will be signed out.",
+    closeWindow: "Close window",
+    restartComputer: "Restart computer",
+    restarting: "Restarting…",
+    restartToast: "The computer will restart in a few seconds",
   },
 } as const;
 
@@ -485,6 +511,16 @@ const ro: Record<DictKey, string> = {
   signInToMc: "Autentificare la Management Center",
   mcAccessDenied: "Această autentificare este rezervată echipei OPSQAI. Vă rugăm să folosiți Portalul Client.",
   cloudArchitectureNote: "OPSQAI este un produs Windows. Utilizatorii companiei se autentifică doar în instalarea locală.",
+  licenseExpiredTitle: "Licența a expirat la {date}.",
+  licenseExpiredBody: "Datele rămân vizibile și pot fi exportate, dar nu se mai pot adăuga sau modifica înregistrări până la prelungirea licenței. Prelungirea se face prin activarea unei licențe noi — fără reinstalare și fără pierderea datelor.",
+  licenseExpiringTitle: "Licența expiră în {days} zile ({date}).",
+  licenseExpiringBody: "După această dată aplicația trece în regim doar-citire: datele rămân accesibile și pot fi exportate, dar nu se mai pot face modificări. Contactează OPSQAI pentru prelungire sau trecere în producție.",
+  installDoneTitle: "Instalare finalizată",
+  installDoneBody: "Versiunea {version} a fost instalată. Repornește computerul pe care rulează OPSQAI ca toate serviciile să pornească pe versiunea nouă. Repornirea începe în 20 de secunde și toți utilizatorii vor fi deconectați.",
+  closeWindow: "Închide fereastra",
+  restartComputer: "Repornește computerul",
+  restarting: "Se repornește…",
+  restartToast: "Computerul se repornește în câteva secunde",
 };
 
 const dicts: Record<Lang, Partial<Record<DictKey, string>>> = {

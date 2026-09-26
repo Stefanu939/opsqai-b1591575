@@ -391,10 +391,25 @@ function normalizeForMatch(s: string): string {
  * the retrieved evidence. A mismatched step number or a step label that no
  * retrieved chunk contains means the model invented the reference.
  */
-export function citedStepsMatchEvidence(answer: string, evidence: string[]): boolean {
+export function citedStepsMatchEvidence(
+  answer: string,
+  evidence: string[],
+  answerLanguage?: string,
+): boolean {
   const claims = extractStepClaims(answer ?? "");
   if (claims.length === 0) return true;
   const haystacks = evidence.map(normalizeForMatch);
+  // When the answer is written in a different language than the evidence,
+  // step labels are translated, so only the step NUMBER can be verified
+  // verbatim; demanding the original label words would reject every correct
+  // translated answer.
+  let crossLanguage = false;
+  if (answerLanguage) {
+    const scores = languageScores(evidence.join(" "));
+    const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+    if (best && best[1] >= 4)
+      crossLanguage = best[0] !== answerLanguage.slice(0, 2).toLowerCase();
+  }
   return claims.every(({ step, label }) => {
     const words = normalizeForMatch(label)
       .split(" ")
@@ -404,7 +419,11 @@ export function citedStepsMatchEvidence(answer: string, evidence: string[]): boo
       // The step number and its label must appear in the SAME chunk, close together.
       const stepRe = new RegExp(`(step|schritt|pasul|pas|etapa|paso|passo|^|\\s)${step}\\b`);
       if (!stepRe.test(h)) return false;
-      return needle.every((w) => h.includes(w));
+      if (crossLanguage) return true;
+      // Same language: a paraphrase is fine, but a label that shares fewer
+      // than half of its significant words with the chunk is an invention.
+      const matched = needle.filter((w) => h.includes(w)).length;
+      return matched >= Math.ceil(needle.length / 2);
     });
   });
 }
