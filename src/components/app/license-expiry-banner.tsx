@@ -9,11 +9,13 @@
 
 import { useLicense } from "@/lib/license";
 import { getClientDeploymentMode } from "@/lib/deployment-mode";
+import { useT } from "@/i18n";
 import { AlertTriangle, Clock } from "lucide-react";
 
 const DAY = 86_400;
 
 export function LicenseExpiryBanner() {
+  const { t } = useT();
   const license = useLicense();
   if (getClientDeploymentMode() !== "selfhost") return null;
   if (license.unlimited || !license.expires_at) return null;
@@ -24,6 +26,12 @@ export function LicenseExpiryBanner() {
 
   const date = new Date(license.expires_at * 1000).toLocaleDateString();
   const expired = daysLeft <= 0;
+
+  const title = expired
+    ? t("licenseExpiredTitle").replace("{date}", date)
+    : t("licenseExpiringTitle")
+        .replace("{days}", String(daysLeft))
+        .replace("{date}", date);
 
   return (
     <div
@@ -40,23 +48,8 @@ export function LicenseExpiryBanner() {
         <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
       )}
       <div>
-        {expired ? (
-          <>
-            <span className="font-medium">Licența a expirat la {date}.</span>{" "}
-            Datele rămân vizibile și pot fi exportate, dar nu se mai pot adăuga sau modifica
-            înregistrări până la prelungirea licenței. Prelungirea se face prin activarea unei
-            licențe noi — fără reinstalare și fără pierderea datelor.
-          </>
-        ) : (
-          <>
-            <span className="font-medium">
-              Licența expiră în {daysLeft} {daysLeft === 1 ? "zi" : "zile"} ({date}).
-            </span>{" "}
-            După această dată aplicația trece în regim doar-citire: datele rămân accesibile și pot
-            fi exportate, dar nu se mai pot face modificări. Contactează OPSQAI pentru prelungire
-            sau trecere în producție.
-          </>
-        )}
+        <span className="font-medium">{title}</span>{" "}
+        {expired ? t("licenseExpiredBody") : t("licenseExpiringBody")}
       </div>
     </div>
   );
