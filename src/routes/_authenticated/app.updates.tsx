@@ -297,6 +297,7 @@ function AutoUpdatePanel() {
   const [ackDone, setAckDone] = useState<string[]>([]);
   const [restarting, setRestarting] = useState(false);
   const restartMachine = useServerFn(restartSelfHostMachine);
+  const { t } = useT();
 
 
   if (!status.data?.selfHosted) return null;
@@ -355,12 +356,12 @@ function AutoUpdatePanel() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Instalare finalizată</DialogTitle>
+            <DialogTitle>{t("installDoneTitle")}</DialogTitle>
             <DialogDescription>
-              Versiunea {s.progress?.version ? `v${s.progress.version}` : "nouă"} a fost
-              instalată. Repornește computerul pe care rulează OPSQAI ca toate serviciile să
-              pornească pe versiunea nouă. Repornirea începe în 20 de secunde și toți utilizatorii
-              vor fi deconectați.
+              {t("installDoneBody").replace(
+                "{version}",
+                s.progress?.version ? `v${s.progress.version}` : "—",
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
