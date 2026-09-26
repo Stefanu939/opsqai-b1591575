@@ -369,7 +369,7 @@ function AutoUpdatePanel() {
               variant="outline"
               onClick={() => setAckDone((v) => [...v, s.progress?.version ?? "installed"])}
             >
-              Închide fereastra
+              {t("closeWindow")}
             </Button>
             <Button
               disabled={restarting}
@@ -377,14 +377,14 @@ function AutoUpdatePanel() {
                 setRestarting(true);
                 void restartMachine()
                   .then(() => {
-                    toast.success("Computerul se repornește în câteva secunde");
+                    toast.success(t("restartToast"));
                     setAckDone((v) => [...v, s.progress?.version ?? "installed"]);
                   })
                   .catch((e: Error) => toast.error(e.message))
                   .finally(() => setRestarting(false));
               }}
             >
-              {restarting ? "Se repornește…" : "Repornește computerul"}
+              {restarting ? t("restarting") : t("restartComputer")}
             </Button>
           </DialogFooter>
         </DialogContent>
