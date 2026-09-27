@@ -770,7 +770,8 @@ function CustomerEntitlementsPanel({
   });
   useEffect(() => {
     if (!architecture) return;
-    setCoreDraft(new Set(architecture.enabled_core_capabilities));
+    // Core is always fully included — never partially licensed.
+    setCoreDraft(new Set(CORE_CAPABILITIES.map((item) => item.key)));
     setDirty(false);
   }, [architecture]);
 
@@ -826,7 +827,7 @@ function CustomerEntitlementsPanel({
     <section className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="border-b border-border px-4 py-3">
         <h2 className="text-sm font-semibold text-foreground">Customer license configuration</h2>
-        <p className="text-xs text-muted-foreground">Core functions are enabled by default. Included functions follow their parent automatically.</p>
+        <p className="text-xs text-muted-foreground">Core este inclus permanent. Se configurează doar Produsele OPSQAI.</p>
       </div>
       <div className="grid min-h-[520px] md:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="border-b border-border bg-muted/20 p-2 md:border-b-0 md:border-r">
@@ -869,25 +870,16 @@ function CustomerEntitlementsPanel({
 
           {architectureLoading ? <p className="py-8 text-sm text-muted-foreground">Loading configuration…</p> : (
             <div className="space-y-6 pt-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div><h4 className="text-sm font-semibold">Core functions</h4><p className="text-xs text-muted-foreground">Company-wide availability; personal rights still apply.</p></div>
-                <Button size="sm" variant="ghost" onClick={() => { setCoreDraft(new Set(CORE_CAPABILITIES.map((item) => item.key))); setDirty(true); }}>Enable all Core</Button>
+              <div>
+                <h4 className="text-sm font-semibold">Core Platform — inclus permanent</h4>
+                <p className="text-xs text-muted-foreground">Funcțiile Core sunt standard în fiecare licență și nu se pot dezactiva sau vinde separat.</p>
               </div>
-              <div className="grid gap-4 xl:grid-cols-2">
-                {areas.map((area) => (
-                  <div key={area} className="rounded-md border border-border p-3">
-                    <h5 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{area}</h5>
-                    <div className="divide-y divide-border">
-                      {CORE_CAPABILITIES.filter((item) => item.area === area).map((item) => (
-                        <label key={item.key} className="flex items-start gap-3 py-2.5">
-                          <Switch checked={coreDraft.has(item.key)} onCheckedChange={(value) => { setCoreDraft((current) => { const next = new Set(current); value ? next.add(item.key) : next.delete(item.key); return next; }); setDirty(true); }} aria-label={`${item.label} for ${selectedCompany.name}`} />
-                          <span className="min-w-0"><span className="block text-sm font-medium text-foreground">{item.label}</span><span className="block text-xs text-muted-foreground">{item.description}</span></span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+              <div className="flex flex-wrap gap-1.5">
+                {CORE_CAPABILITIES.map((item) => (
+                  <span key={item.key} title={item.description} className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">{item.label}</span>
                 ))}
               </div>
+
 
               <div>
                 <h4 className="text-sm font-semibold">OPSQAI Products</h4>
