@@ -329,7 +329,7 @@ const config = {
         install_id: licenseClaims.install_id ?? installId,
         modules: Array.isArray(licenseClaims.modules) ? licenseClaims.modules : [],
       }
-    : { edition: "community" },
+    : (() => { console.error("[bootstrap] A valid signed OPSQAI license is required. Installation aborted."); process.exit(3); })(),
   updates: {
     channel: "stable",
     manifestUrl: "https://updates.opsqai.de/channel/stable/manifest.json",
