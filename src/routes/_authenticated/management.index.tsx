@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/management/")({
   errorComponent: ({ error, reset }) => (
     <div className="mx-auto max-w-2xl p-6 md:p-10 space-y-3">
       <h1 className="text-xl font-semibold">Something went wrong</h1>
-      <p className="text-sm text-muted-foreground">{error.message}</p>
+      <p className="text-sm text-muted-foreground">{error instanceof Error ? error.message : String(error)}</p>
       <button
         type="button"
         onClick={reset}
