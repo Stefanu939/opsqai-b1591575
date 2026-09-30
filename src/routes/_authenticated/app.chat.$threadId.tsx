@@ -148,27 +148,36 @@ function ChatThread() {
     (user?.metadata as Record<string, string> | undefined)?.full_name ?? null,
     user?.email ?? null,
   );
-  const [initial, setInitial] = useState<UIMessage[] | null>(null);
+  // Messages are stored together with the thread they belong to, so switching
+  // conversations never renders the previous thread's messages, and a slow
+  // response for an old thread can never overwrite the current one.
+  const [loaded, setLoaded] = useState<{ threadId: string; msgs: UIMessage[] } | null>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const seededRef = useRef(false);
   const tokenRef = useRef<string>("");
 
   useEffect(() => {
+    let cancelled = false;
+    seededRef.current = false;
     const load = async () => {
       const sess = await getBrowserAuthProvider().getSession();
       tokenRef.current = sess?.accessToken ?? "";
       const { listThreadMessages } = await import("@/lib/threads.functions");
       const data = await listThreadMessages({ data: { threadId } });
+      if (cancelled) return;
       const msgs: UIMessage[] = (data ?? []).map((m) => ({
         id: m.id,
         role: m.role as "user" | "assistant" | "system",
         parts: (m.parts as UIMessage["parts"]) ?? [{ type: "text", text: m.content }],
         metadata: m.sources ? { sources: m.sources } : undefined,
       }));
-      setInitial(msgs);
+      setLoaded({ threadId, msgs });
     };
     load();
+    return () => {
+      cancelled = true;
+    };
   }, [threadId]);
 
   const transport = useMemo(
@@ -181,8 +190,9 @@ function ChatThread() {
     [threadId, lang],
   );
 
-  if (!initial)
+  if (!loaded || loaded.threadId !== threadId)
     return <div className="flex-1 grid place-items-center text-sm text-muted-foreground">…</div>;
+  const initial = loaded.msgs;
 
   return (
     <ChatInner
