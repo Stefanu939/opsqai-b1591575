@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listThreads, deleteThread, renameThread, createThread } from "@/lib/threads.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquarePlus, Search, Trash2, Pencil, Check, X, MessagesSquare } from "lucide-react";
+import { MessageSquarePlus, Search, Trash2, Pencil, Check, X, MessagesSquare, Pin } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
 import { toast } from "sonner";
@@ -64,16 +64,36 @@ export function ChatSidebar() {
     return q ? threads.filter((t) => (t.title || "").toLowerCase().includes(q)) : threads;
   }, [threads, query]);
 
+  // Pinned conversations are remembered on this device.
+  const [pinned, setPinned] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      setPinned(JSON.parse(localStorage.getItem("opsqai.chat.pinned") || "[]"));
+    } catch {
+      setPinned([]);
+    }
+  }, []);
+  const togglePin = (id: string) =>
+    setPinned((p) => {
+      const next = p.includes(id) ? p.filter((x) => x !== id) : [id, ...p];
+      localStorage.setItem("opsqai.chat.pinned", JSON.stringify(next));
+      return next;
+    });
+
   const grouped = useMemo(() => {
-    const g: Record<"today" | "week" | "month" | "older", Thread[]> = {
+    const g: Record<"pinned" | "today" | "week" | "month" | "older", Thread[]> = {
+      pinned: [],
       today: [],
       week: [],
       month: [],
       older: [],
     };
-    for (const t of filtered) g[bucketOf(t.updated_at || t.created_at)].push(t);
+    for (const t of filtered)
+      g[pinned.includes(t.id) ? "pinned" : bucketOf(t.updated_at || t.created_at)].push(t);
     return g;
-  }, [filtered]);
+  }, [filtered, pinned]);
+  const { lang: pinLang } = useT();
+  const pinnedLabel = pinLang === "de" ? "Angeheftet" : pinLang === "en" ? "Pinned" : "Fixate";
 
   const onNew = async () => {
     try {
@@ -171,11 +191,11 @@ export function ChatSidebar() {
         ) : filtered.length === 0 ? (
           <div className="px-3 py-6 text-xs text-muted-foreground">{labels.empty}</div>
         ) : (
-          (["today", "week", "month", "older"] as const).map((k) =>
+          (["pinned", "today", "week", "month", "older"] as const).map((k) =>
             grouped[k].length ? (
               <div key={k} className="mb-3">
                 <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
-                  {labels[k]}
+                  {k === "pinned" ? pinnedLabel : labels[k]}
                 </div>
                 <div className="space-y-0.5">
                   {grouped[k].map((t) => {
@@ -230,6 +250,13 @@ export function ChatSidebar() {
                             >
                               {t.title || "Untitled"}
                             </Link>
+                            <button
+                              onClick={() => togglePin(t.id)}
+                              className={`${pinned.includes(t.id) ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-muted-foreground"} p-1 hover:text-foreground hover:bg-muted rounded transition-opacity`}
+                              aria-label="Pin"
+                            >
+                              <Pin className="h-3 w-3" />
+                            </button>
                             <button
                               onClick={() => startRename(t)}
                               className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-opacity"
