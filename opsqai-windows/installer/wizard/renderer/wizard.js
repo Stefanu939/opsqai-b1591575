@@ -29,7 +29,6 @@ const state = {
   installId: makeUuid(),
   data: {
     licenseValidated: false,
-    licenseCommunity: false,
     systemChecksPassed: false,
     dbConnectionTested: false,
   },
@@ -133,14 +132,6 @@ const WIZARD_SHELL_HTML = String.raw`
             License valid
           </div>
           <div class="claims-grid" id="claims-grid"></div>
-        </div>
-
-        <div class="community-fallback">
-          <label class="checkbox">
-            <input type="checkbox" id="license-community" />
-            <span>I don't have a license yet — continue in Community mode</span>
-          </label>
-          <p class="hint">Community mode enables core features for up to 3 users. You can activate a license later from Admin → License.</p>
         </div>
       </div>
     </section>
@@ -439,19 +430,6 @@ $("#btn-license-load").addEventListener("click", async () => {
   await checkLicense();
 });
 $("#btn-license-check").addEventListener("click", checkLicense);
-$("#license-community").addEventListener("change", (e) => {
-  state.data.licenseCommunity = e.target.checked;
-  if (e.target.checked) {
-    $("#license-key").value = "";
-    $("#license-claims").hidden = true;
-    state.data.licenseValidated = false;
-    state.data.license = null;
-    setLicenseStatus("Community mode selected", "info");
-  } else {
-    setLicenseStatus("", null);
-  }
-  updateNextButton();
-});
 $("#license-key").addEventListener("input", () => {
   state.data.licenseValidated = false;
   $("#license-claims").hidden = true;
@@ -461,7 +439,7 @@ $("#license-key").addEventListener("input", () => {
 
 async function checkLicense() {
   const contents = $("#license-key").value.trim();
-  if (!contents) { setLicenseStatus("Enter a license key or select Community mode", "err"); return; }
+  if (!contents) { setLicenseStatus("A valid OPSQAI license is required to continue", "err"); return; }
   setLicenseStatus("Validating…", "info");
   const r = await window.opsqai.validateLicense(contents);
   if (!r.ok) {
@@ -484,8 +462,6 @@ async function checkLicense() {
   ].map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(String(v))}</dd>`).join("");
   state.data.license = { contents, claims: c };
   state.data.licenseValidated = true;
-  state.data.licenseCommunity = false;
-  $("#license-community").checked = false;
   updateNextButton();
 }
 function setLicenseStatus(msg, kind) {
@@ -667,7 +643,7 @@ function updateNextButton() {
 function isStepValid() {
   switch (state.step) {
     case 2:
-      return state.data.licenseValidated || state.data.licenseCommunity;
+      return state.data.licenseValidated === true;
     case 3:
       return state.data.systemChecksPassed;
     case 4:
@@ -700,14 +676,12 @@ function renderReview() {
   const dbLine = d.database.mode === "embedded"
     ? "Bundled PostgreSQL 16"
     : `External · ${d.database.external.host}:${d.database.external.port}`;
-  const licLine = d.licenseCommunity
-    ? "Community edition"
-    : `${d.license?.claims?.customer ?? "—"} · ${d.license?.claims?.edition ?? "—"} · ${d.license?.claims?.seats ?? "—"} seats`;
+  const licLine = `${d.license?.claims?.customer ?? "—"} · ${d.license?.claims?.edition ?? "—"} · ${d.license?.claims?.seats ?? "—"} seats`;
   const rows = [
     ["section", "License"],
     ["Edition", licLine],
   ];
-  if (!d.licenseCommunity && Array.isArray(d.license?.claims?.modules) && d.license.claims.modules.length) {
+  if (Array.isArray(d.license?.claims?.modules) && d.license.claims.modules.length) {
     rows.push(["Modules", d.license.claims.modules.join(", ")]);
   }
   rows.push(
@@ -1051,7 +1025,7 @@ function wireFinish() {
     "OPSQAI services installed and started",
     `Local AI engine ready (${d.ai?.chatModel || "Ollama"})`,
     d.admin?.email ? `Administrator ${d.admin.email} created` : "Administrator created",
-    d.licenseCommunity ? "Community edition" : "License activated",
+    "License activated",
   ];
   const summary = document.getElementById("finish-summary");
   if (summary) summary.innerHTML = items.map((i) => `<li>${escapeHtml(i)}</li>`).join("");
