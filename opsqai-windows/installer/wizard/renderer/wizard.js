@@ -454,7 +454,7 @@ async function checkLicense() {
   $("#license-claims").hidden = false;
   $("#claims-grid").innerHTML = [
     ["Company", c.customer ?? "—"],
-    ["Edition", c.edition ?? "Community"],
+    ["Edition", c.edition ?? "—"],
     ["Seats", c.seats ?? "—"],
     ["Modules", c.modules?.length ? c.modules.join(", ") : "—"],
     ["Expires", c.exp ? new Date(c.exp * 1000).toLocaleDateString() : "—"],
