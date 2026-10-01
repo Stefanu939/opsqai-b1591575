@@ -186,6 +186,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       module: "audit_log",
     },
     {
+      to: "/app/microsoft",
+      label: "Microsoft 365",
+      icon: ScrollText,
+      show: mode === "selfhost" && hasRole("platform_admin"),
+      module: "kb",
+    },
+    {
       to: "/app/activity",
       label: "Activity log",
       icon: ScrollText,

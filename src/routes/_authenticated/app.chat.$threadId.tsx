@@ -820,7 +820,20 @@ function SourcesPanel({
   // cannot open ("Get an app to open this 'blob' link").
   const openDoc = (documentId?: string) => {
     if (!documentId) return;
-    void navigate({ to: "/app/knowledge", search: { doc: documentId } });
+    // SharePoint-synced documents open at their original location.
+    void (async () => {
+      try {
+        const { getDocumentSourceUrl } = await import("@/lib/microsoft365.functions");
+        const { url } = await getDocumentSourceUrl({ data: { document_id: documentId } });
+        if (url) {
+          window.open(url, "_blank", "noopener,noreferrer");
+          return;
+        }
+      } catch {
+        /* fall back to the Knowledge Base viewer */
+      }
+      void navigate({ to: "/app/knowledge", search: { doc: documentId } });
+    })();
   };
 
   // Explicit download of the original file (streamed through a server fn so it
