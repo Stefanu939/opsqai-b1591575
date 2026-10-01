@@ -13,6 +13,7 @@ import {
   Languages,
   Building2,
   LineChart,
+  ScrollText,
   GraduationCap,
   LifeBuoy,
   Package,
@@ -107,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ? "knowledge_gaps"
           : pathname.startsWith("/app/academy")
             ? "academy"
-            : pathname.startsWith("/app/audit")
+            : pathname.startsWith("/app/audit") || pathname.startsWith("/app/activity")
               ? "audit_log"
               : pathname.startsWith("/app/users") || pathname.startsWith("/app/organization")
                 ? "rbac"
@@ -182,6 +183,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: "AI Audit",
       icon: LineChart,
       show: mode === "selfhost" || hasAnyPermission("ai_audit.view", "ai_audit.run"),
+      module: "audit_log",
+    },
+    {
+      to: "/app/activity",
+      label: "Activity log",
+      icon: ScrollText,
+      show: mode === "selfhost",
       module: "audit_log",
     },
     {
