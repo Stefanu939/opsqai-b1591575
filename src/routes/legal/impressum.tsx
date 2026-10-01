@@ -23,6 +23,12 @@ export const Route = createFileRoute("/legal/impressum")({
         <br />
         Web: https://opsqai.de
       </p>
+      <p>
+        The OPSQAI company is currently being founded. Until the commercial register entry is
+        completed, this website is operated by the founder personally; the full registered company
+        name, legal form, registered office, managing directors and register number will be
+        published here immediately after incorporation.
+      </p>
 
       <h2>Responsible for content</h2>
       <p>The operator named above, in accordance with § 55 (2) RStV.</p>

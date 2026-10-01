@@ -120,12 +120,36 @@ export const Route = createFileRoute("/legal/privacy")({
         rights. You may also lodge a complaint with your local data protection authority.
       </p>
 
+      <h2>Service providers we use for opsqai.de</h2>
+      <ul>
+        <li>
+          <strong>STRATO AG (Germany)</strong> — domain, DNS and email hosting for opsqai.de,
+          including the mailbox that receives contact-form messages. Data is processed in
+          German data centres.
+        </li>
+        <li>
+          <strong>Cloudflare, Inc. (USA / EU)</strong> — content delivery network, DDoS protection
+          and TLS termination in front of the website. Cloudflare processes request metadata
+          (IP address, user-agent) at its edge locations; transfers rely on Standard Contractual
+          Clauses and Cloudflare's EU Data Processing Addendum.
+        </li>
+        <li>
+          <strong>Lovable (hosting and application platform, EU)</strong> — runs the marketing
+          website, the Customer Portal and the Management Center, including the authentication
+          service and the managed database behind them.
+        </li>
+      </ul>
+      <p>
+        None of these providers receives content from a customer's self-hosted OPSQAI instance,
+        because that content never leaves the customer's own server.
+      </p>
+
       <h2>International transfers</h2>
       <p>
-        Personal data collected on opsqai.de is processed within the European Economic Area.
-        Where a subprocessor of the marketing site (for example, the email service used to reply
-        to your contact-form message) processes data outside the EEA, transfers are safeguarded by
-        Standard Contractual Clauses under Article 46 GDPR or an equivalent adequacy mechanism.
+        Personal data collected on opsqai.de is processed within the European Economic Area
+        wherever possible. Where a provider listed above (in particular Cloudflare) processes
+        data outside the EEA, transfers are safeguarded by Standard Contractual Clauses under
+        Article 46 GDPR or an equivalent adequacy mechanism.
       </p>
 
       <h2>Changes</h2>
