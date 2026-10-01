@@ -177,7 +177,7 @@ export async function answerFromKnowledge(
       pageEnd: cm?.page_end ?? null,
       paginated: false,
       last_updated: doc?.updatedAt ?? null,
-      confidence: Number(m.similarity ?? 0) >= 0.45 ? "high" : Number(m.similarity ?? 0) >= 0.28 ? "medium" : "low",
+      confidence: (Number(m.similarity ?? 0) >= 0.45 ? "high" : Number(m.similarity ?? 0) >= 0.28 ? "medium" : "low") as "high" | "medium" | "low",
       primary: index === 0,
       departmentName: null as string | null,
     };
