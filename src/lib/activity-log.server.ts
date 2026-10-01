@@ -87,20 +87,3 @@ export async function listActivity(f: ActivityFilters) {
   });
   return { items, total: cnt[0]?.n ?? 0 };
 }
-
-function csvCell(s: unknown) {
-  const t = s == null ? "" : String(s);
-  return /[",\n;]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
-}
-
-/** Export of the filtered log for the company's own auditors. */
-export async function exportActivityCsv(f: ActivityFilters) {
-  const { items } = await listActivity({ ...f, limit: 500, offset: 0 });
-  const head = ["at", "user", "email", "action", "target", "module", "severity", "success", "detail"];
-  const lines = items.map((r) =>
-    [r.at, r.actorName, r.actorEmail, r.action, r.target, r.module, r.severity, r.success, r.detail]
-      .map(csvCell)
-      .join(","),
-  );
-  return [head.join(","), ...lines].join("\n");
-}
