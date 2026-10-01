@@ -233,7 +233,7 @@ function MyTrainingHome() {
           <section className="mt-8 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <h2 className="text-sm font-semibold">Courses library</h2>
+                <h2 className="text-sm font-semibold">{translateLabel("Courses library", lang)}</h2>
                 <p className="text-xs text-muted-foreground">
                   Every course you create or generate is saved here automatically — drafts included.
                 </p>
