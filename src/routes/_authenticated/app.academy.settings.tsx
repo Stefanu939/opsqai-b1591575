@@ -200,20 +200,11 @@ function SettingsPage() {
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="verify-url">Verification address (QR code)</Label>
-                <Input
-                  id="verify-url"
-                  value={branding.verifyBaseUrl}
-                  placeholder="https://opsqai.company.local"
-                  onChange={(e) => setBranding({ ...branding, verifyBaseUrl: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  The QR code on the certificate points to this address, followed by
-                  <code className="mx-1">/verify/&lt;certificate&nbsp;id&gt;</code>. Use the address
-                  where this installation is reachable, otherwise scanning shows “Certificate not
-                  found”.
-                </p>
+              <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">Verification (QR code): automatic.</span>{" "}
+                Every certificate carries a QR code and a unique certificate ID that open this
+                installation's official verification page and confirm the certificate is authentic
+                and valid. Nothing to configure.
               </div>
 
               <Button disabled={busy} onClick={() => void onSave()}>

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Server-only: build a branded certificate PDF and store it via the storage provider.
+import { getRequest } from "@tanstack/react-start/server";
 import { getAcademyRepository, getCompanyRepository, getProfileRepository, getStorageProvider } from "@/lib/providers/registry";
 
 const BUCKET = "academy-certificates";
