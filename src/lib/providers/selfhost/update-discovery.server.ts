@@ -220,7 +220,7 @@ export async function checkForUpdateFromMc(
  * without waiting for the nightly window.
  */
 export async function writeUpdateCommand(
-  action: "check" | "download" | "install" | "restart" | "restart-machine",
+  action: "check" | "download" | "install" | "restart" | "restart-machine" | "rollback",
   version?: string,
 ): Promise<boolean> {
   const file = commandPath();

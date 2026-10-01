@@ -431,6 +431,21 @@ ipcMain.handle("shell:retry", async () => {
   loadSplashAndBoot();
 });
 ipcMain.handle("shell:quit", () => app.quit());
+// Emergency recovery: ask OpsqaiUpdater to restore the copy of the previous
+// version it keeps before every update. The updater runs it out-of-tree.
+ipcMain.handle("shell:rollback", () => {
+  const dir = path.join(process.env.ProgramData || "C:\\ProgramData", "OPSQAI", "updates");
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, "command.json"),
+      JSON.stringify({ action: "rollback", at: new Date().toISOString(), source: "desktop" }),
+    );
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e && e.message };
+  }
+});
 ipcMain.handle("shell:runDoctor", () => {
   // The doctor script lives in the installed platform tree; the shell
   // just opens the log folder so support can grab the last report.

@@ -474,3 +474,23 @@ export const setSelfHostPeerUpdateSettings = createServerFn({ method: "POST" })
     writeSelfHostConfig(cfg);
     return { ok: true };
   });
+
+/**
+ * Restore the previous installed version from the copy the updater keeps
+ * before every installation. The updater picks this up within seconds and runs
+ * it from outside the program folder, so no file stays locked.
+ */
+export const rollbackSelfHostUpdate = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .handler(async ({ context }): Promise<{ ok: boolean }> => {
+    await requirePlatformAdmin(context);
+    const { isSelfHosted } = await import("@/lib/platform/mode");
+    if (!isSelfHosted()) throw new Error("Rollback applies to Self-Hosted only.");
+    const { writeUpdateCommand, writeUpdateProgress } = await import(
+      "@/lib/providers/selfhost/update-discovery.server"
+    );
+    const ok = await writeUpdateCommand("rollback");
+    if (!ok) throw new Error("Could not reach the local update folder.");
+    await writeUpdateProgress({ phase: "installing", version: null });
+    return { ok: true };
+  });
