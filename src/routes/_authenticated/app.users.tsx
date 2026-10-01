@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/select";
 import { Users, UserPlus, Trash2, KeyRound, Mail, Camera, Download } from "lucide-react";
 import { exportUserData } from "@/lib/gdpr-export.functions";
+import { anonymizeUserData } from "@/lib/privacy.functions";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
@@ -118,6 +119,7 @@ function UsersPage() {
   const getRightsFn = useServerFn(getUserAreaRights);
   const setRightsFn = useServerFn(setUserAreaRights);
   const exportFn = useServerFn(exportUserData);
+  const anonymizeFn = useServerFn(anonymizeUserData);
   const qc = useQueryClient();
   const selfHosted = getClientDeploymentMode() === "selfhost";
 
