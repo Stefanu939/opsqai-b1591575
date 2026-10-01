@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/select";
 import { Users, UserPlus, Trash2, KeyRound, Mail, Camera, Download } from "lucide-react";
 import { exportUserData } from "@/lib/gdpr-export.functions";
+import { anonymizeUserData } from "@/lib/privacy.functions";
 import { toast } from "sonner";
 import { confirmAction } from "@/components/ui/confirm";
 
@@ -118,6 +119,7 @@ function UsersPage() {
   const getRightsFn = useServerFn(getUserAreaRights);
   const setRightsFn = useServerFn(setUserAreaRights);
   const exportFn = useServerFn(exportUserData);
+  const anonymizeFn = useServerFn(anonymizeUserData);
   const qc = useQueryClient();
   const selfHosted = getClientDeploymentMode() === "selfhost";
 
@@ -865,6 +867,32 @@ function UsersPage() {
                       }}
                     >
                       <Download className="h-3.5 w-3.5 mr-1" /> GDPR export
+                    </Button>
+                  )}
+                  {getClientDeploymentMode() !== "mc" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        if (
+                          !(await confirmAction({
+                            title: "Anonymise this user (GDPR right to erasure)?",
+                            description:
+                              "Name, email and contact details are replaced with an anonymous code, the account is disabled and their AI conversations are deleted. The activity log keeps its entries under the anonymous code. This cannot be undone.",
+                            confirmLabel: "Anonymise",
+                          }))
+                        )
+                          return;
+                        try {
+                          const r = await anonymizeFn({ data: { user_id: detailUser.id } });
+                          toast.success(`User anonymised as ${r.pseudonym}`);
+                          invalidate();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Anonymisation failed");
+                        }
+                      }}
+                    >
+                      Anonymise (GDPR)
                     </Button>
                   )}
                   <Button

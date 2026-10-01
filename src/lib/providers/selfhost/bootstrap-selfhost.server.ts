@@ -375,4 +375,9 @@ export async function bootstrapSelfHosted(): Promise<void> {
   void import("@/lib/microsoft/email-sync.server")
     .then((m) => m.startEmailScheduler())
     .catch(() => undefined);
+
+  // GDPR retention: purges AI chat history older than the configured window.
+  void import("@/lib/privacy.server")
+    .then((m) => m.startRetentionScheduler())
+    .catch(() => undefined);
 }

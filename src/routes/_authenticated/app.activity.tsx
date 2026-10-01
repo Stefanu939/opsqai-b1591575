@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { ModulePage } from "@/components/app/module-page";
 import { Panel } from "@/components/ui/panel";
+import { RetentionPanel } from "@/components/app/retention-panel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -131,6 +132,7 @@ function ActivityPage() {
         </Button>
       }
     >
+      <RetentionPanel lang={lang} />
       <Panel>
         <div className="grid gap-2 md:grid-cols-[2fr_1fr_auto_auto_auto]">
           <Input placeholder={L.search} value={q} onChange={(e) => { setQ(e.target.value); setOffset(0); }} />
