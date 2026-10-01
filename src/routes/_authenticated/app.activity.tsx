@@ -91,8 +91,8 @@ const PAGE = 50;
 const SEVERITIES = ["info", "warning", "critical"] as const;
 
 function ActivityPage() {
-  const { lang } = useT() as unknown as { lang?: string };
-  const L = TXT[(lang as keyof typeof TXT) ?? "ro"] ?? TXT.ro;
+  const { lang } = useT();
+  const L = TXT[lang as keyof typeof TXT] ?? TXT.ro;
   const list = useServerFn(listActivityLog);
   const [q, setQ] = useState("");
   const [actor, setActor] = useState("");
