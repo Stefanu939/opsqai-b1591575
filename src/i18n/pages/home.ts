@@ -8,7 +8,7 @@ const en = {
     h1a: "The operating system",
     h1b: "for operational knowledge —",
     intro:
-      "OPSQAI is a Windows Self-Hosted platform that brings governed AI to industrial operations. Sovereign by design. Customers own their data, documents, embeddings and AI provider. We never see operational knowledge — and we built it that way on purpose, because it's",
+      "OPSQAI is a Windows Self-Hosted platform that brings governed AI to banking, logistics and complex business operations. Sovereign by design. Customers own their data, documents, embeddings and AI provider. We do not store operational knowledge in OPSQAI Cloud — because operational intelligence belongs inside the customer boundary,",
     introEm: "not without them",
     scrollHint: "Windows Self-Hosted · Customer-owned",
     acts: ["Core", "Knowledge", "Products", "Governance", "OPSQAI"],
@@ -22,7 +22,7 @@ const en = {
     eyebrow: "Who is OPSQAI for",
     title: "Built for how organisations actually operate.",
     intro:
-      "OPSQAI is not a logistics tool. It is an operational AI platform: the Core Platform covers knowledge, SOPs, FAQ, Academy, AI Audit, compliance, users and audit trail, and each business domain is enabled as a licensed OPSQAI product — Operations, Quality & Compliance, Logistics, HR, Finance and Inventory.",
+      "OPSQAI is not limited to logistics or a fixed product catalogue. Core brings governed knowledge, SOPs, FAQ, Academy, AI Audit, users and audit evidence into one workspace. Licensed products and company-specific workspaces extend it around the diagnosed problem — from banking and financial services to logistics, HR, manufacturing and other regulated operations.",
     audiences: [
       "Operations",
       "Quality & Compliance",
@@ -30,11 +30,12 @@ const en = {
       "Manufacturing & Production",
       "HR & Training",
       "Finance & Administration",
+      "Banking & Financial Services",
     ],
   },
   whyNow: {
     eyebrow: "Why now",
-    title: "Industrial companies can't hand knowledge to public LLMs.",
+    title: "Regulated organisations can't hand sensitive knowledge to public LLMs.",
     intro:
       "Operational documents, SOPs, procedures and audits describe how a business actually runs. They require ownership, governance and complete data sovereignty — not a chat window backed by a cloud tenant nobody controls.",
     reasons: [
@@ -217,7 +218,7 @@ const de: HomeCopy = {
     h1a: "Das Betriebssystem",
     h1b: "für operatives Wissen —",
     intro:
-      "OPSQAI ist eine Windows-Self-Hosted-Plattform, die governance-fähige KI in industrielle Abläufe bringt. Souverän von Grund auf: Kunden besitzen ihre Daten, Dokumente, Embeddings und ihren KI-Anbieter. Wir sehen operatives Wissen nie — und das ist bewusst so gebaut, denn es geht",
+      "OPSQAI ist eine Windows-Self-Hosted-Plattform für governance-fähige KI in Banken, Logistik und komplexen Geschäftsabläufen. Kunden besitzen Daten, Dokumente, Embeddings und KI-Anbieter. Operatives Wissen wird nicht in der OPSQAI Cloud gespeichert — es bleibt innerhalb der Kundengrenze, denn es geht",
     introEm: "nicht ohne die Menschen",
     scrollHint: "Windows Self-Hosted · Im Besitz des Kunden",
     acts: ["Core", "Wissen", "Produkte", "Governance", "OPSQAI"],
@@ -231,7 +232,7 @@ const de: HomeCopy = {
     eyebrow: "Für wen ist OPSQAI",
     title: "Gebaut für die tatsächliche Arbeitsweise von Organisationen.",
     intro:
-      "OPSQAI ist kein Logistiktool. Es ist eine operative KI-Plattform: Die Core-Plattform umfasst Wissen, SOPs, FAQ, Academy, KI-Audit, Compliance, Nutzer und Audit-Trail — jede Fachdomäne wird als lizenziertes OPSQAI-Produkt aktiviert: Operations, Qualität & Compliance, Logistik, HR, Finanzen und Bestand.",
+      "OPSQAI ist weder auf Logistik noch auf einen festen Produktkatalog begrenzt. Core vereint Wissen, SOPs, FAQ, Academy, KI-Audit, Nutzer und Nachweise. Lizenzierte Produkte und unternehmensspezifische Workspaces erweitern die Plattform rund um das diagnostizierte Problem — von Banken und Finanzdienstleistern bis Logistik, HR, Fertigung und weiteren regulierten Abläufen.",
     audiences: [
       "Operations",
       "Qualität & Compliance",
@@ -239,11 +240,12 @@ const de: HomeCopy = {
       "Fertigung & Produktion",
       "HR & Schulung",
       "Finanzen & Verwaltung",
+      "Banken & Finanzdienstleister",
     ],
   },
   whyNow: {
     eyebrow: "Warum jetzt",
-    title: "Industrieunternehmen können Wissen nicht an öffentliche LLMs übergeben.",
+    title: "Regulierte Organisationen können sensibles Wissen nicht an öffentliche LLMs übergeben.",
     intro:
       "Operative Dokumente, SOPs, Verfahren und Audits beschreiben, wie ein Unternehmen tatsächlich arbeitet. Sie erfordern Eigentümerschaft, Governance und vollständige Datensouveränität — kein Chatfenster hinter einem Cloud-Tenant, den niemand kontrolliert.",
     reasons: [
@@ -424,7 +426,7 @@ const ro: HomeCopy = {
     h1a: "Sistemul de operare",
     h1b: "pentru cunoștințe operaționale —",
     intro:
-      "OPSQAI este o platformă Windows Self-Hosted care aduce AI guvernat în operațiunile industriale. Suverană prin design. Clienții dețin datele, documentele, embeddings-urile și furnizorul de AI. Noi nu vedem niciodată cunoștințele operaționale — și am construit-o intenționat așa, pentru că",
+      "OPSQAI este o platformă Windows Self-Hosted care aduce AI guvernat în bănci, logistică și operațiuni complexe. Clienții dețin datele, documentele, embeddings-urile și furnizorul de AI. Cunoștințele operaționale nu sunt stocate în OPSQAI Cloud — ele rămân în granița clientului, pentru că",
     introEm: "nu se poate fără ei",
     scrollHint: "Windows Self-Hosted · Deținut de client",
     acts: ["Core", "Cunoștințe", "Produse", "Guvernanță", "OPSQAI"],
@@ -438,7 +440,7 @@ const ro: HomeCopy = {
     eyebrow: "Pentru cine este OPSQAI",
     title: "Construit pentru modul real în care funcționează organizațiile.",
     intro:
-      "OPSQAI nu este un instrument de logistică. Este o platformă de AI operațional: Platforma Core acoperă cunoștințe, SOP-uri, FAQ, Academy, AI Audit, conformitate, utilizatori și jurnal de audit, iar fiecare domeniu de business se activează ca produs OPSQAI licențiat — Operations, Calitate & Conformitate, Logistică, HR, Finanțe și Stocuri.",
+      "OPSQAI nu este limitat la logistică sau la un catalog fix. Core reunește cunoștințe, SOP-uri, FAQ, Academy, AI Audit, utilizatori și dovezi de audit. Produsele licențiate și workspace-urile construite pentru companie extind platforma în jurul problemei diagnosticate — de la bănci și servicii financiare la logistică, HR, producție și alte operațiuni reglementate.",
     audiences: [
       "Operațiuni",
       "Calitate & Conformitate",
@@ -446,11 +448,12 @@ const ro: HomeCopy = {
       "Producție & Fabricație",
       "HR & Instruire",
       "Finanțe & Administrație",
+      "Bănci & Servicii Financiare",
     ],
   },
   whyNow: {
     eyebrow: "De ce acum",
-    title: "Companiile industriale nu pot preda cunoștințele către LLM-uri publice.",
+    title: "Organizațiile reglementate nu pot preda cunoștințele sensibile către LLM-uri publice.",
     intro:
       "Documentele operaționale, SOP-urile, procedurile și auditurile descriu modul real de funcționare a unei afaceri. Ele necesită proprietate, guvernanță și suveranitate completă a datelor — nu o fereastră de chat susținută de un tenant cloud pe care nimeni nu îl controlează.",
     reasons: [

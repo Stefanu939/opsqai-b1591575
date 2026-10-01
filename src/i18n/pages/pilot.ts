@@ -5,7 +5,7 @@ export const pilotCopyEn = {
   meta: {
     title: "Pilot Program — OPSQAI · 30 Days Free Windows Self-Hosted Trial",
     description:
-      "Try OPSQAI free for 30 days on your own Windows Server. No cloud lock-in, no data leaving your boundary. For logistics, HR, finance and transport operations in Romania and DACH.",
+      "Try OPSQAI for 30 days on your own Windows Server. A focused pilot for banking, financial services, logistics, HR and other complex operations.",
   },
   hero: {
     eyebrow: "Pilot Program",
@@ -36,6 +36,7 @@ export const pilotCopyEn = {
       logistics: "Logistics / Warehousing / Transport",
       hr: "HR / Training / Onboarding",
       finance: "Finance / Administration",
+      banking: "Banking / Financial Services",
       operations: "Operations / Quality / Compliance",
       other: "Other",
     },
@@ -59,7 +60,7 @@ const de: PilotCopy = {
   meta: {
     title: "Pilotprogramm — OPSQAI · 30 Tage kostenlose Windows-Self-Hosted-Testphase",
     description:
-      "Testen Sie OPSQAI 30 Tage kostenlos auf Ihrem eigenen Windows Server. Kein Cloud-Lock-in, keine Daten verlassen Ihre Grenzen. Für Logistik, HR, Finanzen und Transport in Deutschland und Rumänien.",
+      "Testen Sie OPSQAI 30 Tage auf Ihrem eigenen Windows Server. Ein fokussierter Pilot für Banken, Finanzdienstleister, Logistik, HR und weitere komplexe Abläufe.",
   },
   hero: {
     eyebrow: "Pilotprogramm",
@@ -90,6 +91,7 @@ const de: PilotCopy = {
       logistics: "Logistik / Lager / Transport",
       hr: "HR / Schulung / Onboarding",
       finance: "Finanzen / Verwaltung",
+      banking: "Banken / Finanzdienstleister",
       operations: "Operations / Qualität / Compliance",
       other: "Sonstiges",
     },
@@ -111,7 +113,7 @@ const ro: PilotCopy = {
   meta: {
     title: "Program Pilot — OPSQAI · 30 de zile gratuite Windows Self-Hosted",
     description:
-      "Încearcă OPSQAI gratuit timp de 30 de zile pe propriul tău Windows Server. Fără lock-in în cloud, fără date care părăsesc granița companiei. Pentru logistică, HR, finanțe și transport în România și DACH.",
+      "Încearcă OPSQAI timp de 30 de zile pe propriul Windows Server. Un pilot focalizat pentru bănci, servicii financiare, logistică, HR și alte operațiuni complexe.",
   },
   hero: {
     eyebrow: "Program Pilot",
@@ -142,6 +144,7 @@ const ro: PilotCopy = {
       logistics: "Logistică / Depozitare / Transport",
       hr: "HR / Training / Onboarding",
       finance: "Finanțe / Administrare",
+      banking: "Bănci / Servicii financiare",
       operations: "Operațiuni / Calitate / Conformitate",
       other: "Altceva",
     },

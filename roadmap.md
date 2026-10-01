@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Reposition public website across banking, logistics, regulated industries, and adaptable business operations in EN/DE/RO
+
 - [x] Redesign the public website with Graphite Precision, editorial typography, responsive navigation, scoped light/dark tokens, and canonical EN/DE/RO product copy
 - [x] Plan demo video v2 (flicker fix, Self-Hosted scenes, EN narration, social formats, website embed)
 - [x] Capture Self-Hosted app screens (dashboard, AI chat, Academy, audit, gaps, product workspace)

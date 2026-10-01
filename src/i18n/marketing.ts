@@ -55,7 +55,7 @@ const en = {
     h1b: "for operational knowledge —",
     serif: "for people.",
     intro:
-      "OPSQAI is a Windows Self-Hosted platform that brings governed AI to industrial operations. Sovereign by design. Customers own their data, documents, embeddings and AI provider. We never see operational knowledge — and we built it that way on purpose, because it's",
+      "OPSQAI is a Windows Self-Hosted platform for governed AI across banking, logistics and complex business operations. Customers own their data, documents, embeddings and AI provider. Operational knowledge stays inside the customer boundary, because it's",
     introEm: "not without them",
   },
   product: {
@@ -261,7 +261,7 @@ const ro: MarketingCopy = {
     h1b: "pentru cunoștințele operaționale —",
     serif: "pentru oameni.",
     intro:
-      "OPSQAI este o platformă Windows self-hosted care aduce AI guvernat în operațiunile industriale. Suverană prin construcție: clienții își dețin datele, documentele, embeddings-urile și furnizorul de AI. Noi nu vedem niciodată cunoștințele operaționale — și am construit-o intenționat astfel, pentru că",
+      "OPSQAI este o platformă Windows Self-Hosted pentru AI guvernat în bănci, logistică și operațiuni complexe. Clienții își dețin datele, documentele, embeddings-urile și furnizorul AI. Cunoștințele rămân în granița clientului, pentru că",
     introEm: "nu merge fără oameni",
   },
   product: {
