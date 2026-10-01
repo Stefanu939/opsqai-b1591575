@@ -409,7 +409,7 @@ async function rollbackMain() {
     outcome: "running",
     step_log: [],
   };
-  writeJson(PROGRESS, { phase: "rolling_back", version: row.to_version, at: row.started_at });
+  writeJson(PROGRESS, { phase: "installing", version: row.to_version, at: row.started_at });
   try {
     row.step_log.push(log("rollback", `restoring ${dir}`));
     stopServices();

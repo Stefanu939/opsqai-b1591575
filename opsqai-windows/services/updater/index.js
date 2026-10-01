@@ -214,7 +214,7 @@ async function applyStaged(state, mode = "apply") {
     kind: mode === "rollback" ? "rollback" : "update",
     automatic: true,
   });
-  writeProgress({ phase: mode === "rollback" ? "rolling_back" : "installing", version });
+  writeProgress({ phase: "installing", version });
   try {
     const { launchRunner } = require("./runner");
     const r = launchRunner(mode);

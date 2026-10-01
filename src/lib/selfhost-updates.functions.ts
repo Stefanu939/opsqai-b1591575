@@ -491,6 +491,6 @@ export const rollbackSelfHostUpdate = createServerFn({ method: "POST" })
     );
     const ok = await writeUpdateCommand("rollback");
     if (!ok) throw new Error("Could not reach the local update folder.");
-    await writeUpdateProgress({ phase: "rolling_back", version: null });
+    await writeUpdateProgress({ phase: "installing", version: null });
     return { ok: true };
   });
