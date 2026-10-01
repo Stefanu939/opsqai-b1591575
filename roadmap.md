@@ -84,3 +84,14 @@
 - [x] Explain that OPSQAI can build company-specific workspaces, modules and features from diagnosed problems
 - [x] Cover speaker, partnership and pilot opportunities
 - [x] Render and visually verify every page, then deliver the final PDF
+
+## Plan strategic Enterprise (start 2026-10-01)
+- [x] Update Windows: runner detașat în afara Program Files (fără fișiere blocate), comenzi preluate în 3s
+- [x] Revenire la versiunea anterioară: buton în Actualizări + buton pe ecranul de avarie desktop
+- [ ] Jurnal de audit local vizibil pentru client (Self-Hosted)
+- [ ] AI Chat: acțiuni rapide sub răspuns (sursă, copiere, email); pin sincronizat pe server
+- [ ] Academy: bibliotecă comună, atribuire, dificultate pe scenarii
+- [ ] Aurora Noir + regula celor 2 click-uri (Ctrl+K, panouri laterale) pe Core/HR/Transport
+- [ ] Microsoft Entra ID SSO doar pe platforma Self-Hosted — necesită înregistrare aplicație Entra de la client
+- [ ] SharePoint: sincronizare folder (delta) în Knowledge Base cu citare + buton spre sursă — necesită aceeași înregistrare Entra
+- [ ] Email Intelligence (citire inbox de echipă, drafturi) și bot Microsoft Teams
