@@ -125,11 +125,25 @@ export const Route = createFileRoute("/legal/dpa")({
       </p>
 
       <h2>5. Subprocessors of opsqai.de</h2>
+      <p>The marketing website and Customer Portal currently rely on:</p>
+      <ul>
+        <li>
+          <strong>STRATO AG</strong> (Germany) — domain, DNS and email hosting, including the
+          mailbox used for contact and support correspondence.
+        </li>
+        <li>
+          <strong>Cloudflare, Inc.</strong> (USA / EU) — CDN, DDoS protection and TLS termination;
+          processes request metadata only, under Standard Contractual Clauses and Cloudflare's EU
+          Data Processing Addendum.
+        </li>
+        <li>
+          <strong>Lovable</strong> (EU) — application hosting platform for the website, Customer
+          Portal and Management Center, including authentication and the managed database.
+        </li>
+      </ul>
       <p>
-        opsqai.de is hosted on managed infrastructure in the European Economic Area. The current
-        list of infrastructure subprocessors used by the marketing site and Customer Portal is
-        available on request; customers on active agreements are notified in writing at least 30
-        days before any material change. <strong>None of these subprocessors receive customer
+        Customers on active agreements are notified in writing at least 30 days before any
+        material change to this list. <strong>None of these subprocessors receive customer
         content processed by the self-hosted instance</strong>, because that content never leaves
         the customer's premises.
       </p>
