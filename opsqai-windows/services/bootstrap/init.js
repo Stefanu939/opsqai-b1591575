@@ -26,6 +26,7 @@ const { execFileSync, spawnSync } = require("child_process");
 const { programData, programFiles, saveConfig, readJsonFile } = require("../common/config");
 const { formatFail, parseFail } = require("./errors.cjs");
 const { setupAiEngine, AiSetupError } = require("./ollama.cjs");
+const { setupLlamaEngine } = require("./llamacpp.cjs");
 
 function arg(name, dflt) {
   const i = process.argv.indexOf(`--${name}`);
@@ -239,7 +240,7 @@ if (dataMode === "fresh" && priorInstallId) {
   const stamp = new Date().toISOString().replace(/[-:T]/g, "").replace(/\..+$/, "");
   const archiveRoot = programData("archive", `install-${priorInstallId}-${stamp}`);
   log(`data-mode=fresh — archiving previous installation to ${archiveRoot}`);
-  for (const svc of ["OpsqaiUpdater", "OpsqaiCaddy", "OpsqaiWorker", "OpsqaiPlatform", "OpsqaiDatabase"]) {
+  for (const svc of ["OpsqaiUpdater", "OpsqaiCaddy", "OpsqaiWorker", "OpsqaiPlatform", "OpsqaiAi", "OpsqaiDatabase"]) {
     spawnSync("sc", ["stop", svc], { stdio: "ignore" });
   }
   spawnSync("cmd", ["/c", "ping", "127.0.0.1", "-n", "4", ">nul"]);
@@ -305,14 +306,13 @@ const config = {
     storageMode === "local"
       ? { mode: "local", local: { path: programData("data", "storage") } }
       : { mode: "s3", s3: JSON.parse(arg("storage-s3", "{}")) },
-  // Ollama is the default (and only) local AI engine on Self-Hosted.
+  // llama.cpp is the default local AI engine; Ollama remains supported.
   ai: JSON.parse(
     arg(
       "ai",
       JSON.stringify({
-        provider: "ollama",
-        baseUrl: "http://127.0.0.1:11434",
-        chatModel: "qwen2.5:7b",
+        provider: "llamacpp",
+        chatModel: "qwen2.5:3b",
         chatFastModel: "qwen2.5:3b",
         embeddingModel: "bge-m3",
       }),
@@ -987,7 +987,48 @@ function resetEmbeddedDatabase() {
     // --- Local AI engine (Ollama) -------------------------------------
     // Runs BEFORE the app services start so the platform boots with a
     // verified engine and the pinned embedding dimension already applied.
-    if ((config.ai?.provider || "ollama") === "ollama") {
+    const applyEmbeddingDim = async (dim) => {
+            describePgTarget("vector storage");
+            const r = psqlExec(`SELECT public.kb_apply_embedding_dim(${Number(dim)});`);
+
+            if (r.status !== 0) {
+              const detail = scrubSecrets((r.stderr || r.stdout || "") + "").trim().slice(-400);
+              throw new AiSetupError(
+                /dimension change refused/i.test(detail)
+                  ? "OPSQAI-E1505"
+                  : "OPSQAI-E1507",
+                `applying embedding dimension ${dim} failed: ${detail || `psql status ${r.status}`}`,
+              );
+            }
+          };
+    if (config.ai?.provider === "llamacpp") {
+      try {
+        const resolved = await setupLlamaEngine({
+          log,
+          stage,
+          cfg: config.ai || {},
+          exe: programFiles("vendor", "llamacpp", "llama-server.exe"),
+          modelsDir: programData("models"),
+          startService: () => {
+            svcCmd("OpsqaiAi", "stop");
+            svcCmd("OpsqaiAi", "start");
+          },
+          saveAi: (partial) => {
+            config.ai = { ...(config.ai || {}), ...partial };
+            saveConfig(config);
+          },
+          applyDim: applyEmbeddingDim,
+        });
+        config.ai = { ...(config.ai || {}), ...resolved };
+        saveConfig(config);
+        log(`ai engine ready (llama.cpp, ${resolved.embeddingDim} dims)`);
+      } catch (e) {
+        const code = e instanceof AiSetupError ? e.code : "OPSQAI-E1503";
+        writeInstallState("failed", "ai", { code, message: e.message });
+        console.log(formatFail("bootstrap", code, { message: e.message, log_path: LOG_PATH }));
+        process.exit(7);
+      }
+    } else if ((config.ai?.provider || "ollama") === "ollama") {
       try {
         const resolved = await setupAiEngine({
           log,

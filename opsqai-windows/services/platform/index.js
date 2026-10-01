@@ -79,6 +79,20 @@ function aiEnv(cfg) {
 
   if (provider === "none") return { ...base, AI_PROVIDER: "" };
 
+  if (provider === "llamacpp") {
+    // Bundled llama.cpp engine behind the OpsqaiAi loopback gateway. The
+    // "local" key is a placeholder; the gateway never leaves 127.0.0.1.
+    return {
+      ...base,
+      AI_PROVIDER: "openai-compatible",
+      GENERIC_AI_BASE_URL: ai.baseUrl || "http://127.0.0.1:11440/v1",
+      GENERIC_AI_API_KEY: "local",
+      GENERIC_AI_CHAT_MODEL: ai.chatModel || "qwen2.5:3b",
+      GENERIC_AI_CHAT_FAST_MODEL: ai.chatFastModel || ai.chatModel || "qwen2.5:3b",
+      GENERIC_AI_EMBEDDING_MODEL: ai.embeddingModel || "bge-m3",
+    };
+  }
+
   if (provider === "ollama") {
     return {
       ...base,

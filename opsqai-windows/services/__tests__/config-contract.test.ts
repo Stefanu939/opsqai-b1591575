@@ -97,6 +97,7 @@ describe("WinSW service definitions", () => {
     "OpsqaiPlatform.xml",
     "OpsqaiWorker.xml",
     "OpsqaiUpdater.xml",
+    "OpsqaiAi.xml",
   ];
 
   it("passes OPSQAI_CONFIG to every service that loads OPSQAI config", () => {
