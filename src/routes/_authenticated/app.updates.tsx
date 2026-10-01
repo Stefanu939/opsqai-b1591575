@@ -31,6 +31,7 @@ import {
   uploadSelfHostUpdateChunk,
   finishSelfHostUpdateUpload,
   restartSelfHostMachine,
+  rollbackSelfHostUpdate,
   runSelfHostUpdateAction,
   setSelfHostPeerUpdateSettings,
   setSelfHostUpdatePolicy,
@@ -297,6 +298,8 @@ function AutoUpdatePanel() {
   const [ackDone, setAckDone] = useState<string[]>([]);
   const [restarting, setRestarting] = useState(false);
   const restartMachine = useServerFn(restartSelfHostMachine);
+  const rollback = useServerFn(rollbackSelfHostUpdate);
+  const [rollingBack, setRollingBack] = useState(false);
   const { t } = useT();
 
 
@@ -633,6 +636,30 @@ function AutoUpdatePanel() {
           Ready to install:{" "}
           {s.staged ? `v${s.staged.version}` : "nothing waiting — you are current"}
         </span>
+      </div>
+
+      <div className="mt-4 rounded-md border border-border p-3">
+        <div className="text-sm font-medium">{t("rollbackTitle")}</div>
+        <p className="mt-1 text-xs text-muted-foreground">{t("rollbackBody")}</p>
+        <Button
+          className="mt-2"
+          size="sm"
+          variant="outline"
+          disabled={rollingBack}
+          onClick={() => {
+            if (!window.confirm(t("rollbackConfirm"))) return;
+            setRollingBack(true);
+            void rollback()
+              .then(() => toast.success(t("rollbackStarted")))
+              .catch((e: Error) => {
+                setRollingBack(false);
+                toast.error(e.message);
+              });
+          }}
+        >
+          <History className="mr-1 h-4 w-4" />
+          {t("rollbackButton")}
+        </Button>
       </div>
 
       {s.history.length ? (

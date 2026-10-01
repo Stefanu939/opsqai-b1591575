@@ -171,6 +171,11 @@ const dict = {
     licenseExpiringTitle: "Die Lizenz läuft in {days} Tagen ab ({date}).",
     licenseExpiringBody:
       "Nach diesem Datum wechselt die Anwendung in den Nur-Lese-Modus: Daten bleiben zugänglich und können exportiert werden, Änderungen sind nicht mehr möglich. Kontaktieren Sie OPSQAI zur Verlängerung oder für den Produktivbetrieb.",
+    rollbackTitle: "Vorherige Version wiederherstellen",
+    rollbackBody: "Stellt die Version wieder her, die vor der letzten Aktualisierung lief. Die Dienste starten dabei kurz neu.",
+    rollbackButton: "Vorherige Version wiederherstellen",
+    rollbackConfirm: "Vorherige Version jetzt wiederherstellen? OPSQAI ist etwa eine Minute nicht erreichbar.",
+    rollbackStarted: "Wiederherstellung gestartet. Die Seite ist gleich wieder erreichbar.",
     installDoneTitle: "Installation abgeschlossen",
     installDoneBody:
       "Version {version} wurde installiert. Starten Sie den Computer neu, auf dem OPSQAI läuft, damit alle Dienste mit der neuen Version starten. Der Neustart beginnt in 20 Sekunden und alle Benutzer werden abgemeldet.",
@@ -345,6 +350,11 @@ const dict = {
     licenseExpiringTitle: "The licence expires in {days} days ({date}).",
     licenseExpiringBody:
       "After this date the app switches to read-only: data stays accessible and can be exported, but no changes can be made. Contact OPSQAI to extend or move to production.",
+    rollbackTitle: "Restore previous version",
+    rollbackBody: "Brings back the version that ran before the last update. Services restart briefly.",
+    rollbackButton: "Restore previous version",
+    rollbackConfirm: "Restore the previous version now? OPSQAI will be unavailable for about a minute.",
+    rollbackStarted: "Restore started. The page will be back shortly.",
     installDoneTitle: "Installation finished",
     installDoneBody:
       "Version {version} has been installed. Restart the computer running OPSQAI so all services start on the new version. The restart begins in 20 seconds and all users will be signed out.",
@@ -515,6 +525,11 @@ const ro: Record<DictKey, string> = {
   licenseExpiredBody: "Datele rămân vizibile și pot fi exportate, dar nu se mai pot adăuga sau modifica înregistrări până la prelungirea licenței. Prelungirea se face prin activarea unei licențe noi — fără reinstalare și fără pierderea datelor.",
   licenseExpiringTitle: "Licența expiră în {days} zile ({date}).",
   licenseExpiringBody: "După această dată aplicația trece în regim doar-citire: datele rămân accesibile și pot fi exportate, dar nu se mai pot face modificări. Contactează OPSQAI pentru prelungire sau trecere în producție.",
+  rollbackTitle: "Revino la versiunea anterioară",
+  rollbackBody: "Readuce versiunea care rula înainte de ultima actualizare. Serviciile repornesc pentru scurt timp.",
+  rollbackButton: "Revino la versiunea anterioară",
+  rollbackConfirm: "Revii acum la versiunea anterioară? OPSQAI nu va fi disponibil aproximativ un minut.",
+  rollbackStarted: "Revenirea a început. Pagina va fi disponibilă în curând.",
   installDoneTitle: "Instalare finalizată",
   installDoneBody: "Versiunea {version} a fost instalată. Repornește computerul pe care rulează OPSQAI ca toate serviciile să pornească pe versiunea nouă. Repornirea începe în 20 de secunde și toți utilizatorii vor fi deconectați.",
   closeWindow: "Închide fereastra",
