@@ -119,7 +119,7 @@ export function applyAiEnv(ai: SelfHostAiConfig): void {
     process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT =
       pick(ai.embedding_model, ai.embeddingModel) ?? "text-embedding-3-small";
   } else {
-    const local = provider === "llamacpp";
+    const local = (provider as string) === "llamacpp";
     process.env.GENERIC_AI_BASE_URL =
       pick(ai.base_url, ai.baseUrl) ?? (local ? "http://127.0.0.1:11440/v1" : "");
     process.env.GENERIC_AI_API_KEY = local ? "local" : (pick(ai.api_key, ai.apiKey) ?? "");
