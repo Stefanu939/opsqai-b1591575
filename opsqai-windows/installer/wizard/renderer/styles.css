@@ -797,3 +797,5 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+.checks li[data-state="warn"] i { background: var(--warning, #e6b422); border-color: var(--warning, #e6b422); }
+.checks li[data-state="warn"] i::after { content: "!"; color: var(--bg); font-size: 11px; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; }

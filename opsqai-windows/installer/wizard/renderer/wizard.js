@@ -186,9 +186,15 @@ const WIZARD_SHELL_HTML = String.raw`
             required. Setup downloads the models below once (several GB);
             afterwards chat, embeddings and knowledge retrieval work offline.
           </p>
+          <label>Performance preset
+            <select id="ai-preset">
+              <option value="office">Office PC — 3B model, ~2.5 GB RAM, no GPU</option>
+              <option value="server">Enterprise Server — 7B model, ~8 GB RAM</option>
+            </select>
+          </label>
           <div class="grid-2">
-            <label>Chat model<input id="ai-chat-model" value="qwen2.5:7b" spellcheck="false" /></label>
-            <label>Fast model<input id="ai-fast-model" value="qwen2.5:3b" spellcheck="false" /></label>
+            <label>Chat model<input id="ai-chat-model" value="qwen2.5:3b" spellcheck="false" /></label>
+            <label>Fast model<input id="ai-fast-model" value="qwen2.5:1.5b" spellcheck="false" /></label>
           </div>
           <div class="grid-2">
             <label>Embedding model<input id="ai-embedding-model" value="bge-m3" spellcheck="false" /></label>
@@ -506,7 +512,7 @@ async function runSystemChecks() {
     const li = document.querySelector(`.checks li[data-check="${id}"]`);
     if (!li) continue;
     const r = results[id] || { ok: false, detail: "No result" };
-    li.setAttribute("data-state", r.ok ? "ok" : "err");
+    li.setAttribute("data-state", r.ok ? (r.warn ? "warn" : "ok") : "err");
     li.querySelector("em").textContent = r.detail;
   }
   // Mirror the real free-space probe onto the options pane instead of leaving
@@ -515,7 +521,7 @@ async function runSystemChecks() {
   if (diskEl) diskEl.textContent = results.disk?.detail || "unknown";
   state.data.systemChecksPassed = !!payload?.ok;
   $("#checks-summary").textContent = payload?.ok
-    ? "All checks passed."
+    ? (Object.values(results).some((r) => r.warn) ? "Checks passed with warnings — the Office PC preset is recommended." : "All checks passed.")
     : "Fix the highlighted items before continuing.";
   updateNextButton();
 
@@ -997,8 +1003,16 @@ function renderFailureCard(exitCode) {
 }
 
 function markStage(idx, s) {
-  const li = document.querySelector(`.stages li[data-stage="${STAGE_MARKERS[idx].stage}"]`);
-  if (li) li.setAttribute("data-state", s);
+  const stage = STAGE_MARKERS[idx].stage;
+  const li = document.querySelector(`.stages li[data-stage="${stage}"]`);
+  if (li) { li.setAttribute("data-state", s); return; }
+  // Fallback: a single grouped "ai" row shows the AI sub-stages as one line.
+  if (stage.startsWith("ai-")) {
+    const group = document.querySelector('.stages li[data-stage="ai"]');
+    if (!group) return;
+    const last = STAGE_MARKERS.map((m) => m.stage).filter((x) => x.startsWith("ai-")).pop();
+    group.setAttribute("data-state", s === "done" && stage !== last ? "run" : s);
+  }
 }
 function setPct(p) {
   $("#progress-bar").classList.remove("indeterminate");
@@ -1051,3 +1065,12 @@ document.addEventListener("keydown", (e) => {
 
 // ── Init ───────────────────────────────────────────────────────────
 render();
+
+// AI performance presets: fill the model fields; manual edits still win.
+document.addEventListener("change", (e) => {
+  if (e.target?.id !== "ai-preset") return;
+  const office = e.target.value === "office";
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  set("ai-chat-model", office ? "qwen2.5:3b" : "qwen2.5:7b");
+  set("ai-fast-model", office ? "qwen2.5:1.5b" : "qwen2.5:3b");
+});
