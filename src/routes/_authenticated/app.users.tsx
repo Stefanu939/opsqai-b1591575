@@ -869,6 +869,32 @@ function UsersPage() {
                       <Download className="h-3.5 w-3.5 mr-1" /> GDPR export
                     </Button>
                   )}
+                  {getClientDeploymentMode() !== "mc" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        if (
+                          !(await confirmAction({
+                            title: "Anonymise this user (GDPR right to erasure)?",
+                            description:
+                              "Name, email and contact details are replaced with an anonymous code, the account is disabled and their AI conversations are deleted. The activity log keeps its entries under the anonymous code. This cannot be undone.",
+                            confirmLabel: "Anonymise",
+                          }))
+                        )
+                          return;
+                        try {
+                          const r = await anonymizeFn({ data: { user_id: detailUser.id } });
+                          toast.success(`User anonymised as ${r.pseudonym}`);
+                          invalidate();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Anonymisation failed");
+                        }
+                      }}
+                    >
+                      Anonymise (GDPR)
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="destructive"
