@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/public/resources/$file")({
     handlers: {
       GET: async ({ params }) => {
         const file = params.file;
-        if (!ALLOWED.has(file)) {
+        // Marketing downloads exist only on the public website; a Self-Hosted
+        // installation never loads cloud components for this route.
+        const { currentServerMode } = await import("@/lib/deployment-mode.server");
+        if (currentServerMode() !== "mc" || !ALLOWED.has(file)) {
           return new Response("Not found", { status: 404 });
         }
 

@@ -58,15 +58,50 @@ export const Route = createFileRoute("/legal/dpa")({
         and that provider directly.
       </p>
 
-      <h2>3. Licence heartbeat — the only outbound call to OPSQAI</h2>
+      <h2>3. Licence, updates and aggregate usage — the only outbound calls to OPSQAI</h2>
       <p>
-        The Updater service periodically calls the OPSQAI Management Center to validate the
-        Ed25519-signed licence and to check for signed update manifests. The heartbeat request
-        contains: licence identifier, product build, and timestamp. It contains{" "}
-        <strong>no customer content, no end-user identifiers, no usage counters keyed to a
-        person</strong>. This falls under legitimate interest (Art. 6(1)(f) GDPR) for software
-        anti-piracy and update integrity, not under Art. 28.
+        The instance periodically contacts the OPSQAI Management Center to validate the
+        Ed25519-signed licence and to check for signed update packages (verified by SHA-256 and
+        publisher signature before installation). If the customer leaves aggregate reporting
+        enabled, the same channel carries counters such as number of questions, documents and
+        active seats. These requests contain the installation and licence identifiers, software
+        version, timestamp and counters only — <strong>no customer content, no end-user names or
+        email addresses, no usage counters keyed to a person</strong>. Aggregate reporting can be
+        disabled by the customer. This falls under legitimate interest (Art. 6(1)(f) GDPR) for
+        licence enforcement, update integrity and service quality, not under Art. 28.
       </p>
+
+      <h2>3a. Microsoft 365 integrations — the customer's own tenant</h2>
+      <p>
+        If the customer enables Microsoft sign-in (Entra ID), SharePoint synchronisation, Email
+        Intelligence or the Teams bot, the instance connects directly to the customer's own
+        Microsoft 365 tenant using an app registration the customer creates and controls. Content
+        flows between the customer's tenant and the customer's server only; OPSQAI does not
+        receive it. Email Intelligence only drafts replies — a person reviews and sends every
+        email; OPSQAI never sends email on its own.
+      </p>
+
+      <h2>3b. Tools the software gives the controller</h2>
+      <ul>
+        <li>
+          <strong>Access and portability (Art. 15, 20):</strong> administrators can export all
+          data stored about one user as a machine-readable file, excluding passwords and secrets.
+        </li>
+        <li>
+          <strong>Erasure (Art. 17):</strong> administrators can anonymise a user — name, email
+          and contact data are replaced by a pseudonymous code, the account is disabled and their
+          AI conversations are deleted, while the activity log stays intact under the code.
+        </li>
+        <li>
+          <strong>Storage limitation (Art. 5(1)(e)):</strong> a configurable retention period
+          automatically deletes AI chat history older than the chosen number of days.
+        </li>
+        <li>
+          <strong>Accountability (Art. 30, 32):</strong> an append-only activity log records
+          exports, anonymisations, permission changes and administrative actions; access is
+          role-based and checked on the server; sessions end after 30 minutes of inactivity.
+        </li>
+      </ul>
 
       <h2>4. opsqai.de and the Customer Portal — narrow Art. 28 scope</h2>
       <p>
