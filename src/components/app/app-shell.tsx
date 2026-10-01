@@ -189,7 +189,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/microsoft",
       label: "Microsoft 365",
       icon: ScrollText,
-      show: mode === "selfhost" && hasRole("platform_admin"),
+      show: mode === "selfhost" && hasAnyPermission("knowledge.manage"),
       module: "kb",
     },
     {
