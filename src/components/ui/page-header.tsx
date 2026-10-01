@@ -62,15 +62,16 @@ export function PageHeader({
           </nav>
         )}
         {eyebrow && (
-          <div className="mb-1 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="mb-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
             {eyebrow}
           </div>
         )}
-        <h1 className="font-display text-2xl font-semibold text-foreground md:text-[28px]">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
           {title}
         </h1>
         {description && (
-          <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         )}

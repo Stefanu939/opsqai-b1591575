@@ -36,22 +36,22 @@ export function Panel({
   return (
     <section
       className={cn(
-         "relative flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-xs",
+         "relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
          glass && "bg-card",
         className,
       )}
     >
       {(title || actions) && (
-        <header className="flex items-start justify-between gap-3 border-b border-border/70 px-4 py-3">
+        <header className="flex items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
           <div className="flex min-w-0 items-start gap-2.5">
             {Icon && (
-               <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-primary/25 bg-primary/10">
-                 <Icon className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
+               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-primary/25 bg-primary/10">
+                 <Icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
               </span>
             )}
             <div className="min-w-0">
               {title && (
-                <h2 className="truncate text-[13px] font-semibold tracking-tight text-foreground">
+                <h2 className="truncate font-display text-[15px] font-semibold tracking-tight text-foreground">
                   {title}
                 </h2>
               )}
@@ -65,9 +65,9 @@ export function Panel({
           {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
         </header>
       )}
-      <div className={cn("min-w-0 flex-1", flush ? "" : "p-4", bodyClassName)}>{children}</div>
+      <div className={cn("min-w-0 flex-1", flush ? "" : "p-5", bodyClassName)}>{children}</div>
       {footer && (
-        <footer className="border-t border-border/70 px-4 py-2.5 text-xs text-muted-foreground">
+        <footer className="border-t border-border/60 px-5 py-2.5 text-xs text-muted-foreground">
           {footer}
         </footer>
       )}
