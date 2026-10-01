@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { WindowsReleasesPanel } from "@/components/mc/windows-releases-panel";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useRef, useState, useCallback, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, type ChangeEvent, type DragEvent } from "react";
 import {
   listReleases,
   createRelease,
