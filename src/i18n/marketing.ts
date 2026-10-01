@@ -92,9 +92,9 @@ const en = {
     journeyEyebrow: "Delivery",
     journeyTitle: "From purchase to production",
     journeyIntro:
-      "No SaaS subscription. A one-time Core platform license, OPSQAI products per business domain, optional add-ons and Annual Maintenance.",
+      "No public SaaS workspace. A mandatory installation license includes Core permanently; domain products and optional add-ons are enabled through signed entitlements, with Annual Maintenance.",
     journey: [
-      { title: "Purchase", body: "Order the Core platform and the OPSQAI products you need through OPSQAI." },
+      { title: "License the installation", body: "Every licensed installation includes Core permanently. Add only the domain products and optional capabilities your operation needs." },
       { title: "Download package", body: "Retrieve the signed Windows installation package from the Customer Portal." },
       { title: "Run installer", body: "The installer provisions PostgreSQL, storage, services and Caddy on Windows Server." },
       { title: "Activate license", body: "Paste the Ed25519-signed license bundle issued by OPSQAI. Modules unlock as licensed." },
@@ -196,9 +196,9 @@ const de: MarketingCopy = {
     journeyEyebrow: "Auslieferung",
     journeyTitle: "Vom Kauf bis zum Produktivbetrieb",
     journeyIntro:
-      "Kein SaaS-Abo. Eine einmalige Core-Plattform-Lizenz, OPSQAI-Produkte je Fachbereich, optionale Add-ons plus jährliche Wartung.",
+      "Kein öffentlicher SaaS-Workspace. Die verpflichtende Installationslizenz enthält Core dauerhaft; Fachprodukte und optionale Add-ons kommen über signierte Berechtigungen hinzu, plus jährliche Wartung.",
     journey: [
-      { title: "Kauf", body: "Core-Plattform und die benötigten OPSQAI-Produkte über OPSQAI bestellen." },
+      { title: "Installation lizenzieren", body: "Jede lizenzierte Installation enthält Core dauerhaft. Hinzu kommen nur die benötigten Fachprodukte und optionalen Funktionen." },
       { title: "Paket herunterladen", body: "Signiertes Windows-Installationspaket im Kundenportal abrufen." },
       { title: "Installer ausführen", body: "Der Installer richtet PostgreSQL, Storage, Dienste und Caddy auf dem Windows Server ein." },
       { title: "Lizenz aktivieren", body: "Das von OPSQAI ausgestellte Ed25519-signierte Lizenzpaket einfügen. Module werden gemäß Lizenz freigeschaltet." },
@@ -298,9 +298,9 @@ const ro: MarketingCopy = {
     journeyEyebrow: "Livrare",
     journeyTitle: "De la achiziție la producție",
     journeyIntro:
-      "Fără abonament SaaS. O licență Core plătită o singură dată, produse OPSQAI per domeniu, add-on-uri opționale și mentenanță anuală.",
+      "Fără workspace SaaS public. Licența obligatorie de instalare include Core permanent; produsele de domeniu și add-on-urile opționale se activează prin drepturi semnate, cu mentenanță anuală.",
     journey: [
-      { title: "Achiziție", body: "Comandă platforma Core și produsele OPSQAI necesare prin OPSQAI." },
+      { title: "Licențiază instalarea", body: "Fiecare instalare licențiată include Core permanent. Adaugi doar produsele de domeniu și capabilitățile opționale necesare." },
       { title: "Descarcă pachetul", body: "Preia pachetul de instalare Windows semnat din Portalul Client." },
       { title: "Rulează installerul", body: "Installerul configurează PostgreSQL, stocarea, serviciile și Caddy pe Windows Server." },
       { title: "Activează licența", body: "Introdu pachetul de licență semnat Ed25519 emis de OPSQAI. Modulele se deblochează conform licenței." },
