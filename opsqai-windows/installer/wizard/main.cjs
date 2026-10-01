@@ -304,12 +304,19 @@ ipcMain.handle("wizard:runSystemChecks", async () => {
   };
 
   const totalGb = Math.round(os.totalmem() / 1e9);
-  results.ram = { ok: totalGb >= 8, detail: `${totalGb} GB total` };
+  // 6 GB is the hard floor; 6–8 GB passes with a warning (Office PC preset).
+  // Rounding avoids false failures when integrated graphics reserve memory.
+  results.ram = {
+    ok: totalGb >= 6,
+    warn: totalGb >= 6 && totalGb < 8,
+    detail: totalGb < 8 ? `${totalGb} GB total — use the Office PC AI preset` : `${totalGb} GB total`,
+  };
 
   const freeGb = checkDiskFreeGb();
   results.disk = {
-    ok: freeGb >= 20,
-    detail: freeGb < 0 ? "Unable to determine" : `${freeGb} GB free`,
+    ok: freeGb >= 12,
+    warn: freeGb >= 12 && freeGb < 20,
+    detail: freeGb >= 12 && freeGb < 20 ? `${freeGb} GB free — enough for the Office PC preset` : freeGb < 0 ? "Unable to determine" : `${freeGb} GB free`,
   };
 
   // No .NET check — OPSQAI does not use .NET at runtime.
@@ -327,7 +334,7 @@ ipcMain.handle("wizard:runSystemChecks", async () => {
   const blocked = portList.filter((_, i) => !portsFree[i]);
   results.ports = {
     ok: blocked.length === 0,
-    detail: blocked.length ? `In use: ${blocked.join(", ")}` : "443, 5432, 55432 free",
+    detail: blocked.length ? `In use: ${blocked.join(", ")} — close the program using it (often IIS, VMware or Skype) and re-run the check` : "443, 5432, 55432 free",
   };
 
   const admin = checkAdmin();
