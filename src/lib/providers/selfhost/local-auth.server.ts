@@ -231,6 +231,22 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
     },
 
 
+    async signInVerified(rawEmail: string, method: string): Promise<SignInResult> {
+      const email = rawEmail.trim().toLowerCase();
+      const user = await users.findByEmail(email);
+      if (!user || user.disabled) throw new Error("account_not_found");
+      await pool.query(
+        "UPDATE public.users SET last_login_at = now(), last_sign_in_at = now() WHERE id = $1",
+        [user.id],
+      );
+      await pool.query(
+        `INSERT INTO public.audit_log (actor_id, action, target, detail)
+         VALUES ($1, 'auth.signin', $2, $3)`,
+        [user.id, user.email, JSON.stringify({ method, module: "auth", severity: "info", success: true })],
+      );
+      return issueSession(user.id, user.email);
+    },
+
     async signOut(refreshToken: string): Promise<void> {
       const tokenHash = sha256Hex(refreshToken);
       const { rows } = await pool.query(

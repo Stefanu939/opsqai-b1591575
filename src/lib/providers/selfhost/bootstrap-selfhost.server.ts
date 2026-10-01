@@ -364,4 +364,9 @@ export async function bootstrapSelfHosted(): Promise<void> {
   registerCalendarRepositoryFactory(() => calendarRepo);
   const presenceRepo = createPgPresenceRepository({ pool, tenantCompanyId });
   registerPresenceRepositoryFactory(() => presenceRepo);
+
+  // SharePoint folder sync runs on this server every 30 minutes (no-op until configured).
+  void import("@/lib/microsoft/sharepoint-sync.server")
+    .then((m) => m.startSharePointScheduler())
+    .catch(() => undefined);
 }

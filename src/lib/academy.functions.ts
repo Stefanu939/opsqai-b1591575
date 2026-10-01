@@ -754,6 +754,13 @@ export const generateAcademyQuiz = createServerFn({ method: "POST" })
     const languageInstruction = academyLanguageInstruction(language);
     const [trueLabel, falseLabel] = academyTrueFalseOptions(language);
     const lessonLanguage = normalizeAcademyLanguage((lesson as { language?: string }).language);
+    const difficulty = String(lesson.path_difficulty ?? "standard").toLowerCase();
+    const difficultyRule =
+      difficulty === "beginner" || difficulty === "easy" || difficulty === "basic"
+        ? "DIFFICULTY: BEGINNER — restate single, explicit facts from the lesson in short, plain statements. False statements change one obvious detail."
+        : difficulty === "advanced" || difficulty === "hard" || difficulty === "expert"
+          ? "DIFFICULTY: ADVANCED — write short workplace SCENARIOS (who does what, in which situation) whose correctness depends on combining two or more rules or steps from the lesson, including order of steps, exceptions and responsibilities. False statements contain one subtle but lesson-verifiable error."
+          : "DIFFICULTY: STANDARD — apply one lesson rule to a brief concrete situation. False statements change one meaningful detail (step, role, limit or order).";
     const body = [
       `TITLE: ${lesson.title}`,
       `OBJECTIVES: ${(lesson.objectives ?? []).join(" | ")}`,
@@ -787,7 +794,9 @@ CONTENT CONTRACT (absolute):
 - Every statement must be verifiable directly from the lesson text below. Restate a sentence from the lesson (true) or alter one detail of a lesson sentence so it becomes wrong (false).
 - Never introduce facts, numbers, names, deadlines, tools, policies, or scenarios that are absent from the lesson.
 - Aim for a mix: roughly half true statements and half false statements.
-- The explanation must point to what the lesson actually says.${correction ? `\nCORRECTION REQUIRED: ${correction}` : ""}`,
+- The explanation must point to what the lesson actually says.
+${difficultyRule}
+- Answers always stay exactly the two options above, whatever the difficulty.${correction ? `\nCORRECTION REQUIRED: ${correction}` : ""}`,
         },
         {
           role: "user",

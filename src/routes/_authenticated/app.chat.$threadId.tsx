@@ -619,8 +619,9 @@ function ChatInner({
                   <div className="flex items-center gap-3">
                     <MessageReactions messageId={m.id} />
                     {text && (
-                      <div className="opacity-0 transition-opacity group-hover:opacity-100">
+                      <div className="flex items-center gap-3">
                         <CopyButton text={text} label={T("copy") || "Copy"} />
+                        <EmailButton text={text} />
                       </div>
                     )}
                     {text && isPersisted && <FeedbackBar messageId={m.id} />}
@@ -819,7 +820,20 @@ function SourcesPanel({
   // cannot open ("Get an app to open this 'blob' link").
   const openDoc = (documentId?: string) => {
     if (!documentId) return;
-    void navigate({ to: "/app/knowledge", search: { doc: documentId } });
+    // SharePoint-synced documents open at their original location.
+    void (async () => {
+      try {
+        const { getDocumentSourceUrl } = await import("@/lib/microsoft365.functions");
+        const { url } = await getDocumentSourceUrl({ data: { document_id: documentId } });
+        if (url) {
+          window.open(url, "_blank", "noopener,noreferrer");
+          return;
+        }
+      } catch {
+        /* fall back to the Knowledge Base viewer */
+      }
+      void navigate({ to: "/app/knowledge", search: { doc: documentId } });
+    })();
   };
 
   // Explicit download of the original file (streamed through a server fn so it
@@ -1185,6 +1199,22 @@ function ThinkingDots({ label }: { label: string }) {
       </span>
       <span className="italic">{label}</span>
     </div>
+  );
+}
+
+function EmailButton({ text }: { text: string }) {
+  const { lang } = useT();
+  const label = lang === "de" ? "Per E-Mail senden" : lang === "en" ? "Send by email" : "Trimite pe email";
+  const subject = lang === "de" ? "OPSQAI-Antwort" : lang === "en" ? "OPSQAI answer" : "Răspuns OPSQAI";
+  const body = text.length > 1800 ? `${text.slice(0, 1800)}…` : text;
+  return (
+    <a
+      href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <Mail className="h-3 w-3" />
+      {label}
+    </a>
   );
 }
 

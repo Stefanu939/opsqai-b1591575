@@ -204,7 +204,7 @@ export function createPgAcademyRepository(deps: PgAcademyRepositoryDeps): IAcade
     async getLesson(id) {
       const { rows } = await pool.query(
         `SELECT l.*, c.path_id AS chapter_path_id, c.title AS chapter_title,
-                p.title AS path_title, p.passing_score AS path_passing_score, p.language AS path_language
+                p.title AS path_title, p.passing_score AS path_passing_score, p.language AS path_language, p.difficulty AS path_difficulty
            FROM public.academy_lessons l
            JOIN public.academy_chapters c ON c.id = l.chapter_id
            JOIN public.academy_learning_paths p ON p.id = c.path_id
