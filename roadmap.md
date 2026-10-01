@@ -97,3 +97,6 @@
 - [x] Microsoft Entra ID SSO doar pe platforma Self-Hosted (cod gata; test real necesită tenant Entra)
 - [x] SharePoint: sincronizare folder (delta, 30 min) cu citare + buton spre sursă (test real necesită tenant)
 - [ ] Email Intelligence (citire inbox de echipă, drafturi) și bot Microsoft Teams
+
+## Cerere 2026-10-01
+- [x] AI Chat: analiză de speță (cifre client vs. reguli SOP + FAQ), zero halucinații
