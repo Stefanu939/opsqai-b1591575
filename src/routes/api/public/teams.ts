@@ -33,7 +33,9 @@ export const Route = createFileRoute("/api/public/teams")({
       POST: async ({ request }) => {
         // Only a Self-Hosted installation answers Teams traffic; cloud and
         // public web never touch employee data.
-        if (!isSelfHosted()) return Response.json({ ok: false, error: "not_selfhosted" }, { status: 404 });
+        if (!isSelfHosted()) {
+          return Response.json({ ok: false, error: "not_selfhosted" }, { status: 404 });
+        }
 
         const config = getTeamsBotConfig();
         if (!config.enabled || !config.appId || !config.appSecret) {
