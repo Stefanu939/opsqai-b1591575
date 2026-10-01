@@ -255,8 +255,30 @@ function copyBinaries(stamp, fromVersion) {
   return { dir: dest, events };
 }
 
+/**
+ * Explicit Authenticode check before executing the installer. The SHA-256
+ * pin proves the bytes match the published release; this proves the binary
+ * is signed by a trusted publisher and was not tampered with after signing.
+ * Unsigned dev builds are allowed only when OPSQAI_ALLOW_UNSIGNED_UPDATES=1.
+ */
+function verifyAuthenticode(exePath) {
+  const ps = `(Get-AuthenticodeSignature -LiteralPath '${exePath.replace(/'/g, "''")}').Status`;
+  const r = spawnSync(
+    "powershell.exe",
+    ["-NoProfile", "-NonInteractive", "-Command", ps],
+    { encoding: "utf8" },
+  );
+  const status = String(r.stdout || "").trim();
+  if (status === "Valid") return log("install", "Authenticode signature valid");
+  if (status === "NotSigned" && process.env.OPSQAI_ALLOW_UNSIGNED_UPDATES === "1") {
+    return log("install", "WARNING: installer not signed (allowed by OPSQAI_ALLOW_UNSIGNED_UPDATES)");
+  }
+  throw new Error(`installer signature check failed (${status || "unknown"})`);
+}
+
 function runInstaller(exePath) {
   const events = [];
+  events.push(verifyAuthenticode(exePath));
   events.push(log("install", `running ${exePath} /S /Update`));
   const r = spawnSync(exePath, ["/S", "/Update"], { stdio: "inherit" });
   if ((r.status ?? 1) !== 0) throw new Error(`installer failed (exit ${r.status})`);

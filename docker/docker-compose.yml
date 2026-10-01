@@ -36,7 +36,8 @@ services:
       # Public URL of this install (used in emails, OAuth callbacks)
       OPSQAI_PUBLIC_URL: ${OPSQAI_PUBLIC_URL}
     ports:
-      - "${OPSQAI_PORT:-3000}:3000"
+      # Bound to loopback only: expose via a TLS reverse proxy (Caddy/nginx), never directly.
+      - "127.0.0.1:${OPSQAI_PORT:-3000}:3000"
     networks: [opsqai-net]
 
   postgres:
