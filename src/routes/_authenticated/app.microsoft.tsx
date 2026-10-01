@@ -94,6 +94,9 @@ function MicrosoftPage() {
   const L = TXT[(lang === "ro" || lang === "de" ? lang : "en") as "ro" | "en" | "de"];
   const qc = useQueryClient();
   const fetchSettings = useServerFn(getMicrosoftSettings);
+  const fetchTeams = useServerFn(getTeamsSettings);
+  const saveTeams = useServerFn(saveTeamsSettings);
+  const testTeams = useServerFn(testTeamsBotConnection);
   const save = useServerFn(saveMicrosoftSettings);
   const test = useServerFn(testMicrosoftConnection);
   const add = useServerFn(addSharePointSource);
