@@ -74,7 +74,7 @@ function inFolder(item: DriveItem, folder: string): boolean {
   return rel === folder || rel.startsWith(`${folder}/`);
 }
 
-let running = new Set<string>();
+const running = new Set<string>();
 
 export async function syncSharePointSource(sourceId: string): Promise<Record<string, number>> {
   if (running.has(sourceId)) throw new Error("A sync for this folder is already running.");
