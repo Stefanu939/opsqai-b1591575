@@ -25,7 +25,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/side-panel";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { RiskAction, TransportOverview } from "@/lib/transport/types";
 import { useRiskActionMutations } from "./use-transport";
