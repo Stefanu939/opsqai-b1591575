@@ -235,7 +235,7 @@ export const listEmailMessages = createServerFn({ method: "POST" })
       search = `AND (m.subject ILIKE $${params.length + 1} OR m.preview ILIKE $${params.length + 1} OR m.from_email ILIKE $${params.length + 1})`;
       params.push(`%${data.q.trim()}%`);
     }
-    const rows = await mq<Record<string, unknown>>(
+    const rows = await mq<EmailListRow>(
       `SELECT m.id, m.subject, m.from_name, m.from_email,
               m.received_at::text AS received_at, m.preview, m.has_attachments,
               m.attachment_names, m.classification, m.priority, m.status,
@@ -262,7 +262,7 @@ export const getEmailMessage = createServerFn({ method: "POST" })
     await guard(context);
     const companyId = await requireCompanyId(context);
     const { mq } = await import("@/lib/microsoft/db.server");
-    const rows = await mq<Record<string, unknown>>(
+    const rows = await mq<EmailMessageRow>(
       `SELECT m.id, m.message_id, m.subject, m.from_name, m.from_email,
               m.received_at::text AS received_at, m.preview, m.has_attachments,
               m.attachment_names, m.body_text, m.classification, m.priority,
@@ -302,7 +302,7 @@ export const getEmailMessage = createServerFn({ method: "POST" })
       }
     }
 
-    const draftRows = await mq<Record<string, unknown>>(
+    const draftRows = await mq<EmailDraftRow>(
       `SELECT id, draft, sources, grounded, status, edited_by, edited_at::text,
               approved_by, approved_at::text, created_at::text
          FROM public.email_drafts
@@ -353,8 +353,8 @@ export const generateEmailDraft = createServerFn({ method: "POST" })
     const companyId = await requireCompanyId(context);
     const { mq } = await import("@/lib/microsoft/db.server");
 
-    const rows = await mq<Record<string, unknown>>(
-      `SELECT m.id, m.subject, m.from_name, m.from_email, m.body_text, m.preview
+    const rows = await mq<Pick<EmailMessageRow, "id" | "subject" | "from_name" | "from_email" | "body_text" | "preview" | "message_id">>(
+      `SELECT m.id, m.message_id, m.subject, m.from_name, m.from_email, m.body_text, m.preview
          FROM public.email_messages m
         WHERE m.id = $1 AND m.company_id = $2`,
       [data.id, companyId],
