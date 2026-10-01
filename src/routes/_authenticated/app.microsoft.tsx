@@ -101,6 +101,7 @@ function MicrosoftPage() {
   const toggle = useServerFn(setSharePointSourceEnabled);
   const remove = useServerFn(removeSharePointSource);
   const q = useQuery({ queryKey: ["microsoft-settings"], queryFn: () => fetchSettings() });
+  const qTeams = useQuery({ queryKey: ["teams-settings"], queryFn: fetchTeams });
 
   const [tenantId, setTenant] = useState("");
   const [clientId, setClient] = useState("");
@@ -109,14 +110,18 @@ function MicrosoftPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [src, setSrc] = useState({ label: "", site_url: "", folder_path: "" });
   const [origin, setOrigin] = useState("");
+  const [teamsApp, setTeamsApp] = useState("");
+  const [teamsSecret, setTeamsSecret] = useState("");
+  const [teamsEnabled, setTeamsEnabled] = useState(false);
+  const [hook, setHook] = useState("");
 
   useEffect(() => setOrigin(window.location.origin), []);
+  useEffect(() => setHook(`${window.location.origin}/api/public/teams`), []);
   useEffect(() => {
-    if (!q.data) return;
-    setTenant(q.data.tenantId);
-    setClient(q.data.clientId);
-    setSso(q.data.ssoEnabled);
-  }, [q.data]);
+    if (!qTeams.data) return;
+    setTeamsApp(qTeams.data.appId);
+    setTeamsEnabled(qTeams.data.enabled);
+  }, [qTeams.data]);
 
   const run = async (key: string, fn: () => Promise<unknown>, okMsg?: string) => {
     setBusy(key);
@@ -206,6 +211,44 @@ function MicrosoftPage() {
                 </ul>
               </>
             )}
+          </Panel>
+
+          <Panel className="p-5 space-y-4">
+            <div><h2 className="font-semibold">{L.teams}</h2><p className="text-sm text-muted-foreground">{L.teamsDesc}</p></div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>{L.teamsApp}</Label>
+                <Input value={teamsApp} onChange={(e) => setTeamsApp(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{L.teamsSecret}</Label>
+                <Input type="password" autoComplete="off" value={teamsSecret} placeholder={qTeams.data?.hasSecret ? L.teamsSecretKeep : ""} onChange={(e) => setTeamsSecret(e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>{L.teamsHook}</Label>
+              <div className="flex gap-2">
+                <Input readOnly value={hook} className="font-mono text-xs" />
+                <Button variant="outline" size="icon" aria-label="Copy" onClick={() => { void navigator.clipboard.writeText(hook); toast.success("OK"); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-md border p-3">
+              <Switch checked={teamsEnabled} onCheckedChange={setTeamsEnabled} id="teams-enabled" />
+              <div><Label htmlFor="teams-enabled">{L.teamsEnabled}</Label><p className="text-xs text-muted-foreground">{L.teamsDesc}</p></div>
+            </div>
+            <div className="flex gap-2">
+              <Button disabled={busy !== null || !teamsApp} onClick={() => run("teams-save", async () => {
+                await saveTeams({ data: { appId: teamsApp, appSecret: teamsSecret || undefined, enabled: teamsEnabled } });
+                setTeamsSecret("");
+                await qc.invalidateQueries({ queryKey: ["teams-settings"] });
+              }, L.saved)}>{L.teamsSave}</Button>
+              <Button variant="outline" disabled={busy !== null || !qTeams.data?.configured} onClick={() => run("teams-test", async () => {
+                const r = await testTeams({ data: {} });
+                if (!r.ok) throw new Error(r.error);
+              }, L.teamsOk)}>{L.teamsTest}</Button>
+            </div>
           </Panel>
         </div>
       )}
