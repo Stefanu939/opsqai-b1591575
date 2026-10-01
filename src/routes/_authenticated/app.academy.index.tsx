@@ -6,6 +6,7 @@ import { listMyTraining, getMyTrainingSummary } from "@/lib/academy-lms.function
 import { listAcademyPaths } from "@/lib/academy.functions";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/i18n";
+import { translateLabel } from "@/i18n/ui-labels";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
