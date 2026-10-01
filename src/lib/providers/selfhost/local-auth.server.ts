@@ -334,9 +334,13 @@ export function createLocalAuthProvider(deps: LocalAuthDeps): IAuthProvider {
       if (!user || user.disabled) return; // Do not reveal existence.
       const token = newOpaqueToken();
       const expiresAt = new Date(now().getTime() + PASSWORD_RESET_TTL_SEC * 1000);
+      // Database-enforced throttle: at most 3 reset tokens per user per hour,
+      // evaluated atomically in the INSERT so parallel requests cannot bypass it.
       await pool.query(
         `INSERT INTO public.password_resets (user_id, token_hash, expires_at)
-         VALUES ($1, $2, $3)`,
+         SELECT $1, $2, $3
+          WHERE (SELECT count(*) FROM public.password_resets
+                  WHERE user_id = $1 AND created_at > now() - interval '1 hour') < 3`,
         [user.id, sha256Hex(token), expiresAt],
       );
       // The token is returned via a side channel (SMTP provider or Windows
