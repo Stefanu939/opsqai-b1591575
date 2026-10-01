@@ -265,3 +265,23 @@ export async function issueAcademyCertificate(context: { supabase: any; userId: 
 
   return { id: certId, code, path: pdfPath };
 }
+
+/**
+ * Standard, non-configurable verification address for certificate QR codes:
+ * always this installation itself (APP_URL from the installer, otherwise the
+ * public host the request arrived on via Caddy).
+ */
+export function resolveCertificateVerifyBase(): string {
+  const fromEnv = process.env["APP_URL"];
+  if (fromEnv) return fromEnv.replace(/\/+$/, "");
+  try {
+    const req = getRequest();
+    const h = req.headers;
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const proto = (h.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(":", "")).split(",")[0];
+    if (host) return `${proto}://${host.split(",")[0].trim()}`;
+    return new URL(req.url).origin;
+  } catch {
+    return "https://opsqai.de";
+  }
+}
