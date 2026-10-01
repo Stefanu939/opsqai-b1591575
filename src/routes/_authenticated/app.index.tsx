@@ -226,7 +226,7 @@ function Dashboard() {
         />
       </div>
 
-      {isEmptyWorkspace && (
+      {false && isEmptyWorkspace && (
         /* Onboarding cards — shown alongside the live widgets, never instead */
         <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
           {!data ? (
@@ -352,17 +352,61 @@ function DashboardWidgets() {
       ].filter((s) => Number(s.value) > 0)
     : [];
 
-  return (
-    <div className="mx-auto max-w-7xl space-y-4 px-4 py-6 md:px-6 md:py-8">
-      <DashboardFilters value={filters} onChange={update} />
+  void update;
+  const healthScore = Number((health as { score?: number } | undefined)?.score ?? 0);
+  const confidencePct = kpis?.avgConfidence ? Math.round(kpis.avgConfidence * 100) : 0;
+  const totalDocs = status ? status.complete + status.inProgress + status.missing : 0;
+  const completePct = totalDocs ? Math.round((status!.complete / totalDocs) * 100) : 0;
+  const bars = [
+    { label: "Sănătatea spațiului de lucru", value: healthScore },
+    { label: "Încredere AI (30 zile)", value: confidencePct },
+    { label: "Documente complete", value: completePct },
+  ];
 
-      <ManagementOverview />
+  return (
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6 md:py-8">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <ControlCenter />
+          <Panel title="Acțiuni rapide" icon={Sparkles}>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {QUICK_ACTIONS.map((a) => (
+                <Link
+                  key={a.to}
+                  to={a.to}
+                  className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-primary/10"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <a.icon className="h-4 w-4" />
+                  </span>
+                  <span className="truncate">{a.label}</span>
+                </Link>
+              ))}
+            </div>
+          </Panel>
+        </div>
+        <aside className="space-y-6">
+          <Panel title="Starea operațională" icon={Activity}>
+            <div className="space-y-4">
+              {bars.map((b) => (
+                <div key={b.label}>
+                  <div className="mb-1.5 flex justify-between text-sm">
+                    <span className="text-muted-foreground">{b.label}</span>
+                    <span className="font-medium tabular-nums">{b.value}%</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${b.value}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+          <UpcomingCard scope="platform" to="/app/calendar" />
+        </aside>
+      </div>
 
       <ModuleKpis />
 
-      <ControlCenter />
-
-      <UpcomingCard scope="platform" to="/app/calendar" />
 
       <BentoGrid>
         {/* KPI row */}
