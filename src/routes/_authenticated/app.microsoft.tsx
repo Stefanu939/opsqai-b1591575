@@ -22,6 +22,7 @@ import {
   syncSharePointNow,
   testMicrosoftConnection,
 } from "@/lib/microsoft365.functions";
+import { getTeamsSettings, saveTeamsSettings, testTeamsBotConnection } from "@/lib/teams-settings.functions";
 
 export const Route = createFileRoute("/_authenticated/app/microsoft")({
   head: () => ({
@@ -49,6 +50,10 @@ const TXT = {
     sp: "Foldere SharePoint", spDesc: "Documentele noi și modificate se actualizează automat la 30 de minute. Versiunile vechi sunt dezactivate, iar citările au buton către fișierul original.",
     label: "Nume", site: "Link site SharePoint", folder: "Folder (ex. Proceduri/HR)", add: "Adaugă folder",
     sync: "Sincronizează acum", never: "Nesincronizat", needCfg: "Salvează mai întâi înregistrarea aplicației.",
+    teams: "Bot Microsoft Teams", teamsDesc: "Botul răspunde în chaturi 1:1 și în canale doar din Knowledge Base-ul companiei, cu citarea surselor. Răspunsurile nu ies din datele companiei.",
+    teamsApp: "Bot App ID (Microsoft App ID)", teamsSecret: "Client secret al botului", teamsSecretKeep: "Salvat — lasă gol ca să îl păstrezi",
+    teamsEnabled: "Activează botul în Teams", teamsHook: "Messaging endpoint (de setat în înregistrarea botului)",
+    teamsSave: "Salvează botul", teamsTest: "Testează botul", teamsOk: "Conexiunea botului funcționează",
   },
   en: {
     eyebrow: "Integrations", title: "Microsoft 365",
@@ -61,6 +66,10 @@ const TXT = {
     sp: "SharePoint folders", spDesc: "New and changed documents update automatically every 30 minutes. Old versions are deactivated and citations link to the original file.",
     label: "Name", site: "SharePoint site link", folder: "Folder (e.g. Procedures/HR)", add: "Add folder",
     sync: "Sync now", never: "Not synced yet", needCfg: "Save the app registration first.",
+    teams: "Microsoft Teams bot", teamsDesc: "The bot answers in 1:1 chats and channels only from the company Knowledge Base, with source citations. Nothing leaves company data.",
+    teamsApp: "Bot App ID (Microsoft App ID)", teamsSecret: "Bot client secret", teamsSecretKeep: "Saved — leave empty to keep it",
+    teamsEnabled: "Enable the bot in Teams", teamsHook: "Messaging endpoint (set in the bot registration)",
+    teamsSave: "Save bot", teamsTest: "Test bot", teamsOk: "Bot connection works",
   },
   de: {
     eyebrow: "Integrationen", title: "Microsoft 365",
@@ -73,6 +82,10 @@ const TXT = {
     sp: "SharePoint-Ordner", spDesc: "Neue und geänderte Dokumente werden alle 30 Minuten aktualisiert. Alte Versionen werden deaktiviert, Zitate verlinken auf die Originaldatei.",
     label: "Name", site: "Link zur SharePoint-Website", folder: "Ordner (z. B. Verfahren/HR)", add: "Ordner hinzufügen",
     sync: "Jetzt synchronisieren", never: "Noch nicht synchronisiert", needCfg: "Speichern Sie zuerst die App-Registrierung.",
+    teams: "Microsoft Teams Bot", teamsDesc: "Der Bot antwortet in 1:1-Chats und Kanälen ausschließlich aus der Wissensdatenbank des Unternehmens, mit Quellenangabe. Unternehmensdaten verlassen die Firma nicht.",
+    teamsApp: "Bot-App-ID (Microsoft App ID)", teamsSecret: "Geheimer Clientschlüssel des Bots", teamsSecretKeep: "Gespeichert — leer lassen zum Beibehalten",
+    teamsEnabled: "Bot in Teams aktivieren", teamsHook: "Messaging-Endpunkt (in der Bot-Registrierung einzutragen)",
+    teamsSave: "Bot speichern", teamsTest: "Bot testen", teamsOk: "Bot-Verbindung funktioniert",
   },
 };
 
