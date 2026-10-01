@@ -197,39 +197,36 @@ function writeNotice(notice) {
   }
 }
 
-/** Run apply.js in-process; it owns snapshots, rollback and history. */
-async function applyStaged(state) {
+/** Start apply.js from an out-of-tree copy (runner.js) so it can stop every
+ * OPSQAI service — including this updater — and replace files without
+ * Windows file locks. The runner writes notice/state/history itself. */
+async function applyStaged(state, mode = "apply") {
   if (fs.existsSync(APPLY_LOCK)) {
     log("an apply is already running — skipping");
     return;
   }
   const version = state.lastStaged?.version;
-  log(`maintenance window: applying ${version} automatically`);
+  log(mode === "rollback" ? "launching rollback runner" : `launching update runner for ${version}`);
   writeNotice({
     at: new Date().toISOString(),
-    version,
+    version: mode === "rollback" ? null : version,
     outcome: "running",
+    kind: mode === "rollback" ? "rollback" : "update",
     automatic: true,
   });
-  let outcome = "success";
+  writeProgress({ phase: mode === "rollback" ? "rolling_back" : "installing", version });
   try {
-    const apply = require("./apply");
-    await apply.main();
-    if (process.exitCode && process.exitCode !== 0) outcome = "failed";
+    const { launchRunner } = require("./runner");
+    const r = launchRunner(mode);
+    log(`runner started (pid ${r.pid}) — log ${r.logFile}`);
+    if (mode === "apply") {
+      state.lastApply = { version, outcome: "running", at: new Date().toISOString() };
+      saveState(state);
+    }
   } catch (e) {
-    warn(`automatic apply failed: ${e.message}`);
-    outcome = "failed";
+    warn(`cannot start update runner: ${e.message}`);
+    writeNotice({ at: new Date().toISOString(), version, outcome: "failed", error: e.message });
   }
-  process.exitCode = 0;
-  writeNotice({
-    at: new Date().toISOString(),
-    version,
-    outcome,
-    automatic: true,
-    fromVersion: CURRENT_VERSION,
-  });
-  state.lastApply = { version, outcome, at: new Date().toISOString() };
-  saveState(state);
 }
 
 function isNewer(remote, current) {
@@ -348,28 +345,33 @@ function restartMachine() {
   runDetached("shutdown.exe", ["/r", "/t", "20", "/c", "OPSQAI update: restarting Windows"]);
 }
 
+let polling = false;
+async function safePoll(command) {
+  if (polling) return;
+  polling = true;
+  try {
+    await pollOnce(command);
+  } finally {
+    polling = false;
+  }
+}
+
+/** Every command from the application acts within seconds, not on the slow poll. */
 function watchRestartCommands() {
-  let c = null;
-  try {
-    c = JSON.parse(fs.readFileSync(COMMAND, "utf8"));
-  } catch {
-    return;
-  }
-  if (!c || (c.action !== "restart" && c.action !== "restart-machine")) return;
-  try {
-    fs.unlinkSync(COMMAND);
-  } catch {
-    /* already taken */
-  }
-  if (c.action === "restart-machine") restartMachine();
-  else restartServices();
+  const c = takeCommand();
+  if (!c) return;
+  log(`command received: ${c.action}`);
+  if (c.action === "restart-machine") return restartMachine();
+  if (c.action === "restart") return restartServices();
+  if (c.action === "rollback") return void applyStaged(loadState(), "rollback");
+  void safePoll(c); // check / download / install
 }
 
 
-async function pollOnce() {
+async function pollOnce(cmd) {
   const state = loadState();
   state.lastCheck = new Date().toISOString();
-  const command = takeCommand();
+  const command = cmd ?? takeCommand();
 
   // 1) Management Center (source of truth).
   const mc = readAvailable();
@@ -445,9 +447,7 @@ async function pollOnce() {
     state.lastApply?.version !== state.lastStaged.version &&
     (command?.action === "install" || inWindow(policy))
   ) {
-    writeProgress({ phase: "installing", version: state.lastStaged.version });
     await applyStaged(state);
-    writeProgress({ phase: "done", version: state.lastStaged.version });
   }
 }
 
@@ -456,9 +456,8 @@ module.exports = {
 };
 
 if (require.main === module) {
-  pollOnce();
-  setInterval(pollOnce, POLL_MS);
-  // Restart requests must act within seconds, not on the slow poll.
-  setInterval(watchRestartCommands, 5_000);
+  void safePoll();
+  setInterval(() => void safePoll(), POLL_MS);
+  setInterval(watchRestartCommands, 3_000);
 }
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => process.exit(0));
