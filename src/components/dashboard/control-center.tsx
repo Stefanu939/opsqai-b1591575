@@ -17,6 +17,8 @@ import {
   Sparkles,
   UserMinus,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -92,49 +94,57 @@ function relative(date: string | null | undefined, c: Record<string, string>) {
   return (c.inDays ?? "").replace("{n}", String(days));
 }
 
+const KIND_LINK: Partial<Record<ControlCenterItem["kind"], string>> = {
+  academy: "/app/academy",
+  event: "/app/calendar",
+  absence: "/app/calendar",
+  audit: "/app/audit",
+};
+
+const OPEN: Record<Lang, string> = { en: "Open module", de: "Modul öffnen", ro: "Deschide modulul" };
+const ALL: Record<Lang, string> = { en: "All", de: "Alle", ro: "Toate" };
+
+function dotClass(sev: ControlCenterItem["severity"]) {
+  return sev === "critical" ? "bg-destructive" : sev === "warning" ? "bg-warning" : "bg-primary";
+}
+
 function Lane({
   title,
   icon,
   items,
   copy,
+  onPick,
 }: {
   title: string;
   icon: typeof AlertTriangle;
   items: ControlCenterItem[];
   copy: Record<string, string>;
+  onPick: (i: ControlCenterItem) => void;
 }) {
   return (
     <Panel title={title} icon={icon} className="h-full">
       {items.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">{copy.empty}</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-border/60">
           {items.map((i) => (
-            <li
-              key={i.id}
-              className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 p-3"
-            >
-              <span
-                aria-hidden
-                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                  i.severity === "critical"
-                    ? "bg-destructive"
-                    : i.severity === "warning"
-                      ? "bg-amber-500"
-                      : "bg-primary"
-                }`}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{i.title}</div>
-                {i.detail && (
-                  <div className="truncate text-xs text-muted-foreground">{i.detail}</div>
+            <li key={i.id}>
+              <button
+                type="button"
+                onClick={() => onPick(i)}
+                className="flex w-full items-start gap-3 rounded-md px-2 py-2.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span aria-hidden className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dotClass(i.severity)}`} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{i.title}</div>
+                  {i.detail && <div className="truncate text-xs text-muted-foreground">{i.detail}</div>}
+                </div>
+                {i.date && (
+                  <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+                    {relative(i.date, copy)}
+                  </span>
                 )}
-              </div>
-              {i.date && (
-                <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-                  {relative(i.date, copy)}
-                </span>
-              )}
+              </button>
             </li>
           ))}
         </ul>
@@ -151,6 +161,8 @@ export function ControlCenter() {
   const load = useServerFn(getControlCenter);
   const exportPdf = useServerFn(exportControlCenterPdf);
   const [busy, setBusy] = useState(false);
+  const [filter, setFilter] = useState<ControlCenterItem["severity"] | null>(null);
+  const [picked, setPicked] = useState<ControlCenterItem | null>(null);
 
   const q = useQuery({ queryKey: ["control-center"], queryFn: () => load() });
 
@@ -174,23 +186,27 @@ export function ControlCenter() {
   const data = q.data;
   if (!data) return null;
 
+  const f = (items: ControlCenterItem[]) => (filter ? items.filter((i) => i.severity === filter) : items);
+  const tiles: Array<{ sev: ControlCenterItem["severity"]; label: string; n: number }> = [
+    { sev: "critical", label: c.critical, n: data.counts.critical },
+    { sev: "warning", label: c.warning, n: data.counts.warning },
+    { sev: "info", label: c.info, n: data.counts.info },
+  ];
+  const link = picked ? KIND_LINK[picked.kind] : undefined;
+
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex items-center gap-2 rounded-sm border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-primary">
           <Sparkles className="h-3 w-3" />
           {c.eyebrow}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={data.counts.critical > 0 ? "destructive" : "outline"}>
-            {c.critical}: {data.counts.critical}
-          </Badge>
-          <Badge variant="secondary">
-            {c.warning}: {data.counts.warning}
-          </Badge>
-          <Badge variant="outline">
-            {c.info}: {data.counts.info}
-          </Badge>
+        <div className="flex items-center gap-2">
+          {filter && (
+            <Button variant="ghost" size="sm" onClick={() => setFilter(null)}>
+              {ALL[l]}
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={download} disabled={busy}>
             <Download className="mr-2 h-4 w-4" />
             {busy ? c.exporting : c.pdf}
@@ -198,17 +214,63 @@ export function ControlCenter() {
         </div>
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-3">
+        {tiles.map((t) => (
+          <button
+            key={t.sev}
+            type="button"
+            aria-pressed={filter === t.sev}
+            onClick={() => setFilter(filter === t.sev ? null : t.sev)}
+            className={`flex items-center justify-between rounded-lg border bg-card px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              filter === t.sev ? "border-foreground/40" : "border-border"
+            }`}
+          >
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${dotClass(t.sev)}`} />
+              {t.label}
+            </span>
+            <span className="font-display text-3xl tabular-nums">{t.n}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <Lane title={c.deadlines} icon={FileWarning} items={data.deadlines} copy={c} />
-        <Lane title={c.safety} icon={ShieldAlert} items={data.safety} copy={c} />
-        <Lane title={c.absences} icon={UserMinus} items={data.absences} copy={c} />
-        <Lane title={c.events} icon={CalendarClock} items={data.events} copy={c} />
+        <Lane title={c.deadlines} icon={FileWarning} items={f(data.deadlines)} copy={c} onPick={setPicked} />
+        <Lane title={c.safety} icon={ShieldAlert} items={f(data.safety)} copy={c} onPick={setPicked} />
+        <Lane title={c.absences} icon={UserMinus} items={f(data.absences)} copy={c} onPick={setPicked} />
+        <Lane title={c.events} icon={CalendarClock} items={f(data.events)} copy={c} onPick={setPicked} />
         {data.audits.length > 0 && (
           <div className="lg:col-span-2">
-            <Lane title={c.audits} icon={AlertTriangle} items={data.audits} copy={c} />
+            <Lane title={c.audits} icon={AlertTriangle} items={f(data.audits)} copy={c} onPick={setPicked} />
           </div>
         )}
       </div>
+
+      <Sheet open={picked !== null} onOpenChange={(o) => !o && setPicked(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          {picked && (
+            <>
+              <SheetHeader className="text-left">
+                <Badge variant={picked.severity === "critical" ? "destructive" : "outline"} className="w-fit">
+                  {picked.severity === "critical" ? c.critical : picked.severity === "warning" ? c.warning : c.info}
+                </Badge>
+                <SheetTitle>{picked.title}</SheetTitle>
+                {picked.detail && <SheetDescription>{picked.detail}</SheetDescription>}
+              </SheetHeader>
+              {picked.date && (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  {new Date(picked.date).toLocaleDateString(l)} · {relative(picked.date, c)}
+                </p>
+              )}
+              {link && (
+                <Button asChild className="mt-6">
+                  <Link to={link}>{OPEN[l]}</Link>
+                </Button>
+              )}
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </section>
   );
 }

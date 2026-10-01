@@ -11,6 +11,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import type { transportUi } from "@/i18n/pages/transport";
 import type { DutyDay, FuelEntry, TransportOverview } from "@/lib/transport/types";
 import { RecordDialog } from "./record-dialog";
+import { DispatchStrip } from "./dispatch-strip";
 import {
   driverFields,
   trailerFields,
@@ -154,6 +155,7 @@ export function FleetBoard({
 
   return (
     <div className="grid gap-4">
+      <DispatchStrip data={data} lang={lang} />
       <Panel
         icon={Truck}
         title={t.operationsBoard}
